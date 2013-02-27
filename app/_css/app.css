@@ -6965,18 +6965,18 @@ textarea.bugReport {
 #countries path {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
-  fill: black;
-  fill-opacity: 0.2;
   stroke: #1e3d4b;
   stroke-width: 1px;
   stroke-opacity: 0;
+  fill: black;
+  fill-opacity: 0.2;
 }
 #countries path.updating {
-  stroke: white;
-  stroke-opacity: 0.5;
+  stroke: white !important;
+  stroke-opacity: 0.5 !important;
 }
 #countries path:hover {
-  stroke-opacity: 1;
+  stroke-opacity: 1 !important;
 }
 #countries path.AQ {
   display: none;
@@ -6994,9 +6994,8 @@ path.connection {
   fill: none;
   stroke-width: 1px;
   stroke: white;
-  -webkit-transition: opacity 0.5s ease;
-  transition: opacity 0.5s ease;
-  opacity: 0.25;
+  -webkit-transition: stroke-opacity 0.5s ease;
+  transition: stroke-opacity 0.5s ease;
 }
 
 g.transferring path.connection {

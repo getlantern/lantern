@@ -14,13 +14,9 @@
   "showVis": false,
   "connectivity":{
     "gtalkOauthUrl":"/mock/googleOauth.html",
-    "gtalk":"notConnected",
-    "peers":{
-      "current":[],
-      "lifetime":[],
-      "pending":[]
-    }
+    "gtalk":"notConnected"
   },
+  "peers":[],
   "transfers":{
     "bpsUp":0,
     "bpsDn":0,
@@ -32,7 +28,7 @@
   "roster":[],
   "nproxiedSitesMax":1000,
   "profile":"",
-  "friends":"",
+  "friends":[],
   "settings":{
     "mode":"",
     "lang":"",

@@ -15,16 +15,16 @@ $waterColor: rgba(6, 21, 50, .1)
 
 #countries path
   +single-transition(all, 0.5s, ease)
-  fill: #000
-  fill-opacity: .2
   stroke: rgb(30, 61, 75)
   stroke-width: 1px
   stroke-opacity: 0
+  fill: #000
+  fill-opacity: .2
   &.updating
-    stroke: #fff
-    stroke-opacity: .5
+    stroke: #fff !important
+    stroke-opacity: .5 !important
   &:hover
-    stroke-opacity: 1
+    stroke-opacity: 1 !important
   &.AQ // antarctica
     display: none
 
@@ -38,8 +38,7 @@ path.connection
   fill: none
   stroke-width: 1px
   stroke: #fff
-  +single-transition(opacity, 0.5s, ease)
-  opacity: .25
+  +single-transition(stroke-opacity, 0.5s, ease)
 
 g.transferring path.connection
   opacity: 1

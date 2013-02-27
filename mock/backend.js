@@ -151,7 +151,7 @@ _globalModals[INTERACTION.lanternFriends] = MODAL.lanternFriends;
 _globalModals[INTERACTION.proxiedSites] = MODAL.proxiedSites;
 _globalModals[INTERACTION.settings] = MODAL.settings;
 _globalModals[INTERACTION.scenarios] = MODAL.scenarios;
-_.forEach(_globalModals, function(modal, interaction) {
+_.each(_globalModals, function(modal, interaction) {
   MockBackend._handlerForInteraction[interaction] = function(res, data) {
     if (this.model.modal == modal) return;
     this._internalState.lastModal = this.model.modal;

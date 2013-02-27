@@ -406,63 +406,57 @@ the backend maintains on the frontend through comet publications:
             Google Talk connectivity.
           </td>
         </tr>
-        <tr>
-          <td><strong>peers</strong><br><em>object[]</em></td>
-          <td>
-            <table>
-              <tr><td><strong>current</strong><br><em>object[]</em></td>
-                  <td>as in lifetime, but for only currently-online
-                      (or -connected) peers</td></tr>
-              <tr><td><strong>lifetime</strong><br><em>object[]</em></td>
-                <td>
-                  <table>
-                    <tr><td><strong>email</strong><br><em>string</em></td>
-                      <td>email for the user that owns this peer, if known.<br><br>
-                      </small></strong></td></tr>
-                    <tr><td><strong>name</strong><br><em>string</em></td>
-                      <td>name for the user that owns this peer, if known.<br><br>
-                      </small></strong></td></tr>
-                    <tr><td><strong>peerid</strong><br><em>string</em></td>
-                        <td>unique identifier for this peer<br><br>
-                            <strong><small>* Needed because multiple peers for
-                            the same user are possible, since a user could be
-                            running Lantern from several personal computers and/or
-                            sponsoring cloud proxies</small></strong><br><br>
-                            <strong><small>* Should not reveal identity of
-                            associated user</small></strong></td></tr>
-                    <tr><td><strong>type</strong><br>"desktop" | "cloud" | "laeproxy"</td>
-                        <td>type of Lantern peer<br><br>
-                        <strong><small>* cloud and laeproxy peers will have
-                        users associated with them via kaleidoscope</small>
-                        </strong></td></tr>
-                    <tr><td><strong>version</strong><br><em>string</em></td>
-                        <td>version of client software the peer is running</td></tr>
-                    <tr><td><strong>mode</strong><br>"give" | "get"</td>
-                        <td>(last known) mode this peer is running in</td></tr>
-                    <tr><td><strong>ip</strong><br><em>string</em></td>
-                        <td>(last known) ip address of peer</td></tr>
-                    <tr><td><strong>lat</strong><br><em>float</em></td>
-                        <td>(last known) latitude of peer (as reported by geoip lookup)</td></tr>
-                    <tr><td><strong>lon</strong><br><em>float</em></td>
-                        <td>(last known) longitude of peer (as reported by geoip lookup)</td></tr>
-                    <tr><td><strong>country</strong><br>two-letter code</td>
-                        <td>(last known) country of peer (as reported by geoip lookup)</td></tr>
-                    <tr><td><strong>bpsUp</strong><br><em>number</em></td>
-                        <td>instantaneous upload rate to this peer</td></tr>
-                    <tr><td><strong>bpsDn</strong><br><em>number</em></td>
-                        <td>instantaneous download rate from this peer</td></tr>
-                    <tr><td><strong>bpsUpDn</strong><br><em>number</em></td>
-                        <td>instantaneous upload+download rate with this peer</td></tr>
-                    <tr><td><strong>bytesUp</strong><br><em>number</em></td>
-                        <td>lifetime bytes uploaded to this peer</td></tr>
-                    <tr><td><strong>bytesDn</strong><br><em>number</em></td>
-                        <td>lifetime bytes downloaded from this peer</td></tr>
-                    <tr><td><strong>bytesUpDn</strong><br><em>number</em></td>
-                        <td>lifetime bytes transferred with this peer</td></tr>
-                  </table></td></tr>
-            </table>
-          </td>
-        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>peers</strong><br><em>object[]</em></td>
+    <td>
+      List of all peers we've ever connected to.
+      <table>
+        <tr><td><strong>peerid</strong><br><em>string</em></td>
+            <td>unique identifier for this peer<br><br>
+                <strong><small>* Needed because multiple peers for
+                the same user are possible, since a user could be
+                running Lantern from several personal computers and/or
+                sponsoring cloud proxies</small></strong><br><br>
+                <strong><small>* Should not reveal identity of
+                associated user</small></strong></td></tr>
+        <tr><td><strong>rosterEntry</strong><br><em>object</em></td>
+          <td>roster entry for this peer if in roster</td></tr>
+        <tr><td><strong>type</strong><br>"desktop" | "cloud" | "laeproxy"</td>
+            <td>type of Lantern peer<br><br>
+            <strong><small>* cloud and laeproxy peers will have
+            users associated with them via kaleidoscope</small>
+            </strong></td></tr>
+        <tr><td><strong>connected</strong><br><em>boolean</em></td>
+            <td>whether user is currently connected to this peer</td></tr>
+        <tr><td><strong>lastConnected</strong><br><em>date</em></td>
+            <td>time the user last connected to this peer</td></tr>
+        <tr><td><strong>version</strong><br><em>string</em></td>
+            <td>(last known) version of client software the peer is running</td></tr>
+        <tr><td><strong>mode</strong><br>"give" | "get"</td>
+            <td>(last known) mode this peer is running in</td></tr>
+        <tr><td><strong>ip</strong><br><em>string</em></td>
+            <td>(last known) ip address of peer</td></tr>
+        <tr><td><strong>lat</strong><br><em>float</em></td>
+            <td>(last known) latitude of peer (as reported by geoip lookup)</td></tr>
+        <tr><td><strong>lon</strong><br><em>float</em></td>
+            <td>(last known) longitude of peer (as reported by geoip lookup)</td></tr>
+        <tr><td><strong>country</strong><br>two-letter code</td>
+            <td>(last known) country of peer (as reported by geoip lookup)</td></tr>
+        <tr><td><strong>bpsUp</strong><br><em>number</em></td>
+            <td>instantaneous upload rate to this peer</td></tr>
+        <tr><td><strong>bpsDn</strong><br><em>number</em></td>
+            <td>instantaneous download rate from this peer</td></tr>
+        <tr><td><strong>bpsUpDn</strong><br><em>number</em></td>
+            <td>instantaneous upload+download rate with this peer</td></tr>
+        <tr><td><strong>bytesUp</strong><br><em>number</em></td>
+            <td>lifetime bytes uploaded to this peer</td></tr>
+        <tr><td><strong>bytesDn</strong><br><em>number</em></td>
+            <td>lifetime bytes downloaded from this peer</td></tr>
+        <tr><td><strong>bytesUpDn</strong><br><em>number</em></td>
+            <td>lifetime bytes transferred with this peer</td></tr>
       </table>
     </td>
   </tr>

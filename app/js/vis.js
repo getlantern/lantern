@@ -3,8 +3,12 @@
 angular.module('app.vis', [])
   .constant('CONFIG', {
     style: {
-      countryOpacityMax: .25,
-      countryOpacityMin: .1,
+      connectionOpacityMin: .1,
+      connectionOpacityMax: 1,
+      countryOpacityMin: .01,
+      countryOpacityMax: .2,
+      countryOpacityNoActivity: .2,
+      countryStrokeNoActivity: 'rgb(30, 61, 75)',
       giveModeColor: '#aad092',
       getModeColor: '#ffcc66',
       pointRadiusSelf: 5,
@@ -41,8 +45,8 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       //dragging = false, lastX, lastY,
       redrawThrottled = _.throttle(redraw, 500);
 
-  // disable adaptive resampling to allow transitions (http://bl.ocks.org/mbostock/3711652)
-  _.each(projections, function(p) { p.precision(0); });
+  // disable adaptive resampling to allow projection transitions (http://bl.ocks.org/mbostock/3711652)
+  //_.each(projections, function(p) { p.precision(0); });
 
   $scope.projectionKey = 'mercator';
 
@@ -77,18 +81,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   function drawSelf() {
     path.pointRadius(CONFIG.style.pointRadiusSelf);
     $$self.attr('d', pathSelf());
+    path.pointRadius(CONFIG.style.pointRadiusPeer);
   }
 
   function redraw() {
     globePath.attr('d', pathGlobe());
     drawSelf();
-    if (peerPaths) {
-      path.pointRadius(CONFIG.style.pointRadiusPeer);
-      peerPaths.attr('d', pathPeer);
-    }
-    if (connectionPaths) {
-      connectionPaths.attr('d', pathConnection);
-    }
+    if (peerPaths) peerPaths.attr('d', pathPeer);
+    if (connectionPaths) connectionPaths.attr('d', pathConnection);
     if (countryPaths) countryPaths.attr('d', pathForData);
   }
 
@@ -131,8 +131,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     var countryGeometries = topojson.object(world, world.objects.countries).geometries;
     countryPaths = d3.select('#countries').selectAll('path')
       .data(countryGeometries).enter().append('path')
-        .attr('class', function(d) { return d.alpha2; })
+        .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
         .attr('d', pathForData);
+    _.each(model.countries, function(__, alpha2) { updateCountryStroke(alpha2); });
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
   }
 
@@ -196,9 +197,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     drawSelf();
   }, true);
 
+  var connectionOpacityScale = d3.scale.linear().clamp(true)
+        .range([CONFIG.style.connectionOpacityMin, CONFIG.style.connectionOpacityMax]);
+
   function getPeerid(d) { return d.peerid; }
-  $scope.$watch('model.connectivity.peers.current', function(peers) {
+
+  $scope.$watch('model.peers', function(peers) {
     if (!peers) return;
+
     path.pointRadius(CONFIG.style.pointRadiusPeer);
     peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid);
     peerPaths.enter().append('path').classed('peer', true);
@@ -209,21 +215,25 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       .attr('d', pathPeer);
     peerPaths.exit().remove();
 
-    connectionPaths = $$peers.selectAll('path.connection').data(peers, getPeerid);
+    var connectedPeers = _.filter(peers, 'connected'), maxBpsUpDn = 0;
+    _.each(connectedPeers, function(p) { if (maxBpsUpDn < p.bpsUpDn) maxBpsUpDn = p.bpsUpDn; });
+    connectionOpacityScale.domain([0, maxBpsUpDn]);
+    connectionPaths = $$peers.selectAll('path.connection').data(connectedPeers, getPeerid);
     connectionPaths.enter().append('path').classed('connection', true);
-    connectionPaths.attr('d', pathConnection);
+    connectionPaths.attr('d', pathConnection)
+      .style('stroke-opacity', function(d) { return connectionOpacityScale(d.bpsUpDn); });
     connectionPaths.exit().remove();
   }, true);
 
   var maxGiveGet = 0,
       countryOpacityScale = d3.scale.linear().clamp(true)
         .range([CONFIG.style.countryOpacityMin, CONFIG.style.countryOpacityMax]),
-      countryFillScale = d3.scale.linear().clamp(true),
-      countryFillInterpolator = d3.interpolateRgb(CONFIG.style.giveModeColor,
-                                                  CONFIG.style.getModeColor);
+      countryActivityScale = d3.scale.linear().clamp(true),
+      giveGetColorInterpolator = d3.interpolateRgb(CONFIG.style.giveModeColor,
+                                                   CONFIG.style.getModeColor);
 
-  function updateElement(el, update, duration) {
-    el.classed('updating', true);
+  function updateElement(el, update, animate, duration) {
+    if (animate) el.classed('updating', true);
     if (_.isFunction(update)) {
       update();
     } else if (_.isPlainObject(update)) {
@@ -231,42 +241,43 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     } else {
       log.error('invalid update: expected function or object, got', typeof update);
     }
-    setTimeout(function() { el.classed('updating', false); }, duration || 500);
+    if (animate) setTimeout(function() { el.classed('updating', false); }, duration || 500);
   }
 
-  function updateFill(country) {
-    var npeers = getByPath(model, '/countries/'+country+'/npeers/online');
-    if (!npeers) return;
-    var censors = getByPath(model, '/countries/'+country).censors,
-        scaledOpacity = countryOpacityScale(npeers.giveGet),
-        fill;
-    if (censors) {
-      fill = CONFIG.style.getModeColor;
-      if (npeers.giveGet !== npeers.get) {
-        log.warn('npeers.giveGet (', npeers.giveGet, ') !== npeers.get (', npeers.get, ') for censoring country', country);
-        // XXX POST to exceptional notifier
+  function updateCountryStroke(alpha2, peerCount, animate) {
+    var stroke = CONFIG.style.countryStrokeNoActivity
+    peerCount = peerCount || getByPath(model, '/countries/'+alpha2+'/npeers/online');
+    if (peerCount) {
+      var censors = getByPath(model, '/countries/'+alpha2).censors;
+      if (censors) {
+        if (peerCount.giveGet !== peerCount.get) {
+          log.warn('peerCount.giveGet (', peerCount.giveGet, ') !== peerCount.get (', peerCount.get, ') for censoring country', alpha2);
+          // XXX POST to exceptional notifier
+        }
+        stroke = CONFIG.style.getModeColor;
+      } else {
+        countryActivityScale.domain([-peerCount.giveGet, peerCount.giveGet]);
+        var scaled = countryActivityScale(peerCount.get - peerCount.give);
+        stroke = d3.rgb(giveGetColorInterpolator(scaled));
       }
-    } else {
-      countryFillScale.domain([-npeers.giveGet, npeers.giveGet]);
-      var scaledFill = countryFillScale(npeers.get - npeers.give);
-      fill = d3.rgb(countryFillInterpolator(scaledFill));
     }
-    updateElement(d3.select('path.'+country), {'fill': fill});
+    updateElement(d3.select('path.'+alpha2), {'stroke': stroke,
+      'stroke-opacity': peerCount ? .1 : 0}, animate);
     //log.debug('updated fill for country', country, 'to', fill);
   }
 
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
     if (!countries) return;
     unwatchAllCountries();
-    _.each(countries, function(stats, country) {
-      $scope.$watch('model.countries.'+country+'.npeers.online', function(npeers) {
-        if (!npeers) return;
-        if (npeers.giveGet > maxGiveGet) {
-          maxGiveGet = npeers.giveGet;
+    _.each(countries, function(__, alpha2) {
+      $scope.$watch('model.countries.'+alpha2+'.npeers.online', function(peerCount, peerCountOld) {
+        if (!peerCount) return;
+        if (peerCount.giveGet > maxGiveGet) {
+          maxGiveGet = peerCount.giveGet;
           countryOpacityScale.domain([0, maxGiveGet]);
-          _.each(countries, updateFill);
-        } else {
-          updateFill(country);
+          if (countryPaths) _.each(countries, function(__, alpha2) { updateCountryStroke(alpha2); });
+        } else if (peerCount && !_.isEqual(peerCount, peerCountOld)) {
+          if (countryPaths) updateCountryStroke(alpha2, peerCount, true);
         }
       }, true);
     });

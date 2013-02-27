@@ -9,6 +9,7 @@ var sleep = require('./node_modules/sleep'),
       ENUMS = constants.ENUMS,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODAL = ENUMS.MODAL,
+        MODE = ENUMS.MODE,
         OS = ENUMS.OS;
 
 function make_simple_scenario(state) {
@@ -186,40 +187,35 @@ exports.SCENARIOS = {
                 link: '',
                 picture: '',
                 status: 'away',
-                statusMessage: 'meeting',
-                }
-               ,{
+                statusMessage: 'meeting'
+              },{
                 email: 'lantern_friend2@example.com',
                 name: 'Lantern Friend 2',
                 link: '',
                 picture: '',
                 status: 'available',
-                statusMessage: 'Bangkok',
-                }
-               ,{
+                statusMessage: 'Bangkok'
+              },{
                 email: 'user1@example.com',
                 name: 'User 1',
                 link: '',
                 picture: '',
                 status: 'idle',
                 statusMessage: 'sleeping'
-                }
-               ,{
+              },{
                 email: 'user2@example.com',
                 name: 'User 2',
                 link: '',
                 picture: '',
                 status: 'offline'
-                }
-               ,{
+              },{
                 email: 'lantern_power_user@example.com',
                 name: 'Lantern Power User',
                 link: '',
                 picture: '',
                 status: 'available',
-                statusMessage: 'Shanghai!',
-                }
-              ];
+                statusMessage: 'Shanghai!'
+              }];
               this.sync({'/roster': roster});
             }
     }
@@ -255,10 +251,9 @@ exports.SCENARIOS = {
       desc: 'peers1',
       func: function() {
               var this_ = this,
-                  peers = [{
+                  testPeers = [{
                     peerid: 'friend1-1',
-                    email: 'lantern_friend1@example.com ',
-                    name: 'Lantern Friend 1',
+                    rosterEntry: _.find(this.model.roster, {email: 'lantern_friend1@example.com'}),
                     mode: 'give',
                     ip: '74.120.12.135',
                     lat: 51,
@@ -267,8 +262,7 @@ exports.SCENARIOS = {
                     type: 'desktop'
                   },{
                     peerid: 'friend2-1',
-                    email: 'lantern_friend2@example.com ',
-                    name: 'Lantern Friend 2',
+                    rosterEntry: _.find(this.model.roster, {email: 'lantern_friend2@example.com'}),
                     mode: 'get',
                     ip: '27.55.2.80',
                     lat: 13.754,
@@ -277,18 +271,16 @@ exports.SCENARIOS = {
                     type: 'desktop'
                   },{
                     peerid: 'poweruser-1',
-                    email: 'lantern_power_user@example.com',
-                    name: 'Lantern Power User',
+                    rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
                     ip: '93.182.129.82',
                     lat: 55.7,
                     lon: 13.1833,
                     country: 'SE',
-                    type: 'lec2proxy'
+                    type: 'cloud'
                   },{
                     peerid: 'poweruser-2',
-                    email: 'lantern_power_user@example.com',
-                    name: 'Lantern Power User',
+                    rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
                     ip: '173.194.66.141',
                     lat: 37.4192,
@@ -297,75 +289,73 @@ exports.SCENARIOS = {
                     type: 'laeproxy'
                   },{
                     peerid: 'poweruser-3',
-                    email: 'lantern_power_user@example.com',
-                    name: 'Lantern Power User',
+                    rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
                     ip: '...',
                     lat: 54,
                     lon: -2,
                     country: 'GB',
-                    type: 'lec2proxy'
+                    type: 'cloud'
                   },{
                     peerid: 'poweruser-4',
-                    email: 'lantern_power_user@example.com',
-                    name: 'Lantern Power User',
+                    rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'get',
                     ip: '...',
                     lat: 31.230381,
                     lon: 121.473684,
                     country: 'CN',
                     type: 'desktop'
-                  }
-              ];
-              this.sync({
-                '/connectivity/peers/current': [],
-                '/connectivity/peers/lifetime': peers
-              });
+                  }];
+              this.sync({'/peers': testPeers});
               setInterval(function() {
                 if (!this_.model.setupComplete) return;
                 var mode = getByPath(this_.model, '/settings/mode'),
-                    peersCurrent = getByPath(this_.model, '/connectivity/peers/current'),
+                    peers = this_.model.peers,
+                    peersCurrent = _.filter(peers, 'connected'),
                     update = [];
-                //log('peersCurrent:', _.pluck(peersCurrent, 'peerid'));
-                _.forEach(peersCurrent, function(peer, i) {
-                  if (peer.mode === mode) {
-                    peer.bpsUp = 0; peer.bpsDn = 0; peer.bpsUpDn = 0;
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUp', value: 0});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsDn', value: 0});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUpDn', value: 0});
-                  } else {
-                    var bpsUp = peer.bpsUp || 0,
-                        bpsDn = peer.bpsDn || 0,
-                        bpsUpDn = peer.bpsUpDn || 0,
-                        bytesUp = getByPath(this_.model, '/transfers/bytesUp') || 0,
-                        bytesDn = getByPath(this_.model, '/transfers/bytesDn') || 0,
-                        bytesUpDn = getByPath(this_.model, '/transfers/bytesUpDn') || 0;
-                    bpsUp = Math.max(0, bpsUp + _.random(-1024*2, 1024*2));
-                    bpsDn = Math.max(0, bpsDn + _.random(-1024*2, 1024*2));
-                    bpsUpDn = bpsUp + bpsDn;
-                    peer.bpsUp = bpsUp;
-                    peer.bpsDn = bpsDn;
-                    peer.bpsUpDn = bpsUpDn;
-                    peer.bytesUp = (peer.bytesUp || 0) + bpsUp;
-                    peer.bytesDn = (peer.bytesDn || 0) + bpsDn;
-                    peer.bytesUpDn = (peer.bytesUpDn || 0) + bpsUpDn;
-                    bytesUp += bpsUp;
-                    bytesDn += bpsDn;
-                    bytesUpDn += bpsUpDn;
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUp', value: bpsUp});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsDn', value: bpsDn});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUpDn', value: bpsUpDn});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bytesUp', value: peer.bytesUp});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bytesDn', value: peer.bytesDn});
-                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bytesUpDn', value: peer.bytesUpDn});
-                    update.push({op: 'add', path: '/transfers/bytesUp', value: bytesUp});
-                    update.push({op: 'add', path: '/transfers/bytesDn', value: bytesDn});
-                    update.push({op: 'add', path: '/transfers/bytesUpDn', value: bytesUpDn});
-                    //log('update:', update);
-                  }
-                });
+
+                log('peers:', _.pluck(peersCurrent, 'peerid'));
 
                 function done() {
+                  _.each(peersCurrent, function(peer) {
+                    var i = peers.indexOf(peer);
+                    if (peer.mode === mode) {
+                      peer.bpsUp = 0; peer.bpsDn = 0; peer.bpsUpDn = 0;
+                      update.push({op: 'add', path: '/peers/'+i+'/bpsUp', value: 0});
+                      update.push({op: 'add', path: '/peers/'+i+'/bpsDn', value: 0});
+                      update.push({op: 'add', path: '/peers/'+i+'/bpsUpDn', value: 0});
+                    } else {
+                      var bpsUp = peer.bpsUp || 0,
+                          bpsDn = peer.bpsDn || 0,
+                          bpsUpDn = peer.bpsUpDn || 0,
+                          bytesUp = getByPath(this_.model, '/transfers/bytesUp') || 0,
+                          bytesDn = getByPath(this_.model, '/transfers/bytesDn') || 0,
+                          bytesUpDn = getByPath(this_.model, '/transfers/bytesUpDn') || 0;
+                      bpsUp = Math.max(0, bpsUp + _.random(-1024*2, 1024*2));
+                      bpsDn = Math.max(0, bpsDn + _.random(-1024*2, 1024*2));
+                      bpsUpDn = bpsUp + bpsDn;
+                      peer.bpsUp = bpsUp;
+                      peer.bpsDn = bpsDn;
+                      peer.bpsUpDn = bpsUpDn;
+                      peer.bytesUp = (peer.bytesUp || 0) + bpsUp;
+                      peer.bytesDn = (peer.bytesDn || 0) + bpsDn;
+                      peer.bytesUpDn = (peer.bytesUpDn || 0) + bpsUpDn;
+                      bytesUp += bpsUp;
+                      bytesDn += bpsDn;
+                      bytesUpDn += bpsUpDn;
+                      update.push({op: 'add', path: '/peers/'+i+'/bpsUp', value: bpsUp});
+                      update.push({op: 'add', path: '/peers/'+i+'/bpsDn', value: bpsDn});
+                      update.push({op: 'add', path: '/peers/'+i+'/bpsUpDn', value: bpsUpDn});
+                      update.push({op: 'add', path: '/peers/'+i+'/bytesUp', value: peer.bytesUp});
+                      update.push({op: 'add', path: '/peers/'+i+'/bytesDn', value: peer.bytesDn});
+                      update.push({op: 'add', path: '/peers/'+i+'/bytesUpDn', value: peer.bytesUpDn});
+                      update.push({op: 'add', path: '/transfers/bytesUp', value: bytesUp});
+                      update.push({op: 'add', path: '/transfers/bytesDn', value: bytesDn});
+                      update.push({op: 'add', path: '/transfers/bytesUpDn', value: bytesUpDn});
+                    }
+                    //log('update:', update);
+                  });
+
                   var bpsUp = 0, bpsDn = 0, bpsUpDn = 0;
                   for (var i=0, p=peersCurrent[i]; p; p=peersCurrent[++i]) {
                     bpsUp += p.bpsUp;
@@ -378,34 +368,61 @@ exports.SCENARIOS = {
                   this_.sync(update);
                 }
 
-                if (Math.random() < .5) {
-                  return done();
-                }
+                if (Math.random() < .5) { return done(); }
+
                 if (_.isEmpty(peersCurrent)) {
-                  var randomPeer = randomChoice(peers);
-                  update.push({op: 'add', path: '/connectivity/peers/current/0', value: randomPeer});
-                  //log('No current peers, added random peer', randomPeer.peerid);
+                  var i = _.random(peers.length - 1);
+                  update.push({op: 'add', path: '/peers/'+i+'/connected', value: true});
+                  update.push({op: 'add', path: '/peers/'+i+'/lastConnected', value: new Date().toJSON()});
+                  log('No current peers, added random peer', peers[i].peerid);
                   return done();
                 }
+
                 if (peersCurrent.length === peers.length) {
                   var i = _.random(peers.length - 1);
-                  //log('Connected to all available peers, removing random peer', peersCurrent[i].peerid);
-                  update.push({op: 'remove', path: '/connectivity/peers/current/'+i});
+                  log('Connected to all available peers, removing random peer', peers[i].peerid);
+                  update.push({op: 'add', path: '/peers/'+i+'/connected', value: false});
                   return done();
                 }
-                if (Math.random() < .5) { // add a random not connected peer
-                  var peersall = _.pluck(peers, 'peerid'),
-                      peerscur = _.pluck(peersCurrent, 'peerid'),
-                      peersnc = _.difference(peersall, peerscur),
-                      randomPeerid = randomChoice(peersnc),
-                      randomPeer = _.find(peers, function(p){ return p.peerid === randomPeerid; });
-                  update.push({op: 'add', path: '/connectivity/peers/current/'+peersCurrent.length, value: randomPeer});
-                  //log('heads: added random peer', randomPeerid);
-                } else { // remove a random connected peer
-                  var i = _.random(peersCurrent.length - 1);
-                  //log('tails: removing random peer', peersCurrent[i].peerid);
-                  update.push({op: 'remove', path: '/connectivity/peers/current/'+i});
+
+                if (Math.random() < .9) { // switch modes for a random peer
+                  var randomPeer = randomChoice(peersCurrent),
+                      i = _.indexOf(peers, randomPeer);
+                  if (getByPath(this_.model, '/countries/'+randomPeer.country+'/censors')) return;
+                  var mode = randomPeer.mode === MODE.give ? MODE.get : MODE.give;
+                  update.push({op: 'add', path: '/peers/'+i+'/mode', value: mode});
+                  log('toggling mode for peer', randomPeer.peerid);
                 }
+
+                var ppeersall = _.pluck(peers, 'peerid'),
+                    ppeerscur = _.pluck(peersCurrent, 'peerid'),
+                    ppeersnot = _.difference(ppeersall, ppeerscur);
+                if (Math.random() < .5) { // add a random not connected peer
+                  var randomPeerid = randomChoice(ppeersnot),
+                      i = _.indexOf(ppeersall, randomPeerid);
+                  update.push({op: 'add', path: '/peers/'+i+'/connected', value: true});
+                  update.push({op: 'add', path: '/peers/'+i+'/lastConnected', value: new Date().toJSON()});
+                  log('heads: added random peer', randomPeerid);
+
+                  /*
+                  if (Math.random() < .2) { // move the peer by a random amount
+                    var peer = peers[i], lat = peer.lat, lon = peer.lon;
+                    update.push({op: 'add', path: '/peers/'+i+'/lat', value: lat + _.random(-3, 1)});
+                    update.push({op: 'add', path: '/peers/'+i+'/lon', value: lon + _.random(-1, 1)});
+                    log('moving peer by a random amount', peers[i].peerid);
+                  }
+                  */
+                } else { // remove a random connected peer
+                  var randomPeerid = randomChoice(ppeerscur),
+                      i = _.indexOf(ppeersall, randomPeerid);
+                  log('tails: removing random peer', randomPeerid);
+                  peersCurrent.splice(_.indexOf(ppeerscur, randomPeerid), 1);
+                  update.push({op: 'add', path: '/peers/'+i+'/connected', value: false});
+                  update.push({op: 'add', path: '/peers/'+i+'/bpsUp', value: 0});
+                  update.push({op: 'add', path: '/peers/'+i+'/bpsDn', value: 0});
+                  update.push({op: 'add', path: '/peers/'+i+'/bpsUpDn', value: 0});
+                }
+
                 return done();
               }, 1000);
             }
@@ -420,9 +437,9 @@ exports.SCENARIOS = {
             initialCountries = ['US', 'CA', 'CN', 'IR', 'DE', 'GB', 'SE', 'TH'];
 
         // XXX do this on reset
-        _.forEach(this.model.countries, function(__, country) {
-          if (Math.random() < .1 || _.contains(initialCountries, country))
-            updateCountry(country, update);
+        _.each(this.model.countries, function(__, alpha2) {
+          if (/*Math.random() < .1 ||*/ _.contains(initialCountries, alpha2))
+            updateCountry(alpha2, update);
         });
         this_.sync(update);
 

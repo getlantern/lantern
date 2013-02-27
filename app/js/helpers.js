@@ -65,11 +65,11 @@ function getByPath(obj, path) {
 var _export = [makeLogger, byteDimension, randomChoice, applyPatch, getByPath];
 if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
   var module = angular.module('app.helpers', []);
-  _.forEach(_export, function(func) {
+  _.each(_export, function(func) {
     module.constant(func.name, func);
   });
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
-  _.forEach(_export, function(func) {
+  _.each(_export, function(func) {
     exports[func.name] = func;
   });
 }
