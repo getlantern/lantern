@@ -295,8 +295,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     @Override
     public void removePeer(final URI uri) {
-        this.certPeers.remove(uri.toASCIIString());
-        this.peers.remove(uri);
+        this.certPeers.remove(uri);
+        this.peers.remove(uri.toASCIIString());
         syncPeers();
     }
 
