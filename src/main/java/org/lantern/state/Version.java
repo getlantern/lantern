@@ -82,7 +82,7 @@ public class Version {
                 patch = 1;
                 git = "";
             } else {
-                final String[] parts = LanternConstants.VERSION.split(".");
+                final String[] parts = LanternConstants.VERSION.split("\\.");
                 major = Integer.parseInt(parts[0]);
                 minor = Integer.parseInt(parts[1]);
                 patch = Integer.parseInt(StringUtils.substringBefore(parts[2], "-"));
