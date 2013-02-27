@@ -106,12 +106,7 @@ public class SystemTrayImpl implements SystemTray {
         this.shell = new Shell(DisplayWrapper.getDisplay());
         log.debug("Created shell");
         
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
-            @Override
-            public void run () {
-                createTrayInternal();
-            }
-        });
+        createTrayInternal();
     }
     
     private void createTrayInternal() {

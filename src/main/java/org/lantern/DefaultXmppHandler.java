@@ -217,7 +217,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public void start() {
-        prepopulateProxies();
         this.modelUtils.loadClientSecrets();
 
         // This just links connectivity with Google Talk login status when
@@ -302,19 +301,6 @@ public class DefaultXmppHandler implements XmppHandler {
         case LOGIN_FAILED:
             this.roster.reset();
             break;
-        }
-    }
-
-    private void prepopulateProxies() {
-        // Add all the stored proxies.
-        final Collection<String> saved = this.model.getSettings().getProxies();
-        LOG.debug("Proxy set is: {}", saved);
-        for (final String proxy : saved) {
-            // Don't use peer proxies since we're not connected to XMPP yet.
-            if (!proxy.contains("@")) {
-                LOG.debug("Adding prepopulated proxy: {}", proxy);
-                addProxy(proxy);
-            }
         }
     }
 
@@ -454,6 +440,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
             // Preemptively create our key.
             this.keyStoreManager.getBase64Cert(getJid());
+            
+            useCachedPeerProxies();
             LOG.debug("Sending connected event");
             Events.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.connected));
@@ -603,6 +591,17 @@ public class DefaultXmppHandler implements XmppHandler {
             // updates and presence notifications before sending out our
             // advertisement.
             this.timer.schedule(tt, 30000);
+        }
+    }
+
+    private void useCachedPeerProxies() {
+        final Collection<String> saved = this.model.getSettings().getProxies();
+        LOG.debug("Proxy set is: {}", saved);
+        for (final String proxy : saved) {
+            // Don't use peer proxies since we're not connected to XMPP yet.
+            if (proxy.contains("@")) {
+                addProxy(proxy);
+            }
         }
     }
 
