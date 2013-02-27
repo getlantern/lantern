@@ -192,8 +192,9 @@ public class Launcher {
         }
         
         messageService = instance(MessageService.class);
-        xmpp = instance(DefaultXmppHandler.class);
         instance(Proxifier.class);
+        
+        xmpp = instance(DefaultXmppHandler.class);
         jettyLauncher = instance(JettyLauncher.class);
         if (set.isUiEnabled()) {
             browserService = instance(BrowserService.class);

@@ -80,6 +80,7 @@ public class PeerFactory {
                     if (tc != null) {
                         log.warn("Existing traffic counter?");
                     } else {
+                        log.debug("Adding traffic counter...");
                         existing.setTrafficCounter(tc);
                     }
                     return;
