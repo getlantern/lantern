@@ -15,10 +15,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.Censored;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternSocketsUtil;
 import org.lantern.exceptional4j.HttpStrategy;
-import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +57,8 @@ public class LanternHttpClient implements HttpStrategy {
         configureDefaults(socketsUtil, direct);
         configureDefaults(socketsUtil, proxied);
         final HttpHost proxy = 
-            new HttpHost(LanternConstants.FALLBACK_SERVER_HOST, 
-                Integer.valueOf(LanternConstants.FALLBACK_SERVER_PORT), 
+            new HttpHost(LanternClientConstants.FALLBACK_SERVER_HOST, 
+                Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
                 "https");
         proxied.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
     }

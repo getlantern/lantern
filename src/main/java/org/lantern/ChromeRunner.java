@@ -126,7 +126,7 @@ public class ChromeRunner {
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
         commands.add(executable);
-        commands.add("--user-data-dir="+LanternConstants.CONFIG_DIR.getAbsolutePath());
+        commands.add("--user-data-dir="+LanternClientConstants.CONFIG_DIR.getAbsolutePath());
         commands.add("--window-size="+screenWidth+","+screenHeight);
         commands.add("--window-position="+location.x+","+location.y);
         commands.add("--app="+endpoint);

@@ -9,7 +9,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.Censored;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternSocketsUtil;
 
 import com.google.inject.Inject;
@@ -34,8 +34,8 @@ public class HttpClientFactory {
         configureDefaults(socketsUtil, client);
         if (this.censored.isCensored()) {
             final HttpHost proxy = 
-                new HttpHost(LanternConstants.FALLBACK_SERVER_HOST, 
-                    Integer.valueOf(LanternConstants.FALLBACK_SERVER_PORT), 
+                new HttpHost(LanternClientConstants.FALLBACK_SERVER_HOST, 
+                    Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
                     "https");
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }

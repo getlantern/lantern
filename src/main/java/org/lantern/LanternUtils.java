@@ -84,7 +84,7 @@ public class LanternUtils {
     private static String MAC_ADDRESS;
 
     public static boolean isDevMode() {
-        return LanternConstants.VERSION.equals("lantern_version_tok");
+        return LanternClientConstants.VERSION.equals("lantern_version_tok");
     }
 
     /**

@@ -72,7 +72,6 @@ public class SystemTrayImpl implements SystemTray {
         this.model = model;
         Events.register(this);
     }
-    
 
     @Override
     public void start() {
@@ -123,7 +122,7 @@ public class SystemTrayImpl implements SystemTray {
             log.info("Creating system tray...");
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
-                I18n.tr("Lantern ")+LanternConstants.VERSION);
+                I18n.tr("Lantern ")+LanternClientConstants.VERSION);
             this.trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {

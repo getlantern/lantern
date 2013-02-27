@@ -42,7 +42,7 @@ public class Proxifier implements LanternService {
      * proxying traffic. Useful for things like the FireFox extensions.
      */
     private final File LANTERN_PROXYING_FILE =
-        new File(LanternConstants.CONFIG_DIR, "lanternProxying");
+        new File(LanternClientConstants.CONFIG_DIR, "lanternProxying");
     
     private boolean interactiveUnproxyCalled;
 
@@ -50,16 +50,16 @@ public class Proxifier implements LanternService {
         new MacProxyManager("testId", 4291);
     
     public final static File PROXY_ON = 
-        new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
+        new File(LanternClientConstants.CONFIG_DIR, "proxy_on.pac");
     public final static File PROXY_OFF = 
-        new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
+        new File(LanternClientConstants.CONFIG_DIR, "proxy_off.pac");
     public final static File PROXY_GOOGLE = 
-            new File(LanternConstants.CONFIG_DIR, "proxy_google.pac");
+            new File(LanternClientConstants.CONFIG_DIR, "proxy_google.pac");
     public final static File PROXY_ALL = 
-        new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
+        new File(LanternClientConstants.CONFIG_DIR, "proxy_all.pac");
 
     private final WinProxy WIN_PROXY = 
-        new WinProxy(LanternConstants.CONFIG_DIR);
+        new WinProxy(LanternClientConstants.CONFIG_DIR);
     
     private final MessageService messageService;
 

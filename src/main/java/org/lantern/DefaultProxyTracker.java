@@ -78,8 +78,8 @@ public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
     }
 
     private void addFallbackProxy() {
-        addProxy(LanternConstants.FALLBACK_SERVER_HOST, 
-            Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT), Type.cloud);
+        addProxy(LanternClientConstants.FALLBACK_SERVER_HOST, 
+            Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), Type.cloud);
     }
 
     @Override
