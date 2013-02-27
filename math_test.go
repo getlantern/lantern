@@ -207,3 +207,16 @@ func TestMath_sin(t *testing.T) {
 
 	test(`Math.sin(0.5)`, "0.479425538604203")
 }
+
+func TestMath_tan(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.tan(NaN)`, "NaN")
+	test(`1/Math.tan(+0)`, "Infinity")
+	test(`1/Math.tan(-0)`, "-Infinity")
+	test(`Math.tan(Infinity)`, "NaN")
+	test(`Math.tan(-Infinity)`, "NaN")
+
+	test(`Math.tan(0.5)`, "0.5463024898437905")
+}

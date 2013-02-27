@@ -324,6 +324,7 @@ func newContext() *_runtime {
 		"pow", 2, builtinMath_pow,
 		"random", 0, builtinMath_random,
 		"sin", 1, builtinMath_sin,
+		"tan", 1, builtinMath_tan,
 		_propertyMode(0),
 		"E", toValue(math.E),
 		"LN10", toValue(math.Ln10),
