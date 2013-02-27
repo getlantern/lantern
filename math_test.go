@@ -193,5 +193,17 @@ func TestMath_pow(t *testing.T) {
 	test(`Math.pow(-0, -1)`, "-Infinity")
 	test(`Math.pow(-0, -2)`, "Infinity")
 	test(`Math.pow(-1, 0.1)`, "NaN")
+}
 
+func TestMath_sin(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.sin(NaN)`, "NaN")
+	test(`1/Math.sin(+0)`, "Infinity")
+	test(`1/Math.sin(-0)`, "-Infinity")
+	test(`Math.sin(Infinity)`, "NaN")
+	test(`Math.sin(-Infinity)`, "NaN")
+
+	test(`Math.sin(0.5)`, "0.479425538604203")
 }

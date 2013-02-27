@@ -323,6 +323,7 @@ func newContext() *_runtime {
 		"min", 2, builtinMath_min,
 		"pow", 2, builtinMath_pow,
 		"random", 0, builtinMath_random,
+		"sin", 1, builtinMath_sin,
 		_propertyMode(0),
 		"E", toValue(math.E),
 		"LN10", toValue(math.Ln10),

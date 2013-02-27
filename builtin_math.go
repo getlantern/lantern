@@ -114,3 +114,8 @@ func builtinMath_pow(call FunctionCall) Value {
 func builtinMath_random(call FunctionCall) Value {
 	return toValue(rand.Float64())
 }
+
+func builtinMath_sin(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Sin(number))
+}
