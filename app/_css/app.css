@@ -6342,6 +6342,10 @@ small {
   font-size: 11.9px;
 }
 
+a {
+  cursor: pointer;
+}
+
 details *:not(summary) {
   font-size: 10.5px;
 }

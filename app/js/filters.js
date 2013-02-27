@@ -61,7 +61,7 @@ angular.module('app.filters', [])
         peers = _.map(peers, function(peer) {
           return _.omit(peer, 'email', 'peerid', 'ip', 'lat', 'lon');
         });
-        applyPatch(state, [{op: 'replace', path: path, value: peers}]);
+        applyPatch(state, [{op: 'replace', path: '/peers', value: peers}]);
       }
 
       return state;
