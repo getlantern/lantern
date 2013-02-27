@@ -46,6 +46,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.StaticSettings;
+import org.lantern.state.SyncService;
 import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -88,6 +89,7 @@ public class Launcher {
     
     
     private final String[] commandLineArgs;
+    private SyncService syncService;
 
     public Launcher(final String... args) {
         this.commandLineArgs = args;
@@ -208,6 +210,7 @@ public class Launcher {
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
         httpClient = instance(LanternHttpClient.class);
+        syncService = instance(SyncService.class);
 
         // We need to make sure the trust store is initialized before we
         // do our public IP lookup as well as modelUtils.
@@ -239,6 +242,7 @@ public class Launcher {
         localProxy.start();
         plainTextAnsererRelayProxy.start(true, false);
 
+        syncService.start();
         statsUpdater = instance(StatsUpdater.class);
         statsUpdater.start();
 

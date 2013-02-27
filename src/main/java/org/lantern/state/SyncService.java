@@ -59,13 +59,15 @@ public class SyncService implements LanternService {
 
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 //sync();
+                delegateSync(SyncType.ADD, SyncPath.PEERS, 
+                    model.getConnectivity().getPeers());
             }
-        }, 3000, 4000);
+        }, 3000, 2000);
     }
 
     @Override
@@ -123,11 +125,18 @@ public class SyncService implements LanternService {
         delegateSync(SyncPath.INVITED, invited);
     }
 
+
+    private void delegateSync(final SyncType type, final SyncPath path,
+            final Object value) {
+        delegateSync(type, path.getPath(), value);
+    }
+    
     private void delegateSync(final SyncPath path, final Object value) {
         delegateSync(SyncType.ADD, path.getPath(), value);
     }
 
-    private void delegateSync(SyncType syncType, final String path, final Object value) {
+    private void delegateSync(final SyncType syncType, final String path, 
+        final Object value) {
         this.strategy.sync(this.session, syncType, path, value);
     }
 }

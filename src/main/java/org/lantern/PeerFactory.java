@@ -8,15 +8,12 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jboss.netty.handler.traffic.TrafficCounter;
-import org.lantern.event.Events;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Peers;
-import org.lantern.state.SyncPath;
 import org.lantern.util.LanternTrafficCounterHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +45,12 @@ public class PeerFactory {
         }
     });
 
+    private final Model model;
+
     @Inject
     public PeerFactory(final ModelUtils modelUtils, final Model model) {
         this.modelUtils = modelUtils;
+        this.model = model;
         this.peers = model.getConnectivity().getPeerCollector();
     }
 
@@ -62,7 +62,7 @@ public class PeerFactory {
 
             @Override
             public void run() {
-                log.info("Adding to peers: {}", peers.getPeers());
+                log.debug("Adding peer");
                 final Peer existing;
                 if (StringUtils.isNotBlank(userId)) {
                     existing = peers.getPeer(userId);
@@ -73,7 +73,7 @@ public class PeerFactory {
 
                 }
                 if (existing != null) {
-                    log.info("Peer already exists...");
+                    log.debug("Peer already exists...");
                     
                     // It could have just been deserialized from disk, so we
                     // want to give it a real traffic counter.
@@ -83,14 +83,14 @@ public class PeerFactory {
                         log.warn("Existing traffic counter?");
                     } else {
                         log.debug("Adding traffic counter...");
-                        existing.setTrafficCounter(tc);
+                        existing.setTrafficCounter(trafficCounter);
                     }
-                    return;
+                } else {
+                    final Peer peer = newGiveModePeer(userId, address, port, type, 
+                            incoming, trafficCounter);
+                    peers.addPeer(new InetSocketAddress(address, port), peer);
                 }
-                final Peer peer = newGiveModePeer(userId, address, port, type, 
-                    incoming, trafficCounter);
-                peers.addPeer(new InetSocketAddress(address, port), peer);
-                Events.sync(SyncPath.PEERS, peers.getPeers());
+                //Events.sync(SyncPath.PEERS, peers.getPeers());
             }
 
         });

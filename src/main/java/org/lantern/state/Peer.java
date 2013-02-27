@@ -167,7 +167,7 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBpsUp() {
-        if (getTrafficCounter() != null) {
+        if (this.trafficCounter != null) {
             return trafficCounter.getTrafficCounter().getCurrentWrittenBytes();
         }
         return 0L;
@@ -175,7 +175,7 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBpsDown() {
-        if (getTrafficCounter() != null) {
+        if (this.trafficCounter != null) {
             return trafficCounter.getTrafficCounter().getCurrentReadBytes();
         }
         return 0L;
@@ -187,7 +187,7 @@ public class Peer {
     }
 
     public long getBytesUp() {
-        if (getTrafficCounter() != null) {
+        if (this.trafficCounter != null) {
             return bytesUp + trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
         }
         return this.bytesUp;
@@ -198,7 +198,7 @@ public class Peer {
     }
 
     public long getBytesDn() {
-        if (getTrafficCounter() != null) {
+        if (this.trafficCounter != null) {
             return bytesDn + trafficCounter.getTrafficCounter().getCumulativeReadBytes();
         }
         return this.bytesDn;
@@ -210,7 +210,7 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBytesUpDn() {
-        if (getTrafficCounter() != null) {
+        if (this.trafficCounter != null) {
             return getBytesUp() + getBytesDn();
         }
         return 0L;
@@ -221,7 +221,8 @@ public class Peer {
         return trafficCounter;
     }
 
-    public void setTrafficCounter(final LanternTrafficCounterHandler trafficCounter) {
+    public void setTrafficCounter(
+        final LanternTrafficCounterHandler trafficCounter) {
         this.trafficCounter = trafficCounter;
     }
 
