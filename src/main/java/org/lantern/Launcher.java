@@ -217,7 +217,7 @@ public class Launcher {
         httpClient = instance(LanternHttpClient.class);
         syncService = instance(SyncService.class);
 
-        instance(ProxyTracker.class);
+        final ProxyTracker proxyTracker = instance(ProxyTracker.class);
         
         threadPublicIpLookup();
         
@@ -237,6 +237,11 @@ public class Launcher {
         
         shutdownable(ModelIo.class);
         
+        try {
+            proxyTracker.start();
+        } catch (final Exception e) {
+            LOG.error("Could not start proxy tracker?", e);
+        }
         jettyLauncher.start();
         xmpp.start();
         sslProxy.start(false, false);

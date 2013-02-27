@@ -45,12 +45,9 @@ public class PeerFactory {
         }
     });
 
-    private final Model model;
-
     @Inject
     public PeerFactory(final ModelUtils modelUtils, final Model model) {
         this.modelUtils = modelUtils;
-        this.model = model;
         this.peers = model.getConnectivity().getPeerCollector();
     }
 
