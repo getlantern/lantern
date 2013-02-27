@@ -29,8 +29,8 @@ public class Settings {
     private String email = "";
 
     private String lang = Locale.getDefault().getLanguage();
-    
-    private boolean autoConnect = true;
+
+    private final boolean autoConnect = true;
 
     private boolean autoReport = true;
 
@@ -231,16 +231,12 @@ public class Settings {
     }
 
     public void setProxies(final Set<String> proxies) {
-        synchronized (this.proxies) {
-            this.proxies = proxies;
-        }
+        this.proxies = proxies;
     }
 
     @JsonView({Persistent.class})
     public Set<String> getProxies() {
-        synchronized (this.proxies) {
-            return ImmutableSet.copyOf(this.proxies);
-        }
+        return ImmutableSet.copyOf(this.proxies);
     }
 
     public void addProxy(final String proxy) {
