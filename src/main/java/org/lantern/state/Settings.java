@@ -23,33 +23,33 @@ import com.google.common.collect.Sets;
  * Base Lantern settings.
  */
 public class Settings {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private String email = "";
-    
+
     private String lang = Locale.getDefault().getLanguage();
     
     private boolean autoConnect = true;
 
     private boolean autoReport = true;
-    
+
     private Mode mode = Mode.none;
-    
+
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-    
+
     private boolean systemProxy = true;
-    
+
     private boolean proxyAllSites = false;
-    
+
     private boolean useGoogleOAuth2 = false;
     private String clientID;
     private String clientSecret;
     private String accessToken;
     private String refreshToken;
-    
+
     private Set<String> inClosedBeta = new HashSet<String>();
-    
+
     private Whitelist whitelist = new Whitelist();
 
     private boolean runAtSystemStart = true;
@@ -69,30 +69,30 @@ public class Settings {
     private int serverPort = LanternUtils.randomPort();
 
     /**
-     * Indicates whether use of keychains is enabled. 
+     * Indicates whether use of keychains is enabled.
      * this can be disabled by command line option.
      */
     private boolean keychainEnabled = true;
 
     /**
-     * Whether or not we're running with a graphical UI.  
+     * Whether or not we're running with a graphical UI.
      * Not stored or sent to the browser.
      */
     private boolean uiEnabled = true;
-    
+
 
     private boolean bindToLocalhost = true;
 
     //private boolean autoConnectToPeers = true;
 
     private boolean useCloudProxies = true;
-    
+
     public enum Mode {
         give,
-        get, 
+        get,
         none
     }
-    
+
     @JsonView({Run.class, Persistent.class})
     public String getEmail() {
         return email;
@@ -173,7 +173,7 @@ public class Settings {
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
     }
-    
+
 
     public void setUseGoogleOAuth2(boolean useGoogleOAuth2) {
         this.useGoogleOAuth2 = useGoogleOAuth2;
@@ -187,7 +187,7 @@ public class Settings {
     public void setClientID(final String clientID) {
         this.clientID = clientID;
     }
-    
+
     @JsonView({Persistent.class})
     public String getClientID() {
         return clientID;
@@ -219,8 +219,8 @@ public class Settings {
     public String getRefreshToken() {
         return refreshToken;
     }
-    
-    
+
+
     @JsonView({Persistent.class})
     public Set<String> getInClosedBeta() {
         return Sets.newHashSet(this.inClosedBeta);
@@ -242,13 +242,13 @@ public class Settings {
             return ImmutableSet.copyOf(this.proxies);
         }
     }
-    
+
     public void addProxy(final String proxy) {
         // Don't store peer proxies on disk.
         if (!proxy.contains("@")) {
             this.proxies.add(proxy);
             log.debug("Added proxy. Proxies: {}", this.proxies);
-            
+
             log.debug("Added proxy. Immutable proxies: {}", getProxies());
         } else {
             log.debug("Did not add proxy: {}", proxy);
@@ -258,12 +258,12 @@ public class Settings {
     public void removeProxy(final String proxy) {
         this.proxies.remove(proxy);
     }
-    
+
 
     public void setUseTrustedPeers(final boolean useTrustedPeers) {
         this.useTrustedPeers = useTrustedPeers;
     }
-    
+
     @JsonIgnore
     public boolean isUseTrustedPeers() {
         return useTrustedPeers;
@@ -295,7 +295,7 @@ public class Settings {
     public boolean isUseCentralProxies() {
         return useCentralProxies;
     }
-    
+
     public void setStunServers(final Set<String> stunServers){
         this.stunServers = stunServers;
     }
@@ -304,7 +304,7 @@ public class Settings {
     public Collection<String> getStunServers() {
         return stunServers;
     }
-    
+
     public void setServerPort(final int serverPort) {
         this.serverPort = serverPort;
     }
@@ -313,16 +313,16 @@ public class Settings {
     public int getServerPort() {
         return serverPort;
     }
-    
+
     public void setKeychainEnabled(boolean keychainEnabled) {
         this.keychainEnabled = keychainEnabled;
     }
-    
+
     @JsonIgnore
     public boolean isKeychainEnabled() {
         return keychainEnabled;
     }
-    
+
     public void setUiEnabled(boolean uiEnabled) {
         this.uiEnabled = uiEnabled;
     }
@@ -331,7 +331,7 @@ public class Settings {
     public boolean isUiEnabled() {
         return uiEnabled;
     }
-    
+
     public void setBindToLocalhost(final boolean bindToLocalhost) {
         this.bindToLocalhost = bindToLocalhost;
     }
@@ -340,7 +340,7 @@ public class Settings {
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
-    
+
     /*
     public void setAutoConnectToPeers(final boolean autoConnectToPeers) {
         this.autoConnectToPeers = autoConnectToPeers;

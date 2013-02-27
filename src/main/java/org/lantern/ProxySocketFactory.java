@@ -9,13 +9,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.net.SocketFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.util.Base64;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * {@link SocketFactory} for creating sockets through an HTTP proxy.
@@ -35,14 +36,14 @@ public class ProxySocketFactory extends SocketFactory {
     }
 
     @Override
-    public Socket createSocket(final String host, final int port, 
-        final InetAddress localHost, final int localPort) throws IOException, 
+    public Socket createSocket(final String host, final int port,
+        final InetAddress localHost, final int localPort) throws IOException,
         UnknownHostException {
         return httpConnectSocket(host, port);
     }
 
     @Override
-    public Socket createSocket(final InetAddress host, final int port) 
+    public Socket createSocket(final InetAddress host, final int port)
         throws IOException {
         return httpConnectSocket(host.getHostAddress(), port);
     }
@@ -81,8 +82,8 @@ public class ProxySocketFactory extends SocketFactory {
             final char c = (char) in.read();
             got.append(c);
             if (got.length() > 4096) {
-                throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Recieved " + 
-                    "header of "+got.length()+" characters from " + proxyHost + 
+                throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Recieved " +
+                    "header of "+got.length()+" characters from " + proxyHost +
                     ", cancelling connection:\n"+got.toString());
             }
             if (c == -1) {
@@ -101,8 +102,8 @@ public class ProxySocketFactory extends SocketFactory {
         }
 
         if (nlchars != 4) {
-            throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Never " + 
-                "received blank line from " + proxyHost + 
+            throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Never " +
+                "received blank line from " + proxyHost +
                 ", cancelling connection");
         }
 

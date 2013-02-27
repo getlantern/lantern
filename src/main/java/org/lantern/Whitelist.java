@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 public class Whitelist {
 
     private final Logger log = LoggerFactory.getLogger(Whitelist.class);
-    
+
     private final Collection<String> requiredEntries = new HashSet<String>();
-    
+
     public static final String[] SITES = {
         "avaaz.org",
         "bittorrent.com",
@@ -66,7 +66,7 @@ public class Whitelist {
         "wordpress.org",
         "wordpress.com",
         "youtube.com",
-        
+
         // Iran-focused sites
         "30mail.net",
         "advar-news.biz",
@@ -82,8 +82,8 @@ public class Whitelist {
         "radiozamaneh.com",
         "Roozonline.com",
         "voanews.com",
-        
-        
+
+
         // China (with various sub-categories below)
         "appledaily.com.tw",
         "boxun.com",
@@ -107,7 +107,7 @@ public class Whitelist {
         "student.tw",
         "twbbs.tw",
         "uwants.com",
-        
+
 
         // Cloud Storage (often porn, heavy load, so ignored for now).
         //https://www.rapidshare.com
@@ -126,13 +126,13 @@ public class Whitelist {
         "dw.de",
         "epochtimes.com",
         "etaiwannews.com",
-        "hrichina.org", 
+        "hrichina.org",
         "globalvoicesonline.org",
         "libertytimes.com.tw",
         "mingpao.com",
         "molihua.org",
         //Re-enable pending the fix to https://github.com/getlantern/laeproxy/issues/14
-        "www.newcenturynews.com", 
+        "www.newcenturynews.com",
         "nextmedia.com",
         "ntdtv.com",
         "rfa.org",
@@ -143,17 +143,17 @@ public class Whitelist {
         "on.cc",
         "yzzk.com",
     };
-    
-    private Collection<WhitelistEntry> defaultWhitelist = 
+
+    private final Collection<WhitelistEntry> defaultWhitelist =
         new HashSet<WhitelistEntry>();
-    
-    private Collection<WhitelistEntry> whitelist = 
+
+    private Collection<WhitelistEntry> whitelist =
         new TreeSet<WhitelistEntry>();
-    
+
     {
         reset();
     }
-    
+
     public boolean isWhitelisted(final String uri,
         final Collection<WhitelistEntry> wl) {
         if (StringUtils.isBlank(uri)) {
@@ -162,22 +162,22 @@ public class Whitelist {
         final String toMatch = normalized(toBaseUri(uri));
         return wl.contains(new WhitelistEntry(toMatch));
     }
-    
+
     /**
      * Decides whether or not the specified full URI matches domains for our
      * whitelist.
-     * 
+     *
      * @return <code>true</code> if the specified domain matches domains for
      * our whitelist, otherwise <code>false</code>.
      */
     public boolean isWhitelisted(final String uri) {
         return isWhitelisted(uri, whitelist);
     }
-    
+
     /**
      * Decides whether or not the specified HttpRequest is for a domain on
      * our whitelist. Note this also checks the Referer header.
-     * 
+     *
      * @return <code>true</code> if the specified domain matches domains for
      * our whitelist, otherwise <code>false</code>.
      */
@@ -188,11 +188,11 @@ public class Whitelist {
         final String referer = request.getHeader(HttpHeaders.Names.REFERER);
         return isWhitelisted(referer) || isWhitelisted(uri);
     }
-    
+
     private void addDefaultEntry(final String entry) {
         addDefaultEntry(entry, false);
     }
-    
+
     private void addDefaultEntry(final String entry, final boolean required) {
         final WhitelistEntry we = new WhitelistEntry(entry, required, true);
         whitelist.add(we);
@@ -209,7 +209,7 @@ public class Whitelist {
     public void setStringEntries(final String[] entries) {
         setEntries(toEntries(entries));
     }
-    
+
     private Collection<WhitelistEntry> toEntries(final String[] entries) {
         final Collection<WhitelistEntry> wl = new TreeSet<WhitelistEntry>();
         for (final String entry : entries) {
@@ -230,13 +230,13 @@ public class Whitelist {
             whitelist.remove(new WhitelistEntry(normalized));
         }
     }
-    
+
     public Collection<WhitelistEntry> getEntries() {
         synchronized (whitelist) {
             return new TreeSet<WhitelistEntry>(whitelist);
         }
     }
-    
+
     public void setEntries(final Collection<WhitelistEntry> entries) {
         synchronized (whitelist) {
             this.whitelist = entries; 
@@ -287,7 +287,7 @@ public class Whitelist {
                     break;
                 }
             }
-            
+
             final String toMatchBase;
             if (domain.contains(".")) {
                 toMatchBase = StringUtils.substringAfterLast(domain, ".");
@@ -302,7 +302,7 @@ public class Whitelist {
 
     public Collection<String> getEntriesAsStrings() {
         final Collection<WhitelistEntry> entries = getEntries();
-        final Collection<String> parsed = 
+        final Collection<String> parsed =
             new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
         for (final WhitelistEntry entry : entries) {
             final String str = entry.getSite();

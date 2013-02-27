@@ -22,16 +22,16 @@ import com.google.inject.Singleton;
 public class PeerFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private final ModelUtils modelUtils;
     private final Peers peers;
-    
+
     /**
      * We create an executor here because we need to thread our geo-ip lookups.
      */
     private final ExecutorService exec = Executors.newCachedThreadPool(
         new ThreadFactory() {
-        
+
         private volatile int count = 0;
         @Override
         public Thread newThread(final Runnable runner) {
@@ -47,8 +47,8 @@ public class PeerFactory {
         this.modelUtils = modelUtils;
         this.peers = model.getConnectivity().getPeerCollector();
     }
-    
-    public void addPeer(final String userId, final String ip, final int port, 
+
+    public void addPeer(final String userId, final String ip, final int port,
         final Type type) {
         exec.submit(new Runnable() {
 
@@ -58,22 +58,22 @@ public class PeerFactory {
                 peers.addPeer(peer);
                 Events.sync(SyncPath.PEERS, peers.getPeers());
             }
-            
+
         });
     }
-    
-    private Peer newGiveModePeer(final String userId, final String ip, final int port, 
+
+    private Peer newGiveModePeer(final String userId, final String ip, final int port,
         final Type type) {
         final GeoData geo = modelUtils.getGeoData(ip);
-        
-        return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(), 
+
+        return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(),
             geo.getLongitude(), type, ip, Mode.give);
     }
-    
+
     /*
     public Peer newPeer(final String userId, final Type type) {
         final GeoData geo = modelUtils.getGeoData(ip);
-        return new Peer(userId, geo.getCountrycode(), false, geo.getLatitude(), 
+        return new Peer(userId, geo.getCountrycode(), false, geo.getLatitude(),
             geo.getLongitude(), type);
     }
     */

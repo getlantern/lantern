@@ -49,24 +49,24 @@ public class LanternSocketsUtil {
     private final LanternTrustStore trustStore;
 
     @Inject
-    public LanternSocketsUtil(final Stats stats, 
+    public LanternSocketsUtil(final Stats stats,
         final LanternTrustStore trustStore) {
         this.stats = stats;
         this.trustStore = trustStore;
     }
-    
+
 
     public SSLServerSocketFactory newTlsServerSocketFactoryJavaCipherSuites() {
         log.debug("Creating TLS server socket factory with default java " +
             "cipher suites");
         return newTlsServerSocketFactory(null);
     }
-    
+
     public SSLServerSocketFactory newTlsServerSocketFactory() {
         log.debug("Creating TLS server socket factory");
         return newTlsServerSocketFactory(IceConfig.getCipherSuites());
     }
-    
+
     public SSLServerSocketFactory newTlsServerSocketFactory(
         final String[] cipherSuites) {
         log.debug("Creating TLS server socket factory");
@@ -78,33 +78,33 @@ public class LanternSocketsUtil {
         return new SSLServerSocketFactory() {
             @Override
             public ServerSocket createServerSocket() throws IOException {
-                final SSLServerSocket ssl = 
+                final SSLServerSocket ssl =
                     (SSLServerSocket) ssf().createServerSocket();
                 configure(ssl);
                 return ssl;
             }
             @Override
-            public ServerSocket createServerSocket(final int port, 
-                final int backlog, final InetAddress ifAddress) 
+            public ServerSocket createServerSocket(final int port,
+                final int backlog, final InetAddress ifAddress)
                 throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf().createServerSocket(port, backlog, 
+                final SSLServerSocket ssl =
+                    (SSLServerSocket) ssf().createServerSocket(port, backlog,
                         ifAddress);
                 configure(ssl);
                 return ssl;
             }
             @Override
-            public ServerSocket createServerSocket(final int port, 
+            public ServerSocket createServerSocket(final int port,
                 final int backlog) throws IOException {
-                final SSLServerSocket ssl = 
+                final SSLServerSocket ssl =
                     (SSLServerSocket) ssf().createServerSocket(port, backlog);
                 configure(ssl);
                 return ssl;
             }
             @Override
-            public ServerSocket createServerSocket(final int port) 
+            public ServerSocket createServerSocket(final int port)
                 throws IOException {
-                final SSLServerSocket ssl = 
+                final SSLServerSocket ssl =
                     (SSLServerSocket) ssf().createServerSocket(port);
                 configure(ssl);
                 return ssl;
@@ -117,7 +117,7 @@ public class LanternSocketsUtil {
             public String[] getSupportedCipherSuites() {
                 return ssf().getSupportedCipherSuites();
             }
-            
+
             private void configure(final SSLServerSocket ssl) {
                 ssl.setNeedClientAuth(true);
                 if (cipherSuites != null && cipherSuites.length > 0) {
@@ -135,12 +135,12 @@ public class LanternSocketsUtil {
         log.debug("Creating TLS socket factory with default java cipher suites");
         return newTlsSocketFactory(null);
     }
-    
+
     public SSLSocketFactory newTlsSocketFactory() {
         log.debug("Creating TLS socket factory");
         return newTlsSocketFactory(IceConfig.getCipherSuites());
     }
-    
+
     public SSLSocketFactory newTlsSocketFactory(final String[] cipherSuites) {
         log.debug("Creating TLS socket factory");
         return wrappedSocketFactory(cipherSuites);
@@ -154,47 +154,47 @@ public class LanternSocketsUtil {
                 configure(sock);
                 return sock;
             }
-            
+
             @Override
-            public Socket createSocket(final InetAddress address, 
-                final int port, final InetAddress localAddress, 
+            public Socket createSocket(final InetAddress address,
+                final int port, final InetAddress localAddress,
                 final int localPort) throws IOException {
-                final SSLSocket sock = 
+                final SSLSocket sock =
                     (SSLSocket) sf().createSocket(address, port, localAddress, localPort);
                 configure(sock);
                 return sock;
             }
-            
+
             @Override
-            public Socket createSocket(final String host, final int port, 
-                final InetAddress localHost, final int localPort) 
+            public Socket createSocket(final String host, final int port,
+                final InetAddress localHost, final int localPort)
                 throws IOException, UnknownHostException {
-                final SSLSocket sock = 
+                final SSLSocket sock =
                     (SSLSocket) sf().createSocket(host, port, localHost, localPort);
                 configure(sock);
                 return sock;
             }
-            
+
             @Override
-            public Socket createSocket(final InetAddress host, 
+            public Socket createSocket(final InetAddress host,
                 final int port) throws IOException {
                 final SSLSocket sock = (SSLSocket) sf().createSocket(host, port);
                 configure(sock);
                 return sock;
             }
-            
+
             @Override
-            public Socket createSocket(final String host, final int port) 
+            public Socket createSocket(final String host, final int port)
                 throws IOException, UnknownHostException {
                 final SSLSocket sock = (SSLSocket) sf().createSocket(host, port);
                 configure(sock);
                 return sock;
             }
-            
+
             @Override
-            public Socket createSocket(final Socket s, final String host, 
+            public Socket createSocket(final Socket s, final String host,
                 final int port, final boolean autoClose) throws IOException {
-                final SSLSocket sock = 
+                final SSLSocket sock =
                     (SSLSocket) sf().createSocket(s, host, port, autoClose);
                 configure(sock);
                 return sock;
@@ -209,7 +209,7 @@ public class LanternSocketsUtil {
             public String[] getSupportedCipherSuites() {
                 return sf().getSupportedCipherSuites();
             }
-            
+
             private void configure(final SSLSocket sock) {
                 sock.setNeedClientAuth(true);
                 if (cipherSuites != null && cipherSuites.length > 0) {
@@ -218,12 +218,12 @@ public class LanternSocketsUtil {
             }
         };
     }
-    
+
     private SSLSocketFactory sf() {
         return trustStore.getContext().getSocketFactory();
     }
 
-    public void startReading(final Socket sock, final Channel channel, 
+    public void startReading(final Socket sock, final Channel channel,
         final boolean recordStats) {
         final Runnable runner = new Runnable() {
             @Override
@@ -249,19 +249,19 @@ public class LanternSocketsUtil {
                         if (recordStats) {
                             stats.addDownBytesFromPeers(n);
                         }
-                        
+
                     }
                     ProxyUtils.closeOnFlush(channel);
 
                 } catch (final IOException e) {
                     log.info("Exception relaying peer data back to browser", e);
                     ProxyUtils.closeOnFlush(channel);
-                    
+
                     // The other side probably just closed the connection!!
-                    
+
                     //channel.close();
                     //proxyStatusListener.onError(peerUri);
-                    
+
                 }
             }
         };
