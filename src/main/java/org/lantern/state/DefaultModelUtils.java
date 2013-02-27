@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
@@ -27,7 +26,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.GeoData;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
@@ -159,7 +158,7 @@ public class DefaultModelUtils implements ModelUtils {
 
     @Override
     public boolean isConfigured() {
-        if (!LanternConstants.DEFAULT_MODEL_FILE.isFile()) {
+        if (!LanternClientConstants.DEFAULT_MODEL_FILE.isFile()) {
             LOG.debug("No settings file");
             return false;
         }
@@ -270,7 +269,7 @@ public class DefaultModelUtils implements ModelUtils {
     public GoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
         final Settings set = this.model.getSettings();
         if (isDevMode()) {
-            final File oauth = LanternConstants.TEST_PROPS;
+            final File oauth = LanternClientConstants.TEST_PROPS;
             if (!oauth.isFile()) {
                 final Properties props = new Properties();
                 props.put("refresh_token", set.getRefreshToken());

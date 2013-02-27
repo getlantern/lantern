@@ -124,7 +124,7 @@ public class LanternModule extends AbstractModule {
     @Provides @Singleton
     public static LookupService provideLookupService() {
         final File unzipped = 
-                new File(LanternConstants.DATA_DIR, "GeoIP.dat");
+                new File(LanternClientConstants.DATA_DIR, "GeoIP.dat");
         if (!unzipped.isFile())  {
             final File file = new File("GeoIP.dat.gz");
             GZIPInputStream is = null;

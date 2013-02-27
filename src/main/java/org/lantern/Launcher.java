@@ -195,13 +195,18 @@ public class Launcher {
         
         messageService = instance(MessageService.class);
         instance(Proxifier.class);
-        
-        xmpp = instance(DefaultXmppHandler.class);
-        jettyLauncher = instance(JettyLauncher.class);
         if (set.isUiEnabled()) {
             browserService = instance(BrowserService.class);
             systemTray = instance(SystemTray.class);
         }
+        
+        // We need to make sure the trust store is initialized before we
+        // do our public IP lookup as well as modelUtils.
+        instance(LanternTrustStore.class);
+        
+        xmpp = instance(DefaultXmppHandler.class);
+        jettyLauncher = instance(JettyLauncher.class);
+
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
@@ -212,10 +217,6 @@ public class Launcher {
         httpClient = instance(LanternHttpClient.class);
         syncService = instance(SyncService.class);
 
-        // We need to make sure the trust store is initialized before we
-        // do our public IP lookup as well as modelUtils.
-        instance(LanternTrustStore.class);
-        
         instance(ProxyTracker.class);
         
         threadPublicIpLookup();
@@ -397,12 +398,12 @@ public class Launcher {
         // startup. The user can configure this differently at any point 
         // hereafter.
         if (SystemUtils.IS_OS_LINUX && 
-            !LanternConstants.GNOME_AUTOSTART.isFile()) {
+            !LanternClientConstants.GNOME_AUTOSTART.isFile()) {
             final File lanternDesktop;
             final File candidate1 = 
-                new File(LanternConstants.GNOME_AUTOSTART.getName());
+                new File(LanternClientConstants.GNOME_AUTOSTART.getName());
             final File candidate2 = 
-                new File("install/linux", LanternConstants.GNOME_AUTOSTART.getName());
+                new File("install/linux", LanternClientConstants.GNOME_AUTOSTART.getName());
             if (candidate1.isFile()) {
                 lanternDesktop = candidate1;
             } else if (candidate2.isFile()){
@@ -412,7 +413,7 @@ public class Launcher {
                 return;
             }
             try {
-                final File parent = LanternConstants.GNOME_AUTOSTART.getParentFile();
+                final File parent = LanternClientConstants.GNOME_AUTOSTART.getParentFile();
                 if (!parent.isDirectory()) {
                     if (!parent.mkdirs()) {
                         LOG.error("Could not make dir for gnome autostart: "+parent);
@@ -609,7 +610,7 @@ public class Launcher {
     }
     
     private void printVersion() {
-        System.out.println("Lantern version "+LanternConstants.VERSION);
+        System.out.println("Lantern version "+LanternClientConstants.VERSION);
     }
     
     private void configureDefaultLogger() {
@@ -625,7 +626,7 @@ public class Launcher {
     }
     
     private void configureProductionLogger() {
-        final File logDir = LanternConstants.LOG_DIR;
+        final File logDir = LanternClientConstants.LOG_DIR;
         final File logFile = new File(logDir, "java.log");
         final Properties props = new Properties();
         try {
@@ -657,12 +658,12 @@ public class Launcher {
                             // it turned on.
                             return false;
                         }
-                        json.put("version", LanternConstants.VERSION);
+                        json.put("version", LanternClientConstants.VERSION);
                         return true;
                     }
             };
             final Appender bugAppender = new ExceptionalAppender(
-               LanternConstants.GET_EXCEPTIONAL_API_KEY, callback,
+                    LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback,
                httpClient);
             
             BasicConfigurator.configure(bugAppender);

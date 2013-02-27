@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.NotInClosedBetaException;
@@ -54,7 +55,7 @@ public class DefaultModelService implements ModelService {
     public DefaultModelService(final Model model,
         final Proxifier proxifier, final ModelUtils modelUtils,
         final XmppHandler xmppHandler) {
-        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART,
+        this(LanternClientConstants.LAUNCHD_PLIST, LanternClientConstants.GNOME_AUTOSTART,
                 model, proxifier, modelUtils, xmppHandler);
     }
 

@@ -4,7 +4,7 @@ import javax.net.ssl.SSLException;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.ssl.AbstractVerifier;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 
 @Immutable
 public class LanternHostNameVerifier extends AbstractVerifier {
@@ -14,7 +14,7 @@ public class LanternHostNameVerifier extends AbstractVerifier {
         final String host,
         final String[] cns,
         final String[] subjectAlts) throws SSLException {
-        if (!host.equals(LanternConstants.FALLBACK_SERVER_HOST)) {
+        if (!host.equals(LanternClientConstants.FALLBACK_SERVER_HOST)) {
             super.verify(host, cns, subjectAlts, true);
         }
     }

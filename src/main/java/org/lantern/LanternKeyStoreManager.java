@@ -46,7 +46,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
     
     public LanternKeyStoreManager(final File rootDir) {
-        CONFIG_DIR = rootDir != null ? rootDir : LanternConstants.CONFIG_DIR;
+        CONFIG_DIR = rootDir != null ? rootDir : LanternClientConstants.CONFIG_DIR;
         KEYSTORE_FILE = new File(CONFIG_DIR, "lantern_keystore.jks");
         CERT_FILE = new File(CONFIG_DIR, "local_lantern_cert");
         

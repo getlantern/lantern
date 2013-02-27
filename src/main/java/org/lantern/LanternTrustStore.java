@@ -52,7 +52,7 @@ public class LanternTrustStore {
      * (i.e., the remote client thinks it has our key, but our key has changed).
      */
     public static final File TRUSTSTORE_FILE =
-        new File(LanternConstants.CONFIG_DIR,
+        new File(LanternClientConstants.CONFIG_DIR,
             String.valueOf(new SecureRandom().nextLong()));
 
     private final CertTracker certTracker;
