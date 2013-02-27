@@ -25,13 +25,13 @@ import com.google.api.client.json.jackson.JacksonFactory;
 public class OauthUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(OauthUtils.class);
-    
+
     public static final String REDIRECT_URL =
         "http://localhost:7777/oauth2callback";
-    
+
     private static GoogleClientSecrets secrets = null;
-    
-    public static GoogleClientSecrets loadClientSecrets() throws IOException {
+
+    public static synchronized GoogleClientSecrets loadClientSecrets() throws IOException {
         if (secrets != null) {
             return secrets;
         }
