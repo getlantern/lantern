@@ -318,6 +318,7 @@ func newContext() *_runtime {
 		"cos", 1, builtinMath_cos,
 		"exp", 1, builtinMath_exp,
 		"floor", 1, builtinMath_floor,
+		"log", 1, builtinMath_log,
 		"max", 2, builtinMath_max,
 		"min", 2, builtinMath_min,
 		"pow", 2, builtinMath_pow,

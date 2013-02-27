@@ -136,6 +136,20 @@ func TestMath_floor(t *testing.T) {
 	test(`Math.floor(1.5)`, "1")
 }
 
+func TestMath_log(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.log(NaN)`, "NaN")
+	test(`Math.log(-1)`, "NaN")
+	test(`Math.log(+0)`, "-Infinity")
+	test(`Math.log(-0)`, "-Infinity")
+	test(`1/Math.log(1)`, "Infinity")
+	test(`Math.log(Infinity)`, "Infinity")
+
+	test(`Math.log(0.5)`, "-0.6931471805599453")
+}
+
 func TestMath_max(t *testing.T) {
 	Terst(t)
 

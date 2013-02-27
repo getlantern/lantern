@@ -54,6 +54,11 @@ func builtinMath_floor(call FunctionCall) Value {
 	return toValue(math.Floor(number))
 }
 
+func builtinMath_log(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Log(number))
+}
+
 func builtinMath_max(call FunctionCall) Value {
 	switch len(call.ArgumentList) {
 	case 0:
