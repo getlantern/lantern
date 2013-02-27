@@ -392,7 +392,13 @@ the backend maintains on the frontend through comet publications:
         </tr>
         <tr>
           <td><strong>lanternController</strong><br><em>boolean</em></td>
-          <td>Whether the user has ever been contacted by Lantern Controller.</td>
+          <td>Whether the backend has heard back yet from Lantern Controller in
+              response to a "does this user have Lantern access" query.
+              Used along with <code>gtalk == "connecting"</code> to determine
+              whether to show a "signing in to Lantern" spinner.<br>
+              <strong>XXX Replace this with a general-purpose "showSpinner"
+              field that could be used in other places.</strong>
+          </td>
         </tr>
         <tr>
           <td><strong>invited</strong><br><em>boolean</em></td>
