@@ -22,6 +22,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.util.HttpClientFactory;
 import org.lantern.util.LanternHttpClient;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -83,6 +84,8 @@ public class TestUtils {
 
     private static boolean started = false;
 
+    private static HttpClientFactory httpClientFactory;
+
     static {
         if (LanternConstants.TEST_PROPS.isFile()) {
             privatePropsFile = LanternConstants.TEST_PROPS;
@@ -143,6 +146,8 @@ public class TestUtils {
         proxyTracker = instance(DefaultProxyTracker.class);
         trustStore = instance(LanternTrustStore.class);
         httpClient = instance(LanternHttpClient.class);
+        
+        httpClientFactory = instance(HttpClientFactory.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
@@ -320,6 +325,11 @@ public class TestUtils {
 
     public static LanternTrustStore buildTrustStore() {
         return new LanternTrustStore(null, new LanternKeyStoreManager());
+    }
+
+    public static HttpClientFactory getHttpClientFactory() {
+        if (!loaded) load();
+        return httpClientFactory;
     }
 
 }

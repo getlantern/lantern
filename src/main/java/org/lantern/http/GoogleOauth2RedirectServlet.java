@@ -16,6 +16,7 @@ import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
+import org.lantern.util.HttpClientFactory;
 import org.lantern.util.LanternHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final Proxifier proxifier;
 
-    private final LanternHttpClient httpClient;
+    private final HttpClientFactory httpClientFactory;
 
     private final Censored censored;
 
@@ -50,14 +51,14 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     public GoogleOauth2RedirectServlet(final XmppHandler handler, 
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final Proxifier proxifier,
-        final LanternHttpClient httpClient,
+        final HttpClientFactory httpClientFactory,
         final Censored censored) {
         this.handler = handler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
-        this.httpClient = httpClient;
+        this.httpClientFactory = httpClientFactory;
         this.censored = censored;
     }
     
@@ -92,7 +93,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // attempt to restart a stopped server, things get funky.
         final GoogleOauth2CallbackServer server = 
             new GoogleOauth2CallbackServer(handler, model, this.internalState, 
-                this.modelIo, this.proxifier, this.httpClient);
+                this.modelIo, this.proxifier, this.httpClientFactory);
         
         // Note that this call absolutely ensures the server is started.
         server.start();
