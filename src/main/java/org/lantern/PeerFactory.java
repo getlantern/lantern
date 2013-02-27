@@ -1,10 +1,14 @@
 package org.lantern;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.lantern.event.Events;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -49,26 +53,54 @@ public class PeerFactory {
         this.peers = model.getConnectivity().getPeerCollector();
     }
 
-    public void addPeer(final String userId, final String ip, final int port,
-        final Type type) {
+    public void addPeer(final String userId, final InetAddress address, 
+        final int port, 
+        final Type type, final boolean incoming, 
+        final TrafficCounter trafficCounter) {
         exec.submit(new Runnable() {
 
             @Override
             public void run() {
-                final Peer peer = newGiveModePeer(userId, ip, port, type);
-                peers.addPeer(peer);
+                log.info("Adding to peers: {}", peers.getPeers());
+                final Peer existing;
+                if (StringUtils.isNotBlank(userId)) {
+                    existing = peers.getPeer(userId);
+                } else {
+                    final InetSocketAddress key = 
+                            new InetSocketAddress(address, port);
+                    existing = peers.getPeer(key);
+
+                }
+                if (existing != null) {
+                    log.info("Peer already exists...");
+                    
+                    // It could have just been deserialized from disk, so we
+                    // want to give it a real traffic counter.
+                    final TrafficCounter tc = existing.getTrafficCounter();
+                    if (tc != null) {
+                        log.warn("Existing traffic counter?");
+                    } else {
+                        existing.setTrafficCounter(tc);
+                    }
+                    return;
+                }
+                final Peer peer = newGiveModePeer(userId, address, port, type, 
+                    incoming, trafficCounter);
+                peers.addPeer(new InetSocketAddress(address, port), peer);
                 Events.sync(SyncPath.PEERS, peers.getPeers());
             }
 
         });
     }
-
-    private Peer newGiveModePeer(final String userId, final String ip, final int port,
-        final Type type) {
-        final GeoData geo = modelUtils.getGeoData(ip);
-
-        return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(),
-            geo.getLongitude(), type, ip, Mode.give);
+    
+    private Peer newGiveModePeer(final String userId, final InetAddress address, 
+        final int port, final Type type, final boolean incoming, 
+        final TrafficCounter trafficCounter) {
+        final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
+        
+        return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(), 
+            geo.getLongitude(), type, address.getHostAddress(), Mode.give, 
+            incoming, trafficCounter);
     }
 
     /*

@@ -11,6 +11,7 @@ import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.lantern.LanternTrustStore;
+import org.lantern.LanternUtils;
 import org.lantern.ProxyTracker;
 import org.lantern.JsonUtils;
 import org.slf4j.Logger;
@@ -92,7 +93,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         if (ad != null) {
             if (ad.hasMappedEndpoint()) {
                 this.proxyTracker.addProxy(
-                    InetSocketAddress.createUnresolved(ad.getAddress(), ad.getPort()));
+                        LanternUtils.isa(ad.getAddress(), ad.getPort()));
             } else {
                 this.proxyTracker.addJidProxy(ad.getJid());
             }

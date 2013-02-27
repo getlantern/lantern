@@ -193,6 +193,7 @@ public class Launcher {
         
         messageService = instance(MessageService.class);
         xmpp = instance(DefaultXmppHandler.class);
+        instance(Proxifier.class);
         jettyLauncher = instance(JettyLauncher.class);
         if (set.isUiEnabled()) {
             browserService = instance(BrowserService.class);
@@ -210,6 +211,8 @@ public class Launcher {
         // We need to make sure the trust store is initialized before we
         // do our public IP lookup as well as modelUtils.
         instance(LanternTrustStore.class);
+        
+        instance(ProxyTracker.class);
         
         threadPublicIpLookup();
         

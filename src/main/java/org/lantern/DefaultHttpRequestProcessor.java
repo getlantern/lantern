@@ -22,6 +22,8 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.lantern.DefaultProxyTracker.ProxyHolder;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
@@ -43,7 +45,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     private final Queue<HttpRequest> httpRequests = 
         new ConcurrentLinkedQueue<HttpRequest>();
 
-    private final ProxyStatusListener proxyStatusListener;
+    private final ProxyTracker proxyTracker;
 
     private InetSocketAddress proxyAddress;
 
@@ -51,25 +53,24 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final boolean isLae;
 
-    private final Proxy proxy;
-
     private final ChannelGroup channelGroup;
 
     private final Stats stats;
 
     private final LanternTrustStore trustStore;
 
+    private GlobalTrafficShapingHandler trafficHandler;
+
+
     public DefaultHttpRequestProcessor( 
-        final ProxyStatusListener proxyStatusListener, 
+        final ProxyTracker proxyTracker, 
         final HttpRequestTransformer transformer, final boolean isLae, 
-        final Proxy proxy, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
         final ChannelGroup channelGroup, final Stats stats,
         final LanternTrustStore trustStore) {
-        this.proxyStatusListener = proxyStatusListener;
+        this.proxyTracker = proxyTracker;
         this.transformer = transformer;
         this.isLae = isLae;
-        this.proxy = proxy;
         this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
         this.stats = stats;
@@ -80,8 +81,11 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         if (this.proxyAddress != null) {
             return true;
         }
-        this.proxyAddress = this.proxy.getProxy();
-        if (this.proxyAddress != null) {
+        final ProxyHolder ph = this.proxyTracker.getProxy();
+        
+        if (ph != null) {
+            this.proxyAddress = ph.getIsa();
+            this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
         }
         log.info("No proxy!");
@@ -133,7 +137,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         // Start the connection attempt.
         final ClientBootstrap cb = 
             new ClientBootstrap(clientSocketChannelFactory);
-        final ChannelPipeline pipeline = configurePipeline(cb);
+        final ChannelPipeline pipeline = configureOutgoingPipeline(cb);
         
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("handler", 
@@ -159,9 +163,9 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
                     if (isLae) {
-                        proxyStatusListener.onCouldNotConnectToLae(proxyAddress);
+                        proxyTracker.onCouldNotConnectToLae(proxyAddress);
                     } else {
-                        proxyStatusListener.onCouldNotConnect(proxyAddress);
+                        proxyTracker.onCouldNotConnect(proxyAddress);
                     }
                 }
             }
@@ -177,7 +181,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final ClientBootstrap cb = 
             new ClientBootstrap(clientSocketChannelFactory);
         
-        final ChannelPipeline pipeline = configurePipeline(cb);
+        final ChannelPipeline pipeline = configureOutgoingPipeline(cb);
         
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(browserToProxyChannel, 
@@ -225,7 +229,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    proxyStatusListener.onCouldNotConnect(proxyAddress);
+                    proxyTracker.onCouldNotConnect(proxyAddress);
                 }
             }
         });
@@ -240,8 +244,11 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         }
     }
     
-    private ChannelPipeline configurePipeline(final ClientBootstrap cb) {
+    private ChannelPipeline configureOutgoingPipeline(final ClientBootstrap cb) {
         final ChannelPipeline pipeline = cb.getPipeline();
+        
+        // It's necessary to use our own engine here, as we need to trust
+        // the cert from the proxy.
         final SSLEngine engine = trustStore.getContext().createSSLEngine();
         
         engine.setUseClientMode(true);
@@ -259,9 +266,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
         // This is slightly odd in the CONNECT case, as we tunnel SSL inside 
         // SSL, but we'd otherwise just be running an open CONNECT proxy.
-        
-        // It's also necessary to use our own engine here, as we need to trust
-        // the cert from the proxy.
+        pipeline.addLast("trafficHandler", trafficHandler);
         pipeline.addLast("stats", statsHandler);
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());
