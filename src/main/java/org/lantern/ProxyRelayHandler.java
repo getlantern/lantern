@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
@@ -30,7 +31,7 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private volatile long messagesReceived = 0L;
+    private volatile AtomicLong messagesReceived = new AtomicLong();
 
     private final InetSocketAddress proxyAddress;
 
@@ -78,11 +79,11 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(final ChannelHandlerContext ctx,
         final MessageEvent me) {
-        messagesReceived++;
+        messagesReceived.incrementAndGet();
         log.info("Received {} total messages", messagesReceived);
         this.outboundChannel.write(me.getMessage());
     }
-    
+
     @Override
     public void channelOpen(final ChannelHandlerContext ctx,
         final ChannelStateEvent e) {

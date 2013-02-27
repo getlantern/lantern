@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.channel.Channel;
@@ -31,7 +32,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private volatile long messagesReceived = 0L;
+    private final AtomicLong messagesReceived = new AtomicLong();
 
     private Channel browserToProxyChannel;
 
@@ -138,7 +139,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(final ChannelHandlerContext ctx,
         final MessageEvent me) {
-        messagesReceived++;
+        messagesReceived.incrementAndGet();
         log.debug("Received {} total messages", messagesReceived);
         if (!readingChunks) {
             log.debug("Reading HTTP request (not a chunk)...");
@@ -168,7 +169,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         log.debug("Done processing HTTP request....");
     }
-    
+
     private HttpRequestProcessor dispatchRequest(
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest)me.getMessage();
