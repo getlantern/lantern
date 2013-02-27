@@ -232,15 +232,11 @@ public class Whitelist {
     }
 
     public Collection<WhitelistEntry> getEntries() {
-        synchronized (whitelist) {
-            return new TreeSet<WhitelistEntry>(whitelist);
-        }
+        return new TreeSet<WhitelistEntry>(whitelist);
     }
 
     public void setEntries(final Collection<WhitelistEntry> entries) {
-        synchronized (whitelist) {
-            this.whitelist = entries; 
-        }
+        this.whitelist = entries;
     }
 
     private String toBaseUri(final String uri) {
