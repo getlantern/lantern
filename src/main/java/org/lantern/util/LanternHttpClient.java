@@ -18,6 +18,7 @@ import org.lantern.Censored;
 import org.lantern.LanternConstants;
 import org.lantern.LanternSocketsUtil;
 import org.lantern.exceptional4j.HttpStrategy;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,7 @@ public class LanternHttpClient implements HttpStrategy {
     private HttpResponse executeInternal(final HttpRequestBase request) 
             throws IOException, ClientProtocolException {
 
+        //log.info("Called by: "+ThreadUtils.dumpStack());
         //return proxied.execute(request);
         // We currently disable creating a direct connection *in the 
         // censored case*. The problem is knowing what blocking looks like. 

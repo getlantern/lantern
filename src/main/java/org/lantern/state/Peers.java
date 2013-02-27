@@ -36,7 +36,6 @@ public class Peers {
         synchronized(this.peers) {
             for (final Peer peer : this.peers.values()) {
                 peer.setOnline(false);
-                peer.setConnected(false);
             }
         }
     }
