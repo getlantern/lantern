@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -30,18 +31,18 @@ import com.google.inject.Singleton;
 public class LanternSocketsUtil {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private final Stats stats;
-    
-    private final ExecutorService threadPool = 
+
+    private final ExecutorService threadPool =
         Executors.newCachedThreadPool(new ThreadFactory() {
-        private volatile int threadNumber = 0;
-        
+        private final AtomicInteger threadNumber = new AtomicInteger();
+
         @Override
         public Thread newThread(final Runnable r) {
             final Thread t = new Thread(r, "Peer-Reading-Thread-"+threadNumber);
             t.setDaemon(true);
-            threadNumber++;
+            threadNumber.incrementAndGet();
             return t;
         }
     });
