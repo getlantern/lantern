@@ -4,8 +4,8 @@ import java.util.Locale;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.lantern.state.Model.Run;
+import org.lantern.util.LanternTrafficCounterHandler;
 
 /**
  * Class containing data for an individual peer, including active connections,
@@ -42,11 +42,9 @@ public class Peer {
     
     private Mode mode;
     
-    private boolean connected;
-
     private boolean incoming;
 
-    private TrafficCounter trafficCounter;
+    private LanternTrafficCounterHandler trafficCounter;
     
     private long bytesUp;
     
@@ -61,17 +59,17 @@ public class Peer {
         final boolean mapped, final double latitude, 
         final double longitude, final Type type,
         final String ip, final Mode mode, final boolean incoming, 
-        final TrafficCounter trafficCounter) {
+        final LanternTrafficCounterHandler trafficCounter) {
         this.mapped = mapped;
         this.latitude = latitude;
         this.longitude = longitude;
         this.userId = userId;
         this.ip = ip;
         this.mode = mode;
-        this.setTrafficCounter(trafficCounter);
-        this.setIncoming(incoming);
+        this.incoming = incoming;
         this.type = type.toString();
         this.country = countryCode.toLowerCase(Locale.US);
+        this.trafficCounter = trafficCounter;
         
         // Peers are online when constructed this way (because we presumably 
         // just received some type of message from them).
@@ -150,13 +148,14 @@ public class Peer {
         this.mode = mode;
     }
 
+    @JsonView({Run.class})
     public boolean isConnected() {
-        return connected;
+        if (this.trafficCounter == null) {
+            return false;
+        }
+        return this.trafficCounter.isConnected();
     }
 
-    public void setConnected(boolean connected) {
-        this.connected = connected;
-    }
 
     public boolean isIncoming() {
         return incoming;
@@ -169,7 +168,7 @@ public class Peer {
     @JsonView({Run.class})
     public long getBpsUp() {
         if (getTrafficCounter() != null) {
-            return getTrafficCounter().getCurrentWrittenBytes();
+            return trafficCounter.getTrafficCounter().getCurrentWrittenBytes();
         }
         return 0L;
     }
@@ -177,7 +176,7 @@ public class Peer {
     @JsonView({Run.class})
     public long getBpsDown() {
         if (getTrafficCounter() != null) {
-            return getTrafficCounter().getCurrentReadBytes();
+            return trafficCounter.getTrafficCounter().getCurrentReadBytes();
         }
         return 0L;
     }
@@ -189,7 +188,7 @@ public class Peer {
 
     public long getBytesUp() {
         if (getTrafficCounter() != null) {
-            return bytesUp + getTrafficCounter().getCumulativeWrittenBytes();
+            return bytesUp + trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
         }
         return this.bytesUp;
     }
@@ -200,7 +199,7 @@ public class Peer {
 
     public long getBytesDn() {
         if (getTrafficCounter() != null) {
-            return bytesDn + getTrafficCounter().getCumulativeReadBytes();
+            return bytesDn + trafficCounter.getTrafficCounter().getCumulativeReadBytes();
         }
         return this.bytesDn;
     }
@@ -218,11 +217,11 @@ public class Peer {
     }
 
     @JsonIgnore
-    public TrafficCounter getTrafficCounter() {
+    public LanternTrafficCounterHandler getTrafficCounter() {
         return trafficCounter;
     }
 
-    public void setTrafficCounter(final TrafficCounter trafficCounter) {
+    public void setTrafficCounter(final LanternTrafficCounterHandler trafficCounter) {
         this.trafficCounter = trafficCounter;
     }
 

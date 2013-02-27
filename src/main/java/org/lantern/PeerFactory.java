@@ -17,6 +17,7 @@ import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Peers;
 import org.lantern.state.SyncPath;
+import org.lantern.util.LanternTrafficCounterHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class PeerFactory {
     public void addPeer(final String userId, final InetAddress address, 
         final int port, 
         final Type type, final boolean incoming, 
-        final TrafficCounter trafficCounter) {
+        final LanternTrafficCounterHandler trafficCounter) {
         exec.submit(new Runnable() {
 
             @Override
@@ -76,7 +77,8 @@ public class PeerFactory {
                     
                     // It could have just been deserialized from disk, so we
                     // want to give it a real traffic counter.
-                    final TrafficCounter tc = existing.getTrafficCounter();
+                    final LanternTrafficCounterHandler tc = 
+                        existing.getTrafficCounter();
                     if (tc != null) {
                         log.warn("Existing traffic counter?");
                     } else {
@@ -96,7 +98,7 @@ public class PeerFactory {
     
     private Peer newGiveModePeer(final String userId, final InetAddress address, 
         final int port, final Type type, final boolean incoming, 
-        final TrafficCounter trafficCounter) {
+        final LanternTrafficCounterHandler trafficCounter) {
         final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
         
         return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(), 

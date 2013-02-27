@@ -1,11 +1,9 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -22,6 +20,7 @@ import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
+import org.lantern.util.LanternTrafficCounterHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,9 +135,9 @@ public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
     private Collection<GlobalTrafficShapingHandler> trafficShapers =
             new ArrayList<GlobalTrafficShapingHandler>();
     
-    private GlobalTrafficShapingHandler trafficTracker() {
-        final GlobalTrafficShapingHandler handler = 
-            new GlobalTrafficShapingHandler(this.timer, 1000);
+    private LanternTrafficCounterHandler trafficTracker() {
+        final LanternTrafficCounterHandler handler = 
+            new LanternTrafficCounterHandler(this.timer);
         trafficShapers.add(handler);
         return handler;
     }
@@ -203,7 +202,7 @@ public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
             
             this.peerFactory.addPeer("", ph.getIsa().getAddress(), 
                 ph.getIsa().getPort(), type, false, 
-                ph.getTrafficShapingHandler().getTrafficCounter());
+                ph.getTrafficShapingHandler());
             synchronized (set) {
                 if (!set.contains(ph)) {
                     set.add(ph);
@@ -312,10 +311,10 @@ public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
 
         private final String id;
         private final InetSocketAddress isa;
-        private final GlobalTrafficShapingHandler trafficShapingHandler;
+        private final LanternTrafficCounterHandler trafficShapingHandler;
 
         private ProxyHolder(final String id, final InetSocketAddress isa, 
-            final GlobalTrafficShapingHandler trafficShapingHandler) {
+            final LanternTrafficCounterHandler trafficShapingHandler) {
             this.id = id;
             this.isa = isa;
             this.trafficShapingHandler = trafficShapingHandler;
@@ -329,7 +328,7 @@ public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
             return isa;
         }
         
-        public GlobalTrafficShapingHandler getTrafficShapingHandler() {
+        public LanternTrafficCounterHandler getTrafficShapingHandler() {
             return trafficShapingHandler;
         }
         
