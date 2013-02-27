@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.StringUtils;
