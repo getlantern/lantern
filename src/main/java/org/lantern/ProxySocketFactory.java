@@ -79,7 +79,7 @@ public class ProxySocketFactory extends SocketFactory {
         int nlchars = 0;
 
         while (true) {
-            final char c = (char) in.read();
+            final int c = in.read();
             got.append(c);
             if (got.length() > 4096) {
                 throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Recieved " +
