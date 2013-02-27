@@ -9,8 +9,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -89,18 +87,18 @@ public class LanternHttpClient implements HttpStrategy {
     @Override
     public HttpResponse execute(final HttpPost request) 
         throws IOException, ClientProtocolException {
-        return execute(request, new HttpPost(request.getURI()));
+        return executeInternal(request);
     }
     
 
     @Override
     public HttpResponse execute(final HttpGet request) 
         throws IOException, ClientProtocolException {
-        return execute(request, new HttpGet(request.getURI()));
+        return executeInternal(request);
     }
     
-    private HttpResponse execute(final HttpRequestBase request, 
-        final HttpRequestBase backup) throws IOException, ClientProtocolException {
+    private HttpResponse executeInternal(final HttpRequestBase request) 
+            throws IOException, ClientProtocolException {
 
         //return proxied.execute(request);
         // We currently disable creating a direct connection *in the 
@@ -122,7 +120,7 @@ public class LanternHttpClient implements HttpStrategy {
         if (!this.censored.isCensored() && !forceCensored) {
             return direct.execute(request);
         }
-        return proxied.execute(backup);
+        return proxied.execute(request);
     }
 
     public DefaultHttpClient getDirect() {
