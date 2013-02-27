@@ -1,21 +1,16 @@
 package org.lantern;
 
-import java.net.InetSocketAddress;
+import org.lantern.DefaultProxyTracker.ProxyHolder;
 
 /**
  * Interface for the various types of proxies Lantern uses.
  */
 public interface ProxyProvider {
 
-    InetSocketAddress getLaeProxy();
+    ProxyHolder getLaeProxy();
 
-    // Do not remove these -- required for tests.
-    //PeerProxyManager getAnonymousPeerProxyManager();
-    //PeerProxyManager getTrustedPeerProxyManager();
-
-    //URI getAnonymousProxy();    
     //URI getPeerProxy();
-
-    InetSocketAddress getProxy();
+    
+    ProxyHolder getProxy();
 
 }

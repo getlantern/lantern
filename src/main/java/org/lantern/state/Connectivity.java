@@ -4,8 +4,6 @@ import java.util.Collection;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
-import org.lantern.PeerProxyManager;
-import org.lantern.event.ConnectedPeersEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
@@ -33,7 +31,7 @@ public class Connectivity {
 
     private boolean invited = false;
 
-    private PeerProxyManager peerProxyManager;
+    //private PeerProxyManager peerProxyManager;
 
     private Peers peerCollector = new Peers();
 
@@ -50,7 +48,7 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
-        return this.peerCollector.getPeers();
+        return this.peerCollector.getPeers().values();
     }
 
     /*
@@ -72,7 +70,7 @@ public class Connectivity {
     private Collection<Peer> peers(final PeerProxyManager ppm) {
         return ppm.getPeers().values();
     }
-    */
+    
 
     @Subscribe
     public void onConnectedPeers(final ConnectedPeersEvent cpe) {
@@ -80,6 +78,7 @@ public class Connectivity {
             this.peerProxyManager = cpe.getPeerProxyManager();
         }
     }
+    */
 
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {

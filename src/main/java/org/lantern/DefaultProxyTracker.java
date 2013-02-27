@@ -1,9 +1,13 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -11,6 +15,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.jboss.netty.util.Timer;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
@@ -27,7 +33,7 @@ import com.google.inject.Singleton;
  * Class for keeping track of all proxies we know about.
  */
 @Singleton
-public class DefaultProxyTracker implements ProxyTracker {
+public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -57,13 +63,16 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final PeerFactory peerFactory;
 
+    private final Timer timer;
+
     @Inject
     public DefaultProxyTracker(final Model model,
         final PeerProxyManager trustedPeerProxyManager,
-        final PeerFactory peerFactory) {
+        final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer) {
         this.model = model;
         this.peerProxyManager = trustedPeerProxyManager;
         this.peerFactory = peerFactory;
+        this.timer = timer;
         
         addFallbackProxy();
         Events.register(this);
@@ -120,9 +129,20 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void addLaeProxy(final String cur) {
         log.debug("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
-            new ProxyHolder(cur, new InetSocketAddress(cur, 443)), cur);
+            new ProxyHolder(cur, new InetSocketAddress(cur, 443), trafficTracker()), cur, 
+            Type.laeproxy);
     }
     
+    private Collection<GlobalTrafficShapingHandler> trafficShapers =
+            new ArrayList<GlobalTrafficShapingHandler>();
+    
+    private GlobalTrafficShapingHandler trafficTracker() {
+        final GlobalTrafficShapingHandler handler = 
+            new GlobalTrafficShapingHandler(this.timer, 1000);
+        trafficShapers.add(handler);
+        return handler;
+    }
+
     @Override
     public void addProxy(final String hostPort) {
         log.debug("Adding proxy as string: {}", hostPort);
@@ -142,15 +162,13 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
     
     private void addProxy(final String host, final int port, final Type type) {
-        final InetSocketAddress isa = 
-            InetSocketAddress.createUnresolved(host, port);
-        addProxyWithChecks(proxySet, proxies, new ProxyHolder(host, isa),
-                isa.toString());
-        
-        this.peerFactory.addPeer("", host, port, type);
+        final InetSocketAddress isa = LanternUtils.isa(host, port);
+        addProxyWithChecks(proxySet, proxies, 
+            new ProxyHolder(host, isa, trafficTracker()),
+                host+":"+port, type);
     }
     
-    private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
+    private ProxyHolder getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
             if (queue.isEmpty()) {
                 log.debug("No proxy addresses");
@@ -159,13 +177,13 @@ public class DefaultProxyTracker implements ProxyTracker {
             final ProxyHolder proxy = queue.remove();
             queue.add(proxy);
             log.debug("FIFO queue is now: {}", queue);
-            return proxy.isa;
+            return proxy;
         }
     }
 
     private void addProxyWithChecks(final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
-        final String fullProxyString) {
+        final String fullProxyString, final Type type) {
         if (set.contains(ph)) {
             log.debug("We already know about proxy "+ph+" in {}", set);
             return;
@@ -173,7 +191,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
         final Socket sock = new Socket();
         try {
-            sock.connect(ph.isa, 60*1000);
+            sock.connect(ph.getIsa(), 60*1000);
             log.debug("Dispatching CONNECTED event");
             Events.asyncEventBus().post(
                 new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
@@ -182,6 +200,10 @@ public class DefaultProxyTracker implements ProxyTracker {
             // so no harm done.
             log.debug("Adding proxy to settings: {}", this.model.getSettings());
             this.model.getSettings().addProxy(fullProxyString);
+            
+            this.peerFactory.addPeer("", ph.getIsa().getAddress(), 
+                ph.getIsa().getPort(), type, false, 
+                ph.getTrafficShapingHandler().getTrafficCounter());
             synchronized (set) {
                 if (!set.contains(ph)) {
                     set.add(ph);
@@ -191,7 +213,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         } catch (final IOException e) {
             log.error("Could not connect to: {}", ph);
-            onCouldNotConnect(ph.isa);
+            onCouldNotConnect(ph.getIsa());
             this.model.getSettings().removeProxy(fullProxyString);
         } finally {
             IOUtils.closeQuietly(sock);
@@ -271,12 +293,12 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public InetSocketAddress getLaeProxy() {
+    public ProxyHolder getLaeProxy() {
         return getProxy(this.laeProxies);
     }
 
     @Override
-    public InetSocketAddress getProxy() {
+    public ProxyHolder getProxy() {
         return getProxy(this.proxies);
     }
 
@@ -286,19 +308,34 @@ public class DefaultProxyTracker implements ProxyTracker {
         clear();
     }
 
-    private static final class ProxyHolder {
+    public static final class ProxyHolder {
 
         private final String id;
         private final InetSocketAddress isa;
+        private final GlobalTrafficShapingHandler trafficShapingHandler;
 
-        private ProxyHolder(final String id, final InetSocketAddress isa) {
+        private ProxyHolder(final String id, final InetSocketAddress isa, 
+            final GlobalTrafficShapingHandler trafficShapingHandler) {
             this.id = id;
             this.isa = isa;
+            this.trafficShapingHandler = trafficShapingHandler;
         }
 
+        public String getId() {
+            return id;
+        }
+
+        public InetSocketAddress getIsa() {
+            return isa;
+        }
+        
+        public GlobalTrafficShapingHandler getTrafficShapingHandler() {
+            return trafficShapingHandler;
+        }
+        
         @Override
         public String toString() {
-            return "ProxyHolder [isa=" + isa + "]";
+            return "ProxyHolder [isa=" + getIsa() + "]";
         }
 
         @Override
@@ -319,7 +356,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             if (getClass() != obj.getClass())
                 return false;
             ProxyHolder other = (ProxyHolder) obj;
-            if (id == null) {
+            if (getId() == null) {
                 if (other.id != null)
                     return false;
             } else if (!id.equals(other.id))
@@ -330,6 +367,13 @@ public class DefaultProxyTracker implements ProxyTracker {
             } else if (!isa.equals(other.isa))
                 return false;
             return true;
+        }
+    }
+
+    @Override
+    public void stop() {
+        for (final GlobalTrafficShapingHandler handler : this.trafficShapers) {
+            handler.releaseExternalResources();
         }
     }
 

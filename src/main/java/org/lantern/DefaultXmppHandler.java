@@ -400,8 +400,8 @@ public class DefaultXmppHandler implements XmppHandler {
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with user name and password...");
         this.closedBetaEvent = null;
-        final InetSocketAddress plainTextProxyRelayAddress =
-            InetSocketAddress.createUnresolved("127.0.0.1",
+        final InetSocketAddress plainTextProxyRelayAddress = 
+            LanternUtils.isa("127.0.0.1", 
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
 
         final SessionSocketListener sessionListener = new SessionSocketListener() {

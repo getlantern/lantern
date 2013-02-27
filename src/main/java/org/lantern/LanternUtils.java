@@ -18,6 +18,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -870,6 +871,17 @@ public class LanternUtils {
 
     public static boolean isConnect(final HttpRequest request) {
         return request.getMethod() == HttpMethod.CONNECT;
+    }
+    
+    public static InetSocketAddress isa(final String host, final int port) {
+        final InetAddress ia;
+        try {
+            ia = InetAddress.getByName(host);
+        } catch (final UnknownHostException e) {
+            LOG.error("Bad host?", e);
+            throw new Error("Bad host", e);
+        }
+        return new InetSocketAddress(ia, port);
     }
 }
 

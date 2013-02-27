@@ -94,17 +94,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
-                new Proxy() {
-                    @Override
-                    public URI getPeerProxy() {
-                        throw new UnsupportedOperationException(
-                            "Peer proxy not supported here.");
-                    }
-                    @Override
-                    public InetSocketAddress getProxy() {
-                        return proxyTracker.getLaeProxy();
-                    }
-            }, this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
+                this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
     }
 
     /**
@@ -122,17 +112,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     // Does nothing.
                 }
             }, false,
-            new Proxy() {
-                @Override
-                public URI getPeerProxy() {
-                    throw new UnsupportedOperationException(
-                        "Peer proxy not supported here.");
-                }
-                @Override
-                public InetSocketAddress getProxy() {
-                    return proxyTracker.getProxy();
-                }
-            }, this.clientChannelFactory, this.channelGroup, this.stats,
+            this.clientChannelFactory, this.channelGroup, this.stats, 
             this.trustStore);
     }
 
@@ -218,7 +198,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.debug("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (this.model.getSettings().isUseAnonymousPeers() &&
+                if (this.model.getSettings().isUseTrustedPeers() && 
                     trustedPeerProxyManager.processRequest(
                 //if (LanternHub.settings().isUseTrustedPeers() &&
                 //    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
@@ -254,6 +234,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         try {
             if (this.model.getSettings().isUseTrustedPeers()) {
+                final HttpRequestProcessor rp = newRequestProcessor(); 
+                rp.processRequest(
+                    browserToProxyChannel, ctx, request);
+                if (rp != null) {
+                    return rp;
+                }
+                /*
                 final PeerProxyManager provider = trustedPeerProxyManager;
                 if (provider != null) {
                     log.info("Sending {} to trusted peers", request.getUri());
@@ -263,6 +250,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         return rp;
                     }
                 }
+                */
             }
         } catch (final IOException e) {
             log.info("Caught exception processing request", e);
