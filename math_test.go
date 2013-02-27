@@ -208,6 +208,19 @@ func TestMath_sin(t *testing.T) {
 	test(`Math.sin(0.5)`, "0.479425538604203")
 }
 
+func TestMath_sqrt(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.sqrt(NaN)`, "NaN")
+	test(`Math.sqrt(-1)`, "NaN")
+	test(`1/Math.sqrt(+0)`, "Infinity")
+	test(`1/Math.sqrt(-0)`, "-Infinity")
+	test(`Math.sqrt(Infinity)`, "Infinity")
+
+	test(`Math.sqrt(2)`, "1.4142135623730951")
+}
+
 func TestMath_tan(t *testing.T) {
 	Terst(t)
 

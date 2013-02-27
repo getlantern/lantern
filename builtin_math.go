@@ -120,6 +120,11 @@ func builtinMath_sin(call FunctionCall) Value {
 	return toValue(math.Sin(number))
 }
 
+func builtinMath_sqrt(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Sqrt(number))
+}
+
 func builtinMath_tan(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
 	return toValue(math.Tan(number))
