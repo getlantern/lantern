@@ -6,13 +6,17 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private final AtomicInteger connectedChannels = new AtomicInteger(0);
 
     public LanternTrafficCounterHandler(final Timer timer) {
-        super(timer, 1000);
+        super(timer, 2000);
     }
 
     @Override
