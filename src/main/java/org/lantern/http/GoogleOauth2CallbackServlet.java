@@ -17,6 +17,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -37,7 +38,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,21 +65,21 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final Proxifier proxifier;
 
-    private final LanternHttpClient httpClient;
+    private final HttpClientFactory httpClientFactory;
     
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
-        final Proxifier proxifier, final LanternHttpClient httpClient) {
+        final Proxifier proxifier, final HttpClientFactory httpClientFactory) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
-        this.httpClient = httpClient;
+        this.httpClientFactory = httpClientFactory;
     }
     
     @Override
@@ -136,9 +137,11 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
         
+        final HttpClient client = this.httpClientFactory.newClient();
+        
         final Map<String, String> allToks;
         try {
-            allToks = loadAllToks(code);
+            allToks = loadAllToks(code, client);
         } catch (final IOException e) {
             log.error("Could not load all oauth tokens!!", e);
             redirectToDashboard(resp);
@@ -146,15 +149,17 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         }
 
         connectToGoogleTalk(allToks);
-        fetchEmail(allToks);
+        fetchEmail(allToks, client);
     }
 
     /**
      * Fetches user's e-mail - only public for testing.
      * 
      * @param allToks OAuth tokens.
+     * @param httpClient The HTTP client.
      */
-    public int fetchEmail(final Map<String, String> allToks) {
+    public int fetchEmail(final Map<String, String> allToks, 
+            final HttpClient httpClient) {
         final String endpoint = 
             "https://www.googleapis.com/oauth2/v1/userinfo";
         final String accessToken = allToks.get("access_token");
@@ -241,8 +246,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         t.start();
     }
 
-    private Map<String, String> loadAllToks(final String code) 
-        throws IOException {
+    private Map<String, String> loadAllToks(final String code, 
+        final HttpClient httpClient) throws IOException {
         final HttpPost post = 
             new HttpPost("https://accounts.google.com/o/oauth2/token");
         try {

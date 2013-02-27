@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -25,7 +23,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
-import org.lantern.http.GoogleOauth2CallbackServlet;
 import org.lantern.state.ModelUtils;
 import org.lantern.util.LanternHttpClient;
 
@@ -59,7 +56,6 @@ public class LanternHttpClientTest {
         
         testExceptional(client);
         testGoogleDocs(client);
-        testGoogleApis(client);
         testStats(client);
     }
     
@@ -72,20 +68,6 @@ public class LanternHttpClientTest {
         final int code = line.getStatusCode();
         get.reset();
         assertEquals(200, code);
-    }
-
-    private void testGoogleApis(final LanternHttpClient client) {
-        final GoogleOauth2CallbackServlet servlet = 
-            new GoogleOauth2CallbackServlet(null, null, null, null, null, 
-                null, client);
-        
-        final Map<String, String> allToks = new HashMap<String, String>();
-        allToks.put("access_token", "invalidcode");
-        final int code = servlet.fetchEmail(allToks);
-        
-        // Expected to be unauthorized with a bogus token -- we want to 
-        // make sure it gets there.
-        assertEquals(401, code);
     }
 
     private void testGoogleDocs(final LanternHttpClient client) 

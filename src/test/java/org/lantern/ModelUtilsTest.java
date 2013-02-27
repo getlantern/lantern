@@ -1,13 +1,14 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Collection;
 
 import org.junit.Test;
 import org.lantern.state.DefaultModelUtils;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
 import org.littleshoot.proxy.KeyStoreManager;
 
 public class ModelUtilsTest {
@@ -28,8 +29,8 @@ public class ModelUtilsTest {
         final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);
-        final LanternHttpClient httpClient = 
-            new LanternHttpClient(socketsUtil, new Censored() {
+        final HttpClientFactory httpClient = 
+            new HttpClientFactory(socketsUtil, new Censored() {
             
             @Override
             public boolean isExportRestricted(String string) throws IOException {

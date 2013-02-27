@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
@@ -18,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
@@ -28,7 +30,7 @@ import org.lantern.GeoData;
 import org.lantern.LanternConstants;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,16 +48,18 @@ public class DefaultModelUtils implements ModelUtils {
     
     private final Model model;
 
-    private final LanternHttpClient httpClient;
+    private HttpClient httpClient;
     
     private final Map<String, GeoData> geoCache = 
         new HashMap<String, GeoData>();
 
+    private final HttpClientFactory httpClientFactory;
+    
     @Inject
     public DefaultModelUtils(final Model model, 
-        final LanternHttpClient httpClient) {
+        final HttpClientFactory httpClientFactory) {
         this.model = model;
-        this.httpClient = httpClient;
+        this.httpClientFactory = httpClientFactory;
     }
     
     /**
@@ -84,6 +88,11 @@ public class DefaultModelUtils implements ModelUtils {
         try {
             final URI uri = builder.build();
             get.setURI(uri);
+            synchronized (this) {
+                if (this.httpClient == null) {
+                    this.httpClient = this.httpClientFactory.newClient();
+                }
+            }
             final HttpResponse response = httpClient.execute(get);
             final HttpEntity entity = response.getEntity();
             final String body = 
