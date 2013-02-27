@@ -124,8 +124,7 @@ exports.SCENARIOS = {
     },
     true: {
       desc: 'gtalkAuthorized: true',
-      func: make_simple_scenario({'/connectivity/gtalkAuthorized': true,
-        '/settings/email': 'user@example.com'})
+      func: make_simple_scenario({'/connectivity/gtalkAuthorized': true})
     }
   },
   invited: {
@@ -156,6 +155,7 @@ exports.SCENARIOS = {
       func: function() {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
                 '/modal': MODAL.gtalkConnecting});
+              sleep.usleep(750000);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.notConnected,
                 '/modal': MODAL.gtalkUnreachable});
             }
@@ -165,10 +165,11 @@ exports.SCENARIOS = {
       func: function() {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
                 '/modal': MODAL.gtalkConnecting});
-              this.sync({'/connectivity/gtalk': CONNECTIVITY.connected});
-              this.sync({'/profile': {
+              sleep.usleep(750000);
+              this.sync({'/connectivity/gtalk': CONNECTIVITY.connected,
+              '/profile': {
                 email: 'user@example.com',
-                name: 'Some User',
+                name: 'Example User',
                 link: 'https://plus.google.com/1234567',
                 picture: 'img/default-avatar.png',
                 gender: '',

@@ -589,10 +589,6 @@ the backend maintains on the frontend through comet publications:
     <td><strong>settings</strong><br><em>object</em></td>
     <td>
       <table>
-        <tr>
-          <td><strong>email</strong><br><em>email</em></td>
-          <td>The user's email address used to log in to Google Talk/Lantern.</td>
-        </tr>
         </tr>
         <tr>
           <td><strong>lang</strong><br><em>string</em></td>
