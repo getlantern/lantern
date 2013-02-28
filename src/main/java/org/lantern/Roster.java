@@ -174,14 +174,16 @@ public class Roster implements RosterListener {
                 ad = new LanternKscopeAdvertisement(user);
             }
 
+            final TrustGraphNode tgn = 
+                new LanternTrustGraphNode(xmppHandler);
+            // set ttl to max for now
+            ad.setTtl(tgn.getMaxRouteLength());
             final String adPayload = JsonUtils.jsonify(ad);
             final BasicTrustGraphAdvertisement message =
                 new BasicTrustGraphAdvertisement(id, adPayload, 
                     LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
             );
 
-            final TrustGraphNode tgn = 
-                new LanternTrustGraphNode(xmppHandler);
             log.debug("Sending ad to newly online roster entry {}.", id);
             tgn.sendAdvertisement(message, id, ad.getTtl()); 
 

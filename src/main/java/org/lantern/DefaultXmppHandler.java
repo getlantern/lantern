@@ -573,6 +573,12 @@ public class DefaultXmppHandler implements XmppHandler {
                         ad = new LanternKscopeAdvertisement(user);
                     }
 
+                    final TrustGraphNode tgn =
+                        new LanternTrustGraphNode(DefaultXmppHandler.this);
+
+                    // for now, set ttl to max route length
+                    ad.setTtl(tgn.getMaxRouteLength());
+
                     // Now turn the advertisement into JSON.
                     final String payload = JsonUtils.jsonify(ad);
 
@@ -580,8 +586,6 @@ public class DefaultXmppHandler implements XmppHandler {
                     final BasicTrustGraphAdvertisement message =
                         new BasicTrustGraphAdvertisement(tgnid, payload, 0);
 
-                    final TrustGraphNode tgn =
-                        new LanternTrustGraphNode(DefaultXmppHandler.this);
                     tgn.advertiseSelf(message);
                 }
             };
