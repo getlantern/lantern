@@ -66,7 +66,7 @@ public class SyncService implements LanternService {
             public void run() {
                 //sync();
                 delegateSync(SyncType.ADD, SyncPath.PEERS, 
-                    model.getConnectivity().getPeers());
+                    model.getPeers());
             }
         }, 3000, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
     }
