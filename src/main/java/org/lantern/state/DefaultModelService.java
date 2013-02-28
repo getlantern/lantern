@@ -10,7 +10,6 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.LanternClientConstants;
-import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier;
@@ -262,6 +261,12 @@ public class DefaultModelService implements ModelService {
         for (String email : emails) {
             xmppHandler.sendInvite(email);
         }
+    }
+
+    //this is necessary for JSON-pointer updating, since we want
+    //all updates to go through this class
+    public DefaultModelService getSettings() {
+        return this;
     }
 
     /*
