@@ -316,7 +316,7 @@ exports.SCENARIOS = {
                     peersCurrent = _.filter(peers, 'connected'),
                     update = [];
 
-                log('peers:', _.pluck(peersCurrent, 'peerid'));
+                //log('peers:', _.pluck(peersCurrent, 'peerid'));
 
                 function done() {
                   _.each(peersCurrent, function(peer) {
@@ -376,13 +376,13 @@ exports.SCENARIOS = {
                   var i = _.random(peers.length - 1);
                   update.push({op: 'add', path: '/peers/'+i+'/connected', value: true});
                   update.push({op: 'add', path: '/peers/'+i+'/lastConnected', value: new Date().toJSON()});
-                  log('No current peers, added random peer', peers[i].peerid);
+                  //log('No current peers, added random peer', peers[i].peerid);
                   return done();
                 }
 
                 if (peersCurrent.length === peers.length) {
                   var i = _.random(peers.length - 1);
-                  log('Connected to all available peers, removing random peer', peers[i].peerid);
+                  //log('Connected to all available peers, removing random peer', peers[i].peerid);
                   update.push({op: 'add', path: '/peers/'+i+'/connected', value: false});
                   return done();
                 }
@@ -393,7 +393,7 @@ exports.SCENARIOS = {
                   if (getByPath(this_.model, '/countries/'+randomPeer.country+'/censors')) return;
                   var mode = randomPeer.mode === MODE.give ? MODE.get : MODE.give;
                   update.push({op: 'add', path: '/peers/'+i+'/mode', value: mode});
-                  log('toggling mode for peer', randomPeer.peerid);
+                  //log('toggling mode for peer', randomPeer.peerid);
                 }
 
                 var ppeersall = _.pluck(peers, 'peerid'),
@@ -404,7 +404,7 @@ exports.SCENARIOS = {
                       i = _.indexOf(ppeersall, randomPeerid);
                   update.push({op: 'add', path: '/peers/'+i+'/connected', value: true});
                   update.push({op: 'add', path: '/peers/'+i+'/lastConnected', value: new Date().toJSON()});
-                  log('heads: added random peer', randomPeerid);
+                  //log('heads: added random peer', randomPeerid);
 
                   /*
                   if (Math.random() < .2) { // move the peer by a random amount
@@ -417,7 +417,7 @@ exports.SCENARIOS = {
                 } else { // remove a random connected peer
                   var randomPeerid = randomChoice(ppeerscur),
                       i = _.indexOf(ppeersall, randomPeerid);
-                  log('tails: removing random peer', randomPeerid);
+                  //log('tails: removing random peer', randomPeerid);
                   peersCurrent.splice(_.indexOf(ppeerscur, randomPeerid), 1);
                   update.push({op: 'add', path: '/peers/'+i+'/connected', value: false});
                   update.push({op: 'add', path: '/peers/'+i+'/bpsUp', value: 0});

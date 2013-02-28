@@ -7002,9 +7002,6 @@ textarea.bugReport {
 #countries path:hover {
   stroke-opacity: 1 !important;
 }
-#countries path.AQ {
-  display: none;
-}
 
 .peer.get, #self.get {
   fill: #ffcc66;

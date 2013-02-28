@@ -25,6 +25,8 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       MODE = ENUMS.MODE,
       abs = Math.abs,
       min = Math.min,
+      max = Math.max,
+      round = Math.round,
       dim = {},
       $map = $('#map'),
       $$map = d3.select('#map'),
@@ -144,13 +146,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     //φ.domain([-dim.height, dim.height]);
     switch ($scope.projectionKey) {
       case 'orthographic':
-        dim.radius = Math.min(dim.width, dim.height) >> 1;
+        dim.radius = min(dim.width, dim.height) >> 1;
         projection.scale(dim.radius-2);
+        projection.translate([dim.width >> 1, dim.height >> 1]);
         break;
       case 'mercator':
-        projection.scale(Math.max(dim.width, dim.height));
+        projection.scale(max(dim.width, dim.height));
+        projection.translate([dim.width >> 1, round(.56*dim.height)]);
     }
-    projection.translate([dim.width >> 1, dim.height >> 1]);
     //zoom.scale(projection.scale());
     redrawThrottled();
   }

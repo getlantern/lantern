@@ -270,6 +270,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   $scope.handleUpdate = function() {
     $scope.dirty = true;
     $scope.submitButtonLabelKey = 'WAITING';
+    // XXX use _.throttle instead
     if (sendUpdatePromise) {
       $timeout.cancel(sendUpdatePromise);
     }
