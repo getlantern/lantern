@@ -16,7 +16,7 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
     
     private final AtomicInteger connectedChannels = new AtomicInteger(0);
 
-    private long lastConnected;
+    private long lastConnected = 0L;
 
     public LanternTrafficCounterHandler(final Timer timer) {
         super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
