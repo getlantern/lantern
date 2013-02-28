@@ -6799,6 +6799,10 @@ textarea.bugReport {
   margin-bottom: 15px;
 }
 
+#currentFriends {
+  display: none;
+}
+
 .contactList-horizontal {
   margin: 5px 0 10px;
   overflow: auto;

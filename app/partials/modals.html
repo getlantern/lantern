@@ -334,7 +334,7 @@
   <div class="modal-body">
     <div>
       <p>{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
-      <p class="small">{{ 'AUTOTRUSTED_PROMPT' | i18n }}</p>
+      <!-- <p class="small">{{ 'ROSTER_PROMPT' | i18n }}</p> -->
     </div>
 
     <div ng-show="model.friends.pending.length" class="centered">
@@ -358,22 +358,24 @@
     </div>
     <hr ng-show="model.friends.pending.length">
 
-    <div ng-hide="model.friends.current.length" class="centered smaller">{{ 'NO_FRIENDS' | i18n }}</div>
+    <div id="currentFriends">
+      <div ng-hide="model.friends.current.length" class="centered smaller">{{ 'NO_FRIENDS' | i18n }}</div>
 
-    <h4 class="centered" ng-show="model.friends.current.length">
-      <span ng-show="model.friends.current.length">{{ model.friends.current.length }}</span>
-      {{ 'LANTERN_FRIENDS_COLON' | i18n }}
-    </h4>
-    <ul ng-show="model.friends.current.length" class="contactList-horizontal centered">
-      <!-- http://microformats.org/wiki/hcard -->
-      <li class="vcard" ng-repeat="contact in model.friends.current">
-        <img class="photo pull-left" ng-src="{{ contact.picture || DEFAULT_AVATAR_URL }}">
-        <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div><!-- XXX text direction -->
-        <div class="email small" title="{{ contact.email }}" ng-class="{gray: !contact.email}" dir="ltr">{{ contact.email || ('NO_EMAIL' | i18n) }}</div>
-      </li>
-    </ul>
+      <h4 class="centered" ng-show="model.friends.current.length">
+        <span ng-show="model.friends.current.length">{{ model.friends.current.length }}</span>
+        {{ 'LANTERN_FRIENDS_COLON' | i18n }}
+      </h4>
+      <ul ng-show="model.friends.current.length" class="contactList-horizontal centered">
+        <!-- http://microformats.org/wiki/hcard -->
+        <li class="vcard" ng-repeat="contact in model.friends.current">
+          <img class="photo pull-left" ng-src="{{ contact.picture || DEFAULT_AVATAR_URL }}">
+          <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div><!-- XXX text direction -->
+          <div class="email small" title="{{ contact.email }}" ng-class="{gray: !contact.email}" dir="ltr">{{ contact.email || ('NO_EMAIL' | i18n) }}</div>
+        </li>
+      </ul>
+      <hr>
+    </div>
 
-    <hr>
     <form class="inviteForm" name="inviteForm" ng-show="model.ninvites">
       <h4>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</h4>
       <input type="hidden" ng-model="invitees" name="selectInvitees"
