@@ -1,10 +1,12 @@
 package org.lantern.state;
 
+import java.util.Date;
 import java.util.Locale;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
+import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.util.LanternTrafficCounterHandler;
 
@@ -14,7 +16,7 @@ import org.lantern.util.LanternTrafficCounterHandler;
  */
 public class Peer {
 
-    private String userId = "";
+    private String peerid = "";
 
     private String country = "";
     
@@ -64,7 +66,7 @@ public class Peer {
         this.mapped = mapped;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.userId = userId;
+        this.setPeerid(userId);
         this.ip = ip;
         this.mode = mode;
         this.incoming = incoming;
@@ -75,14 +77,6 @@ public class Peer {
         // Peers are online when constructed this way (because we presumably 
         // just received some type of message from them).
         this.online = true;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getCountry() {
@@ -232,8 +226,21 @@ public class Peer {
     }
 
     @JsonView({Run.class})
-    public int getNumSockets() {
+    public int getNSockets() {
         return trafficCounter.getNumSockets();
+    }
+    
+    @JsonView({Run.class, Persistent.class})
+    public Date getLastConnected() {
+        return new Date(trafficCounter.getLastConnected());
+    }
+
+    public String getPeerid() {
+        return peerid;
+    }
+
+    public void setPeerid(String peerid) {
+        this.peerid = peerid;
     }
 
 

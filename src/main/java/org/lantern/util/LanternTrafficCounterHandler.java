@@ -16,6 +16,8 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
     
     private final AtomicInteger connectedChannels = new AtomicInteger(0);
 
+    private long lastConnected;
+
     public LanternTrafficCounterHandler(final Timer timer) {
         super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
     }
@@ -24,6 +26,7 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) throws Exception {
         this.connectedChannels.incrementAndGet();
+        this.lastConnected = System.currentTimeMillis();
     }
     
     @Override
@@ -38,5 +41,9 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
 
     public int getNumSockets() {
         return connectedChannels.get();
+    }
+
+    public long getLastConnected() {
+        return this.lastConnected;
     }
 }
