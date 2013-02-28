@@ -193,15 +193,12 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   var log = logFactory('ProxiedSitesCtrl'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
-      DELAY = 1000,
       nproxiedSitesMax = 1000,
-      sendUpdatePromise,
       original,
       normalized;
 
   function updateComplete() {
     $scope.updating = false;
-    $scope.dirty = false;
     $scope.submitButtonLabelKey = 'CONTINUE';
   }
 
@@ -261,38 +258,29 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
     return !$scope.errorLabelKey;
   };
 
-  $scope.reset = function() {
-    $scope.updating = true;
-    $scope.interaction(INTERACTION.reset).then(updateComplete);
+  $scope.handleReset = function() {
+    $scope.input = original.join('\n');
     makeValid();
   };
 
-  $scope.handleUpdate = function() {
-    $scope.dirty = true;
-    $scope.submitButtonLabelKey = 'WAITING';
-    // XXX use _.throttle instead
-    if (sendUpdatePromise) {
-      $timeout.cancel(sendUpdatePromise);
+  $scope.handleContinue = function() {
+    if ($scope.proxiedSitesForm.$invalid) {
+      log.debug('invalid input, not sending update');
+      return $scope.interaction(INTERACTION.continue);
     }
-    sendUpdatePromise = $timeout(function() {
-      sendUpdatePromise = null;
-      if ($scope.proxiedSitesForm.$invalid) {
-        log.debug('invalid input, not sending update');
-        return;
-      }
-      $scope.input = normalized.join('\n');
-      if (_.isEqual(original, normalized)) {
-        log.debug('input matches original, not sending update');
-        updateComplete();
-        return;
-      }
-      $scope.updating = true;
-      $scope.submitButtonLabelKey = 'UPDATING';
-      $timeout(function() {
-        log.debug('sending update');
-        $scope.changeSetting(SETTING.proxiedSites, normalized).then(updateComplete);
-      }, DELAY);
-    }, DELAY);
+    if (_.isEqual(original, normalized)) {
+      log.debug('input matches original, not sending update');
+      return $scope.interaction(INTERACTION.continue);
+    }
+    log.debug('sending update');
+    $scope.input = normalized.join('\n');
+    $scope.updating = true;
+    $scope.submitButtonLabelKey = 'UPDATING';
+    $scope.changeSetting(SETTING.proxiedSites, normalized).then(function() {
+      updateComplete();
+      log.debug('update complete, sending continue');
+      $scope.interaction(INTERACTION.continue);
+    });
   };
 }
 

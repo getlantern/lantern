@@ -303,7 +303,7 @@
       <form name="proxiedSitesForm">
         <textarea ng-model="input" name="input" placeholder="example.com" required
           ng-disabled="model.settings.proxyAllSites"
-          ui-validate="validate" ng-disabled="updating" ng-change="handleUpdate()"
+          ui-validate="validate" ng-disabled="updating"
           dir="ltr" tabindex="1"></textarea>
       </form>
     </div>
@@ -317,10 +317,10 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-disabled="updating" ng-click="reset()" tabindex="3">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn" ng-disabled="updating" ng-click="handleReset()" tabindex="3">{{ 'RESET' | i18n }}</button>
     <button type="button" class="btn btn-primary" tabindex="2"
-            ng-disabled="dirty || updating || proxiedSitesForm.$invalid"
-            ng-click="interaction(INTERACTION.continue)">{{ submitButtonLabelKey | i18n }}</button>
+            ng-disabled="updating || proxiedSitesForm.$invalid"
+            ng-click="handleContinue()">{{ submitButtonLabelKey | i18n }}</button>
   </div>
 </div>
 
