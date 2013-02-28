@@ -1,15 +1,16 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.net.InetAddress;
+
+import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
@@ -19,30 +20,30 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
-import org.kaleidoscope.RandomRoutingTable;
-import org.kaleidoscope.TrustGraphNodeId;
-import org.kaleidoscope.TrustGraphNode;
-import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.jivesoftware.smackx.packet.VCard;
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
-import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.kscope.LanternTrustGraphNode;
-import org.lantern.XmppHandler;
+import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.kaleidoscope.RandomRoutingTable;
+import org.kaleidoscope.TrustGraphNode;
+import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
+import org.lantern.http.PhotoServlet;
+import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
-import org.lastbamboo.common.ice.MappedServerSocket;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -62,8 +63,8 @@ public class Roster implements RosterListener {
     /**
      * Map of e-mail address of the requester to their full profile.
      */
-    private final Map<String, Profile> incomingSubscriptionRequests =
-        new TreeMap<String, Profile>();
+    //private final Map<String, Profile> incomingSubscriptionRequests =
+      //  new TreeMap<String, Profile>();
 
     private volatile boolean populated;
 
@@ -314,18 +315,44 @@ public class Roster implements RosterListener {
     }
 
     public void addIncomingSubscriptionRequest(final Presence pres) {
+        /*
         final String json = (String) pres.getProperty(XmppMessageConstants.PROFILE);
         if (StringUtils.isBlank(json)) {
             log.warn("No profile?");
             return;
         }
+        
+        final PhotoServlet ps = new PhotoServlet(null);
+        VCard vcard;
+        try {
+            vcard = ps.getVCard(pres.getFrom());
+            log.debug("Got vcard: {}", vcard);
+        } catch (CredentialException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (XMPPException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        */
+        
+        this.model.getFriends().addPending(pres.getFrom());
+        /*
         final ObjectMapper mapper = new ObjectMapper();
         try {
             final Profile prof = mapper.readValue(json, Profile.class);
-            incomingSubscriptionRequests.put(prof.getEmail(), prof);
-            synchronized (incomingSubscriptionRequests) {
-                sendAddSubscriptionRequest(prof);
-            }
+            this.model.getFriends().addPending(prof);
+            
+//            incomingSubscriptionRequests.put(prof.getEmail(), prof);
+//            synchronized (incomingSubscriptionRequests) {
+//                sendAddSubscriptionRequest(prof);
+//            }
+            
+            //syncSubscriptionRequest(prof);
+            syncPending();
         } catch (final JsonParseException e) {
             log.warn("Error parsing json", e);
         } catch (final JsonMappingException e) {
@@ -333,28 +360,23 @@ public class Roster implements RosterListener {
         } catch (final IOException e) {
             log.warn("Error reading json", e);
         }
+        */
     }
 
+
+    private void syncPending() {
+        Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS.getPath(), 
+            this.model.getFriends().getPending());
+    }
 
     private void sendAddSubscriptionRequest(Profile prof) {
         Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS + "." + prof.getEmail(), prof);
     }
-
-    private void syncSubscriptionRequests() {
-        Events.sync(SyncPath.SUBSCRIPTION_REQUESTS,
-                ImmutableMap.copyOf(incomingSubscriptionRequests));
-    }
-
+    
     public void removeIncomingSubscriptionRequest(final String from) {
         final String email = XmppUtils.jidToUser(from);
-        incomingSubscriptionRequests.remove(email);
-        syncSubscriptionRequests();
-    }
-
-    public Collection<Profile> getSubscriptionRequests() {
-        synchronized (incomingSubscriptionRequests) {
-            return incomingSubscriptionRequests.values();
-        }
+        this.model.getFriends().removePending(email);
+        syncPending();
     }
 
     @Override
@@ -403,13 +425,12 @@ public class Roster implements RosterListener {
         processPresence(pres, true, true);
     }
 
-
     public boolean populated() {
         return this.populated;
     }
 
     public void reset() {
-        this.incomingSubscriptionRequests.clear();
+        this.model.getFriends().clear();
         synchronized (rosterEntries) {
             this.rosterEntries.clear();
         }
@@ -444,6 +465,7 @@ public class Roster implements RosterListener {
     public boolean autoAcceptSubscription(final String from) {
         final LanternRosterEntry entry = this.rosterEntries.get(from);
         if (entry == null) {
+            log.debug("No matching roster entry!");
             return false;
         }
         final String subscriptionStatus = entry.getSubscriptionStatus();
@@ -451,9 +473,11 @@ public class Roster implements RosterListener {
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.
         if (StringUtils.isBlank(subscriptionStatus)) {
+            log.debug("Blank subscription status!");
             return true;
         }
 
+        log.debug("Subscription status is: {}", subscriptionStatus);
         // Otherwise only auto-allow subscription requests if we've requested
         // to subscribe to them.
         return subscriptionStatus.equalsIgnoreCase("subscribe");

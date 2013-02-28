@@ -63,7 +63,6 @@ import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.Profile;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
@@ -479,7 +478,7 @@ public class DefaultXmppHandler implements XmppHandler {
             @Override
             public void processPacket(final Packet pack) {
                 final Presence pres = (Presence) pack;
-                LOG.debug("Processing packet!! {}", pres);
+                LOG.debug("Processing packet!! {}", pres.toXML());
                 final String from = pres.getFrom();
                 LOG.debug("Responding to presence from {} and to {}",
                     from, pack.getTo());
@@ -494,7 +493,7 @@ public class DefaultXmppHandler implements XmppHandler {
                         packet.setFrom(pack.getTo());
                         connection.sendPacket(packet);
                     } else {
-                        LOG.info("Non-subscribe packet from hub? {}",
+                        LOG.debug("Non-subscribe packet from hub? {}",
                             pres.toXML());
                     }
                 } else {
@@ -505,18 +504,17 @@ public class DefaultXmppHandler implements XmppHandler {
                         LOG.warn("Got error packet!! {}", pack.toXML());
                         return;
                     case subscribe:
-                        LOG.info("Adding subscription request from: {}", from);
+                        LOG.debug("Adding subscription request from: {}", from);
 
-                        final boolean isLantern =
-                            LanternUtils.isLanternMessage(pres);
-                        // If we get a subscription request from someone
-                        // already on our roster, auto-accept it.
-                        if (isLantern) {
-                            if (roster.autoAcceptSubscription(from)) {
-                                subscribed(from);
-                            }
-                            roster.addIncomingSubscriptionRequest(pres);
+                        // Did we originally invite them and they're 
+                        // subscribing back? Auto-allow if so.
+                        if (roster.autoAcceptSubscription(from)) {
+                            subscribed(from);
+                        } else {
+                            LOG.debug("We didn't invite them");
                         }
+                        roster.addIncomingSubscriptionRequest(pres);
+                            
                         break;
                     case subscribed:
                         break;
@@ -1154,11 +1152,11 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
 
-        final Profile prof = this.model.getProfile();
-        pres.setProperty(LanternConstants.INVITER_NAME, prof.getName());
+        //final Profile prof = this.model.getProfile();
+        //pres.setProperty(LanternConstants.INVITER_NAME, prof.getName());
 
-        final String json = JsonUtils.jsonify(prof);
-        pres.setProperty(XmppMessageConstants.PROFILE, json);
+        //final String json = JsonUtils.jsonify(prof);
+        //pres.setProperty(XmppMessageConstants.PROFILE, json);
 
         invited.add(email);
         //pres.setProperty(LanternConstants.INVITER_NAME, value);
@@ -1183,31 +1181,31 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public void subscribe(final String jid) {
-        LOG.info("Sending subscribe message to: {}", jid);
+        LOG.debug("Sending subscribe message to: {}", jid);
         final Presence packet = new Presence(Presence.Type.subscribe);
         packet.setTo(jid);
-        final String json = JsonUtils.jsonify(this.model.getProfile());
-        packet.setProperty(XmppMessageConstants.PROFILE, json);
+        //final String json = JsonUtils.jsonify(this.model.getProfile());
+        //packet.setProperty(XmppMessageConstants.PROFILE, json);
         final XMPPConnection conn = this.client.get().getXmppConnection();
         conn.sendPacket(packet);
     }
 
     @Override
     public void subscribed(final String jid) {
-        LOG.info("Sending subscribe message to: {}", jid);
+        LOG.debug("Sending subscribed message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.subscribed);
         roster.removeIncomingSubscriptionRequest(jid);
     }
 
     @Override
     public void unsubscribe(final String jid) {
-        LOG.info("Sending unsubscribe message to: {}", jid);
+        LOG.debug("Sending unsubscribe message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.unsubscribe);
     }
 
     @Override
     public void unsubscribed(final String jid) {
-        LOG.info("Sending unsubscribed message to: {}", jid);
+        LOG.debug("Sending unsubscribed message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.unsubscribed);
         roster.removeIncomingSubscriptionRequest(jid);
     }
@@ -1229,7 +1227,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Roster rost = conn.getRoster();
         final RosterEntry entry = rost.getEntry(email);
         if (entry == null) {
-            LOG.info("Inviting user to join roster: {}", email);
+            LOG.debug("Inviting user to join roster: {}", email);
             try {
                 // Note this also sends a subscription request!!
                 rost.createEntry(email,
@@ -1237,6 +1235,8 @@ public class DefaultXmppHandler implements XmppHandler {
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
             }
+        } else {
+            LOG.debug("User already on roster...");
         }
     }
 
@@ -1246,7 +1246,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Roster rost = conn.getRoster();
         final RosterEntry entry = rost.getEntry(email);
         if (entry != null) {
-            LOG.info("Removing user from roster: {}", email);
+            LOG.debug("Removing user from roster: {}", email);
             try {
                 rost.removeEntry(entry);
             } catch (final XMPPException e) {
@@ -1262,7 +1262,7 @@ public class DefaultXmppHandler implements XmppHandler {
             final String pack = clazz.getPackage().getName();
             final String oName =
                 pack+":type="+clazz.getSimpleName()+"-"+clazz.getSimpleName();
-            LOG.info("Registering MBean with name: {}", oName);
+            LOG.debug("Registering MBean with name: {}", oName);
             final ObjectName mxBeanName = new ObjectName(oName);
             if(!mbs.isRegistered(mxBeanName)) {
                 mbs.registerMBean(this, mxBeanName);

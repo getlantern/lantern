@@ -735,10 +735,12 @@ public class LanternUtils {
             "Maybe couldn't bind?");
     }
 
+    /*
     public static boolean isLanternMessage(final Presence pres) {
         final Object prop = pres.getProperty(XmppMessageConstants.PROFILE);
         return prop != null;
     }
+    */
 
     /**
      * Determines whether or not oauth data should be persisted to disk. It is

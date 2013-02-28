@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-mkdir -p ~/Library/Logs/Lantern
+mkdir ~/Library/Logs/Lantern
 
 function log() {
   echo "`date`: $@" >> ~/Library/Logs/Lantern/installer.log
@@ -11,14 +11,11 @@ onOff=$1
 url=$2
 #port=$3
 log "Setting to on or off: $onOff"
-commandline=()
-while read s;
-do
-    log "Configuring network: $s"
-    commandline+=(-setautoproxyurl "${s}" "$url" -setautoproxystate "${s}" "${onOff}")
-done < <(networksetup -listallnetworkservices | tail +2)
-cleaned_commandline=`printf \""%s\" " "${commandline[@]}"`
-networksetup "${commandline[@]}" || log "Could not configure network services; cmdline is $cleaned_commandline"
+#while read s; 
+#do
+    log "Configuring network:"
+    networksetup -setautoproxyurl "Wi-Fi" $url || log "Could not set auto proxy URL for $s"
+    networksetup -setautoproxystate "Wi-Fi" "$onOff" || log "Could not turn auto proxy on for $s"
+    log "Configured network: "
+#done < <(networksetup -listallnetworkservices | tail +2)
 log "Done configuring network services!!"
-
-

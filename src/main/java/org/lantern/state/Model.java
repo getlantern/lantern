@@ -56,6 +56,8 @@ public class Model {
     private List<Country> countries = Country.allCountries();
 
     private final Global global = new Global();
+    
+    private Friends friends = new Friends();
 
     public SystemData getSystem() {
         return system;
@@ -180,5 +182,13 @@ public class Model {
 
     public Global getGlobal() {
         return global;
+    }
+
+    public Friends getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Friends friends) {
+        this.friends = friends;
     }
 }
