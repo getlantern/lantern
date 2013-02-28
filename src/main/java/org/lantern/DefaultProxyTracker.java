@@ -232,7 +232,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 }
             }
         } catch (final IOException e) {
-            log.error("Could not connect to: {}", ph);
+            log.error("Could not connect to: " + ph, e);
             onCouldNotConnect(ph.getIsa());
             this.model.getSettings().removeProxy(fullProxyString);
         } finally {
