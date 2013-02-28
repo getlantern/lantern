@@ -183,6 +183,14 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
+            case PROXIEDSITES:
+                log.debug("Processing proxiedSites in lanternFriends");
+                Events.syncModal(model, Modal.proxiedSites);
+                break;
+            case SETTINGS:
+                log.debug("Processing settings in lanternFriends");
+                Events.syncModal(model, Modal.settings);
+                break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
@@ -242,8 +250,16 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.setModalCompleted(Modal.proxiedSites);
                 this.internalState.advanceModal(null);
                 break;
+            case LANTERNFRIENDS:
+                log.debug("Processing lanternFriends from proxiedSites");
+                Events.syncModal(model, Modal.lanternFriends);
+                break;
             case SET:
                 applyJson(json);
+                break;
+            case SETTINGS:
+                log.debug("Processing settings from proxiedSites");
+                Events.syncModal(model, Modal.settings);
                 break;
             default:
                 log.error("Did not handle interaction {}, for modal {} with " +
@@ -297,6 +313,15 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Processing reset");
                 Events.syncModal(model, Modal.confirmReset);
                 break;
+            case PROXIEDSITES:
+                log.debug("Processing proxied sites in settings");
+                Events.syncModal(model, Modal.proxiedSites);
+                break;
+            case LANTERNFRIENDS:
+                log.debug("Processing friends in settings");
+                Events.syncModal(model, Modal.lanternFriends);
+                break;
+
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
