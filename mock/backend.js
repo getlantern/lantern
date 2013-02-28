@@ -356,7 +356,12 @@ MockBackend._handlerForModal[MODAL.proxiedSites] = function(interaction, res, da
     this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
     this._advanceModal(this._internalState.lastModal);
   } else if (interaction == INTERACTION.set) {
-    this.sync({'/settings/proxiedSites': data.value});
+    if (data.path === '/settings/proxyAllSites' ||
+        data.path === '/settings/proxiedSites') {
+      this.sync([{op: 'replace', path: data.path, value: data.value}]); // XXX validate
+    } else {
+      res.writeHead(400);
+    }
   } else if (interaction == INTERACTION.reset) {
     this.sync({'/settings/proxiedSites': DEFAULT_PROXIED_SITES});
   } else {

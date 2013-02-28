@@ -6754,11 +6754,27 @@ textarea.bugReport {
   margin-left: 30px;
 }
 
+#proxiedSites .prompt, #proxiedSites .warning {
+  margin-bottom: 14px;
+}
+#proxiedSites .warning {
+  text-align: center;
+  font-size: 15.4px;
+}
+#proxiedSites .warning i, #proxiedSites .warning a {
+  color: #c09853;
+}
+#proxiedSites .warning a {
+  text-decoration: underline;
+}
 #proxiedSites textarea {
   width: 100%;
   height: 150px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
   font-size: 13px;
+}
+#proxiedSites .tip {
+  font-size: 11.2px;
 }
 #proxiedSites .error {
   text-align: center;
@@ -7055,7 +7071,6 @@ body.showVis #footer {
 }
 #global-nav button.active {
   z-index: 1051 !important;
-  color: #fff343;
 }
 #global-nav button.ng-disabled {
   color: #333333;

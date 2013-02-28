@@ -169,29 +169,23 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
   }, true);
 }
 
-function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
+function SettingsCtrl($scope, $timeout, modelSrvc, logFactory, MODAL) {
   var log = logFactory('SettingsCtrl');
 
   $scope.$watch('model.settings.runAtSystemStart', function(runAtSystemStart) {
     $scope.runAtSystemStart = runAtSystemStart;
   }, true);
 
+  $scope.$watch('model.settings.autoReport', function(autoReport) {
+    $scope.autoReport = autoReport;
+  }, true);
+
   $scope.$watch('model.settings.systemProxy', function(systemProxy) {
     $scope.systemProxy = systemProxy;
-    if (systemProxy == false) {
-      $scope.proxyAdvancedExpanded = true;
-    }
   }, true);
 
   $scope.$watch('model.settings.proxyAllSites', function(proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
-    if (proxyAllSites) {
-      $scope.proxyAdvancedExpanded = true;
-    }
-  }, true);
-
-  $scope.$watch('model.settings.autoReport', function(autoReport) {
-    $scope.autoReport = autoReport;
   }, true);
 }
 

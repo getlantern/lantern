@@ -288,19 +288,26 @@
     </h3>
   </div>
   <div class="modal-body">
-    <div>{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
-    <br>
+    <div class="prompt">{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
+    <div class="warning" ui-toggle="model.settings.proxyAllSites">
+      <i class="icon icon-warning-sign"></i>
+      {{ 'PROXYING_ALL_WARNING' | i18n }}
+      <a ng-click="changeSetting(SETTING.proxyAllSites, false)">
+        {{ 'DISABLE_PROXY_ALL' | i18n }}
+      </a>
+    </div>
     <div>
       <label>
         {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
       </label>
       <form name="proxiedSitesForm">
         <textarea ng-model="input" name="input" placeholder="example.com" required
+          ng-disabled="model.settings.proxyAllSites"
           ui-validate="validate" ng-disabled="updating" ng-change="handleUpdate()"
           dir="ltr" tabindex="1"></textarea>
       </form>
     </div>
-    <div class="smaller">
+    <div class="tip" ui-toggle="!model.settings.proxyAllSites">
       <i class="icon-info-sign"></i>
       {{ 'PROXIED_SITES_TIP' | i18n }}
     </div>
@@ -580,7 +587,7 @@ You should have received a copy of the GNU General Public License along with thi
           {{ 'MANAGE_PROXIED_SITES' | i18n }}
         </button>
         <br>
-        <details ng-open="proxyAdvancedExpanded"><!-- XXX ng-open not yet implemented: https://github.com/angular/angular.js/issues/1797 -->
+        <details ng-open="model.settings.proxyAllSites || !model.settings.systemProxy"><!-- XXX will work upon upgrading to an angular version https://github.com/angular/angular.js/commit/b8bd4d5 has landed in -->
           <summary class="small">{{ 'ADVANCED' | i18n }}</summary>
           <div>
             <label class="checkbox inline" style="margin-top:-9px"><!-- XXX inline style -->
