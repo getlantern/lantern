@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.kaleidoscope.TrustGraphNode;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 
 /**
@@ -27,7 +28,7 @@ public class LanternKscopeAdvertisement {
 
     private String localAddress;
 
-    private String lanternVersion = LanternConstants.VERSION;
+    private String lanternVersion = LanternClientConstants.VERSION;
 
     public static LanternKscopeAdvertisement makeRelayAd(
             LanternKscopeAdvertisement ad) {

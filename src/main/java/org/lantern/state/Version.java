@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
@@ -76,13 +77,13 @@ public class Version {
             } else {
                 releaseDate = new Date(System.currentTimeMillis());
             }
-            if ("lantern_version_tok".equals(LanternConstants.VERSION)) {
+            if ("lantern_version_tok".equals(LanternClientConstants.VERSION)) {
                 major = 0;
                 minor = 0;
                 patch = 1;
                 git = "";
             } else {
-                final String[] parts = LanternConstants.VERSION.split("\\.");
+                final String[] parts = LanternClientConstants.VERSION.split("\\.");
                 major = Integer.parseInt(parts[0]);
                 minor = Integer.parseInt(parts[1]);
                 patch = Integer.parseInt(StringUtils.substringBefore(parts[2], "-"));

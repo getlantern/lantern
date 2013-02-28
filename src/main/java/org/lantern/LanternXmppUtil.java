@@ -38,17 +38,17 @@ public class LanternXmppUtil {
     
     public ConnectionConfiguration xmppProxyConfig() {
         final int proxyPort;
-        if (NumberUtils.isNumber(LanternConstants.FALLBACK_SERVER_PORT)) {
-            proxyPort = Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT);
+        if (NumberUtils.isNumber(LanternClientConstants.FALLBACK_SERVER_PORT)) {
+            proxyPort = Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT);
         } else {
             proxyPort = 80;
         }
         final ProxyInfo proxyInfo = 
                 new ProxyInfo(ProxyType.HTTP, 
-                    LanternConstants.FALLBACK_SERVER_HOST, 
+                        LanternClientConstants.FALLBACK_SERVER_HOST, 
                     proxyPort, 
-                    LanternConstants.FALLBACK_SERVER_USER, 
-                    LanternConstants.FALLBACK_SERVER_PASS);
+                    LanternClientConstants.FALLBACK_SERVER_USER, 
+                    LanternClientConstants.FALLBACK_SERVER_PASS);
         return xmppConfig(proxyInfo);
     }
     

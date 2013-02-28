@@ -6,7 +6,8 @@ import java.net.URI;
 /**
  * Interface for all classes that keep track of proxies.
  */
-public interface ProxyTracker extends ProxyStatusListener, ProxyProvider{
+public interface ProxyTracker extends ProxyStatusListener, ProxyProvider, 
+    LanternService{
 
     boolean isEmpty();
 

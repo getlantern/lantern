@@ -87,10 +87,10 @@ public class TestUtils {
     private static HttpClientFactory httpClientFactory;
 
     static {
-        if (LanternConstants.TEST_PROPS.isFile()) {
-            privatePropsFile = LanternConstants.TEST_PROPS;
+        if (LanternClientConstants.TEST_PROPS.isFile()) {
+            privatePropsFile = LanternClientConstants.TEST_PROPS;
         } else {
-            privatePropsFile = LanternConstants.TEST_PROPS2;
+            privatePropsFile = LanternClientConstants.TEST_PROPS2;
         }
         if (privatePropsFile.isFile()) {
             InputStream is = null;

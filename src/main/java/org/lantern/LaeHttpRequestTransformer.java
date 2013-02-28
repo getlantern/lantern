@@ -40,7 +40,7 @@ public class LaeHttpRequestTransformer implements HttpRequestTransformer {
         }
         
         request.setHeader(LanternConstants.LANTERN_VERSION_HTTP_HEADER_NAME, 
-            LanternConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
+                LanternClientConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
         request.setHeader(HttpHeaders.Names.RANGE, 
             "bytes=0-"+LanternConstants.CHUNK_SIZE);
     }

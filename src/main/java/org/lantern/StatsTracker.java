@@ -96,7 +96,7 @@ public class StatsTracker implements Stats {
     
     @Override
     public long getUptime() {
-        return System.currentTimeMillis() - LanternConstants.START_TIME;
+        return System.currentTimeMillis() - LanternClientConstants.START_TIME;
     }
     
     /**
@@ -430,7 +430,7 @@ public class StatsTracker implements Stats {
     
     @Override
     public String getVersion() {
-        return LanternConstants.VERSION;
+        return LanternClientConstants.VERSION;
     }
     
     public final class CountryData {

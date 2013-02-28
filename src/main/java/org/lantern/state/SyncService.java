@@ -11,6 +11,7 @@ import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternService;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
@@ -67,7 +68,7 @@ public class SyncService implements LanternService {
                 delegateSync(SyncType.ADD, SyncPath.PEERS, 
                     model.getConnectivity().getPeers());
             }
-        }, 3000, 2000);
+        }, 3000, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
     }
 
     @Override

@@ -32,7 +32,7 @@ import com.google.inject.Singleton;
  * Class for keeping track of all proxies we know about.
  */
 @Singleton
-public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
+public class DefaultProxyTracker implements ProxyTracker {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -73,13 +73,34 @@ public class DefaultProxyTracker implements ProxyTracker, Shutdownable {
         this.peerFactory = peerFactory;
         this.timer = timer;
         
-        addFallbackProxy();
         Events.register(this);
+    }
+    
+    @Override
+    public void start() {
+        addFallbackProxy();
+        prepopulateProxies();
+    }
+    
+
+    private void prepopulateProxies() {
+        // Add all the stored proxies.
+        final Collection<String> saved = this.model.getSettings().getProxies();
+        log.debug("Proxy set is: {}", saved);
+        for (final String proxy : saved) {
+            // Don't use peer proxies since we're not connected to XMPP yet.
+            if (proxy.contains("appspot")) {
+                addLaeProxy(proxy);
+            } else if (!proxy.contains("@")) {
+                addProxy(proxy);
+            }
+        }
     }
 
     private void addFallbackProxy() {
-        addProxy(LanternConstants.FALLBACK_SERVER_HOST, 
-            Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT), Type.cloud);
+        addProxy(LanternClientConstants.FALLBACK_SERVER_HOST, 
+            Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), 
+            Type.cloud);
     }
 
     @Override
