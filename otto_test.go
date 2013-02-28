@@ -212,6 +212,30 @@ func Test_eval(t *testing.T) {
 	test(`ghi`, "SyntaxError: SyntaxError: SyntaxError: Unexpected token ILLEGAL ()")
 }
 
+func Test_evalDirectIndirect(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = "global";
+        (function(){
+            try {
+                var _eval = eval;
+                var abc = "function";
+                if (
+                    _eval("\'global\' === abc") === true &&  // eval (Indirect)
+                    eval("\'function\' === abc") === true // eval (Direct)
+                ) {
+                    return true;
+                }
+                return false;
+            } finally {
+                delete this.abc;
+            }
+        })()
+    `, "true")
+}
+
 func TestError(t *testing.T) {
 	Terst(t)
 

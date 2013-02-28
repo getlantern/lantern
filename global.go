@@ -679,6 +679,8 @@ func newContext() *_runtime {
 	self._newError["SyntaxError"] = self.defineError("SyntaxError")
 	self._newError["URIError"] = self.defineError("URIError")
 
+	self.eval = self.GlobalObject.get("eval")._object()
+
 	return self
 }
 

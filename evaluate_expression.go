@@ -493,6 +493,7 @@ func (self *_runtime) evaluateCall(node *_callNode) Value {
 	}
 	this := UndefinedValue()
 	calleeReference := callee.reference()
+	evalHint := false
 	if calleeReference != nil {
 		if calleeReference.IsPropertyReference() {
 			calleeObject := calleeReference.GetBase().(*_object)
@@ -500,11 +501,14 @@ func (self *_runtime) evaluateCall(node *_callNode) Value {
 		} else {
 			// TODO ImplictThisValue
 		}
+		if calleeReference.GetName() == "eval" {
+			evalHint = true // Possible direct eval
+		}
 	}
 	if !calleeValue.IsFunction() {
 		panic(newTypeError("%v is not a function", calleeValue))
 	}
-	return self.Call(calleeValue._object(), this, argumentList)
+	return self.Call(calleeValue._object(), this, argumentList, evalHint)
 }
 
 func (self *_runtime) evaluateFunction(node *_functionNode) Value {

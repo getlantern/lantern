@@ -31,7 +31,7 @@ func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
-	return self.runtime.Call(self, this, self.runtime.toValueArray(argumentList...))
+	return self.runtime.Call(self, this, self.runtime.toValueArray(argumentList...), false)
 	// ... -> runtime -> self.Function.Call.Dispatch -> ...
 }
 
@@ -59,11 +59,11 @@ func defaultConstructFunction(self *_object, this Value, argumentList []Value) V
 }
 
 func (self *_object) CallGet(name string) Value {
-	return self.runtime.Call(self, toValue(self), []Value{toValue(name)})
+	return self.runtime.Call(self, toValue(self), []Value{toValue(name)}, false)
 }
 
 func (self *_object) CallSet(name string, value Value) {
-	self.runtime.Call(self, toValue(self), []Value{toValue(name), value})
+	self.runtime.Call(self, toValue(self), []Value{toValue(name), value}, false)
 }
 
 // 15.3.5.3
@@ -91,7 +91,7 @@ type _constructFunction func(*_object, Value, []Value) Value
 
 // _callFunction
 type _callFunction interface {
-	Dispatch(*_functionEnvironment, *_runtime, Value, []Value) Value
+	Dispatch(*_functionEnvironment, *_runtime, Value, []Value, bool) Value
 	Source() string
 	ScopeEnvironment() _environment
 	name() string
@@ -124,11 +124,12 @@ func newNativeCallFunction(native _nativeFunction, name string) *_nativeCallFunc
 	return self
 }
 
-func (self _nativeCallFunction) Dispatch(_ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value) Value {
+func (self _nativeCallFunction) Dispatch(_ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, evalHint bool) Value {
 	return self.Native(FunctionCall{
 		runtime:      runtime,
 		This:         this,
 		ArgumentList: argumentList,
+		evalHint:     evalHint,
 	})
 }
 
@@ -150,7 +151,7 @@ func newNodeCallFunction(node *_functionNode, scopeEnvironment _environment) *_n
 	return self
 }
 
-func (self _nodeCallFunction) Dispatch(environment *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value) Value {
+func (self _nodeCallFunction) Dispatch(environment *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
 	return runtime._callNode(environment, self.node, this, argumentList)
 }
 
@@ -166,6 +167,7 @@ type FunctionCall struct {
 	This         Value
 	_thisObject  *_object
 	ArgumentList []Value
+	evalHint     bool
 }
 
 // Argument will return the value of the argument at the given index.

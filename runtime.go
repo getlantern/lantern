@@ -36,6 +36,7 @@ type _runtime struct {
 	}
 
 	_newError map[string]func(Value) *_object
+	eval      *_object // The builtin eval, for determine indirect versus direct invocation
 }
 
 func (self *_runtime) EnterGlobalExecutionContext() {
@@ -157,7 +158,8 @@ func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functi
 	return UndefinedValue()
 }
 
-func (self *_runtime) Call(function *_object, this Value, argumentList []Value) (returnValue Value) {
+func (self *_runtime) Call(function *_object, this Value, argumentList []Value, evalHint bool) (returnValue Value) {
+	// Pass eval boolean through to EnterFunctionExecutionContext for further testing
 	_functionEnvironment := self.EnterFunctionExecutionContext(function, this)
 	defer func() {
 		// TODO Catch any errant break/continue, etc. here?
@@ -175,7 +177,10 @@ func (self *_runtime) Call(function *_object, this Value, argumentList []Value) 
 		}
 	}()
 
-	returnValue = function._Function.Call.Dispatch(_functionEnvironment, self, this, argumentList)
+	if evalHint {
+		evalHint = function == self.eval // If evalHint is true, then it IS a direct eval
+	}
+	returnValue = function._Function.Call.Dispatch(_functionEnvironment, self, this, argumentList, evalHint)
 	return
 }
 

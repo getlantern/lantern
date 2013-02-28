@@ -21,8 +21,10 @@ func builtinGlobal_eval(call FunctionCall) Value {
 		panic(&_syntaxError{Message: fmt.Sprintf("%v", err)})
 	}
 	runtime := call.runtime
-	runtime.EnterEvalExecutionContext(call)
-	defer runtime.LeaveExecutionContext()
+	if call.evalHint {
+		runtime.EnterEvalExecutionContext(call)
+		defer runtime.LeaveExecutionContext()
+	}
 	returnValue := runtime.evaluate(program)
 	if returnValue.isEmpty() {
 		return UndefinedValue()
