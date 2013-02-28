@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,19 +9,12 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import javax.security.auth.login.CredentialException;
-
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smackx.packet.VCard;
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
@@ -31,12 +23,10 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
-import org.lantern.http.PhotoServlet;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
-import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -316,62 +306,15 @@ public class Roster implements RosterListener {
     }
 
     public void addIncomingSubscriptionRequest(final Presence pres) {
-        /*
-        final String json = (String) pres.getProperty(XmppMessageConstants.PROFILE);
-        if (StringUtils.isBlank(json)) {
-            log.warn("No profile?");
-            return;
-        }
-        
-        final PhotoServlet ps = new PhotoServlet(null);
-        VCard vcard;
-        try {
-            vcard = ps.getVCard(pres.getFrom());
-            log.debug("Got vcard: {}", vcard);
-        } catch (CredentialException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (XMPPException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        */
-        
+        log.debug("Fetching vcard");
         this.model.getFriends().addPending(pres.getFrom());
-        /*
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            final Profile prof = mapper.readValue(json, Profile.class);
-            this.model.getFriends().addPending(prof);
-            
-//            incomingSubscriptionRequests.put(prof.getEmail(), prof);
-//            synchronized (incomingSubscriptionRequests) {
-//                sendAddSubscriptionRequest(prof);
-//            }
-            
-            //syncSubscriptionRequest(prof);
-            syncPending();
-        } catch (final JsonParseException e) {
-            log.warn("Error parsing json", e);
-        } catch (final JsonMappingException e) {
-            log.warn("Error mapping json", e);
-        } catch (final IOException e) {
-            log.warn("Error reading json", e);
-        }
-        */
+        syncPending();
     }
 
 
     private void syncPending() {
         Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS.getPath(), 
             this.model.getFriends().getPending());
-    }
-
-    private void sendAddSubscriptionRequest(Profile prof) {
-        Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS + "." + prof.getEmail(), prof);
     }
     
     public void removeIncomingSubscriptionRequest(final String from) {
