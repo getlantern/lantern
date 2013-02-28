@@ -83,7 +83,8 @@ func (self *_runtime) EnterEvalExecutionContext(call FunctionCall) {
 	// to eval (the global execution context). Instead, execute in the context of where the eval was called,
 	// which is essentially dynamic scoping
 	parent := self._executionContext(-1)
-	new := newExecutionContext(parent.LexicalEnvironment, parent.VariableEnvironment, nil)
+	new := newExecutionContext(parent.LexicalEnvironment, parent.VariableEnvironment, self.GlobalObject)
+	// FIXME Make passing through of self.GlobalObject more general? Whenever newExecutionContext is passed a nil object?
 	new.eval = true
 	self.EnterExecutionContext(new)
 }
