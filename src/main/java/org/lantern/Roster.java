@@ -164,6 +164,7 @@ public class Roster implements RosterListener {
             // immediately add to kscope routing table and
             // send kscope ad to new roster entry
             final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
+            log.debug("Adding {} to routing table.", from);
             this.kscopeRoutingTable.addNeighbor(id);
 
             final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
