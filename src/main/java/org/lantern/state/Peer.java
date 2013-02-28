@@ -3,7 +3,10 @@ package org.lantern.state;
 import java.util.Date;
 import java.util.Locale;
 
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.state.Model.Persistent;
@@ -55,7 +58,7 @@ public class Peer {
     
     private String version = "";
 
-    private long lastConnected;
+    private long lastConnectedLong;
     
     public Peer() {
         
@@ -238,8 +241,9 @@ public class Peer {
     }
     
     @JsonView({Run.class})
-    public Date getLastConnected() {
-        return new Date(getLastConnectedLong());
+    public String getLastConnected() {
+        return FastDateFormat.getInstance("yyyy-MM-dd' 'HH:mm:ss").format(
+            getLastConnectedLong()); 
     }
     
     @JsonView({Persistent.class})
@@ -250,11 +254,11 @@ public class Peer {
             // Only use the counter data if it has connected.
             if (last > 0L) return last;
         }
-        return this.lastConnected;
+        return this.lastConnectedLong;
     }
     
-    public void setLastConnectedLong(final long lastConnected) {
-        this.lastConnected = lastConnected;
+    public void setLastConnectedLong(final long lastConnectedLong) {
+        this.lastConnectedLong = lastConnectedLong;
     }
 
     public String getPeerid() {
