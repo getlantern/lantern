@@ -21,23 +21,24 @@ type _stash interface {
 
 type _objectStash struct {
 	_extensible bool
-	propertyMap map[string]_property
+	_property   map[string]_property
+	_order      []string
 }
 
 func newObjectStash(extensible bool) *_objectStash {
 	return &_objectStash{
 		_extensible: extensible,
-		propertyMap: make(map[string]_property),
+		_property:   make(map[string]_property),
 	}
 }
 
 func (self *_objectStash) test(name string) bool {
-	_, exists := self.propertyMap[name]
+	_, exists := self._property[name]
 	return exists
 }
 
 func (self *_objectStash) get(name string) Value {
-	property, exists := self.propertyMap[name]
+	property, exists := self._property[name]
 
 	if !exists {
 		return UndefinedValue()
@@ -57,7 +58,7 @@ func (self *_objectStash) get(name string) Value {
 }
 
 func (self *_objectStash) property(name string) *_property {
-	property, exists := self.propertyMap[name]
+	property, exists := self._property[name]
 	if !exists {
 		return nil
 	}
@@ -73,15 +74,15 @@ func (self _objectStash) index(name string) (_property, bool) {
 }
 
 func (self *_objectStash) enumerate(each func(string)) {
-	for name, property := range self.propertyMap {
-		if property.enumerable() {
+	for _, name := range self._order {
+		if self._property[name].enumerable() {
 			each(name)
 		}
 	}
 }
 
 func (self *_objectStash) canPut(name string) bool {
-	property, exists := self.propertyMap[name]
+	property, exists := self._property[name]
 	if !exists {
 		return self.extensible()
 	}
@@ -95,13 +96,13 @@ func (self *_objectStash) canPut(name string) bool {
 }
 
 func (self *_objectStash) put(name string, value Value) {
-	property, exists := self.propertyMap[name]
+	property, exists := self._property[name]
 	if exists {
 		switch propertyValue := property.value.(type) {
 		case Value:
 			if property.writable() {
 				property.value = value
-				self.propertyMap[name] = property
+				self._property[name] = property
 			}
 		case _propertyGetSet:
 			if propertyValue[1] != nil {
@@ -109,23 +110,41 @@ func (self *_objectStash) put(name string, value Value) {
 			}
 		}
 	} else if self.extensible() {
-		self.propertyMap[name] = _property{value, 0111} // Write, Enumerate, Configure
+		self._property[name] = _property{value, 0111} // Write, Enumerate, Configure
+		self._order = append(self._order, name)
 	}
 }
 
 func (self *_objectStash) set(name string, value Value, mode _propertyMode) {
-	self.propertyMap[name] = _property{value, mode}
+	_, exists := self._property[name]
+	self._property[name] = _property{value, mode}
+	if !exists {
+		self._order = append(self._order, name)
+	}
 }
 
 func (self *_objectStash) defineProperty(name string, value interface{}, mode _propertyMode) {
 	if value == nil {
 		value = UndefinedValue()
 	}
-	self.propertyMap[name] = _property{value, mode}
+	_, exists := self._property[name]
+	self._property[name] = _property{value, mode}
+	if !exists {
+		self._order = append(self._order, name)
+	}
 }
 
 func (self *_objectStash) delete(name string) {
-	delete(self.propertyMap, name)
+	delete(self._property, name)
+	for index, property := range self._order {
+		if name == property {
+			if index == len(self._order)-1 {
+				self._order = self._order[:index]
+			} else {
+				self._order = append(self._order[:index], self._order[index+1:]...)
+			}
+		}
+	}
 }
 
 func (self _objectStash) extensible() bool {
