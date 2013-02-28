@@ -13,7 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SyncEvent;
@@ -412,9 +412,9 @@ public class InteractionServlet extends HttpServlet {
         // This posts the reset event to any classes that need to take action,
         // avoiding coupling this class to those classes.
         Events.eventBus().post(new ResetEvent());
-        if (LanternConstants.DEFAULT_MODEL_FILE.isFile()) {
+        if (LanternClientConstants.DEFAULT_MODEL_FILE.isFile()) {
             try {
-                FileUtils.forceDelete(LanternConstants.DEFAULT_MODEL_FILE);
+                FileUtils.forceDelete(LanternClientConstants.DEFAULT_MODEL_FILE);
             } catch (final IOException e) {
                 log.warn("Could not delete model file?");
             }

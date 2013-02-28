@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.LanternClientConstants;
 import org.lantern.state.Model.Run;
 import org.lantern.util.LanternTrafficCounterHandler;
 
@@ -168,7 +169,8 @@ public class Peer {
     @JsonView({Run.class})
     public long getBpsUp() {
         if (this.trafficCounter != null) {
-            return trafficCounter.getTrafficCounter().getCurrentWrittenBytes();
+            return trafficCounter.getTrafficCounter().getCurrentWrittenBytes() * 
+                LanternClientConstants.SYNC_INTERVAL_SECONDS;
         }
         return 0L;
     }
@@ -176,7 +178,8 @@ public class Peer {
     @JsonView({Run.class})
     public long getBpsDown() {
         if (this.trafficCounter != null) {
-            return trafficCounter.getTrafficCounter().getCurrentReadBytes();
+            return trafficCounter.getTrafficCounter().getCurrentReadBytes() * 
+                LanternClientConstants.SYNC_INTERVAL_SECONDS;
         }
         return 0L;
     }
@@ -188,7 +191,8 @@ public class Peer {
 
     public long getBytesUp() {
         if (this.trafficCounter != null) {
-            return bytesUp + trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
+            return bytesUp + 
+                trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
         }
         return this.bytesUp;
     }
@@ -199,7 +203,8 @@ public class Peer {
 
     public long getBytesDn() {
         if (this.trafficCounter != null) {
-            return bytesDn + trafficCounter.getTrafficCounter().getCumulativeReadBytes();
+            return bytesDn + 
+                trafficCounter.getTrafficCounter().getCumulativeReadBytes();
         }
         return this.bytesDn;
     }
@@ -225,5 +230,11 @@ public class Peer {
         final LanternTrafficCounterHandler trafficCounter) {
         this.trafficCounter = trafficCounter;
     }
+
+    @JsonView({Run.class})
+    public int getNumSockets() {
+        return trafficCounter.getNumSockets();
+    }
+
 
 }

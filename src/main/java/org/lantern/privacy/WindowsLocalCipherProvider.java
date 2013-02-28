@@ -10,7 +10,7 @@ import net.sourceforge.jdpapi.DataProtector;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
     
     public static final File DEFAULT_KEY_FILE = 
-        new File(LanternConstants.CONFIG_DIR, "cipher.dpk");
+        new File(LanternClientConstants.CONFIG_DIR, "cipher.dpk");
 
     private static final AtomicReference<Boolean> DPAPI_INITIALIZED =
         new AtomicReference<Boolean>();

@@ -49,7 +49,7 @@ public class LanternFeedback {
     protected Map<String, String> systemInfo() {
         final Map<String, String> info = new HashMap<String,String>();
 
-        info.put("lanternVersion", LanternConstants.VERSION);        
+        info.put("lanternVersion", LanternClientConstants.VERSION);        
         info.put("javaVersion", SystemUtils.JAVA_VERSION);
         info.put("osName", SystemUtils.OS_NAME);
         info.put("osArch", SystemUtils.OS_ARCH);

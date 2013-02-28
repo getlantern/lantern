@@ -64,8 +64,8 @@ public class LanternTrustStoreTest {
         final String[] success = {"talk.google.com",
             "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com", //"www.exceptional.io",
             "query.yahooapis.com",
-            LanternConstants.FALLBACK_SERVER_HOST+":"+
-            LanternConstants.FALLBACK_SERVER_PORT};
+            LanternClientConstants.FALLBACK_SERVER_HOST+":"+
+                    LanternClientConstants.FALLBACK_SERVER_PORT};
 
         // URIs that should fail (signing certs we don't trust). Note this would
         // succeed (with the test failing as a result) with the normal root CAs,

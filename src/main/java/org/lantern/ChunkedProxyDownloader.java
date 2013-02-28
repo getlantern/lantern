@@ -203,7 +203,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
         }
         request.setHeader(HttpHeaders.Names.RANGE, "bytes="+rangeEnd+"-"+end);
         request.setHeader(LanternConstants.LANTERN_VERSION_HTTP_HEADER_NAME, 
-            LanternConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
+                LanternClientConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
         writeRequest(request, channel);
     }
     

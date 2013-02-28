@@ -6,7 +6,7 @@ import java.util.List;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Country;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class Model {
     private boolean showVis = false;
 
     private final boolean dev =
-        LanternConstants.VERSION.equals("lantern_version_tok");
+            LanternClientConstants.VERSION.equals("lantern_version_tok");
 
     private int ninvites = 0;
 
@@ -56,6 +56,8 @@ public class Model {
     private List<Country> countries = Country.allCountries();
 
     private final Global global = new Global();
+    
+    private Friends friends = new Friends();
 
     public SystemData getSystem() {
         return system;
@@ -180,5 +182,13 @@ public class Model {
 
     public Global getGlobal() {
         return global;
+    }
+
+    public Friends getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Friends friends) {
+        this.friends = friends;
     }
 }

@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
@@ -37,7 +38,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
      */
     @Inject
     public ModelIo(final EncryptedFileService encryptedFileService) {
-        this(LanternConstants.DEFAULT_MODEL_FILE, encryptedFileService);
+        this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService);
     }
     
     /**

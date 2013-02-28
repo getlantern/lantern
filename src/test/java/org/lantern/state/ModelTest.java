@@ -10,7 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.lantern.DefaultXmppHandler;
-import org.lantern.LanternConstants;
+import org.lantern.LanternClientConstants;
 import org.lantern.Proxifier;
 import org.lantern.TestUtils;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class ModelTest {
     
     @Test
     public void testStartAtLogin() throws Exception {
-        if (!LanternConstants.LAUNCHD_PLIST.isFile()) {
+        if (!LanternClientConstants.LAUNCHD_PLIST.isFile()) {
             log.info("No plist file - not installed or on different OS?");
             return;
         }

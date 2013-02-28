@@ -84,7 +84,7 @@ public class LanternUtils {
     private static String MAC_ADDRESS;
 
     public static boolean isDevMode() {
-        return LanternConstants.VERSION.equals("lantern_version_tok");
+        return LanternClientConstants.VERSION.equals("lantern_version_tok");
     }
 
     /**
@@ -735,10 +735,12 @@ public class LanternUtils {
             "Maybe couldn't bind?");
     }
 
+    /*
     public static boolean isLanternMessage(final Presence pres) {
         final Object prop = pres.getProperty(XmppMessageConstants.PROFILE);
         return prop != null;
     }
+    */
 
     /**
      * Determines whether or not oauth data should be persisted to disk. It is

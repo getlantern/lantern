@@ -43,8 +43,8 @@ public class LanternHttpRequestRetryHandler
                 if (isBlockingException(exception)) {
                     log.debug("Got a blocking exception...applying proxy");
                     final HttpHost proxy = 
-                        new HttpHost(LanternConstants.FALLBACK_SERVER_HOST, 
-                            Integer.valueOf(LanternConstants.FALLBACK_SERVER_PORT), 
+                        new HttpHost(LanternClientConstants.FALLBACK_SERVER_HOST, 
+                            Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
                             "https");
                     this.httpClient.getParams().setParameter(
                         ConnRoutePNames.DEFAULT_PROXY, proxy);
