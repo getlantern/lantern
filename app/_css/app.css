@@ -7023,6 +7023,19 @@ g.transferring path.connection {
   opacity: 1;
 }
 
+.countryTooltip {
+  text-align: left;
+}
+.countryTooltip h5 {
+  margin: 0;
+}
+.countryTooltip .peersGet {
+  color: #ffcc66;
+}
+.countryTooltip .peersGive {
+  color: #83c95a;
+}
+
 #footer {
   width: 100%;
   position: absolute;

@@ -17,11 +17,11 @@ angular.module('app.vis', [])
     source: {
       world: 'data/world.json'
     },
-    popover: {
+    tooltip: {
       container: 'body',
-      trigger: 'hover',
-      html: true
-    //placement: function() {...}
+      html: true,
+      selector: 'path',
+      placement: 'mouse' // XXX http://stackoverflow.com/a/14761335/161642
     }
   });
 
@@ -140,23 +140,12 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     var countryGeometries = topojson.object(world, world.objects.countries).geometries;
     countryPaths = d3.select('#countries').selectAll('path')
       .data(countryGeometries).enter().append('path')
+        .attr('rel', 'tooltip')
         .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
-        .attr('data-title', function(d) { return titleForCountry(d); })
-        .attr('data-content', function(d) { return contentForCountry(d); })
         .attr('d', pathForData);
-    _.each(model.countries, function(__, alpha2) { updateCountryStroke(alpha2); });
-    $('#countries path').popover(CONFIG.popover);
+    _.each(model.countries, function(__, alpha2) { updateCountry(alpha2); });
+    $('#countries').tooltip(CONFIG.tooltip);
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
-  }
-
-  function titleForCountry(d) {
-    if (!d.alpha2) return;
-    return '<h6>'+i18n(d.alpha2)+'</h6>';
-  }
-
-  function contentForCountry(d) {
-    if (!d.alpha2) return;
-    return '<small>Stats for '+i18n(d.alpha2)+' here</small>';
   }
 
   function handleResize() {
@@ -267,8 +256,24 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     if (animate) setTimeout(function() { el.classed('updating', false); }, duration || 500);
   }
 
-  function updateCountryStroke(alpha2, peerCount, animate) {
-    var stroke = CONFIG.style.countryStrokeNoActivity
+  function hoverContentForCountry(alpha2, peerCount) {
+    if (!alpha2) return;
+    return hoverContentForCountry.template({
+      countryName: i18n(alpha2),
+      npeersOnlineGet: i18n('NPEERS_ONLINE_GET', peerCount.get),
+      npeersOnlineGive: i18n('NPEERS_ONLINE_GIVE', peerCount.give)
+    });
+  }
+  hoverContentForCountry.template = _.template(
+    '<div class="countryTooltip">'+
+    '<h5>${countryName}</h5>'+
+    '<div class="peersGive">${npeersOnlineGive}</div>'+
+    '<div class="peersGet">${npeersOnlineGet}</div>'+
+    '</div>'
+  );
+
+  function updateCountry(alpha2, peerCount, animate) {
+    var stroke = CONFIG.style.countryStrokeNoActivity, strokeOpacity;
     peerCount = peerCount || getByPath(model, '/countries/'+alpha2+'/npeers/online');
     if (peerCount) {
       var censors = getByPath(model, '/countries/'+alpha2).censors;
@@ -283,10 +288,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         var scaled = countryActivityScale(peerCount.get - peerCount.give);
         stroke = d3.rgb(giveGetColorInterpolator(scaled));
       }
+      strokeOpacity = .1;
+    } else {
+      strokeOpacity = 0;
+      peerCount = {give: 0, get: 0, giveGet: 0};
     }
-    updateElement(d3.select('path.'+alpha2), {'stroke': stroke,
-      'stroke-opacity': peerCount ? .1 : 0}, animate);
-    //log.debug('updated fill for country', country, 'to', fill);
+    var el = d3.select('path.'+alpha2);
+    updateElement(el, {'stroke': stroke, 'stroke-opacity': strokeOpacity}, animate);
+    el.attr('data-original-title', function(d) { return hoverContentForCountry(alpha2, peerCount); })
   }
 
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
@@ -298,9 +307,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         if (peerCount.giveGet > maxGiveGet) {
           maxGiveGet = peerCount.giveGet;
           countryOpacityScale.domain([0, maxGiveGet]);
-          if (countryPaths) _.each(countries, function(__, alpha2) { updateCountryStroke(alpha2); });
+          if (countryPaths) _.each(countries, function(__, alpha2) { updateCountry(alpha2); });
         } else if (peerCount && !_.isEqual(peerCount, peerCountOld)) {
-          if (countryPaths) updateCountryStroke(alpha2, peerCount, true);
+          if (countryPaths) updateCountry(alpha2, peerCount, true);
         }
       }, true);
     });

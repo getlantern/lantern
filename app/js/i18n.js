@@ -175,6 +175,8 @@ angular.module('app.i18n', [])
       CONFIRM_RESET_TITLE: 'Confirm Reset',
       CONFIRM_RESET_PROMPT: 'Resetting Lantern will clear all saved information since it was set up.',
       BUG_REPORT_PROMPT: 'Additional information describing what happened',
+      NPEERS_ONLINE_GET: {1: '1 Get Mode peer online', other: '{} Get Mode peers online'},
+      NPEERS_ONLINE_GIVE: {1: '1 Give Mode peer online', other: '{} Give Mode peers online'},
       P: 'petabyte',
       T: 'terabyte',
       G: 'gigabyte',

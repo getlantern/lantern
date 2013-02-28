@@ -860,6 +860,9 @@
     }
 
   , enter: function (e) {
+   // XXX http://stackoverflow.com/a/14761335/161642
+      window.mousePos = {x: e.pageX, y: e.pageY};
+   // **********************************************
       var self = $(e.currentTarget)[this.type](this._options).data(this.type)
 
       if (!self.options.delay || !self.options.delay.show) return self.show()
@@ -930,6 +933,11 @@
           case 'right':
             tp = {top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width}
             break
+       // XXX http://stackoverflow.com/a/14761335/161642 *********
+          case 'mouse':
+            tp = {top: window.mousePos.y, left: window.mousePos.x}
+            break
+       // ********************************************************
         }
 
         this.applyPlacement(tp, placement)
