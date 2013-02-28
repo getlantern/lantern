@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
@@ -17,6 +18,7 @@ public class Profile {
     private String gender = "";
     private String birthday = "";
     private String locale = "";
+    private String hd = "";
     
     @JsonView({Run.class, Persistent.class})
     public String getEmail() {
@@ -104,6 +106,15 @@ public class Profile {
     }
     public void setGiven_name(String given_name) {
         this.given_name = given_name;
+    }
+
+    @JsonView({Persistent.class})
+    public String getHd() {
+        return hd;
+    }
+
+    public void setHd(String hd) {
+        this.hd = hd;
     }
     
     
