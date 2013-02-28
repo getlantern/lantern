@@ -131,6 +131,7 @@ exports.SCENARIOS = {
     true: {
       desc: 'invited: true',
       func: make_simple_scenario({'/connectivity/lanternController': true,
+        '/connectivity/peerid': 'lantern-45678',
         '/connectivity/invited': true})
     },
     false: {
@@ -307,6 +308,14 @@ exports.SCENARIOS = {
                     lon: 121.473684,
                     country: 'CN',
                     type: 'desktop'
+                  },{
+                    peerid: 'friend-of-friend1-1',
+                    mode: 'get',
+                    ip: '2.88.102.152',
+                    lat: 26.3032,
+                    lon: 50.1353,
+                    country: 'SA',
+                    type: 'desktop'
                   }];
               this.sync({'/peers': testPeers});
               setInterval(function() {
@@ -436,7 +445,7 @@ exports.SCENARIOS = {
       func: function() {
         var this_ = this,
             update = {},
-            initialCountries = ['US', 'CA', 'CN', 'IR', 'DE', 'GB', 'SE', 'TH'];
+            initialCountries = ['US', 'CA', 'CN', 'IR', 'SA', 'DE', 'GB', 'SE', 'TH'];
 
         // XXX do this on reset
         _.each(this.model.countries, function(__, alpha2) {

@@ -13,7 +13,7 @@ angular.module('app.filters', [])
       if (!obj) return obj;
       if (obj.email && obj.name)
         return obj.name + ' (' + obj.email + ')'; // XXX i18n?
-      return obj.email || obj.peerid;
+      return obj.email;
     };
   })
   .filter('prettyBytes', function($filter) {

@@ -25,7 +25,7 @@ angular.module('app.vis', [])
     }
   });
 
-function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONFIG, ENUMS) {
+function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONFIG, ENUMS, DEFAULT_AVATAR_URL) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -35,6 +35,8 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       round = Math.round,
       dim = {},
       i18n = $filter('i18n'),
+      prettyUser = $filter('prettyUser'),
+      prettyBytes = $filter('prettyBytes'),
       $map = $('#map'),
       $$map = d3.select('#map'),
       $$self = d3.select('#self'),
@@ -61,7 +63,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
 
   handleResize();
 
-  /*
+  $('#peers').tooltip(CONFIG.tooltip);
+  $('#countries').tooltip(CONFIG.tooltip);
+
   $scope.setProjection = function(key) {
     if (!(key in projections)) {
       log.error('invalid projection:', key);
@@ -80,7 +84,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     path.projection(projection);
     handleResize();
   };
-  */
 
   function pathForData(d) {
     // XXX https://bugs.webkit.org/show_bug.cgi?id=110691
@@ -144,7 +147,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
         .attr('d', pathForData);
     _.each(model.countries, function(__, alpha2) { updateCountry(alpha2); });
-    $('#countries').tooltip(CONFIG.tooltip);
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
   }
 
@@ -224,6 +226,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       .classed('give', function(d) { return d.mode === MODE.give; })
       .classed('get', function(d) { return d.mode === MODE.get; })
       .attr('id', function(d) { return d.peerid; })
+      .attr('data-original-title', function(d) { return hoverContentForPeer(d); })
       .attr('d', pathPeer);
     peerPaths.exit().remove();
 
@@ -256,6 +259,51 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     if (animate) setTimeout(function() { el.classed('updating', false); }, duration || 500);
   }
 
+  $scope.hoverContentForSelf = function() {
+    var ctx = _.merge({
+      peerid: model.connectivity.peerid,
+      mode: model.settings.mode,
+      bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
+      bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
+    }, model.profile);
+    if (!ctx.picture) ctx.picture = DEFAULT_AVATAR_URL;
+    return hoverContentForPeer.onRosterTemplate(ctx);
+  };
+
+  function hoverContentForPeer(peer) {
+    var ctx = {
+      peerid: peer.peerid,
+      mode: peer.mode,
+      bytesUp: prettyBytes(peer.bytesUp)+' '+i18n('SENT'),
+      bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED'),
+    }, tmpl;
+    if (peer.rosterEntry) {
+      _.merge(ctx, peer.rosterEntry);
+      if (!ctx.picture) ctx.picture = DEFAULT_AVATAR_URL;
+      tmpl = hoverContentForPeer.onRosterTemplate;
+    } else {
+      tmpl = hoverContentForPeer.notOnRosterTemplate;
+    }
+    return tmpl(ctx);
+  }
+  hoverContentForPeer.onRosterTemplate = _.template(
+    '<div class="visTooltip ${mode}-mode">'+
+    '<img class="picture pull-left" src="${picture}">'+
+    '<h5>${name}</h5>'+
+    '<div class="email">${email}</div>'+
+    '<div class="peerid">${peerid}</div>'+
+    '<span class="bytesUp">${bytesUp}</span>'+
+    '<span class="bytesDn">${bytesDn}</span>'+
+    '</div>'
+  );
+  hoverContentForPeer.notOnRosterTemplate = _.template(
+    '<div class="visTooltip ${mode}-mode">'+
+    '<h5>${peerid}</h5>'+
+    '<span class="bytesUp">${bytesUp}</span>'+
+    '<span class="bytesDn">${bytesDn}</span>'+
+    '</div>'
+  );
+
   function hoverContentForCountry(alpha2, peerCount) {
     if (!alpha2) return;
     return hoverContentForCountry.template({
@@ -265,10 +313,10 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     });
   }
   hoverContentForCountry.template = _.template(
-    '<div class="countryTooltip">'+
+    '<div class="visTooltip">'+
     '<h5>${countryName}</h5>'+
-    '<div class="peersGive">${npeersOnlineGive}</div>'+
-    '<div class="peersGet">${npeersOnlineGet}</div>'+
+    '<div class="give-colored">${npeersOnlineGive}</div>'+
+    '<div class="get-colored">${npeersOnlineGet}</div>'+
     '</div>'
   );
 

@@ -394,6 +394,10 @@ the backend maintains on the frontend through comet publications:
           </td>
         </tr>
         <tr>
+          <td><strong>peerid</strong><br><em>string</em></td>
+          <td>The peerid of this user.</td>
+        </tr>
+        <tr>
           <td><strong>invited</strong><br><em>boolean</em></td>
           <td>Whether the user has been invited to Lantern.</td>
         </tr>

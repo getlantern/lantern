@@ -6531,6 +6531,14 @@ a.disabled:hover {
   color: #c09853;
 }
 
+.give-colored {
+  color: #83c95a;
+}
+
+.get-colored {
+  color: #ffcc66;
+}
+
 .ui-hide, .ui-show {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
@@ -7023,17 +7031,35 @@ g.transferring path.connection {
   opacity: 1;
 }
 
-.countryTooltip {
+.visTooltip {
   text-align: left;
 }
-.countryTooltip h5 {
+.visTooltip > * {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.visTooltip h5 {
   margin: 0;
 }
-.countryTooltip .peersGet {
+.visTooltip .picture {
+  margin: 4px 10px 0 0;
+  height: 50px;
+  width: 50px;
+}
+.visTooltip.give-mode h5 {
+  color: #83c95a;
+}
+.visTooltip.get-mode h5 {
   color: #ffcc66;
 }
-.countryTooltip .peersGive {
-  color: #83c95a;
+.visTooltip .bytesUp, .visTooltip .bytesDn {
+  font-size: 10.5px;
+  color: #999999;
+}
+.visTooltip .bytesUp:after {
+  content: ", ";
 }
 
 #footer {

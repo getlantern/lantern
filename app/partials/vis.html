@@ -3,9 +3,8 @@
     <path id="globe"/>
     <g id="countries"></g>
     <g id="peers"></g>
-    <path id="self" class="{{ model.settings.mode }} {{ model.transfers.bpsUpDn && 'transferring' || ''}}">
-      <title>{{ model.profile | prettyUser }}</title>
-    </path>
+    <path id="self" class="{{ model.settings.mode }}" ui-jq="tooltip" ui-options="{html: true}"
+      data-original-title="{{ hoverContentForSelf() }}" />
 
     <filter id="defaultBlur">
       <feGaussianBlur stdDeviation="1" />

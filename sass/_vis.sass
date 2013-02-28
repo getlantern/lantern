@@ -43,11 +43,25 @@ path.connection
 g.transferring path.connection
   opacity: 1
 
-.countryTooltip
+.visTooltip
   text-align: left
+  > *
+    max-width: 200px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
   h5
     margin: 0
-  .peersGet
-    color: $getModeColor
-  .peersGive
-    color: $giveModeColor
+  .picture
+    margin: 4px 10px 0 0
+    height: 50px
+    width: 50px
+  &.give-mode h5
+    +give-colored
+  &.get-mode h5
+    +get-colored
+  .bytesUp, .bytesDn
+    +smaller
+    +gray
+  .bytesUp:after
+    content: ', '
