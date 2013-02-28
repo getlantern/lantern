@@ -33,7 +33,6 @@ public class Connectivity {
 
     //private PeerProxyManager peerProxyManager;
 
-    private Peers peerCollector = new Peers();
 
     private boolean lanternController;
 
@@ -44,11 +43,6 @@ public class Connectivity {
     @JsonView({Run.class})
     public GoogleTalkState getGTalk() {
         return gtalk;
-    }
-
-    @JsonView({Run.class})
-    public Collection<Peer> getPeers() {
-        return this.peerCollector.getPeers().values();
     }
 
     /*
@@ -127,16 +121,6 @@ public class Connectivity {
 
     public void setInvited(boolean invited) {
         this.invited = invited;
-    }
-
-
-    @JsonView({Persistent.class})
-    public Peers getPeerCollector() {
-        return peerCollector;
-    }
-
-    public void setPeerCollector(Peers peerCollector) {
-        this.peerCollector = peerCollector;
     }
 
     public boolean getLanternController() {

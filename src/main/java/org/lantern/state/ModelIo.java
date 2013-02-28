@@ -87,7 +87,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
             }
             
             // Make sure all peers are considered offline at startup.
-            final Peers peers = read.getConnectivity().getPeerCollector();
+            final Peers peers = read.getPeerCollector();
             peers.reset();
             return read;
         } catch (final IOException e) {

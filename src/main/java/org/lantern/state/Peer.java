@@ -53,6 +53,8 @@ public class Peer {
     
     private long bytesDn;
     
+    private String version = "";
+    
     public Peer() {
         
     }
@@ -241,6 +243,14 @@ public class Peer {
 
     public void setPeerid(String peerid) {
         this.peerid = peerid;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
 

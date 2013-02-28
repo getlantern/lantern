@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import java.security.SecureRandom;
+import java.util.Collection;
 import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -59,6 +60,13 @@ public class Model {
     
     private Friends friends = new Friends();
 
+    private Peers peerCollector = new Peers();
+
+    @JsonView({Run.class})
+    public Collection<Peer> getPeers() {
+        return this.peerCollector.getPeers().values();
+    }
+    
     public SystemData getSystem() {
         return system;
     }
@@ -190,5 +198,14 @@ public class Model {
 
     public void setFriends(Friends friends) {
         this.friends = friends;
+    }
+    
+    @JsonView({Persistent.class})
+    public Peers getPeerCollector() {
+        return peerCollector;
+    }
+
+    public void setPeerCollector(Peers peerCollector) {
+        this.peerCollector = peerCollector;
     }
 }

@@ -48,7 +48,7 @@ public class PeerFactory {
     @Inject
     public PeerFactory(final ModelUtils modelUtils, final Model model) {
         this.modelUtils = modelUtils;
-        this.peers = model.getConnectivity().getPeerCollector();
+        this.peers = model.getPeerCollector();
     }
 
     public void addPeer(final String userId, final InetAddress address, 
