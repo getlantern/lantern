@@ -133,9 +133,9 @@ angular.module('app.i18n', [])
       INVITE_FRIENDS_PROMPT: 'Invite friends:',
       SEARCHING_ELLIPSIS: 'Searching...',
       ENTER_VALID_EMAIL: 'Enter a valid email address',
-      NINVITES_REACHED: 'Number of invites reached', // XXX interpolate "max" param
-      INVITES_REMAINING: 'invites remaining', // XXX ng-pluralize
-      PENDING_REQS_PROMPT: 'pending friend requests:', // XXX ng-pluralize
+      NINVITES_REACHED: 'Number of invites reached',
+      INVITES_REMAINING: {1: '1 invite remaining', other: '{} invites remaining'},
+      PENDING_REQS_PROMPT: {1: '1 pending friend request:', other: '{} pending friend requests:'},
       PENDING_REQS_INFO: 'Only accept friend requests from people you trust to share an internet connection.',
       ACCEPT: 'Accept',
       DECLINE: 'Decline',
@@ -167,7 +167,7 @@ angular.module('app.i18n', [])
       CONTACT_TITLE: 'Contact Lantern Developers',
       CONTACT_PROMPT: 'The Lantern documentation and users forums are the best places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.', // XXX links
       MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nDiagnostic information:\n',
-      ERROR_TOO_LONG: 'characters too long', // XXX interpolate param, ng-pluralize
+      ERROR_TOO_LONG: {1: '1 character too long', other: '{} characters too long'},
       SEND: 'Send',
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Access Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'Your internet connection appears to be coming from a censoring country. Giving access through this connection could be undesirable for other users. You can run Lantern in Give Access mode if you connect to the internet from outside a censoring country.', // XXX say which country and source identifying it as censoring
@@ -434,13 +434,26 @@ angular.module('app.i18n', [])
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
   .filter('i18n', function(langSrvc, DEFAULT_LANG, TRANSLATIONS) {
-    return function(key) {
-      if (typeof key == 'undefined') return '(translation key undefined. did you forget quotes?)';
+    var COUNT = /{}/g;
+    function keyNotFound(key) {
+      return '(translation key "'+key+'" not found)';
+    }
+    function pluralNotFound(key, count) {
+      return '(plural not found for key "'+key+'" and count "'+count+'")';
+    }
+    return function(key, count) {
+      if (_.isUndefined(key)) return '(translation key undefined. did you forget quotes?)';
       if (!key) return '';
       var translation =
           (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
-          TRANSLATIONS[DEFAULT_LANG][key] ||
-          '(translation key "'+key+'" not found)';
+          TRANSLATIONS[DEFAULT_LANG][key];
+      if (!translation) return keyNotFound(key);
+      if (_.isPlainObject(translation)) {
+        if (_.isUndefined(count)) return '';
+        translation = translation[count] || translation.other;
+        if (translation) return translation.replace(COUNT, count);
+        return pluralNotFound(key, count);
+      }
       return translation;
     }
   });

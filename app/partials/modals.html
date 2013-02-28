@@ -339,8 +339,7 @@
 
     <div ng-show="model.friends.pending.length" class="centered">
       <h4>
-        <div class="badge badge-important">{{ model.friends.pending.length }}</div>
-        {{ 'PENDING_REQS_PROMPT' | i18n }}
+        {{ 'PENDING_REQS_PROMPT' | i18n:model.friends.pending.length }}
       </h4>
       <ul class="contactList-horizontal">
         <!-- http://microformats.org/wiki/hcard -->
@@ -382,8 +381,7 @@
              ui-select2="selectInvitees" class="selectContacts"
              data-placeholder="email@example.com, email@example.com, ...">
       <div>
-        <span>{{ model.ninvites }}</span>
-        {{ 'INVITES_REMAINING' | i18n }}
+        {{ 'INVITES_REMAINING' | i18n:model.ninvites }}
       </div>
     </form>
     <div class="centered">
@@ -434,8 +432,7 @@
       <textarea id="contact-msg" name="contactMsg" ng-model="message" autofocus
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
       <div class="text-error" ui-toggle="contactForm.contactMsg.$error.maxlength">
-        {{ contactForm.contactMsg.$viewValue.length - 500000 }}
-        {{ 'ERROR_TOO_LONG' | i18n }}&nbsp;
+        {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - 500000) }}&nbsp;
       </div>
     </form>
   </div>

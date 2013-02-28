@@ -44,7 +44,7 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
         internet: 'true',
         updateAvailable: 'true',
         gtalkAuthorized: 'true',
-        invited: 'false',
+        invited: 'true',
         ninvites: '10',
         gtalkReachable: 'true',
         roster: 'roster1',

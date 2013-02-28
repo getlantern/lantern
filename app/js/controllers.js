@@ -353,8 +353,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
       return $filter('i18n')('SEARCHING_ELLIPSIS');
     },
     formatSelectionTooBig: function(max) {
-      console.log('called');
-      return $filter('i18n')('NINVITES_REACHED'); // XXX use max in this message
+      return $filter('i18n')('NINVITES_REACHED', max);
     },
     formatNoMatches: function() {
       return $filter('i18n')('ENTER_VALID_EMAIL');
