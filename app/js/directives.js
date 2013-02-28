@@ -15,17 +15,3 @@ var directives = angular.module('app.directives', [])
       }
     };
   });
-
-// XXX https://github.com/angular/angular.js/issues/1050#issuecomment-9650293
-angular.forEach(['x', 'y', 'cx', 'cy', 'd', 'fill', 'r'], function(name) {
-  var ngName = 'ng' + name[0].toUpperCase() + name.slice(1);
-  directives.directive(ngName, function() {
-    return function(scope, element, attrs) {
-      attrs.$observe(ngName, function(value) {
-        // XXX https://bugs.webkit.org/show_bug.cgi?id=110691
-        if (name === 'd' && !value) value = 'M0 0';
-        attrs.$set(name, value); 
-      })
-    };
-  });
-});
