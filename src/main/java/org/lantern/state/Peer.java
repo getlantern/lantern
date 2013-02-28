@@ -1,12 +1,9 @@
 package org.lantern.state;
 
-import java.util.Date;
 import java.util.Locale;
 
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.state.Model.Persistent;
@@ -34,9 +31,9 @@ public class Peer {
 
     //private final String base64Cert;
 
-    private double latitude;
+    private double lat;
 
-    private double longitude;
+    private double lon;
     
     private String type;
     
@@ -71,8 +68,8 @@ public class Peer {
         final String ip, final Mode mode, final boolean incoming, 
         final LanternTrafficCounterHandler trafficCounter) {
         this.mapped = mapped;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.lat = latitude;
+        this.lon = longitude;
         this.setPeerid(userId);
         this.ip = ip;
         this.mode = mode;
@@ -94,20 +91,20 @@ public class Peer {
         this.country = country;
     }
 
-    public double getLatitude() {
-        return latitude;
+    public double getLat() {
+        return lat;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public void setLat(double latitude) {
+        this.lat = latitude;
     }
 
-    public double getLongitude() {
-        return longitude;
+    public double getLon() {
+        return lon;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
+    public void setLon(double longitude) {
+        this.lon = longitude;
     }
 
     public String getType() {
