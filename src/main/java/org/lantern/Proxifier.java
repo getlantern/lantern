@@ -341,11 +341,13 @@ public class Proxifier implements LanternService {
             onOrOff = "off";
         }
         
-        boolean locked = false;
-        try {
-            locked = osxPrefPanesLocked();
-        } catch (final IOException e) {
-            locked = false;
+        boolean locked = getOsxVersion().greaterThanOrEqualTo(new Version("10.7"));
+        if (!locked) {
+            try {
+                locked = osxPrefPanesLocked();
+            } catch (final IOException e) {
+                locked = true;
+            }
         }
         
         // We create a random string for the pac file name to make sure all
@@ -378,6 +380,50 @@ public class Proxifier implements LanternService {
             this.model.getSettings().setSystemProxy(false);
             throw new ProxyConfigurationCancelled();
         }
+    }
+
+    static class Version {
+        private int[] numbers;
+        public Version(String versionNumber) {
+            String[] parts = versionNumber.split("\\.");
+            numbers = new int[parts.length];
+            for (int i = 0; i < parts.length; ++i) {
+                try {
+                    numbers[i] = Integer.parseInt(parts[i]);
+                } catch (NumberFormatException e) {
+                    numbers[i] = 0;
+                }
+            }
+        }
+        public boolean greaterThanOrEqualTo(Version other) {
+            for (int i = 0; i < numbers.length; ++i) {
+                if (i >= other.numbers.length) {
+                    return true;
+                }
+                if (numbers[i] > other.numbers[i]) {
+                    return true;
+                } else if (numbers[i] < other.numbers[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public String toString() {
+            String result = "Version(";
+            for (int i = 0; i < numbers.length; ++i) {
+                result += numbers[i];
+                if (i != numbers.length - 1) {
+                    result += ".";
+                }
+            }
+            result += ")";
+            return result;
+        }
+    }
+
+    private Version getOsxVersion() {
+        return new Version(System.getProperty("os.version"));
     }
 
     private void proxyWindows(final String url) {
