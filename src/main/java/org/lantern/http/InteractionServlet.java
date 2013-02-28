@@ -141,6 +141,9 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case about:
+            if (handleModeSwitch(inter)) {
+                break;
+            }
             this.internalState.setModalCompleted(Modal.finished);
             this.internalState.advanceModal(null);
             Events.syncModel(this.model);
@@ -176,6 +179,9 @@ public class InteractionServlet extends HttpServlet {
             log.error("Processing gtalk unreachable.");
             break;
         case lanternFriends:
+            if (handleModeSwitch(inter)) {
+                break;
+            }
             switch (inter) {
             case CONTINUE:
                 log.debug("Processing continue for friends dialog");
@@ -199,31 +205,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case none:
-            switch (inter) {
-            case SETTINGS:
-                log.debug("Processing settings in none");
-                Events.syncModal(model, Modal.settings);
-                break;
-            case PROXIEDSITES:
-                log.debug("Processing proxied sites in none");
-                Events.syncModal(model, Modal.proxiedSites);
-                break;
-            case LANTERNFRIENDS:
-                log.debug("Processing friends in none");
-                Events.syncModal(model, Modal.lanternFriends);
-                break;
-            case ABOUT:
-                log.debug("Processing about in none");
-                Events.syncModal(model, Modal.about);
-                break;
-            case CONTACT:
-                log.debug("Processing contact in none");
-                Events.syncModal(model, Modal.contactDevs);
-                break;
-            default:
-                log.debug("Unktnown modal in none");
-                break;
-            }
+            handleModeSwitch(inter);
             break;
         case notInvited:
             switch (inter) {
@@ -239,6 +221,9 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case proxiedSites:
+            if (handleModeSwitch(inter)) {
+                break;
+            }
             switch (inter) {
             case RESET:
                 this.modelService.resetProxiedSites();
@@ -292,6 +277,9 @@ public class InteractionServlet extends HttpServlet {
             log.debug("Process request sent");
             break;
         case settings:
+            if (handleModeSwitch(inter)) {
+                break;
+            }
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");
@@ -374,6 +362,9 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case contactDevs:
+            if (handleModeSwitch(inter)) {
+                break;
+            }
             this.internalState.setModalCompleted(Modal.finished);
             this.internalState.advanceModal(null);
             Events.syncModel(this.model);
@@ -386,6 +377,33 @@ public class InteractionServlet extends HttpServlet {
             log.error("No matching modal for {}", modal);
         }
         this.modelIo.write();
+    }
+
+    private boolean handleModeSwitch(final Interaction inter) {
+        switch (inter) {
+        case SETTINGS:
+            log.debug("Processing settings in none");
+            Events.syncModal(model, Modal.settings);
+            return true;
+        case PROXIEDSITES:
+            log.debug("Processing proxied sites in none");
+            Events.syncModal(model, Modal.proxiedSites);
+            return true;
+        case LANTERNFRIENDS:
+            log.debug("Processing friends in none");
+            Events.syncModal(model, Modal.lanternFriends);
+            return true;
+        case ABOUT:
+            log.debug("Processing about in none");
+            Events.syncModal(model, Modal.about);
+            return true;
+        case CONTACT:
+            log.debug("Processing contact in none");
+            Events.syncModal(model, Modal.contactDevs);
+            return true;
+        default:
+            return false;
+        }
     }
 
     static class Invite {
