@@ -186,8 +186,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final Profile profile = om.readValue(body, Profile.class);
             this.model.setProfile(profile);
             Events.sync(SyncPath.PROFILE, profile);
-            final String email = profile.getEmail();
-            this.model.getSettings().setEmail(email);
+            //final String email = profile.getEmail();
+            //this.model.getSettings().setEmail(email);
             return code;
         } catch (final IOException e) {
             log.warn("Could not connect to Google?", e);
