@@ -80,7 +80,7 @@ angular.module('app.i18n', [])
       RETRY_NOW: 'Retry now',
       RETRY_LATER: 'Retry later',
       NOT_INVITED_TITLE: 'User Not Invited',
-      NOT_INVITED_PROMPT: 'This user has not been invited to join Lantern yet.',
+      NOT_INVITED_PROMPT: 'The user you tried has not been invited to join Lantern yet.',
       TRY_ANOTHER_USER: 'Try another user',
       REQUEST_INVITE: 'Request invite',
       REQUEST_INVITE_TITLE: 'Request Invite',
