@@ -786,6 +786,28 @@ public class LanternUtils {
         return propObject;
     }
 
+    public static void setFromPath(final Object root, final String path, final Object value)
+            throws IllegalAccessException, InvocationTargetException,
+            NoSuchMethodException {
+            if (!path.contains("/")) {
+                PropertyUtils.setProperty(root, path, value);
+                return;
+            }
+            final String curProp = StringUtils.substringBefore(path, "/");
+            final Object propObject;
+            if (curProp.isEmpty()) {
+                propObject = root;
+            } else {
+                propObject = PropertyUtils.getProperty(root, curProp);
+            }
+            final String nextProp = StringUtils.substringAfter(path, "/");
+            if (nextProp.contains("/")) {
+                setFromPath(propObject, nextProp, value);
+                return;
+            }
+            PropertyUtils.setProperty(propObject, nextProp, value);
+        }
+
     public static boolean isLocalHost(final Channel channel) {
         final InetSocketAddress remote =
             (InetSocketAddress) channel.getRemoteAddress();
