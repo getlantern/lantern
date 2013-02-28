@@ -54,6 +54,8 @@ public class Peer {
     private long bytesDn;
     
     private String version = "";
+
+    private long lastConnected;
     
     public Peer() {
         
@@ -229,12 +231,30 @@ public class Peer {
 
     @JsonView({Run.class})
     public int getNSockets() {
-        return trafficCounter.getNumSockets();
+        if (this.trafficCounter != null) {
+            return trafficCounter.getNumSockets();
+        }
+        return 0;
     }
     
-    @JsonView({Run.class, Persistent.class})
+    @JsonView({Run.class})
     public Date getLastConnected() {
-        return new Date(trafficCounter.getLastConnected());
+        return new Date(getLastConnectedLong());
+    }
+    
+    @JsonView({Persistent.class})
+    public long getLastConnectedLong() {
+        if (this.trafficCounter != null) {
+            final long last = trafficCounter.getLastConnected();
+            
+            // Only use the counter data if it has connected.
+            if (last > 0L) return last;
+        }
+        return this.lastConnected;
+    }
+    
+    public void setLastConnectedLong(final long lastConnected) {
+        this.lastConnected = lastConnected;
     }
 
     public String getPeerid() {
