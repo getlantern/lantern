@@ -26,8 +26,6 @@ public class Settings {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private String email = "";
-
     private String lang = Locale.getDefault().getLanguage();
 
     private final boolean autoConnect = true;
@@ -91,15 +89,6 @@ public class Settings {
         give,
         get,
         none
-    }
-
-    @JsonView({Run.class, Persistent.class})
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     @JsonView(Run.class)
