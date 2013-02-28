@@ -122,7 +122,7 @@ angular.module('app.i18n', [])
       FINISH: 'Finish',
       LANTERN_FRIENDS: 'Lantern Friends',
       LANTERN_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Inviting people you trust to join Lantern helps Lantern work better.',
-      AUTOTRUSTED_PROMPT: 'Being Lantern Friends with someone also allows you to chat through Google Talk. Google Talk contacts who’ve already joined Lantern are considered Lantern friends automatically.',
+      AUTOTRUSTED_PROMPT: 'Being Lantern Friends with someone also allows you to chat through Google Talk.',
       LANTERN_FRIENDS_COLON: 'Lantern friends:',
       PROXYING_ALL_TRAFFIC: 'Proxying all traffic',
       NO_NAME: '(no name)',
