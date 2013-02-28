@@ -6,6 +6,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
+import org.lantern.LanternClientConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
     private final AtomicInteger connectedChannels = new AtomicInteger(0);
 
     public LanternTrafficCounterHandler(final Timer timer) {
-        super(timer, 2000);
+        super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
     }
 
     @Override
@@ -33,5 +34,9 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
     
     public boolean isConnected() {
         return connectedChannels.get() > 0;
+    }
+
+    public int getNumSockets() {
+        return connectedChannels.get();
     }
 }

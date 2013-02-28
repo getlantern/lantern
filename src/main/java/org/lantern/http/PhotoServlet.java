@@ -120,7 +120,7 @@ public final class PhotoServlet extends HttpServlet {
         //resp.getOutputStream().close();
     }
     
-    private VCard getVCard(final String email) 
+    public VCard getVCard(final String email) 
         throws CredentialException, XMPPException, IOException {
         
         if (StringUtils.isBlank(email)) {
