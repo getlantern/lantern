@@ -290,16 +290,9 @@ the backend maintains on the frontend through comet publications:
               <tr><td><strong>installerSHA1</strong><br><em>string</em>
                 <td>SHA-1 of the installer for the user's platform</td></tr>
               <tr><td><strong>changes</strong><br><em>object[]</em></td>
-                <td>internationalized list of changes in this version, with
-                  language codes as keys and html strings as values, e.g.<br>
-                <pre>[{
-    "en": "(English translation of <a href=\"#\">feature x</a>)",
-    "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"
-  },{
-    "en": "(English translation of <a href=\"#\">feature y</a>)",
-    "zh": "(Chinese translation of <a href=\"#\">feature y</a>)"
-  }
-]</pre></td>
+                <td>list of changes in this version.<br><br>
+                    <strong>XXX use a "what's changed" link instead, which could
+                    just point to a blog post or github compare view?</td>
               <tr><td><strong>modelSchema</strong><br><em>object</em></td>
                 <td>
                   <table>
