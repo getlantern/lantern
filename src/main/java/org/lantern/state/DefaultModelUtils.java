@@ -253,7 +253,7 @@ public class DefaultModelUtils implements ModelUtils {
                 LOG.error("Failed to parse user credentials file \"{}\"", filename);
                 throw new Error("Could not load username or refresh_token");
             } else {
-                this.model.getSettings().setEmail(username);
+                //this.model.getSettings().setEmail(username);
                 //this.model.getSettings().setCommandLineEmail(username);
                 this.model.getSettings().setAccessToken(accessToken);
                 this.model.getSettings().setRefreshToken(refreshToken);
