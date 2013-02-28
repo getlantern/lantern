@@ -16,6 +16,12 @@ angular.module('app.vis', [])
     },
     source: {
       world: 'data/world.json'
+    },
+    popover: {
+      container: 'body',
+      trigger: 'hover',
+      html: true
+    //placement: function() {...}
     }
   });
 
@@ -28,6 +34,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       max = Math.max,
       round = Math.round,
       dim = {},
+      i18n = $filter('i18n'),
       $map = $('#map'),
       $$map = d3.select('#map'),
       $$self = d3.select('#self'),
@@ -134,9 +141,22 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     countryPaths = d3.select('#countries').selectAll('path')
       .data(countryGeometries).enter().append('path')
         .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
+        .attr('data-title', function(d) { return titleForCountry(d); })
+        .attr('data-content', function(d) { return contentForCountry(d); })
         .attr('d', pathForData);
     _.each(model.countries, function(__, alpha2) { updateCountryStroke(alpha2); });
+    $('#countries path').popover(CONFIG.popover);
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
+  }
+
+  function titleForCountry(d) {
+    if (!d.alpha2) return;
+    return '<h6>'+i18n(d.alpha2)+'</h6>';
+  }
+
+  function contentForCountry(d) {
+    if (!d.alpha2) return;
+    return '<small>Stats for '+i18n(d.alpha2)+' here</small>';
   }
 
   function handleResize() {
