@@ -1,11 +1,10 @@
 package org.lantern.kscope;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
-import org.kaleidoscope.TrustGraphNode;
 import org.lantern.LanternClientConstants;
-import org.lantern.LanternConstants;
 
 /**
  * Advertisement for a Lantern node to be distributed using the Kaleidoscope
@@ -27,17 +26,19 @@ public class LanternKscopeAdvertisement {
     private int version;
 
     private String localAddress;
+    
+    private int localPort;
 
     private String lanternVersion = LanternClientConstants.VERSION;
 
     public static LanternKscopeAdvertisement makeRelayAd(
-            LanternKscopeAdvertisement ad) {
+            final LanternKscopeAdvertisement ad) {
         return new LanternKscopeAdvertisement(ad.getJid(), ad.getAddress(),
-            ad.getPort(), ad.getLocalAddress());
+            ad.getPort(), ad.getLocalAddress(), ad.getLocalPort());
     }
 
     public LanternKscopeAdvertisement() {
-        this("", "", 0, "");
+        this("", "", 0, "", 0);
     }
 
     public LanternKscopeAdvertisement(final String jid) {
@@ -45,21 +46,22 @@ public class LanternKscopeAdvertisement {
     }
 
     public LanternKscopeAdvertisement(final String jid, final InetAddress addr, 
-        final int port) {
+        final int port, final InetSocketAddress localAddress) {
         this(jid, addr.getHostAddress(), port);
     }
     
-    public LanternKscopeAdvertisement(final String jid, final String addr, 
+    private LanternKscopeAdvertisement(final String jid, final String addr, 
         final int port) {
-        this(jid, addr, port, "");
+        this(jid, addr, port, "", 0);
     }
 
     public LanternKscopeAdvertisement(final String jid, final String addr,
-            final int port, final String localAddress) {
+            final int port, final String localAddress, final int localPort) {
         this.jid = jid;
         this.address = addr;
         this.port = port;
         this.localAddress = localAddress;
+        this.localPort = localPort;
         this.version = CURRENT_VERSION;
         this.ttl = DEFAULT_TTL;
     }
@@ -124,7 +126,15 @@ public class LanternKscopeAdvertisement {
     public String getLanternVersion() {
         return lanternVersion;
     }
-    
+
+    public int getLocalPort() {
+        return localPort;
+    }
+
+    public void setLocalPort(int localPort) {
+        this.localPort = localPort;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

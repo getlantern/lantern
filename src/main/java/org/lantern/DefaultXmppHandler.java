@@ -574,7 +574,8 @@ public class DefaultXmppHandler implements XmppHandler {
                     final LanternKscopeAdvertisement ad;
                     if (mappedServer.isPortMapped()) {
                         ad = new LanternKscopeAdvertisement(user, address,
-                            mappedServer.getMappedPort());
+                            mappedServer.getMappedPort(), 
+                            mappedServer.getHostAddress());
                     } else {
                         ad = new LanternKscopeAdvertisement(user);
                     }
@@ -1085,7 +1086,12 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public String getJid() {
-        return this.client.get().getXmppConnection().getUser().trim();
+        // We may have already disconnected on shutdown, for example, so check
+        // for null.
+        if (this.client.get() != null) {
+            return this.client.get().getXmppConnection().getUser().trim();
+        }
+        return "";
     }
 
     private void sendAndRequestCert(final URI peer) {
