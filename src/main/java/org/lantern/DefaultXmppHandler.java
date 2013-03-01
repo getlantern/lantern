@@ -61,6 +61,7 @@ import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
+import org.lantern.state.Settings;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncPath;
@@ -555,6 +556,11 @@ public class DefaultXmppHandler implements XmppHandler {
 
                 @Override
                 public void run() {
+                    // only advertise if we're in GET mode
+                    if(model.getSettings().getMode() != Settings.Mode.give) {
+                        return;
+                    }
+
                     final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
                         model.getNodeId());
 
