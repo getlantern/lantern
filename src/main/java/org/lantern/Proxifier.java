@@ -14,9 +14,11 @@ import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
+import org.lantern.state.Settings.Mode;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +69,8 @@ public class Proxifier implements LanternService {
 
     private final Model model;
 
+    private ProxyConnectionEvent lastProxyConnectionEvent;
+
     @Inject 
     public Proxifier(final MessageService messageService,
         final ModelUtils modelUtils, final Model model) {
@@ -112,7 +116,23 @@ public class Proxifier implements LanternService {
     }
     
     @Subscribe
+    public void onSetupComplete(final SetupCompleteEvent event) {
+        LOG.debug("Got setup complete!");
+        if (this.lastProxyConnectionEvent != null) {
+            LOG.debug("Re-firing last proxy connection event...");
+            onProxyConnection(this.lastProxyConnectionEvent);
+        } else {
+            LOG.debug("No proxy connection event to refire!");
+        }
+    }
+    
+    @Subscribe
     public void onProxyConnection(final ProxyConnectionEvent pce) {
+        if (!model.isSetupComplete()) {
+            this.lastProxyConnectionEvent = pce;
+            LOG.debug("Ingoring proxy connection call when setup is not complete");
+            return;
+        }
         final ConnectivityStatus stat = pce.getConnectivityStatus();
         switch (stat) {
         case CONNECTED:
@@ -123,6 +143,10 @@ public class Proxifier implements LanternService {
                 } catch (final ProxyConfigurationError e) {
                     LOG.warn("Could not proxy?", e);
                 }
+            } else {
+                LOG.debug("Ignoring proxy call! System proxy? "+
+                        model.getSettings().isSystemProxy()+" get mode? "+
+                        this.model.getSettings().getMode());
             }
             break;
         case CONNECTING:
@@ -211,6 +235,7 @@ public class Proxifier implements LanternService {
             return;
         }
 
+        LOG.debug("Starting to proxy!");
         // Always update the pac file to make sure we've got all the latest
         // entries -- only recreates proxy_on.
         if (pacFile.equals(PROXY_ON)) {

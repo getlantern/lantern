@@ -18,6 +18,7 @@ import org.lantern.LanternClientConstants;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
@@ -164,6 +165,10 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Processing continue");
                 this.model.setShowVis(true);
                 this.model.setSetupComplete(true);
+                
+                // Things like configuring the system proxy rely on setup being
+                // complete, so propagate the event.
+                Events.asyncEventBus().post(new SetupCompleteEvent());
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
                 Events.syncModel(this.model);
