@@ -37,7 +37,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     
     private final ChannelGroup channelGroup;
             
-    private final int httpLocalPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
+    private final int httpLocalPort = 
+        LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
 
     //private final SetCookieObserver setCookieObserver;
     //private final CookieFilter.Factory cookieFilterFactory;
@@ -104,11 +105,11 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     @Override
     public void start() {
-        log.info("Starting proxy on HTTP port "+httpLocalPort);
+        log.debug("Starting proxy on HTTP port "+httpLocalPort);
         
         newServerBootstrap(newHttpChannelPipelineFactory(), 
             httpLocalPort);
-        log.info("Built HTTP server");
+        log.debug("Built HTTP server");
         
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
@@ -226,6 +227,12 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         log.info("Releasing client channel external resources...");
         clientChannelFactory.releaseExternalResources();
         log.info("Done shutting down proxy");
+    }
+
+
+    @Override
+    public int getPort() {
+        return this.httpLocalPort;
     }
 
 }
