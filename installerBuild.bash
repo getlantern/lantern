@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONSTANTS_FILE=src/main/java/org/lantern/LanternConstants.java
+CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
 function die() {
   echo $*
   echo "Reverting version file"
