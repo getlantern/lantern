@@ -341,25 +341,12 @@ public class Proxifier implements LanternService {
             onOrOff = "off";
         }
         
-        boolean locked = getOsxVersion().greaterThanOrEqualTo(new Version("10.7"));
-        if (!locked) {
-            try {
-                locked = osxPrefPanesLocked();
-            } catch (final IOException e) {
-                locked = true;
-            }
-        }
-        
         // We create a random string for the pac file name to make sure all
         // browsers reload it.
         String applescriptCommand = 
-            "do shell script \"./configureNetworkServices.bash "+ onOrOff + " "+url;
+            "do shell script \"./configureNetworkServices "+ onOrOff + " "+url;
         
-        if (locked) {
-            applescriptCommand +="\" with administrator privileges without altering line endings";
-        } else {
-            applescriptCommand +="\" without altering line endings";
-        }
+        applescriptCommand +="\" without altering line endings";
 
         // XXX @myleshorton can we skip this when there's no need to change
         // system proxy settings, e.g. an unproxy call after a proxy call was
