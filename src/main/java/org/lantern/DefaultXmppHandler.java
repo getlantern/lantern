@@ -1088,7 +1088,8 @@ public class DefaultXmppHandler implements XmppHandler {
     public String getJid() {
         // We may have already disconnected on shutdown, for example, so check
         // for null.
-        if (this.client.get() != null) {
+        if (this.client.get() != null && 
+            this.client.get().getXmppConnection() != null) {
             return this.client.get().getXmppConnection().getUser().trim();
         }
         return "";
