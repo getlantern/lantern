@@ -175,6 +175,10 @@ public class Launcher {
             set.setUiEnabled(true);
         }
         
+        LOG.debug("Processing command line options...");
+        processCommandLineOptions(cmd);
+        LOG.debug("Processed command line options...");
+        
         censored = instance(Censored.class);
         
         LOG.debug("Creating display...");
@@ -230,10 +234,6 @@ public class Launcher {
             }
             LOG.debug("Started system tray..");
         }
-        
-        LOG.debug("Processing command line options...");
-        processCommandLineOptions(cmd);
-        LOG.debug("Processed command line options...");
         
         shutdownable(ModelIo.class);
         
@@ -857,24 +857,27 @@ public class Launcher {
             final int apiPort = Integer.parseInt(apiPortStr);
             StaticSettings.setApiPort(apiPort);
         } else {
-            LOG.info("Using random port...");
+            LOG.debug("Using random port...");
         }
         LOG.info("Running API on port: {}", StaticSettings.getApiPort());
 
         if (cmd.hasOption(OPTION_SERVER_PORT)) {
             final String serverPortStr =
                 cmd.getOptionValue(OPTION_SERVER_PORT);
-            LOG.info("Using command-line proxy port: "+serverPortStr);
+            LOG.debug("Using command-line proxy port: "+serverPortStr);
             final int serverPort = Integer.parseInt(serverPortStr);
             set.setServerPort(serverPort);
         } else {
-            LOG.info("Using random give mode proxy port...");
-            set.setServerPort(LanternUtils.randomPort());
+            final int existing = set.getServerPort();
+            if (existing < 1024) {
+                LOG.debug("Using random give mode proxy port...");
+                set.setServerPort(LanternUtils.randomPort());
+            }
         }
         LOG.info("Running give mode proxy on port: {}", set.getServerPort());
         
         if (cmd.hasOption(OPTION_LAUNCHD)) {
-            LOG.info("Running from launchd or launchd set on command line");
+            LOG.debug("Running from launchd or launchd set on command line");
             model.setLaunchd(true);
         } else {
             model.setLaunchd(false);
