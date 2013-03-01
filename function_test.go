@@ -69,3 +69,25 @@ func TestFunctionDeclarationInFunction(t *testing.T) {
         typeof abc();
     `, "function")
 }
+
+func TestFunction_bind(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        abc = function(){
+            return "abc";
+        };
+        def = abc.bind();
+        def();
+    `, "abc")
+
+	test(`
+        abc = function(){
+            return arguments[1];
+        };
+        def = abc.bind(undefined, "abc");
+        ghi = abc.bind(undefined, "abc", "ghi");
+        [ def(), def("def"), ghi("def") ];
+    `, ",def,ghi")
+}

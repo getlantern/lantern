@@ -184,6 +184,7 @@ func newContext() *_runtime {
 		},
 		"apply", 2, builtinFunction_apply,
 		"call", 2, builtinFunction_call,
+		"bind", 1, builtinFunction_bind,
 	)
 
 	self.Global.Array = self.newGlobalFunction(

@@ -27,6 +27,17 @@ func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnviron
 	return self
 }
 
+func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, argumentList []Value) *_object {
+	self := runtime.newClassObject("Function")
+	self._Function = &_functionObject{
+		Call:      newBoundCallFunction(target, this, argumentList),
+		Construct: defaultConstructFunction,
+	}
+	// FIXME
+	self.stash.set("length", toValue(0), _propertyMode(0))
+	return self
+}
+
 func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
@@ -159,6 +170,31 @@ func (self _nodeCallFunction) Source() string {
 	return ""
 }
 
+type _boundCallFunction struct {
+	_callFunction_
+	target       *_object
+	this         Value
+	argumentList []Value
+}
+
+func newBoundCallFunction(target *_object, this Value, argumentList []Value) *_boundCallFunction {
+	self := &_boundCallFunction{
+		target:       target,
+		this:         this,
+		argumentList: argumentList,
+	}
+	return self
+}
+
+func (self _boundCallFunction) Dispatch(_ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
+	argumentList = append(self.argumentList, argumentList...)
+	return runtime.Call(self.target, self.this, argumentList, false)
+}
+
+func (self _boundCallFunction) Source() string {
+	return ""
+}
+
 // FunctionCall{}
 
 // FunctionCall is an enscapulation of a JavaScript function call.
@@ -175,6 +211,13 @@ type FunctionCall struct {
 // If no such argument exists, undefined is returned.
 func (self FunctionCall) Argument(index int) Value {
 	return valueOfArrayIndex(self.ArgumentList, index)
+}
+
+func (self FunctionCall) slice(index int) []Value {
+	if index < len(self.ArgumentList) {
+		return self.ArgumentList[index:]
+	}
+	return []Value{}
 }
 
 func (self *FunctionCall) thisObject() *_object {

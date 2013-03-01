@@ -71,3 +71,20 @@ func builtinFunction_call(call FunctionCall) Value {
 	}
 	return thisObject.Call(this, []Value{})
 }
+
+func builtinFunction_bind(call FunctionCall) Value {
+	target := call.This
+	if !target.isCallable() {
+		panic(newTypeError())
+	}
+	targetObject := target._object()
+
+	this := call.Argument(0)
+	argumentList := call.slice(1)
+	if this.IsUndefined() {
+		// FIXME Do this elsewhere?
+		this = toValue(call.runtime.GlobalObject)
+	}
+
+	return toValue(call.runtime.newBoundFunctionObject(targetObject, this, argumentList))
+}
