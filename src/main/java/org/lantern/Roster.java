@@ -143,6 +143,10 @@ public class Roster implements RosterListener {
         }
         return entries;
     }
+    
+    public LanternRosterEntry getRosterEntry(final String key) {
+        return this.rosterEntries.get(key);
+    }
 
     private void processPresence(final Presence presence, final boolean sync,
         final boolean updateIndex) {
@@ -209,14 +213,14 @@ public class Roster implements RosterListener {
             entry.setAvailable(pres.isAvailable());
             entry.setStatusMessage(pres.getStatus());
             if (sync) {
-                log.info("Syncing roster from onPresence...");
+                log.debug("Syncing roster from onPresence...");
                 Events.syncRosterEntry(entry, entry.getIndex());
             }
         } else {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
-            log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres, photoUrlBase(), this),
+            log.debug("Adding non-roster presence: {}", email);
+            addEntry(new LanternRosterEntry(pres, photoUrlBase()),
                 updateIndex);
         }
 
@@ -236,10 +240,10 @@ public class Roster implements RosterListener {
             log.info("Adding entry for {}", entry);
             putNewElement(entry, true);
         } else {
-            log.info("Not adding entry for {}", entry);
+            log.debug("Not adding entry for {}", entry);
         }
 
-        log.info("Finished adding entry for {}", entry);
+        log.debug("Finished adding entry for {}", entry);
 
         //if (LanternUtils.isLanternJid(pres.getEmail()))
         //this.kscopeRoutingTable
@@ -256,13 +260,13 @@ public class Roster implements RosterListener {
     private void addEntry(final LanternRosterEntry entry,
         final boolean updateIndex) {
         if (LanternUtils.isNotJid(entry.getEmail())) {
-            log.info("Adding entry for {}", entry);
+            log.debug("Adding entry for {}", entry);
             putNewElement(entry, updateIndex);
         } else {
-            log.info("Not adding entry for {}", entry);
+            log.debug("Not adding entry for {}", entry);
         }
 
-        log.info("Finished adding entry for {}", entry);
+        log.debug("Finished adding entry for {}", entry);
     }
 
     private void putNewElement(final LanternRosterEntry entry,
@@ -405,7 +409,7 @@ public class Roster implements RosterListener {
         if (entry == null) {
             return false;
         }
-        final String subscriptionStatus = entry.getSubscriptionStatus();
+        final String subscriptionStatus = entry.getStatus();
 
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.
@@ -422,7 +426,7 @@ public class Roster implements RosterListener {
             log.debug("No matching roster entry!");
             return false;
         }
-        final String subscriptionStatus = entry.getSubscriptionStatus();
+        final String subscriptionStatus = entry.getStatus();
 
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.

@@ -6,6 +6,7 @@ import org.apache.commons.lang3.time.FastDateFormat;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternRosterEntry;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.util.LanternTrafficCounterHandler;
@@ -56,6 +57,8 @@ public class Peer {
     private String version = "";
 
     private long lastConnectedLong;
+
+    private LanternRosterEntry rosterEntry;
     
     public Peer() {
         
@@ -66,10 +69,12 @@ public class Peer {
         final boolean mapped, final double latitude, 
         final double longitude, final Type type,
         final String ip, final Mode mode, final boolean incoming, 
-        final LanternTrafficCounterHandler trafficCounter) {
+        final LanternTrafficCounterHandler trafficCounter, 
+        final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;
         this.lat = latitude;
         this.lon = longitude;
+        this.rosterEntry = rosterEntry;
         this.setPeerid(userId);
         this.ip = ip;
         this.mode = mode;
@@ -274,5 +279,12 @@ public class Peer {
         this.version = version;
     }
 
+    public LanternRosterEntry getRosterEntry() {
+        return rosterEntry;
+    }
+
+    public void setRosterEntry(LanternRosterEntry rosterEntry) {
+        this.rosterEntry = rosterEntry;
+    }
 
 }

@@ -27,42 +27,42 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final boolean autosub;
 
     private final String avatarUrlBase;
-    private final Roster roster;
 
-    public LanternRosterEntry(final Presence pres, final String avatarUrl,
-            final Roster roster) {
+    public LanternRosterEntry() {
+        this(false, false, "", "", "", false, "");
+    }
+    
+    public LanternRosterEntry(final Presence pres, final String avatarUrl) {
         this(pres.isAvailable(), false, pres.getFrom(), pres.getFrom(), pres
-                .getStatus(), false, avatarUrl, roster);
+                .getStatus(), false, avatarUrl);
     }
 
     public LanternRosterEntry(final String email, final String avatarUrl,
             final Roster roster) {
-        this(false, true, email, "", "", false, avatarUrl, roster);
+        this(false, true, email, "", "", false, avatarUrl);
     }
 
     public LanternRosterEntry(final RosterEntry entry, final String avatarUrl,
             final Roster roster) {
         this(false, false, entry.getUser(), entry.getName(),
-                extractSubscriptionStatus(entry), entry.isAutosub(), avatarUrl,
-                roster);
+                extractSubscriptionStatus(entry), entry.isAutosub(), avatarUrl);
     }
 
     private LanternRosterEntry(final boolean available, final boolean away,
             final String email, final String name,
             final String subscriptionStatus, final boolean autosub,
-            final String avatarUrlBase, final Roster roster) {
+            final String avatarUrlBase) {
         this.available = available;
         this.away = away;
         this.avatarUrlBase = avatarUrlBase;
-        this.roster = roster;
         if (StringUtils.isBlank(email)) {
             log.warn("No email address!!");
             throw new IllegalArgumentException("Blank email??");
         }
         this.email = XmppUtils.jidToUser(email);
         this.name = name == null ? "" : name;
-        this.setSubscriptionStatus(subscriptionStatus == null ? ""
-                : subscriptionStatus);
+        this.subscriptionStatus = subscriptionStatus == null ? ""
+                : subscriptionStatus;
         this.statusMessage = "";
         this.autosub = autosub;
     }
@@ -128,10 +128,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return email;
     }
 
-    public boolean isInvited() {
-        return this.roster.getInvited().contains(email);
-    }
-
     @JsonIgnore
     public VCard getVcard() {
         return vcard;
@@ -147,11 +143,11 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     @JsonIgnore
-    public String getSubscriptionStatus() {
+    public String getStatus() {
         return subscriptionStatus;
     }
 
-    public void setSubscriptionStatus(String subscriptionStatus) {
+    public void setStatus(String subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
     }
 
