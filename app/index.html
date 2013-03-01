@@ -56,10 +56,10 @@
     </div>
 
     <div id="alerts">
-      <div class="alert" ng-repeat="(i, alert) in model.notifications">
+      <div ng-repeat="notification in model.notifications" class="alert alert-{{notification.type}}">
         <button type="button" class="close" title="{{ 'CLOSE' | i18n }}"
-          ng-click="interaction(INTERACTION.close, {notification: i})">&times;</button>
-        <span ng-bind-html="alert"></span>
+          ng-click="interaction(INTERACTION.close, {notification: $index})">&times;</button>
+        <span ng-bind-html="notification.message"></span>
       </div>
     </div>
 

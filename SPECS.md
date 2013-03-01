@@ -342,11 +342,13 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>notifications</strong><br><em>string[]</em></td>
+    <td><strong>notifications</strong><br><em>object[]</em></td>
     <td>Array of notifications the frontend should display to the user.
-        Notification strings may contain html; unsafe elements will be
-        sanitized. Notification strings are expected to be translated into the
-        user's chosen language.
+        Notification objects are of the form <code>{"type": <notification type>,
+        "message": <notification message>}</code>, where "type" can be one of
+        "info", "warning", "error", or "success", and "message" is a string
+        which may contain html; unsafe elements will be sanitized. Message
+        strings are expected to be translated into the user's chosen language.
     </td>
   </tr>
   <tr>

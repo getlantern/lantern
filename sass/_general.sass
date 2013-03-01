@@ -166,4 +166,13 @@ textarea
   margin-bottom: 0
   +opaqueOnMouseover(.95)
   .titled
-    border-bottom: 1px dashed $warningText
+    border-bottom-width: 1px
+    border-bottom-style: dashed
+  &.alert-warning .titled
+    border-bottom-color: $warningText
+  &.alert-info .titled
+    border-bottom-color: $infoText
+  &.alert-success .titled
+    border-bottom-color: $successText
+  &.alert-error .titled
+    border-bottom-color: $errorText

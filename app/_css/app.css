@@ -6632,7 +6632,20 @@ textarea {
   opacity: 1;
 }
 .alert .titled {
-  border-bottom: 1px dashed #c09853;
+  border-bottom-width: 1px;
+  border-bottom-style: dashed;
+}
+.alert.alert-warning .titled {
+  border-bottom-color: #c09853;
+}
+.alert.alert-info .titled {
+  border-bottom-color: #3a87ad;
+}
+.alert.alert-success .titled {
+  border-bottom-color: #468847;
+}
+.alert.alert-error .titled {
+  border-bottom-color: #b94a48;
 }
 
 #waiting {

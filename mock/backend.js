@@ -187,8 +187,7 @@ MockBackend._handlerForModal[MODAL.contact] = function(interaction, res, data) {
   }
   if (interaction == INTERACTION.continue) {
     var msg = 'Message sent.';
-    debugger;
-    this.sync({'/notifications/-': msg});
+    this.sync({'/notifications/-': {type: 'info', message: msg}});
   }
   this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
@@ -408,7 +407,7 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
       }
       this.sync({
         '/ninvites': this.model.ninvites - data.length,
-        '/notifications/-': msg
+        '/notifications/-': {type: 'info', message: msg}
       });
     }
   } else if (interaction == INTERACTION.continue) {
@@ -427,7 +426,7 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
     } else {
       msg = 'Declined friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
     }
-    patch.push({op: 'add', value: msg, path: '/notifications/-'});
+    patch.push({op: 'add', path: '/notifications/-', value: {type: 'info', message: msg}});
     this.sync(patch);
   } else {
     res.writeHead(400);
