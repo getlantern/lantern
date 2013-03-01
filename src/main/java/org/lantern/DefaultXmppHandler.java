@@ -440,7 +440,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.get().addMessageListener(typedListener);
 
         Events.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.connecting));
+            new GoogleTalkStateEvent("", GoogleTalkState.connecting));
 
         try {
             this.client.get().login(credentials);
@@ -451,7 +451,7 @@ public class DefaultXmppHandler implements XmppHandler {
             useCachedPeerProxies();
             LOG.debug("Sending connected event");
             Events.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.connected));
+                new GoogleTalkStateEvent(getJid(), GoogleTalkState.connected));
         } catch (final IOException e) {
             // Note that the XMPP library will internally attempt to connect
             // to our backup proxy if it can.
@@ -623,7 +623,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void handleConnectionFailure() {
         Events.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
+            new GoogleTalkStateEvent("", GoogleTalkState.LOGIN_FAILED));
     }
 
     private boolean waitForClosedBetaStatus(final String email)
@@ -694,7 +694,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
 
         Events.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.notConnected));
+            new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
 
         proxyTracker.clearPeerProxySet();
         this.closedBetaEvent = null;
