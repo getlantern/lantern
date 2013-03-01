@@ -56,10 +56,10 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.away = away;
         this.avatarUrlBase = avatarUrlBase;
         if (StringUtils.isBlank(email)) {
-            log.warn("No email address!!");
-            throw new IllegalArgumentException("Blank email??");
+            this.email = "";
+        } else {
+            this.email = XmppUtils.jidToUser(email);
         }
-        this.email = XmppUtils.jidToUser(email);
         this.name = name == null ? "" : name;
         this.subscriptionStatus = subscriptionStatus == null ? ""
                 : subscriptionStatus;
