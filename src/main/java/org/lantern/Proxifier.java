@@ -220,7 +220,7 @@ public class Proxifier implements LanternService {
         }
         
         LOG.debug("Autoconfiguring local to proxy Lantern");
-        final String url = pacFileUrl(pacFile);
+        final String url = getAndSetPacFileUrl(pacFile);
         
         if (SystemUtils.IS_OS_MAC_OSX) {
             proxyOsx(url);
@@ -450,13 +450,14 @@ public class Proxifier implements LanternService {
         // Note that this is a bit of overkill in that we both turn of the
         // PAC file-based proxying and set the PAC file to one that doesn't
         // proxy anything.
-        configureOsxProxyViaScript(false, pacFileUrl(PROXY_OFF));
+        configureOsxProxyViaScript(false, getAndSetPacFileUrl(PROXY_OFF));
     }
     
-    private String pacFileUrl(final File pacFile) {
+    private String getAndSetPacFileUrl(final File pacFile) {
         final String url = 
             StaticSettings.getLocalEndpoint()+"/"+
                 pacFile.getName()+"-"+RandomUtils.nextInt();
+        this.model.getSettings().setPacUrl(url);
         return url;
     }
 
