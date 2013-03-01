@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -8,6 +9,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -45,9 +49,13 @@ public class PeerFactory {
         }
     });
 
+    private final Roster roster;
+
     @Inject
-    public PeerFactory(final ModelUtils modelUtils, final Model model) {
+    public PeerFactory(final ModelUtils modelUtils, final Model model,
+            final Roster roster) {
         this.modelUtils = modelUtils;
+        this.roster = roster;
         this.peers = model.getPeerCollector();
     }
 
@@ -96,11 +104,44 @@ public class PeerFactory {
     private Peer newGiveModePeer(final String userId, final InetAddress address, 
         final int port, final Type type, final boolean incoming, 
         final LanternTrafficCounterHandler trafficCounter) {
-        final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
         
+        final LanternRosterEntry entry;
+        if (StringUtils.isNotBlank(userId)) {
+            final LanternRosterEntry temp = this.roster.getRosterEntry(userId);
+            if (temp != null) {
+                entry = temp;
+            } else {
+                entry = new LanternRosterEntry();
+            }
+        } else {
+            entry = new LanternRosterEntry();
+        }
+        
+
+        //final LanternRosterEntry finalEntry = copyEntry(entry);
+
+        final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
         return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(), 
             geo.getLongitude(), type, address.getHostAddress(), Mode.give, 
-            incoming, trafficCounter);
+            incoming, trafficCounter, entry);
+    }
+
+    private LanternRosterEntry copyEntry(LanternRosterEntry entry) {
+        final String json = JsonUtils.jsonify(entry);
+        final ObjectMapper om = new ObjectMapper();
+        try {
+            return om.readValue(json, LanternRosterEntry.class);
+        } catch (JsonParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return new LanternRosterEntry();
     }
 
     /*
