@@ -97,6 +97,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             } else {
                 this.proxyTracker.addJidProxy(ad.getJid());
             }
+            this.proxyTracker.addProxy(
+                LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             awaitingCerts.remove(jid);
         } else {
             // This could happen if we negotiated certs in some way other than
