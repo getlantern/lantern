@@ -241,8 +241,14 @@ exports.SCENARIOS = {
                            name: 'Lantern Power User'
                           }],
                 pending: [{
-                           email: 'user7@example.com',
-                           name: 'User 7',
+                           email: 'inviter1@example.com',
+                           name: 'Example Inviter'
+                          },{
+                           email: 'inviter2@example.com',
+                           name: 'Another Inviter'
+                          },{
+                           email: 'inviter3@example.com',
+                           name: 'Third Inviter'
                           }]
                 };
               this.sync({'/friends': friends});

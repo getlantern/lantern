@@ -160,6 +160,11 @@ _.each(_globalModals, function(modal, interaction) {
 });
 
 MockBackend._handlerForInteraction[INTERACTION.close] = function(res, data) {
+  if ('notification' in data) {
+    // XXX verify that there is a notification in model.alerts at index data.notification
+    this.sync([{op: 'remove', path: '/notifications/'+data.notification}]);
+    return;
+  }
   this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
 };
@@ -181,8 +186,9 @@ MockBackend._handlerForModal[MODAL.contact] = function(interaction, res, data) {
     return;
   }
   if (interaction == INTERACTION.continue) {
-    log('received message:', data.message);
-    // XXX notify user message was sent in an alert
+    var msg = 'Message sent.';
+    debugger;
+    this.sync({'/notifications/-': msg});
   }
   this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
@@ -378,22 +384,34 @@ MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, dat
 };
 
 MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
-  if (interaction == INTERACTION.continue) {
-    if (data && data.invite) {
-      if (data.invite.length > this.model.ninvites) {
+  if (interaction == INTERACTION.invite) {
+    if (data) {
+      if (data.length > this.model.ninvites) {
         log('more invitees than invites', data);
         return res.writeHead(400);
       }
-      for (var i=0, ii=data.invite[i]; ii; ii=data.invite[++i]) {
+      for (var i=0, ii=data[i]; ii; ii=data[++i]) {
         if (!EMAIL.test(ii)) {
           log('not a valid email:', ii);
           return res.writeHead(400);
         }
       }
-      this.sync({'/ninvites': this.model.ninvites - data.invite.length});
-      log('invitations will be sent to', data.invite);
-      // XXX display notification in UI
+      var n = data.length, msg = n > 1 ? 'Invitations' : 'An invitation';
+      msg += ' will be sent to <span class="titled" title="(name here if available)">'+data[0]+'</span>';
+      if (n > 2) {
+        data.splice(0, 1);
+        msg += ' and <span class="titled" title="'+data.join(', ')+'">'+(n-1)+' others</span>.'
+      } else if (n === 2) {
+        msg += ' and <span class="titled" title="name here if available">'+data[1]+'</span>.'
+      } else {
+        msg += '.';
+      }
+      this.sync({
+        '/ninvites': this.model.ninvites - data.length,
+        '/notifications/-': msg
+      });
     }
+  } else if (interaction == INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal();
   } else if (interaction == INTERACTION.accept ||
@@ -401,11 +419,15 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
     var pending = getByPath(this.model, '/friends/pending') || [],
         i = _.pluck(pending, 'email').indexOf(data.email);
     if (i == -1) return res.writeHead(400);
-    var patch = [{op: 'remove', path: '/friends/pending/'+i}];
+    var patch = [{op: 'remove', path: '/friends/pending/'+i}], msg;
     if (interaction == INTERACTION.accept) {
       patch.push({op: 'add', value: data, path: '/friends/current/-'});
       patch.push({op: 'add', value: data, path: '/roster/-'});
+      msg = 'Accepted friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
+    } else {
+      msg = 'Declined friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
     }
+    patch.push({op: 'add', value: msg, path: '/notifications/-'});
     this.sync(patch);
   } else {
     res.writeHead(400);

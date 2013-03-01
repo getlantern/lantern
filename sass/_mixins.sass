@@ -76,3 +76,14 @@
   +single-transition(opacity, 0.5s, ease)
   &:hover
     opacity: 1
+
+// http://stackoverflow.com/questions/7855590/how-can-i-prevent-scroll-bars-from-being-hidden-for-trackpad-users-in-webkit/7855592#7855592
+=neverHideScrollbars
+  &::-webkit-scrollbar
+    -webkit-appearance: none
+    width: 11px
+    height: 11px
+  &::-webkit-scrollbar-thumb
+    border-radius: 8px
+    border: 2px solid white // should match background, can't be transparent
+    background-color: rgba(0, 0, 0, .5)

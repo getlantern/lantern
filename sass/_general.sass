@@ -157,3 +157,13 @@ textarea
   min-width: 12px
   padding: 2px 3px 0 3px
   text-align: center
+
+#alerts
+  +position(0, 0, false, 0)
+  +aboveModal
+
+.alert
+  margin-bottom: 0
+  +opaqueOnMouseover(.95)
+  .titled
+    border-bottom: 1px dashed $warningText

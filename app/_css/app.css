@@ -6614,6 +6614,27 @@ textarea {
   text-align: center;
 }
 
+#alerts {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1051;
+}
+
+.alert {
+  margin-bottom: 0;
+  opacity: 0.95;
+  -webkit-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+}
+.alert:hover {
+  opacity: 1;
+}
+.alert .titled {
+  border-bottom: 1px dashed #c09853;
+}
+
 #waiting {
   position: absolute;
   top: 0;
@@ -6817,6 +6838,16 @@ textarea.bugReport {
   white-space: nowrap;
   width: 100%;
 }
+.contactList-horizontal::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+}
+.contactList-horizontal::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  border: 2px solid white;
+  background-color: rgba(0, 0, 0, 0.5);
+}
 .contactList-horizontal li {
   display: -moz-inline-stack;
   display: inline-block;
@@ -6864,12 +6895,12 @@ textarea.bugReport {
   box-shadow: 0 0 6px #f8b9b7 !important;
 }
 
-.selectContacts {
-  width: 500px;
-  margin-bottom: 15px;
-}
-.selectContacts input.select2-default, .selectContacts input.select2-input {
+.selectContacts, #inviteButton, input.select2-default, input.select2-input {
   width: 500px !important;
+}
+
+#inviteButton {
+  margin-bottom: 15px;
 }
 
 #systemProxy .control-group {

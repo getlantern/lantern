@@ -356,22 +356,11 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     $scope.invitees = [];
   }
 
-  $scope.continue = function() {
-    var data = null;
+  $scope.invite = function() {
     if ($scope.invitees.length) {
-      data = {invite: _.map($scope.invitees, function(i) { return i.id })};
+      var data = _.map($scope.invitees, function(i) { return i.id });
+      $scope.interaction(INTERACTION.invite, data).then(resetForm);
     }
-    return $scope.interaction(INTERACTION.continue, data)
-      .success(function(data, status, headers, config) {
-        // XXX display notification
-        console.log('successfully invited', data);
-        resetForm();
-      })
-      .error(function(data, status, headers, config) {
-        // XXX display notification
-        console.log('error inviting', data);
-        resetForm();
-      });
   };
 }
 

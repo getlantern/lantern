@@ -380,9 +380,10 @@
       <input type="hidden" ng-model="invitees" name="selectInvitees"
              ui-select2="selectInvitees" class="selectContacts"
              data-placeholder="email@example.com, email@example.com, ...">
-      <div>
-        {{ 'INVITES_REMAINING' | i18n:model.ninvites }}
-      </div>
+      <button id="inviteButton" class="btn btn-success noHeightWhenHidden"
+        ui-toggle="invitees.length" ng-disabled="invitees.length > model.ninvites"
+        ng-click="invite()">{{ 'SEND_INVITES' | i18n:invitees.length }}</button>
+      <div>{{ 'INVITES_REMAINING' | i18n:model.ninvites }}</div>
     </form>
     <div class="centered">
       <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
@@ -392,7 +393,7 @@
   <div class="modal-footer">
     <button type="button" class="btn btn-primary"
       ng-disabled="inviteForm.selectInvitees.$invalid"
-      ng-click="continue()">{{ 'CONTINUE' | i18n }}</button>
+      ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 

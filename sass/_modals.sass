@@ -129,6 +129,7 @@ textarea.bugReport
   display: none // XXX pending https://github.com/getlantern/lantern/issues/539
 
 .contactList-horizontal
+  +neverHideScrollbars
   margin: 5px 0 10px
   overflow: auto
   white-space: nowrap
@@ -166,12 +167,12 @@ textarea.bugReport
   &.ng-invalid .select2-choices
     +inputInvalid
 
-.selectContacts
-  $cselectWdth: 500px
-  width: $cselectWdth
+$cselectWdth: 500px
+.selectContacts, #inviteButton, input.select2-default, input.select2-input
+  width: $cselectWdth !important
+
+#inviteButton
   margin-bottom: 15px
-  input.select2-default, input.select2-input
-    width: $cselectWdth !important
 
 #systemProxy
   .control-group
