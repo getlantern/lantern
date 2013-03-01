@@ -73,7 +73,7 @@ public class RosterTest {
         // Now add a new entry and make sure all the indexes are
         // updated.
         final LanternRosterEntry lre = 
-            new LanternRosterEntry("totally different email key", url, roster);
+            new LanternRosterEntry("totally different email key", url);
         roster.addEntry(lre);
         
         
@@ -123,7 +123,7 @@ public class RosterTest {
         final Roster roster, final Map<String, LanternRosterEntry> entries, 
         final SortedSet<LanternRosterEntry> sorted) {
         final LanternRosterEntry lre = 
-            new LanternRosterEntry("entry"+chronologicalIndex, url, roster);
+            new LanternRosterEntry("entry"+chronologicalIndex, url);
 
         entries.put(lre.getEmail(), lre);
         sorted.add(lre);
