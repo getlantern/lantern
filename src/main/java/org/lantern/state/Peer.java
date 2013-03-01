@@ -64,18 +64,17 @@ public class Peer {
         
     }
     
-    public Peer(final String userId,
-        final String countryCode, 
-        final boolean mapped, final double latitude, 
+    public Peer(final String peerId,final String countryCode,
+        final boolean mapped, final double latitude,
         final double longitude, final Type type,
-        final String ip, final Mode mode, final boolean incoming, 
-        final LanternTrafficCounterHandler trafficCounter, 
+        final String ip, final Mode mode, final boolean incoming,
+        final LanternTrafficCounterHandler trafficCounter,
         final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;
         this.lat = latitude;
         this.lon = longitude;
         this.rosterEntry = rosterEntry;
-        this.setPeerid(userId);
+        this.peerid = peerId;
         this.ip = ip;
         this.mode = mode;
         this.incoming = incoming;

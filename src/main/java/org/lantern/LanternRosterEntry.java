@@ -27,23 +27,21 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final boolean autosub;
 
     private final String avatarUrlBase;
-
+    
     public LanternRosterEntry() {
         this(false, false, "", "", "", false, "");
     }
     
     public LanternRosterEntry(final Presence pres, final String avatarUrl) {
-        this(pres.isAvailable(), false, pres.getFrom(), pres.getFrom(), pres
-                .getStatus(), false, avatarUrl);
+        this(pres.isAvailable(), false, pres.getFrom(), pres.getFrom(), 
+            pres.getStatus(), false, avatarUrl);
     }
 
-    public LanternRosterEntry(final String email, final String avatarUrl,
-            final Roster roster) {
+    public LanternRosterEntry(final String email, final String avatarUrl) {
         this(false, true, email, "", "", false, avatarUrl);
     }
 
-    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl,
-            final Roster roster) {
+    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl) {
         this(false, false, entry.getUser(), entry.getName(),
                 extractSubscriptionStatus(entry), entry.isAutosub(), avatarUrl);
     }
@@ -54,7 +52,9 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
             final String avatarUrlBase) {
         this.available = available;
         this.away = away;
+        
         this.avatarUrlBase = avatarUrlBase;
+        
         if (StringUtils.isBlank(email)) {
             this.email = "";
         } else {
@@ -81,7 +81,15 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     public String getPicture() {
+        if (StringUtils.isBlank(avatarUrlBase)) {
+            return "";
+        }
         return avatarUrlBase + "?email=" + getEmail();
+    }
+    
+    public void setPicture(final String picture) {
+        // TODO: Reset all of these at startup since the old path will likely
+        // be wrong?
     }
 
     @JsonIgnore
