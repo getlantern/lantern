@@ -165,8 +165,8 @@ public class Roster implements RosterListener {
                 return;
             }
 
-            final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-                    model.getNodeId());
+            //final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
+            //        model.getNodeId());
 
             final InetAddress address = 
                 new PublicIpAddress().getPublicIpAddress();
@@ -175,7 +175,8 @@ public class Roster implements RosterListener {
             final LanternKscopeAdvertisement ad;
             if(xmppHandler.getMappedServer().isPortMapped()) {
                 ad = new LanternKscopeAdvertisement(user, address, 
-                    xmppHandler.getMappedServer().getMappedPort()
+                    xmppHandler.getMappedServer().getMappedPort(),
+                    xmppHandler.getMappedServer().getHostAddress()
                 );
             } else {
                 ad = new LanternKscopeAdvertisement(user);

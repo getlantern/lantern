@@ -13,7 +13,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SyncEvent;
@@ -50,7 +52,9 @@ public class InteractionServlet extends HttpServlet {
         RETRY,
         REQUESTINVITE,
         CONTACT,
-        ABOUT
+        ABOUT,
+        ACCEPT,
+        DECLINE
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -66,15 +70,18 @@ public class InteractionServlet extends HttpServlet {
 
     private final ModelIo modelIo;
 
+    private final XmppHandler xmppHandler;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
-        final ModelIo modelIo) {
+        final ModelIo modelIo, final XmppHandler xmppHandler) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
         this.modelIo = modelIo;
+        this.xmppHandler = xmppHandler;
     }
 
     @Override
@@ -196,6 +203,15 @@ public class InteractionServlet extends HttpServlet {
             case SETTINGS:
                 log.debug("Processing settings in lanternFriends");
                 Events.syncModal(model, Modal.settings);
+                break;
+            case ACCEPT:
+                acceptInvite(json);
+                Events.syncModal(model, Modal.lanternFriends);
+                break;
+
+            case DECLINE:
+                declineInvite(json);
+                Events.syncModal(model, Modal.lanternFriends);
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -377,6 +393,20 @@ public class InteractionServlet extends HttpServlet {
             log.error("No matching modal for {}", modal);
         }
         this.modelIo.write();
+    }
+    
+    private void declineInvite(final String json) {
+        final String email = JsonUtils.getValueFromJson("email", json);
+        this.xmppHandler.unsubscribed(email);
+    }
+
+    private void acceptInvite(final String json) {
+        final String email = JsonUtils.getValueFromJson("email", json);
+        this.xmppHandler.subscribed(email);
+
+        // We also automatically subscribe to them in turn so we know about
+        // their presence.
+        this.xmppHandler.subscribe(email);
     }
 
     private boolean handleModeSwitch(final Interaction inter) {
