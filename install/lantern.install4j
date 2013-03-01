@@ -142,7 +142,8 @@
       </splashScreen>
       <java mainClass="org.lantern.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
-          <archive location="lantern.jar" failOnError="false" />
+          <archive location="lantern-1.0-SNAPSHOT.jar" failOnError="false" />
+          <archive location="bcprov-jdk16-1.46.jar" failOnError="false" />
         </classPath>
         <nativeLibraryDirectories />
       </java>
