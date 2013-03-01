@@ -19,6 +19,10 @@ install/lantern-32.deb
 install/md5sums
 install/output.txt
 install/updates.xml
+install/Lantern.dmg
 logs
 tags
 src//tags
+*/*/project.xcworkspace/
+*/*/xcuserdata/
+*/Build/

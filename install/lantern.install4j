@@ -49,11 +49,11 @@
       <dirEntry mountPoint="25" file="../https" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="https" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
-      <fileEntry mountPoint="25" file="../certs/littleproxy.cer" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="25" file="../lantern_littleproxy_cert" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_on.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_off.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_all.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
-      <fileEntry mountPoint="25" file="../configureNetworkServices.bash" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="25" file="../configureNetworkServices" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <dirEntry mountPoint="25" file="../firefox" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="firefox" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
@@ -106,7 +106,8 @@
       </splashScreen>
       <java mainClass="org.lantern.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
-          <archive location="lantern.jar" failOnError="false" />
+          <archive location="lantern-1.0-SNAPSHOT.jar" failOnError="false" />
+          <archive location="bcprov-jdk16-1.46.jar" failOnError="false" />
         </classPath>
         <nativeLibraryDirectories>
           <directory name="." />
@@ -266,8 +267,8 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction">
-                      <void property="failIfNotObtainedMac">
-                        <boolean>false</boolean>
+                      <void property="obtainIfNormalMac">
+                        <boolean>true</boolean>
                       </void>
                       <void property="obtainIfNormalWin">
                         <boolean>true</boolean>
@@ -686,7 +687,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="345" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
+              <action name="" id="345" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.SetOwnerAction">
@@ -694,16 +695,13 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <array class="java.io.File" length="1">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>${installer:sys.installationDir}/Lantern.app/Contents</string>
+                              <string>configureNetworkServices</string>
                             </object>
                           </void>
                         </array>
                       </void>
                       <void property="owner">
-                        <string>${installer:sys.userName}</string>
-                      </void>
-                      <void property="recursive">
-                        <boolean>true</boolean>
+                        <string>root:admin</string>
                       </void>
                     </object>
                   </java>
@@ -733,13 +731,13 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <array class="java.io.File" length="1">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>configureNetworkServices.bash</string>
+                              <string>configureNetworkServices</string>
                             </object>
                           </void>
                         </array>
                       </void>
                       <void property="mode">
-                        <string>4755</string>
+                        <string>4711</string>
                       </void>
                     </object>
                   </java>
@@ -1364,7 +1362,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
         <content />
       </postUninstallScript>
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-x86-1.7.0_03.tar.gz" manualJREEntry="false" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
+    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="linux-amd64-1.7.0_13" manualJREEntry="false" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
@@ -1396,8 +1394,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
   </mediaSets>
   <buildIds buildAll="false">
     <mediaSet refId="157" />
-    <mediaSet refId="690" />
   </buildIds>
-  <buildOptions verbose="true" faster="false" disableSigning="false" debug="false" />
+  <buildOptions verbose="true" faster="false" disableSigning="true" debug="false" />
 </install4j>
 
