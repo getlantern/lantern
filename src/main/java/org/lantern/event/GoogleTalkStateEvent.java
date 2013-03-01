@@ -8,13 +8,19 @@ import org.lantern.GoogleTalkState;
 public class GoogleTalkStateEvent {
 
     private final GoogleTalkState state;
+    private final String jid;
 
-    public GoogleTalkStateEvent(final GoogleTalkState state) {
+    public GoogleTalkStateEvent(String jid, final GoogleTalkState state) {
+        this.jid = jid;
         this.state = state;
     }
 
     public GoogleTalkState getState() {
         return state;
+    }
+
+    public String getJid() {
+        return jid;
     }
 
 }
