@@ -26,6 +26,7 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Model;
+import org.lantern.state.Settings;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
@@ -157,6 +158,12 @@ public class Roster implements RosterListener {
             final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
             log.debug("Adding {} to routing table.", from);
             this.kscopeRoutingTable.addNeighbor(id);
+
+            // only advertise if we're in GET mode
+            if(this.model.getSettings().getMode() != Settings.Mode.give) {
+                onPresence(presence, sync, updateIndex);
+                return;
+            }
 
             final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
                     model.getNodeId());
