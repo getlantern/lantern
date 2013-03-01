@@ -121,7 +121,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     @Override
     public void start(final boolean localOnly, final boolean anyAddress) {
-        log.info("Starting proxy on port: "+this.port);
+        log.debug("Starting proxy on port: "+this.port);
         final HttpServerPipelineFactory factory =
             new StatsTrackingHttpServerPipelineFactory(authenticationManager,
                 this.allChannels, this.chainProxyManager, 
@@ -246,6 +246,10 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         }
     }
 
+    @Override
+    public int getPort() {
+        return this.port;
+    }
 }
 
 

@@ -7,4 +7,6 @@ public interface HttpProxyServer extends LanternService {
 
     void start(boolean localOnly, boolean anyAddress);
     
+    int getPort();
+    
 }

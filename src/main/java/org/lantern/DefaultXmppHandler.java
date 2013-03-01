@@ -175,6 +175,11 @@ public class DefaultXmppHandler implements XmppHandler {
     private final KscopeAdHandler kscopeAdHandler;
 
     /**
+     * HTTP proxy server other peers hit.
+     */
+    private final SslHttpProxyServer peerProxyServer;
+
+    /**
      * Creates a new XMPP handler.
      */
     @Inject
@@ -189,7 +194,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final ProxyTracker proxyTracker,
         final Censored censored,
         final LanternTrustStore trustStore,
-        final KscopeAdHandler kscopeAdHandler) {
+        final KscopeAdHandler kscopeAdHandler,
+        final SslHttpProxyServer peerProxyServer) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.timer = updateTimer;
@@ -204,6 +210,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.censored = censored;
         this.trustStore = trustStore;
         this.kscopeAdHandler = kscopeAdHandler;
+        this.peerProxyServer = peerProxyServer;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         Events.register(this);
@@ -236,7 +243,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.debug("Creating mapped TCP server...");
             tempMapper =
                 new MappedTcpAnswererServer(natPmpService, upnpService,
-                    new InetSocketAddress(this.model.getSettings().getServerPort()));
+                    new InetSocketAddress(this.peerProxyServer.getPort()));
             LOG.debug("Created mapped TCP server...");
         } catch (final IOException e) {
             LOG.debug("Exception mapping TCP server", e);
