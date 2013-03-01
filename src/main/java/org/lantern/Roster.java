@@ -136,7 +136,7 @@ public class Roster implements RosterListener {
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lre =
-                new LanternRosterEntry(entry, photoUrlBase(), this);
+                new LanternRosterEntry(entry, photoUrlBase());
             if (LanternUtils.isNotJid(lre.getEmail())) {
                 entries.put(lre.getEmail(), lre);
             }
@@ -341,7 +341,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry, photoUrlBase(), this), false);
+            addEntry(new LanternRosterEntry(entry, photoUrlBase()), false);
         }
         fullRosterSync();
     }
