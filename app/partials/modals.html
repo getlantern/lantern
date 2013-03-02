@@ -86,21 +86,19 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}">
+    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}">
       {{ 'AUTHORIZE_LANTERN' | i18n }}
     </a>
   </div>
 </div>
 
-<div id="gtalkConnecting" modal="model.modal == MODAL.gtalkConnecting">
+<div id="connecting" modal="model.modal == MODAL.connecting">
   <div class="modal-header">
-    <h3>{{ 'GTALK_CONNECTING_TITLE' | i18n }}</h3>
+    <h3>{{ 'CONNECTING_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <p class="centered" ng-show="gtalkConnecting || !model.connectivity.lanternController">
-      <!-- XXX progress bar would be nice here -->
-      <i class="icon-spinner icon-spin icon-large"></i>
-    </p>
+    <!-- XXX progress bar would be nice here -->
+    <span ng-bind-html="model.connectivity.connectingStatus"></span>
   </div>
 </div>
 
@@ -130,31 +128,6 @@
   </div>
 </div>
 
-<div id="gtalkUnreachable" modal="model.modal == MODAL.gtalkUnreachable">
-  <div class="modal-header">
-    <h3>{{ 'GOOG_UNREACHABLE_TITLE' | i18n }}</h3>
-  </div>
-  <div class="modal-body">
-    <div>{{ 'GOOG_UNREACHABLE_PROMPT' | i18n }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.retry)">{{ 'RETRY_NOW' | i18n }}</button>
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.retryLater)">{{ 'RETRY_LATER' | i18n }}</button>
-  </div>
-</div>
-
-<div id="authorizeLater" modal="model.modal == MODAL.authorizeLater">
-  <div class="modal-header">
-    <h3>{{ 'AUTHORIZE_LATER_TITLE' | i18n }}</h3>
-  </div>
-  <div class="modal-body">
-    <div>{{ 'AUTHORIZE_LATER_PROMPT' | i18n }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
-  </div>
-</div>
-
 <div id="notInvited" modal="model.modal == MODAL.notInvited">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
@@ -168,6 +141,7 @@
   </div>
 </div>
 
+<!--
 <div id="requestInvite" ng-controller="RequestInviteCtrl" modal="model.modal == MODAL.requestInvite">
   <div class="modal-header">
     <h3>{{ 'REQUEST_INVITE_TITLE' | i18n }}</h3>
@@ -185,8 +159,8 @@
                ng-disabled="disableForm || sendToLanternDevs"
                ng-model="sendRequestTo" placeholder="email@example.com">
         <div>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</div>
-        <!-- XXX auto-complete from google contacts -->
-        <!-- XXX "add a personal message" -->
+        XXX auto-complete from google contacts
+        XXX "add a personal message"
       </div>
       <br>
       <label class="radio">
@@ -197,7 +171,7 @@
       <div class="text-error" ui-toggle="requestError">
         {{ 'ERROR' | i18n }}&nbsp;
       </div>
-      <!-- XXX need (hidden) submit input so pressing enter triggers form submission? -->
+      XXX need (hidden) submit input so pressing enter triggers form submission?
     </form>
   </div>
   <div class="modal-footer">
@@ -226,7 +200,7 @@
     <div>{{ 'FIRST_INVITE_RECEIVED_INTRO' | i18n }}</div>
     <br>
     <div>
-      <!-- XXX will we have this data? -->
+      XXX will we have this data?
       {{ 'FIRST_INVITE_RECEIVED_SENDER' | i18n }}
       <div class="centered">
         user@example.com ("Name here")
@@ -239,6 +213,7 @@
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
+-->
 
 <div id="systemProxy" ng-controller="SystemProxyCtrl" modal="model.modal == MODAL.systemProxy">
   <div class="modal-header">
@@ -264,7 +239,7 @@
         </label>
         <div class="control-extra">
           {{ 'PAC_FILE_LOC' | i18n }}
-          <strong>{{ model.settings.pacUrl }}</strong>
+          <strong>{{ model.connectivity.pacUrl }}</strong>
         </div>
       </div>
     </div>
@@ -501,16 +476,8 @@ You should have received a copy of the GNU General Public License along with thi
         <dd><a href="{{ model.version.latest.installerUrl }}">{{ model.version.latest.installerUrl }}</a></dd>
         <dt>{{ 'SHA1' | i18n }}</dt>
         <dd>{{ model.version.latest.installerSHA1 }}</dd>
-        <!--
-        <dt>{{ 'CHANGES' | i18n }}</dt>
-        <dd>
-          <ul id="changes">
-            <li ng-repeat="change in model.version.latest.changes">
-              <span ng-bind-html="change[lang()]"></span>
-            </li>
-          </ul>
-        </dd>
-        -->
+        <dt>{{ 'MORE_INFO' | i18n }}</dt>
+        <dd><a href="{{ model.version.latest.infoUrl }}">{{ model.version.latest.infoUrl }}</a></dd>
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
@@ -608,7 +575,7 @@ You should have received a copy of the GNU General Public License along with thi
             <div class="indented noHeightWhenHidden" ui-toggle="!systemProxy">
               <i class="icon-info-sign"></i>
               {{ 'PAC_FILE_LOC' | i18n }}
-              <strong>{{ model.settings.pacUrl }}</strong>
+              <strong>{{ model.connectivity.pacUrl }}</strong>
             </div>
           </div>
         </details>
@@ -642,6 +609,6 @@ You should have received a copy of the GNU General Public License along with thi
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)">Cancel</button>
     <button type="button" class="btn btn-primary" ng-click="submit()"
-            ng-disabled="invalid">Continue</button>
+      disabled>Continue</button><!-- XXX have to fix on backend -->
   </div>
 </div>

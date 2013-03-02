@@ -7,25 +7,19 @@
               ng-click="interaction(INTERACTION.scenarios)"
               ng-disabled="!mockBackend"
               ui-jq="tooltip" data-original-title="Scenarios"
-              ui-options="{placement: 'bottom'}">
-        <i class="icon-magic"></i>
+              ui-options="{placement: 'right'}">
+        <i class="icon-reorder"></i>
       </button>
-      <button class="btn btn-mini btn-dev"
+      <button class="btn btn-mini btn-dev dropup"
               ng-click="showModel.value=!showModel.value"
               ui-jq="tooltip" data-original-title="Model"
-              ui-options="{placement: 'bottom'}">
-        <i class="icon-reorder"></i>
+              ui-options="{placement: 'right'}">
+        <i class="icon-file"></i>
         <span class="caret"></span>
       </button>
     </div>
 
-    <div id="model" ui-if="showModel.value"
-         ng-controller="DevCtrl" lang="en" dir="ltr">
-      <!-- use javascript console to edit model instead
-      <textarea ng-model="editableModel" x-update-on-blur
-                ng-readonly="!mockBackend"
-                ng-change="handleUpdate()"></textarea>
-      -->
+    <div id="model" ui-if="showModel.value" lang="en" dir="ltr">
       <textarea readonly>{{ model | json }}</textarea>
     </div>
   </div>

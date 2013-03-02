@@ -83,7 +83,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   };
 }
 
-function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSIONS, logFactory) {
+function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_API_VER, logFactory) {
   var log = logFactory('SanityCtrl');
   $scope.sanity = sanity;
 
@@ -97,16 +97,14 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSI
     }
   }, true);
 
-  $scope.$watch('model.version.installed', function(installed) {
+  $scope.$watch('model.version.installed.api', function(installed) {
     if (angular.isUndefined(installed)) return;
-    for (var module in REQUIRED_VERSIONS) {
-      for (var key in {major: 'major', minor: 'minor'}) {
-        if (installed[module][key] != REQUIRED_VERSIONS[module][key]) {
-          sanity.value = false;
-          log.error('Available version of', module, installed[module],
-           'incompatible with required version', REQUIRED_VERSIONS[module]);
-           return;
-        }
+    for (var key in {major: 'major', minor: 'minor'}) {
+      if (installed[key] != REQUIRED_API_VER[key]) {
+        sanity.value = false;
+        log.error('Backend api version', installed,
+         'incompatible with required version', REQUIRED_API_VER);
+         return;
       }
     }
   }, true);
@@ -388,42 +386,4 @@ function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTE
     }
     $scope.interaction(INTERACTION.continue, {path: 'mock.scenarios.applied', value: appliedScenarios});
   };
-}
-
-function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, modelSrvc) {
-  var log = logFactory('DevCtrl'),
-      model = modelSrvc.model;
-
-  /*
-  $scope.$watch('model', function() {
-    if (angular.isDefined(model) && dev.value) {
-      $scope.editableModel = angular.toJson(model, true);
-    }
-  }, true);
-
-  function sanitized(obj) {
-    if (!angular.isObject(obj)) {
-      throw new Error('object expected');
-    }
-    var san = angular.isArray(obj) ? [] : {};
-    for (var key in obj) {
-      var val = obj[key];
-      if (key.charAt(0) != '$') {
-        if (angular.isObject(val))
-          san[key] = sanitized(val);
-        else
-          san[key] = val;
-      }
-    }
-    return san;
-  }
-
-  $scope.handleUpdate = function() {
-    log.debug('in handleUpdate');
-    var patch = constructPatch(angular.fromJson($scope.editableModel), sanitized(model));
-    if (patch.length) {
-      $scope.interaction(INTERACTION.developer, patch);
-    }
-  };
-  */
 }

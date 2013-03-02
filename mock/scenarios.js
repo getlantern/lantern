@@ -59,32 +59,10 @@ exports.SCENARIOS = {
                 'patch': 0,
                 'tag': 'beta',
                 'git': 'ac7de5f',
-                'releaseDate': '2013-1-30',
+                'releaseDate': '2013-01-30',
                 'installerUrl': 'https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg',
                 'installerSHA1': 'b3d15ec2d190fac79e858f5dec57ba296ac85776',
-                'changes': [{
-                    'en': '(English translation of <a href=\'#\'>feature x</a>)',
-                    'zh': '(Chinese translation of <a href=\'#\'>feature x</a>)'
-                  },{
-                    'en': '(English translation of <a href=\'#\'>feature y</a>)',
-                    'zh': '(Chinese translation of <a href=\'#\'>feature y</a>)'
-                  }
-                ],
-                'modelSchema': {
-                  'major': 0,
-                  'minor': 0,
-                  'patch': 1
-                },
-                'httpApi': {
-                  'major': 0,
-                  'minor': 0,
-                  'patch': 1
-                },
-                'bayeuxProtocol': {
-                  'major': 0,
-                  'minor': 0,
-                  'patch': 1
-                }
+                'infoUrl': 'https://www.getlantern.org/news/2013-01-30/blog-post-for-new-release'
               }
             })
     },
@@ -124,20 +102,33 @@ exports.SCENARIOS = {
     },
     true: {
       desc: 'gtalkAuthorized: true',
-      func: make_simple_scenario({'/connectivity/gtalkAuthorized': true})
+      func: make_simple_scenario({
+        '/connectivity/gtalkAuthorized': true,
+        '/modal': MODAL.connecting
+      })
     }
   },
   invited: {
     true: {
       desc: 'invited: true',
-      func: make_simple_scenario({'/connectivity/lanternController': true,
-        '/connectivity/peerid': 'lantern-45678',
-        '/connectivity/invited': true})
+      func: function() {
+              this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern...'});
+              sleep.usleep(3000000);
+              this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
+                         '/connectivity/peerid': 'lantern-45678',
+                         '/connectivity/invited': true});
+            }
     },
     false: {
       desc: 'invited: false',
-      func: make_simple_scenario({'/connectivity/lanternController': true,
-        '/connectivity/invited': false})
+      func: function() {
+              this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern...'});
+              sleep.usleep(3000000);
+              this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
+                         '/connectivity/invited': false,
+                         '/modal': MODAL.notInvited
+                         });
+            }
     }
   },
   ninvites: {
@@ -155,28 +146,32 @@ exports.SCENARIOS = {
       desc: 'gtalkReachable: false',
       func: function() {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
-                '/modal': MODAL.gtalkConnecting});
-              sleep.usleep(750000);
+                '/connectivity/connectingStatus': 'Connecting to Google Talk...',
+                '/modal': MODAL.connecting});
+              sleep.usleep(3000000);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.notConnected,
-                '/modal': MODAL.gtalkUnreachable});
+                '/connectivity/connectingStatus': 'Connecting to Google Talk...Failed',
+                '/notifications/-': {type: 'error', message: 'Unable to reach Google Talk.'},
+                '/modal': MODAL.authorize});
             }
     },
     true: {
       desc: 'gtalkReachable: true',
       func: function() {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
-                '/modal': MODAL.gtalkConnecting});
-              sleep.usleep(750000);
+                '/connectivity/connectingStatus': 'Connecting to Google Talk...',
+                '/modal': MODAL.connecting});
+              sleep.usleep(3000000);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connected,
-              '/profile': {
-                email: 'user@example.com',
-                name: 'Example User',
-                link: 'https://plus.google.com/1234567',
-                picture: 'img/default-avatar.png',
-                gender: '',
-                birthday: '',
-                locale: 'en'
-              }});
+                '/profile': {
+                  email: 'user@example.com',
+                  name: 'Example User',
+                  link: 'https://plus.google.com/1234567',
+                  picture: 'img/default-avatar.png',
+                  gender: '',
+                  birthday: '',
+                  locale: 'en'
+                }});
             }
     }
   },
@@ -219,7 +214,10 @@ exports.SCENARIOS = {
                 status: 'available',
                 statusMessage: 'Shanghai!'
               }];
-              this.sync({'/roster': roster});
+              this.sync({'/connectivity/connectingStatus': 'Retrieving contacts...'});
+              sleep.usleep(1000000);
+              this.sync({'/connectivity/connectingStatus': 'Retrieving contacts... Done',
+                         '/roster': roster});
             }
     }
   },

@@ -6880,7 +6880,7 @@ textarea.bugReport {
   margin-right: 10px;
 }
 .contactList-horizontal .fn, .contactList-horizontal .email {
-  width: 140px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6954,6 +6954,12 @@ textarea.bugReport {
 }
 #latestDetails dt {
   text-transform: capitalize;
+}
+#latestDetails dd {
+  max-width: 285px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #latestDetails:not([open]) {
@@ -7204,8 +7210,8 @@ body.giveMode #npending {
 
 #dev-label {
   position: absolute;
-  top: 120px;
-  left: 25px;
+  bottom: 6px;
+  left: 22px;
   z-index: 1051;
   font-size: 10.5px;
   color: #fff343;
@@ -7215,8 +7221,8 @@ body.giveMode #npending {
 
 #dev-buttons {
   position: absolute;
-  top: 138px;
-  left: 20px;
+  bottom: 20px;
+  left: 18px;
   z-index: 1051;
 }
 #dev-buttons button {
@@ -7227,12 +7233,12 @@ body.giveMode #npending {
 }
 
 #model {
-  position: absolute;
-  top: 160px;
-  bottom: 60px;
-  left: 20px;
-  z-index: 1051;
   width: 500px;
+  height: 500px;
+  position: absolute;
+  bottom: 43px;
+  left: 18px;
+  z-index: 1051;
   overflow: hidden;
   background-color: white;
   opacity: 0.9;

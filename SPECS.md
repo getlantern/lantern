@@ -287,29 +287,11 @@ the backend maintains on the frontend through comet publications:
                 instance</td></tr>
               <tr><td><strong>installerUrl</strong><br><em>url</em>
                 <td>installer url for the user's platform</td></tr>
-              <tr><td><strong>installerSHA1</strong><br><em>string</em>
-                <td>SHA-1 of the installer for the user's platform</td></tr>
-              <tr><td><strong>changes</strong><br><em>object[]</em></td>
-                <td>list of changes in this version.<br><br>
-                    <strong>XXX use a "what's changed" link instead, which could
-                    just point to a blog post or github compare view?</td>
-              <tr><td><strong>modelSchema</strong><br><em>object</em></td>
-                <td>
-                  <table>
-                    <tr><td><strong>major</strong><br><em>int</em></td>
-                      <td>state schema major version</td></tr>
-                    <tr><td><strong>minor</strong><br><em>int</em></td>
-                      <td>state schema minor version</td></tr>
-                    <tr><td><strong>patch</strong><br><em>int</em></td>
-                      <td>state schema patch version</td></tr>
-                  </table><br><br>
-                  <strong><small>The UI should display an 'unexpected state' error
-                  if its required model schema version is incompatible with the
-                  version published by the backend according to semantic
-                  versioning (different major or minor)</small></strong>
-                </td></tr>
               <tr><td><strong>api</strong><br><em>object</em></td>
                 <td>
+                  The version of the API the backend conforms to
+                  (where API refers to the state document schema,
+                  update protocol, and http API taken as a whole)
                   <table>
                     <tr><td><strong>major</strong><br><em>int</em></td>
                       <td>api major version</td></tr>
@@ -328,9 +310,12 @@ the backend maintains on the frontend through comet publications:
         </tr>
         <tr>
           <td><strong>latest</strong><br><em>object</em></td>
-          <td><em>as in</em><code>version.installed</code><em>, but referring to the
-          latest released version of Lantern rather than the currently-running
-          version.</em></td>
+          <td>as in<code>version.installed</code>, but referring to the
+            latest released version of Lantern rather than the currently-running
+            version. Does not need the "api" field, but should add an
+            "installerSHA1" field corresponding to the SHA-1 of the installer at
+            installerUrl, and an "infoUrl" field pointing to a url with
+            more info about changes in this version.</td>
         </tr>
         <tr>
           <td><strong>updateAvailable</strong><br><em>boolean</em></td>
@@ -354,10 +339,8 @@ the backend maintains on the frontend through comet publications:
   <tr>
     <td><strong>modal</strong><br>
       "settingsLoadFailure" | "welcome" | "giveModeForbidden" | "authorize" |
-      "gtalkConnecting" | "gtalkUnreachable" | "contact" |
-      "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
-      "proxiedSites" | "systemProxy" | "lanternFriends" | "finished" |
-      "settings" | "giveMode" | "about" | "updateAvailable" | ""
+      "connecting" | "contact" | "settings" | "about" | "updateAvailable"
+      "notInvited" | "proxiedSites" | "systemProxy" | "lanternFriends" | "finished" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.
@@ -394,14 +377,15 @@ the backend maintains on the frontend through comet publications:
             Google Talk account.</td>
         </tr>
         <tr>
-          <td><strong>lanternController</strong><br><em>boolean</em></td>
-          <td>Whether the backend has heard back yet from Lantern Controller in
-              response to a "does this user have Lantern access" query.
-              Used along with <code>gtalk == "connecting"</code> to determine
-              whether to show a "signing in to Lantern" spinner.<br>
-              <strong>XXX Replace this with a general-purpose "showSpinner"
-              field that could be used in other places.</strong>
-          </td>
+          <td><strong>pacUrl</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>url</em></td>
+          <td>The url of Lantern's pac file.</td>
+        </tr>
+        <tr>
+          <td><strong>connectingStatus</strong><br><em>string</em></td>
+          <td>Message the frontend should display to give feedback to the user
+              about Lantern's progress during the connection process. Some
+              html is allowed; unsafe html will be sanitized. Should be
+              translated into the user's chosen language.</td>
         </tr>
         <tr>
           <td><strong>peerid</strong><br><em>string</em></td>
@@ -412,12 +396,8 @@ the backend maintains on the frontend through comet publications:
           <td>Whether the user has been invited to Lantern.</td>
         </tr>
         <tr>
-          <td><strong>gtalk</strong><br>"notConnected" | "connecting" |
-            "connected" </td>
-          <td>Google Talk connectivity status. If notConnected, the frontend
-            should indicate this and block user interaction which requires
-            Google Talk connectivity.
-          </td>
+          <td><strong>gtalk</strong><br>"notConnected" | "connecting" | "connected" </td>
+          <td>Google Talk connectivity status.</td>
         </tr>
       </table>
     </td>
@@ -621,10 +601,6 @@ the backend maintains on the frontend through comet publications:
           <td>The port the Lantern http proxy is running on.</td>
         </tr>
         <tr>
-          <td><strong>pacUrl</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>url</em></td>
-          <td>The url of Lantern's pac file.</td>
-        </tr>
-        <tr>
           <td><strong>systemProxy</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
           <td>Whether to try to set Lantern as the system proxy.</td>
         </tr>
@@ -639,10 +615,10 @@ the backend maintains on the frontend through comet publications:
           <td>List of domains to proxy traffic to.</td>
         </tr>
       </table>
-      <br><small><a name="note-get-mode-only">1</a> Only used when in "get" mode</small>
     </td>
   </tr>
 </table>
+<a name="note-get-mode-only">1</a> Only used in Get Mode
 
 <hr>
 
@@ -673,103 +649,3 @@ lantern-ui's development server includes a mock backend to facilitate testing
 and development (see [README.md](README.md)). The mock backend implementation,
 found in the `/mock` directory, can serve as a reference implementation of
 these specifications.
-
-<hr>
-
-
-## Notes
-
-* Switches to Oauth rather than asking for users' Google passwords. Since we no
-  longer store users' Google passwords, the data we do store is now much less
-  sensitive. On Windows and OS X we continue to use the systems' keychain
-  facilities for secure data storage. Pending [#357](https://github.com/getlantern/lantern/issues/357),
-  on Ubuntu we ditch Lantern password-based settings unlock and just don't store
-  anything sensitive like the Oauth token, instead just having the user complete
-  a new Oauth workflow every time she restarts Lantern.
-
-* Frontend does not maintain any state outside of the state document, e.g. no
-  longer tries to keep track of which modal to display when, just does as it's
-  told via the `modal` field.
-
-* Frontend never modifies the state document; only notifies the backend of
-  user interactions via the `interaction` api and the backend responds by
-  updating the state document (and in some cases setting a non-200 response
-  code)
-
-<hr>
-
-
-## Setup Sequence
-
-* Welcome modal now prompts for give/get mode choice
-
-    * Backend now checks country user is connecting from via geoip and only
-      allows Give Mode if not in censoring country (Give Mode choice hidden)
-    
-    * If the country cannot be detected via geoip lookup (either because the
-      user is offline or there is no match in the geoip database), the user
-      should be allowed to choose either mode, but if a censoring country is
-      detected in the future, the `giveModeForbidden` dialog should be displayed
-      which forces a switch to Get Mode.
-
-        * `connectivity.ip` and `location` should always be kept up-to-date
-          as the user disconnects and reconnects from different places.
-
-* Next is Oauth modal:
-
-    * If Google cannot be reached, user is given option to proceed in
-      demonstration mode and is told that Lantern will keep trying to connect
-      in the background. Once backend is able to reach Google, it can set
-      `modal` back to `authorize` to prompt user to try again.
-
-    * If Google can be reached, Lantern should just prompt for Google Talk
-      authorization until it has been granted.
-
-    * Once we have an Oauth token, we know the user has successfully
-      authenticated to Google.
-
-    * Ideally, before we signed in to Google Talk, first we would check if the
-      user has a Lantern invite, to save time waiting for the Google Talk sign
-      in. The Lantern invite check is currently performed via XMPP message to
-      lantern-controller, however, so we must sign in to Google Talk first.
-
-    * After signing in to Google Talk, we compare the user's roster to the set
-      of invited Lantern users to determine which of her contacts are Lantern
-      users. This is needed by the `lanternFriends` modal and the
-      `requestInvite` modal.
-
-    * Next we check if the user has Lantern access (i.e. has an invite).
-
-    * If no invite, present the `notInvited` modal, which allows user to try
-      using a different account (i.e. goes back to `authorize` modal), or
-      request an invite via the `requestInvite` modal, and then proceed in
-      demonstration mode. When the user gets an invite, backend should
-      discover this and set modal to `firstInviteReceived`, and then take
-      user back to the remaining setup modals. In demonstration mode,
-      Lantern will keep the user signed in to Google Talk, but will not
-      allow participation with Lantern peers.
-
-    * If the user has an invite, we proceed to `lanternFriends` modal.
-
-    * Note: We no longer allow switching Google accounts once we've
-      successfully signed in as a user with Lantern access. Switching accounts
-      should require a full reset.
-
-* Next is `lanternFriends` modal:
-
-    * `lanternFriends` is now a setup modal, to introduce the important concept
-      of the trust network at the outset. User may not have any invites to give
-      out yet, but will be told to expect to receive more as she continues to
-      run Lantern. This modal also allows the user to see which of her contacts
-      are already Lantern users and therefore already Lantern friends, as well
-      as manage any pending Lantern friend requests from users not on her
-      roster.
-
-* Next, Get Mode users are presented with the `proxiedSites` modal, introducing
-  the important concept that Lantern only proxies traffic to certain sites, and
-  then the `systemProxy` modal, before reaching the `finished` modal.
-
-* Give Mode users are taken directly from `lanternFriends` to `finished`.
-  Backend should remember that the `proxiedSites` and `systemProxy` modals
-  have never been completed, so that if the Give Mode user ever switches to
-  Get Mode, the backend can immediately take her back there.

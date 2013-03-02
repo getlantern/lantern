@@ -179,9 +179,9 @@ angular.module('app.services', [])
         }
     };
   })
-  .service('apiSrvc', function($http, REQUIRED_VERSIONS) {
-    var ver = [REQUIRED_VERSIONS.api.major,
-               REQUIRED_VERSIONS.api.minor].join('.');
+  .service('apiSrvc', function($http, REQUIRED_API_VER) {
+    var ver = [REQUIRED_API_VER.major,
+               REQUIRED_API_VER.minor].join('.');
     return {
       interaction: function(interactionid, data) {
         var url = ['', 'api', ver, 'interaction', interactionid].join('/');

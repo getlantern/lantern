@@ -15,6 +15,7 @@
   "showVis": false,
   "connectivity":{
     "gtalkOauthUrl":"/mock/googleOauth.html",
+    "pacUrl":"http://localhost:8787/lantern.pac",
     "gtalk":"notConnected"
   },
   "peers":[],
@@ -36,7 +37,6 @@
     "runAtSystemStart":true,
     "autoReport":true,
     "proxyPort":8787,
-    "pacUrl":"http://localhost:8787/lantern.pac",
     "systemProxy":true,
     "proxyAllSites":false,
     "proxiedSites":["blocked.com"]
@@ -51,16 +51,6 @@
       "releaseDate":"2012-12-12",
       "installerUrl": "https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg",
       "installerSHA1": "...",
-      "changes": [{
-          "en": "(English translation of <a href=\"#\">feature x</a>)",
-          "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"
-        }
-      ],
-      "modelSchema":{
-        "major":0,
-        "minor":0,
-        "patch":1
-      },
       "api":{}
     }
   },

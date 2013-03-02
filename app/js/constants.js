@@ -46,13 +46,8 @@ var DEFAULT_LANG = 'en',
       'settingsLoadFailure',
       'welcome',
       'authorize',
-      'gtalkConnecting',
-      'gtalkUnreachable',
-      'authorizeLater',
+      'connecting',
       'notInvited',
-      'requestInvite',
-      'requestSent',
-      'firstInviteReceived',
       'proxiedSites',
       'systemProxy',
       'lanternFriends',
@@ -79,9 +74,7 @@ var DEFAULT_LANG = 'en',
       'proxiedSites',
       'about',
       'updateAvailable',
-      'requestInvite',
       'retry',
-      'retryLater',
       'cancel',
       'continue',
       'close',
@@ -138,10 +131,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('GTALK_STATUS', GTALK_STATUS)
     // frontend-only
     .constant('VER', [0, 0, 1]) // XXX pull from package.json or some such?
-    .constant('REQUIRED_VERSIONS', {
-      modelSchema: {major: 0, minor: 0},
-      api: {major: 0, minor: 0}
-    });
+    .constant('REQUIRED_API_VER', {major: 0, minor: 0});
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {
     DEFAULT_LANG: DEFAULT_LANG,

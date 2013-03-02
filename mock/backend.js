@@ -160,7 +160,7 @@ _.each(_globalModals, function(modal, interaction) {
 });
 
 MockBackend._handlerForInteraction[INTERACTION.close] = function(res, data) {
-  if ('notification' in data) {
+  if (_.isPlainObject(data) && 'notification' in data) {
     // XXX verify that there is a notification in model.alerts at index data.notification
     this.sync([{op: 'remove', path: '/notifications/'+data.notification}]);
     return;
@@ -258,85 +258,43 @@ MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
   // check for gtalk authorization
   var scen = getByPath(this.model, '/mock/scenarios/applied/gtalkAuthorized');
   scen = getByPath(SCENARIOS, '/gtalkAuthorized/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No oauth scenario applied.'});
-    return;
-  }
   log('applying gtalkAuthorized scenario', scen.desc);
   scen.func.call(this);
-  if (!getByPath(this.model, '/connectivity/gtalkAuthorized')) {
-    log('Google Talk access not granted, user must authorize');
-    return;
-  }
+  if (!getByPath(this.model, '/connectivity/gtalkAuthorized')) return;
 
   // check for lantern access
-  // XXX show this in UI?
   scen = getByPath(this.model, '/mock/scenarios/applied/invited');
   scen = getByPath(SCENARIOS, '/invited/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No Lantern access scenario applied.'});
-    return;
-  }
   log('applying Lantern access scenario', scen.desc);
   scen.func.call(this);
-  if (!getByPath(this.model, '/connectivity/invited')) {
-    this.sync({'/modal': MODAL.notInvited});
-    return;
-  }
+  if (!getByPath(this.model, '/connectivity/invited')) return;
 
   // try connecting to google talk
   scen = getByPath(this.model, '/mock/scenarios/applied/gtalkReachable');
   scen = getByPath(SCENARIOS, '/gtalkReachable/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No gtalkReachable scenario applied.'});
-    return;
-  }
   log('applying gtalkReachable scenario', scen.desc);
   scen.func.call(this);
-  if (getByPath(this.model, '/connectivity/gtalk') != CONNECTIVITY.connected) {
-    this.sync({'/modal': MODAL.gtalkUnreachable});
-    return;
-  }
+  if (getByPath(this.model, '/connectivity/gtalk') != CONNECTIVITY.connected) return;
 
   // fetch number of invites
   scen = getByPath(this.model, '/mock/scenarios/applied/ninvites');
   scen = getByPath(SCENARIOS, '/ninvites/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No ninvites scenario applied.'});
-    return;
-  }
   log('applying ninvites scenario', scen.desc);
   scen.func.call(this);
 
   // fetch roster
-  // XXX show this in UI?
   scen = getByPath(this.model, '/mock/scenarios/applied/roster');
   scen = getByPath(SCENARIOS, '/roster/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No roster scenario applied.'});
-    return;
-  }
   log('applying roster scenario', scen.desc);
   scen.func.call(this);
 
   // fetch lantern friends
   scen = getByPath(this.model, '/mock/scenarios/applied/friends');
   scen = getByPath(SCENARIOS, '/friends/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No friends scenario applied.'});
-    return;
-  }
   log('applying friends scenario', scen.desc);
   scen.func.call(this);
 
   // peer discovery and connection
-  // XXX show this in UI?
   scen = getByPath(this.model, '/mock/scenarios/applied/peers');
   scen = getByPath(SCENARIOS, '/peers/'+scen);
   if (scen) {
@@ -431,24 +389,6 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
   } else {
     res.writeHead(400);
   }
-};
-
-MockBackend._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
-  if (interaction == INTERACTION.retry) {
-    this.sync({'/modal': MODAL.authorize});
-  } else if (interaction == INTERACTION.retryLater) {
-    this.sync({'/modal': MODAL.authorizeLater});
-  } else {
-    res.writeHead(400);
-  }
-};
-
-MockBackend._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
-  if (interaction != INTERACTION.continue) {
-    res.writeHead(400);
-    return;
-  }
-  this.sync({'/modal': MODAL.none, showVis: true});
 };
 
 MockBackend._handlerForModal[MODAL.notInvited] = function(interaction, res) {

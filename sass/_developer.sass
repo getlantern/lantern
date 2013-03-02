@@ -6,10 +6,10 @@
 #developer
   +opaqueOnMouseover
 
-$marginTop: 120px
+$marginBot: 20px
 
 #dev-label
-  +position($marginTop, false, false, 25px)
+  +position(false, false, $marginBot - 14px, 22px)
   +aboveModal
   +smaller
   color: $devModeColor
@@ -17,7 +17,7 @@ $marginTop: 120px
   text-shadow: 0 1px 0 #000
 
 #dev-buttons
-  +position($marginTop + 18px, false, false, 20px)
+  +position(false, false, $marginBot, 18px)
   +aboveModal
   button
     text-shadow: none
@@ -25,9 +25,10 @@ $marginTop: 120px
       color: #000
 
 #model
-  +position($marginTop + 40px, false, 60px, 20px)
+  $height: 500px
+  +size(500px, $height)
+  +position(false, false, $marginBot + 23px, 18px)
   +aboveModal
-  width: 500px
   overflow: hidden
   background-color: #fff
   opacity: .9

@@ -115,10 +115,7 @@ textarea.bugReport
     +inline-block
     padding: 2px 4px
     margin: 0
-    max-width: 200px
-    overflow: hidden
-    text-overflow: ellipsis
-    white-space: nowrap
+    +ellipsisPast(200px)
 
 #lanternFriends
   h4
@@ -148,10 +145,7 @@ textarea.bugReport
     height: 50px
     margin-right: 10px
   .fn, .email
-    width: 140px
-    overflow: hidden
-    text-overflow: ellipsis
-    white-space: nowrap
+    +ellipsisPast(140px)
   .fn
     +bold
     +small
@@ -208,6 +202,8 @@ $cselectWdth: 500px
     text-transform: capitalize
   dt
     text-transform: capitalize
+  dd
+    +ellipsisPast(285px)
 
 #latestDetails:not([open])
   margin-bottom: 10px
