@@ -1096,7 +1096,8 @@ public class DefaultXmppHandler implements XmppHandler {
         // We may have already disconnected on shutdown, for example, so check
         // for null.
         if (this.client.get() != null && 
-            this.client.get().getXmppConnection() != null) {
+            this.client.get().getXmppConnection() != null &&
+            this.client.get().getXmppConnection().getUser() != null) {
             return this.client.get().getXmppConnection().getUser().trim();
         }
         return "";
