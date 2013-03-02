@@ -247,7 +247,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void onCouldNotConnect(final ProxyHolder ph) {//InetSocketAddress proxyAddress) {
+    public void onCouldNotConnect(final ProxyHolder ph) {
         // This can happen in several scenarios. First, it can happen if you've
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
@@ -259,9 +259,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             ph.getIsa());
 
         onCouldNotConnect(ph, this.proxySet, this.proxies);
-        // For now we assume this is because we've lost our connection.
-        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), 
-        //    this.proxySet, this.proxies);
     }
 
     @Override
@@ -270,7 +267,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             ph.getIsa());
 
         // For now we assume this is because we've lost our connection.
-
         onCouldNotConnect(ph, this.laeProxySet, this.laeProxies);
     }
 
@@ -413,8 +409,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.info("Already populated proxies?");
             return;
         }
-        addFallbackProxy();
-        prepopulateProxies();
+        start();
     }
 
 }
