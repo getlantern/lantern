@@ -66,8 +66,6 @@ public class Version {
 
         private final SemanticVersion modelSchema = new SemanticVersion(0, 0, 1);
 
-        private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
-
         private final Date releaseDate;
 
         private boolean updateAvailable = false;
@@ -132,11 +130,6 @@ public class Version {
         public SemanticVersion getModelSchema() {
             return modelSchema;
         }
-
-        public SemanticVersion getBayeuxProtocol() {
-            return bayeuxProtocol;
-        }
-
 
         public boolean isUpdateAvailable() {
             return updateAvailable;
