@@ -20,6 +20,7 @@ install/md5sums
 install/output.txt
 install/updates.xml
 install/Lantern.dmg
+install/Lantern.exe
 logs
 tags
 src//tags
