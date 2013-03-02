@@ -176,10 +176,6 @@ public class Launcher {
             set.setUiEnabled(true);
         }
         
-        LOG.debug("Processing command line options...");
-        processCommandLineOptions(cmd);
-        LOG.debug("Processed command line options...");
-        
         censored = instance(Censored.class);
         
         LOG.debug("Creating display...");
@@ -226,6 +222,10 @@ public class Launcher {
         
         // We do this to make sure it's added to the shutdown list.
         instance(GlobalLanternServerTrafficShapingHandler.class);
+        
+        LOG.debug("Processing command line options...");
+        processCommandLineOptions(cmd);
+        LOG.debug("Processed command line options...");
         
         threadPublicIpLookup();
         
