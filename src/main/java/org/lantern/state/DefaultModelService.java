@@ -188,6 +188,11 @@ public class DefaultModelService implements ModelService {
     }
 
     @Override
+    public Mode getMode() {
+        return model.getSettings().getMode();
+    }
+
+    @Override
     public void setMode(final Mode mode) {
         log.debug("Calling set get mode. Get is: "+mode);
         // When we move to give mode, we want to start advertising our
