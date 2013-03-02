@@ -70,6 +70,7 @@ public class DefaultModelUtils implements ModelUtils {
     @Override
     public GeoData getGeoData(final String ip) {
         if (geoCache.containsKey(ip)) {
+            LOG.debug("Got cache HIT! Returning cached geo data");
             return geoCache.get(ip);
         }
         final String query = 
@@ -97,11 +98,11 @@ public class DefaultModelUtils implements ModelUtils {
             final String body = 
                 IOUtils.toString(entity.getContent()).toLowerCase();
             EntityUtils.consume(entity);
-            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP:\n"+body);
+            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP TO {}:\n{}", ip, body);
             
             final ObjectMapper om = new ObjectMapper();
             if (!body.contains("latitude")) {
-                LOG.warn("No latitude in response: {}", body);
+                LOG.warn("No latitude in response {} for IP", body, ip);
                 return new GeoData();
             }
             final String parsed = StringUtils.substringAfterLast(body, "{");
