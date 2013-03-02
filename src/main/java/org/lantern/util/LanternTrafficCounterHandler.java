@@ -18,8 +18,17 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler {
 
     private long lastConnected = 0L;
 
-    public LanternTrafficCounterHandler(final Timer timer) {
+    public LanternTrafficCounterHandler(final Timer timer, 
+        final boolean connected) {
         super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
+        
+        // This means we're starting out connected, so make sure to increment
+        // the channels and such. This will happen for incoming sockets
+        // where this class is added dynamically after the initial connection.
+        if (connected) {
+            this.connectedChannels.incrementAndGet();
+            this.lastConnected = System.currentTimeMillis();
+        }
     }
 
     @Override

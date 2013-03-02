@@ -164,7 +164,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     private LanternTrafficCounterHandler trafficTracker() {
         final LanternTrafficCounterHandler handler = 
-            new LanternTrafficCounterHandler(this.timer);
+            new LanternTrafficCounterHandler(this.timer, false);
         trafficShapers.add(handler);
         return handler;
     }
