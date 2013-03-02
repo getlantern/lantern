@@ -192,6 +192,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         @Override
         public ChannelPipeline getPipeline() throws Exception {
             final ChannelPipeline pipeline = super.getPipeline();
+            /*
             pipeline.addFirst("stats", new StatsTrackingHandler() {
                 @Override
                 public void addUpBytes(long bytes) {
@@ -202,6 +203,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                     stats.addDownBytesFromPeers(bytes);
                 }
             });
+            */
             return pipeline;
         }
     }
@@ -230,6 +232,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 @Override
                 public ChannelPipeline getPipeline() throws Exception {
                     final ChannelPipeline pipeline = innerFactory.getPipeline();
+                    /*
                     pipeline.addFirst("stats", new StatsTrackingHandler() {
                         @Override
                         public void addUpBytes(final long bytes) {
@@ -240,6 +243,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                             stats.addDownBytesForPeers(bytes);
                         }
                     });
+                    */
                     return pipeline;
                 }
             };
