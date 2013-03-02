@@ -98,7 +98,7 @@ public class Events {
     }
 
     public static void syncConnectingStatus(final String status) {
-        Events.asyncEventBus().post(
+        Events.eventBus().post(
             new SyncEvent(SyncType.ADD, SyncPath.CONNECTING_STATUS, status));
     }
 }

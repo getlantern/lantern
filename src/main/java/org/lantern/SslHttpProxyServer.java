@@ -4,6 +4,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.util.Timer;
 import org.lantern.state.Model;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -20,7 +21,8 @@ public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory, 
         final LanternKeyStoreManager ksm,
-        final Stats stats, final Model model) {
+        final Stats stats, final Model model,
+        final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         super(model.getSettings().getServerPort(),             
             new HttpResponseFilters() {
                 @Override
@@ -28,6 +30,7 @@ public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
                     return null;
                 }
             }, null, requestFilter,
-                clientChannelFactory, timer, serverChannelFactory, ksm, stats);
+                clientChannelFactory, timer, serverChannelFactory, ksm, stats,
+                serverTrafficHandler);
     }
 }
