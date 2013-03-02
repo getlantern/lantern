@@ -18,7 +18,6 @@ import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
-import org.lantern.state.Settings.Mode;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,8 +114,14 @@ public class Proxifier implements LanternService {
         interactiveUnproxy();
     }
     
+    /**
+     * Synchronized setup complete handler because it has to coordinate with
+     * proxy connection events.
+     * 
+     * @param event The setup complete event.
+     */
     @Subscribe
-    public void onSetupComplete(final SetupCompleteEvent event) {
+    public synchronized void onSetupComplete(final SetupCompleteEvent event) {
         LOG.debug("Got setup complete!");
         if (this.lastProxyConnectionEvent != null) {
             LOG.debug("Re-firing last proxy connection event...");
@@ -126,8 +131,14 @@ public class Proxifier implements LanternService {
         }
     }
     
+    /**
+     * Synchronized proxy connection event handler because it has to sync up
+     * with setup complete events (see above).
+     * 
+     * @param pce The proxy connection event.
+     */
     @Subscribe
-    public void onProxyConnection(final ProxyConnectionEvent pce) {
+    public synchronized void onProxyConnection(final ProxyConnectionEvent pce) {
         if (!model.isSetupComplete()) {
             this.lastProxyConnectionEvent = pce;
             LOG.debug("Ingoring proxy connection call when setup is not complete");
@@ -482,7 +493,7 @@ public class Proxifier implements LanternService {
         final String url = 
             StaticSettings.getLocalEndpoint()+"/"+
                 pacFile.getName()+"-"+RandomUtils.nextInt();
-        this.model.getSettings().setPacUrl(url);
+        this.model.getConnectivity().setPacUrl(url);
         return url;
     }
 

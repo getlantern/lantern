@@ -18,6 +18,7 @@ import org.jboss.netty.util.Timer;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounterHandler;
@@ -63,6 +64,8 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final PeerFactory peerFactory;
 
     private final Timer timer;
+    
+    private boolean populatedProxies = false;
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -78,8 +81,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     @Override
     public void start() {
-        addFallbackProxy();
-        prepopulateProxies();
+        if (this.model.isSetupComplete()) {
+            addFallbackProxy();
+            prepopulateProxies();
+            populatedProxies = true;
+        }
     }
     
 
@@ -233,7 +239,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         } catch (final IOException e) {
             log.error("Could not connect to: " + ph, e);
-            onCouldNotConnect(ph.getIsa());
+            onCouldNotConnect(ph);
             this.model.getSettings().removeProxy(fullProxyString);
         } finally {
             IOUtils.closeQuietly(sock);
@@ -241,28 +247,31 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void onCouldNotConnect(final InetSocketAddress proxyAddress) {
+    public void onCouldNotConnect(final ProxyHolder ph) {//InetSocketAddress proxyAddress) {
         // This can happen in several scenarios. First, it can happen if you've
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
-        // down for some reason.
+        // down for some reason. 
+        
+        // We should remove the proxy here but should certainly keep it on disk
+        // so we can try to connect to it in the future.
         log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}",
-            proxyAddress);
+            ph.getIsa());
 
+        onCouldNotConnect(ph, this.proxySet, this.proxies);
         // For now we assume this is because we've lost our connection.
-        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress),
+        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), 
         //    this.proxySet, this.proxies);
     }
 
     @Override
-    public void onCouldNotConnectToLae(final InetSocketAddress proxyAddress) {
+    public void onCouldNotConnectToLae(final ProxyHolder ph) {
         log.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}",
-            proxyAddress);
+            ph.getIsa());
 
         // For now we assume this is because we've lost our connection.
 
-        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress),
-        //    this.laeProxySet, this.laeProxies);
+        onCouldNotConnect(ph, this.laeProxySet, this.laeProxies);
     }
 
     private void onCouldNotConnect(final ProxyHolder proxyAddress,
@@ -395,6 +404,17 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (final GlobalTrafficShapingHandler handler : this.trafficShapers) {
             handler.releaseExternalResources();
         }
+    }
+    
+    @Subscribe
+    public void onSetupComplete(final SetupCompleteEvent event) {
+        log.debug("Got setup complete!");
+        if (this.populatedProxies) {
+            log.info("Already populated proxies?");
+            return;
+        }
+        addFallbackProxy();
+        prepopulateProxies();
     }
 
 }

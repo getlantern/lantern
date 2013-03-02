@@ -196,6 +196,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final HttpRequest request = (HttpRequest) me.getMessage();
         log.debug("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
+            log.debug("Processing connect...");
             try {
                 if (this.model.getSettings().isUseTrustedPeers() && 
                     trustedPeerProxyManager.processRequest(
@@ -212,6 +213,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     // request to the correct proxy.
                     newRequestProcessor().processRequest(
                             browserToProxyChannel, ctx, request);
+                    log.debug("Processed CONNECT");
                     return null;
                 }
             } catch (final IOException e) {
@@ -231,12 +233,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             }
 
         }
+        log.debug("Processing non-connect...");
         try {
             if (this.model.getSettings().isUseTrustedPeers()) {
                 final HttpRequestProcessor rp = newRequestProcessor(); 
-                rp.processRequest(
-                    browserToProxyChannel, ctx, request);
-                if (rp != null) {
+                if(rp.processRequest(browserToProxyChannel, ctx, request)) {
+                    log.debug("Returning request processor");
                     return rp;
                 }
                 /*
@@ -278,6 +280,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
 
         log.warn("No proxy could process the request {}", me.getMessage());
+        log.debug("Closing channel");
+        ProxyUtils.closeOnFlush(ctx.getChannel());
         // Not much we can do if no proxy can handle it.
         return null;
     }

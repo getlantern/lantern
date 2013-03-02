@@ -53,6 +53,7 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
+import org.lantern.DefaultProxyTracker.ProxyHolder;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.StoredCookie;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -225,13 +226,13 @@ class TestingUtils {
         
         ProxyStatusListener psl = new ProxyStatusListener() {
             @Override
-            public void onCouldNotConnect(InetSocketAddress proxyAddress) {}
+            public void onCouldNotConnect(ProxyHolder proxyAddress) {}
             @Override
             public void onCouldNotConnectToPeer(URI peerUri) {}
             @Override
             public void onError(URI peerUri) {}
             @Override
-            public void onCouldNotConnectToLae(InetSocketAddress proxyAddress) {}
+            public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {}
         };
         
         final Timer timer = new HashedWheelTimer();

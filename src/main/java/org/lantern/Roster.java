@@ -30,6 +30,7 @@ import org.lantern.state.Settings;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
+import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -177,13 +178,14 @@ public class Roster implements RosterListener {
 
             final String user = xmppHandler.getJid();
             final LanternKscopeAdvertisement ad;
-            if(xmppHandler.getMappedServer().isPortMapped()) {
+            final MappedServerSocket ms = xmppHandler.getMappedServer();
+            if (ms.isPortMapped()) {
                 ad = new LanternKscopeAdvertisement(user, address, 
                     xmppHandler.getMappedServer().getMappedPort(),
                     xmppHandler.getMappedServer().getHostAddress()
                 );
             } else {
-                ad = new LanternKscopeAdvertisement(user);
+                ad = new LanternKscopeAdvertisement(user, ms.getHostAddress());
             }
 
             final TrustGraphNode tgn = 

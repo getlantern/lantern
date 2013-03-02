@@ -1,7 +1,8 @@
 package org.lantern;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
+
+import org.lantern.DefaultProxyTracker.ProxyHolder;
 
 /**
  * Listener for the state of proxies.
@@ -13,12 +14,12 @@ public interface ProxyStatusListener {
      * 
      * @param proxyAddress The address of the proxy.
      */
-    void onCouldNotConnect(InetSocketAddress proxyAddress);
+    void onCouldNotConnect(ProxyHolder proxyAddress);
 
     void onCouldNotConnectToPeer(URI peerUri);
 
     void onError(URI peerUri);
 
-    void onCouldNotConnectToLae(InetSocketAddress proxyAddress);
+    void onCouldNotConnectToLae(ProxyHolder proxyAddress);
 
 }

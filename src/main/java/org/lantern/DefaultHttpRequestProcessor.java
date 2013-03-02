@@ -61,6 +61,8 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private GlobalTrafficShapingHandler trafficHandler;
 
+    private ProxyHolder proxyHolder;
+
 
     public DefaultHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
@@ -84,6 +86,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final ProxyHolder ph = this.proxyTracker.getProxy();
         
         if (ph != null) {
+            this.proxyHolder = ph;
             this.proxyAddress = ph.getIsa();
             this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
@@ -163,9 +166,9 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
                     if (isLae) {
-                        proxyTracker.onCouldNotConnectToLae(proxyAddress);
+                        proxyTracker.onCouldNotConnectToLae(proxyHolder);
                     } else {
-                        proxyTracker.onCouldNotConnect(proxyAddress);
+                        proxyTracker.onCouldNotConnect(proxyHolder);
                     }
                 }
             }
@@ -229,7 +232,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    proxyTracker.onCouldNotConnect(proxyAddress);
+                    proxyTracker.onCouldNotConnect(proxyHolder);
                 }
             }
         });

@@ -238,38 +238,11 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         natPmpService = new NatPmpImpl(stats);
 
-        MappedServerSocket tempMapper;
-        try {
-            LOG.debug("Creating mapped TCP server...");
-            tempMapper =
-                new MappedTcpAnswererServer(natPmpService, upnpService,
-                    new InetSocketAddress(this.peerProxyServer.getPort()));
-            LOG.debug("Created mapped TCP server...");
-        } catch (final IOException e) {
-            LOG.debug("Exception mapping TCP server", e);
-            tempMapper = new MappedServerSocket() {
-
-                @Override
-                public boolean isPortMapped() {
-                    return false;
-                }
-
-                @Override
-                public int getMappedPort() {
-                    return 1;
-                }
-
-                @Override
-                public InetSocketAddress getHostAddress() {
-                    return new InetSocketAddress(getMappedPort());
-                }
-            };
-        }
-
         XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
 
-        this.mappedServer = tempMapper;
+        this.mappedServer = new MappedTcpAnswererServer(natPmpService, 
+            upnpService, new InetSocketAddress(this.peerProxyServer.getPort()));
         this.started = true;
     }
 
@@ -440,7 +413,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.get().addMessageListener(typedListener);
 
         Events.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.connecting));
+            new GoogleTalkStateEvent("", GoogleTalkState.connecting));
 
         try {
             this.client.get().login(credentials);
@@ -451,7 +424,7 @@ public class DefaultXmppHandler implements XmppHandler {
             useCachedPeerProxies();
             LOG.debug("Sending connected event");
             Events.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.connected));
+                new GoogleTalkStateEvent(getJid(), GoogleTalkState.connected));
         } catch (final IOException e) {
             // Note that the XMPP library will internally attempt to connect
             // to our backup proxy if it can.
@@ -584,7 +557,8 @@ public class DefaultXmppHandler implements XmppHandler {
                             mappedServer.getMappedPort(), 
                             mappedServer.getHostAddress());
                     } else {
-                        ad = new LanternKscopeAdvertisement(user);
+                        ad = new LanternKscopeAdvertisement(user, 
+                            mappedServer.getHostAddress());
                     }
 
                     final TrustGraphNode tgn =
@@ -623,7 +597,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void handleConnectionFailure() {
         Events.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
+            new GoogleTalkStateEvent("", GoogleTalkState.LOGIN_FAILED));
     }
 
     private boolean waitForClosedBetaStatus(final String email)
@@ -694,7 +668,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
 
         Events.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.notConnected));
+            new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
 
         proxyTracker.clearPeerProxySet();
         this.closedBetaEvent = null;
@@ -992,6 +966,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void processKscopePayload(final String from, final String payload) {
+        LOG.debug("Processing payload: {}", payload);
         final ObjectMapper mapper = new ObjectMapper();
         try {
             final LanternKscopeAdvertisement ad =
@@ -1096,7 +1071,8 @@ public class DefaultXmppHandler implements XmppHandler {
         // We may have already disconnected on shutdown, for example, so check
         // for null.
         if (this.client.get() != null && 
-            this.client.get().getXmppConnection() != null) {
+            this.client.get().getXmppConnection() != null &&
+            this.client.get().getXmppConnection().getUser() != null) {
             return this.client.get().getXmppConnection().getUser().trim();
         }
         return "";
