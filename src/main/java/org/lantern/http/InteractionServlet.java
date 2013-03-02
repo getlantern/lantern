@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.Censored;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.XmppHandler;
@@ -25,6 +26,7 @@ import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
+import org.lantern.state.LocationChangedEvent;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -34,6 +36,7 @@ import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -77,16 +80,21 @@ public class InteractionServlet extends HttpServlet {
 
     private final XmppHandler xmppHandler;
 
+    private final Censored censored;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
-        final ModelIo modelIo, final XmppHandler xmppHandler) {
+        final ModelIo modelIo, final XmppHandler xmppHandler,
+        final Censored censored) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.xmppHandler = xmppHandler;
+        this.censored = censored;
+        Events.register(this);
     }
 
     @Override
@@ -552,4 +560,17 @@ public class InteractionServlet extends HttpServlet {
         modelIo.write();
     }
 
+    @Subscribe
+    public void onLocationChanged(final LocationChangedEvent e) {
+        Events.sync(SyncPath.LOCATION, e.getNewLocation());
+
+        if (censored.isCountryCodeCensored(e.getNewCountry())) {
+            if (!censored.isCountryCodeCensored(e.getOldCountry())) {
+                //moving from uncensored to censored
+                if (model.getSettings().getMode() == Mode.give) {
+                    Events.syncModal(model, Modal.giveModeForbidden);
+                }
+            }
+        }
+    }
 }
