@@ -85,8 +85,6 @@ public class Settings {
 
     private boolean useCloudProxies = true;
     
-    private String pacUrl;
-
     public enum Mode {
         give,
         get,
@@ -355,14 +353,5 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public void setRunAtSystemStart(boolean runOnSystemStartup) {
         this.runAtSystemStart = runOnSystemStartup;
-    }
-
-    @JsonView({Run.class})
-    public String getPacUrl() {
-        return this.pacUrl;
-    }
-
-    public void setPacUrl(String pacUrl) {
-        this.pacUrl = pacUrl;
     }
 }

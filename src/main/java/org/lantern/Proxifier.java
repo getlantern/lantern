@@ -493,7 +493,7 @@ public class Proxifier implements LanternService {
         final String url = 
             StaticSettings.getLocalEndpoint()+"/"+
                 pacFile.getName()+"-"+RandomUtils.nextInt();
-        this.model.getSettings().setPacUrl(url);
+        this.model.getConnectivity().setPacUrl(url);
         return url;
     }
 
