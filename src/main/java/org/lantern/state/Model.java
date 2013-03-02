@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,16 +58,18 @@ public class Model {
     private List<Country> countries = Country.allCountries();
 
     private final Global global = new Global();
-    
+
     private Friends friends = new Friends();
 
     private Peers peerCollector = new Peers();
+
+    private final ArrayList<Notification> notifications = new ArrayList<Notification>();
 
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
         return this.peerCollector.getPeers().values();
     }
-    
+
     public SystemData getSystem() {
         return system;
     }
@@ -199,7 +202,7 @@ public class Model {
     public void setFriends(Friends friends) {
         this.friends = friends;
     }
-    
+
     @JsonView({Persistent.class})
     public Peers getPeerCollector() {
         return peerCollector;
@@ -207,5 +210,17 @@ public class Model {
 
     public void setPeerCollector(Peers peerCollector) {
         this.peerCollector = peerCollector;
+    }
+
+    public void closeNotification(int notification) {
+        notifications.remove(notification);
+    }
+
+    public ArrayList<Notification> getNotifications() {
+        return notifications;
+    }
+
+    public void addNotification(String message, String type) {
+        notifications.add(new Notification(message, type));
     }
 }

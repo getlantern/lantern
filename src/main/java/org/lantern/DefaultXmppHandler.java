@@ -61,9 +61,9 @@ import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
-import org.lantern.state.Settings;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
@@ -241,7 +241,7 @@ public class DefaultXmppHandler implements XmppHandler {
         XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
 
-        this.mappedServer = new MappedTcpAnswererServer(natPmpService, 
+        this.mappedServer = new MappedTcpAnswererServer(natPmpService,
             upnpService, new InetSocketAddress(this.peerProxyServer.getPort()));
         this.started = true;
     }
@@ -366,8 +366,8 @@ public class DefaultXmppHandler implements XmppHandler {
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with user name and password...");
         this.closedBetaEvent = null;
-        final InetSocketAddress plainTextProxyRelayAddress = 
-            LanternUtils.isa("127.0.0.1", 
+        final InetSocketAddress plainTextProxyRelayAddress =
+            LanternUtils.isa("127.0.0.1",
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
 
         final SessionSocketListener sessionListener = new SessionSocketListener() {
@@ -420,7 +420,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
             // Preemptively create our key.
             this.keyStoreManager.getBase64Cert(getJid());
-            
+
             useCachedPeerProxies();
             LOG.debug("Sending connected event");
             Events.eventBus().post(
@@ -487,7 +487,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     case subscribe:
                         LOG.debug("Adding subscription request from: {}", from);
 
-                        // Did we originally invite them and they're 
+                        // Did we originally invite them and they're
                         // subscribing back? Auto-allow if so.
                         if (roster.autoAcceptSubscription(from)) {
                             subscribed(from);
@@ -495,7 +495,7 @@ public class DefaultXmppHandler implements XmppHandler {
                             LOG.debug("We didn't invite them");
                         }
                         roster.addIncomingSubscriptionRequest(pres);
-                            
+
                         break;
                     case subscribed:
                         break;
@@ -554,10 +554,10 @@ public class DefaultXmppHandler implements XmppHandler {
                     final LanternKscopeAdvertisement ad;
                     if (mappedServer.isPortMapped()) {
                         ad = new LanternKscopeAdvertisement(user, address,
-                            mappedServer.getMappedPort(), 
+                            mappedServer.getMappedPort(),
                             mappedServer.getHostAddress());
                     } else {
-                        ad = new LanternKscopeAdvertisement(user, 
+                        ad = new LanternKscopeAdvertisement(user,
                             mappedServer.getHostAddress());
                     }
 
@@ -1070,7 +1070,7 @@ public class DefaultXmppHandler implements XmppHandler {
     public String getJid() {
         // We may have already disconnected on shutdown, for example, so check
         // for null.
-        if (this.client.get() != null && 
+        if (this.client.get() != null &&
             this.client.get().getXmppConnection() != null &&
             this.client.get().getXmppConnection().getUser() != null) {
             return this.client.get().getXmppConnection().getUser().trim();
@@ -1111,18 +1111,18 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public void sendInvite(final String email) {
+    public boolean sendInvite(final String email) {
         LOG.info("Sending invite");
 
         if (StringUtils.isBlank(this.hubAddress)) {
             LOG.error("Blank hub address when sending invite?");
-            return;
+            return false;
         }
 
         final Set<String> invited = roster.getInvited();
         if (invited.contains(email)) {
             LOG.info("Already invited");
-            return;
+            return false;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
         final Roster rost = conn.getRoster();
@@ -1177,6 +1177,7 @@ public class DefaultXmppHandler implements XmppHandler {
         //LanternHub.settingsIo().write();
 
         addToRoster(email);
+        return true;
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -9,11 +10,14 @@ import java.util.concurrent.Executors;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternRosterEntry;
 import org.lantern.LanternUtils;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
+import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.state.Settings.Mode;
@@ -50,24 +54,27 @@ public class DefaultModelService implements ModelService {
 
     private final XmppHandler xmppHandler;
 
+    private final Roster roster;
+
     @Inject
     public DefaultModelService(final Model model,
         final Proxifier proxifier, final ModelUtils modelUtils,
-        final XmppHandler xmppHandler) {
+        final XmppHandler xmppHandler, Roster roster) {
         this(LanternClientConstants.LAUNCHD_PLIST, LanternClientConstants.GNOME_AUTOSTART,
-                model, proxifier, modelUtils, xmppHandler);
+                model, proxifier, modelUtils, xmppHandler, roster);
     }
 
     public DefaultModelService(final File launchdPlist,
         final File gnomeAutostart, final Model model,
         final Proxifier proxifier, final ModelUtils modelUtils,
-        final XmppHandler xmppHandler) {
+        final XmppHandler xmppHandler, Roster roster) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
         this.model = model;
         this.proxifier = proxifier;
         this.modelUtils = modelUtils;
         this.xmppHandler = xmppHandler;
+        this.roster = roster;
     }
 
     @Override
@@ -258,9 +265,37 @@ public class DefaultModelService implements ModelService {
 
     @Override
     public void invite(List<String> emails) {
+        ArrayList<LanternRosterEntry> entries = new ArrayList<LanternRosterEntry>();
+        ArrayList<String> invited = new ArrayList<String>();
         for (String email : emails) {
-            xmppHandler.sendInvite(email);
+            if (xmppHandler.sendInvite(email)) {
+                invited.add(email);
+                entries.add(roster.getRosterEntry(email));
+            }
         }
+
+        int n = invited.size();
+        String msg = n > 1 ? "Invitations" : "An invitation";
+        LanternRosterEntry entry0 = entries.get(0);
+        String name0 = "";
+        if (entry0 != null) {
+            name0 = entry0.getName();
+        }
+        msg += " will be sent to <span class=\"titled\" title=\"" + name0 + "\">" + invited.get(0) + "</span>";
+        if (n > 2) {
+          msg += " and <span class=\"titled\" title=\""+StringUtils.join(invited, ", ")+"\">"+(n-1)+" others</span>.";
+        } else if (n == 2) {
+            LanternRosterEntry entry1 = entries.get(1);
+            String name1 = "";
+            if (entry1 != null) {
+                name1 = entry1.getName();
+            }
+          msg += " and <span class=\"titled\" title=\"" + name1 + "\">"+invited.get(1)+"</span>.";
+        } else {
+          msg += ".";
+        }
+        model.addNotification(msg, "info");
+        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
     //this is necessary for JSON-pointer updating, since we want
