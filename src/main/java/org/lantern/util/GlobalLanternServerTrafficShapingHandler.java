@@ -62,6 +62,8 @@ public class GlobalLanternServerTrafficShapingHandler
         
         log.debug("Adding traffic handler to pipeline");
         ctx.getChannel().getPipeline().addFirst("trafficHandler", toUse);
+        
+        super.channelOpen(ctx, e);
     }
     
     @Override
@@ -69,6 +71,7 @@ public class GlobalLanternServerTrafficShapingHandler
         final ChannelStateEvent e) throws Exception {
         log.debug("Got channel closed!");
         this.connectedChannels.decrementAndGet();
+        super.channelClosed(ctx, e);
     }
     
     public boolean isConnected() {
