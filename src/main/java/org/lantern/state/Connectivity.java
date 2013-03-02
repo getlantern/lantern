@@ -1,7 +1,5 @@
 package org.lantern.state;
 
-import java.util.Collection;
-
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.event.Events;
@@ -31,6 +29,7 @@ public class Connectivity {
 
     private boolean invited = false;
 
+    private String peerId = "";
     //private PeerProxyManager peerProxyManager;
 
 
@@ -73,12 +72,15 @@ public class Connectivity {
         }
     }
     */
+    
+    private String pacUrl;
 
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
         this.gtalk = ase.getState();
         Events.asyncEventBus().post(
             new SyncEvent(SyncPath.CONNECTIVITY_GTALK, gtalk));
+        this.peerId = ase.getJid();
         //Events.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
 
@@ -129,5 +131,19 @@ public class Connectivity {
 
     public void setLanternController(boolean lanternController) {
         this.lanternController = lanternController;
+    }
+
+    @JsonView({Run.class})
+    public String getPeerId() {
+        return peerId;
+    }
+
+    @JsonView({Run.class})
+    public String getPacUrl() {
+        return this.pacUrl;
+    }
+
+    public void setPacUrl(final String pacUrl) {
+        this.pacUrl = pacUrl;
     }
 }
