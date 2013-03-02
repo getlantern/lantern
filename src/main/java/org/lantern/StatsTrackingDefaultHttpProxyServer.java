@@ -69,6 +69,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final Stats stats;
 
+    private PeerFactory peerFactory;
+
     /**
      * Creates a new proxy server.
      *
@@ -104,6 +106,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.serverChannelFactory = serverChannelFactory;
         this.ksm = ksm;
         this.stats = stats;
+        this.peerFactory = peerFactory;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -202,10 +205,19 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                     stats.addDownBytesFromPeers(bytes);
                 }
             });
+            //pipeline.addFirst()
             return pipeline;
         }
     }
     
+    /**
+     * This class tracks statistics for peers we are proxying for. This
+     * creates connections to remote servers and tracks the data going to and 
+     * from them as opposed to the data to and from the peer itself.
+     * 
+     * So we DON'T learn about any new Lantern peers here, but rather remote
+     * peers.
+     */
     private class StatsTrackingDefaultRelayPipelineFactoryFactory 
         extends DefaultRelayPipelineFactoryFactory {
         

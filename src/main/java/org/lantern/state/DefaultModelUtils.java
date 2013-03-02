@@ -27,6 +27,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.GeoData;
 import org.lantern.LanternClientConstants;
+import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
@@ -302,5 +303,12 @@ public class DefaultModelUtils implements ModelUtils {
         final Settings set = this.model.getSettings();
         return StringUtils.isNotBlank(set.getRefreshToken()) &&
                 StringUtils.isNotBlank(set.getAccessToken());
+    }
+
+    @Override
+    public void syncConnectingStatus(final String msg) {
+        this.model.getConnectivity().setConnectingStatus(msg);
+        Events.syncConnectingStatus(msg);
+        Events.syncModal(model, Modal.connecting);
     }
 }

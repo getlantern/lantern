@@ -418,6 +418,7 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             this.client.get().login(credentials);
 
+            modelUtils.syncConnectingStatus("Logged in to Google Talk...");
             // Preemptively create our key.
             this.keyStoreManager.getBase64Cert(getJid());
 
@@ -453,6 +454,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
         LOG.debug("Connection ID: {}", connection.getConnectionID());
 
+        modelUtils.syncConnectingStatus("Waiting for message from Lantern...");
+        
         // Here we handle allowing the server to subscribe to our presence.
         connection.addPacketListener(new PacketListener() {
 

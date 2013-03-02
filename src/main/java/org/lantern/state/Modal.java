@@ -9,7 +9,7 @@ public enum Modal {
     settingsLoadFailure,
     welcome,
     authorize,
-    gtalkConnecting,
+    connecting,
     gtalkUnreachable,
     authorizeLater,
     notInvited,
