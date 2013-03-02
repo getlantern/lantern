@@ -17,7 +17,7 @@ public class GoogleOauth2CallbackServletTest {
         final HttpClientFactory client = TestUtils.getHttpClientFactory();
         final GoogleOauth2CallbackServlet servlet = 
             new GoogleOauth2CallbackServlet(null, null, null, null, null, 
-                null, client);
+                null, client, null);
         
         final Map<String, String> allToks = new HashMap<String, String>();
         allToks.put("access_token", "invalidcode");

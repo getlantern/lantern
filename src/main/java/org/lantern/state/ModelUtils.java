@@ -28,4 +28,6 @@ public interface ModelUtils {
 
     void loadOAuth2UserCredentialsFile(String optionValue);
 
+    void syncConnectingStatus(String msg);
+
 }

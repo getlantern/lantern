@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -65,11 +66,15 @@ public class Version {
 
         private final SemanticVersion modelSchema = new SemanticVersion(0, 0, 1);
 
-        private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
-
         private final Date releaseDate;
 
         private boolean updateAvailable = false;
+
+        private String installerUrl;
+
+        private String installerSHA1;
+
+        private final ArrayList<String> changes = new ArrayList<String>();
 
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
@@ -126,11 +131,6 @@ public class Version {
             return modelSchema;
         }
 
-        public SemanticVersion getBayeuxProtocol() {
-            return bayeuxProtocol;
-        }
-
-
         public boolean isUpdateAvailable() {
             return updateAvailable;
         }
@@ -138,6 +138,26 @@ public class Version {
 
         public void setUpdateAvailable(boolean updateAvailable) {
             this.updateAvailable = updateAvailable;
+        }
+
+
+        public String getInstallerUrl() {
+            return installerUrl;
+        }
+
+
+        public void setInstallerUrl(String installerUrl) {
+            this.installerUrl = installerUrl;
+        }
+
+
+        public String getInstallerSHA1() {
+            return installerSHA1;
+        }
+
+
+        public void setInstallerSHA1(String installerSHA1) {
+            this.installerSHA1 = installerSHA1;
         }
 
     }

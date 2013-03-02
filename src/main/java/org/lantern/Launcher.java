@@ -584,7 +584,7 @@ public class Launcher {
                 public void run() {
                     try {
                         xmpp.connect();
-                        if (model.getModal() == Modal.gtalkConnecting) {
+                        if (model.getModal() == Modal.connecting) {
                             internalState.advanceModal(null);
                         }
                     } catch (final IOException e) {

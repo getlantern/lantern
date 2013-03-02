@@ -15,6 +15,7 @@ import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
+import org.lantern.state.ModelUtils;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,17 +45,21 @@ public class GoogleOauth2CallbackServer {
     private final Proxifier proxifier;
 
     private final HttpClientFactory httpClientFactory;
+
+    private final ModelUtils modelUtils;
     
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final Proxifier proxifier,
-        final HttpClientFactory httpClientFactory) {
+        final HttpClientFactory httpClientFactory,
+        final ModelUtils modelUtils) {
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
+        this.modelUtils = modelUtils;
     }
     
     public void start() {
@@ -88,7 +93,7 @@ public class GoogleOauth2CallbackServer {
         final ServletHolder oauth2callback = new ServletHolder(
             new GoogleOauth2CallbackServlet(this, this.xmppHandler, 
                 this.model, this.internalState, this.modelIo, this.proxifier,
-                this.httpClientFactory));
+                this.httpClientFactory, modelUtils));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         

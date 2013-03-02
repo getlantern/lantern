@@ -32,7 +32,6 @@ public class Connectivity {
     private String peerId = "";
     //private PeerProxyManager peerProxyManager;
 
-
     private boolean lanternController;
     
     private String connectingStatus;
@@ -65,7 +64,7 @@ public class Connectivity {
     private Collection<Peer> peers(final PeerProxyManager ppm) {
         return ppm.getPeers().values();
     }
-    
+
 
     @Subscribe
     public void onConnectedPeers(final ConnectedPeersEvent cpe) {
@@ -74,7 +73,7 @@ public class Connectivity {
         }
     }
     */
-    
+
     private String pacUrl;
 
     @Subscribe

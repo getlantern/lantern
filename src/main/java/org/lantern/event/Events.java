@@ -96,4 +96,9 @@ public class Events {
     public static void syncAdd(String path, Object value) {
         Events.asyncEventBus().post(new SyncEvent(SyncType.ADD, path, value));
     }
+
+    public static void syncConnectingStatus(final String status) {
+        Events.asyncEventBus().post(
+            new SyncEvent(SyncType.ADD, SyncPath.CONNECTING_STATUS, status));
+    }
 }

@@ -155,8 +155,8 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void addLaeProxy(final String cur) {
         log.debug("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
-            new ProxyHolder(cur, new InetSocketAddress(cur, 443), trafficTracker()), cur, 
-            Type.laeproxy);
+            new ProxyHolder(cur, new InetSocketAddress(cur, 443), 
+                trafficTracker()), cur, Type.laeproxy);
     }
     
     private Collection<GlobalTrafficShapingHandler> trafficShapers =

@@ -68,6 +68,12 @@ public class ProxifierTest {
             @Override
             public void loadOAuth2UserCredentialsFile(String optionValue) {
             }
+
+            @Override
+            public void syncConnectingStatus(String msg) {
+                // TODO Auto-generated method stub
+                
+            }
         };
     }
 }
