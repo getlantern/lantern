@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
@@ -18,7 +15,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Peers;
-import org.lantern.util.CachedThreadPool;
 import org.lantern.util.LanternTrafficCounterHandler;
 import org.lantern.util.ThreadPools;
 import org.slf4j.Logger;
