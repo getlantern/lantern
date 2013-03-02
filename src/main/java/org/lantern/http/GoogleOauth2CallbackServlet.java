@@ -137,6 +137,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // dashboard is about to get fully reloaded.
         modelUtils.syncConnectingStatus(
             "Communicating with Google Talk servers...");
+        log.debug("Setting modal to connecting...");
         this.model.setModal(Modal.connecting);
         redirectToDashboard(resp);
 

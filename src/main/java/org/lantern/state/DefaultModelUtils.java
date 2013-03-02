@@ -309,6 +309,5 @@ public class DefaultModelUtils implements ModelUtils {
     public void syncConnectingStatus(final String msg) {
         this.model.getConnectivity().setConnectingStatus(msg);
         Events.syncConnectingStatus(msg);
-        Events.syncModal(model, Modal.connecting);
     }
 }

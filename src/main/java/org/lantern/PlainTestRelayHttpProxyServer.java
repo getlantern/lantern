@@ -3,6 +3,7 @@ package org.lantern;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.util.Timer;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -19,7 +20,8 @@ public class PlainTestRelayHttpProxyServer extends StatsTrackingDefaultHttpProxy
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory, 
         final LanternKeyStoreManager ksm,
-        final Stats stats) {
+        final Stats stats,
+        final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         super(LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
             new HttpResponseFilters() {
                 @Override
@@ -27,6 +29,6 @@ public class PlainTestRelayHttpProxyServer extends StatsTrackingDefaultHttpProxy
                     return null;
                 }
             }, null, requestFilter, clientChannelFactory, timer, 
-            serverChannelFactory, ksm, stats);
+            serverChannelFactory, ksm, stats, serverTrafficHandler);
     }
 }

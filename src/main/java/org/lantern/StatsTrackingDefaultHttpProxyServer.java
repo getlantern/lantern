@@ -16,6 +16,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.Timer;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.littleshoot.proxy.ChainProxyManager;
 import org.littleshoot.proxy.DefaultProxyAuthorizationManager;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
@@ -69,7 +70,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final Stats stats;
 
-    private PeerFactory peerFactory;
+    private final GlobalLanternServerTrafficShapingHandler serverTrafficHandler;
 
     /**
      * Creates a new proxy server.
@@ -96,7 +97,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory,
         final KeyStoreManager ksm,
-        final Stats stats) {
+        final Stats stats, 
+        final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         this.port = port;
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;
@@ -106,7 +108,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.serverChannelFactory = serverChannelFactory;
         this.ksm = ksm;
         this.stats = stats;
-        this.peerFactory = peerFactory;
+        this.serverTrafficHandler = serverTrafficHandler;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -130,8 +132,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 this.allChannels, this.chainProxyManager, 
                 new StatsTrackingDefaultRelayPipelineFactoryFactory(chainProxyManager,
                     this.responseFilters, this.requestFilter,
-                    this.allChannels, this.timer), this.clientChannelFactory, 
-                    this.timer, this.ksm);
+                    this.allChannels, this.timer), 
+                this.clientChannelFactory, this.timer, this.ksm);
         serverBootstrap.setPipelineFactory(factory);
 
         // Binding only to localhost can significantly improve the security of
@@ -179,6 +181,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
     private class StatsTrackingHttpServerPipelineFactory 
         extends HttpServerPipelineFactory {
         
+
         private StatsTrackingHttpServerPipelineFactory(
             final ProxyAuthorizationManager authorizationManager, 
             final ChannelGroup channelGroup, 
@@ -205,7 +208,10 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                     stats.addDownBytesFromPeers(bytes);
                 }
             });
-            //pipeline.addFirst()
+            
+            // This allows us to track global stats and also acts as our
+            // hook to add per-IP stats tracking.
+            pipeline.addFirst("trafficHandler", serverTrafficHandler);
             return pipeline;
         }
     }
