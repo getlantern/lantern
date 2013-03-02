@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
 
 /**
@@ -37,12 +38,9 @@ public class LanternKscopeAdvertisement {
             ad.getPort(), ad.getLocalAddress(), ad.getLocalPort());
     }
 
-    public LanternKscopeAdvertisement() {
-        this("", "", 0, "", 0);
-    }
-
-    public LanternKscopeAdvertisement(final String jid) {
-        this(jid, "", 0);
+    public LanternKscopeAdvertisement(final String jid, 
+        final InetSocketAddress local) {
+        this(jid, "", 0, local.getAddress().getHostAddress(), local.getPort());
     }
 
     public LanternKscopeAdvertisement(final String jid, final InetAddress addr, 
@@ -50,16 +48,19 @@ public class LanternKscopeAdvertisement {
         this(jid, addr.getHostAddress(), port, 
             localAddress.getAddress().getHostAddress(), localAddress.getPort());
     }
-    
-    private LanternKscopeAdvertisement(final String jid, final String addr, 
-        final int port) {
-        this(jid, addr, port, "", 0);
-    }
 
-    public LanternKscopeAdvertisement(final String jid, final String addr,
+    private LanternKscopeAdvertisement(final String jid, final String addr,
             final int port, final String localAddress, final int localPort) {
         this.jid = jid;
         this.address = addr;
+        if (StringUtils.isBlank(localAddress)) {
+            throw new IllegalArgumentException(
+                "Should always have a local address!");
+        }
+        if (localPort < 1024) {
+            throw new IllegalArgumentException(
+                "Should always have a local port but was: "+localPort);
+        }
         this.port = port;
         this.localAddress = localAddress;
         this.localPort = localPort;
