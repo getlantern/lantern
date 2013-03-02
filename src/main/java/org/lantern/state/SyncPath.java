@@ -21,7 +21,8 @@ public enum SyncPath {
     AUTO_CONNECT("settings/autoConnect"),
     AUTO_REPORT("settings/autoReport"),
     PROXY_ALL_SITES("settings/proxyAllSites"),
-    SUBSCRIPTION_REQUESTS("friends/pending");
+    SUBSCRIPTION_REQUESTS("friends/pending"),
+    NOTIFICATIONS("notifications");
 
     private final String path;
 

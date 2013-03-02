@@ -1,6 +1,7 @@
 package org.lantern.http;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
@@ -42,6 +45,7 @@ public class InteractionServlet extends HttpServlet {
     private enum Interaction {
         GET,
         GIVE,
+        INVITE,
         CONTINUE,
         SETTINGS,
         CLOSE,
@@ -128,6 +132,11 @@ public class InteractionServlet extends HttpServlet {
 
         final Interaction inter =
             Interaction.valueOf(interactionStr.toUpperCase());
+
+        if (inter == Interaction.CLOSE) {
+            handleClose(json);
+        }
+
         final Modal modal = this.model.getModal();
 
         switch (modal) {
@@ -165,7 +174,7 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Processing continue");
                 this.model.setShowVis(true);
                 this.model.setSetupComplete(true);
-                
+
                 // Things like configuring the system proxy rely on setup being
                 // complete, so propagate the event.
                 Events.asyncEventBus().post(new SetupCompleteEvent());
@@ -195,6 +204,9 @@ public class InteractionServlet extends HttpServlet {
                 break;
             }
             switch (inter) {
+            case INVITE:
+                invite(json);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
             case CONTINUE:
                 log.debug("Processing continue for friends dialog");
                 invite(json);
@@ -399,7 +411,28 @@ public class InteractionServlet extends HttpServlet {
         }
         this.modelIo.write();
     }
-    
+
+    private void handleClose(String json) {
+        if (StringUtils.isBlank(json)) {
+            return;
+        }
+        final ObjectMapper om = new ObjectMapper();
+        Map<String, Object> map;
+        try {
+            map = om.readValue(json, Map.class);
+            final Integer notification = (Integer) map.get("notification");
+            model.closeNotification(notification);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+        } catch (JsonParseException e) {
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void declineInvite(final String json) {
         final String email = JsonUtils.getValueFromJson("email", json);
         this.xmppHandler.unsubscribed(email);
@@ -460,8 +493,8 @@ public class InteractionServlet extends HttpServlet {
             if (json.length() == 0) {
                 return;//nobody to invite
             }
-            Invite invite = om.readValue(json, Invite.class);
-            modelService.invite(invite.getInvite());
+            ArrayList<String> invites = om.readValue(json, ArrayList.class);
+            modelService.invite(invites);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
