@@ -164,47 +164,52 @@ public class Roster implements RosterListener {
             log.debug("Adding {} to routing table.", from);
             this.kscopeRoutingTable.addNeighbor(id);
 
+            
             // only advertise if we're in GET mode
-            if(this.model.getSettings().getMode() != Settings.Mode.give) {
-                onPresence(presence, sync, updateIndex);
-                return;
+            if(this.model.getSettings().getMode() == Settings.Mode.give) {
+                sendKscope(presence, id);
             }
-
-            //final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-            //        model.getNodeId());
-
-            final InetAddress address = 
-                new PublicIpAddress().getPublicIpAddress();
-
-            final String user = xmppHandler.getJid();
-            final LanternKscopeAdvertisement ad;
-            final MappedServerSocket ms = xmppHandler.getMappedServer();
-            if (ms.isPortMapped()) {
-                ad = new LanternKscopeAdvertisement(user, address, 
-                    xmppHandler.getMappedServer().getMappedPort(),
-                    xmppHandler.getMappedServer().getHostAddress()
-                );
-            } else {
-                ad = new LanternKscopeAdvertisement(user, ms.getHostAddress());
-            }
-
-            final TrustGraphNode tgn = 
-                new LanternTrustGraphNode(xmppHandler);
-            // set ttl to max for now
-            ad.setTtl(tgn.getMaxRouteLength());
-            final String adPayload = JsonUtils.jsonify(ad);
-            final BasicTrustGraphAdvertisement message =
-                new BasicTrustGraphAdvertisement(id, adPayload, 
-                    LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
-            );
-
-            log.debug("Sending ad to newly online roster entry {}.", id);
-            tgn.sendAdvertisement(message, id, ad.getTtl()); 
-
             onPresence(presence, sync, updateIndex);
         } else {
             onPresence(presence, sync, updateIndex);
         }
+    }
+
+    private void sendKscope(final Presence presence, final TrustGraphNodeId id) {
+        //final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
+        //        model.getNodeId());
+
+        if (!presence.isAvailable()) {
+            log.info("Not sending kscope on unavailable: {}", presence.toXML());
+            return;
+        }
+        final InetAddress address = 
+            new PublicIpAddress().getPublicIpAddress();
+
+        final String user = xmppHandler.getJid();
+        final LanternKscopeAdvertisement ad;
+        final MappedServerSocket ms = xmppHandler.getMappedServer();
+        if (ms.isPortMapped()) {
+            ad = new LanternKscopeAdvertisement(user, address, 
+                xmppHandler.getMappedServer().getMappedPort(),
+                xmppHandler.getMappedServer().getHostAddress()
+            );
+        } else {
+            ad = new LanternKscopeAdvertisement(user, ms.getHostAddress());
+        }
+
+        final TrustGraphNode tgn = 
+            new LanternTrustGraphNode(xmppHandler);
+        // set ttl to max for now
+        ad.setTtl(tgn.getMaxRouteLength());
+        final String adPayload = JsonUtils.jsonify(ad);
+        final BasicTrustGraphAdvertisement message =
+            new BasicTrustGraphAdvertisement(id, adPayload, 
+                LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
+        );
+
+        log.debug("Sending ad to newly online roster entry {}.", id);
+        tgn.sendAdvertisement(message, id, ad.getTtl()); 
     }
 
     private void onPresence(final Presence pres, final boolean sync,
