@@ -52,7 +52,7 @@ public class GlobalLanternServerTrafficShapingHandler
             (InetSocketAddress) ctx.getChannel().getRemoteAddress();
         final InetAddress address = isa.getAddress();
         final LanternTrafficCounterHandler handler = 
-            new LanternTrafficCounterHandler(timer);
+            new LanternTrafficCounterHandler(timer, true);
         final LanternTrafficCounterHandler existing = 
                 handlers.putIfAbsent(address, handler);
         
