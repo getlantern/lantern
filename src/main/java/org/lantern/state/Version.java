@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -71,6 +72,12 @@ public class Version {
 
         private boolean updateAvailable = false;
 
+        private String installerUrl;
+
+        private String installerSHA1;
+
+        private final ArrayList<String> changes = new ArrayList<String>();
+
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
                 releaseDate = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
@@ -138,6 +145,26 @@ public class Version {
 
         public void setUpdateAvailable(boolean updateAvailable) {
             this.updateAvailable = updateAvailable;
+        }
+
+
+        public String getInstallerUrl() {
+            return installerUrl;
+        }
+
+
+        public void setInstallerUrl(String installerUrl) {
+            this.installerUrl = installerUrl;
+        }
+
+
+        public String getInstallerSHA1() {
+            return installerSHA1;
+        }
+
+
+        public void setInstallerSHA1(String installerSHA1) {
+            this.installerSHA1 = installerSHA1;
         }
 
     }
