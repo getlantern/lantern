@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +47,24 @@ public class PeerFactory {
         this.roster = roster;
         this.peers = model.getPeerCollector();
     }
+    
+    public void addIncomingPeer(final InetSocketAddress isa, 
+        final LanternTrafficCounterHandler trafficCounter) {
+        exec.submit(new Runnable() {
+            @Override
+            public void run() {
+                final Peer peer = newGetModePeer(isa, trafficCounter);
+                peers.addPeer(isa.getAddress(), peer);
+            }
+        });
+    }
 
     public void addPeer(final String userId, final InetAddress address, 
         final int port, final Type type, final boolean incoming, 
         final LanternTrafficCounterHandler trafficCounter) {
+        
+        // We thread this because there's a geo IP lookup that could otherwise
+        // stall the calling thread.
         exec.submit(new Runnable() {
 
             @Override
@@ -57,11 +72,9 @@ public class PeerFactory {
                 log.debug("Adding peer");
                 final Peer existing;
                 if (StringUtils.isNotBlank(userId)) {
-                    existing = peers.getPeer(userId);
+                    existing = peers.getPeer(LanternUtils.newURI(userId));
                 } else {
-                    final InetSocketAddress key = 
-                            new InetSocketAddress(address, port);
-                    existing = peers.getPeer(key);
+                    existing = peers.getPeer(address);
 
                 }
                 if (existing != null) {
@@ -80,13 +93,24 @@ public class PeerFactory {
                 } else {
                     final Peer peer = newGiveModePeer(userId, address, port, type, 
                             incoming, trafficCounter);
-                    peers.addPeer(new InetSocketAddress(address, port), peer);
+                    peers.addPeer(address, peer);
                 }
                 //Events.sync(SyncPath.PEERS, peers.getPeers());
             }
 
         });
     }
+    
+
+    protected Peer newGetModePeer(final InetSocketAddress isa,
+            final LanternTrafficCounterHandler trafficCounter) {
+        final String hostAddress = isa.getAddress().getHostAddress();
+        final GeoData geo = modelUtils.getGeoData(hostAddress);
+        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(), 
+            geo.getLongitude(), Type.desktop, hostAddress, Mode.get, 
+            true, trafficCounter, new LanternRosterEntry());
+    }
+    
     
     private Peer newGiveModePeer(final String userId, final InetAddress address, 
         final int port, final Type type, final boolean incoming, 

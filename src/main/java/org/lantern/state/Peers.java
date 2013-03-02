@@ -1,6 +1,7 @@
 package org.lantern.state;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,12 +15,12 @@ public class Peers {
         
     }
 
-    public void addPeer(final InetSocketAddress isa, final Peer peer) {
+    public void addPeer(final InetAddress isa, final Peer peer) {
         this.peers.put(isa.toString(), peer);
     }
     
-    public void addPeer(final String jid, final Peer peer) {
-        this.peers.put(jid, peer);
+    public void addPeer(final URI jid, final Peer peer) {
+        this.peers.put(jid.toASCIIString(), peer);
     }
 
     public Map<String, Peer> getPeers() {
@@ -40,19 +41,19 @@ public class Peers {
         }
     }
 
-    public Peer getPeer(final InetSocketAddress isa) {
+    public Peer getPeer(final InetAddress isa) {
         return this.peers.get(isa.toString());
     }
 
-    public Peer getPeer(final String userId) {
-        return this.peers.get(userId);
+    public Peer getPeer(final URI userId) {
+        return this.peers.get(userId.toASCIIString());
     }
     
-    public boolean hasPeer(final String userId) {
-        return this.peers.containsKey(userId);
+    public boolean hasPeer(final URI userId) {
+        return this.peers.containsKey(userId.toASCIIString());
     }
 
-    public boolean hasPeer(final InetSocketAddress isa) {
+    public boolean hasPeer(final InetAddress isa) {
         return this.peers.containsKey(isa.toString());
     }
 
