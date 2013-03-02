@@ -211,7 +211,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             
             // This allows us to track global stats and also acts as our
             // hook to add per-IP stats tracking.
-            pipeline.addFirst("trafficHandler", serverTrafficHandler);
+            pipeline.addFirst("globalTrafficHandler", serverTrafficHandler);
             return pipeline;
         }
     }
