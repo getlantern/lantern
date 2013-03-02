@@ -1,6 +1,8 @@
 package org.lantern.state;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
@@ -21,8 +23,13 @@ public class Location {
     }
 
     public void setCountry(final String country) {
+        String oldCountry = this.country;
         if (country != null) {
             this.country = country.toUpperCase();
+        }
+        if (!StringUtils.equals(oldCountry, this.country)) {
+            Events.asyncEventBus().post(
+                    new LocationChangedEvent(this, oldCountry));
         }
     }
 
