@@ -34,6 +34,8 @@ public class Connectivity {
 
 
     private boolean lanternController;
+    
+    private String connectingStatus;
 
     public Connectivity() {
         Events.register(this);
@@ -145,5 +147,13 @@ public class Connectivity {
 
     public void setPacUrl(final String pacUrl) {
         this.pacUrl = pacUrl;
+    }
+
+    public String getConnectingStatus() {
+        return connectingStatus;
+    }
+
+    public void setConnectingStatus(final String connectingStatus) {
+        this.connectingStatus = connectingStatus;
     }
 }

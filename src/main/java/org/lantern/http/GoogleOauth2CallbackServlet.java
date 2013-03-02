@@ -35,6 +35,7 @@ import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
+import org.lantern.state.ModelUtils;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
@@ -66,13 +67,16 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private final Proxifier proxifier;
 
     private final HttpClientFactory httpClientFactory;
+
+    private final ModelUtils modelUtils;
     
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
-        final Proxifier proxifier, final HttpClientFactory httpClientFactory) {
+        final Proxifier proxifier, final HttpClientFactory httpClientFactory,
+        final ModelUtils modelUtils) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
@@ -80,6 +84,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
+        this.modelUtils = modelUtils;
     }
     
     @Override
@@ -131,7 +136,10 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // this should do. Make sure we set this before sending the user
         // back to the dashboard. We don't need to post an event because the
         // dashboard is about to get fully reloaded.
-        this.model.setModal(Modal.gtalkConnecting);
+        this.model.getConnectivity().setConnectingStatus(
+            "Communicating with Google Talk servers...");
+        modelUtils.syncConnectingStatus();
+        this.model.setModal(Modal.connecting);
         redirectToDashboard(resp);
         
         // Kill our temporary oauth callback server.
