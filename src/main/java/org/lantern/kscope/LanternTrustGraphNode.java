@@ -51,6 +51,7 @@ public class LanternTrustGraphNode extends TrustGraphNode {
             payload = JsonUtils.jsonify(ad);
         } catch(Exception e) {
             log.error("could not update ttl for kscope ad to {}", neighbor);
+            return;
         }
         
         final Message msg = new Message();
