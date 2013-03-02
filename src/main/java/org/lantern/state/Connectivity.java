@@ -72,6 +72,8 @@ public class Connectivity {
         }
     }
     */
+    
+    private String pacUrl;
 
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
@@ -136,4 +138,12 @@ public class Connectivity {
         return peerId;
     }
 
+    @JsonView({Run.class})
+    public String getPacUrl() {
+        return this.pacUrl;
+    }
+
+    public void setPacUrl(final String pacUrl) {
+        this.pacUrl = pacUrl;
+    }
 }
