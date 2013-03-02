@@ -47,6 +47,7 @@ import org.lantern.state.Settings;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -222,6 +223,9 @@ public class Launcher {
         syncService = instance(SyncService.class);
 
         final ProxyTracker proxyTracker = instance(ProxyTracker.class);
+        
+        // We do this to make sure it's added to the shutdown list.
+        instance(GlobalLanternServerTrafficShapingHandler.class);
         
         threadPublicIpLookup();
         
