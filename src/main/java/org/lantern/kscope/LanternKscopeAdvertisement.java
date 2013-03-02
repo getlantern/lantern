@@ -33,8 +33,12 @@ public class LanternKscopeAdvertisement {
 
     public static LanternKscopeAdvertisement makeRelayAd(
             final LanternKscopeAdvertisement ad) {
-        return new LanternKscopeAdvertisement(ad.getJid(), ad.getAddress(),
-            ad.getPort(), ad.getLocalAddress(), ad.getLocalPort());
+        LanternKscopeAdvertisement relayAd = new LanternKscopeAdvertisement(
+            ad.getJid(), ad.getAddress(),
+            ad.getPort(), ad.getLocalAddress()
+        );
+        relayAd.setTtl(ad.getTtl()-1);
+        return relayAd;
     }
 
     public LanternKscopeAdvertisement() {
