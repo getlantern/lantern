@@ -47,13 +47,13 @@ public class PeerFactory {
         this.peers = model.getPeerCollector();
     }
     
-    public void addIncomingPeer(final InetSocketAddress isa, 
+    public void addIncomingPeer(final InetAddress address, 
         final LanternTrafficCounterHandler trafficCounter) {
         exec.submit(new Runnable() {
             @Override
             public void run() {
-                final Peer peer = newGetModePeer(isa, trafficCounter);
-                peers.addPeer(isa.getAddress(), peer);
+                final Peer peer = newGetModePeer(address, trafficCounter);
+                peers.addPeer(address, peer);
             }
         });
     }
@@ -101,9 +101,9 @@ public class PeerFactory {
     }
     
 
-    protected Peer newGetModePeer(final InetSocketAddress isa,
+    protected Peer newGetModePeer(final InetAddress address,
             final LanternTrafficCounterHandler trafficCounter) {
-        final String hostAddress = isa.getAddress().getHostAddress();
+        final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
         return new Peer("", geo.getCountrycode(), false, geo.getLatitude(), 
             geo.getLongitude(), Type.desktop, hostAddress, Mode.get, 

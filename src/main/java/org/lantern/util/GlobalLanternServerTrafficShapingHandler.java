@@ -10,6 +10,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
 import org.lantern.LanternClientConstants;
+import org.lantern.PeerFactory;
 import org.lantern.Shutdownable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +28,14 @@ public class GlobalLanternServerTrafficShapingHandler
 
     private final ConcurrentHashMap<InetAddress, LanternTrafficCounterHandler> handlers =
             new ConcurrentHashMap<InetAddress, LanternTrafficCounterHandler>();
+
+    private final PeerFactory peerFactory;
         
     @Inject
-    public GlobalLanternServerTrafficShapingHandler(final Timer timer) {
+    public GlobalLanternServerTrafficShapingHandler(final Timer timer,
+            final PeerFactory peerFactory) {
         super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
+        this.peerFactory = peerFactory;
     }
 
     @Override
@@ -55,6 +60,7 @@ public class GlobalLanternServerTrafficShapingHandler
         if (existing == null) {
             // OK, so this a new IP address. We need to also add a new Peer
             // here, and we'll give it our traffic handler!
+            this.peerFactory.addIncomingPeer(isa.getAddress(), handler);
             toUse = handler;
         } else {
             toUse = existing;
