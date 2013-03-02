@@ -35,29 +35,39 @@ public class LanternKscopeAdvertisement {
     public static LanternKscopeAdvertisement makeRelayAd(
             final LanternKscopeAdvertisement ad) {
         return new LanternKscopeAdvertisement(ad.getJid(), ad.getAddress(),
-            ad.getPort(), ad.getLocalAddress(), ad.getLocalPort());
+            ad.getPort(), ad.getLocalAddress(), ad.getLocalPort(), true);
     }
 
+    /**
+     * No arg constructor only used to build ads from JSON over the wire.
+     */
+    public LanternKscopeAdvertisement() {
+        this("", "", 0, "", 0, false);
+    }
+    
     public LanternKscopeAdvertisement(final String jid, 
         final InetSocketAddress local) {
-        this(jid, "", 0, local.getAddress().getHostAddress(), local.getPort());
+        this(jid, "", 0, local.getAddress().getHostAddress(), local.getPort(),
+                true);
     }
 
     public LanternKscopeAdvertisement(final String jid, final InetAddress addr, 
         final int port, final InetSocketAddress localAddress) {
         this(jid, addr.getHostAddress(), port, 
-            localAddress.getAddress().getHostAddress(), localAddress.getPort());
+            localAddress.getAddress().getHostAddress(), localAddress.getPort(),
+            true);
     }
 
     private LanternKscopeAdvertisement(final String jid, final String addr,
-            final int port, final String localAddress, final int localPort) {
+            final int port, final String localAddress, final int localPort,
+            final boolean requireLocal) {
         this.jid = jid;
         this.address = addr;
-        if (StringUtils.isBlank(localAddress)) {
+        if (StringUtils.isBlank(localAddress) && requireLocal) {
             throw new IllegalArgumentException(
                 "Should always have a local address!");
         }
-        if (localPort < 1024) {
+        if (localPort < 1024 && requireLocal) {
             throw new IllegalArgumentException(
                 "Should always have a local port but was: "+localPort);
         }
