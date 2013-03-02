@@ -2,12 +2,9 @@ package org.lantern;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.WriteCompletionEvent;
-import org.lantern.event.Events;
-import org.lantern.event.IncomingSocketEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,17 +36,22 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler
         super.messageReceived(ctx, e);
     }
     
+    /*
     @Override
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent cse) throws Exception {
-        Events.asyncEventBus().post(
-            new IncomingSocketEvent(ctx.getChannel(), cse, true));
+        //Events.asyncEventBus().post(
+        //    new IncomingSocketEvent(ctx.getChannel(), cse, true));
+        super.channelOpen(ctx, cse);
     }
     
     @Override
     public void channelClosed(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent cse) {
-        Events.asyncEventBus().post(
-            new IncomingSocketEvent(ctx.getChannel(), cse, false));
+        final ChannelStateEvent cse) throws Exception {
+        //Events.asyncEventBus().post(
+        //    new IncomingSocketEvent(ctx.getChannel(), cse, false));
+        //ctx.sendUpstream(cse);
+        super.channelClosed(ctx, cse);
     }
+    */
 }
