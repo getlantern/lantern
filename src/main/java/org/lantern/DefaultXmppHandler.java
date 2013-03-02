@@ -238,38 +238,11 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         natPmpService = new NatPmpImpl(stats);
 
-        MappedServerSocket tempMapper;
-        try {
-            LOG.debug("Creating mapped TCP server...");
-            tempMapper =
-                new MappedTcpAnswererServer(natPmpService, upnpService,
-                    new InetSocketAddress(this.peerProxyServer.getPort()));
-            LOG.debug("Created mapped TCP server...");
-        } catch (final IOException e) {
-            LOG.debug("Exception mapping TCP server", e);
-            tempMapper = new MappedServerSocket() {
-
-                @Override
-                public boolean isPortMapped() {
-                    return false;
-                }
-
-                @Override
-                public int getMappedPort() {
-                    return 1;
-                }
-
-                @Override
-                public InetSocketAddress getHostAddress() {
-                    return new InetSocketAddress(getMappedPort());
-                }
-            };
-        }
-
         XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
 
-        this.mappedServer = tempMapper;
+        this.mappedServer = new MappedTcpAnswererServer(natPmpService, 
+            upnpService, new InetSocketAddress(this.peerProxyServer.getPort()));
         this.started = true;
     }
 
@@ -584,7 +557,8 @@ public class DefaultXmppHandler implements XmppHandler {
                             mappedServer.getMappedPort(), 
                             mappedServer.getHostAddress());
                     } else {
-                        ad = new LanternKscopeAdvertisement(user);
+                        ad = new LanternKscopeAdvertisement(user, 
+                            mappedServer.getHostAddress());
                     }
 
                     final TrustGraphNode tgn =
@@ -992,6 +966,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void processKscopePayload(final String from, final String payload) {
+        LOG.debug("Processing payload: {}", payload);
         final ObjectMapper mapper = new ObjectMapper();
         try {
             final LanternKscopeAdvertisement ad =

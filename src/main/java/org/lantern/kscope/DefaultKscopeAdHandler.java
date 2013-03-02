@@ -1,19 +1,18 @@
 package org.lantern.kscope;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.lantern.XmppHandler;
-import org.kaleidoscope.RandomRoutingTable;
-import org.kaleidoscope.TrustGraphNodeId;
-import org.kaleidoscope.TrustGraphNode;
-import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
+import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.kaleidoscope.RandomRoutingTable;
+import org.kaleidoscope.TrustGraphNode;
+import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.ProxyTracker;
-import org.lantern.JsonUtils;
+import org.lantern.XmppHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
