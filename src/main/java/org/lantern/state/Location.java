@@ -22,7 +22,7 @@ public class Location {
         return country;
     }
 
-    public void setCountry(final String country) {
+    public void setCountry(String country) {
         String oldCountry = this.country;
         if (country != null) {
             this.country = country.toUpperCase();
