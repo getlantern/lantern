@@ -61,6 +61,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
             @Override
             public void run() {
+                log.debug("Deleting keystore file on shutdown");
                 LanternUtils.fullDelete(KEYSTORE_FILE);
             }
         }, "Keystore-Delete-Thread"));

@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -31,7 +33,9 @@ import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +78,17 @@ public class DefaultModelUtils implements ModelUtils {
             LOG.debug("Got cache HIT! Returning cached geo data");
             return geoCache.get(ip);
         }
+        
+        try {
+            final InetAddress ia = InetAddress.getByName(ip);
+            if (!NetworkUtils.isPublicAddress(ia)) {
+                return getGeoData(
+                    new PublicIpAddress().getPublicIpAddress().getHostAddress());
+            }
+        } catch (final UnknownHostException e) {
+            LOG.error("Unknown host here?", e);
+        }
+
         final String query = 
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
             "AS ip.location; select CountryCode, Latitude,Longitude from " +

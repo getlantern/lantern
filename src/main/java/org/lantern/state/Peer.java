@@ -286,4 +286,15 @@ public class Peer {
         this.rosterEntry = rosterEntry;
     }
 
+    @Override
+    public String toString() {
+        return "Peer [peerid=" + peerid + ", country=" + country + ", lat="
+                + lat + ", lon=" + lon + ", type=" + type + ", online="
+                + online + ", mapped=" + mapped + ", ip=" + ip + ", mode="
+                + mode + ", incoming=" + incoming + ", trafficCounter="
+                + trafficCounter + ", bytesUp=" + bytesUp + ", bytesDn="
+                + bytesDn + ", version=" + version + ", lastConnectedLong="
+                + lastConnectedLong + ", rosterEntry=" + rosterEntry + "]";
+    }
+
 }

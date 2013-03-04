@@ -22,6 +22,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.LanternHttpClient;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
@@ -86,6 +87,10 @@ public class TestUtils {
 
     private static HttpClientFactory httpClientFactory;
 
+    private static SslHttpProxyServer sslHttpProxyServer;
+
+    private static GlobalLanternServerTrafficShapingHandler globalTraffic;
+
     static {
         if (LanternClientConstants.TEST_PROPS.isFile()) {
             privatePropsFile = LanternClientConstants.TEST_PROPS;
@@ -148,6 +153,8 @@ public class TestUtils {
         httpClient = instance(LanternHttpClient.class);
         
         httpClientFactory = instance(HttpClientFactory.class);
+        sslHttpProxyServer = instance(SslHttpProxyServer.class);
+        globalTraffic = instance(GlobalLanternServerTrafficShapingHandler.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
@@ -331,5 +338,16 @@ public class TestUtils {
         if (!loaded) load();
         return httpClientFactory;
     }
+
+    public static SslHttpProxyServer getSslHttpProxyServer() {
+        if (!loaded) load();
+        return sslHttpProxyServer;
+    }
+    
+    public static GlobalLanternServerTrafficShapingHandler getGlobalTraffic() {
+        if (!loaded) load();
+        return globalTraffic;
+    }
+
 
 }
