@@ -30,20 +30,27 @@ public class HttpClientFactory {
     }
     
     public HttpClient newClient() {
+        final HttpHost host = new HttpHost(
+            LanternClientConstants.FALLBACK_SERVER_HOST, 
+            Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
+                "https");
+        return newClient(host);
+    }
+    
+    public HttpClient newClient(final HttpHost proxy) {
+        return newClient(proxy, this.censored.isCensored());
+    }
+    
+    public HttpClient newClient(final HttpHost proxy, final boolean addProxy) {
         final DefaultHttpClient client = new DefaultHttpClient();
-        configureDefaults(socketsUtil, client);
-        if (this.censored.isCensored()) {
-            final HttpHost proxy = 
-                new HttpHost(LanternClientConstants.FALLBACK_SERVER_HOST, 
-                    Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
-                    "https");
+        configureDefaults(client);
+        if (addProxy) {
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
         return client;
     }
     
-    private void configureDefaults(final LanternSocketsUtil socketsUtil,
-        final DefaultHttpClient httpClient) {
+    private void configureDefaults(final DefaultHttpClient httpClient) {
         // We wrap our own socket factory in HttpClient's socket factory here
         // for a few reasons. First, we use HttpClient's socket factory 
         // because that's the only way to set the custom name verifier we

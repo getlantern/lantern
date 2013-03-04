@@ -120,9 +120,11 @@ public class LanternTrustStore {
     public void addBase64Cert(final String fullJid, final String base64Cert)
         throws IOException {
         log.debug("Adding base 64 cert to store: {}", TRUSTSTORE_FILE);
+        /*
         if (this.certTracker != null) {
             this.certTracker.addCert(base64Cert, fullJid);
         }
+        */
         // Alright, we need to decode the certificate from base 64, write it
         // to a file, and then use keytool to import it.
 

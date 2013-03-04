@@ -36,6 +36,7 @@ public class UdtSslTest {
     
     @Test
     public void testSslOverUdt() throws Exception {
+        //System.setProperty("javax.net.debug", "ssl");
         final LanternKeyStoreManager ksm = TestUtils.getKsm();
         final LanternTrustStore trustStore = TestUtils.getTrustStore();
         final String testId = "test@gmail.com/test";
