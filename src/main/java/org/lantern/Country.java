@@ -1,7 +1,7 @@
 package org.lantern;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.lantern.state.NPeers;
 import org.lantern.state.NUsers;
@@ -10,7 +10,7 @@ public class Country {
 
     private String code;
     private String name;
-    private boolean censoring;
+    private boolean censors;
 
     private long bps;
     private long bytesEver;
@@ -278,7 +278,7 @@ public class Country {
     public Country(final String code, final String name, final boolean cens) {
         this.code = code;
         this.name = name;
-        this.censoring = cens;
+        this.censors = cens;
     }
 
     public void setCode(final String code) {
@@ -297,22 +297,22 @@ public class Country {
         return name;
     }
 
-    public void setCensoring(final boolean censoring) {
-        this.censoring = censoring;
+    public void setCensors(final boolean censors) {
+        this.censors = censors;
     }
 
-    public boolean isCensoring() {
-        return censoring;
+    public boolean isCensors() {
+        return censors;
     }
 
-    public static List<Country> allCountries() {
-        ArrayList<Country> allCountries = new ArrayList<Country>();
+    public static Map<String, Country> allCountries() {
+        Map<String,Country> allCountries = new HashMap<String, Country>();
         DefaultCensored censored = new DefaultCensored();
         for (int i = 0; i < countryTable.length; i += 2) {
             String countryCode = countryTable[i];
             String countryName = countryTable[i+1];
             boolean isCensored = censored.isCountryCodeCensored(countryCode);
-            allCountries.add(new Country(countryCode, countryName, isCensored));
+            allCountries.put(countryCode, new Country(countryCode, countryName, isCensored));
         }
         return allCountries;
     }

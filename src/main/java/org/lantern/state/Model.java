@@ -3,7 +3,7 @@ package org.lantern.state;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -55,7 +55,7 @@ public class Model {
 
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
-    private List<Country> countries = Country.allCountries();
+    private Map<String, Country> countries = Country.allCountries();
 
     private final Global global = new Global();
 
@@ -183,11 +183,11 @@ public class Model {
         this.nproxiedSitesMax = nproxiedSitesMax;
     }
 
-    public List<Country> getCountries() {
+    public Map<String, Country> getCountries() {
         return countries;
     }
 
-    public void setCountries(List<Country> countries) {
+    public void setCountries(Map<String, Country> countries) {
         this.countries = countries;
     }
 

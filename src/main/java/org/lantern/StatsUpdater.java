@@ -66,7 +66,7 @@ public class StatsUpdater extends Thread {
                     (Map<String, Object>) stats.get("global"));
             Map<String, Object> countries = (Map<String, Object>) stats
                     .get("countries");
-            for (Country country : model.getCountries()) {
+            for (Country country : model.getCountries().values()) {
                 Object countryData = countries.get(country.getCode());
                 if (countryData != null)
                     updateModel(country, (Map<String, Object>) countryData);
