@@ -223,4 +223,8 @@ public class Model {
     public void addNotification(String message, String type) {
         notifications.add(new Notification(message, type));
     }
+
+    public void clearNotifications() {
+        notifications.clear();
+    }
 }
