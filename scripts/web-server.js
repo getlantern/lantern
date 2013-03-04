@@ -91,6 +91,7 @@ StaticServlet.MimeMap = {
   'png': 'image/png',
   'svg': 'image/svg+xml'
  ,'woff': 'application/x-font-woff'
+ ,'ttf': 'font/ttf'
 };
 
 StaticServlet.prototype.handleRequest = function(req, res) {
