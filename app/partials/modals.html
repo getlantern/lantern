@@ -34,7 +34,7 @@
   </div>
 </div>
 
-<div id="settingsLoadFailure" modal="modal == MODAL.settingsLoadFailure">
+<div id="settingsLoadFailure" modal="model.modal == MODAL.settingsLoadFailure">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
@@ -51,7 +51,7 @@
   </div>
   <div class="modal-footer">
     <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="interaction(INTERACTION.quit, {notify: notifyLanternDevs})" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notifyLanternDevs})" class="btn btn-primary">{{ 'RESTART' | i18n }}</button>
   </div>
 </div>
 

@@ -79,6 +79,7 @@ var DEFAULT_LANG = 'en',
       'continue',
       'close',
       'quit',
+      'restart',
       'developer',
       'scenarios']),
     SETTING = makeEnum([

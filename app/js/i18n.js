@@ -48,11 +48,12 @@ angular.module('app.i18n', [])
       UNLOCK: 'Unlock',
       UNLOCKED: 'Unlocked',
       SETTINGS_LOAD_FAILURE_TITLE: 'Couldn’t Load Settings',
-      SETTINGS_LOAD_FAILURE_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Quit to try again later.', // XXX we currently don't back up settings before wiping them
+      SETTINGS_LOAD_FAILURE_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Restart to restart Lantern and try again.', // XXX we currently don't back up settings before wiping them
       NOTIFY_LANTERN_DEVS: 'Notify Lantern developers',
       UNEXPECTED_ERROR: 'An unexpected error has occurred.',
       ERROR: 'An error has occurred.',
       QUIT: 'Quit',
+      RESTART: 'Restart',
       PASSWORD_CREATE_TITLE: 'Create Password',
       PASSWORD_CREATE_PROMPT: 'Create your Lantern password so your information can be stored securely.',
       TAG_LINE: 'Internet freedom for everyone.',
