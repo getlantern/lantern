@@ -1,3 +1,17 @@
+@font-face {
+  font-family: "Droid Sans Mono";
+  font-style: normal;
+  font-weight: 400;
+  src: url('../font/DroidSansMono.ttf');
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url('../font/Roboto-Regular.ttf');
+}
+
 /*
  * Bootstrap v2.2.2
  *
@@ -204,7 +218,7 @@ textarea {
 }
 body {
   margin: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Roboto;
   font-size: 14px;
   line-height: 18px;
   color: #333333;
@@ -853,7 +867,7 @@ address {
 code,
 pre {
   padding: 0 3px 2px;
-  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-family: "Droid Sans Mono";
   font-size: 12px;
   color: #333333;
   -webkit-border-radius: 3px;
@@ -943,7 +957,7 @@ input,
 button,
 select,
 textarea {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Roboto;
 }
 
 label {
@@ -6749,28 +6763,21 @@ textarea.bugReport {
 }
 
 #welcome {
-  background-color: #26113c;
-  background-image: -moz-linear-gradient(top, #391a42, #070333);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#391a42), to(#070333));
-  background-image: -webkit-linear-gradient(top, #391a42, #070333);
-  background-image: -o-linear-gradient(top, #391a42, #070333);
-  background-image: linear-gradient(to bottom, #391a42, #070333);
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#36193e', endColorstr='#06032e', GradientType=0);
   text-align: center;
+  background: transparent;
   color: white;
 }
 #welcome .modal-body {
   font-size: 17.5px;
   font-weight: 200;
 }
-#welcome h1 {
-  text-shadow: black 1px 1px 2px;
-  font-size: 84px;
-  line-height: 140px;
+#welcome .logo {
+  margin-bottom: 40px;
 }
 #welcome button {
-  margin: 50px 5px 10px;
+  text-shadow: black 1px 1px 2px;
+  width: 142px;
+  margin: 70px 10px 10px;
 }
 
 #passwordCreate .control-group {
@@ -6812,7 +6819,7 @@ textarea.bugReport {
 #proxiedSites textarea {
   width: 100%;
   height: 150px;
-  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-family: "Droid Sans Mono";
   font-size: 13px;
 }
 #proxiedSites .tip {
@@ -6986,7 +6993,7 @@ textarea.bugReport {
 
 #contact-msg {
   font-size: 11.9px;
-  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-family: "Droid Sans Mono";
   width: 100%;
   height: 175px;
   margin-top: 24px;
@@ -7257,7 +7264,7 @@ body.giveMode #npending {
 }
 #model textarea {
   font-size: 10.5px;
-  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-family: "Droid Sans Mono";
   overflow: auto;
   display: block;
   width: 100%;
