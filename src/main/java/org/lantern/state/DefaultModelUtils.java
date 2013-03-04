@@ -82,8 +82,9 @@ public class DefaultModelUtils implements ModelUtils {
         try {
             final InetAddress ia = InetAddress.getByName(ip);
             if (!NetworkUtils.isPublicAddress(ia)) {
-                return getGeoData(
-                    new PublicIpAddress().getPublicIpAddress().getHostAddress());
+                LOG.debug("Using public address for network local: {}", ia);
+                //return getGeoData(
+                //    new PublicIpAddress().getPublicIpAddress().getHostAddress());
             }
         } catch (final UnknownHostException e) {
             LOG.error("Unknown host here?", e);
