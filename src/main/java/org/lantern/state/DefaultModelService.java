@@ -270,32 +270,37 @@ public class DefaultModelService implements ModelService {
 
     @Override
     public void invite(List<String> emails) {
+        // XXX i18n
         ArrayList<LanternRosterEntry> entries = new ArrayList<LanternRosterEntry>();
-        ArrayList<String> invited = new ArrayList<String>();
         for (String email : emails) {
             if (xmppHandler.sendInvite(email)) {
-                invited.add(email);
                 entries.add(roster.getRosterEntry(email));
+            } else {
+                entries.add(null);
             }
         }
 
-        int n = invited.size();
+        int n = emails.size();
         String msg = n > 1 ? "Invitations" : "An invitation";
         LanternRosterEntry entry0 = entries.get(0);
-        String name0 = "";
-        if (entry0 != null) {
+        final String name0;
+        if (entry0 == null) {
+            name0 = emails.get(0);
+        } else {
             name0 = entry0.getName();
         }
-        msg += " will be sent to <span class=\"titled\" title=\"" + name0 + "\">" + invited.get(0) + "</span>";
+        msg += " has been queued for <span class=\"titled\" title=\"" + name0 + "\">" + emails.get(0) + "</span>";
         if (n > 2) {
-          msg += " and <span class=\"titled\" title=\""+StringUtils.join(invited, ", ")+"\">"+(n-1)+" others</span>.";
+          msg += " and <span class=\"titled\" title=\""+StringUtils.join(emails, ", ")+"\">"+(n-1)+" others</span>.";
         } else if (n == 2) {
             LanternRosterEntry entry1 = entries.get(1);
-            String name1 = "";
-            if (entry1 != null) {
+            final String name1;
+            if (entry1 == null) {
+                name1 = emails.get(1);
+            } else {
                 name1 = entry1.getName();
             }
-          msg += " and <span class=\"titled\" title=\"" + name1 + "\">"+invited.get(1)+"</span>.";
+          msg += " and <span class=\"titled\" title=\"" + name1 + "\">"+emails.get(1)+"</span>.";
         } else {
           msg += ".";
         }

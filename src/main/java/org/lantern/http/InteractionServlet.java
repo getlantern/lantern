@@ -215,9 +215,9 @@ public class InteractionServlet extends HttpServlet {
             case INVITE:
                 invite(json);
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                break;
             case CONTINUE:
                 log.debug("Processing continue for friends dialog");
-                invite(json);
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
