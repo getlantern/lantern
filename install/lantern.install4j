@@ -35,7 +35,6 @@
       <mountPoint id="790" root="789" location="" mode="755" />
     </mountPoints>
     <entries>
-      <fileEntry mountPoint="25" file="../target/lantern-1.0-SNAPSHOT.jar" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <dirEntry mountPoint="25" file="./common" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="common" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
           <entry location="778off.png" fileType="regular" />
@@ -57,10 +56,8 @@
       <dirEntry mountPoint="25" file="../firefox" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="firefox" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
-      <dirEntry mountPoint="25" file="../lantern-ui" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="lantern-ui" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude>
-          <entry location="compass" fileType="regular" />
-        </exclude>
+      <dirEntry mountPoint="25" file="../lantern-ui/app" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="lantern-ui" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
       </dirEntry>
       <fileEntry mountPoint="25" file="../COPYING" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../google-equifax-root.crt" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
