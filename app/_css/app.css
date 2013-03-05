@@ -7073,7 +7073,7 @@ textarea.bugReport {
 }
 
 .peer.give, #self.give {
-  fill: #83c95a;
+  fill: #aad092;
 }
 
 path.connection {
@@ -7106,7 +7106,7 @@ g.transferring path.connection {
   width: 50px;
 }
 .visTooltip.give-mode h5 {
-  color: #83c95a;
+  color: #aad092;
 }
 .visTooltip.get-mode h5 {
   color: #ffcc66;

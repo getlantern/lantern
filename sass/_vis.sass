@@ -1,3 +1,5 @@
+$giveModeColorMap: #aad092
+
 #projectionButtons
   +position(false, false, 75px, 25px)
 
@@ -32,7 +34,7 @@ $waterColor: rgba(6, 21, 50, .1)
   fill: $getModeColor
 
 .peer.give, #self.give
-  fill: $giveModeColor
+  fill: $giveModeColorMap
 
 path.connection
   fill: none
@@ -57,7 +59,7 @@ g.transferring path.connection
     height: 50px
     width: 50px
   &.give-mode h5
-    +give-colored
+    color: $giveModeColorMap
   &.get-mode h5
     +get-colored
   .bytesUp, .bytesDn
