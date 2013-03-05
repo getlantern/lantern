@@ -102,7 +102,7 @@ type _constructFunction func(*_object, Value, []Value) Value
 
 // _callFunction
 type _callFunction interface {
-	Dispatch(*_functionEnvironment, *_runtime, Value, []Value, bool) Value
+	Dispatch(*_object, *_functionEnvironment, *_runtime, Value, []Value, bool) Value
 	Source() string
 	ScopeEnvironment() _environment
 	name() string
@@ -135,7 +135,7 @@ func newNativeCallFunction(native _nativeFunction, name string) *_nativeCallFunc
 	return self
 }
 
-func (self _nativeCallFunction) Dispatch(_ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, evalHint bool) Value {
+func (self _nativeCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, evalHint bool) Value {
 	return self.Native(FunctionCall{
 		runtime:      runtime,
 		This:         this,
@@ -162,8 +162,8 @@ func newNodeCallFunction(node *_functionNode, scopeEnvironment _environment) *_n
 	return self
 }
 
-func (self _nodeCallFunction) Dispatch(environment *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
-	return runtime._callNode(environment, self.node, this, argumentList)
+func (self _nodeCallFunction) Dispatch(function *_object, environment *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
+	return runtime._callNode(function, environment, self.node, this, argumentList)
 }
 
 func (self _nodeCallFunction) Source() string {
@@ -186,7 +186,7 @@ func newBoundCallFunction(target *_object, this Value, argumentList []Value) *_b
 	return self
 }
 
-func (self _boundCallFunction) Dispatch(_ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
+func (self _boundCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
 	argumentList = append(self.argumentList, argumentList...)
 	return runtime.Call(self.target, self.this, argumentList, false)
 }

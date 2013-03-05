@@ -120,7 +120,7 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 	}
 }
 
-func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functionNode, this Value, argumentList []Value) Value {
+func (self *_runtime) _callNode(function *_object, environment *_functionEnvironment, node *_functionNode, this Value, argumentList []Value) Value {
 
 	indexOfParameterName := make([]string, len(node.ParameterList))
 	// function(abc, def, ghi)
@@ -140,6 +140,7 @@ func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functi
 
 	if !node.ArgumentsIsParameter {
 		arguments := self.newArgumentsObject(indexOfParameterName, environment, len(argumentList))
+		arguments.stash.set("callee", toValue(function), 0101)
 		environment.arguments = arguments
 		self.localSet("arguments", toValue(arguments))
 		for index, _ := range argumentList {
@@ -181,7 +182,7 @@ func (self *_runtime) Call(function *_object, this Value, argumentList []Value, 
 	if evalHint {
 		evalHint = function == self.eval // If evalHint is true, then it IS a direct eval
 	}
-	returnValue = function._Function.Call.Dispatch(_functionEnvironment, self, this, argumentList, evalHint)
+	returnValue = function._Function.Call.Dispatch(function, _functionEnvironment, self, this, argumentList, evalHint)
 	return
 }
 
