@@ -1,13 +1,13 @@
 package org.lantern.state;
 
+import org.lantern.LanternUtils;
+
 public class Friend {
 
     private String email;
     
     private String name = "";
     
-    private String picture = "";
-
     public Friend() {
         
     }
@@ -33,11 +33,10 @@ public class Friend {
     }
 
     public String getPicture() {
-        return picture;
+        return LanternUtils.defaultPhotoUrl();
     }
 
     public void setPicture(String picture) {
-        this.picture = picture;
     }
 
 }
