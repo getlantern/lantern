@@ -1126,3 +1126,12 @@ func TestWith(t *testing.T) {
 		def
 	`, "11")
 }
+
+func Test_toString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+    [undefined+""]
+    `, "undefined")
+}

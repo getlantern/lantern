@@ -125,8 +125,8 @@ func TestOtto(t *testing.T) {
 		abc
 	`, "1")
 	test(`
-		var abc = (function(){ 1 === 1 })()
-		abc
+		var abc = (function(){ 1 === 1 })();
+		abc;
 	`, "undefined")
 }
 
@@ -210,6 +210,14 @@ func Test_eval(t *testing.T) {
 	// TODO Make this a sane result
 	// Lightning bolt, lightning bolt, lightning bolt, ...
 	test(`ghi`, "SyntaxError: SyntaxError: SyntaxError: Unexpected token ILLEGAL ()")
+
+	test(`
+        function abc(){
+            this.THIS = eval("this");
+        }
+        var def = new abc();
+        def === def.THIS;
+    `, "true")
 }
 
 func Test_evalDirectIndirect(t *testing.T) {
