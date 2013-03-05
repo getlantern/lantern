@@ -384,12 +384,20 @@ public class DefaultXmppHandler implements XmppHandler {
             public void onSocket(String arg0, Socket arg1) throws IOException {
             }
         };
+        
+        /*
+        this.client.set(P2PEndpoints.newXmppP2PHttpClient(
+            "shoot", natPmpService,
+            this.upnpService, this.mappedServer,
+            this.socketsUtil.newTlsSocketFactory(),
+            this.socketsUtil.newTlsServerSocketFactory(),
+            plainTextProxyRelayAddress, sessionListener, false));
+        */
+        
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService,
             upnpService, this.mappedServer,
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
 
-            // Major issue here -- these TLS factories don't take into account
-            // future changes in SSL certs we trust.
             this.socketsUtil.newTlsSocketFactory(),
             this.socketsUtil.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(),
