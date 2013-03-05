@@ -26,8 +26,8 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Model;
-import org.lantern.state.Settings;
 import org.lantern.state.Model.Persistent;
+import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -58,8 +58,6 @@ public class Roster implements RosterListener {
     //private final Map<String, Profile> incomingSubscriptionRequests =
       //  new TreeMap<String, Profile>();
 
-    private volatile boolean populated;
-
     private final RandomRoutingTable kscopeRoutingTable;
     private final XmppHandler xmppHandler;
     private final Model model;
@@ -81,6 +79,7 @@ public class Roster implements RosterListener {
         this.kscopeRoutingTable = routingTable;
         this.xmppHandler = xmppHandler;
         this.model = model;
+        model.setRoster(this);
         Events.register(this);
     }
 
@@ -109,7 +108,6 @@ public class Roster implements RosterListener {
                         processPresence(p, false, false);
                     }
                 }
-                populated = true;
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
                 fullRosterSync();
@@ -390,9 +388,6 @@ public class Roster implements RosterListener {
         processPresence(pres, true, true);
     }
 
-    public boolean populated() {
-        return this.populated;
-    }
 
     public void reset() {
         this.model.getFriends().clear();
@@ -400,7 +395,6 @@ public class Roster implements RosterListener {
             this.rosterEntries.clear();
         }
         this.kscopeRoutingTable.clear();
-        this.populated = false;
     }
 
     /**
@@ -416,7 +410,7 @@ public class Roster implements RosterListener {
         if (entry == null) {
             return false;
         }
-        final String subscriptionStatus = entry.getStatus();
+        final String subscriptionStatus = entry.getSubscriptionStatus();
 
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.
@@ -433,7 +427,7 @@ public class Roster implements RosterListener {
             log.debug("No matching roster entry!");
             return false;
         }
-        final String subscriptionStatus = entry.getStatus();
+        final String subscriptionStatus = entry.getSubscriptionStatus();
 
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.

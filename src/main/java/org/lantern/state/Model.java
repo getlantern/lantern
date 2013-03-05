@@ -6,9 +6,14 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Country;
 import org.lantern.LanternClientConstants;
+import org.lantern.Roster;
+import org.lantern.RosterDeserializer;
+import org.lantern.RosterSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +69,8 @@ public class Model {
     private Peers peerCollector = new Peers();
 
     private final ArrayList<Notification> notifications = new ArrayList<Notification>();
+
+    private Roster roster;
 
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
@@ -226,5 +233,15 @@ public class Model {
 
     public void clearNotifications() {
         notifications.clear();
+    }
+
+    @JsonSerialize(using=RosterSerializer.class)
+    @JsonDeserialize(using=RosterDeserializer.class)
+    public Roster getRoster() {
+        return roster;
+    }
+
+    public void setRoster(Roster roster) {
+        this.roster = roster;
     }
 }
