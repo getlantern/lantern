@@ -1,14 +1,9 @@
 package org.lantern;
 
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -23,6 +18,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Factory for creating peers that include data to be shown to the frontend.
+ */
 @Singleton
 public class PeerFactory {
 
@@ -56,6 +54,8 @@ public class PeerFactory {
                 peers.addPeer(address, peer);
             }
         });
+        // Note we don't sync peers with the frontend here because the timer 
+        // will do it for us
     }
 
     public void addPeer(final String userId, final InetAddress address, 
@@ -90,18 +90,18 @@ public class PeerFactory {
                         existing.setTrafficCounter(trafficCounter);
                     }
                 } else {
-                    final Peer peer = newGiveModePeer(userId, address, port, type, 
-                            incoming, trafficCounter);
+                    final Peer peer = newGiveModePeer(userId, address, port,
+                            type, incoming, trafficCounter);
                     peers.addPeer(address, peer);
                 }
-                //Events.sync(SyncPath.PEERS, peers.getPeers());
             }
-
+            // Note we don't sync peers with the frontend here because the timer 
+            // will do it for us
         });
     }
     
 
-    protected Peer newGetModePeer(final InetAddress address,
+    private Peer newGetModePeer(final InetAddress address,
             final LanternTrafficCounterHandler trafficCounter) {
         final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
@@ -128,37 +128,9 @@ public class PeerFactory {
         }
         
 
-        //final LanternRosterEntry finalEntry = copyEntry(entry);
-
         final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
         return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(), 
             geo.getLongitude(), type, address.getHostAddress(), Mode.give, 
             incoming, trafficCounter, entry);
     }
-
-    private LanternRosterEntry copyEntry(LanternRosterEntry entry) {
-        final String json = JsonUtils.jsonify(entry);
-        final ObjectMapper om = new ObjectMapper();
-        try {
-            return om.readValue(json, LanternRosterEntry.class);
-        } catch (JsonParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return new LanternRosterEntry();
-    }
-
-    /*
-    public Peer newPeer(final String userId, final Type type) {
-        final GeoData geo = modelUtils.getGeoData(ip);
-        return new Peer(userId, geo.getCountrycode(), false, geo.getLatitude(),
-            geo.getLongitude(), type);
-    }
-    */
 }
