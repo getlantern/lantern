@@ -151,11 +151,11 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     @JsonIgnore
-    public String getStatus() {
+    public String getSubscriptionStatus() {
         return subscriptionStatus;
     }
 
-    public void setStatus(String subscriptionStatus) {
+    public void setSubscriptionStatus(String subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
     }
 

@@ -51,11 +51,11 @@ public class CometDSyncStrategy implements SyncStrategy {
         final String json = JsonUtils.jsonify(ops, Run.class);
 
         if (!path.equals(SyncPath.ROSTER.getPath())) {
-            //log.debug("Sending state to frontend:\n{}", json);
-            //log.debug("Synced object: {}", value);
+            log.debug("Sending state to frontend:\n{}", json);
+            log.debug("Synced object: {}", value);
         } else {
             log.debug("SYNCING ROSTER -- NOT LOGGING FULL");
-            //log.debug("Sending state to frontend:\n{}", json);
+            log.debug("Sending state to frontend:\n{}", json);
         }
         this.exec.execute(new Runnable() {
             @Override
