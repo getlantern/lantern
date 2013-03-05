@@ -48,7 +48,6 @@
       <dirEntry mountPoint="25" file="../https" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="https" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
-      <fileEntry mountPoint="25" file="../certs/littleproxy.cer" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_on.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_off.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_all.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
@@ -60,7 +59,6 @@
         <exclude />
       </dirEntry>
       <fileEntry mountPoint="25" file="../COPYING" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
-      <fileEntry mountPoint="25" file="../google-equifax-root.crt" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <dirEntry mountPoint="25" file="./java7" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="java7" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
@@ -103,8 +101,7 @@
       </splashScreen>
       <java mainClass="org.lantern.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
-          <archive location="lantern-1.0-SNAPSHOT.jar" failOnError="false" />
-          <archive location="bcprov-jdk16-1.46.jar" failOnError="false" />
+          <archive location="lantern.jar" failOnError="false" />
         </classPath>
         <nativeLibraryDirectories>
           <directory name="." />
@@ -139,8 +136,7 @@
       </splashScreen>
       <java mainClass="org.lantern.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
-          <archive location="lantern-1.0-SNAPSHOT.jar" failOnError="false" />
-          <archive location="bcprov-jdk16-1.46.jar" failOnError="false" />
+          <archive location="lantern.jar" failOnError="false" />
         </classPath>
         <nativeLibraryDirectories />
       </java>
@@ -173,8 +169,7 @@
       </splashScreen>
       <java mainClass="org.lantern.Launcher" vmParameters="-Djna.nosys=true" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
-          <archive location="lantern-1.0-SNAPSHOT.jar" failOnError="false" />
-          <archive location="bcprov-jdk16-1.46.jar" failOnError="false" />
+          <archive location="lantern.jar" failOnError="false" />
         </classPath>
         <nativeLibraryDirectories />
       </java>
@@ -190,9 +185,9 @@
         <content />
       </infoPlist>
       <iconImageFiles>
+        <file path="./common/48on.png" />
         <file path="./common/16on.png" />
         <file path="./common/32on.png" />
-        <file path="./common/48on.png" />
       </iconImageFiles>
     </launcher>
   </launchers>
