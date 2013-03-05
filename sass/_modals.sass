@@ -158,15 +158,15 @@ textarea.bugReport
   +centered
   label
     +small
-  &.ng-invalid .select2-choices
+  &.invalid .select2-choices
     +inputInvalid
 
 $cselectWdth: 500px
-.selectContacts, #inviteButton, input.select2-default, input.select2-input
+.selectContacts, input.select2-default, input.select2-input
   width: $cselectWdth !important
 
-#inviteButton
-  margin-bottom: 15px
+.selectContacts
+  margin-bottom: $baseFontSize
 
 #systemProxy
   .control-group

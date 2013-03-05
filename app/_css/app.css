@@ -6908,19 +6908,19 @@ textarea.bugReport {
 .inviteForm label {
   font-size: 11.9px;
 }
-.inviteForm.ng-invalid .select2-choices {
+.inviteForm.invalid .select2-choices {
   border-color: #e9322d !important;
   -webkit-box-shadow: 0 0 6px #f8b9b7 !important;
   -moz-box-shadow: 0 0 6px #f8b9b7 !important;
   box-shadow: 0 0 6px #f8b9b7 !important;
 }
 
-.selectContacts, #inviteButton, input.select2-default, input.select2-input {
+.selectContacts, input.select2-default, input.select2-input {
   width: 500px !important;
 }
 
-#inviteButton {
-  margin-bottom: 15px;
+.selectContacts {
+  margin-bottom: 14px;
 }
 
 #systemProxy .control-group {

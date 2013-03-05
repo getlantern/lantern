@@ -354,6 +354,17 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     $scope.invitees = [];
   }
 
+  $scope.valid = function() {
+    var invitees = $scope.invitees;
+    if (!invitees) return true;
+    if (!('length' in invitees)) return false;
+    if (invitees.length > model.ninvites) return false;
+    for (var i=0, ii=invitees[i]; ii; ii=invitees[++i]) {
+      if (!EMAIL.test(ii.id)) return false;
+    }
+    return true;
+  };
+
   $scope.invite = function() {
     if ($scope.invitees.length) {
       var data = _.map($scope.invitees, function(i) { return i.id });
