@@ -32,6 +32,20 @@ func builtinObject_toString(call FunctionCall) Value {
 	return toValue(result)
 }
 
+func builtinObject_getPrototypeOf(call FunctionCall) Value {
+	objectValue := call.Argument(0)
+	object := objectValue._object()
+	if object == nil {
+		panic(newTypeError())
+	}
+
+	if object.prototype == nil {
+		return NullValue()
+	}
+
+	return toValue(object.prototype)
+}
+
 func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()

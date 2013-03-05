@@ -250,6 +250,7 @@ func toValue_reflectValuePanic(value interface{}, kind reflect.Kind) {
 	}
 }
 
+// TODO toValue(nil)?
 func toValue(value interface{}) Value {
 	switch value := value.(type) {
 	case Value:

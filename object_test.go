@@ -23,3 +23,15 @@ func TestStringObject(t *testing.T) {
 	Is(object.get("10"), "undefined")
 	Is(object.get("2"), "z")
 }
+
+func TestObject_getPrototypeOf(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        abc = {};
+        def = Object.getPrototypeOf(abc);
+        ghi = Object.getPrototypeOf(def);
+        [abc,def,ghi,ghi+""];
+    `, "[object Object],[object Object],,null")
+}
