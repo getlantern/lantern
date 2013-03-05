@@ -26,7 +26,6 @@ var DEFAULT_LANG = 'en',
                    location.protocol+'//'+location.host+COMETD_MOUNT_POINT :
                    COMETD_MOUNT_POINT,
     MODEL_SYNC_CHANNEL = '/sync',
-    DEFAULT_AVATAR_URL = '/app/img/default-avatar.png',
     CONTACT_FORM_MAXLEN = 500000,
     INPUT_PAT = {
       // HTML5 compatible email regex (http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html)
@@ -118,7 +117,6 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('COMETD_MOUNT_POINT', COMETD_MOUNT_POINT)
     .constant('COMETD_URL', COMETD_URL)
     .constant('MODEL_SYNC_CHANNEL', MODEL_SYNC_CHANNEL)
-    .constant('DEFAULT_AVATAR_URL', DEFAULT_AVATAR_URL)
     .constant('CONTACT_FORM_MAXLEN', CONTACT_FORM_MAXLEN)
     .constant('INPUT_PAT', INPUT_PAT)
     .constant('EXTERNAL_URL', EXTERNAL_URL)
@@ -141,7 +139,6 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     COMETD_MOUNT_POINT: COMETD_MOUNT_POINT,
     COMETD_URL: COMETD_URL,
     MODEL_SYNC_CHANNEL: MODEL_SYNC_CHANNEL,
-    DEFAULT_AVATAR_URL: DEFAULT_AVATAR_URL,
     CONTACT_FORM_MAXLEN: CONTACT_FORM_MAXLEN,
     INPUT_PAT: INPUT_PAT,
     EXTERNAL_URL: EXTERNAL_URL,

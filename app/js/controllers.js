@@ -5,7 +5,7 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, EXTERNAL_URL, VER, $window) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -17,7 +17,6 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   if (dev.value) {
     $window.model = model; // easier interactive debugging
   }
-  $scope.DEFAULT_AVATAR_URL = DEFAULT_AVATAR_URL;
   $scope.EXTERNAL_URL = EXTERNAL_URL;
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;

@@ -183,34 +183,34 @@ exports.SCENARIOS = {
                 email: 'lantern_friend1@example.com',
                 name: 'Lantern Friend 1',
                 link: '',
-                picture: '',
+                picture: 'img/default-avatar.png',
                 status: 'away',
                 statusMessage: 'meeting'
               },{
                 email: 'lantern_friend2@example.com',
                 name: 'Lantern Friend 2',
                 link: '',
-                picture: '',
+                picture: 'img/default-avatar.png',
                 status: 'available',
                 statusMessage: 'Bangkok'
               },{
                 email: 'user1@example.com',
                 name: 'User 1',
                 link: '',
-                picture: '',
+                picture: 'img/default-avatar.png',
                 status: 'idle',
                 statusMessage: 'sleeping'
               },{
                 email: 'user2@example.com',
                 name: 'User 2',
                 link: '',
-                picture: '',
+                picture: 'img/default-avatar.png',
                 status: 'offline'
               },{
                 email: 'lantern_power_user@example.com',
                 name: 'Lantern Power User',
                 link: '',
-                picture: '',
+                picture: 'img/default-avatar.png',
                 status: 'available',
                 statusMessage: 'Shanghai!'
               }];
@@ -228,24 +228,30 @@ exports.SCENARIOS = {
               var friends = {
                 current: [{
                            email: 'lantern_friend1@example.com',
+                           picture: 'img/default-avatar.png',
                            name: 'Lantern Friend 1'
                           },
                           {
                            email: 'lantern_friend2@example.com',
+                           picture: 'img/default-avatar.png',
                            name: 'Lantern Friend 2'
                           },
                           {
                            email: 'lantern_power_user@example.com',
+                           picture: 'img/default-avatar.png',
                            name: 'Lantern Power User'
                           }],
                 pending: [{
                            email: 'inviter1@example.com',
+                           picture: 'img/default-avatar.png',
                            name: 'Example Inviter'
                           },{
                            email: 'inviter2@example.com',
+                           picture: 'img/default-avatar.png',
                            name: 'Another Inviter'
                           },{
                            email: 'inviter3@example.com',
+                           picture: 'img/default-avatar.png',
                            name: 'Third Inviter'
                           }]
                 };

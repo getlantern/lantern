@@ -25,7 +25,7 @@ angular.module('app.vis', [])
     }
   });
 
-function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONFIG, ENUMS, DEFAULT_AVATAR_URL) {
+function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONFIG, ENUMS) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -266,7 +266,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
       bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
     }, model.profile);
-    if (!ctx.picture) ctx.picture = DEFAULT_AVATAR_URL;
     return hoverContentForPeer.onRosterTemplate(ctx);
   };
 
@@ -279,7 +278,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     }, tmpl;
     if (peer.rosterEntry) {
       _.merge(ctx, peer.rosterEntry);
-      if (!ctx.picture) ctx.picture = DEFAULT_AVATAR_URL;
       tmpl = hoverContentForPeer.onRosterTemplate;
     } else {
       tmpl = hoverContentForPeer.notOnRosterTemplate;

@@ -319,7 +319,7 @@
       <ul class="contactList-horizontal">
         <!-- http://microformats.org/wiki/hcard -->
         <li class="vcard" ng-repeat="contact in model.friends.pending">
-          <img class="photo pull-left" ng-src="{{ contact.picture || DEFAULT_AVATAR_URL }}">
+          <img class="photo pull-left" ng-src="{{ contact.picture }}">
           <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div><!-- XXX text direction -->
           <div class="email small" title="{{ contact.email }}" ng-class="{gray: !contact.email}" dir="ltr">{{ contact.email || ('NO_EMAIL' | i18n) }}</div>
           <div class="btn-group">
@@ -342,7 +342,7 @@
       <ul ng-show="model.friends.current.length" class="contactList-horizontal centered">
         <!-- http://microformats.org/wiki/hcard -->
         <li class="vcard" ng-repeat="contact in model.friends.current">
-          <img class="photo pull-left" ng-src="{{ contact.picture || DEFAULT_AVATAR_URL }}">
+          <img class="photo pull-left" ng-src="{{ contact.picture }}">
           <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div><!-- XXX text direction -->
           <div class="email small" title="{{ contact.email }}" ng-class="{gray: !contact.email}" dir="ltr">{{ contact.email || ('NO_EMAIL' | i18n) }}</div>
         </li>
