@@ -151,7 +151,7 @@ public class Roster implements RosterListener {
             this.kscopeRoutingTable.addNeighbor(id);
 
             
-            // only advertise if we're in GET mode
+            // only advertise if we're in GIVE mode
             if(this.model.getSettings().getMode() == Settings.Mode.give) {
                 sendKscope(presence, id);
             }
