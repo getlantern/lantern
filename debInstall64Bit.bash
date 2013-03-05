@@ -11,4 +11,4 @@ then
 fi
 #RELEASE=$2
 
-./debInstall.bash $* 64 
+./debInstall.bash $* 64 579 
