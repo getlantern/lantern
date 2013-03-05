@@ -33,7 +33,6 @@ import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;

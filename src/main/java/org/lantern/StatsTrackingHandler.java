@@ -35,23 +35,4 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler
         }
         super.messageReceived(ctx, e);
     }
-    
-    /*
-    @Override
-    public void channelOpen(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent cse) throws Exception {
-        //Events.asyncEventBus().post(
-        //    new IncomingSocketEvent(ctx.getChannel(), cse, true));
-        super.channelOpen(ctx, cse);
-    }
-    
-    @Override
-    public void channelClosed(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent cse) throws Exception {
-        //Events.asyncEventBus().post(
-        //    new IncomingSocketEvent(ctx.getChannel(), cse, false));
-        //ctx.sendUpstream(cse);
-        super.channelClosed(ctx, cse);
-    }
-    */
 }
