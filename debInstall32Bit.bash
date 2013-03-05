@@ -10,4 +10,4 @@ then
     die "$0: Received $# args... version and whether or not this is a release required"
 fi
 
-./debInstall.bash $* 32 
+./debInstall.bash $* 32 690

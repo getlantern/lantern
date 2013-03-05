@@ -5,17 +5,19 @@ function die() {
   exit 1
 }
 
-if [ $# -ne "3" ]
+if [ $# -ne "4" ]
 then
-    die "$0: Received $# args... version, architecture, and whether or not this is a release required"
+    die "$0: Received $# args... version, whether or not this is a release, architecture, and build ID required"
 fi
 VERSION=$1
 RELEASE=$2
 ARCH=$3
+BUILD_ID=$4
 
 ./installerBuild.bash $VERSION "-Dsun.arch.data.model=$ARCH -Plinux" $RELEASE || die "Could not build!!"
 
-install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
+#install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
+install4jc -b $BUILD_ID -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 
 name=lantern-$VERSION-$ARCH-bit.deb
 mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
