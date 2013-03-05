@@ -64,6 +64,7 @@ import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.util.ByteBufferUtils;
+import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,15 +125,60 @@ public class LanternUtils {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, true);
     }
     */
+    
+
+    public static FiveTuple openOutgoingPeer(
+        final URI uri, final P2PClient<FiveTuple> p2pClient,
+        final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
+
+        if (p2pClient == null) {
+            LOG.info("P2P client is null. Testing?");
+            throw new IOException("P2P client not connected");
+        }
+
+        // Start the connection attempt.
+        try {
+            LOG.info("Creating a new socket to {}", uri);
+            return p2pClient.newSocket(uri);
+
+        } catch (final NoAnswerException nae) {
+            // This is tricky, as it can mean two things. First, it can mean
+            // the XMPP message was somehow lost. Second, it can also mean
+            // the other side is actually not there and didn't respond as a
+            // result.
+            LOG.info("Did not get answer!! Closing channel from browser", nae);
+            final AtomicInteger count = peerFailureCount.get(uri);
+            if (count == null) {
+                LOG.info("Incrementing failure count");
+                peerFailureCount.put(uri, new AtomicInteger(0));
+            }
+            else if (count.incrementAndGet() > 5) {
+                LOG.info("Got a bunch of failures in a row to this peer. " +
+                    "Removing it.");
+
+                // We still reset it back to zero. Note this all should
+                // ideally never happen, and we should be able to use the
+                // XMPP presence alerts to determine if peers are still valid
+                // or not.
+                peerFailureCount.put(uri, new AtomicInteger(0));
+                //proxyStatusListener.onCouldNotConnectToPeer(uri);
+            }
+            throw new IOExceptionWithCause(nae);
+        } catch (final IOException ioe) {
+            //proxyStatusListener.onCouldNotConnectToPeer(uri);
+            LOG.warn("Could not connect to peer", ioe);
+            throw ioe;
+        }
+    }
 
     public static Socket openOutgoingPeerSocket(final URI uri,
-        final P2PClient p2pClient,
+        final P2PClient<Socket> p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, false);
     }
 
     private static Socket openOutgoingPeerSocket(
-        final URI uri, final P2PClient p2pClient,
+        final URI uri, final P2PClient<Socket> p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount,
         final boolean raw) throws IOException {
 
@@ -192,51 +238,6 @@ public class LanternUtils {
             throw ioe;
         }
     }
-
-    /*
-    public static String getMacAddress() {
-        if (MAC_ADDRESS != null) {
-            LOG.info("Returning MAC: "+MAC_ADDRESS);
-            return MAC_ADDRESS;
-        }
-        final Enumeration<NetworkInterface> nis;
-        try {
-            nis = NetworkInterface.getNetworkInterfaces();
-        } catch (final SocketException e1) {
-            throw new Error("Could not read network interfaces?");
-        }
-        while (nis.hasMoreElements()) {
-            final NetworkInterface ni = nis.nextElement();
-            try {
-                if (!ni.isUp()) {
-                    LOG.info("Ignoring interface that's not up: {}",
-                        ni.getDisplayName());
-                    continue;
-                }
-                final byte[] mac = ni.getHardwareAddress();
-                if (mac != null && mac.length > 0) {
-                    LOG.info("Returning 'normal' MAC address");
-                    return macMe(mac);
-                }
-            } catch (final SocketException e) {
-                LOG.warn("Could not get MAC address?");
-            }
-        }
-        try {
-            LOG.warn("Returning custom MAC address");
-            return macMe(InetAddress.getLocalHost().getHostAddress() +
-                    System.currentTimeMillis());
-        } catch (final UnknownHostException e) {
-            final byte[] bytes = new byte[24];
-            secureRandom.nextBytes(bytes);
-            return macMe(bytes);
-        }
-    }
-
-    private static String macMe(final String mac) {
-        return macMe(utf8Bytes(mac));
-    }
-    */
 
     public static byte[] utf8Bytes(final String str) {
         try {
