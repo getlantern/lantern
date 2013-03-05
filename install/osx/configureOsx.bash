@@ -50,9 +50,9 @@ log "Unloading launchd plist file just in case"
 # Attempt to unload in case an old one is there
 launchctl unload -F $LAUNCHD_PLIST 
 
-log "Removing old trust store"
-test -f ~/.lantern/lantern_truststore.jks && rm -rf ~/.lantern/lantern_truststore.jks
-test -f ~/.lantern/lantern_truststore.jks && log "trust store still exists!! not good."
+#log "Removing old trust store"
+#test -f ~/.lantern/lantern_truststore.jks && rm -rf ~/.lantern/lantern_truststore.jks
+#test -f ~/.lantern/lantern_truststore.jks && log "trust store still exists!! not good."
 
 log "Executing perl replace on Info.plist"
 # The following is done to modify the install4j-generated Info.plist to run without a UI
