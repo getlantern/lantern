@@ -74,41 +74,47 @@ public final class PhotoServlet extends HttpServlet {
     protected void doGet(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException,
         IOException {
-        log.debug("Got photo request: "+req.getRequestURI());
+        log.debug("Got photo request: {}", req.getRequestURI());
         final String email = req.getParameter("email");
+        final byte[] imageData;
         if (StringUtils.isBlank(email)) {
             sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
             return;
-        }
+        } 
         
-        // In theory here we could hit another Google API to avoid
-        // shoving all this data through XMPP, although it probably doesn't
-        // matter much -- a TCP pipe is a TCP pipe after all.
-        byte[] raw = null;
-        try {
-            raw = getVCard(email).getAvatar();
-        } catch (final CredentialException e) {
-            sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
-                "Could not authorize Google Talk connection");
-            return;
-        } catch (final XMPPException e) {
-            log.debug("Exception accessing vcard for "+email, e);
-        }
-        
-        final byte[] imageData;
-        if (raw == null) {
+        if (email.equals("default")) {
+            log.debug("Serving default photo!!");
             imageData = noImage;
         } else {
-            imageData = raw;
-            /*
-            final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
-            if (types != null && !types.isEmpty()) {
-                final String ct = types.iterator().next().toString();
-                resp.setContentType(ct);
-                log.debug("Set content type to {}", ct);
+        
+            // In theory here we could hit another Google API to avoid
+            // shoving all this data through XMPP, although it probably doesn't
+            // matter much -- a TCP pipe is a TCP pipe after all.
+            byte[] raw = null;
+            try {
+                raw = getVCard(email).getAvatar();
+            } catch (final CredentialException e) {
+                sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
+                    "Could not authorize Google Talk connection");
+                return;
+            } catch (final XMPPException e) {
+                log.debug("Exception accessing vcard for "+email, e);
             }
-            */
+            if (raw == null) {
+                imageData = noImage;
+            } else {
+                imageData = raw;
+                /*
+                final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
+                if (types != null && !types.isEmpty()) {
+                    final String ct = types.iterator().next().toString();
+                    resp.setContentType(ct);
+                    log.debug("Set content type to {}", ct);
+                }
+                */
+            }
         }
+        
         
         resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
             "max-age=" + CACHE_DURATION_IN_SECOND);
@@ -139,11 +145,11 @@ public final class PhotoServlet extends HttpServlet {
 
     private byte[] loadNoImage() {
         final File none;
-        final File installed = new File("default-profile-image.png");
+        final File installed = new File("lantern-ui/img/default-avatar.png");//default-profile-image.png");
         if (installed.isFile()) {
             none = installed;
         } else {
-            none = new File("install/common/default-profile-image.png");
+            none = new File("lantern-ui/app/img/default-avatar.png");
         }
         
         InputStream is = null;
