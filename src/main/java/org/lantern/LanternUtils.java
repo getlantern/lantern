@@ -58,6 +58,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.lantern.state.StaticSettings;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -916,6 +917,21 @@ public class LanternUtils {
         }
     }
 
+
+    /**
+     * We call this dynamically instead of using a constant because the API
+     * PORT is set at startup, and we don't want to create a race condition
+     * for retrieving it.
+     *
+     * @return The base URL for photos.
+     */
+    public static String photoUrlBase() {
+        return StaticSettings.getLocalEndpoint()+"/photo/";
+    }
+
+    public static String defaultPhotoUrl() {
+        return LanternUtils.photoUrlBase() + "?email=default";
+    }
 }
 
 

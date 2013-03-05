@@ -26,34 +26,29 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private final boolean autosub;
 
-    private final String avatarUrlBase;
-    
     public LanternRosterEntry() {
-        this(false, false, "", "", "", false, "");
+        this(false, false, "", "", "", false);
     }
     
-    public LanternRosterEntry(final Presence pres, final String avatarUrl) {
+    public LanternRosterEntry(final Presence pres) {
         this(pres.isAvailable(), false, pres.getFrom(), pres.getFrom(), 
-            pres.getStatus(), false, avatarUrl);
+            pres.getStatus(), false);
     }
 
-    public LanternRosterEntry(final String email, final String avatarUrl) {
-        this(false, true, email, "", "", false, avatarUrl);
+    public LanternRosterEntry(final String email) {
+        this(false, true, email, "", "", false);
     }
 
-    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl) {
+    public LanternRosterEntry(final RosterEntry entry) {
         this(false, false, entry.getUser(), entry.getName(),
-                extractSubscriptionStatus(entry), entry.isAutosub(), avatarUrl);
+                extractSubscriptionStatus(entry), entry.isAutosub());
     }
 
     private LanternRosterEntry(final boolean available, final boolean away,
             final String email, final String name,
-            final String subscriptionStatus, final boolean autosub,
-            final String avatarUrlBase) {
+            final String subscriptionStatus, final boolean autosub) {
         this.available = available;
         this.away = away;
-        
-        this.avatarUrlBase = avatarUrlBase;
         
         if (StringUtils.isBlank(email)) {
             this.email = "";
@@ -81,10 +76,10 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     public String getPicture() {
-        if (StringUtils.isBlank(avatarUrlBase)) {
-            return "";
+        if (StringUtils.isBlank(this.email)) {
+            return LanternUtils.defaultPhotoUrl();
         }
-        return avatarUrlBase + "?email=" + getEmail();
+        return LanternUtils.photoUrlBase() + "?email=" + getEmail();
     }
     
     public void setPicture(final String picture) {

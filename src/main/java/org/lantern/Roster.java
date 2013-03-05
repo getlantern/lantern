@@ -28,7 +28,6 @@ import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Settings;
-import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -118,24 +117,13 @@ public class Roster implements RosterListener {
         t.start();
     }
 
-    /**
-     * We call this dynamically instead of using a constant because the API
-     * PORT is set at startup, and we don't want to create a race condition
-     * for retrieving it.
-     *
-     * @return The base URL for photos.
-     */
-    private String photoUrlBase() {
-        return StaticSettings.getLocalEndpoint()+"/photo/";
-    }
-
     private Map<String, LanternRosterEntry> getRosterEntries(
         final Collection<RosterEntry> unordered) {
         final Map<String, LanternRosterEntry> entries =
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lre =
-                new LanternRosterEntry(entry, photoUrlBase());
+                new LanternRosterEntry(entry);
             if (LanternUtils.isNotJid(lre.getEmail())) {
                 entries.put(lre.getEmail(), lre);
             }
@@ -225,7 +213,7 @@ public class Roster implements RosterListener {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.debug("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres, photoUrlBase()),
+            addEntry(new LanternRosterEntry(pres),
                 updateIndex);
         }
 
@@ -346,7 +334,8 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry, photoUrlBase()), false);
+            addEntry(new LanternRosterEntry(entry), 
+                false);
         }
         fullRosterSync();
     }
