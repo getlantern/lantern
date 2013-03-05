@@ -235,6 +235,7 @@ public class Model {
         notifications.clear();
     }
 
+    @JsonView({Run.class})
     @JsonSerialize(using=RosterSerializer.class)
     @JsonDeserialize(using=RosterDeserializer.class)
     public Roster getRoster() {
