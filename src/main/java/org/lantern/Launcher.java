@@ -22,8 +22,8 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -93,6 +93,7 @@ public class Launcher {
     private SyncService syncService;
 
     public Launcher(final String... args) {
+        //System.setProperty("javax.net.debug", "ssl");
         this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
         //Connection.DEBUG_ENABLED = true;
@@ -451,6 +452,7 @@ public class Launcher {
                 log("No policy files on non-Vista machine!!");
             }
             log("Reverting to weaker ciphers on Vista");
+            log("Look in "+ new File(SystemUtils.JAVA_HOME, "lib/security").getAbsolutePath());
             IceConfig.setCipherSuites(new String[] {
                     CIPHER_SUITE_LOW_BIT
                 //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
