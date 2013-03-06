@@ -679,6 +679,12 @@ func TestParseSuccess(t *testing.T) {
 	---
 	{ @ [ undefined undefined ] }
 	`)
+
+	test(`
+    ((x & (x = 1)) !== 0)
+    ---
+    { @ { !== { & x { = x 1 } } 0 } }
+    `)
 }
 
 func TestParseFailure(t *testing.T) {

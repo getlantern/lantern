@@ -407,3 +407,18 @@ func TestObject_defineOwnProperty(t *testing.T) {
 		abc == true && def == false;
 	`, "true")
 }
+
+func Test_assignmentEvaluationOrder(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	//test(`
+	//    var abc = 0;
+	//    ((abc = 1) & abc);
+	//`, "1")
+
+	test(`
+        var abc = 0;
+        (abc & (abc = 1));
+    `, "0")
+}

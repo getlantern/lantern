@@ -488,7 +488,7 @@ func (self *_runtime) evaluateBinaryOperation(node *_binaryOperationNode) Value 
 		return self.GetValue(right)
 	}
 
-	return self.calculateBinaryOperation(node.Operator, left, self.evaluate(node.Right))
+	return self.calculateBinaryOperation(node.Operator, leftValue, self.evaluate(node.Right))
 }
 
 func (self *_runtime) evaluateCall(node *_callNode) Value {
