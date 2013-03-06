@@ -105,4 +105,19 @@ public class LanternClientConstants {
     public static final File GEOIP = new File(DATA_DIR, "GeoIP.dat");
     
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
+
+    // Not final because it may be set from the command line for debugging.
+    public static String LANTERN_JID;
+
+    // Not final because it may be set from the command line for debugging.
+    public static String STATS_URL;
+
+    public static void setControllerId(final String id) {
+        LANTERN_JID = id + "@appspot.com";
+        STATS_URL = "http://" + id + ".appspot.com/stats";
+    }
+
+    static {
+        setControllerId("lanternctrl");
+    }
 }

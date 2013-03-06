@@ -22,14 +22,20 @@ public class PeerSocketTest {
 
     @Test
     public void testSocket() throws Exception {
+        
+        System.setProperty("javax.net.debug", "ssl");
+        
         // Note you have to have a remote peer URI that's up a running for
         // this test to work. In the future we'll likely develop a test
         // framework that simulates things like unpredictable network latency
         // and doesn't require live tests over the network.
+        IceConfig.setDisableUdpOnLocalNetwork(false);
+        Launcher.configureCipherSuites();
         TestUtils.load(true);
         final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
         xmpp.connect();
 
+        Thread.sleep(2000);
         // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
         final String peer = "";
         if (StringUtils.isBlank(peer)) {
