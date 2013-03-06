@@ -94,7 +94,7 @@ func parserTest(sourceWant ...string) {
 			Is(fmt.Sprintf("%s %d:%d:%d", err.Message, err.Line, err.Column, err.Character), string(want))
 			// Line:Column:Character
 		default:
-			panic(err)
+			Is(fmt.Sprintf("%v", err), string(want))
 		}
 	}
 }
@@ -820,20 +820,17 @@ Invalid regular expression
 
 	test(`3 = 4
 ---
-Invalid left-hand side in assignment
-1:-:-
+ReferenceError: Invalid left-hand side in assignment
 	`)
 
 	test(`func() = 4
 ---
-Invalid left-hand side in assignment
-1:-:-
+ReferenceError: Invalid left-hand side in assignment
 	`)
 
 	test(`(1 + 1) = 10
 ---
-Invalid left-hand side in assignment
-1:-:-
+ReferenceError: Invalid left-hand side in assignment
 	`)
 
 	test(`1++
@@ -910,14 +907,12 @@ Unexpected token if
 
 	test(`i + 2 = 42
 ---
-Invalid left-hand side in assignment
-1:-:-
+ReferenceError: Invalid left-hand side in assignment
 	`)
 
 	test(`+i = 42
 ---
-Invalid left-hand side in assignment
-1:-:-
+ReferenceError: Invalid left-hand side in assignment
 	`)
 
 	test(`1 + (

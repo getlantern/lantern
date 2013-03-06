@@ -16,11 +16,12 @@ func mustParse(source string) *_programNode {
 	return parser.Parse()
 }
 
-func parse(source string) (result *_programNode, error interface{}) {
+func parse(source string) (result *_programNode, err interface{}) {
 	defer func() {
 		if caught := recover(); caught != nil {
-			if _, yes := caught.(*_syntaxError); yes {
-				error = caught
+			switch caught := caught.(type) {
+			case *_syntaxError, _error:
+				err = caught
 				return
 			}
 			panic(caught)

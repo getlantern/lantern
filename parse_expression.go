@@ -446,7 +446,7 @@ func (self *_parser) ParseAssignmentExpression() _node {
 		switch left.Type() {
 		case nodeIdentifier, nodeDotMember, nodeBracketMember:
 		default:
-			panic(self.History(-1).newSyntaxError("Invalid left-hand side in assignment"))
+			panic(newReferenceError("Invalid left-hand side in assignment"))
 		}
 		left = newAssignmentNode(self.Consume(), left, self.ParseAssignmentExpression())
 		self.markNode(left)
