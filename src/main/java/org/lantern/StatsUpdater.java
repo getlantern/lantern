@@ -53,7 +53,7 @@ public class StatsUpdater extends Thread {
     private void updateStats() {
         final HttpGet get = new HttpGet();
         try {
-            final URI uri = new URI(LanternConstants.STATS_URL);
+            final URI uri = new URI(LanternClientConstants.STATS_URL);
             get.setURI(uri);
             final HttpResponse response = client.execute(get);
             final HttpEntity entity = response.getEntity();

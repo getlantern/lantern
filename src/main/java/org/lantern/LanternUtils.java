@@ -469,12 +469,19 @@ public class LanternUtils {
         return null;
     }
 
+    public static boolean isLanternHub(final String jabberid) {
+        final String userid = LanternXmppUtils.jidToUserId(jabberid);
+        return LanternClientConstants.LANTERN_JID.equals(userid);
+    }
+
     public static Packet activateOtr(final XMPPConnection conn) {
-        return XmppUtils.goOffTheRecord(LanternConstants.LANTERN_JID, conn);
+        return XmppUtils.goOffTheRecord(LanternClientConstants.LANTERN_JID,
+                                        conn);
     }
 
     public static Packet deactivateOtr(final XMPPConnection conn) {
-        return XmppUtils.goOnTheRecord(LanternConstants.LANTERN_JID, conn);
+        return XmppUtils.goOnTheRecord(LanternClientConstants.LANTERN_JID,
+                                       conn);
     }
 
     public static void browseUrl(final String uri) {

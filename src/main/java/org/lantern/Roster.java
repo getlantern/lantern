@@ -139,7 +139,7 @@ public class Roster implements RosterListener {
         final boolean updateIndex) {
         final String from = presence.getFrom();
         log.debug("Got presence: {}", presence.toXML());
-        if (LanternXmppUtils.isLanternHub(from)) {
+        if (LanternUtils.isLanternHub(from)) {
             log.info("Got Lantern hub presence");
         } else if (LanternXmppUtils.isLanternJid(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
