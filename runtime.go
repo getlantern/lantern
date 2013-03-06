@@ -208,7 +208,7 @@ func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw boo
 				return
 			case *_syntaxError:
 				throw = true
-				throwValue = toValue(self.newError("SyntaxError", toValue(caught.String())))
+				throwValue = toValue(self.newError("SyntaxError", toValue(caught.Message)))
 				return
 			}
 			panic(caught)

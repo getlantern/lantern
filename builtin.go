@@ -17,8 +17,12 @@ func builtinGlobal_eval(call FunctionCall) Value {
 	}
 	program, err := parse(toString(source))
 	if err != nil {
-		//panic(call.runtime.newError("SyntaxError", UndefinedValue()))
-		panic(&_syntaxError{Message: fmt.Sprintf("%v", err)})
+		switch err := err.(type) {
+		case *_syntaxError, *_error, _error:
+			panic(err)
+		default:
+			panic(&_syntaxError{Message: fmt.Sprintf("%v", err)})
+		}
 	}
 	runtime := call.runtime
 	if call.evalHint {

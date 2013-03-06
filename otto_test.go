@@ -209,7 +209,7 @@ func Test_eval(t *testing.T) {
 	`, "true")
 	// TODO Make this a sane result
 	// Lightning bolt, lightning bolt, lightning bolt, ...
-	test(`ghi`, "SyntaxError: SyntaxError: SyntaxError: Unexpected token ILLEGAL ()")
+	test(`ghi`, "SyntaxError: Unexpected token ILLEGAL ()")
 
 	test(`
         function abc(){

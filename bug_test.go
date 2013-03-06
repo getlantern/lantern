@@ -10,7 +10,7 @@ func Test_262(t *testing.T) {
 
 	test := runTest()
 	test(`raise:
-        42 = 42;
+        eval("42 = 42;");
     `, "ReferenceError: Invalid left-hand side in assignment")
 }
 
