@@ -32,6 +32,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
+import org.lantern.event.Events;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
@@ -607,7 +608,8 @@ public class Launcher {
             t.start();
         } else {
             LOG.debug("Not auto-logging in with model:\n{}", model);
-            internalState.advanceModal(model.getModal());
+            if (model.isSetupComplete())
+                Events.syncModal(model, Modal.authorize);
         }
     }
     
