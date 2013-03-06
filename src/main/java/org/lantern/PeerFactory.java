@@ -12,7 +12,7 @@ import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Peers;
 import org.lantern.util.LanternTrafficCounterHandler;
-import org.lantern.util.ThreadPools;
+import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class PeerFactory {
      * We create an executor here because we need to thread our geo-ip lookups.
      */
     private final ExecutorService exec = 
-        ThreadPools.newCachedThreadPool("Peer-Factory-Thread-");
+        Threads.newCachedThreadPool("Peer-Factory-Thread-");
 
     private final Roster roster;
 

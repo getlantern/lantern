@@ -1,14 +1,14 @@
 package org.lantern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundByteHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.udt.nio.NioUdtProvider;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Handler implementation for the echo server.
@@ -17,11 +17,17 @@ import java.util.logging.Logger;
 public class UdtRelayServerHandler extends ChannelInboundByteHandlerAdapter {
 
     private static final Logger log = 
-        Logger.getLogger(UdtRelayServerHandler.class.getName());
+        LoggerFactory.getLogger(UdtRelayServerHandler.class.getName());
+    private final int relayPort;
+
+    public UdtRelayServerHandler(final int relayPort) {
+        this.relayPort = relayPort;
+    }
 
     @Override
     public void inboundBufferUpdated(final ChannelHandlerContext ctx,
-            final ByteBuf in) {
+        final ByteBuf in) {
+        log.debug("Got inboundBufferUpdated!!!!!!!");
         final ByteBuf out = ctx.nextOutboundByteBuffer();
         out.discardReadBytes();
         out.writeBytes(in);
@@ -31,7 +37,7 @@ public class UdtRelayServerHandler extends ChannelInboundByteHandlerAdapter {
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx,
             final Throwable cause) {
-        log.log(Level.WARNING, "close the connection when an exception is raised", cause);
+        log.debug("Close the connection when an exception is raised", cause);
         ctx.close();
     }
 
