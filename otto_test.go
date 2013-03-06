@@ -377,6 +377,12 @@ func Test_delete(t *testing.T) {
 	test(`
 		delete 42;
 	`, "true")
+
+	test(`
+		abc = delete $_undefined_$;
+		abc = abc && delete ($_undefined_$);
+        abc;
+	`, "true")
 }
 
 func TestObject_defineOwnProperty(t *testing.T) {

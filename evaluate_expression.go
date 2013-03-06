@@ -59,9 +59,16 @@ func (self *_runtime) evaluateRegExp(node *_regExpNode) Value {
 func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 
 	target := self.evaluate(node.Target)
-	if node.Operator == "typeof" && target._valueType == valueReference && target.reference().IsUnresolvable() {
-		return toValue("undefined")
+	switch node.Operator {
+	case "typeof", "delete":
+		if target._valueType == valueReference && target.reference().IsUnresolvable() {
+			if node.Operator == "typeof" {
+				return toValue("undefined")
+			}
+			return TrueValue()
+		}
 	}
+
 	targetValue := self.GetValue(target)
 
 	switch node.Operator {
