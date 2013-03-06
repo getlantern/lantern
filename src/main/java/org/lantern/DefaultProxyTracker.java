@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounterHandler;
+import org.lantern.util.ThreadPools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,14 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final Timer timer;
     
     private boolean populatedProxies = false;
+    
+    
+    /**
+     * Thread pool for checking connections to proxies -- otherwise these
+     * can hold up the XMPP processing thread or any other calling thread.
+     */
+    private final ExecutorService proxyCheckThreadPool = 
+            ThreadPools.newCachedThreadPool("Proxy-Connection-Check-Pool-");
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -215,35 +225,43 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
 
-        final Socket sock = new Socket();
-        try {
-            sock.connect(ph.getIsa(), 60*1000);
-            log.debug("Dispatching CONNECTED event");
-            Events.asyncEventBus().post(
-                new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
-            // This is a little odd because the proxy could have originally
-            // come from the settings themselves, but it'll remove duplicates,
-            // so no harm done.
-            log.debug("Adding proxy to settings: {}", this.model.getSettings());
-            this.model.getSettings().addProxy(fullProxyString);
+        final Runnable run = new Runnable() {
             
-            this.peerFactory.addPeer("", ph.getIsa().getAddress(), 
-                ph.getIsa().getPort(), type, false, 
-                ph.getTrafficShapingHandler());
-            synchronized (set) {
-                if (!set.contains(ph)) {
-                    set.add(ph);
-                    queue.add(ph);
-                    log.debug("Queue is now: {}", queue);
+            @Override
+            public void run() {
+                final Socket sock = new Socket();
+                try {
+                    sock.connect(ph.getIsa(), 60*1000);
+                    log.debug("Dispatching CONNECTED event");
+                    Events.asyncEventBus().post(
+                        new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
+                    // This is a little odd because the proxy could have 
+                    // originally come from the settings themselves, but 
+                    // it'll remove duplicates, so no harm done.
+                    log.debug("Adding proxy to settings: {}", model.getSettings());
+                    model.getSettings().addProxy(fullProxyString);
+                    
+                    peerFactory.addPeer("", ph.getIsa().getAddress(), 
+                        ph.getIsa().getPort(), type, false, 
+                        ph.getTrafficShapingHandler());
+                    synchronized (set) {
+                        if (!set.contains(ph)) {
+                            set.add(ph);
+                            queue.add(ph);
+                            log.debug("Queue is now: {}", queue);
+                        }
+                    }
+                } catch (final IOException e) {
+                    log.error("Could not connect to: " + ph, e);
+                    onCouldNotConnect(ph);
+                    model.getSettings().removeProxy(fullProxyString);
+                } finally {
+                    IOUtils.closeQuietly(sock);
                 }
             }
-        } catch (final IOException e) {
-            log.error("Could not connect to: " + ph, e);
-            onCouldNotConnect(ph);
-            this.model.getSettings().removeProxy(fullProxyString);
-        } finally {
-            IOUtils.closeQuietly(sock);
-        }
+        };
+        proxyCheckThreadPool.submit(run);
+
     }
 
     @Override

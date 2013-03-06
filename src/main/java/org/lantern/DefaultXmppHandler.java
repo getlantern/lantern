@@ -96,8 +96,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
 
-    private final AtomicReference<XmppP2PClient> client =
-        new AtomicReference<XmppP2PClient>();
+    private final AtomicReference<XmppP2PClient<Socket>> client =
+        new AtomicReference<XmppP2PClient<Socket>>();
 
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
@@ -115,7 +115,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("Got chat participant: {} with message:\n {}", part,
                 msg.toXML());
             if (StringUtils.isNotBlank(part) &&
-                part.startsWith(LanternConstants.LANTERN_JID)) {
+                part.startsWith(LanternClientConstants.LANTERN_JID)) {
                 processLanternHubMessage(msg);
             }
 
@@ -391,9 +391,29 @@ public class DefaultXmppHandler implements XmppHandler {
             this.upnpService, this.mappedServer,
             this.socketsUtil.newTlsSocketFactory(),
             this.socketsUtil.newTlsServerSocketFactory(),
-            plainTextProxyRelayAddress, sessionListener, false));
-        */
-        
+            plainTextProxyRelayAddress, sessionListener, false,
+            new OfferAnswerListener<FiveTuple>() {
+                
+                @Override
+                public void onUdpSocket(FiveTuple ft) {
+                    System.err.println("GOT 5 TUPLE!!!  " + ft);
+                }
+                
+                @Override
+                public void onTcpSocket(FiveTuple arg0) {
+                    // TODO Auto-generated method stub
+                    
+                }
+                
+                @Override
+                public void onOfferAnswerFailed(OfferAnswer offerAnswer) {
+                    // TODO Auto-generated method stub
+                    
+                }
+            }));
+            */
+            
+
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService,
             upnpService, this.mappedServer,
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
@@ -477,7 +497,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
                 final Type type = pres.getType();
                 // Allow subscription requests from the lantern bot.
-                if (LanternXmppUtils.isLanternHub(from)) {
+                if (LanternUtils.isLanternHub(from)) {
                     if (type == Type.subscribe) {
                         final Presence packet =
                             new Presence(Presence.Type.subscribed);
@@ -858,7 +878,7 @@ public class DefaultXmppHandler implements XmppHandler {
         conn.sendPacket(pres);
 
         final Presence forHub = new Presence(Presence.Type.available);
-        forHub.setTo(LanternConstants.LANTERN_JID);
+        forHub.setTo(LanternClientConstants.LANTERN_JID);
 
         //if (!LanternHub.settings().isGetMode()) {
             forHub.setProperty("mode", model.getSettings().getMode().toString());
@@ -1105,7 +1125,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public XmppP2PClient getP2PClient() {
+    public XmppP2PClient<Socket> getP2PClient() {
         return client.get();
     }
 
@@ -1139,7 +1159,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Roster rost = conn.getRoster();
 
         final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternConstants.LANTERN_JID);
+        pres.setTo(LanternClientConstants.LANTERN_JID);
 
         // "emails" of the form xxx@public.talk.google.com aren't really
         // e-mail addresses at all, so don't send 'em.
