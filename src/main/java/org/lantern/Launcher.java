@@ -605,6 +605,7 @@ public class Launcher {
             t.start();
         } else {
             LOG.debug("Not auto-logging in with model:\n{}", model);
+            internalState.advanceModal(model.getModal());
         }
     }
     
