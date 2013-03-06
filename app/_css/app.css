@@ -6916,7 +6916,7 @@ textarea.bugReport {
 }
 
 .selectContacts, input.select2-default, input.select2-input {
-  width: 500px !important;
+  display: block;
 }
 
 .selectContacts {
