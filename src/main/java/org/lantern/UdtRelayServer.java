@@ -11,8 +11,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+
+import org.lantern.util.Threads;
 
 /**
  * UDT Message Flow Server
@@ -24,15 +25,18 @@ public class UdtRelayServer {
     private static final Logger log = 
             Logger.getLogger(UdtRelayServer.class.getName());
 
-    private final int port;
+    private final int serverPort;
 
-    public UdtRelayServer(final int port) {
-        this.port = port;
+    private final int relayPort;
+
+    public UdtRelayServer(final int serverPort, final int relayPort) {
+        this.serverPort = serverPort;
+        this.relayPort = relayPort;
     }
 
     public void run() throws Exception {
-        final ThreadFactory acceptFactory = new UtilThreadFactory("accept");
-        final ThreadFactory connectFactory = new UtilThreadFactory("connect");
+        final ThreadFactory acceptFactory = Threads.newThreadFactory("accept");
+        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
         final NioEventLoopGroup acceptGroup = new NioEventLoopGroup(1,
                 acceptFactory, NioUdtProvider.BYTE_PROVIDER);
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
@@ -41,20 +45,21 @@ public class UdtRelayServer {
         final ServerBootstrap boot = new ServerBootstrap();
         try {
             boot.group(acceptGroup, connectGroup)
-                    .channelFactory(NioUdtProvider.BYTE_ACCEPTOR)
-                    .option(ChannelOption.SO_BACKLOG, 10)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new ChannelInitializer<UdtChannel>() {
-                        @Override
-                        public void initChannel(final UdtChannel ch)
-                                throws Exception {
-                            ch.pipeline().addLast(
-                                    new LoggingHandler(LogLevel.INFO),
-                                    new UdtRelayServerHandler());
-                        }
-                    });
+                .channelFactory(NioUdtProvider.BYTE_ACCEPTOR)
+                .option(ChannelOption.SO_BACKLOG, 10)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .childHandler(new ChannelInitializer<UdtChannel>() {
+                    @Override
+                    public void initChannel(final UdtChannel ch)
+                            throws Exception {
+                        ch.pipeline().addLast(
+                                new LoggingHandler(LogLevel.INFO),
+                                new UdtRelayServerHandler(relayPort));
+                    }
+                });
             // Start the server.
-            final ChannelFuture future = boot.bind(port).sync();
+            //final ChannelFuture future = boot.bind(serverPort).sync();
+            final ChannelFuture future = boot.bind("127.0.0.1", serverPort).sync();
             // Wait until the server socket is closed.
             future.channel().closeFuture().sync();
         } finally {
@@ -63,20 +68,4 @@ public class UdtRelayServer {
         }
     }
 
-    
-    private static class UtilThreadFactory implements ThreadFactory {
-
-        private static final AtomicInteger counter = new AtomicInteger();
-
-        private final String name;
-
-        public UtilThreadFactory(final String name) {
-            this.name = name;
-        }
-
-        @Override
-        public Thread newThread(final Runnable runnable) {
-            return new Thread(runnable, name + '-' + counter.getAndIncrement());
-        }
-    }
 }
