@@ -418,8 +418,13 @@ public class InteractionServlet extends HttpServlet {
             Events.syncModel(this.model);
             break;
         case giveModeForbidden:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
+            if (inter == Interaction.CONTINUE) {
+                //  need to do more setup to switch to get mode from give mode
+                model.setSetupComplete(false);
+                this.internalState.advanceModal(null);
+                Events.syncModal(model, Modal.proxiedSites);
+                Events.syncModel(this.model);
+            }
             break;
         default:
             log.error("No matching modal for {}", modal);
