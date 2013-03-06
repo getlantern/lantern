@@ -489,6 +489,10 @@ public class InteractionServlet extends HttpServlet {
             log.debug("Processing contact in none");
             Events.syncModal(model, Modal.contactDevs);
             return true;
+        case RESET:
+            log.debug("Processing reset in none");
+            handleReset();
+            return true;
         default:
             return false;
         }
