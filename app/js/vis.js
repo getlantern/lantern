@@ -319,10 +319,10 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   );
 
   function updateCountry(alpha2, peerCount, animate) {
-    var stroke = CONFIG.style.countryStrokeNoActivity, strokeOpacity;
+    var stroke = CONFIG.style.countryStrokeNoActivity, strokeOpacity,
+        censors = getByPath(model, '/countries/'+alpha2+'/censors');
     peerCount = peerCount || getByPath(model, '/countries/'+alpha2+'/npeers/online');
     if (peerCount) {
-      var censors = getByPath(model, '/countries/'+alpha2).censors;
       if (censors) {
         if (peerCount.giveGet !== peerCount.get) {
           log.warn('peerCount.giveGet (', peerCount.giveGet, ') !== peerCount.get (', peerCount.get, ') for censoring country', alpha2);
@@ -342,6 +342,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     var el = d3.select('path.'+alpha2);
     updateElement(el, {'stroke': stroke, 'stroke-opacity': strokeOpacity}, animate);
     el.attr('data-original-title', function(d) { return hoverContentForCountry(alpha2, peerCount); })
+    el.classed('censors', censors);
   }
 
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {

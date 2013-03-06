@@ -7060,6 +7060,9 @@ textarea.bugReport {
   fill: black;
   fill-opacity: 0.2;
 }
+#countries path.censors {
+  fill-opacity: 0.3;
+}
 #countries path.updating {
   stroke: white !important;
   stroke-opacity: 0.5 !important;
