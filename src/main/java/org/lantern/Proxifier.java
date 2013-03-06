@@ -70,12 +70,16 @@ public class Proxifier implements LanternService {
 
     private ProxyConnectionEvent lastProxyConnectionEvent;
 
+    private final ProxyTracker proxyTracker;
+
     @Inject 
     public Proxifier(final MessageService messageService,
-        final ModelUtils modelUtils, final Model model) {
+        final ModelUtils modelUtils, final Model model, 
+        final ProxyTracker proxyTracker) {
         this.messageService = messageService;
         this.modelUtils = modelUtils;
         this.model = model;
+        this.proxyTracker = proxyTracker;
         copyFromLocal(PROXY_ON);
         copyFromLocal(PROXY_ALL);
         copyFromLocal(PROXY_OFF);
@@ -123,7 +127,7 @@ public class Proxifier implements LanternService {
     @Subscribe
     public synchronized void onSetupComplete(final SetupCompleteEvent event) {
         LOG.debug("Got setup complete!");
-        if (this.lastProxyConnectionEvent != null) {
+        if (this.lastProxyConnectionEvent != null && this.proxyTracker.hasProxy()) {
             LOG.debug("Re-firing last proxy connection event...");
             onProxyConnection(this.lastProxyConnectionEvent);
         } else {
@@ -139,8 +143,8 @@ public class Proxifier implements LanternService {
      */
     @Subscribe
     public synchronized void onProxyConnection(final ProxyConnectionEvent pce) {
+        this.lastProxyConnectionEvent = pce;
         if (!model.isSetupComplete()) {
-            this.lastProxyConnectionEvent = pce;
             LOG.debug("Ingoring proxy connection call when setup is not complete");
             return;
         }

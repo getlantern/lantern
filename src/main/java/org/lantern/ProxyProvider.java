@@ -12,5 +12,7 @@ public interface ProxyProvider {
     //URI getPeerProxy();
     
     ProxyHolder getProxy();
+    
+    boolean hasProxy();
 
 }

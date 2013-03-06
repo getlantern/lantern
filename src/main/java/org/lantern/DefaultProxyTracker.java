@@ -23,7 +23,7 @@ import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounterHandler;
-import org.lantern.util.ThreadPools;
+import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ public class DefaultProxyTracker implements ProxyTracker {
      * can hold up the XMPP processing thread or any other calling thread.
      */
     private final ExecutorService proxyCheckThreadPool = 
-            ThreadPools.newCachedThreadPool("Proxy-Connection-Check-Pool-");
+            Threads.newCachedThreadPool("Proxy-Connection-Check-Pool-");
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -232,9 +232,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                 final Socket sock = new Socket();
                 try {
                     sock.connect(ph.getIsa(), 60*1000);
-                    log.debug("Dispatching CONNECTED event");
-                    Events.asyncEventBus().post(
-                        new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
                     // This is a little odd because the proxy could have 
                     // originally come from the settings themselves, but 
                     // it'll remove duplicates, so no harm done.
@@ -251,6 +248,10 @@ public class DefaultProxyTracker implements ProxyTracker {
                             log.debug("Queue is now: {}", queue);
                         }
                     }
+                    
+                    log.debug("Dispatching CONNECTED event");
+                    Events.asyncEventBus().post(
+                        new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
                     log.error("Could not connect to: " + ph, e);
                     onCouldNotConnect(ph);
@@ -344,7 +345,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     public ProxyHolder getProxy() {
         return getProxy(this.proxies);
     }
-
+    
+    @Override
+    public boolean hasProxy() {
+        return !this.proxies.isEmpty();
+    }
 
     @Subscribe
     public void onReset(final ResetEvent event) {
