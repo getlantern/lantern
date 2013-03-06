@@ -96,8 +96,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
 
-    private final AtomicReference<XmppP2PClient> client =
-        new AtomicReference<XmppP2PClient>();
+    private final AtomicReference<XmppP2PClient<Socket>> client =
+        new AtomicReference<XmppP2PClient<Socket>>();
 
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
@@ -391,9 +391,29 @@ public class DefaultXmppHandler implements XmppHandler {
             this.upnpService, this.mappedServer,
             this.socketsUtil.newTlsSocketFactory(),
             this.socketsUtil.newTlsServerSocketFactory(),
-            plainTextProxyRelayAddress, sessionListener, false));
-        */
-        
+            plainTextProxyRelayAddress, sessionListener, false,
+            new OfferAnswerListener<FiveTuple>() {
+                
+                @Override
+                public void onUdpSocket(FiveTuple ft) {
+                    System.err.println("GOT 5 TUPLE!!!  " + ft);
+                }
+                
+                @Override
+                public void onTcpSocket(FiveTuple arg0) {
+                    // TODO Auto-generated method stub
+                    
+                }
+                
+                @Override
+                public void onOfferAnswerFailed(OfferAnswer offerAnswer) {
+                    // TODO Auto-generated method stub
+                    
+                }
+            }));
+            */
+            
+
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService,
             upnpService, this.mappedServer,
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
@@ -1105,7 +1125,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public XmppP2PClient getP2PClient() {
+    public XmppP2PClient<Socket> getP2PClient() {
         return client.get();
     }
 
