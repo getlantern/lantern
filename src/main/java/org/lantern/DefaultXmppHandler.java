@@ -115,7 +115,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("Got chat participant: {} with message:\n {}", part,
                 msg.toXML());
             if (StringUtils.isNotBlank(part) &&
-                part.startsWith(LanternConstants.LANTERN_JID)) {
+                part.startsWith(LanternClientConstants.LANTERN_JID)) {
                 processLanternHubMessage(msg);
             }
 
@@ -858,7 +858,7 @@ public class DefaultXmppHandler implements XmppHandler {
         conn.sendPacket(pres);
 
         final Presence forHub = new Presence(Presence.Type.available);
-        forHub.setTo(LanternConstants.LANTERN_JID);
+        forHub.setTo(LanternClientConstants.LANTERN_JID);
 
         //if (!LanternHub.settings().isGetMode()) {
             forHub.setProperty("mode", model.getSettings().getMode().toString());
@@ -1139,7 +1139,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Roster rost = conn.getRoster();
 
         final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternConstants.LANTERN_JID);
+        pres.setTo(LanternClientConstants.LANTERN_JID);
 
         // "emails" of the form xxx@public.talk.google.com aren't really
         // e-mail addresses at all, so don't send 'em.
