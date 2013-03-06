@@ -477,7 +477,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
                 final Type type = pres.getType();
                 // Allow subscription requests from the lantern bot.
-                if (LanternXmppUtils.isLanternHub(from)) {
+                if (LanternUtils.isLanternHub(from)) {
                     if (type == Type.subscribe) {
                         final Presence packet =
                             new Presence(Presence.Type.subscribed);

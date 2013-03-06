@@ -745,6 +745,7 @@ public class Launcher {
     public static final String OPTION_ACCESS_TOK = "access-tok";
     public static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
     public static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
+    public static final String OPTION_CONTROLLER_ID = "controller-id";
 
     private static Options buildOptions() {
         final Options options = new Options();
@@ -796,11 +797,19 @@ public class Launcher {
             "read Google OAuth2 client secrets from the file specified");
         options.addOption(null, OPTION_OAUTH2_USER_CREDENTIALS_FILE, true,
             "read Google OAuth2 user credentials from the file specified");
+        options.addOption(null, OPTION_CONTROLLER_ID, true,
+            "GAE id of the lantern-controller");
         return options;
     }
     
 
     private void processCommandLineOptions(final CommandLine cmd) {
+
+        final String ctrlOpt = OPTION_CONTROLLER_ID;
+        if (cmd.hasOption(ctrlOpt)) {
+            LanternClientConstants.setControllerId(
+                cmd.getOptionValue(ctrlOpt));
+        }
 
         final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
         if (cmd.hasOption(secOpt)) {
