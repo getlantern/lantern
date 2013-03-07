@@ -208,7 +208,9 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   function makeValid() {
     $scope.errorLabelKey = '';
     $scope.errorCause = '';
-    // XXX $scope.proxiedSitesForm.input.$setValidity('generic', true);
+    if ($scope.proxiedSitesForm) {
+      $scope.proxiedSitesForm.input.$setValidity('generic', true);
+    }
   }
 
   $scope.$watch('model.settings.proxiedSites', function(proxiedSites) {
