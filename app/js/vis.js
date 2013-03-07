@@ -25,7 +25,7 @@ angular.module('app.vis', [])
     }
   });
 
-function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONFIG, ENUMS) {
+function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc, CONFIG, ENUMS) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -328,8 +328,8 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       peersOnline = peerCount.giveGet > 0;
       if (censors) {
         if (peerCount.giveGet !== peerCount.get) {
-          log.warn('peerCount.giveGet (', peerCount.giveGet, ') !== peerCount.get (', peerCount.get, ') for censoring country', alpha2);
-          // XXX POST to exceptional notifier
+          log.warn('npeersOnline.giveGet (', peerCount.giveGet, ') !== npeersOnline.get (', peerCount.get, ') for censoring country', alpha2);
+          apiSrvc.exception({error: 'npeersInvalid', npeersOnline: peerCount, message: 'npeersOnline.giveGet ('+peerCount.giveGet+') !== npeersOnline.get ('+peerCount.get+') for censoring country'+alpha2});
         }
         stroke = CONFIG.style.getModeColor;
       } else {

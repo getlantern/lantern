@@ -30,7 +30,7 @@ angular.module('app.services', [])
       };
     }
   })
-  .service('cometdSrvc', function(COMETD_URL, sanity, logFactory, $rootScope, $window) {
+  .service('cometdSrvc', function(COMETD_URL, sanity, logFactory, apiSrvc, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
     // boilerplate cometd setup
     // http://cometd.org/documentation/cometd-javascript/subscription
@@ -52,6 +52,7 @@ angular.module('app.services', [])
     // http://cometd.org/documentation/cometd-javascript/subscription
     cometd.onListenerException = function(exception, subscriptionHandle, isListener, message) {
       log.error('Uncaught exception for subscription', subscriptionHandle, ':', exception, 'message:', message);
+      apiSrvc.exception({error: 'uncaughtSubscriptionException', subscriptionHandle: subscriptionHandle, exception: exception, message: message});
       if (isListener) {
         cometd.removeListener(subscriptionHandle);
         log.error('removed listener');
@@ -181,10 +182,14 @@ angular.module('app.services', [])
   })
   .service('apiSrvc', function($http, REQUIRED_API_VER) {
     var ver = [REQUIRED_API_VER.major,
-               REQUIRED_API_VER.minor].join('.');
+               REQUIRED_API_VER.minor].join('.'),
+        urlPrefix = ['', 'api', ver].join('/');
     return {
+      exception: function(data) {
+        return $http.post(urlPrefix+'/exception', data);
+      },
       interaction: function(interactionid, data) {
-        var url = ['', 'api', ver, 'interaction', interactionid].join('/');
+        var url = urlPrefix+'/interaction/'+interactionid;
         return $http.post(url, data);
       }
     };

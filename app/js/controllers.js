@@ -73,6 +73,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
       // XXX sub-controllers need to hook into this
       .error(function(data, status, headers, config) {
         log.error('interaction(', interactionid, extra, ') failed');
+        apiSrvc.exception({data: data, status: status, headers: headers, config: config});
       });
   };
 
@@ -82,7 +83,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   };
 }
 
-function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_API_VER, logFactory) {
+function SanityCtrl($scope, sanity, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
   var log = logFactory('SanityCtrl');
   $scope.sanity = sanity;
 
@@ -100,10 +101,11 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_API_V
     if (angular.isUndefined(installed)) return;
     for (var key in {major: 'major', minor: 'minor'}) {
       if (installed[key] != REQUIRED_API_VER[key]) {
+        log.error('Backend api version', installed, 'incompatible with required version', REQUIRED_API_VER);
+        // XXX this might well 404 due to the version mismatch but worth a shot?
+        apiSrvc.exception({error: 'versionMismatch', installed: installed, required: REQUIRED_API_VER});
         sanity.value = false;
-        log.error('Backend api version', installed,
-         'incompatible with required version', REQUIRED_API_VER);
-         return;
+        return;
       }
     }
   }, true);

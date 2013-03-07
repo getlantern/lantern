@@ -635,9 +635,9 @@ All of the following endpoints should be accessed via POST request only.
     <br><br><code>{"path": "/settings/autoReport", "value": true}</code>
   <tr><td><code>/exception</code></td>
     <td>Notify the backend of the exception described by the JSON-encoded
-    request body<br>
-    <strong>XXX implement this</strong>
-    </td></tr>
+    request body. If the user has not opted out of auto-reporting, the backend
+    should report the exception to exceptional.io, adding the current state of
+    the model to the report with any sensitive data filtered out.</td></tr>
 </table>
 
 <hr>

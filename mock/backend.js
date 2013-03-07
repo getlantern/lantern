@@ -140,6 +140,9 @@ MockBackend.prototype.inGetMode = function() {
   return this.model.settings.mode == MODE.get;
 };
 
+MockBackend.prototype.handleException = function(data) {
+  log('logging exception:', data);
+};
 
 MockBackend._handlerForInteraction = {};
 
@@ -478,11 +481,11 @@ MockBackend.prototype.handleRequest = function(req, res) {
         ver = (verstr || '').split('.'),
         interaction = parts[3],
         interactionid = parts[4];
-    if (mnt != MOUNT_POINT ||
-        ver[0] != VERSION.major ||
-        ver[1] != VERSION.minor ||
-        interaction != 'interaction' ||
-        !(interactionid in INTERACTION)) {
+    if (mnt != MOUNT_POINT || ver[0] != VERSION.major || ver[1] != VERSION.minor) {
+      res.writeHead(404);
+    } else if (interaction !== 'interaction' && interaction !== 'exception') {
+      res.writeHead(404);
+    } else if (interaction === 'interaction' && !(interactionid in INTERACTION)) {
       res.writeHead(404);
     } else {
       var data = '', error = false;
@@ -499,7 +502,9 @@ MockBackend.prototype.handleRequest = function(req, res) {
           }
         }
         if (!error) {
-          if (interactionid in MockBackend._handlerForInteraction) {
+          if (interaction === 'exception') {
+            self.handleException(data);
+          } else if (interactionid in MockBackend._handlerForInteraction) {
             var handler = MockBackend._handlerForInteraction[interactionid];
             if (handler)
               handler.call(self, res, data);
