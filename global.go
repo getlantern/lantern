@@ -296,7 +296,7 @@ func newContext() *_runtime {
 		"valueOf", func(call FunctionCall) Value {
 			return *call.thisClassObject("Number").primitive
 		},
-		// TODO toFixed
+		"toFixed", 1, builtinNumber_toFixed,
 		// TODO toExponential
 		// TODO toPrecision
 	)

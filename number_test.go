@@ -42,3 +42,18 @@ func TestNumber_toString(t *testing.T) {
         new Number(Infinity).toString(16)
     `, "Infinity")
 }
+
+func TestNumber_toFixed(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`new Number(451).toFixed(2)`, "451.00")
+	test(`12345.6789.toFixed()`, "12346")
+	test(`12345.6789.toFixed(1)`, "12345.7")
+	test(`12345.6789.toFixed(6)`, "12345.678900")
+	test(`(1.23e-20).toFixed(2)`, "0.00")
+	test(`2.34.toFixed(1)`, "2.3")
+	test(`-2.34.toFixed(1)`, "-2.3")
+	test(`(-2.34).toFixed(1)`, "-2.3")
+}
