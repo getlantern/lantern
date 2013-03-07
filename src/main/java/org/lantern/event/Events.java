@@ -67,7 +67,7 @@ public class Events {
         // This is done synchronously because we need the roster array on the
         // frontend to be in sync with the backend in order to index into it
         // on roster updates.
-        //Events.eventBus().post(new SyncEvent(SyncPath.ROSTER, roster.getEntries()));
+        Events.eventBus().post(new SyncEvent(SyncPath.ROSTER, roster.getEntries()));
     }
 
 
