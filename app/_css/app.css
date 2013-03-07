@@ -6703,14 +6703,6 @@ textarea.bugReport {
   height: 100px;
 }
 
-#settingsUnlock .controls {
-  text-align: center;
-}
-
-#settingsLoadFailure form {
-  text-align: center;
-}
-
 #langchooser {
   position: absolute;
   top: 5px;

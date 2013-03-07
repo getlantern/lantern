@@ -5,7 +5,7 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(config, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
+function RootCtrl(config, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -61,8 +61,11 @@ function RootCtrl(config, sanity, $scope, logFactory, modelSrvc, cometdSrvc, lan
 
   $scope.notifyLanternDevs = true;
 
-  $scope.refresh = function() {
+  function reload() {
     location.reload(true); // true to bypass cache and force request to server
+  }
+  $scope.refresh = function(extra) {
+    var promise = $scope.interaction(INTERACTION.refresh, extra).then(reload, reload);
   };
 
   $scope.interaction = function(interactionid, extra) {
@@ -70,7 +73,6 @@ function RootCtrl(config, sanity, $scope, logFactory, modelSrvc, cometdSrvc, lan
       .success(function(data, status, headers, config) {
         log.debug('interaction(', interactionid, extra || '', ') successful');
       })
-      // XXX sub-controllers need to hook into this
       .error(function(data, status, headers, config) {
         log.error('interaction(', interactionid, extra, ') failed');
         apiSrvc.exception({data: data, status: status, headers: headers, config: config});
@@ -83,15 +85,13 @@ function RootCtrl(config, sanity, $scope, logFactory, modelSrvc, cometdSrvc, lan
   };
 }
 
-function SanityCtrl($scope, sanity, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
+function SanityCtrl($scope, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
   var log = logFactory('SanityCtrl');
-  $scope.sanity = sanity;
+  $scope.modelSrvc = modelSrvc;
 
   $scope.show = false;
-  $scope.$watch('sanity.value', function(sane) {
+  $scope.$watch('modelSrvc.sane', function(sane) {
     if (!sane) {
-      log.warn('sanity false, disconnecting');
-      modelSrvc.disconnect();
       modelSrvc.model.modal = MODAL.none;
       $scope.show = true;
     }
@@ -104,7 +104,7 @@ function SanityCtrl($scope, sanity, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER,
         log.error('Backend api version', installed, 'incompatible with required version', REQUIRED_API_VER);
         // XXX this might well 404 due to the version mismatch but worth a shot?
         apiSrvc.exception({error: 'versionMismatch', installed: installed, required: REQUIRED_API_VER});
-        sanity.value = false;
+        modelSrvc.sane = false;
         return;
       }
     }
@@ -129,8 +129,7 @@ function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
     $scope.submitButtonLabelKey = 'SENDING_REQUEST';
     var params = {lanternDevs: $scope.sendToLanternDevs};
     return $scope.interaction(INTERACTION.requestInvite, params) // XXX TODO
-      .error(function() { $scope.requestError = true; })
-      .then(resetForm);
+      .then(resetForm, function() { $scope.requestError = true; });
   };
 }
 
@@ -150,7 +149,8 @@ function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
     $scope.sysproxyError = false;
     $scope.disableForm = true;
     $scope.submitButtonLabelKey = 'CONFIGURING';
-    $scope.interaction(INTERACTION.continue, $scope.systemProxy).then(resetForm);
+    $scope.interaction(INTERACTION.continue, $scope.systemProxy)
+      .then(resetForm, resetForm);
   };
 }
 
@@ -196,9 +196,13 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       original,
       normalized;
 
+  $scope.$watch('model.modal', function(modal) {
+    $scope.show = modal == MODAL.proxiedSites;
+  });
+
   function updateComplete() {
+    $scope.hasUpdate = false;
     $scope.updating = false;
-    $scope.submitButtonLabelKey = 'CONTINUE';
   }
 
   function makeValid() {
@@ -254,6 +258,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
       $scope.errorCause = '';
     }
+    $scope.hasUpdate = !_.isEqual(original, normalized);
     return !$scope.errorLabelKey;
   };
 
@@ -267,18 +272,21 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       log.debug('invalid input, not sending update');
       return $scope.interaction(INTERACTION.continue);
     }
-    if (_.isEqual(original, normalized)) {
+    if (!$scope.hasUpdate) {
       log.debug('input matches original, not sending update');
       return $scope.interaction(INTERACTION.continue);
     }
     log.debug('sending update');
     $scope.input = normalized.join('\n');
     $scope.updating = true;
-    $scope.submitButtonLabelKey = 'UPDATING';
     $scope.changeSetting(SETTING.proxiedSites, normalized).then(function() {
       updateComplete();
       log.debug('update complete, sending continue');
       $scope.interaction(INTERACTION.continue);
+    }, function() {
+      $scope.updating = false;
+      $scope.errorLabelKey = 'ERROR_SETTING_PROXIED_SITES';
+      $scope.errorCause = '';
     });
   };
 }

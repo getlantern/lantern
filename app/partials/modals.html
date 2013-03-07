@@ -19,18 +19,22 @@
     <form>
       <p>
         <label class="checkbox inline">
-          <input type="checkbox" ng-model="notifyLanternDevs">
+          <input type="checkbox" ng-model="notifyLanternDevs" tabindex="{{ show && 1 || ''}}">
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="bugReport" ng-disabled="!notifyLanternDevs"
+      <textarea class="bugReport" ng-disabled="!notifyLanternDevs" tabindex="{{ show && 2 || ''}}"
         ng-model="bugReport" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}">
       </textarea>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs, report: bugReport})" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
+      <i class="icon-warning-sign warning-colored"></i>
+      {{ 'RESET' | i18n }}
+    </button>
+    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notifyLanternDevs, report: bugReport})" class="btn" tabindex="{{ show && 4 || ''}}">{{ 'RESTART' | i18n }}</button>
+    <button type="button" ng-click="refresh({notify: notifyLanternDevs, report: bugReport})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
 
@@ -47,11 +51,14 @@
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
+      <textarea class="bugReport" ng-disabled="!notifyLanternDevs" tabindex="{{ show && 2 || ''}}"
+        ng-model="bugReport" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}">
+      </textarea>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notifyLanternDevs})" class="btn btn-primary">{{ 'RESTART' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs, report: bugReport})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notifyLanternDev, report: bugReports})" class="btn btn-primary">{{ 'RESTART' | i18n }}</button>
   </div>
 </div>
 
@@ -255,7 +262,7 @@
   </div>
 </div>
 
-<div id="proxiedSites" ng-controller="ProxiedSitesCtrl" modal="model.modal == MODAL.proxiedSites">
+<div id="proxiedSites" ng-controller="ProxiedSitesCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
@@ -279,7 +286,7 @@
         <textarea ng-model="input" name="input" placeholder="example.com" required
           ng-disabled="model.settings.proxyAllSites"
           ui-validate="validate" ng-disabled="updating"
-          dir="ltr" tabindex="1"></textarea>
+          dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
       </form>
     </div>
     <div class="tip" ui-toggle="!model.settings.proxyAllSites">
@@ -292,10 +299,10 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-disabled="updating" ng-click="handleReset()" tabindex="3">{{ 'RESET' | i18n }}</button>
-    <button type="button" class="btn btn-primary" tabindex="2"
+    <button type="button" class="btn" ng-disabled="updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
-            ng-click="handleContinue()">{{ submitButtonLabelKey | i18n }}</button>
+            ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | i18n }}</button>
   </div>
 </div>
 
@@ -368,7 +375,7 @@
       ng-show="invitees.length" ng-disabled="!valid()"
       ng-click="invite()">{{ 'SEND_INVITES' | i18n:invitees.length }}</button>
     <button type="button" class="btn btn-primary" ng-hide="invitees.length"
-      ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+      ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -405,7 +412,7 @@
   <div class="modal-body">
     <div class="smaller">{{ 'CONTACT_PROMPT' | i18n }}</div>
     <form name="contactForm">
-      <textarea id="contact-msg" name="contactMsg" ng-model="message" autofocus
+      <textarea id="contact-msg" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
       <div class="text-error" ui-toggle="contactForm.contactMsg.$error.maxlength">
         {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - 500000) }}&nbsp;
@@ -413,9 +420,9 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn"
+    <button type="button" class="btn" tabindex="{{ show && 3 || '' }}"
             ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
-    <button type="button" class="btn btn-primary"
+    <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="contactForm.contactMsg.$invalid || contactForm.contactMsg.$pristine"
             ng-click="interaction(INTERACTION.continue, {message: message})">{{ 'SEND' | i18n }}</button>
   </div>
@@ -470,11 +477,11 @@ You should have received a copy of the GNU General Public License along with thi
         <dt>{{ 'RELEASED' | i18n }}</dt>
         <dd><time>{{ model.version.latest.releaseDate }}</time></dd>
         <dt>{{ 'URL' | i18n }}</dt>
-        <dd><a href="{{ model.version.latest.installerUrl }}">{{ model.version.latest.installerUrl }}</a></dd>
+        <dd><a href="{{ model.version.latest.installerUrl }}" target="_blank">{{ model.version.latest.installerUrl }}</a></dd>
         <dt>{{ 'SHA1' | i18n }}</dt>
         <dd>{{ model.version.latest.installerSHA1 }}</dd>
         <dt>{{ 'MORE_INFO' | i18n }}</dt>
-        <dd><a href="{{ model.version.latest.infoUrl }}">{{ model.version.latest.infoUrl }}</a></dd>
+        <dd><a href="{{ model.version.latest.infoUrl }}" target="_blank">{{ model.version.latest.infoUrl }}</a></dd>
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
@@ -484,8 +491,14 @@ You should have received a copy of the GNU General Public License along with thi
     <p class="indented">{{ 'UPDATE_PROMPT' | i18n }}</p>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
-    <a class="btn btn-primary" href="{{ model.version.latest.installerUrl }}">{{ 'DOWNLOAD' | i18n }}</a>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.close)"
+            tabindex="{{ model.modal == MODAL.updateAvailable && 2 || '' }}">
+      {{ 'CLOSE' | i18n }}
+    </button>
+    <a class="btn btn-primary" href="{{ model.version.latest.installerUrl }}"
+       tabindex="{{ model.modal == MODAL.updateAvailable && 1 || '' }}" target="_blank">
+      {{ 'DOWNLOAD' | i18n }}
+    </a>
   </div>
 </div>
 
@@ -580,7 +593,7 @@ You should have received a copy of the GNU General Public License along with thi
     </dl>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset)"
+    <button type="button" ng-click="interaction(INTERACTION.reset)" tabindex="-1"
             class="btn btn-mini pull-left">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET_ELLIPSIS' | i18n }}

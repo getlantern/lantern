@@ -1,7 +1,6 @@
 'use strict';
 
 angular.module('app.services', [])
-  .value('sanity', {value: true}) // triggers failure mode when false
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
@@ -28,7 +27,7 @@ angular.module('app.services', [])
       };
     }
   })
-  .service('cometdSrvc', function(COMETD_URL, sanity, logFactory, apiSrvc, $rootScope, $window) {
+  .service('cometdSrvc', function(COMETD_URL, logFactory, apiSrvc, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
     // boilerplate cometd setup
     // http://cometd.org/documentation/cometd-javascript/subscription
@@ -58,7 +57,7 @@ angular.module('app.services', [])
         cometd.unsubscribe(subscriptionHandle);
         log.error('unsubscribed');
       }
-      sanity.value = false;
+      cometd.disconnect(true);
     };
 
     cometd.addListener('/meta/connect', function(msg) {
@@ -170,12 +169,7 @@ angular.module('app.services', [])
 
     return {
       model: model,
-      // XXX ditch this?
-      // for SanityCtrl // XXX cleaner way to do this?
-      disconnect: function() {
-          log.debug('disconnecting');
-          cometdSrvc.unsubscribe(syncSubscriptionKey);
-        }
+      sane: true
     };
   })
   .service('apiSrvc', function($http, REQUIRED_API_VER) {
