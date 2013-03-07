@@ -165,7 +165,7 @@ angular.module('app.i18n', [])
       MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nDiagnostic information:\n',
       ERROR_TOO_LONG: {1: '1 character too long', other: '{} characters too long'},
       SEND: 'Send',
-      SEND_INVITES: {1: 'Send invite', other: 'Send invites'},
+      SEND_INVITES: {1: 'Send invite', other: 'Send {} invites'},
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Access Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'Your internet connection appears to be coming from a censoring country. Giving access through this connection could be undesirable for other users. You can run Lantern in Give Access mode if you connect to the internet from outside a censoring country.', // XXX say which country and source identifying it as censoring
       CONTINUE_IN_GET_MODE: 'Continue in Get Access Mode',

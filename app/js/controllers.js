@@ -284,6 +284,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
 function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter, INPUT_PAT, INTERACTION) {
   var log = logFactory('LanternFriendsCtrl'),
       model = modelSrvc.model,
+      prettyUser = $filter('prettyUser'),
       EMAIL = INPUT_PAT.EMAIL;
 
   $scope.invitees = [];
@@ -315,7 +316,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     }
     $scope.notAlreadyFriends = notAlreadyFriends;
     angular.copy(_.map(notAlreadyFriends, function(i) {
-      return {id: i.email, text: $filter('prettyUser')(i)};
+      return _.merge({id: i.email, text: prettyUser(i)}, i);
     }), $scope.selectInvitees.tags);
   }
 
@@ -324,9 +325,17 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     updateCompletions();
   }, true);
 
+  var resultTmpl = _.template(
+    '<div class="invitee vcard">'+
+      '<img class="photo" src="${picture}">'+
+      '<div class="fn">${name}</div>'+
+      '<div class="email">${email}</div>'+
+    '</div>'
+  );
+
   $scope.selectInvitees = {
     tags: [],
-    tokenSeparators: [',', ' '],
+    tokenSeparators: [','],
     multiple: true,
   //selectOnBlur: true, // requires select2 3.3
     maximumSelectionSize: function() {
@@ -344,8 +353,11 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     formatNoMatches: function() {
       return $filter('i18n')('ENTER_VALID_EMAIL');
     },
+    formatResult: function(result) {
+      return resultTmpl(result);
+    },
     createSearchChoice: function(input) {
-      return EMAIL.test(input) ? {id: input, text: input} : undefined;
+      return EMAIL.test(input) ? {id: input, text: input, email: input, name: '', picture: ''} : undefined;
     }
   };
 
