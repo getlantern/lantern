@@ -56,11 +56,10 @@
     </div>
 
     <div id="alerts">
-      <div ng-repeat="notification in model.notifications" class="alert alert-{{notification.type}}">
-        <button type="button" class="close" title="{{ 'CLOSE' | i18n }}"
-          ng-click="interaction(INTERACTION.close, {notification: $index})">&times;</button>
+      <alert ng-repeat="notification in model.notifications"
+             type="notification.type" close="interaction(INTERACTION.close, {notification: $index})">
         <span ng-bind-html="notification.message"></span>
-      </div>
+      </alert>
     </div>
 
     <div ng-include src="'partials/topbar.html'"></div>
