@@ -25,28 +25,11 @@ $marginBot: 20px
       color: #000
 
 #model
-  $height: 500px
-  +size(500px, $height)
   +position(false, false, $marginBot + 23px, 18px)
   +aboveModal
-  overflow: hidden
-  background-color: #fff
-  opacity: .9
   +border-radius(5px)
-  *
-    +small
-  .controls.row .span-4:first-child
-    margin-left: 0
-  .select2-container
-    width: 220px
-  textarea
-    +smaller
-    +monofont
-    overflow: auto
-    display: block
-    width: 100%
-    height: 100%
-    background-color: #f5f5f5
-    border: 1px solid rgba(0, 0, 0, 0.15)
-    +border-radius(5px)
-    +box-sizing(border-box)
+  +smaller
+  +monofont
+  +size(500px, 500px)
+  overflow: auto
+  background-color: #f5f5f5

@@ -7265,40 +7265,17 @@ body.giveMode #npending {
 }
 
 #model {
-  width: 500px;
-  height: 500px;
   position: absolute;
   bottom: 43px;
   left: 18px;
   z-index: 1051;
-  overflow: hidden;
-  background-color: white;
-  opacity: 0.9;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
-}
-#model * {
-  font-size: 11.9px;
-}
-#model .controls.row .span-4:first-child {
-  margin-left: 0;
-}
-#model .select2-container {
-  width: 220px;
-}
-#model textarea {
   font-size: 10.5px;
   font-family: "Droid Sans Mono";
+  width: 500px;
+  height: 500px;
   overflow: auto;
-  display: block;
-  width: 100%;
-  height: 100%;
   background-color: whitesmoke;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
 }

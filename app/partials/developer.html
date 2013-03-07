@@ -1,26 +1,20 @@
-<div id="developer" ng-show="dev.value">
+<div id="developer" ng-show="config.dev">
   <div id="dev-label">Developer</div>
-
-  <div ng-init="showModel = {value: false}">
-    <div id="dev-buttons" class="btn-group">
-      <button class="btn btn-mini btn-dev"
-              ng-click="interaction(INTERACTION.scenarios)"
-              ng-disabled="!mockBackend"
-              ui-jq="tooltip" data-original-title="Scenarios"
-              ui-options="{placement: 'right'}">
-        <i class="icon-reorder"></i>
-      </button>
-      <button class="btn btn-mini btn-dev dropup"
-              ng-click="showModel.value=!showModel.value"
-              ui-jq="tooltip" data-original-title="Model"
-              ui-options="{placement: 'right'}">
-        <i class="icon-file"></i>
-        <span class="caret"></span>
-      </button>
-    </div>
-
-    <div id="model" ui-if="showModel.value" lang="en" dir="ltr">
-      <textarea readonly>{{ model | json }}</textarea>
-    </div>
+  <div id="dev-buttons" class="btn-group">
+    <button class="btn btn-mini btn-dev"
+            ng-click="interaction(INTERACTION.scenarios)"
+            ng-disabled="!mockBackend"
+            tooltip="Scenarios">
+      <i class="icon-reorder"></i>
+    </button>
+    <button class="btn btn-mini btn-dev dropup"
+            ng-click="config.showModel=!config.showModel"
+            tooltip="Model">
+      <i class="icon-file"></i>
+      <span class="caret"></span>
+    </button>
   </div>
 </div>
+
+<textarea id="model" ui-if="config.dev" ui-toggle="config.showModel"
+  class="noHeightWhenHidden" lang="en" dir="ltr" readonly>{{ model | json }}</textarea>

@@ -55,6 +55,10 @@ label.checkbox.inline, label.radio.inline
 
 .tooltip
   +aboveModal
+//overriding position: absolute is necessary to get angular ui bootstrap's
+  tooltips to show up when inserted after the tooltip'ed element rather than
+  appended to body:
+  position: fixed
 
 .tooltip-inner
   font-size: $baseFontSize * .9

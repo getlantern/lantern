@@ -24,8 +24,7 @@
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ng-class="{active: model.modal == MODAL.lanternFriends}"
-            ui-jq="tooltip" data-original-title="{{ 'LANTERN_FRIENDS' | i18n }}"
-            ui-options="{placement: 'top'}">
+            tooltip="{{ 'LANTERN_FRIENDS' | i18n }}">
       <!-- i class="icon-group"></i -->
       <i class="lsf-icon lsf-friends"></i>
     </button>
@@ -33,16 +32,14 @@
             ng-show="inGetMode"
             ng-click="interaction(INTERACTION.proxiedSites)"
             ng-class="{active: model.modal == MODAL.proxiedSites}"
-            ui-jq="tooltip" data-original-title="{{ 'PROXIED_SITES_TITLE' | i18n }}"
-            ui-options="{placement: 'top'}">
+            tooltip="{{ 'PROXIED_SITES_TITLE' | i18n }}">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-web"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
-            ui-jq="tooltip" data-original-title="{{ 'SETTINGS' | i18n }}"
-            ui-options="{placement: 'top'}">
+            tooltip="{{ 'SETTINGS' | i18n }}">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-gear"></i>
     </button>
