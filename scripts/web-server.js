@@ -90,7 +90,7 @@ StaticServlet.MimeMap = {
   'gif': 'image/gif',
   'png': 'image/png',
   'svg': 'image/svg+xml'
- ,'woff': 'application/x-font-woff'
+ ,'woff': 'application/font-woff'
  ,'ttf': 'font/ttf'
 };
 
