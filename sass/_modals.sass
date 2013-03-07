@@ -1,5 +1,10 @@
 @import mixins
 
+// override slide effect
+.modal.fade
+  +single-transition(opacity, 0.3s, ease)
+  top: 10% // same as .modal.fade.in
+
 #waiting
   +position(0, 0, 0, 0)
   +aboveModal

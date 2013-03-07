@@ -17,9 +17,13 @@ var app = angular.module('app', [
     dev: true
   })
   // angular bootstrap config
-  .config(function(modalConfig) {
-    modalConfig.backdrop = false;
-    modalConfig.escape = false;
+  .config(function($dialogProvider) {
+    $dialogProvider.options({
+      backdrop: false,
+      dialogFade: true,
+      keyboard: false,
+      backdropClick: false
+    });
   })
   // angular-ui config
   .value('ui.config', {

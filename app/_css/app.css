@@ -6662,6 +6662,12 @@ textarea {
   border-bottom-color: #b94a48;
 }
 
+.modal.fade {
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
+  top: 10%;
+}
+
 #waiting {
   position: absolute;
   top: 0;
