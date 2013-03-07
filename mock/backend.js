@@ -120,11 +120,16 @@ MockBackend.prototype.sync = function(patch) {
  * */
 MockBackend.prototype._advanceModal = function(backToIfNone) {
   var modalSeq = this.inGiveMode() ? MODALSEQ_GIVE : MODALSEQ_GET,
-      next;
+      next, update = {};
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
-  if (backToIfNone && next == MODAL.none)
-    next = backToIfNone;
-  this.sync({'/modal': next});
+  if (next == MODAL.none) {
+    if (!this.model.setupComplete) update['/setupComplete'] = true;
+    if (backToIfNone) next = backToIfNone;
+  } else {
+    if (this.model.setupComplete) update['/setupComplete'] = false;
+  }
+  update['/modal'] = next;
+  this.sync(update);
 };
 
 
