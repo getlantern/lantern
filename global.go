@@ -298,7 +298,7 @@ func newContext() *_runtime {
 		},
 		"toFixed", 1, builtinNumber_toFixed,
 		"toExponential", 1, builtinNumber_toExponential,
-		// TODO toPrecision
+		"toPrecision", 1, builtinNumber_toPrecision,
 	)
 
 	self.Global.Number.write(

@@ -85,13 +85,12 @@ For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 
 ### Caveat Emptor
 
-* For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
-* For example, "use strict" will parse, but does nothing.
-* Error reporting needs to be improved.
-* Number.prototype.{toPrecision} are missing.
-* Does not support the (?!) or (?=) regular expression syntax (because Go does not)
-* JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
-* Really, error reporting could use some improvement.
+    * For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
+    * For example, "use strict" will parse, but does nothing.
+    * Error reporting needs to be improved.
+    * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
+    * JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
+    * Really, error reporting could use some improvement.
 
 ### Regular Expression Syntax
 

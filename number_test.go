@@ -69,3 +69,16 @@ func TestNumber_toExponential(t *testing.T) {
 	test(`77.1234.toExponential(2)`, "7.71e+01")
 	test(`77 .toExponential()`, "7.7e+01")
 }
+
+func TestNumber_toPrecision(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`new Number(451).toPrecision()`, "451")
+	test(`new Number(451).toPrecision(1)`, "5e+02")
+	test(`5.123456.toPrecision()`, "5.123456")
+	test(`5.123456.toPrecision(5)`, "5.1235")
+	test(`5.123456.toPrecision(2)`, "5.1")
+	test(`5.123456.toPrecision(1)`, "5")
+}
