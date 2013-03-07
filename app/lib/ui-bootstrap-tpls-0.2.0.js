@@ -1296,9 +1296,14 @@ angular.module( 'ui.bootstrap.tooltip', [] )
         scope.tt_placement = val || 'top';
       });
 
+      // XXX (_pants) always animate tooltips
+      /*
       attr.$observe( 'tooltipAnimation', function ( val ) {
         scope.tt_animation = $parse( val );
       });
+      */
+      scope.tt_animation = function() { return true; };
+      // (end _pants)
 
       // By default, the tooltip is not open.
       scope.tt_isOpen = false;
@@ -1335,9 +1340,14 @@ angular.module( 'ui.bootstrap.tooltip', [] )
         // Set the initial positioning.
         tooltip.css({ top: 0, left: 0, display: 'block' });
         
+        // XXX (_pants) always append to body
+        /*
         // Now we add it to the DOM because need some info about it. But it's not 
         // visible yet anyway.
         element.after( tooltip );
+        */
+        angular.element('body').append(tooltip);
+        // (end _pants)
         
         // Get the position of the directive element.
         position = getPosition();
