@@ -3,7 +3,6 @@ package org.lantern;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.jivesoftware.smack.RosterEntry;
-import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -26,30 +25,21 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private final boolean autosub;
 
-    public LanternRosterEntry() {
-        this(false, false, "", "", "", false);
-    }
-    
-    public LanternRosterEntry(final Presence pres) {
-        this(pres.isAvailable(), false, pres.getFrom(), pres.getFrom(), 
-            pres.getStatus(), false);
-    }
-
-    public LanternRosterEntry(final String email) {
-        this(false, true, email, "", "", false);
-    }
+    private final int sortKey;
 
     public LanternRosterEntry(final RosterEntry entry) {
         this(false, false, entry.getUser(), entry.getName(),
-                extractSubscriptionStatus(entry), entry.isAutosub());
+                extractSubscriptionStatus(entry), entry.isAutosub(),
+                entry.getEmc() + entry.getMc() + entry.getW());
     }
 
     private LanternRosterEntry(final boolean available, final boolean away,
             final String email, final String name,
-            final String subscriptionStatus, final boolean autosub) {
+            final String subscriptionStatus, final boolean autosub,
+            int sortKey) {
         this.available = available;
         this.away = away;
-        
+
         if (StringUtils.isBlank(email)) {
             this.email = "";
         } else {
@@ -60,6 +50,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
                 : subscriptionStatus;
         this.statusMessage = "";
         this.autosub = autosub;
+        this.sortKey = sortKey;
     }
 
     private static String extractSubscriptionStatus(final RosterEntry entry) {
@@ -196,7 +187,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     @Override
     public int compareTo(final LanternRosterEntry lre) {
-        final int scores = lre.getName().compareTo(name);
+        final int scores = sortKey - lre.sortKey;
 
         // If they have the same name, compare by their e-mails. Otherwise
         // any entries with the same name will get consolidated.

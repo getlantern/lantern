@@ -209,12 +209,6 @@ public class Roster implements RosterListener {
                 log.debug("Syncing roster from onPresence...");
                 Events.syncRosterEntry(entry, entry.getIndex());
             }
-        } else {
-            // This may be someone we have subscribed to who we're just now
-            // getting the presence for.
-            log.debug("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres),
-                updateIndex);
         }
 
     }
@@ -331,10 +325,11 @@ public class Roster implements RosterListener {
     }
 
     @Override
-    public void entriesAdded(final Collection<String> entries) {
-        log.debug("Adding {} entries to roster", entries.size());
-        for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry), 
+    public void entriesAdded(final Collection<String> addresses) {
+        log.debug("Adding {} entries to roster", addresses.size());
+        for (final String address : addresses) {
+            RosterEntry entry = smackRoster.getEntry(address);
+            addEntry(new LanternRosterEntry(entry),
                 false);
         }
         fullRosterSync();

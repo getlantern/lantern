@@ -2,6 +2,8 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,24 +13,22 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.lang.math.RandomUtils;
+import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
 import org.junit.Test;
+import org.kaleidoscope.BasicRandomRoutingTable;
+import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Model;
-import org.lantern.XmppHandler;
-
-import org.kaleidoscope.RandomRoutingTable;
-import org.kaleidoscope.BasicRandomRoutingTable;
 
 import com.google.common.eventbus.Subscribe;
 
 public class RosterTest {
 
     private final AtomicReference<String> path = new AtomicReference<String>();
-    
+
     @Test
     public void testIndexedSync() throws Exception {
         Events.register(this);
@@ -72,8 +72,9 @@ public class RosterTest {
         
         // Now add a new entry and make sure all the indexes are
         // updated.
-        final LanternRosterEntry lre = 
-            new LanternRosterEntry("totally different email key");
+        RosterEntry rosterEntry = makeMockRosterEntry("totally different email key");
+        final LanternRosterEntry lre =
+            new LanternRosterEntry(rosterEntry);
         roster.addEntry(lre);
         
         
@@ -122,12 +123,22 @@ public class RosterTest {
         final String url,
         final Roster roster, final Map<String, LanternRosterEntry> entries, 
         final SortedSet<LanternRosterEntry> sorted) {
-        final LanternRosterEntry lre = 
-            new LanternRosterEntry("entry"+chronologicalIndex);
+        RosterEntry mockRosterEntry = makeMockRosterEntry("entry"+chronologicalIndex);
+        final LanternRosterEntry lre =
+            new LanternRosterEntry(mockRosterEntry);
 
         entries.put(lre.getEmail(), lre);
         sorted.add(lre);
         return lre;
+    }
+
+    private RosterEntry makeMockRosterEntry(String email) {
+        RosterEntry entry = mock(RosterEntry.class);
+
+        when(entry.getUser()).thenReturn(email);
+        when(entry.getName()).thenReturn(email);
+
+        return entry;
     }
 
     @Subscribe
