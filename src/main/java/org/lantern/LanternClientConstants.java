@@ -38,6 +38,9 @@ public class LanternClientConstants {
     public static final File DEFAULT_MODEL_FILE =
             new File(CONFIG_DIR, "model");
 
+    public static final File DEFAULT_TRANSFERS_FILE =
+            new File(CONFIG_DIR, "transfers");
+
     public static final File TEST_PROPS =
             new File(CONFIG_DIR, "test.properties");
     

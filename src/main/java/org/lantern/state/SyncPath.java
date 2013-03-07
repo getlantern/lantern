@@ -24,6 +24,7 @@ public enum SyncPath {
     PROXY_ALL_SITES("settings/proxyAllSites"),
     SUBSCRIPTION_REQUESTS("friends/pending"),
     LOCATION("location"),
+    TRANSFERS("transfers"),
     NOTIFICATIONS("notifications");
 
     private final String path;
