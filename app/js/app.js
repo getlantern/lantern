@@ -12,10 +12,16 @@ var app = angular.module('app', [
   'ui',
   'ui.bootstrap'
   ])
+  // app config
+  .constant('config', {
+    dev: true
+  })
+  // angular bootstrap config
   .config(function(modalConfig) {
     modalConfig.backdrop = false;
     modalConfig.escape = false;
   })
+  // angular-ui config
   .value('ui.config', {
     jq: {
       tooltip: {

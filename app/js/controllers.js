@@ -5,7 +5,7 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
+function RootCtrl(config, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -13,8 +13,8 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
   $scope.versionFrontend = VER.join('.');
-  $scope.dev = dev;
-  if (dev.value) {
+  $scope.config = config;
+  if (config.dev) {
     $window.model = model; // easier interactive debugging
   }
   $scope.EXTERNAL_URL = EXTERNAL_URL;
@@ -386,7 +386,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
   };
 }
 
-function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTERACTION) {
+function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, MODAL, INTERACTION) {
   var log = logFactory('ScenariosCtrl'),
       model = modelSrvc.model;
 

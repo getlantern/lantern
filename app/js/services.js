@@ -1,13 +1,11 @@
 'use strict';
 
 angular.module('app.services', [])
-  // primitives wrapped in objects for mutatability XXX this can be clearer
-  .value('dev', {value: true}) // controls debug logging and developer panel
   .value('sanity', {value: true}) // triggers failure mode when false
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
-  .factory('logFactory', function($log, dev, logWhiteList) {
+  .factory('logFactory', function($log, config, logWhiteList) {
     return function(prefix) {
       var match = prefix
         ? prefix.match(logWhiteList)
@@ -26,7 +24,7 @@ angular.module('app.services', [])
         warn:  extracted('warn'),
         error: extracted('error'),
         // XXX angular now has support for console.debug?
-        debug: function() { if (dev.value) logLogger.apply(logLogger, arguments); }
+        debug: function() { if (config.dev) logLogger.apply(logLogger, arguments); }
       };
     }
   })
