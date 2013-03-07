@@ -297,7 +297,7 @@ func newContext() *_runtime {
 			return *call.thisClassObject("Number").primitive
 		},
 		"toFixed", 1, builtinNumber_toFixed,
-		// TODO toExponential
+		"toExponential", 1, builtinNumber_toExponential,
 		// TODO toPrecision
 	)
 

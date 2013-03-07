@@ -31,3 +31,17 @@ func builtinNumber_toFixed(call FunctionCall) Value {
 	}
 	return toValue(strconv.FormatFloat(toFloat(call.This), 'f', int(precision), 64))
 }
+
+func builtinNumber_toExponential(call FunctionCall) Value {
+	precision := float64(-1)
+	if value := call.Argument(0); value.IsDefined() {
+		precision = toIntegerFloat(value)
+		if 0 > precision {
+			panic(newRangeError("RangeError: toExponential() precision must be greater than 0"))
+		}
+	}
+	if call.This.IsNaN() {
+		return toValue("NaN")
+	}
+	return toValue(strconv.FormatFloat(toFloat(call.This), 'e', int(precision), 64))
+}

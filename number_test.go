@@ -57,3 +57,15 @@ func TestNumber_toFixed(t *testing.T) {
 	test(`-2.34.toFixed(1)`, "-2.3")
 	test(`(-2.34).toFixed(1)`, "-2.3")
 }
+
+func TestNumber_toExponential(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`new Number(451).toExponential(2)`, "4.51e+02")
+	test(`77.1234.toExponential()`, "7.71234e+01")
+	test(`77.1234.toExponential(4)`, "7.7123e+01")
+	test(`77.1234.toExponential(2)`, "7.71e+01")
+	test(`77 .toExponential()`, "7.7e+01")
+}
