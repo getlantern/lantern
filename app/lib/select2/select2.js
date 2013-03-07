@@ -2185,6 +2185,11 @@
             if (searchWidth < 40) {
                 searchWidth = maxWidth - sideBorderPadding;
             }
+
+            if (searchWidth <= 0) {
+              searchWidth = minimumWidth;
+            }
+
             this.search.width(searchWidth);
         },
 
