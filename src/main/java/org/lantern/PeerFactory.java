@@ -135,9 +135,9 @@ public class PeerFactory {
             final LanternTrafficCounterHandler trafficCounter) {
         final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
-        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(), 
-            geo.getLongitude(), Type.desktop, hostAddress, Mode.get, 
-            true, trafficCounter, new LanternRosterEntry());
+        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(),
+            geo.getLongitude(), Type.desktop, hostAddress, Mode.get,
+            true, trafficCounter, null);
     }
     
     
@@ -151,10 +151,10 @@ public class PeerFactory {
             if (temp != null) {
                 entry = temp;
             } else {
-                entry = new LanternRosterEntry();
+                entry = null;
             }
         } else {
-            entry = new LanternRosterEntry();
+            entry = null;
         }
         
 

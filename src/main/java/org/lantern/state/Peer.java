@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
@@ -278,6 +280,7 @@ public class Peer {
         this.version = version;
     }
 
+    @JsonSerialize(include=Inclusion.NON_NULL)
     public LanternRosterEntry getRosterEntry() {
         return rosterEntry;
     }
