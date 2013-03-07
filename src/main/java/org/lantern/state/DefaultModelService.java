@@ -281,7 +281,7 @@ public class DefaultModelService implements ModelService {
         }
 
         int n = emails.size();
-        String msg = n > 1 ? "Invitations" : "An invitation";
+        String msg = n > 1 ? "Invitations have" : "An invitation has";
         LanternRosterEntry entry0 = entries.get(0);
         final String name0;
         if (entry0 == null) {
@@ -289,7 +289,7 @@ public class DefaultModelService implements ModelService {
         } else {
             name0 = entry0.getName();
         }
-        msg += " has been queued for <span class=\"titled\" title=\"" + name0 + "\">" + emails.get(0) + "</span>";
+        msg += " been queued for <span class=\"titled\" title=\"" + name0 + "\">" + emails.get(0) + "</span>";
         if (n > 2) {
           msg += " and <span class=\"titled\" title=\""+StringUtils.join(emails, ", ")+"\">"+(n-1)+" others</span>.";
         } else if (n == 2) {
