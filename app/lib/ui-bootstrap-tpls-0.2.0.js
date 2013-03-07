@@ -889,7 +889,9 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.dialog'])
       });
       var dialog = $dialog.dialog(opts);
 
+      var id = elm.attr('id');
       elm.remove();
+      if (id) dialog.modalEl.attr('id', id);
 
       if (attrs.close) {
         setClosed = function() {
