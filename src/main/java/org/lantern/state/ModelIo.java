@@ -37,8 +37,10 @@ public class ModelIo implements Provider<Model>, Shutdownable {
      * Creates a new instance with all the default operations.
      */
     @Inject
-    public ModelIo(final EncryptedFileService encryptedFileService) {
-        this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService);
+    public ModelIo(final EncryptedFileService encryptedFileService,
+            Transfers transfers) {
+        this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService,
+                transfers);
     }
     
     /**
@@ -47,11 +49,13 @@ public class ModelIo implements Provider<Model>, Shutdownable {
      * 
      * @param modelFile The file where settings are stored.
      */
-    public ModelIo(final File modelFile, 
-        final EncryptedFileService encryptedFileService) {
+    public ModelIo(final File modelFile,
+        final EncryptedFileService encryptedFileService,
+        Transfers transfers) {
         this.modelFile = modelFile;
         this.encryptedFileService = encryptedFileService;
         this.model = read();
+        this.model.setTtransfers(transfers);
         log.info("Loaded module");
     }
 

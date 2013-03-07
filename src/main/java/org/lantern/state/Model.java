@@ -72,6 +72,13 @@ public class Model {
 
     private Roster roster;
 
+    private Transfers transfers;
+
+    @JsonView({Run.class})
+    private Transfers getTransfers() {
+        return transfers;
+    }
+
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
         return this.peerCollector.getPeers().values();
@@ -244,5 +251,9 @@ public class Model {
 
     public void setRoster(Roster roster) {
         this.roster = roster;
+    }
+
+    public void setTtransfers(Transfers transfers) {
+        this.transfers = transfers;
     }
 }
