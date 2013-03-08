@@ -102,6 +102,7 @@ public class TransfersIo implements Provider<Transfers>, Shutdownable {
                 return blankTransfers();
             }
             final Transfers read = mapper.readValue(json, Transfers.class);
+            read.setStatsTracker(tracker);
             return read;
         } catch (final IOException e) {
             log.error("Could not read transfers", e);
