@@ -719,10 +719,15 @@ public class LanternUtils {
         final int y = (screenSize.height - height) / 2;
         return new Point(x, y);
     }
+    
 
     public static void waitForServer(final int port) {
-        int attempts = 0;
-        while (attempts < 10000) {
+        waitForServer(port, 60 * 1000);
+    }
+
+    public static void waitForServer(final int port, final int millis) {
+        final long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < millis) {
             final Socket sock = new Socket();
             try {
                 final SocketAddress isa =
@@ -737,7 +742,6 @@ public class LanternUtils {
             } catch (final InterruptedException e) {
                 LOG.info("Interrupted?");
             }
-            attempts++;
         }
         LOG.error("Never able to connect with local server! " +
             "Maybe couldn't bind?");

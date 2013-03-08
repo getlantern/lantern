@@ -269,6 +269,9 @@ public class Proxifier implements LanternService {
         } else if (SystemUtils.IS_OS_LINUX) {
             proxyLinux(url);
         }
+        // set pacUrl on state doc for ui
+        this.model.getConnectivity().setPacUrl(url);
+        Events.syncModel(this.model);
         // success
         try {
             if (!LANTERN_PROXYING_FILE.isFile() &&
@@ -340,6 +343,9 @@ public class Proxifier implements LanternService {
         } else if (SystemUtils.IS_OS_LINUX) {
             unproxyLinux();
         }
+        // set pacUrl on state doc for ui
+        this.model.getConnectivity().setPacUrl(null);
+        Events.syncModel(this.model);
     }
 
     public boolean isProxying() {

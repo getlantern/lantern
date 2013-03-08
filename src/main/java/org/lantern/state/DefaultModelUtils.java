@@ -33,6 +33,7 @@ import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
@@ -82,8 +83,8 @@ public class DefaultModelUtils implements ModelUtils {
             final InetAddress ia = InetAddress.getByName(ip);
             if (!NetworkUtils.isPublicAddress(ia)) {
                 LOG.debug("Using public address for network local: {}", ia);
-                //return getGeoData(
-                //    new PublicIpAddress().getPublicIpAddress().getHostAddress());
+                return getGeoData(
+                    new PublicIpAddress().getPublicIpAddress().getHostAddress());
             }
         } catch (final UnknownHostException e) {
             LOG.error("Unknown host here?", e);

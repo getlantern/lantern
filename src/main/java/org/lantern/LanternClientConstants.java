@@ -24,7 +24,8 @@ public class LanternClientConstants {
 
     /**
      * This is the version of Lantern we're running. This is automatically
-     * replaced when we push new releases.
+     * replaced when we push new releases. Don't change this directly; the
+     * installer will update it.
      */
     public static final String VERSION = "lantern_version_tok";
 
@@ -37,6 +38,9 @@ public class LanternClientConstants {
 
     public static final File DEFAULT_MODEL_FILE =
             new File(CONFIG_DIR, "model");
+
+    public static final File DEFAULT_TRANSFERS_FILE =
+            new File(CONFIG_DIR, "transfers");
 
     public static final File TEST_PROPS =
             new File(CONFIG_DIR, "test.properties");

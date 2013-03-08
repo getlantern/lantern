@@ -84,8 +84,8 @@ public class Version {
             }
             if ("lantern_version_tok".equals(LanternClientConstants.VERSION)) {
                 major = 0;
-                minor = 0;
-                patch = 1;
+                minor = 21;
+                patch = 0;
                 git = "";
             } else {
                 final String[] parts = LanternClientConstants.VERSION.split("\\.");

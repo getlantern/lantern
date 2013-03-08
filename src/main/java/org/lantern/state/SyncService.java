@@ -42,6 +42,8 @@ public class SyncService implements LanternService {
 
     private final Timer timer;
 
+    private final Transfers transfers;
+
     /**
      * Creates a new sync service.
      *
@@ -50,10 +52,12 @@ public class SyncService implements LanternService {
      */
     @Inject
     public SyncService(final SyncStrategy strategy,
-        final Model model, final Timer timer) {
+        final Model model, final Timer timer,
+        final Transfers transfers) {
         this.strategy = strategy;
         this.model = model;
         this.timer = timer;
+        this.transfers = transfers;
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
     }
@@ -65,8 +69,10 @@ public class SyncService implements LanternService {
             @Override
             public void run() {
                 //sync();
-                delegateSync(SyncType.ADD, SyncPath.PEERS, 
+                delegateSync(SyncType.ADD, SyncPath.PEERS,
                     model.getPeers());
+                delegateSync(SyncType.ADD, SyncPath.TRANSFERS,
+                        transfers);
             }
         }, 3000, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
     }

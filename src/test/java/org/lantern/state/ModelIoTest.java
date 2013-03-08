@@ -26,9 +26,9 @@ public class ModelIoTest {
     
     @Test
     public void testModelIo() throws Exception {
-        ModelIo io = 
-            new ModelIo(testFile, TestUtils.getEncryptedFileService());
-        
+        ModelIo io =
+            new ModelIo(testFile, TestUtils.getEncryptedFileService(), null);
+
         Model model = io.get();
         
         final String id = model.getNodeId();
@@ -48,8 +48,8 @@ public class ModelIoTest {
             assertEquals("en", system.getLang());
         }
         io.write();
-        
-        io = new ModelIo(testFile, TestUtils.getEncryptedFileService());
+
+        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null);
         model = io.get();
         system = model.getSystem();
         settings = model.getSettings();
