@@ -6704,11 +6704,6 @@ textarea {
   font-size: 11.9px;
 }
 
-textarea.bugReport {
-  width: 100%;
-  height: 100px;
-}
-
 #langchooser {
   position: absolute;
   top: 5px;
@@ -7009,10 +7004,15 @@ textarea.bugReport {
   font-size: 10.5px;
 }
 
-#contact-msg {
-  font-size: 11.9px;
+textarea.report {
   font-family: "Droid Sans Mono";
+  font-size: 10.5px;
   width: 100%;
+  height: 125px;
+}
+
+#contact textarea.report {
+  font-size: 11.9px;
   height: 175px;
   margin-top: 24px;
 }

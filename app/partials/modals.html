@@ -14,27 +14,27 @@
   <div class="modal-header">
     <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" ng-init="notify = true">
     <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
     <form>
       <p>
         <label class="checkbox inline">
-          <input type="checkbox" ng-model="notifyLanternDevs" tabindex="{{ show && 1 || ''}}">
+          <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="bugReport" ng-disabled="!notifyLanternDevs" tabindex="{{ show && 2 || ''}}"
-        ng-model="bugReport" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}">
-      </textarea>
+      <textarea class="report noHeightWhenHidden" ui-toggle="notify"
+        ng-disabled="!notify" tabindex="{{ show && 2 || ''}}" maxlength="500000"
+        ng-model="report" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}"></textarea>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs, report: bugReport})" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report})" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET' | i18n }}
     </button>
-    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notifyLanternDevs, report: bugReport})" class="btn" tabindex="{{ show && 4 || ''}}">{{ 'RESTART' | i18n }}</button>
-    <button type="button" ng-click="refresh({notify: notifyLanternDevs, report: bugReport})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notify, report: report})" class="btn" tabindex="{{ show && 4 || ''}}">{{ 'RESTART' | i18n }}</button>
+    <button type="button" ng-click="refresh({notify: notify, report: bugReport})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
 
@@ -42,23 +42,23 @@
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" ng-init="notify = true; report = defaultReportMsg()">
     <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
     <form>
       <p>
         <label class="checkbox inline">
-          <input type="checkbox" ng-model="notifyLanternDevs">
+          <input type="checkbox" ng-model="notify">
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="bugReport" ng-disabled="!notifyLanternDevs" tabindex="{{ show && 2 || ''}}"
-        ng-model="bugReport" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}">
-      </textarea>
+      <textarea class="report noHeightWhenHidden" ui-toggle="notify"
+        ng-disabled="!notify" tabindex="{{ show && 2 || ''}}" maxlength="500000"
+        ng-model="report" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}"></textarea>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs, report: bugReport})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notifyLanternDev, report: bugReports})" class="btn btn-primary">{{ 'RESTART' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notify, report: report})" class="btn btn-primary">{{ 'RESTART' | i18n }}</button>
   </div>
 </div>
 
@@ -412,7 +412,7 @@
   <div class="modal-body">
     <div class="smaller">{{ 'CONTACT_PROMPT' | i18n }}</div>
     <form name="contactForm">
-      <textarea id="contact-msg" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
+      <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
       <div class="text-error" ui-toggle="contactForm.contactMsg.$error.maxlength">
         {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - 500000) }}&nbsp;

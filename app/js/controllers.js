@@ -5,9 +5,12 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(config, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
+function RootCtrl(config, $scope, $filter, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
+      i18nFltr = $filter('i18n'),
+      jsonFltr = $filter('json'),
+      reportedStateFltr = $filter('reportedState'),
       MODE = ENUMS.MODE,
       CONNECTIVITY = ENUMS.CONNECTIVITY;
   $scope.modelSrvc = modelSrvc;
@@ -38,6 +41,11 @@ function RootCtrl(config, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, L
     $scope.$apply();
   });
 
+  $scope.defaultReportMsg = function() {
+    var reportedState = jsonFltr(reportedStateFltr($scope.model));
+    return i18nFltr('MESSAGE_PLACEHOLDER') + reportedState;
+  };
+
   $scope.$watch('model.settings.mode', function(mode) {
     $scope.inGiveMode = mode == MODE.give;
     $scope.inGetMode = mode == MODE.get;
@@ -58,8 +66,6 @@ function RootCtrl(config, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, L
     $scope.gtalkConnecting = gtalk == CONNECTIVITY.connecting;
     $scope.gtalkConnected = gtalk == CONNECTIVITY.connected;
   }, true);
-
-  $scope.notifyLanternDevs = true;
 
   function reload() {
     location.reload(true); // true to bypass cache and force request to server
@@ -85,13 +91,15 @@ function RootCtrl(config, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, L
   };
 }
 
-function SanityCtrl($scope, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
+function SanityCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
   var log = logFactory('SanityCtrl');
+
   $scope.modelSrvc = modelSrvc;
 
   $scope.show = false;
   $scope.$watch('modelSrvc.sane', function(sane) {
     if (!sane) {
+      $scope.report = $scope.defaultReportMsg();
       modelSrvc.model.modal = MODAL.none;
       $scope.show = true;
     }
@@ -161,8 +169,7 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.contact;
     if ($scope.show) {
-      var reportedState = $filter('json')($filter('reportedState')($scope.model));
-      $scope.message = $filter('i18n')('MESSAGE_PLACEHOLDER') + reportedState;
+      $scope.message = $scope.defaultReportMsg();
       $scope.contactForm.contactMsg.$pristine = true;
     }
   }, true);
