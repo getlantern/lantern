@@ -55,7 +55,8 @@ public class DefaultLanternApi implements LanternApi {
         INVITE,
         SUBSCRIBED,
         UNSUBSCRIBED,
-        STATE
+        STATE,
+        EXCEPTION
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -157,6 +158,9 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case STATE:
             handleState(req, resp);
+            break;
+        case EXCEPTION:
+            handleException(req, resp);
             break;
         }
     }
@@ -390,6 +394,12 @@ public class DefaultLanternApi implements LanternApi {
             sendServerError(resp, "Error unlocking settings.");
             log.error("Unexpected error unlocking settings: {}", e);
         }
+    }
+
+    private void handleException(final HttpServletRequest req,
+            HttpServletResponse resp) {
+        log.error("Front-end reported an exception: {}", req);
+        ok(resp);
     }
 
     private void returnSettings(final HttpServletResponse resp) {

@@ -20,7 +20,7 @@ public enum Modal {
     systemProxy,
     lanternFriends,
     finished,
-    contactDevs,
+    contact,
     settings,
     confirmReset,
     giveModeForbidden,
