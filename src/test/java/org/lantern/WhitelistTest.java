@@ -25,7 +25,7 @@ public class WhitelistTest {
         
         randFile.delete();
         randFile.deleteOnExit();
-        final ModelIo modelIo = new ModelIo(randFile, fileService);
+        final ModelIo modelIo = new ModelIo(randFile, fileService, null);
         final Model settings = modelIo.get();
         final Whitelist whitelist = settings.getSettings().getWhitelist();
         

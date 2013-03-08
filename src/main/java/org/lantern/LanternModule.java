@@ -45,6 +45,8 @@ import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
+import org.lantern.state.Transfers;
+import org.lantern.state.TransfersIo;
 import org.lantern.ui.SwtMessageService;
 import org.lantern.util.LanternHttpClient;
 import org.lantern.LanternFeedback;
@@ -85,8 +87,10 @@ public class LanternModule extends AbstractModule {
         bind(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
+        bind(TransfersIo.class);
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
         bind(BrowserService.class).to(ChromeBrowserService.class);
+        bind(Transfers.class).toProvider(TransfersIo.class).in(Singleton.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         
         bind(ModelService.class).to(DefaultModelService.class);
