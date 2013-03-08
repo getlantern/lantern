@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.StatsTracker;
 import org.lantern.state.Model.Persistent;
@@ -12,11 +13,15 @@ import com.google.inject.Inject;
  */
 public class Transfers {
 
-    private final StatsTracker statsTracker;
+    private StatsTracker statsTracker;
+
+    public Transfers() {
+        //for
+    }
 
     @Inject
     public Transfers(StatsTracker tracker) {
-        this.statsTracker = tracker;
+        this.setStatsTracker(tracker);
     }
 
     // sum of past runs
@@ -35,22 +40,22 @@ public class Transfers {
 
     @JsonView({ Persistent.class })
     public long getHistoricalUpBytes() {
-        return historicalUpBytes + statsTracker.getUpBytesThisRun();
+        return historicalUpBytes + getStatsTracker().getUpBytesThisRun();
     }
 
     @JsonView({ Persistent.class })
     public long getHistoricaDownBytes() {
-        return historicalDownBytes + statsTracker.getDownBytesThisRun();
+        return historicalDownBytes + getStatsTracker().getDownBytesThisRun();
     }
 
     @JsonView({ Run.class })
     public long getBpsUp() {
-        return statsTracker.getUpBytesPerSecond();
+        return getStatsTracker().getUpBytesPerSecond();
     }
 
     @JsonView({ Run.class })
     public long getBpsDn() {
-        return statsTracker.getDownBytesPerSecond();
+        return getStatsTracker().getDownBytesPerSecond();
     }
 
     @JsonView({ Run.class })
@@ -65,12 +70,12 @@ public class Transfers {
 
     @JsonView({ Run.class })
     public long getUpTotalThisRun() {
-        return statsTracker.getUpBytesThisRun();
+        return getStatsTracker().getUpBytesThisRun();
     }
 
     @JsonView({ Run.class })
     public long getDownTotalThisRun() {
-        return statsTracker.getDownBytesThisRun();
+        return getStatsTracker().getDownBytesThisRun();
     }
 
     @JsonView({ Run.class })
@@ -86,5 +91,15 @@ public class Transfers {
     @JsonView({ Run.class })
     public long getBytesUpDn() {
         return getBytesDn() + getBytesUp();
+    }
+
+    @JsonIgnore
+    public StatsTracker getStatsTracker() {
+        return statsTracker;
+    }
+
+    @JsonIgnore
+    public void setStatsTracker(StatsTracker statsTracker) {
+        this.statsTracker = statsTracker;
     }
 }
