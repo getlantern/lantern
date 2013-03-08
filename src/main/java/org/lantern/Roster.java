@@ -72,7 +72,7 @@ public class Roster implements RosterListener {
      * Creates a new roster.
      */
     @Inject
-    public Roster(final RandomRoutingTable routingTable, 
+    public Roster(final RandomRoutingTable routingTable,
             final XmppHandler xmppHandler,
             final Model model) {
         this.kscopeRoutingTable = routingTable;
@@ -130,7 +130,7 @@ public class Roster implements RosterListener {
         }
         return entries;
     }
-    
+
     public LanternRosterEntry getRosterEntry(final String key) {
         return this.rosterEntries.get(key);
     }
@@ -150,7 +150,7 @@ public class Roster implements RosterListener {
             log.debug("Adding {} to routing table.", from);
             this.kscopeRoutingTable.addNeighbor(id);
 
-            
+
             // only advertise if we're in GIVE mode
             if(this.model.getSettings().getMode() == Settings.Mode.give) {
                 sendKscope(presence, id);
@@ -169,14 +169,14 @@ public class Roster implements RosterListener {
             log.info("Not sending kscope on unavailable: {}", presence.toXML());
             return;
         }
-        final InetAddress address = 
+        final InetAddress address =
             new PublicIpAddress().getPublicIpAddress();
 
         final String user = xmppHandler.getJid();
         final LanternKscopeAdvertisement ad;
         final MappedServerSocket ms = xmppHandler.getMappedServer();
         if (ms.isPortMapped()) {
-            ad = new LanternKscopeAdvertisement(user, address, 
+            ad = new LanternKscopeAdvertisement(user, address,
                 xmppHandler.getMappedServer().getMappedPort(),
                 xmppHandler.getMappedServer().getHostAddress()
             );
@@ -184,18 +184,18 @@ public class Roster implements RosterListener {
             ad = new LanternKscopeAdvertisement(user, ms.getHostAddress());
         }
 
-        final TrustGraphNode tgn = 
+        final TrustGraphNode tgn =
             new LanternTrustGraphNode(xmppHandler);
         // set ttl to max for now
         ad.setTtl(tgn.getMaxRouteLength());
         final String adPayload = JsonUtils.jsonify(ad);
         final BasicTrustGraphAdvertisement message =
-            new BasicTrustGraphAdvertisement(id, adPayload, 
+            new BasicTrustGraphAdvertisement(id, adPayload,
                 LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
         );
 
         log.debug("Sending ad to newly online roster entry {}.", id);
-        tgn.sendAdvertisement(message, id, ad.getTtl()); 
+        tgn.sendAdvertisement(message, id, ad.getTtl());
     }
 
     private void onPresence(final Presence pres, final boolean sync,
@@ -314,10 +314,10 @@ public class Roster implements RosterListener {
 
 
     private void syncPending() {
-        Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS.getPath(), 
+        Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS.getPath(),
             this.model.getFriends().getPending());
     }
-    
+
     public void removeIncomingSubscriptionRequest(final String from) {
         final String email = XmppUtils.jidToUser(from);
         this.model.getFriends().removePending(email);
@@ -329,6 +329,11 @@ public class Roster implements RosterListener {
         log.debug("Adding {} entries to roster", addresses.size());
         for (final String address : addresses) {
             RosterEntry entry = smackRoster.getEntry(address);
+            if (entry == null) {
+                log.debug("Unexpectedly, an entry that we have added to the" +
+                          "roster isn't in Smack's roster.  Skipping it");
+                continue;
+            }
             addEntry(new LanternRosterEntry(entry),
                 false);
         }
