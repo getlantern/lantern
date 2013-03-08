@@ -33,6 +33,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
+import org.lantern.LanternFeedback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,18 +83,21 @@ public class InteractionServlet extends HttpServlet {
 
     private final Censored censored;
 
+    private final LanternFeedback lanternFeedback;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, final XmppHandler xmppHandler,
-        final Censored censored) {
+        final Censored censored, final LanternFeedback lanternFeedback) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.xmppHandler = xmppHandler;
         this.censored = censored;
+        this.lanternFeedback = lanternFeedback;
         Events.register(this);
     }
 
@@ -409,13 +413,26 @@ public class InteractionServlet extends HttpServlet {
                 break;
             }
             break;
-        case contactDevs:
-            if (handleModeSwitch(inter)) {
-                break;
+        case contact:
+            switch(inter) {
+                case CANCEL:
+                    Events.syncModal(this.model, Modal.none);
+                    break;
+                case CONTINUE:
+                    Events.syncModal(this.model, Modal.none);
+                    break;
+                default:
+                    try {
+                        lanternFeedback.submit(json, 
+                            this.model.getProfile().getEmail());
+                    } catch(Exception e) {
+                        log.error("Could not post to contact form: {}", e);
+                    }
+                    this.internalState.setModalCompleted(Modal.finished);
+                    this.internalState.advanceModal(null);
+                    Events.syncModal(this.model, Modal.contact);
+                    break;
             }
-            this.internalState.setModalCompleted(Modal.finished);
-            this.internalState.advanceModal(null);
-            Events.syncModel(this.model);
             break;
         case giveModeForbidden:
             if (inter == Interaction.CONTINUE) {
@@ -487,7 +504,7 @@ public class InteractionServlet extends HttpServlet {
             return true;
         case CONTACT:
             log.debug("Processing contact in none");
-            Events.syncModal(model, Modal.contactDevs);
+            Events.syncModal(model, Modal.contact);
             return true;
         case RESET:
             //reset is handled differently in various modals

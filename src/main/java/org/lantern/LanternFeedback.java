@@ -29,14 +29,15 @@ public class LanternFeedback {
 
     @Inject
     public LanternFeedback(final LanternHttpClient httpClient) {
-        this(httpClient, false);
+        this.httpClient = httpClient;
+        this.testing = false;
     }
     
-    public LanternFeedback(final LanternHttpClient httpClient, 
+    /*public LanternFeedback(final LanternHttpClient httpClient, 
         final boolean testing) {
         this.httpClient = httpClient;
         this.testing = testing;
-    }
+    }*/
 
     public int submit(String message, String replyTo) throws IOException {
         final Map <String, String> feedback = new HashMap<String, String>(); 
