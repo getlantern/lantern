@@ -756,18 +756,15 @@ public class LanternUtils {
 
     /**
      * Determines whether or not oauth data should be persisted to disk. It is
-     * only persisted if we can do so safely and securely but also cleanly --
-     * in particular on Ubuntu we require the user to re-authenticate for
-     * oauth each time because saving those credentials encrypted to disk
-     * would require the user to re-enter a Lantern password each time, which
-     * is no better and is arguably worse than them just re-authenticating
-     * for new oauth tokens with google.
+     * only persisted if we can do so safely and securely but also cleanly.
+     *
+     * Fixme: this should actually be a user preference refs #586
      *
      * @return <code>true</code> if credentials should be persisted to disk,
      * otherwise <code>false</code>.
      */
     public static boolean persistCredentials() {
-        return !SystemUtils.IS_OS_LINUX;
+        return true;
     }
 
 

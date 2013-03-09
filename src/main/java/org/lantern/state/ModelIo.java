@@ -134,8 +134,6 @@ public class ModelIo implements Provider<Model>, Shutdownable {
             final String access = set.getAccessToken();
             final boolean useOauth = set.isUseGoogleOAuth2();
             final boolean gtalk = toWrite.getConnectivity().isGtalkAuthorized();
-            // We don't encrypt the state file on Linux, so make sure we
-            // don't store anything sensitive.
             if (!LanternUtils.persistCredentials()) {
                 
                 set.setRefreshToken("");
