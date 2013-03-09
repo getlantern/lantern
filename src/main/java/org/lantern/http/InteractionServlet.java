@@ -383,7 +383,7 @@ public class InteractionServlet extends HttpServlet {
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                HttpUtils.sendClientError(resp, "error setting system proxy pref");
                 break;
             }
             break;
@@ -508,6 +508,7 @@ public class InteractionServlet extends HttpServlet {
             return true;
         case RESET:
             //reset is handled differently in various modals
+            log.error("Reset from front-end in unknown state.");
             return false;
         default:
             return false;
