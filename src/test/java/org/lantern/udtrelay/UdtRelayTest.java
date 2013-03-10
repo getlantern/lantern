@@ -43,6 +43,8 @@ public class UdtRelayTest {
         // The idea here is to start an HTTP proxy server locally that the UDT
         // relay relays to -- i.e. just like the real world setup.
         
+        final boolean udt = false;
+        
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
         final int relayPort = LanternUtils.randomPort();
@@ -52,13 +54,16 @@ public class UdtRelayTest {
         final UdtRelayProxy relay = 
             new UdtRelayProxy(localRelayAddress.getPort(), "127.0.0.1", 
                 proxyPort);
-        startRelay(relay, localRelayAddress.getPort());
+        startRelay(relay, localRelayAddress.getPort(), udt);
         
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 3; i++) {
-            //hitRelayRaw(relayPort);
-            hitRelayUdt(relayPort);
+            if (udt) {
+                hitRelayUdt(relayPort);
+            } else {
+                hitRelayRaw(relayPort);
+            }
         }
     }
     
@@ -77,6 +82,8 @@ public class UdtRelayTest {
             "\r\n";
     
     private void startProxyServer(final int port) throws Exception {
+        // We configure the proxy server to always return a cache hit with 
+        // the same generic response.
         final Thread t = new Thread(new Runnable() {
 
             @Override
@@ -87,7 +94,7 @@ public class UdtRelayTest {
                     @Override
                     public boolean returnCacheHit(final HttpRequest request, 
                             final Channel channel) {
-                        System.err.println("RETURNING CACHE HIT");
+                        //System.err.println("RETURNING CACHE HIT");
                         channel.write(ChannelBuffers.wrappedBuffer(RESPONSE.getBytes()));
                         ProxyUtils.closeOnFlush(channel);
                         return true;
@@ -121,12 +128,12 @@ public class UdtRelayTest {
         String cur = br.readLine();
         sb.append(cur);
         while(StringUtils.isNotBlank(cur)) {
-            System.err.println(cur);
+            //System.err.println(cur);
             cur = br.readLine();
             sb.append(cur);
         }
         assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
-        System.out.println("");
+        //System.out.println("");
         sock.close();
     }
 
@@ -141,12 +148,12 @@ public class UdtRelayTest {
         String cur = br.readLine();
         sb.append(cur);
         while(StringUtils.isNotBlank(cur)) {
-            System.err.println(cur);
+            //System.err.println(cur);
             cur = br.readLine();
             sb.append(cur);
         }
         assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
-        System.out.println("");
+        //System.out.println("");
         sock.close();
     }
     
@@ -174,13 +181,17 @@ public class UdtRelayTest {
     }
     
     private void startRelay(final UdtRelayProxy relay, 
-        final int localRelayPort) throws Exception {
+        final int localRelayPort, final boolean udt) throws Exception {
         final Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    relay.run();
+                    if (udt) {
+                        relay.run();
+                    } else {
+                        relay.runTcp();
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException("Error running server", e);
                 }
