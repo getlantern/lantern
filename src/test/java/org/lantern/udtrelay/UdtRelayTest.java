@@ -32,6 +32,8 @@ import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.barchart.udt.net.NetSocketUDT;
+
 public class UdtRelayTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -55,9 +57,17 @@ public class UdtRelayTest {
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 3; i++) {
-            hitRelayRaw(relayPort);
+            //hitRelayRaw(relayPort);
+            hitRelayUdt(relayPort);
         }
     }
+    
+    private static final String REQUEST = 
+            "GET http://www.google.com HTTP/1.1\r\n"+
+            "Host: www.google.com\r\n"+
+            "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n"+
+            "Connection: Keep-Alive\r\n\r\n";
+            
     
     private static final String RESPONSE = 
             "HTTP 200 OK\r\n" +
@@ -100,16 +110,31 @@ public class UdtRelayTest {
         LanternUtils.waitForServer(port, 6000);
     }
 
-    private void hitRelayRaw(final int relayPort) throws Exception {
-        final Socket sock = new Socket();
-        final String request = 
-            "GET http://www.google.com HTTP/1.1\r\n"+
-            "Host: www.google.com\r\n"+
-            "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n"+
-            "Connection: Keep-Alive\r\n\r\n";
+    private void hitRelayUdt(final int relayPort) throws Exception {
+        final Socket sock = new NetSocketUDT();
         sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
         
-        sock.getOutputStream().write(request.getBytes());
+        sock.getOutputStream().write(REQUEST.getBytes());
+        final BufferedReader br = 
+            new BufferedReader(new InputStreamReader(sock.getInputStream()));
+        final StringBuilder sb = new StringBuilder();
+        String cur = br.readLine();
+        sb.append(cur);
+        while(StringUtils.isNotBlank(cur)) {
+            System.err.println(cur);
+            cur = br.readLine();
+            sb.append(cur);
+        }
+        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
+        System.out.println("");
+        sock.close();
+    }
+
+    private void hitRelayRaw(final int relayPort) throws Exception {
+        final Socket sock = new Socket();
+        sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
+        
+        sock.getOutputStream().write(REQUEST.getBytes());
         final BufferedReader br = 
             new BufferedReader(new InputStreamReader(sock.getInputStream()));
         final StringBuilder sb = new StringBuilder();
