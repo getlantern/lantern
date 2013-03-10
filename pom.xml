@@ -40,11 +40,6 @@
 
 
   <dependencies>
-<dependency>
-    <groupId>io.netty</groupId>
-    <artifactId>netty-all</artifactId>
-    <version>4.0.0.Beta2</version>
-</dependency>
 
     <dependency>
       <groupId>com.barchart.udt</groupId>
@@ -63,6 +58,11 @@
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
       <version>3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.0.0.Beta2</version>
     </dependency>
     <dependency>
       <groupId>org.getlantern</groupId>
