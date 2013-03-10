@@ -5,6 +5,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
 import io.netty.handler.logging.LogLevel;
@@ -50,7 +51,7 @@ public class UdtRelayProxy {
                 //.handler(new LoggingHandler(LogLevel.INFO))
                 //.childHandler(new UdtRelayInitializer(remoteHost, remotePort))
                 //.childOption(ChannelOption.AUTO_READ, false)
-                /*
+                
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
@@ -60,8 +61,8 @@ public class UdtRelayProxy {
                             new UdtRelayFrontendHandler(remoteHost, remotePort));
                     }
                 });
-                */
                 
+            /*
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
@@ -71,10 +72,9 @@ public class UdtRelayProxy {
                             new UdtRelayServerIncomingHandler(remoteHost, remotePort));
                     }
                 });
+                */
             
             final ChannelFuture future = boot.bind("127.0.0.1", localPort).sync();
-            // Start the server.
-            //final ChannelFuture future = boot.bind(port).sync();
             // Wait until the server socket is closed.
             future.channel().closeFuture().sync();
         } finally {
@@ -84,6 +84,11 @@ public class UdtRelayProxy {
         
         
         /*
+
+        */
+    }
+    
+    public void runTcp() throws Exception {
         // Configure the bootstrap.
         final ServerBootstrap sb = new ServerBootstrap();
         try {
@@ -96,6 +101,5 @@ public class UdtRelayProxy {
         } finally {
             sb.shutdown();
         }
-        */
     }
 }
