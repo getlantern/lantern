@@ -1,6 +1,5 @@
 package org.lantern;
 
-import org.lantern.DefaultProxyTracker.ProxyHolder;
 
 /**
  * Interface for the various types of proxies Lantern uses.

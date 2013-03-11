@@ -3,6 +3,17 @@ package org.lantern.udtrelay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundByteHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.udt.UdtChannel;
+import io.netty.channel.udt.nio.NioUdtProvider;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,6 +23,8 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +42,9 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.junit.Test;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
+import org.lantern.util.Threads;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyCacheManager;
@@ -61,13 +76,13 @@ public class UdtRelayTest {
         
         // Hit the proxy directly first so we can verify we get the exact
         // same thing (except a few specific HTTP headers) from the relay.
-        final String expected = hitProxyDirect(proxyPort);
+        //final String expected = hitProxyDirect(proxyPort);
         
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 3; i++) {
             if (udt) {
-                hitRelayUdt(relayPort, expected);
+                hitRelayUdtNetty(relayPort, "");
             } else {
                 hitRelayRaw(relayPort);
             }
@@ -184,6 +199,96 @@ public class UdtRelayTest {
         return response;
 
     }
+    
+    private void hitRelayUdtNetty(final int relayPort, final String expected) 
+        throws Exception {
+        
+        // Configure the client.
+        final Bootstrap boot = new Bootstrap();
+        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
+        final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
+                connectFactory, NioUdtProvider.BYTE_PROVIDER);
+        
+        final AtomicReference<String> responseRef = new AtomicReference<String>("");
+        
+        try {
+            boot.group(connectGroup)
+                .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
+                .handler(new ChannelInitializer<UdtChannel>() {
+                    @Override
+                    public void initChannel(final UdtChannel ch)
+                            throws Exception {
+                        ch.pipeline().addLast(
+                            //new LoggingHandler(LogLevel.INFO),
+                            new HttpResponseClientHandler(responseRef));
+                    }
+                });
+            // Start the client.
+            final ChannelFuture f = 
+                boot.connect(LanternClientConstants.LOCALHOST, relayPort).sync();
+            
+            synchronized(responseRef) {
+                if (responseRef.get().length() == 0) {
+                    responseRef.wait(2000);
+                }
+            }
+            // Wait until the connection is closed.
+            assertTrue("Unexpected response "+responseRef.get(), 
+                    responseRef.get().startsWith("HTTP/1.1 200 OK"));
+            f.channel().close();
+        } finally {
+            // Shut down the event loop to terminate all threads.
+            boot.shutdown();
+        }
+    }
+    
+    private static class HttpResponseClientHandler extends ChannelInboundByteHandlerAdapter {
+
+        private static final Logger log = 
+                LoggerFactory.getLogger(HttpResponseClientHandler.class);
+
+        private final ByteBuf message = Unpooled.wrappedBuffer(REQUEST.getBytes());
+
+        private final AtomicReference<String> responseRef;
+
+        private HttpResponseClientHandler(final AtomicReference<String> response) {
+            responseRef = response;
+        }
+
+        @Override
+        public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+            log.info("Channel active " + NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
+            ctx.write(message);
+        }
+
+        @Override
+        public void inboundBufferUpdated(final ChannelHandlerContext ctx,
+                final ByteBuf in) {
+            final String response = in.toString(LanternConstants.UTF8);
+            log.info("INBOUND UPDATED!!\n"+response);
+            synchronized (responseRef) {
+                responseRef.set(response);
+                responseRef.notifyAll();
+            }
+        }
+
+        @Override
+        public void exceptionCaught(final ChannelHandlerContext ctx,
+                final Throwable cause) {
+            log.debug("close the connection when an exception is raised", cause);
+            ctx.close();
+        }
+
+        @Override
+        public ByteBuf newInboundBuffer(final ChannelHandlerContext ctx)
+                throws Exception {
+            log.info("NEW INBOUND BUFFER");
+            return ctx.alloc().directBuffer(
+                    ctx.channel().config().getOption(ChannelOption.SO_RCVBUF));
+        }
+
+    }
+    
     
     private void hitRelayUdt(final int relayPort, final String expected) throws Exception {
         final Socket sock = new NetSocketUDT();

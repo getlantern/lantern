@@ -144,17 +144,18 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public boolean addJidProxy(final String peerUri) {
-        log.info("Considering peer proxy");
+        log.debug("Considering peer proxy");
+        //addPeerProxyWithChecks(this.peerProxySet, )
         synchronized (peerProxySet) {
             // TODO: I believe this excludes exchanging keys with peers who
             // are on multiple machines when the peer URI is a general JID and
             // not an instance JID.
             if (!peerProxySet.contains(peerUri)) {
-                log.info("Actually adding peer proxy: {}", peerUri);
+                log.debug("Actually adding peer proxy: {}", peerUri);
                 peerProxySet.add(peerUri);
                 return true;
             } else {
-                log.info("We already know about the peer proxy");
+                log.debug("We already know about the peer proxy");
             }
         }
         return false;
@@ -354,68 +355,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Subscribe
     public void onReset(final ResetEvent event) {
         clear();
-    }
-
-    public static final class ProxyHolder {
-
-        private final String id;
-        private final InetSocketAddress isa;
-        private final LanternTrafficCounterHandler trafficShapingHandler;
-
-        private ProxyHolder(final String id, final InetSocketAddress isa, 
-            final LanternTrafficCounterHandler trafficShapingHandler) {
-            this.id = id;
-            this.isa = isa;
-            this.trafficShapingHandler = trafficShapingHandler;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public InetSocketAddress getIsa() {
-            return isa;
-        }
-        
-        public LanternTrafficCounterHandler getTrafficShapingHandler() {
-            return trafficShapingHandler;
-        }
-        
-        @Override
-        public String toString() {
-            return "ProxyHolder [isa=" + getIsa() + "]";
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((id == null) ? 0 : id.hashCode());
-            result = prime * result + ((isa == null) ? 0 : isa.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            ProxyHolder other = (ProxyHolder) obj;
-            if (getId() == null) {
-                if (other.id != null)
-                    return false;
-            } else if (!id.equals(other.id))
-                return false;
-            if (isa == null) {
-                if (other.isa != null)
-                    return false;
-            } else if (!isa.equals(other.isa))
-                return false;
-            return true;
-        }
     }
 
     @Override
