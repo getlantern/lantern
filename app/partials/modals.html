@@ -410,7 +410,7 @@
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div class="smaller">{{ 'CONTACT_PROMPT' | i18n }}</div>
+    <div class="smaller" ng-bind-html="'CONTACT_PROMPT' | i18n"></div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->

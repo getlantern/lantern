@@ -170,7 +170,9 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
     $scope.show = modal == MODAL.contact;
     if ($scope.show) {
       $scope.message = $scope.defaultReportMsg();
-      $scope.contactForm.contactMsg.$pristine = true;
+      if ($scope.contactForm) {
+        $scope.contactForm.contactMsg.$pristine = true;
+      }
     }
   }, true);
 }
