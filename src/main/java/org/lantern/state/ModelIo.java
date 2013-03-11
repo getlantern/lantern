@@ -55,7 +55,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         this.modelFile = modelFile;
         this.encryptedFileService = encryptedFileService;
         this.model = read();
-        this.model.setTtransfers(transfers);
+        this.model.setTransfers(transfers);
         log.info("Loaded module");
     }
 
