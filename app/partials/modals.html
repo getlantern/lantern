@@ -58,7 +58,7 @@
   </div>
   <div class="modal-footer">
     <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notify, report: report})" class="btn btn-primary">{{ 'RESTART' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.retry, {notify: notify, report: report})" class="btn btn-primary">{{ 'RETRY' | i18n }}</button>
   </div>
 </div>
 
@@ -390,11 +390,11 @@
       <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->
         <input type="checkbox" ng-model="autoReport"
                ng-change="changeSetting(SETTING.autoReport, autoReport)">
-        <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
+        <small>{{ 'AUTOREPORT_PROMPT' | i18n }}</small>
       </label>
       <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->
-        <a rel="tooltip" tooltip="{{ 'AUTOREPORT_PROMPT' | i18n }}">
-          <i class="icon-question-sign"></i>
+        <a href="{{ EXTERNAL_URL.autoReportPrivacy }}" tooltip="{{ 'MORE_INFO' | i18n }}" target="_blank">
+          <i class="icon-external-link small"></i>
         </a>
       </label>
     </form>
@@ -539,15 +539,14 @@ You should have received a copy of the GNU General Public License along with thi
         </label>
 
         <div>
-          <label class="checkbox inline" style="margin-top:-7px"><!-- XXX inline style -->
+          <label class="checkbox">
             <input type="checkbox" ng-model="autoReport"
                    ng-click="changeSetting(SETTING.autoReport, autoReport)">
-            {{ 'AUTOREPORT_ENABLE' | i18n }}
+            {{ 'AUTOREPORT_PROMPT' | i18n }}
+            <a href="{{ EXTERNAL_URL.autoReportPrivacy }}" target="_blank" class="small always-underlined">
+              {{ 'MORE_INFO' | i18n }}
+            </a>
           </label>
-          <!-- XXX space between label and anchor inconsistent between ubuntu and os x -->
-          <a rel="tooltip" tooltip="{{ 'AUTOREPORT_PROMPT' | i18n }}">
-            <i class="icon-question-sign"></i>
-          </a>
         </div>
 
         <div id="autoreport-warning" ui-toggle="!model.settings.autoReport"

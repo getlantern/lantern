@@ -6530,6 +6530,10 @@ i[class^=icon-]:active, i[class^=icon-]:visited, i[class^=icon-]:hover {
   text-decoration: none;
 }
 
+a.always-underlined {
+  text-decoration: underline;
+}
+
 a.disabled,
 a.disabled:hover {
   color: #999999;

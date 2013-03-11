@@ -36,6 +36,7 @@ var DEFAULT_LANG = 'en',
     },
     EXTERNAL_URL = {
       helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
+      autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       httpsEverywhere: 'https://www.eff.org/https-everywhere'
     },
     // enums
@@ -79,7 +80,6 @@ var DEFAULT_LANG = 'en',
       'close',
       'quit',
       'refresh',
-      'restart',
       'developer',
       'scenarios']),
     SETTING = makeEnum([
