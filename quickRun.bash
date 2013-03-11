@@ -27,6 +27,13 @@ then
   javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
 fi
 
+if [ $(uname) == "Linux"]
+then
+  proc=`uname -p`
+  javaArgs="-Djava.library.path=lib/linux/$proc $javaArgs"
+fi
+
+
 [ $(uname) == "Darwin" ] && extras="-XstartOnFirstThread"
 
 echo "Running using Java on path at `which java` with args $javaArgs"
