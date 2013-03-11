@@ -721,11 +721,11 @@ public class LanternUtils {
     }
     
 
-    public static void waitForServer(final int port) {
-        waitForServer(port, 60 * 1000);
+    public static boolean waitForServer(final int port) {
+        return waitForServer(port, 60 * 1000);
     }
 
-    public static void waitForServer(final int port, final int millis) {
+    public static boolean waitForServer(final int port, final int millis) {
         final long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < millis) {
             final Socket sock = new Socket();
@@ -734,7 +734,7 @@ public class LanternUtils {
                     new InetSocketAddress("127.0.0.1", port);
                 sock.connect(isa, 2000);
                 sock.close();
-                return;
+                return true;
             } catch (final IOException e) {
             }
             try {
@@ -745,6 +745,7 @@ public class LanternUtils {
         }
         LOG.error("Never able to connect with local server! " +
             "Maybe couldn't bind?");
+        return false;
     }
 
     /*

@@ -51,7 +51,8 @@ public class UdtRelayProxy {
                 //.handler(new LoggingHandler(LogLevel.INFO))
                 //.childHandler(new UdtRelayInitializer(remoteHost, remotePort))
                 //.childOption(ChannelOption.AUTO_READ, false)
-                
+            
+                /*
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
@@ -61,8 +62,8 @@ public class UdtRelayProxy {
                             new UdtRelayFrontendHandler(remoteHost, remotePort));
                     }
                 });
-                
-            /*
+                */
+            
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
@@ -72,7 +73,6 @@ public class UdtRelayProxy {
                             new UdtRelayServerIncomingHandler(remoteHost, remotePort));
                     }
                 });
-                */
             
             final ChannelFuture future = boot.bind("127.0.0.1", localPort).sync();
             // Wait until the server socket is closed.
