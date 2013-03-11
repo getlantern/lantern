@@ -879,9 +879,7 @@ public class Launcher {
         }
         LOG.info("Running API on port: {}", StaticSettings.getApiPort());
         model.getConnectivity().setPacUrl(
-            String.format("http://localhost:%d/proxy_on.lantern.pac", 
-                StaticSettings.getApiPort()
-            )
+            StaticSettings.getLocalEndpoint() + "/proxy_on.lantern.pac"
         );
 
         if (cmd.hasOption(OPTION_SERVER_PORT)) {
