@@ -1,8 +1,12 @@
 package org.lantern.udtrelay;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -43,7 +47,7 @@ public class UdtRelayTest {
         // The idea here is to start an HTTP proxy server locally that the UDT
         // relay relays to -- i.e. just like the real world setup.
         
-        final boolean udt = false;
+        final boolean udt = true;
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
@@ -59,6 +63,8 @@ public class UdtRelayTest {
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 3; i++) {
+            //hitRelay(proxyPort);
+            
             if (udt) {
                 hitRelayUdt(relayPort);
             } else {
@@ -67,15 +73,38 @@ public class UdtRelayTest {
         }
     }
     
-    private static final String REQUEST = 
+    private static final String REQUEST =
+            
             "GET http://www.google.com HTTP/1.1\r\n"+
+            "Host: www.google.com\r\n"+
+            "Proxy-Connection: Keep-Alive\r\n"+
+            "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
+            "\r\n";
+            
+    
+            /*
+        "GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1\r\n"+
+        "Host: lantern.s3.amazonaws.com\r\n"+
+        "Proxy-Connection: Keep-Alive\r\n"+
+        "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
+        "\r\n";
+        */
+    /*
+    GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1
+        Host: lantern.s3.amazonaws.com
+        Proxy-Connection: Keep-Alive
+        User-Agent: Apache-HttpClient/4.2.2 (java 1.5)
+        */
+    /*
+            "GET http://www.google.com/ HTTP/1.1\r\n"+
+            //"GET / HTTP/1.1\r\n"+
             "Host: www.google.com\r\n"+
             "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n"+
             "Connection: Keep-Alive\r\n\r\n";
-            
+            */
     
     private static final String RESPONSE = 
-            "HTTP 200 OK\r\n" +
+            "HTTP/1.1 200 OK\r\n" +
             "Server: Gnutella\r\n"+
             "Content-type: application/binary\r\n"+
             "Content-Length: 0\r\n" +
@@ -93,11 +122,12 @@ public class UdtRelayTest {
                     
                     @Override
                     public boolean returnCacheHit(final HttpRequest request, 
-                            final Channel channel) {
-                        //System.err.println("RETURNING CACHE HIT");
-                        channel.write(ChannelBuffers.wrappedBuffer(RESPONSE.getBytes()));
-                        ProxyUtils.closeOnFlush(channel);
-                        return true;
+                           final Channel channel) {
+                        System.err.println("GOT REQUEST:\n"+request);
+                        //channel.write(ChannelBuffers.wrappedBuffer(RESPONSE.getBytes()));
+                        //ProxyUtils.closeOnFlush(channel);
+                        //return true;
+                        return false;
                     }
                     
                     @Override
@@ -111,10 +141,12 @@ public class UdtRelayTest {
                 System.out.println("About to start...");
                 server.start();
             }
-        }, "Relay-Test-Thread");
+        }, "Relay-to-Proxy-Test-Thread");
         t.setDaemon(true);
         t.start();
-        LanternUtils.waitForServer(port, 6000);
+        if (!LanternUtils.waitForServer(port, 6000)) {
+            fail("Could not start local test proxy server!!");
+        }
     }
 
     private void hitRelayUdt(final int relayPort) throws Exception {
@@ -122,6 +154,7 @@ public class UdtRelayTest {
         sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
         
         sock.getOutputStream().write(REQUEST.getBytes());
+        
         final BufferedReader br = 
             new BufferedReader(new InputStreamReader(sock.getInputStream()));
         final StringBuilder sb = new StringBuilder();
@@ -132,7 +165,8 @@ public class UdtRelayTest {
             cur = br.readLine();
             sb.append(cur);
         }
-        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
+        //assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
+        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
         //System.out.println("");
         sock.close();
     }
@@ -142,6 +176,9 @@ public class UdtRelayTest {
         sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
         
         sock.getOutputStream().write(REQUEST.getBytes());
+        
+        
+        //IOUtils.copy(sock.getInputStream(), new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
         final BufferedReader br = 
             new BufferedReader(new InputStreamReader(sock.getInputStream()));
         final StringBuilder sb = new StringBuilder();
@@ -169,13 +206,17 @@ public class UdtRelayTest {
         httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
         
         //final HttpGet get = new HttpGet("http://www.google.com");
-        final HttpGet get = new HttpGet("http://127.0.0.1");
+        //final HttpGet get = new HttpGet("https://d3g17h6tzzjzlu.cloudfront.net/windows-x86-jre.tar.gz");
+        final HttpGet get = new HttpGet("http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz");
+        //final HttpGet get = new HttpGet("http://127.0.0.1");
         final HttpResponse response = httpClient.execute(get);
         final HttpEntity entity = response.getEntity();
-        final String body = 
-            IOUtils.toString(entity.getContent()).toLowerCase();
+        final InputStream is = entity.getContent();
+        IOUtils.copy(is, new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
+        //final String body = 
+        //    IOUtils.toString(entity.getContent()).toLowerCase();
         EntityUtils.consume(entity);
-        assertTrue(body.trim().endsWith("</script></body></html>"));
+        //assertTrue(body.trim().endsWith("</script></body></html>"));
         
         get.reset();
     }
@@ -199,7 +240,12 @@ public class UdtRelayTest {
         }, "Relay-Test-Thread");
         t.setDaemon(true);
         t.start();
-        LanternUtils.waitForServer(localRelayPort, 6000);
+        if (udt) {
+            // Just sleep if it's UDT...
+            Thread.sleep(800);
+        } else if (!LanternUtils.waitForServer(localRelayPort, 6000)) {
+            fail("Could not start relay server!!");
+        }
     }
 
 }
