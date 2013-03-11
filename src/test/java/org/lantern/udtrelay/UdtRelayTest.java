@@ -158,21 +158,23 @@ public class UdtRelayTest {
         
         final InputStream is = sock.getInputStream();
         sock.setSoTimeout(4000);
-        /*
         final BufferedReader br = new BufferedReader(new InputStreamReader(is));
         final StringBuilder sb = new StringBuilder();
         String cur = br.readLine();
         sb.append(cur);
-        int count = 0;
-        while(StringUtils.isNotBlank(cur) && count < 6) {
+        System.err.println(cur);
+        //int count = 0;
+        while(StringUtils.isNotBlank(cur)) {// && count < 6) {
             System.err.println("LINE:\n"+cur);
             cur = br.readLine();
             sb.append(cur);
-            count++;
+            //count++;
         }
-        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
-        
-        
+        sock.close();
+        assertTrue("Unexpected response "+sb.toString(), 
+            sb.toString().startsWith("HTTP/1.1 200 OK"));
+
+        /*
         final StringBuilder sb = new StringBuilder();
         int count = 0;
         while (count < 500) {
@@ -181,7 +183,7 @@ public class UdtRelayTest {
         }
         System.err.println("READ:\n"+sb.toString());
         */
-        IOUtils.copy(is, new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
+        //IOUtils.copy(is, new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
         
         /*
         final BufferedReader br = 
@@ -214,12 +216,13 @@ public class UdtRelayTest {
         final StringBuilder sb = new StringBuilder();
         String cur = br.readLine();
         sb.append(cur);
+        System.err.println(cur);
         while(StringUtils.isNotBlank(cur)) {
-            //System.err.println(cur);
+            System.err.println(cur);
             cur = br.readLine();
             sb.append(cur);
         }
-        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
+        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
         //System.out.println("");
         sock.close();
     }
