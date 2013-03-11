@@ -1,16 +1,14 @@
 package org.lantern.udtrelay;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.Future;
@@ -61,13 +59,13 @@ public class UdtRelayTest {
             new UdtRelayProxy(localRelayAddress.getPort(), proxyPort);
         startRelay(relay, localRelayAddress.getPort(), udt);
         
+        // Hit the proxy directly first so we can verify we get the exact
+        // same thing (except a few specific HTTP headers) from the relay.
         final String expected = hitProxyDirect(proxyPort);
         
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 3; i++) {
-            //hitRelay(proxyPort);
-            
             if (udt) {
                 hitRelayUdt(relayPort, expected);
             } else {
@@ -170,15 +168,13 @@ public class UdtRelayTest {
         final StringBuilder sb = new StringBuilder();
         String cur = br.readLine();
         sb.append(cur);
-        //int count = 0;
-        while(StringUtils.isNotBlank(cur)) {// && count < 6) {
+        while(StringUtils.isNotBlank(cur)) {
             System.err.println(cur);
             cur = br.readLine();
             if (!cur.startsWith("x-amz-") && !cur.startsWith("Date")) {
                 sb.append(cur);
                 sb.append("\n");
             }
-            //count++;
         }
         final String response = sb.toString();
         sock.close();
@@ -201,15 +197,13 @@ public class UdtRelayTest {
         final StringBuilder sb = new StringBuilder();
         String cur = br.readLine();
         sb.append(cur);
-        //int count = 0;
-        while(StringUtils.isNotBlank(cur)) {// && count < 6) {
+        while(StringUtils.isNotBlank(cur)) {
             System.err.println(cur);
             cur = br.readLine();
             if (!cur.startsWith("x-amz-") && !cur.startsWith("Date")) {
                 sb.append(cur);
                 sb.append("\n");
             }
-            //count++;
         }
         
         final String response = sb.toString();
@@ -225,9 +219,6 @@ public class UdtRelayTest {
         sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
         
         sock.getOutputStream().write(REQUEST.getBytes());
-        
-        
-        //IOUtils.copy(sock.getInputStream(), new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
         final BufferedReader br = 
             new BufferedReader(new InputStreamReader(sock.getInputStream()));
         final StringBuilder sb = new StringBuilder();
