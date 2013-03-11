@@ -199,7 +199,14 @@ public class UdtRelayServerIncomingHandler
         final byte[] buffer = new byte[bufferSize];
         int n = 0;
         while (-1 != (n = input.read(buffer))) {
+            //log.debug("Copying buf to inbound: {}\n"+new String(buffer), inboundChannel.hashCode());
             inboundChannel.write(Unpooled.wrappedBuffer(buffer, 0, n));
+            try {
+                inboundChannel.flush().sync();
+            } catch (InterruptedException e) {
+                log.error("Error flushing", e);
+                throw new RuntimeException("Error flushing", e);
+            }
         }
         log.debug("Copied bytes...");
     }
