@@ -80,7 +80,9 @@ public class ModelIo implements Provider<Model>, Shutdownable {
             final String json = IOUtils.toString(is);
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
                 log.info("Can't build settings from empty string");
-                return blankModel();
+                final Model mod = blankModel();
+                mod.setModal(Modal.settingsLoadFailure);
+                return mod;
             }
             final Model read = mapper.readValue(json, Model.class);
             //log.info("Built settings from disk: {}", read);
@@ -166,5 +168,14 @@ public class ModelIo implements Provider<Model>, Shutdownable {
     @Override
     public void stop() {
         write();
+    }
+
+    public void reload() {
+        Model newModel = read();
+        if (newModel.getModal() == Modal.settingsLoadFailure) {
+            model.addNotification("Failed to reload settings", "error");
+            return;
+        }
+        model.loadFrom(newModel);
     }
 }

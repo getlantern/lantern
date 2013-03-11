@@ -370,7 +370,16 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case settingsLoadFailure:
-            log.error("Processing settings load failure...");
+            switch (inter) {
+            case RETRY:
+                modelIo.reload();
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                Events.syncModal(model, model.getModal());
+                break;
+            case RESET:
+                Events.syncModal(model, Modal.welcome);
+                break;
+            }
             break;
         case systemProxy:
             switch (inter) {

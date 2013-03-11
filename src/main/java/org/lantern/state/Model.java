@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -255,5 +256,21 @@ public class Model {
 
     public void setTransfers(Transfers transfers) {
         this.transfers = transfers;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadFrom(Model newModel) {
+        Class<Model> modelClass = (Class<Model>) getClass();
+        try {
+
+            for (Field field : modelClass.getFields()) {
+                field.set(this, field.get(newModel));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
