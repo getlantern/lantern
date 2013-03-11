@@ -8,11 +8,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 import java.util.concurrent.ThreadFactory;
 
+import org.lantern.LanternClientConstants;
 import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,19 +21,16 @@ public class UdtRelayProxy {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final int localPort;
-    private final String remoteHost;
-    private final int remotePort;
+    private final int destinationPort;
 
-    public UdtRelayProxy(final int localPort, 
-        final String remoteHost, final int remotePort) {
+    public UdtRelayProxy(final int localPort, final int remotePort) {
         this.localPort = localPort;
-        this.remoteHost = remoteHost;
-        this.remotePort = remotePort;
+        this.destinationPort = remotePort;
     }
 
     public void run() throws Exception {
         log.debug("Proxying clients from 127.0.0.1:" + localPort + " to " +
-            remoteHost + ':' + remotePort + " ...");
+            "127.0.0.1:" + destinationPort + " ...");
 
         final ThreadFactory acceptFactory = Threads.newThreadFactory("accept");
         final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
@@ -69,8 +65,8 @@ public class UdtRelayProxy {
                     public void initChannel(final UdtChannel ch)
                             throws Exception {
                         ch.pipeline().addLast(
-                            new LoggingHandler(LogLevel.INFO),
-                            new UdtRelayServerIncomingHandler(remoteHost, remotePort));
+                            //new LoggingHandler(LogLevel.INFO),x
+                            new UdtRelayServerIncomingHandler(destinationPort));
                     }
                 });
             
@@ -81,11 +77,6 @@ public class UdtRelayProxy {
             // Shut down all event loops to terminate all threads.
             boot.shutdown();
         }
-        
-        
-        /*
-
-        */
     }
     
     public void runTcp() throws Exception {
@@ -94,9 +85,9 @@ public class UdtRelayProxy {
         try {
             sb.group(new NioEventLoopGroup(), new NioEventLoopGroup())
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new UdtRelayInitializer(remoteHost, remotePort))
+                .childHandler(new UdtRelayInitializer(destinationPort))
                 .childOption(ChannelOption.AUTO_READ, false)
-                .bind("127.0.0.1", localPort).sync().channel().closeFuture().sync();
+                .bind(LanternClientConstants.LOCALHOST, localPort).sync().channel().closeFuture().sync();
                 //.bind("127.0.0.1", localPort).sync().channel();
         } finally {
             sb.shutdown();

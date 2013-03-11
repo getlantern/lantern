@@ -108,6 +108,7 @@ public class LanternClientConstants {
     public static final File GEOIP = new File(DATA_DIR, "GeoIP.dat");
     
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
+    public static final String LOCALHOST = "127.0.0.1";
 
     // Not final because it may be set from the command line for debugging.
     public static String LANTERN_JID;

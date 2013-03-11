@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.Future;
@@ -24,15 +25,14 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.junit.Test;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyCacheManager;
-import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +54,9 @@ public class UdtRelayTest {
         final int relayPort = LanternUtils.randomPort();
         startProxyServer(proxyPort);
         final InetSocketAddress localRelayAddress = 
-            new InetSocketAddress("127.0.0.1", relayPort);
+            new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         final UdtRelayProxy relay = 
-            new UdtRelayProxy(localRelayAddress.getPort(), "127.0.0.1", 
-                proxyPort);
+            new UdtRelayProxy(localRelayAddress.getPort(), proxyPort);
         startRelay(relay, localRelayAddress.getPort(), udt);
         
         // We do this a few times to make sure there are no issues with 
@@ -82,13 +81,13 @@ public class UdtRelayTest {
             "\r\n";
             
     
-            /*
+    /*
         "GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1\r\n"+
         "Host: lantern.s3.amazonaws.com\r\n"+
         "Proxy-Connection: Keep-Alive\r\n"+
         "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
         "\r\n";
-        */
+        
         
     /*
     GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1
@@ -124,7 +123,7 @@ public class UdtRelayTest {
                     @Override
                     public boolean returnCacheHit(final HttpRequest request, 
                            final Channel channel) {
-                        System.err.println("GOT REQUEST:\n"+request);
+                        //System.err.println("GOT REQUEST:\n"+request);
                         //channel.write(ChannelBuffers.wrappedBuffer(RESPONSE.getBytes()));
                         //ProxyUtils.closeOnFlush(channel);
                         //return true;
@@ -170,7 +169,7 @@ public class UdtRelayTest {
             sb.append(cur);
             //count++;
         }
-        sock.close();
+        //sock.close();
         assertTrue("Unexpected response "+sb.toString(), 
             sb.toString().startsWith("HTTP/1.1 200 OK"));
 
@@ -183,7 +182,13 @@ public class UdtRelayTest {
         }
         System.err.println("READ:\n"+sb.toString());
         */
-        //IOUtils.copy(is, new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(new File("test-windows-x86-jre.tar.gz"));
+            IOUtils.copy(is, os);
+        } catch (final Throwable t) {
+            IOUtils.closeQuietly(os);
+        }
         
         /*
         final BufferedReader br = 
