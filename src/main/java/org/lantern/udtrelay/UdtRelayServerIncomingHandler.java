@@ -197,6 +197,9 @@ public class UdtRelayServerIncomingHandler
         while (-1 != (n = input.read(buffer))) {
             //log.debug("Copying buf to inbound: {}\n"+new String(buffer), inboundChannel.hashCode());
             inboundChannel.write(Unpooled.wrappedBuffer(buffer, 0, n));
+            
+            // We need to flush and sync here, as otherwise the buffer will
+            // get overwritten with new data.
             try {
                 inboundChannel.flush().sync();
             } catch (InterruptedException e) {

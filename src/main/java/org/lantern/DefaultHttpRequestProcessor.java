@@ -23,7 +23,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.lantern.DefaultProxyTracker.ProxyHolder;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
