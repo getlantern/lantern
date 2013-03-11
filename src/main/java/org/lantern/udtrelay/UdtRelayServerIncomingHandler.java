@@ -36,6 +36,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.apache.commons.io.IOUtils;
+import org.lantern.LanternClientConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,16 +50,13 @@ public class UdtRelayServerIncomingHandler
     private final static Logger log = 
             LoggerFactory.getLogger(UdtRelayServerIncomingHandler.class);
 
-    private final String localProxyHost;
     private final int localProxyPort;
     
     private volatile Channel outboundChannel;
 
     private volatile Socket sock;
     
-    public UdtRelayServerIncomingHandler(final String localProxyHost, 
-        final int localProxyPort) {
-        this.localProxyHost = localProxyHost;
+    public UdtRelayServerIncomingHandler(final int localProxyPort) {
         this.localProxyPort = localProxyPort;
     }
     
@@ -135,14 +133,14 @@ public class UdtRelayServerIncomingHandler
         
         //netty4Relay(inboundChannel);
     }
-    
 
     private static final int LARGE_BUFFER_SIZE = 1024 * 16;
     
     private void socketRelay(final Channel inboundChannel) throws IOException {
         this.sock = new Socket();
         try {
-            sock.connect(new InetSocketAddress(localProxyHost, localProxyPort), 30*1000);
+            sock.connect(new InetSocketAddress(
+                LanternClientConstants.LOCALHOST, localProxyPort), 30*1000);
             inboundChannel.read();
         } catch (final IOException e) {
             log.warn("Outbound channel connection failed!");
@@ -153,8 +151,6 @@ public class UdtRelayServerIncomingHandler
         
         readFromSocketThread(inboundChannel);
     }
-
-    
     
     private void readFromSocketThread(final Channel inboundChannel) throws IOException {
         final InputStream is = this.sock.getInputStream();
@@ -222,7 +218,8 @@ public class UdtRelayServerIncomingHandler
             .option(ChannelOption.AUTO_READ, false);
         
         final ChannelFuture cf = 
-            clientBootstrapFromRelayToBackendServer.connect(localProxyHost, localProxyPort);
+            clientBootstrapFromRelayToBackendServer.connect(
+                LanternClientConstants.LOCALHOST, localProxyPort);
         outboundChannel = cf.channel();
         
         cf.addListener(new ChannelFutureListener() {

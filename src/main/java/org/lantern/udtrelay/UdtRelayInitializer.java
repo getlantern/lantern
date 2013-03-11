@@ -11,11 +11,9 @@ import io.netty.handler.logging.LoggingHandler;
  */
 public class UdtRelayInitializer extends ChannelInitializer<SocketChannel> {
 
-    private final String remoteHost;
     private final int remotePort;
 
-    public UdtRelayInitializer(final String remoteHost, final int remotePort) {
-        this.remoteHost = remoteHost;
+    public UdtRelayInitializer(final int remotePort) {
         this.remotePort = remotePort;
     }
 
@@ -23,6 +21,6 @@ public class UdtRelayInitializer extends ChannelInitializer<SocketChannel> {
     public void initChannel(final SocketChannel ch) throws Exception {
         ch.pipeline().addLast(
             new LoggingHandler(LogLevel.INFO),
-            new UdtRelayFrontendHandler(remoteHost, remotePort));
+            new UdtRelayFrontendHandler(remotePort));
     }
 }

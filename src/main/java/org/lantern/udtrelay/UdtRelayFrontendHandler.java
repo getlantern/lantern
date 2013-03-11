@@ -1,9 +1,5 @@
 package org.lantern.udtrelay;
 
-import org.littleshoot.util.ThreadUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -14,6 +10,10 @@ import io.netty.channel.ChannelInboundByteHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import org.lantern.LanternClientConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Handler for incoming connections to the temporary UDT relay server.
  */
@@ -21,13 +21,11 @@ public class UdtRelayFrontendHandler extends ChannelInboundByteHandlerAdapter {
 
     private final static Logger log = 
         LoggerFactory.getLogger(UdtRelayFrontendHandler.class);
-    private final String remoteHost;
     private final int remotePort;
 
     private volatile Channel outboundChannel;
 
-    public UdtRelayFrontendHandler(final String remoteHost, final int remotePort) {
-        this.remoteHost = remoteHost;
+    public UdtRelayFrontendHandler(final int remotePort) {
         this.remotePort = remotePort;
     }
 
@@ -47,7 +45,8 @@ public class UdtRelayFrontendHandler extends ChannelInboundByteHandlerAdapter {
             .option(ChannelOption.AUTO_READ, false);
         
         final ChannelFuture cf = 
-            clientBootstrapFromRelayToBackendServer.connect(remoteHost, remotePort);
+            clientBootstrapFromRelayToBackendServer.connect(
+                LanternClientConstants.LOCALHOST, remotePort);
         outboundChannel = cf.channel();
         cf.addListener(new ChannelFutureListener() {
             @Override
