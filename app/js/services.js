@@ -158,6 +158,12 @@ angular.module('app.services', [])
         // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
         angular.copy(patch[0].value, model);
       } else {
+        // workaround https://github.com/getlantern/lantern/issues/587
+        // backend can send updates before model has been populated
+        if (_.isEmpty(model)) {
+          log.debug('ignoring', msg, 'while model has not yet been populated');
+          return;
+        }
         applyPatch(model, patch);
       }
       $rootScope.$apply();
