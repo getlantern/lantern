@@ -34,7 +34,7 @@ import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
-import org.lantern.privacy.UnencryptedFileService;
+import org.lantern.privacy.SecretServiceLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelService;
@@ -158,12 +158,6 @@ public class LanternModule extends AbstractModule {
     @Provides @Singleton
     public static EncryptedFileService provideEncryptedService(
         final LocalCipherProvider lcp) {
-        if (SystemUtils.IS_OS_LINUX) {
-            // On linux we don't store any oauth data on disk and instead 
-            // simply rely on the user re-entering his or her oauth credentials
-            // each time.
-            return new UnencryptedFileService();
-        }
         return new DefaultEncryptedFileService(lcp);
     }
     
@@ -201,12 +195,10 @@ public class LanternModule extends AbstractModule {
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             lcp = new MacLocalCipherProvider();
             //lcp = new DefaultLocalCipherProvider();
+        } else if (SystemUtils.IS_OS_LINUX &&
+                 SecretServiceLocalCipherProvider.secretServiceAvailable()) {
+            lcp = new SecretServiceLocalCipherProvider();
         }
-        // disabled per #249
-        //else if (SystemUtils.IS_OS_LINUX && 
-        //         SecretServiceLocalCipherProvider.secretServiceAvailable()) {
-        //    lcp = new SecretServiceLocalCipherProvider();
-        //}
         else {
             lcp = new DefaultLocalCipherProvider();
         }

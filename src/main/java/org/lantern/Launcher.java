@@ -567,7 +567,7 @@ public class Launcher {
 
     public void launchLantern() {
         LOG.debug("Launching Lantern...");
-        if (!modelUtils.isConfigured()) {
+        if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
             model.setModal(Modal.welcome);
         }
         if (set.isUiEnabled()) {

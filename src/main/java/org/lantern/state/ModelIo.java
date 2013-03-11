@@ -55,7 +55,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         this.modelFile = modelFile;
         this.encryptedFileService = encryptedFileService;
         this.model = read();
-        this.model.setTtransfers(transfers);
+        this.model.setTransfers(transfers);
         log.info("Loaded module");
     }
 
@@ -80,7 +80,9 @@ public class ModelIo implements Provider<Model>, Shutdownable {
             final String json = IOUtils.toString(is);
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
                 log.info("Can't build settings from empty string");
-                return blankModel();
+                final Model mod = blankModel();
+                mod.setModal(Modal.settingsLoadFailure);
+                return mod;
             }
             final Model read = mapper.readValue(json, Model.class);
             //log.info("Built settings from disk: {}", read);
@@ -134,8 +136,6 @@ public class ModelIo implements Provider<Model>, Shutdownable {
             final String access = set.getAccessToken();
             final boolean useOauth = set.isUseGoogleOAuth2();
             final boolean gtalk = toWrite.getConnectivity().isGtalkAuthorized();
-            // We don't encrypt the state file on Linux, so make sure we
-            // don't store anything sensitive.
             if (!LanternUtils.persistCredentials()) {
                 
                 set.setRefreshToken("");
@@ -168,5 +168,14 @@ public class ModelIo implements Provider<Model>, Shutdownable {
     @Override
     public void stop() {
         write();
+    }
+
+    public void reload() {
+        Model newModel = read();
+        if (newModel.getModal() == Modal.settingsLoadFailure) {
+            model.addNotification("Failed to reload settings", "error");
+            return;
+        }
+        model.loadFrom(newModel);
     }
 }
