@@ -89,6 +89,7 @@ public class UdtRelayTest {
         "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
         "\r\n";
         */
+        
     /*
     GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1
         Host: lantern.s3.amazonaws.com
@@ -155,8 +156,36 @@ public class UdtRelayTest {
         
         sock.getOutputStream().write(REQUEST.getBytes());
         
+        final InputStream is = sock.getInputStream();
+        sock.setSoTimeout(4000);
+        /*
+        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        final StringBuilder sb = new StringBuilder();
+        String cur = br.readLine();
+        sb.append(cur);
+        int count = 0;
+        while(StringUtils.isNotBlank(cur) && count < 6) {
+            System.err.println("LINE:\n"+cur);
+            cur = br.readLine();
+            sb.append(cur);
+            count++;
+        }
+        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
+        
+        
+        final StringBuilder sb = new StringBuilder();
+        int count = 0;
+        while (count < 500) {
+            sb.append((char)is.read());
+            count++;
+        }
+        System.err.println("READ:\n"+sb.toString());
+        */
+        IOUtils.copy(is, new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
+        
+        /*
         final BufferedReader br = 
-            new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            new BufferedReader(new InputStreamReader(IOUtils.copy(sock.getInputStream(), new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));));
         final StringBuilder sb = new StringBuilder();
         String cur = br.readLine();
         sb.append(cur);
@@ -169,6 +198,7 @@ public class UdtRelayTest {
         assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
         //System.out.println("");
         sock.close();
+        */
     }
 
     private void hitRelayRaw(final int relayPort) throws Exception {
