@@ -1,10 +1,12 @@
 package org.lantern.udtrelay;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,13 +61,15 @@ public class UdtRelayTest {
             new UdtRelayProxy(localRelayAddress.getPort(), proxyPort);
         startRelay(relay, localRelayAddress.getPort(), udt);
         
+        final String expected = hitProxyDirect(proxyPort);
+        
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 3; i++) {
             //hitRelay(proxyPort);
             
             if (udt) {
-                hitRelayUdt(relayPort);
+                hitRelayUdt(relayPort, expected);
             } else {
                 hitRelayRaw(relayPort);
             }
@@ -73,14 +77,19 @@ public class UdtRelayTest {
     }
     
     private static final String REQUEST =
-            
+            /*
             "GET http://www.google.com HTTP/1.1\r\n"+
             "Host: www.google.com\r\n"+
             "Proxy-Connection: Keep-Alive\r\n"+
             "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
             "\r\n";
-            
+            */
     
+            "HEAD http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1\r\n"+
+            "Host: lantern.s3.amazonaws.com\r\n"+
+            "Proxy-Connection: Keep-Alive\r\n"+
+            "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
+            "\r\n";
     /*
         "GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1\r\n"+
         "Host: lantern.s3.amazonaws.com\r\n"+
@@ -149,7 +158,38 @@ public class UdtRelayTest {
         }
     }
 
-    private void hitRelayUdt(final int relayPort) throws Exception {
+    private String hitProxyDirect(final int proxyPort) throws Exception {
+        final Socket sock = new Socket();
+        sock.connect(new InetSocketAddress("127.0.0.1", proxyPort));
+        
+        sock.getOutputStream().write(REQUEST.getBytes());
+        
+        final InputStream is = sock.getInputStream();
+        sock.setSoTimeout(4000);
+        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        final StringBuilder sb = new StringBuilder();
+        String cur = br.readLine();
+        sb.append(cur);
+        //int count = 0;
+        while(StringUtils.isNotBlank(cur)) {// && count < 6) {
+            System.err.println(cur);
+            cur = br.readLine();
+            if (!cur.startsWith("x-amz-") && !cur.startsWith("Date")) {
+                sb.append(cur);
+                sb.append("\n");
+            }
+            //count++;
+        }
+        final String response = sb.toString();
+        sock.close();
+        assertTrue("Unexpected response "+response, 
+            response.startsWith("HTTP/1.1 200 OK"));
+
+        return response;
+
+    }
+    
+    private void hitRelayUdt(final int relayPort, final String expected) throws Exception {
         final Socket sock = new NetSocketUDT();
         sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
         
@@ -161,51 +201,23 @@ public class UdtRelayTest {
         final StringBuilder sb = new StringBuilder();
         String cur = br.readLine();
         sb.append(cur);
-        System.err.println(cur);
         //int count = 0;
         while(StringUtils.isNotBlank(cur)) {// && count < 6) {
-            System.err.println("LINE:\n"+cur);
+            System.err.println(cur);
             cur = br.readLine();
-            sb.append(cur);
+            if (!cur.startsWith("x-amz-") && !cur.startsWith("Date")) {
+                sb.append(cur);
+                sb.append("\n");
+            }
             //count++;
         }
-        //sock.close();
-        assertTrue("Unexpected response "+sb.toString(), 
-            sb.toString().startsWith("HTTP/1.1 200 OK"));
-
-        /*
-        final StringBuilder sb = new StringBuilder();
-        int count = 0;
-        while (count < 500) {
-            sb.append((char)is.read());
-            count++;
-        }
-        System.err.println("READ:\n"+sb.toString());
-        */
-        OutputStream os = null;
-        try {
-            os = new FileOutputStream(new File("test-windows-x86-jre.tar.gz"));
-            IOUtils.copy(is, os);
-        } catch (final Throwable t) {
-            IOUtils.closeQuietly(os);
-        }
         
-        /*
-        final BufferedReader br = 
-            new BufferedReader(new InputStreamReader(IOUtils.copy(sock.getInputStream(), new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));));
-        final StringBuilder sb = new StringBuilder();
-        String cur = br.readLine();
-        sb.append(cur);
-        while(StringUtils.isNotBlank(cur)) {
-            //System.err.println(cur);
-            cur = br.readLine();
-            sb.append(cur);
-        }
-        //assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP 200 OK"));
-        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
-        //System.out.println("");
+        final String response = sb.toString();
         sock.close();
-        */
+        assertTrue("Unexpected response "+response, 
+            response.startsWith("HTTP/1.1 200 OK"));
+        
+        assertEquals("Response differed: Expected\n"+expected+"\nBut was\n"+response, expected, response);
     }
 
     private void hitRelayRaw(final int relayPort) throws Exception {
