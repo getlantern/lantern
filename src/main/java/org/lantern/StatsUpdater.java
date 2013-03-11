@@ -61,9 +61,12 @@ public class StatsUpdater extends Thread {
             EntityUtils.consume(entity);
             final ObjectMapper om = new ObjectMapper();
             Map<String, Object> stats = om.readValue(json, Map.class);
-
-            updateModel(model.getGlobal(),
-                    (Map<String, Object>) stats.get("global"));
+            Map<String, Object> global = (Map<String, Object>) stats.get("global");
+            if (global == null) {
+                log.warn("Empty global stats");
+                return;
+            }
+            updateModel(model.getGlobal(), global);
             Map<String, Object> countries = (Map<String, Object>) stats
                     .get("countries");
             for (Country country : model.getCountries().values()) {
