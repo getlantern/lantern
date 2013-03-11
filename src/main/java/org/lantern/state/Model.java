@@ -253,7 +253,7 @@ public class Model {
         this.roster = roster;
     }
 
-    public void setTtransfers(Transfers transfers) {
+    public void setTransfers(Transfers transfers) {
         this.transfers = transfers;
     }
 }
