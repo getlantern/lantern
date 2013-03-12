@@ -63,8 +63,16 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   handleResize();
 
-  $('#peers').tooltip(CONFIG.tooltip);
-  $('#countries').tooltip(CONFIG.tooltip);
+  $scope.$watch('model.showVis', function(showVis, oldShowVis) {
+    if (showVis === true) {
+      $('#peers').tooltip(CONFIG.tooltip);
+      $('#countries').tooltip(CONFIG.tooltip);
+    } else if (showVis === false && oldShowVis) {
+      $('#peers').tooltip('destroy');
+      $('#countries').tooltip('destroy');
+      log.debug('showVis toggled off, destroyed tooltips');
+    }
+  });
 
   $scope.setProjection = function(key) {
     if (!(key in projections)) {
@@ -98,7 +106,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   function redraw() {
     globePath.attr('d', pathGlobe());
-    drawSelf();
+    if (model.location) drawSelf();
     if (peerPaths) peerPaths.attr('d', pathPeer);
     if (connectionPaths) connectionPaths.attr('d', pathConnection);
     if (countryPaths) countryPaths.attr('d', pathForData);
@@ -143,7 +151,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     var countryGeometries = topojson.object(world, world.objects.countries).geometries;
     countryPaths = d3.select('#countries').selectAll('path')
       .data(countryGeometries).enter().append('path')
-        .attr('rel', 'tooltip')
         .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
         .attr('d', pathForData);
     _.each(model.countries, function(__, alpha2) { updateCountry(alpha2); });
@@ -260,13 +267,18 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
   }
 
   $scope.hoverContentForSelf = function() {
-    var ctx = _.merge({
-      peerid: model.connectivity.peerid,
-      mode: model.settings.mode,
-      bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
-      bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
-    }, model.profile);
-    return hoverContentForPeer.onRosterTemplate(ctx);
+    if (!model.showVis) return;
+    try {
+      var ctx = _.merge({
+        peerid: model.connectivity.peerid,
+        mode: model.settings.mode,
+        bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
+        bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
+      }, model.profile);
+      return hoverContentForPeer.onRosterTemplate(ctx);
+    } catch(e) {
+      // ignore, fields probably just not populated yet
+    }
   };
 
   function hoverContentForPeer(peer) {
@@ -322,7 +334,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     var stroke = CONFIG.style.countryStrokeNoActivity,
         censors = getByPath(model, '/countries/'+alpha2+'/censors'),
         peersOnline = false,
-        el = d3.select('path.'+alpha2);
+        el = d3.selectAll('path.'+alpha2);
     peerCount = peerCount || getByPath(model, '/countries/'+alpha2+'/npeers/online');
     if (peerCount) {
       peersOnline = peerCount.giveGet > 0;
@@ -341,7 +353,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       peerCount = {give: 0, get: 0, giveGet: 0};
     }
     updateElement(el, {'stroke': stroke}, animate);
-    el.attr('data-original-title', function(d) { return hoverContentForCountry(alpha2, peerCount); })
+    el.attr('data-original-title', hoverContentForCountry(alpha2, peerCount));
     el.classed('censors', censors);
     el.classed('peersOnline', peersOnline);
   }

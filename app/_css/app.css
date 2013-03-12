@@ -7141,7 +7141,6 @@ textarea.report {
 }
 #countries path.censors {
   fill-opacity: 0.3;
-  stroke-opacity: 0.2;
 }
 #countries path.updating {
   stroke: white !important;
