@@ -124,10 +124,11 @@ public class LanternUtils {
 
 
     static final class HttpRequestConverter extends HttpRequestEncoder {
-        private Channel basicChannel = new ChannelAdapter();
+        private org.jboss.netty.channel.Channel basicChannel = new ChannelAdapter();
 
         public ByteBuf encode(final Object msg) throws Exception {
-            final ChannelBuffer cb = (ChannelBuffer) super.encode(null, basicChannel, msg);
+            final org.jboss.netty.buffer.ChannelBuffer cb = 
+                (org.jboss.netty.buffer.ChannelBuffer) super.encode(null, basicChannel, msg);
             return Unpooled.wrappedBuffer(cb.toByteBuffer());
         }
     };
