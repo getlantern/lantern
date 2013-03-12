@@ -96,6 +96,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             } else {
                 this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
             }
+            
+            // Also add the local network advertisement in case they're on
+            // the local network.
             this.proxyTracker.addProxy(
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             awaitingCerts.remove(jid);
