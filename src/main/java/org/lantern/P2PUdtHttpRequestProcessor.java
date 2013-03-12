@@ -177,7 +177,11 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             
             // We need to bind to the local address here, as that's what is
             // NAT/firewall traversed (anything else might not work).
-            boot.bind(proxyAddress.getLocal());
+            try {
+                boot.bind(proxyAddress.getLocal()).sync();
+            } catch (final InterruptedException e) {
+                log.error("Could not sync on bind? Reuse address no working?", e);
+            }
             return boot.connect(proxyAddress.getRemote());
         } finally {
             // Shut down the event loop to terminate all threads.
@@ -211,7 +215,11 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                 });
             // We need to bind to the local address here, as that's what is
             // NAT/firewall traversed (anything else might not work).
-            boot.bind(proxyAddress.getLocal());
+            try {
+                boot.bind(proxyAddress.getLocal()).sync();
+            } catch (final InterruptedException e) {
+                log.error("Could not sync on bind? Reuse address no working?", e);
+            }
             return boot.connect(proxyAddress.getRemote());
         } finally {
             // Shut down the event loop to terminate all threads.

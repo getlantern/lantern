@@ -65,10 +65,9 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
+import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
-import org.lastbamboo.common.offer.answer.OfferAnswer;
-import org.lastbamboo.common.offer.answer.OfferAnswerListener;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -394,25 +393,7 @@ public class DefaultXmppHandler implements XmppHandler {
             this.socketsUtil.newTlsSocketFactory(),
             this.socketsUtil.newTlsServerSocketFactory(),
             plainTextProxyRelayAddress, sessionListener, false,
-            new OfferAnswerListener<FiveTuple>() {
-                
-                @Override
-                public void onUdpSocket(FiveTuple ft) {
-                    System.err.println("GOT 5 TUPLE!!!  " + ft);
-                }
-                
-                @Override
-                public void onTcpSocket(FiveTuple arg0) {
-                    // TODO Auto-generated method stub
-                    
-                }
-                
-                @Override
-                public void onOfferAnswerFailed(OfferAnswer offerAnswer) {
-                    // TODO Auto-generated method stub
-                    
-                }
-            }));
+            new UdtRelayServerFiveTupleListener()));
             
 
         /*
