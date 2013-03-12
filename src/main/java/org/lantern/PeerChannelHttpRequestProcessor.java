@@ -157,8 +157,7 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public boolean processChunk(final ChannelHandlerContext ctx, 
-        final MessageEvent me) throws IOException {
-        final HttpChunk chunk = (HttpChunk) me.getMessage();
+        final HttpChunk chunk) throws IOException {
         Channels.write(peerChannel, chunk);
         return true;
     }

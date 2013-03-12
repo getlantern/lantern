@@ -136,7 +136,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 if (chunk.isLast()) {
                     this.readingChunks = false;
                 }
-                this.currentRequestProcessor.processChunk(ctx, me);
+                this.currentRequestProcessor.processChunk(ctx, chunk);
             } catch (final IOException e) {
                 // Unclear what to do here. If we couldn't connect to a remote
                 // peer, for example, we don't want to close the connection

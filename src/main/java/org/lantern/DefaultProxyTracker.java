@@ -145,6 +145,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public boolean addJidProxy(final String peerUri) {
         log.debug("Considering peer proxy");
+        // The idea here is to start with the JID and to basically convert it
+        // into a NAT/firewall traversed FiveTuple containing a locale and 
+        // remote InetSocketAddress we can use a little more easily.
+        
         //addPeerProxyWithChecks(this.peerProxySet, )
         synchronized (peerProxySet) {
             // TODO: I believe this excludes exchanging keys with peers who
