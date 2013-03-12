@@ -6960,6 +6960,9 @@ textarea {
 #settings details {
   margin-top: 9px;
 }
+#settings .pacUrl {
+  margin-left: 12px;
+}
 
 #autoreport-warning {
   margin-left: 20px;
