@@ -25,5 +25,4 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
     
     void removePeer(URI uri);
 
-
 }

@@ -91,7 +91,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         this.proxyRequestProcessor = newRequestProcessor();
         this.laeRequestProcessor =
-            new DefaultHttpRequestProcessor(proxyTracker,
+            new TcpHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
                 this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
     }
@@ -103,7 +103,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * @return The processor.
      */
     private HttpRequestProcessor newRequestProcessor() {
-        return new DefaultHttpRequestProcessor(this.proxyTracker,
+        return new TcpHttpRequestProcessor(this.proxyTracker,
             new HttpRequestTransformer() {
                 @Override
                 public void transform(final HttpRequest request,

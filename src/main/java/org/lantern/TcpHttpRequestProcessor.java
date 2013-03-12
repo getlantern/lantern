@@ -23,12 +23,13 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.lantern.util.LanternTrafficCounter;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
+public class TcpHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -58,12 +59,11 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final LanternTrustStore trustStore;
 
-    private GlobalTrafficShapingHandler trafficHandler;
+    private LanternTrafficCounter trafficHandler;
 
     private ProxyHolder proxyHolder;
 
-
-    public DefaultHttpRequestProcessor( 
+    public TcpHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
         final HttpRequestTransformer transformer, final boolean isLae, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
@@ -268,7 +268,11 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
         // This is slightly odd in the CONNECT case, as we tunnel SSL inside 
         // SSL, but we'd otherwise just be running an open CONNECT proxy.
-        pipeline.addLast("trafficHandler", trafficHandler);
+        if (trafficHandler instanceof GlobalTrafficShapingHandler) {
+            pipeline.addLast("trafficHandler", (GlobalTrafficShapingHandler)trafficHandler);
+        } else{
+            log.error("Not a GlobalTrafficShapingHandler??? "+trafficHandler.getClass());
+        }
         pipeline.addLast("stats", statsHandler);
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());

@@ -1,24 +1,22 @@
 package org.lantern.util;
 
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.util.Timer;
 import org.lantern.LanternClientConstants;
 
-public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
+public class Netty4LanternTrafficCounterHandler extends GlobalTrafficShapingHandler 
     implements LanternTrafficCounter {
 
     private final AtomicInteger connectedChannels = new AtomicInteger(0);
 
     private long lastConnected = 0L;
 
-    public LanternTrafficCounterHandler(final Timer timer, 
-        final boolean connected) {
-        super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
+    public Netty4LanternTrafficCounterHandler(
+        final ScheduledExecutorService executor, final boolean connected) {
+        super(executor, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
         
         // This means we're starting out connected, so make sure to increment
         // the channels and such. This will happen for incoming sockets
@@ -29,6 +27,7 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
         }
     }
 
+    /*
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent e) throws Exception {
@@ -63,6 +62,7 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
             super.channelClosed(ctx, e);
         }
     }
+    */
     
     public boolean isConnected() {
         return connectedChannels.get() > 0;
@@ -78,21 +78,21 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
 
     @Override
     public long getCumulativeReadBytes() {
-        return trafficCounter.getCumulativeReadBytes();
+        return trafficCounter.cumulativeReadBytes();
     }
 
     @Override
     public long getCumulativeWrittenBytes() {
-        return trafficCounter.getCumulativeWrittenBytes();
+        return trafficCounter.cumulativeWrittenBytes();
     }
 
     @Override
     public long getCurrentReadBytes() {
-        return trafficCounter.getCurrentReadBytes();
+        return trafficCounter.currentReadBytes();
     }
 
     @Override
     public long getCurrentWrittenBytes() {
-        return trafficCounter.getCurrentWrittenBytes();
+        return trafficCounter.currentWrittenBytes();
     }
 }
