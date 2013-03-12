@@ -25,19 +25,11 @@ import com.google.inject.Singleton;
 public class LanternFeedback {
     
     private final LanternHttpClient httpClient;
-    private final boolean testing;
 
     @Inject
     public LanternFeedback(final LanternHttpClient httpClient) {
         this.httpClient = httpClient;
-        this.testing = false;
     }
-    
-    /*public LanternFeedback(final LanternHttpClient httpClient, 
-        final boolean testing) {
-        this.httpClient = httpClient;
-        this.testing = testing;
-    }*/
 
     public int submit(String message, String replyTo) throws IOException {
         final Map <String, String> feedback = new HashMap<String, String>(); 
@@ -74,21 +66,13 @@ public class LanternFeedback {
     private int postForm(final String url, final List<NameValuePair> params) 
             throws IOException {
         // If we're testing we just make sure we can connect successfully.
-        final HttpPost post;
-        if (testing) {
-            post = new HttpPost(HOST);
-        } else {
-            post = new HttpPost(url);
-        }
+        final HttpPost post = getHttpPost(url);
+
         try {
-            // Don't set the form if we're just testing. This will enable us
-            // to test the connection but not the actual submission of the 
-            // form.
-            if (!testing) {
-                final UrlEncodedFormEntity entity = 
+            final UrlEncodedFormEntity entity =
                     new UrlEncodedFormEntity(params, "UTF-8");
-                post.setEntity(entity);
-            }
+            post.setEntity(entity);
+
             final HttpResponse response = httpClient.execute(post);
 
             final int statusCode = response.getStatusLine().getStatusCode();
@@ -113,7 +97,11 @@ public class LanternFeedback {
             post.reset();
         }
     }
-  
+
+    HttpPost getHttpPost(String url) {
+        return new HttpPost(url);
+    }
+
     private final static String HOST = "https://docs.google.com";
     /**
      * quick and dirty google spreadsheet submitter
