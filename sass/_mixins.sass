@@ -105,3 +105,22 @@
     border-radius: 8px
     border: 2px solid white // should match background, can't be transparent
     background-color: rgba(0, 0, 0, .5)
+
+@-webkit-keyframes defaultPulse
+  from
+    opacity: 1
+  40%
+    opacity: 1
+  50%
+    opacity: .25
+  60%
+    opacity: 1
+  to
+    opacity: 1
+
+=pulsing($name: defaultPulse, $duration: 3s)
+  -webkit-animation-name: $name
+  -webkit-animation-duration: $duration
+  -webkit-animation-iteration-count: infinite
+  -webkit-animation-timing-function: linear
+

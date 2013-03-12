@@ -67,14 +67,17 @@
 <div id="welcome" modal="model.modal == MODAL.welcome">
   <div class="modal-body">
     <img class="logo" src="img/logo.png" alt="{{ 'LANTERN' | i18n }}">
-    <p>{{ 'TAG_LINE' | i18n }}</p>
-    <p>
+    <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
+    <div ng-show="model.connectivity.internet">
       <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
         class="btn btn-large btn-{{inCensoringCountry && 'warning' || 'give-inverse' }}">
         <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
         {{ 'GIVE_ACCESS' | i18n }}</button>
       <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
-    </p>
+    </div>
+    <div class="internetRequired fadeInOut" ng-hide="model.connectivity.internet">
+      {{ 'INTERNET_REQUIRED' | i18n }}
+    </div>
   </div>
 </div>
 

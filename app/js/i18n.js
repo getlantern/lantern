@@ -59,6 +59,7 @@ angular.module('app.i18n', [])
       TAG_LINE: 'Internet freedom for everyone.',
       GIVE_ACCESS: 'Give Access',
       GET_ACCESS: 'Get Access',
+      INTERNET_REQUIRED: 'Please connect to the internet to proceed.',
       AUTHORIZE_TITLE: 'Sign in through Google Talk',
       AUTHORIZE_PROMPT: 'Lantern allows you to sign in through your Google Talk (“gchat”) account.',
       AUTHORIZE_TIP_GTALK: 'Lantern works best with a large network of users who trust one another to share internet connections. Signing in through Google Talk allows you to connect to users you know, and not just anyone.',

@@ -6342,6 +6342,28 @@ a.label:hover, a.badge:hover {
   position: fixed;
 }
 
+@-webkit-keyframes defaultPulse {
+  from {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 html, body {
   height: 100%;
 }
@@ -6684,6 +6706,28 @@ textarea {
   border-bottom-color: #b94a48;
 }
 
+@-webkit-keyframes defaultPulse {
+  from {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .modal.fade {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
@@ -6789,10 +6833,23 @@ textarea {
 #welcome .logo {
   margin-bottom: 40px;
 }
+#welcome .tagLine {
+  margin-bottom: 70px;
+}
+#welcome .internetRequired {
+  -webkit-animation-name: defaultPulse;
+  -webkit-animation-duration: 3s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+  font-weight: 400;
+  color: #fff343;
+  font-size: 14px;
+  padding-top: 12px;
+}
 #welcome button {
   text-shadow: black 1px 1px 2px;
   width: 142px;
-  margin: 70px 10px 10px;
+  margin: 0 10px 10px;
 }
 
 #passwordCreate .control-group {
@@ -7282,6 +7339,28 @@ body.giveMode #npending {
 }
 #appInfo .update-available * {
   color: red;
+}
+
+@-webkit-keyframes defaultPulse {
+  from {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 #scenarios .modal-header {
