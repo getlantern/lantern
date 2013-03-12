@@ -94,7 +94,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 this.proxyTracker.addProxy(
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
             } else {
-                this.proxyTracker.addJidProxy(ad.getJid());
+                this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
             }
             this.proxyTracker.addProxy(
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
@@ -104,7 +104,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             // in response to a kscope ad, such as for peers from the 
             // controller.
             log.info("No ad for cert?");
-            this.proxyTracker.addJidProxy(jid);
+            this.proxyTracker.addJidProxy(LanternUtils.newURI(jid));
         }
     }
 

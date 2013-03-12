@@ -6,11 +6,14 @@ import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +27,7 @@ import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounterHandler;
 import org.lantern.util.Threads;
+import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,9 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final ExecutorService p2pSocketThreadPool = 
+        Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
+    
     /**
      * These are the centralized proxies this Lantern instance is using.
      */
@@ -48,11 +55,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         new ConcurrentLinkedQueue<ProxyHolder>();
 
     /**
-     * This is the set of all peer proxies we know about. We may have
-     * established connections with some of them. The main purpose of this is
-     * to avoid exchanging keys multiple times.
+     * This is the set of the peer proxies we know about only through their
+     * JIDs - i.e. they don't have their ports mapped such that we can 
+     * access them directly.
      */
-    private final Set<String> peerProxySet = new HashSet<String>();
+    private final Set<ProxyHolder> peerProxySet = new HashSet<ProxyHolder>();
+    private final Queue<ProxyHolder> peerProxyQueue =
+            new ConcurrentLinkedQueue<ProxyHolder>();
 
     private final Set<ProxyHolder> laeProxySet =
         new HashSet<ProxyHolder>();
@@ -69,6 +78,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     private boolean populatedProxies = false;
     
+    private Collection<GlobalTrafficShapingHandler> trafficShapers =
+            new ArrayList<GlobalTrafficShapingHandler>();
+    
     
     /**
      * Thread pool for checking connections to proxies -- otherwise these
@@ -77,14 +89,18 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final ExecutorService proxyCheckThreadPool = 
             Threads.newCachedThreadPool("Proxy-Connection-Check-Pool-");
 
+    private final XmppHandler xmppHandler;
+
     @Inject
     public DefaultProxyTracker(final Model model,
         final PeerProxyManager trustedPeerProxyManager,
-        final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer) {
+        final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
+        final XmppHandler xmppHandler) {
         this.model = model;
         this.peerProxyManager = trustedPeerProxyManager;
         this.peerFactory = peerFactory;
         this.timer = timer;
+        this.xmppHandler = xmppHandler;
         
         Events.register(this);
     }
@@ -142,29 +158,17 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
 
-    @Override
-    public boolean addJidProxy(final String peerUri) {
-        log.debug("Considering peer proxy");
-        // The idea here is to start with the JID and to basically convert it
-        // into a NAT/firewall traversed FiveTuple containing a locale and 
-        // remote InetSocketAddress we can use a little more easily.
+    private void proxyBookkeeping(final String proxy) {
+        log.debug("Adding proxy to settings");
         
-        //addPeerProxyWithChecks(this.peerProxySet, )
-        synchronized (peerProxySet) {
-            // TODO: I believe this excludes exchanging keys with peers who
-            // are on multiple machines when the peer URI is a general JID and
-            // not an instance JID.
-            if (!peerProxySet.contains(peerUri)) {
-                log.debug("Actually adding peer proxy: {}", peerUri);
-                peerProxySet.add(peerUri);
-                return true;
-            } else {
-                log.debug("We already know about the peer proxy");
-            }
-        }
-        return false;
+        // We want to keep track of it for future user regardless of whether
+        // or not we can connect now.
+        
+        // This is a little odd because the proxy could have 
+        // originally come from the settings themselves, but 
+        // it'll remove duplicates, so no harm done.
+        model.getSettings().addProxy(proxy);
     }
-
 
     @Override
     public void addLaeProxy(final String cur) {
@@ -172,16 +176,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
             new ProxyHolder(cur, new InetSocketAddress(cur, 443), 
                 trafficTracker()), cur, Type.laeproxy);
-    }
-    
-    private Collection<GlobalTrafficShapingHandler> trafficShapers =
-            new ArrayList<GlobalTrafficShapingHandler>();
-    
-    private LanternTrafficCounterHandler trafficTracker() {
-        final LanternTrafficCounterHandler handler = 
-            new LanternTrafficCounterHandler(this.timer, false);
-        trafficShapers.add(handler);
-        return handler;
     }
 
     @Override
@@ -222,6 +216,49 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
+    @Override
+    public void addJidProxy(final URI peerUri) {
+        log.debug("Considering peer proxy");
+        proxyBookkeeping(peerUri.toASCIIString());
+        
+        // The idea here is to start with the JID and to basically convert it
+        // into a NAT/firewall traversed FiveTuple containing a locale and 
+        // remote InetSocketAddress we can use a little more easily.
+        final Map<URI, AtomicInteger> peerFailureCount =
+                new HashMap<URI, AtomicInteger>();
+
+        p2pSocketThreadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                boolean gotConnected = false;
+                try {
+
+                    final FiveTuple tuple = LanternUtils.openOutgoingPeer(
+                        peerUri, xmppHandler.getP2PClient(),
+                        peerFailureCount);
+                    log.debug("Got tuple and adding it for peer: {}", peerUri);
+
+                    final InetSocketAddress remote = tuple.getRemote();
+                    final ProxyHolder ph =
+                        new ProxyHolder(peerUri.toASCIIString(), tuple, 
+                            trafficTracker());
+                    
+                    peerFactory.addPeer("", remote.getAddress(), 
+                            remote.getPort(), Type.desktop, false, 
+                            ph.getTrafficShapingHandler());
+                    if (!gotConnected) {
+                        Events.eventBus().post(
+                            new ProxyConnectionEvent(
+                                ConnectivityStatus.CONNECTED));
+                    }
+                    gotConnected = true;
+                } catch (final IOException e) {
+                    log.info("Could not create peer socket", e);
+                }
+            }
+        });
+    }
+    
     private void addProxyWithChecks(final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
         final String fullProxyString, final Type type) {
@@ -229,22 +266,19 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("We already know about proxy "+ph+" in {}", set);
             return;
         }
-
-        final Runnable run = new Runnable() {
+        proxyBookkeeping(fullProxyString);
+        
+        proxyCheckThreadPool.submit(new Runnable() {
             
             @Override
             public void run() {
                 final Socket sock = new Socket();
+                final InetSocketAddress remote = ph.getFiveTuple().getRemote();
                 try {
-                    sock.connect(ph.getIsa(), 60*1000);
-                    // This is a little odd because the proxy could have 
-                    // originally come from the settings themselves, but 
-                    // it'll remove duplicates, so no harm done.
-                    log.debug("Adding proxy to settings: {}", model.getSettings());
-                    model.getSettings().addProxy(fullProxyString);
+                    sock.connect(remote, 60*1000);
                     
-                    peerFactory.addPeer("", ph.getIsa().getAddress(), 
-                        ph.getIsa().getPort(), type, false, 
+                    peerFactory.addPeer("", remote.getAddress(), 
+                        remote.getPort(), type, false, 
                         ph.getTrafficShapingHandler());
                     synchronized (set) {
                         if (!set.contains(ph)) {
@@ -265,9 +299,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     IOUtils.closeQuietly(sock);
                 }
             }
-        };
-        proxyCheckThreadPool.submit(run);
-
+        });
     }
 
     @Override
@@ -280,7 +312,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         // We should remove the proxy here but should certainly keep it on disk
         // so we can try to connect to it in the future.
         log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}",
-            ph.getIsa());
+            ph.getFiveTuple());
 
         onCouldNotConnect(ph, this.proxySet, this.proxies);
     }
@@ -288,7 +320,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void onCouldNotConnectToLae(final ProxyHolder ph) {
         log.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}",
-            ph.getIsa());
+            ph.getFiveTuple());
 
         // For now we assume this is because we've lost our connection.
         onCouldNotConnect(ph, this.laeProxySet, this.laeProxies);
@@ -376,6 +408,13 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
         start();
+    }
+    
+    private LanternTrafficCounterHandler trafficTracker() {
+        final LanternTrafficCounterHandler handler = 
+            new LanternTrafficCounterHandler(this.timer, false);
+        trafficShapers.add(handler);
+        return handler;
     }
 
 }

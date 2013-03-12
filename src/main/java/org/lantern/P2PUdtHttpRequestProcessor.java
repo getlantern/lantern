@@ -10,7 +10,6 @@ import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
@@ -33,6 +32,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.lantern.util.Threads;
+import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final ProxyTracker proxyTracker;
 
-    private InetSocketAddress proxyAddress;
+    private FiveTuple proxyAddress;
 
     private final HttpRequestTransformer transformer;
 
@@ -90,7 +90,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         
         if (ph != null) {
             this.proxyHolder = ph;
-            this.proxyAddress = ph.getIsa();
+            this.proxyAddress = ph.getFiveTuple();
             this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
         }
@@ -115,7 +115,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             }
         }
         if (!connect) {
-            this.transformer.transform(request, proxyAddress);
             try {
                 LanternUtils.writeRequest(this.httpRequests, request, cf);
             } catch (Exception e) {
@@ -175,7 +174,11 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                     }
                 });
             // Start the client.
-            return boot.connect(proxyAddress);
+            
+            // We need to bind to the local address here, as that's what is
+            // NAT/firewall traversed (anything else might not work).
+            boot.bind(proxyAddress.getLocal());
+            return boot.connect(proxyAddress.getRemote());
         } finally {
             // Shut down the event loop to terminate all threads.
             boot.shutdown();
@@ -206,8 +209,10 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                                 browserToProxyChannel, request));
                     }
                 });
-            // Start the client.
-            return boot.connect(proxyAddress);
+            // We need to bind to the local address here, as that's what is
+            // NAT/firewall traversed (anything else might not work).
+            boot.bind(proxyAddress.getLocal());
+            return boot.connect(proxyAddress.getRemote());
         } finally {
             // Shut down the event loop to terminate all threads.
             boot.shutdown();

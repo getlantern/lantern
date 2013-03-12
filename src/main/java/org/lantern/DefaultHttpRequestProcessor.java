@@ -86,7 +86,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         
         if (ph != null) {
             this.proxyHolder = ph;
-            this.proxyAddress = ph.getIsa();
+            this.proxyAddress = ph.getFiveTuple().getRemote();
             this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
         }

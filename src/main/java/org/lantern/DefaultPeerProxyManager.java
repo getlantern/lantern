@@ -222,6 +222,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     private void onPeer(final URI peerUri, final String base64Cert,
         final int sockets) {
+        /*
         if (model.getSettings().getMode() == Mode.give) {
             log.debug("Ingoring peer when we're in give mode");
             return;
@@ -267,6 +268,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                 }
             }
         });
+        */
     }
 
     private void addConnectedPeer(final URI peerUri, final String base64Cert,

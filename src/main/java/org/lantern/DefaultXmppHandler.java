@@ -67,6 +67,8 @@ import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
+import org.lastbamboo.common.offer.answer.OfferAnswer;
+import org.lastbamboo.common.offer.answer.OfferAnswerListener;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -77,7 +79,8 @@ import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
-import org.littleshoot.p2p.P2P;
+import org.littleshoot.p2p.P2PEndpoints;
+import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,8 +99,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
 
-    private final AtomicReference<XmppP2PClient<Socket>> client =
-        new AtomicReference<XmppP2PClient<Socket>>();
+    private final AtomicReference<XmppP2PClient<FiveTuple>> client =
+        new AtomicReference<XmppP2PClient<FiveTuple>>();
 
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
@@ -265,7 +268,7 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (state) {
         case connected:
             // We wait until we're logged in before creating our roster.
-            final XmppP2PClient cl = client.get();
+            final XmppP2PClient<FiveTuple> cl = client.get();
             if (cl == null) {
                 LOG.error("Null client for instance: "+hashCode());
                 return;
@@ -385,7 +388,6 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         };
         
-        /*
         this.client.set(P2PEndpoints.newXmppP2PHttpClient(
             "shoot", natPmpService,
             this.upnpService, this.mappedServer,
@@ -411,17 +413,17 @@ public class DefaultXmppHandler implements XmppHandler {
                     
                 }
             }));
-            */
             
 
+        /*
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService,
             upnpService, this.mappedServer,
-            //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
 
             this.socketsUtil.newTlsSocketFactory(),
             this.socketsUtil.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(),
             plainTextProxyRelayAddress, sessionListener, false));
+        */
 
         LOG.debug("Set client for xmpp handler: "+hashCode());
         this.client.get().addConnectionListener(new P2PConnectionListener() {
@@ -692,7 +694,7 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
         */
 
-        final XmppP2PClient cl = this.client.get();
+        final XmppP2PClient<FiveTuple> cl = this.client.get();
         if (cl != null) {
             this.client.get().logout();
             //this.client.set(null);
@@ -1125,7 +1127,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public XmppP2PClient<Socket> getP2PClient() {
+    public XmppP2PClient<FiveTuple> getP2PClient() {
         return client.get();
     }
 
