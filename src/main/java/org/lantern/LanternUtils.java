@@ -1,5 +1,8 @@
 package org.lantern;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -59,6 +62,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.lantern.state.StaticSettings;
+import org.lantern.udtrelay.ChannelAdapter;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -110,6 +114,45 @@ public class LanternUtils {
                 @Override
                 public void operationComplete(final ChannelFuture cf)
                     throws Exception {
+                    if (cf.isSuccess()) {
+                        ch.write(message);
+                    }
+                }
+            });
+        }
+    }
+
+
+    static final class HttpRequestConverter extends HttpRequestEncoder {
+        private Channel basicChannel = new ChannelAdapter();
+
+        public ByteBuf encode(final Object msg) throws Exception {
+            final ChannelBuffer cb = (ChannelBuffer) super.encode(null, basicChannel, msg);
+            return Unpooled.wrappedBuffer(cb.toByteBuffer());
+        }
+    };
+    
+    public static final HttpRequestConverter encoder = new HttpRequestConverter();
+    
+    public static void writeRequest(final Queue<HttpRequest> httpRequests,
+        final HttpRequest request, final io.netty.channel.ChannelFuture cf) 
+        throws Exception {
+        httpRequests.add(request);
+        LOG.debug("Writing request: {}", request);
+        LanternUtils.genericWrite(encoder.encode(request), cf);
+    }
+    
+    public static void genericWrite(final ByteBuf message,
+        final io.netty.channel.ChannelFuture future) {
+        final io.netty.channel.Channel ch = future.channel();
+        if (ch.isOpen()) {
+            ch.write(message);
+        } else {
+            future.addListener(new io.netty.channel.ChannelFutureListener() {
+                
+                @Override
+                public void operationComplete(
+                    final io.netty.channel.ChannelFuture cf) throws Exception {
                     if (cf.isSuccess()) {
                         ch.write(message);
                     }

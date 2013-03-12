@@ -14,9 +14,9 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
@@ -119,8 +119,8 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     
     @Override
     public boolean processChunk(final ChannelHandlerContext ctx, 
-        final MessageEvent me) throws IOException {
-        cf.getChannel().write(me.getMessage());
+        final HttpChunk chunk) throws IOException {
+        cf.getChannel().write(chunk);
         return true;
     }
 
@@ -274,4 +274,5 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         pipeline.addLast("encoder", new HttpRequestEncoder());
         return pipeline;
     }
+
 }
