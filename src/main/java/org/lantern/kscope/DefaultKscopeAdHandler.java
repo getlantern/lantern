@@ -96,6 +96,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             } else {
                 this.proxyTracker.addJidProxy(ad.getJid());
             }
+            
+            // Also add the local network advertisement in case they're on
+            // the local network.
             this.proxyTracker.addProxy(
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             awaitingCerts.remove(jid);
@@ -103,7 +106,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             // This could happen if we negotiated certs in some way other than
             // in response to a kscope ad, such as for peers from the 
             // controller.
-            log.info("No ad for cert?");
+            log.debug("No ad for cert?");
             this.proxyTracker.addJidProxy(jid);
         }
     }
