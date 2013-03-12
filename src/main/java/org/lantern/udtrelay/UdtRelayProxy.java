@@ -24,9 +24,9 @@ public class UdtRelayProxy {
 
     private final InetSocketAddress local;
 
-    public UdtRelayProxy(final InetSocketAddress local, final int remotePort) {
+    public UdtRelayProxy(final InetSocketAddress local, final int localProxyPort) {
         this.local = local;
-        this.destinationPort = remotePort;
+        this.destinationPort = localProxyPort;
     }
 
     public void run() throws Exception {
