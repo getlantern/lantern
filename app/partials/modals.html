@@ -246,7 +246,8 @@
         </label>
         <div class="control-extra">
           {{ 'PAC_FILE_LOC' | i18n }}
-          <span class="pacUrl">{{ model.connectivity.pacUrl }}</span>
+          <a href="{{ model.connectivity.pacUrl }}">{{ model.connectivity.pacUrl }}</a>
+          <div>{{ 'URL_CHANGE_WARNING' | i18n }}</div>
         </div>
       </div>
     </div>
@@ -579,7 +580,10 @@ You should have received a copy of the GNU General Public License along with thi
               <div id="manualProxyInfo" collapse="systemProxy">
                 <i class="icon-info-sign"></i>
                 {{ 'PAC_FILE_LOC' | i18n }}
-                <div class="pacUrl">{{ model.connectivity.pacUrl }}</div>
+                <div class="pacUrl">
+                  <a href="{{ model.connectivity.pacUrl }}">{{ model.connectivity.pacUrl }}</a>
+                  <div>{{ 'URL_CHANGE_WARNING' | i18n }}</div>
+                </div>
               </div>
             </div>
           </div>
