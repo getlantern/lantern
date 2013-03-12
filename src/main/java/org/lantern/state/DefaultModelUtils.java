@@ -73,7 +73,7 @@ public class DefaultModelUtils implements ModelUtils {
      * @return The geo data.
      */
     @Override
-    public GeoData getGeoData(final String ip) {
+    public synchronized GeoData getGeoData(final String ip) {
         if (geoCache.containsKey(ip)) {
             LOG.debug("Got cache HIT! Returning cached geo data");
             return geoCache.get(ip);
