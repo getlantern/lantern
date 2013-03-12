@@ -7,6 +7,7 @@ import javax.security.auth.login.CredentialException;
 import org.jivesoftware.smack.packet.Presence;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.littleshoot.util.FiveTuple;
 
 /**
  * Interface for dealing with any XMPP interaction in Lantern.
@@ -25,7 +26,7 @@ public interface XmppHandler extends LanternService {
      */
     void connect() throws IOException, CredentialException, NotInClosedBetaException;
 
-    XmppP2PClient getP2PClient();
+    XmppP2PClient<FiveTuple> getP2PClient();
 
     boolean isLoggedIn();
 

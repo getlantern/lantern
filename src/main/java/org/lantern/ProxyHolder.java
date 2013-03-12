@@ -3,17 +3,26 @@ package org.lantern;
 import java.net.InetSocketAddress;
 
 import org.lantern.util.LanternTrafficCounterHandler;
+import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.FiveTuple.Protocol;
 
 public final class ProxyHolder {
 
     private final String id;
-    private final InetSocketAddress isa;
+    private final FiveTuple isa;
     private final LanternTrafficCounterHandler trafficShapingHandler;
 
     public ProxyHolder(final String id, final InetSocketAddress isa, 
         final LanternTrafficCounterHandler trafficShapingHandler) {
         this.id = id;
-        this.isa = isa;
+        this.isa = new FiveTuple(null, isa, Protocol.TCP);
+        this.trafficShapingHandler = trafficShapingHandler;
+    }
+    
+    public ProxyHolder(final String id, final FiveTuple tuple, 
+        final LanternTrafficCounterHandler trafficShapingHandler) {
+        this.id = id;
+        this.isa = tuple;
         this.trafficShapingHandler = trafficShapingHandler;
     }
 
@@ -21,7 +30,7 @@ public final class ProxyHolder {
         return id;
     }
 
-    public InetSocketAddress getIsa() {
+    public FiveTuple getFiveTuple() {
         return isa;
     }
     
@@ -31,7 +40,7 @@ public final class ProxyHolder {
     
     @Override
     public String toString() {
-        return "ProxyHolder [isa=" + getIsa() + "]";
+        return "ProxyHolder [isa=" + getFiveTuple() + "]";
     }
 
     @Override
