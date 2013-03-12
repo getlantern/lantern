@@ -11,6 +11,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Peers;
+import org.lantern.util.LanternTrafficCounter;
 import org.lantern.util.LanternTrafficCounterHandler;
 import org.lantern.util.Threads;
 import org.slf4j.Logger;
@@ -83,14 +84,14 @@ public class PeerFactory {
 
     public void addOutgoingPeer(final String fullJid, 
         final InetSocketAddress isa, final Type type, 
-        final LanternTrafficCounterHandler trafficCounter) {
+        final LanternTrafficCounter trafficCounter) {
         addPeer(fullJid, isa.getAddress(), isa.getPort(), type, false, 
             trafficCounter);
     }
 
     public void addPeer(final String fullJid, final InetAddress address, 
         final int port, final Type type, final boolean incoming, 
-        final LanternTrafficCounterHandler trafficCounter) {
+        final LanternTrafficCounter trafficCounter) {
         
         // We thread this because there's a geo IP lookup that could otherwise
         // stall the calling thread.
@@ -111,7 +112,7 @@ public class PeerFactory {
                     
                     // It could have just been deserialized from disk, so we
                     // want to give it a real traffic counter.
-                    final LanternTrafficCounterHandler tc = 
+                    final LanternTrafficCounter tc = 
                         existing.getTrafficCounter();
                     if (tc != null) {
                         log.warn("Existing traffic counter?");
@@ -132,7 +133,7 @@ public class PeerFactory {
     
 
     private Peer newGetModePeer(final InetAddress address,
-            final LanternTrafficCounterHandler trafficCounter) {
+            final LanternTrafficCounter trafficCounter) {
         final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
         return new Peer("", geo.getCountrycode(), false, geo.getLatitude(), 
@@ -143,7 +144,7 @@ public class PeerFactory {
     
     private Peer newGiveModePeer(final String fullJid, final InetAddress address, 
         final int port, final Type type, final boolean incoming, 
-        final LanternTrafficCounterHandler trafficCounter) {
+        final LanternTrafficCounter trafficCounter) {
         
         final LanternRosterEntry entry;
         if (StringUtils.isNotBlank(fullJid)) {

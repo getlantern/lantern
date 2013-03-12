@@ -8,9 +8,9 @@ public interface ProxyProvider {
 
     ProxyHolder getLaeProxy();
 
-    //URI getPeerProxy();
-    
     ProxyHolder getProxy();
+    
+    ProxyHolder getJidProxy();
     
     boolean hasProxy();
 

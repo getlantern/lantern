@@ -14,12 +14,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
-import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.junit.Test;
 import org.lantern.state.Peer;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
-import org.lantern.util.LanternTrafficCounterHandler;
+import org.lantern.util.LanternTrafficCounter;
 
 public class SslHttpProxyServerTest {
 
@@ -68,10 +67,9 @@ public class SslHttpProxyServerTest {
         assertEquals(1, peers.size());
         
         final Peer peer = peers.iterator().next();
-        final LanternTrafficCounterHandler tch = peer.getTrafficCounter();
-        final TrafficCounter tc = tch.getTrafficCounter();
+        final LanternTrafficCounter tch = peer.getTrafficCounter();
         
-        final long readBytes = tc.getCumulativeReadBytes();
+        final long readBytes = tch.getCumulativeReadBytes();
         assertTrue(readBytes > 1000);
         final GlobalLanternServerTrafficShapingHandler traffic = 
                 TestUtils.getGlobalTraffic();

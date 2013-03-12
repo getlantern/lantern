@@ -8,15 +8,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
 
-import javax.net.ssl.SSLEngine;
-
-import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -28,9 +26,6 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -56,8 +51,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private FiveTuple proxyAddress;
 
-    private final HttpRequestTransformer transformer;
-
     private final ChannelGroup channelGroup;
 
     private final Stats stats;
@@ -75,7 +68,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         final ChannelGroup channelGroup, final Stats stats,
         final LanternTrustStore trustStore) {
         this.proxyTracker = proxyTracker;
-        this.transformer = transformer;
         this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
         this.stats = stats;
@@ -86,12 +78,12 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         if (this.proxyAddress != null) {
             return true;
         }
-        final ProxyHolder ph = this.proxyTracker.getProxy();
+        final ProxyHolder ph = this.proxyTracker.getJidProxy();
         
         if (ph != null) {
             this.proxyHolder = ph;
             this.proxyAddress = ph.getFiveTuple();
-            this.trafficHandler = ph.getTrafficShapingHandler();
+            //this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
         }
         log.info("No proxy!");
@@ -233,67 +225,37 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             cp.remove(name);
         }
     }
-    
-    private ChannelPipeline configureOutgoingPipeline(final ClientBootstrap cb) {
-        final ChannelPipeline pipeline = cb.getPipeline();
-        
-        // It's necessary to use our own engine here, as we need to trust
-        // the cert from the proxy.
-        final SSLEngine engine = trustStore.getContext().createSSLEngine();
-        
-        engine.setUseClientMode(true);
-        
-        final ChannelHandler statsHandler = new StatsTrackingHandler() {
-            @Override
-            public void addUpBytes(final long bytes) {
-                stats.addUpBytesViaProxies(bytes);
-            }
-            @Override
-            public void addDownBytes(final long bytes) {
-                stats.addDownBytesViaProxies(bytes);
-            }
-        };
-
-        // This is slightly odd in the CONNECT case, as we tunnel SSL inside 
-        // SSL, but we'd otherwise just be running an open CONNECT proxy.
-        pipeline.addLast("trafficHandler", trafficHandler);
-        pipeline.addLast("stats", statsHandler);
-        pipeline.addLast("ssl", new SslHandler(engine));
-        pipeline.addLast("encoder", new HttpRequestEncoder());
-        return pipeline;
-    }
 
     private static class HttpResponseClientHandler extends ChannelInboundByteHandlerAdapter {
 
         private static final Logger log = 
                 LoggerFactory.getLogger(HttpResponseClientHandler.class);
 
-        //private final ByteBuf message = Unpooled.wrappedBuffer(REQUEST.getBytes());
 
         private final Channel browserToProxyChannel;
 
         private HttpResponseClientHandler(
             final Channel browserToProxyChannel, final HttpRequest request) {
             this.browserToProxyChannel = browserToProxyChannel;
-            //this.httpRequest = request;
         }
 
         @Override
         public void channelActive(final io.netty.channel.ChannelHandlerContext ctx) throws Exception {
-            log.info("Channel active " + NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
-            
-            //ctx.write(encoder.encode(httpRequest));
+            log.debug("Channel active " + NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
         }
 
         @Override
         public void inboundBufferUpdated(final io.netty.channel.ChannelHandlerContext ctx,
                 final ByteBuf in) {
-            final String response = in.toString(LanternConstants.UTF8);
-            log.info("INBOUND UPDATED!!\n"+response);
             
+            // TODO: We should be able to do this more efficiently than
+            // converting to a string and back out.
+            final String response = in.toString(LanternConstants.UTF8);
+            log.debug("INBOUND UPDATED!!\n"+response);
             
             synchronized (browserToProxyChannel) {
-                final ChannelBuffer wrapped = ChannelBuffers.wrappedBuffer(response.getBytes());
+                final ChannelBuffer wrapped = 
+                    ChannelBuffers.wrappedBuffer(response.getBytes());
                 this.browserToProxyChannel.write(wrapped);
                 this.browserToProxyChannel.notifyAll();
             }
@@ -309,7 +271,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         @Override
         public ByteBuf newInboundBuffer(final io.netty.channel.ChannelHandlerContext ctx)
                 throws Exception {
-            log.info("NEW INBOUND BUFFER");
+            log.debug("NEW INBOUND BUFFER");
             return ctx.alloc().directBuffer(
                     ctx.channel().config().getOption(ChannelOption.SO_RCVBUF));
         }

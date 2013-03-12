@@ -219,10 +219,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void addJidProxy(final URI peerUri) {
         log.debug("Considering peer proxy");
-        proxyBookkeeping(peerUri.toASCIIString());
+        final String jid = peerUri.toASCIIString();
+        proxyBookkeeping(jid);
         
         // The idea here is to start with the JID and to basically convert it
-        // into a NAT/firewall traversed FiveTuple containing a locale and 
+        // into a NAT/firewall traversed FiveTuple containing a local and 
         // remote InetSocketAddress we can use a little more easily.
         final Map<URI, AtomicInteger> peerFailureCount =
                 new HashMap<URI, AtomicInteger>();
@@ -230,9 +231,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         p2pSocketThreadPool.submit(new Runnable() {
             @Override
             public void run() {
+                // TODO: In the past we created a bunch of connections here -
+                // a socket pool -- to avoid dealing with connection time 
+                // delays. We should probably do that again!.
                 boolean gotConnected = false;
                 try {
-
                     final FiveTuple tuple = LanternUtils.openOutgoingPeer(
                         peerUri, xmppHandler.getP2PClient(),
                         peerFailureCount);
@@ -240,10 +243,9 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     final InetSocketAddress remote = tuple.getRemote();
                     final ProxyHolder ph =
-                        new ProxyHolder(peerUri.toASCIIString(), tuple, 
-                            trafficTracker());
+                        new ProxyHolder(jid, tuple, trafficTracker());
                     
-                    peerFactory.addPeer("", remote.getAddress(), 
+                    peerFactory.addPeer(jid, remote.getAddress(), 
                             remote.getPort(), Type.desktop, false, 
                             ph.getTrafficShapingHandler());
                     if (!gotConnected) {
@@ -381,6 +383,26 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public ProxyHolder getProxy() {
         return getProxy(this.proxies);
+    }
+    
+    @Override
+    public ProxyHolder getJidProxy() {
+        // We handle p2p JIDs a little differently, as we can't make multiple
+        // connections from ephemeral local ports to the same remote endpoint
+        // because NAT traversal is local port-specific (at least in many
+        // cases). So instead of always adding the proxy back to the end of 
+        // the queue, we add it using the full FiveTuple creation process
+        // from the beginning.
+        synchronized (this.peerProxyQueue) {
+            if (this.peerProxyQueue.isEmpty()) {
+                log.debug("No proxy addresses");
+                return null;
+            }
+            final ProxyHolder proxy = this.peerProxyQueue.remove();
+            addJidProxy(LanternUtils.newURI(proxy.getId()));
+            log.debug("FIFO queue is now: {}", this.peerProxyQueue);
+            return proxy;
+        }
     }
     
     @Override
