@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.BufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -16,7 +15,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
-import io.netty.handler.codec.http.DefaultHttpRequest;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,7 +26,6 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +84,7 @@ public class UdtRelayTest {
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         final UdtRelayProxy relay = 
-            new UdtRelayProxy(localRelayAddress.getPort(), proxyPort);
+            new UdtRelayProxy(localRelayAddress, proxyPort);
         startRelay(relay, localRelayAddress.getPort(), udt);
         
         // Hit the proxy directly first so we can verify we get the exact
