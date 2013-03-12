@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.security.auth.login.CredentialException;
 
@@ -38,6 +40,7 @@ import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.state.Connectivity;
 import org.lantern.state.InternalState;
 import org.lantern.state.Location;
 import org.lantern.state.Modal;
@@ -47,6 +50,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.StaticSettings;
+import org.lantern.state.SyncPath;
 import org.lantern.state.SyncService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.LanternHttpClient;
@@ -230,7 +234,8 @@ public class Launcher {
         LOG.debug("Processed command line options...");
         
         threadPublicIpLookup();
-        
+        threadPeriodicConnectivityUpdate();
+
         if (set.isUiEnabled()) {
             LOG.debug("Starting system tray..");
             try {
@@ -284,33 +289,11 @@ public class Launcher {
                 if (set.isUiEnabled()) {
                     browserService.openBrowserWhenPortReady();
                 }
-                //jettyLauncher.openBrowserWhenReady();
-                // Wait for an internet connection before starting the XMPP
-                // connection.
-                LOG.info("Waiting for internet connection...");
-                LanternUtils.waitForInternet();
-                launchWithOrWithoutUi();
-            } else {
-                // If we haven't configured Lantern and don't have an internet
-                // connection, the problem is that we can't verify the user's
-                // user name and password when they try to login, so we just
-                // let them know we can't start Lantern until they have a 
-                // connection.
-                // TODO: i18n
-                
-                final String msg = 
-                    "We're sorry, but you cannot configure Lantern without " +
-                    "an active connection to the internet. Please try again " +
-                    "when you have an internet connection.";
-                messageService.showMessage("No Internet", msg);
-                System.exit(0);
-                
-                // The new-ui wants to allow the user to configure this later?
-                //launchWithOrWithoutUi();
             }
+            launchWithOrWithoutUi();
         }
 
-        
+
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
         if (display != null) {
@@ -319,7 +302,37 @@ public class Launcher {
             }
         }
     }
-    
+
+
+    private void threadPeriodicConnectivityUpdate() {
+        Timer timer = injector.getInstance(Timer.class);
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                final InetAddress ip =
+                        new PublicIpAddress().getPublicIpAddress();
+                final Connectivity connectivity = model.getConnectivity();
+                if (ip == null) {
+                    LOG.info("No IP -- possibly no internet connection");
+                    connectivity.setInternet(false);
+                    Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
+                    return;
+                }
+                if (ip.equals(connectivity.getIp())) {
+                    return; //no change to IP address, so nothing to do
+                }
+                connectivity.setInternet(true);
+                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
+                final Location loc = model.getLocation();
+                loc.setCountry(geo.getCountrycode());
+                loc.setLat(geo.getLatitude());
+                loc.setLon(geo.getLongitude());
+                Events.sync(SyncPath.LOCATION, loc);
+                Events.sync(SyncPath.CONNECTIVITY_INTERNET, connectivity.isInternet());
+                connectivity.setIp(ip.getHostAddress());
+            }
+        }, 0, LanternClientConstants.CONNECTIVITY_UPDATE_INTERVAL);
+    }
 
     /**
      * We thread this because otherwise looking up our public IP address 

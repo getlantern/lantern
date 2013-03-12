@@ -109,6 +109,7 @@ public class LanternClientConstants {
     public static final File GEOIP = new File(DATA_DIR, "GeoIP.dat");
     
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
+    public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
 
     // Not final because it may be set from the command line for debugging.
     public static String LANTERN_JID;
