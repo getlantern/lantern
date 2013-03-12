@@ -118,7 +118,7 @@ public class LanternClientConstants {
 
     public static void setControllerId(final String id) {
         LANTERN_JID = id + "@appspot.com";
-        STATS_URL = "http://" + id + ".appspot.com/stats";
+        STATS_URL = "https://" + id + ".appspot.com/stats";
     }
 
     static {
