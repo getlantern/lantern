@@ -28,6 +28,15 @@ summary
 details[open] summary
   margin-bottom: 5px
 
+.summary
+  cursor: pointer
+  &:before
+    content: '▸ '
+  &.expanded:before
+    content: '▾ '
+  &.expanded
+    margin-bottom: 5px
+
 label.checkbox.inline, label.radio.inline
   white-space: nowrap
   margin-right: 5px
@@ -49,6 +58,9 @@ label.checkbox.inline, label.radio.inline
 
 .gray
   +gray
+
+.grayDark
+  +grayDark
 
 .bold
   +bold

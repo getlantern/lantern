@@ -187,18 +187,43 @@
   .modal-header, .modal-body
     +centered
 
+#finished-autoReport
+  margin-top: 25px
+  *
+    +smaller
+  input[type=checkbox]
+    margin-left: -15px
+    margin-top: 3px
+  .icon-external-link
+    margin-left: 2px
+
 #settings
   dd
     margin-bottom: $baseFontSize * 1.75
-  details
+    label
+      +small
+  details, .details
     margin-top: 9px
+  .summary
+    +small
+  .collapsible
+    +indented
+    & *
+      +smaller
   .pacUrl
     margin-left: 12px
+
 
 #autoreport-warning
   +indented
   +warning-colored
+  +smaller
   margin-top: 3px
+
+#manualProxyInfo
+  +grayDark
+  +indented
+  margin-top: -5px
 
 #updateAvailable
   h4

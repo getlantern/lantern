@@ -88,7 +88,7 @@
       <small><a ng-click="helpExpanded=!helpExpanded"
                 class="toggle">{{ 'WHY' | i18n }}</a></small>
     </div>
-    <div class="prompt-extra noHeightWhenHidden" ui-toggle="helpExpanded">
+    <div class="prompt-extra" collapse="!helpExpanded">
       {{ 'AUTHORIZE_TIP_GTALK' | i18n }}
     </div>
   </div>
@@ -385,19 +385,16 @@
   </div>
   <div class="modal-body">
     <div>{{ 'FINISHED_PROMPT' | i18n }}</div>
-    <br>
-    <form class="form-inline">
-      <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->
+    <div id="finished-autoReport">
+      <label class="checkbox inline">
         <input type="checkbox" ng-model="autoReport"
                ng-change="changeSetting(SETTING.autoReport, autoReport)">
-        <small>{{ 'AUTOREPORT_PROMPT' | i18n }}</small>
-      </label>
-      <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->
+        {{ 'AUTOREPORT_PROMPT' | i18n }}
         <a href="{{ EXTERNAL_URL.autoReportPrivacy }}" tooltip="{{ 'MORE_INFO' | i18n }}" target="_blank">
-          <i class="icon-external-link small"></i>
+          <i class="icon-external-link"></i>
         </a>
       </label>
-    </form>
+    </div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
@@ -549,45 +546,44 @@ You should have received a copy of the GNU General Public License along with thi
           </label>
         </div>
 
-        <div id="autoreport-warning" ui-toggle="!model.settings.autoReport"
-             class="noHeightWhenHidden">
+        <div id="autoreport-warning" collapse="model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
-          <small>{{ 'NO_AUTOREPORT_WARNING' | i18n }}</small>
+          {{ 'NO_AUTOREPORT_WARNING' | i18n }}
         </div>
       </dd>
 
-      <dt ui-toggle="inGetMode" class="noHeightWhenHidden">{{ 'PROXY' | i18n }}</dt>
-      <dd ui-toggle="inGetMode" class="noHeightWhenHidden" id="proxy-settings">
+      <dt collapse="inGiveMode">{{ 'PROXY' | i18n }}</dt>
+      <dd collapse="inGiveMode" id="proxy-settings">
         <button type="button" class="btn btn-mini"
                 ng-click="interaction(INTERACTION.proxiedSites)">
-          <!--i class="lsf-icon lsf-web"></i-->
+          <i ui-if="model.settings.proxyAllSites" class="icon-warning-sign warning-colored"></i>
           {{ 'MANAGE_PROXIED_SITES' | i18n }}
         </button>
         <br>
-        <details ng-open="model.settings.proxyAllSites || model.settings.systemProxy == false"><!-- XXX ng-open will work upon upgrading to an angular version that has landed https://github.com/angular/angular.js/commit/b8bd4d5 -->
-          <summary class="small">{{ 'ADVANCED' | i18n }}</summary>
-          <div>
-            <label class="checkbox inline" style="margin-top:-9px"><!-- XXX inline style -->
-              <input type="checkbox" ng-model="proxyAllSites"
-                     ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
-                {{'PROXY_ALL_TRAFFIC' | i18n }}
-            </label>
-            <!-- XXX space between label and anchor inconsistent between ubuntu and os x -->
-            <a rel="tooltip" tooltip="{{ 'PROXIED_SITES_PROMPT' | i18n }}"><i class="icon icon-question-sign" style="font-size: 14px"></i></a><!-- XXX inline style -->
-          </div>
-          <div>
-            <label class="checkbox">
-              <input type="checkbox" ng-model="systemProxy"
-                     ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
-              {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
-            </label>
-            <div class="indented noHeightWhenHidden" ui-toggle="!systemProxy">
-              <i class="icon-info-sign"></i>
-              {{ 'PAC_FILE_LOC' | i18n }}
-              <div class="pacUrl">{{ model.connectivity.pacUrl }}</div>
+        <div class="details" ng-init="isExpanded = model.settings.proxyAllSites || model.settings.systemProxy == false">
+          <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded = ! isExpanded">{{ 'ADVANCED' | i18n }}</div>
+          <div class="collapsible" collapse="!isExpanded">
+            <div>
+              <label class="checkbox inline" style="margin-top:-9px"><!-- XXX inline style -->
+                <input type="checkbox" ng-model="proxyAllSites"
+                       ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
+                  {{'PROXY_ALL_TRAFFIC' | i18n }}
+              </label>
+            </div>
+            <div>
+              <label class="checkbox">
+                <input type="checkbox" ng-model="systemProxy"
+                       ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
+                {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
+              </label>
+              <div id="manualProxyInfo" collapse="systemProxy">
+                <i class="icon-info-sign"></i>
+                {{ 'PAC_FILE_LOC' | i18n }}
+                <div class="pacUrl">{{ model.connectivity.pacUrl }}</div>
+              </div>
             </div>
           </div>
-        </details>
+        </div>
       </dd>
     </dl>
   </div>

@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @font-face {
   font-family: "Droid Sans Mono";
   font-style: normal;
@@ -6378,6 +6379,19 @@ details[open] summary {
   margin-bottom: 5px;
 }
 
+.summary {
+  cursor: pointer;
+}
+.summary:before {
+  content: "▸ ";
+}
+.summary.expanded:before {
+  content: "▾ ";
+}
+.summary.expanded {
+  margin-bottom: 5px;
+}
+
 label.checkbox.inline, label.radio.inline {
   white-space: nowrap;
   margin-right: 5px;
@@ -6406,6 +6420,10 @@ label.checkbox.inline, label.radio.inline {
 
 .gray {
   color: #999999;
+}
+
+.grayDark {
+  color: #555555;
 }
 
 .bold {
@@ -6954,11 +6972,37 @@ textarea {
   text-align: center;
 }
 
+#finished-autoReport {
+  margin-top: 25px;
+}
+#finished-autoReport * {
+  font-size: 10.5px;
+}
+#finished-autoReport input[type=checkbox] {
+  margin-left: -15px;
+  margin-top: 3px;
+}
+#finished-autoReport .icon-external-link {
+  margin-left: 2px;
+}
+
 #settings dd {
   margin-bottom: 24.5px;
 }
-#settings details {
+#settings dd label {
+  font-size: 11.9px;
+}
+#settings details, #settings .details {
   margin-top: 9px;
+}
+#settings .summary {
+  font-size: 11.9px;
+}
+#settings .collapsible {
+  margin-left: 20px;
+}
+#settings .collapsible * {
+  font-size: 10.5px;
 }
 #settings .pacUrl {
   margin-left: 12px;
@@ -6967,7 +7011,14 @@ textarea {
 #autoreport-warning {
   margin-left: 20px;
   color: #c09853;
+  font-size: 10.5px;
   margin-top: 3px;
+}
+
+#manualProxyInfo {
+  color: #555555;
+  margin-left: 20px;
+  margin-top: -5px;
 }
 
 #updateAvailable h4 {
