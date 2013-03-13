@@ -17,6 +17,7 @@ import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
+import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -243,7 +244,16 @@ public class Model {
         return notifications;
     }
 
-    public void addNotification(String message, String type) {
+    public void addNotification(String message, MessageType type, int timeout) {
+        Notification notification = new Notification(message, type, timeout);
+        addNotification(notification);
+    }
+
+    public void addNotification(String message, MessageType type) {
+        addNotification(new Notification(message, type));
+    }
+
+    public void addNotification(Notification notification) {
         if (maxNotificationId == 0) {
             //this happens at startup?
             for (Integer k : notifications.keySet()) {
@@ -252,7 +262,7 @@ public class Model {
             }
         }
         int id = maxNotificationId ++;
-        notifications.put(id, new Notification(message, type));
+        notifications.put(id, notification);
     }
 
     public void clearNotifications() {

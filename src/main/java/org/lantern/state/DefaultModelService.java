@@ -20,6 +20,7 @@ import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
@@ -304,7 +305,7 @@ public class DefaultModelService implements ModelService {
         } else {
           msg += ".";
         }
-        model.addNotification(msg, "info");
+        model.addNotification(msg, MessageType.info, 30);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 

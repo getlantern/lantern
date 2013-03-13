@@ -15,6 +15,7 @@ import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.privacy.EncryptedFileService;
+import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,7 +174,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
     public void reload() {
         Model newModel = read();
         if (newModel.getModal() == Modal.settingsLoadFailure) {
-            model.addNotification("Failed to reload settings", "error");
+            model.addNotification("Failed to reload settings", MessageType.error);
             return;
         }
         model.loadFrom(newModel);
