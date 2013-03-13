@@ -2,8 +2,8 @@ package org.lantern.state;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -71,7 +71,9 @@ public class Model {
 
     private Peers peerCollector = new Peers();
 
-    private final ArrayList<Notification> notifications = new ArrayList<Notification>();
+    private final HashMap<Integer, Notification> notifications = new HashMap<Integer, Notification>();
+
+    private int maxNotificationId = 0;
 
     private Roster roster;
 
@@ -237,12 +239,20 @@ public class Model {
         notifications.remove(notification);
     }
 
-    public ArrayList<Notification> getNotifications() {
+    public HashMap<Integer, Notification> getNotifications() {
         return notifications;
     }
 
     public void addNotification(String message, String type) {
-        notifications.add(new Notification(message, type));
+        if (maxNotificationId == 0) {
+            //this happens at startup?
+            for (Integer k : notifications.keySet()) {
+                if (k > maxNotificationId)
+                    maxNotificationId = k;
+            }
+        }
+        int id = maxNotificationId ++;
+        notifications.put(id, new Notification(message, type));
     }
 
     public void clearNotifications() {

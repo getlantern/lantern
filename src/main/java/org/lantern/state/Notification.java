@@ -4,6 +4,8 @@ public class Notification {
     private String type;
     private String message;
 
+    private int autoClose = 0;
+
     Notification() {
     }
 
@@ -23,6 +25,14 @@ public class Notification {
     }
     public void setType(String type) {
         this.type = type;
+    }
+
+    public int getAutoClose() {
+        return autoClose;
+    }
+
+    public void setAutoClose(int autoClose) {
+        this.autoClose = autoClose;
     }
 
 }
