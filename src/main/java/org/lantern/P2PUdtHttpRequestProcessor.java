@@ -63,7 +63,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     public P2PUdtHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
-        final HttpRequestTransformer transformer, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
         final ChannelGroup channelGroup, final Stats stats,
         final LanternTrustStore trustStore) {
