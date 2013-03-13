@@ -467,8 +467,8 @@ public class InteractionServlet extends HttpServlet {
         Map<String, Object> map;
         try {
             map = om.readValue(json, Map.class);
-            final Integer notification = (Integer) map.get("notification");
-            model.closeNotification(notification);
+            final String notification = (String) map.get("notification");
+            model.closeNotification(Integer.parseInt(notification));
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         } catch (JsonParseException e) {
             e.printStackTrace();
