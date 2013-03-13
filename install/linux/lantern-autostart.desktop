@@ -12,7 +12,7 @@ Comment=
 # DRY warning: see
 #  - install/linux/configureAndLaunchUbuntu.txt
 #  - src/main/java/org/lantern/ChromeRunner.java
-#  - lantern-ui/app/
+#  - src/main/java/org/lantern/http/JettyLauncher.java
 #
 #  StartupWMClass=127.0.0.1 is needed so the lantern icon will show up in the
 #  Unity launcher/dock.  But if we specify only that, the lantern icon might
