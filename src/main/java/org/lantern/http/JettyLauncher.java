@@ -141,6 +141,16 @@ public class JettyLauncher implements LanternService {
                 }
         });
         redirectIndex.setInitOrder(1);
+        // DRY warning: this path is also set in:
+        //  - install/linux/configureAndLaunchUbuntu.txt
+        //  - install/linux/lantern-autostart.desktop
+        //  - src/main/java/org/lantern/ChromeRunner.java
+        //
+        //  StartupWMClass=127.0.0.1 is needed so the lantern icon will show
+        //  up in the Unity launcher/dock.  But if we specify only that, the
+        //  lantern icon might appear for any other chrome app served from
+        //  localhost.  So we rename the index file to something less likely
+        //  to cause name clashes.
         contextHandler.addServlet(redirectIndex, "/org.lantern.index.html");
         
         final ServletHolder ds = new ServletHolder(new DefaultServlet() {

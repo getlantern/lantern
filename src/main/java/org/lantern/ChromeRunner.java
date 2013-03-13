@@ -132,7 +132,7 @@ public class ChromeRunner {
         // DRY warning: this path is also set in:
         //  - install/linux/configureAndLaunchUbuntu.txt
         //  - install/linux/lantern-autostart.desktop
-        //  - lantern-ui/app/
+        //  - src/main/java/org/lantern/http/JettyLauncher.java
         //
         //  StartupWMClass=127.0.0.1 is needed so the lantern icon will show
         //  up in the Unity launcher/dock.  But if we specify only that, the
