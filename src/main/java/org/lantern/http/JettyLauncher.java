@@ -130,6 +130,18 @@ public class JettyLauncher implements LanternService {
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
 
+        final ServletHolder redirectIndex = new ServletHolder(
+            new DefaultServlet() {
+                //XXX serialVersionUID???
+                @Override
+                protected void doGet(final HttpServletRequest req,
+                                     final HttpServletResponse resp)
+                    throws ServletException, IOException {
+                    resp.sendRedirect("/");
+                }
+        });
+        redirectIndex.setInitOrder(1);
+        contextHandler.addServlet(redirectIndex, "/org.lantern.index.html");
         
         final ServletHolder ds = new ServletHolder(new DefaultServlet() {
 
