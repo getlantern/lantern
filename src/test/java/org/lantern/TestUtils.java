@@ -118,7 +118,7 @@ public class TestUtils {
         }
     }
     public static void load() {
-        load(false);
+        load(true);
     }
     
     public static void load(final boolean start) {
