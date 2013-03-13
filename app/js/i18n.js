@@ -459,5 +459,5 @@ angular.module('app.i18n', [])
         return pluralNotFound(key, count);
       }
       return translation;
-    }
+    };
   });

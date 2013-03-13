@@ -127,7 +127,7 @@ MockBackend.prototype._advanceModal = function(backToIfNone) {
   var modalSeq = this.inGiveMode() ? MODALSEQ_GIVE : MODALSEQ_GET,
       next, update = {};
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
-  if (next == MODAL.none) {
+  if (next === MODAL.none) {
     if (!this.model.setupComplete) update['/setupComplete'] = true;
     if (backToIfNone) next = backToIfNone;
   } else {
@@ -143,11 +143,11 @@ MockBackend.prototype.inCensoringCountry = function() {
 };
 
 MockBackend.prototype.inGiveMode = function() {
-  return this.model.settings.mode == MODE.give;
+  return this.model.settings.mode === MODE.give;
 };
 
 MockBackend.prototype.inGetMode = function() {
-  return this.model.settings.mode == MODE.get;
+  return this.model.settings.mode === MODE.get;
 };
 
 MockBackend.prototype.handleException = function(data) {
@@ -166,7 +166,7 @@ _globalModals[INTERACTION.settings] = MODAL.settings;
 _globalModals[INTERACTION.scenarios] = MODAL.scenarios;
 _.each(_globalModals, function(modal, interaction) {
   MockBackend._handlerForInteraction[interaction] = function(res, data) {
-    if (this.model.modal == modal) return;
+    if (this.model.modal === modal) return;
     this._internalState.lastModal = this.model.modal;
     this.sync({'/modal': modal});
   };
@@ -196,11 +196,11 @@ MockBackend._handlerForInteraction[INTERACTION.developer] = function(res, data) 
 
 MockBackend._handlerForModal = {};
 MockBackend._handlerForModal[MODAL.contact] = function(interaction, res, data) {
-  if (interaction != INTERACTION.continue && interaction != INTERACTION.cancel) {
+  if (interaction !== INTERACTION.continue && interaction !== INTERACTION.cancel) {
     res.writeHead(400);
     return;
   }
-  if (interaction == INTERACTION.continue) {
+  if (interaction === INTERACTION.continue) {
     var id = nextid(), msg = 'Message sent.', update = {},
         notification = {type: 'info', message: msg, autoClose: 30};
     update['/notifications/'+id] = notification;
@@ -211,13 +211,13 @@ MockBackend._handlerForModal[MODAL.contact] = function(interaction, res, data) {
 };
 
 MockBackend._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
-  if (interaction == INTERACTION.cancel) {
+  if (interaction === INTERACTION.cancel) {
     this.sync({'/modal': this._internalState.lastModal});
     this._internalState.lastModal = MODAL.none;
     return;
   }
-  if (interaction != INTERACTION.continue ||
-     (data.path && data.path != '/mock/scenarios/applied')) {
+  if (interaction !== INTERACTION.continue ||
+     (data.path && data.path !== '/mock/scenarios/applied')) {
     res.writeHead(400);
     return;
   }
@@ -229,7 +229,7 @@ MockBackend._handlerForModal[MODAL.scenarios] = function(interaction, res, data)
       res.writeHead(400);
       return;
     }
-    if (getByPath(this.model, '/mock/scenarios/applied/'+groupKey) != scenKey) {
+    if (getByPath(this.model, '/mock/scenarios/applied/'+groupKey) !== scenKey) {
       var scen = getByPath(SCENARIOS, '/'+groupKey+'/'+scenKey);
       log('applying scenario:', scen.desc);
       scen.func.call(this);
@@ -245,7 +245,7 @@ MockBackend._handlerForModal[MODAL.scenarios] = function(interaction, res, data)
 
 MockBackend._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
   if (!(interaction in MODE)) return res.writeHead(400);
-  if (interaction == INTERACTION.give && this.inCensoringCountry()) {
+  if (interaction === INTERACTION.give && this.inCensoringCountry()) {
     this._internalState.lastModal = MODAL.welcome;
     this.sync({'/modal': MODAL.giveModeForbidden});
     return;
@@ -256,8 +256,8 @@ MockBackend._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
 };
 
 MockBackend._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
-  if (interaction == INTERACTION.cancel || interaction == INTERACTION.continue) {
-    if (interaction == INTERACTION.continue) {
+  if (interaction === INTERACTION.cancel || interaction === INTERACTION.continue) {
+    if (interaction === INTERACTION.continue) {
       this.sync({'/settings/mode': MODE.get});
       this._internalState.modalsCompleted[MODAL.welcome] = true;
     }
@@ -268,7 +268,7 @@ MockBackend._handlerForModal[MODAL.giveModeForbidden] = function(interaction, re
 };
 
 MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
+  if (interaction !== INTERACTION.continue) return res.writeHead(400);
 
   this._internalState.lastModal = MODAL.authorize;
 
@@ -291,7 +291,7 @@ MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(SCENARIOS, '/gtalkReachable/'+scen);
   log('applying gtalkReachable scenario', scen.desc);
   scen.func.call(this);
-  if (getByPath(this.model, '/connectivity/gtalk') != CONNECTIVITY.connected) return;
+  if (getByPath(this.model, '/connectivity/gtalk') !== CONNECTIVITY.connected) return;
 
   // fetch number of invites
   scen = getByPath(this.model, '/mock/scenarios/applied/ninvites');
@@ -332,17 +332,17 @@ MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
 };
 
 MockBackend._handlerForModal[MODAL.proxiedSites] = function(interaction, res, data) {
-  if (interaction == INTERACTION.continue) {
+  if (interaction === INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
     this._advanceModal(this._internalState.lastModal);
-  } else if (interaction == INTERACTION.set) {
+  } else if (interaction === INTERACTION.set) {
     if (data.path === '/settings/proxyAllSites' ||
         data.path === '/settings/proxiedSites') {
       this.sync([{op: 'replace', path: data.path, value: data.value}]); // XXX validate
     } else {
       res.writeHead(400);
     }
-  } else if (interaction == INTERACTION.reset) {
+  } else if (interaction === INTERACTION.reset) {
     this.sync({'/settings/proxiedSites': DEFAULT_PROXIED_SITES});
   } else {
     res.writeHead(400);
@@ -350,7 +350,7 @@ MockBackend._handlerForModal[MODAL.proxiedSites] = function(interaction, res, da
 };
 
 MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
+  if (interaction !== INTERACTION.continue) return res.writeHead(400);
   this.sync({'/settings/systemProxy': data});
   if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
@@ -358,7 +358,7 @@ MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, dat
 };
 
 MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
-  if (interaction == INTERACTION.invite) {
+  if (interaction === INTERACTION.invite) {
     if (data) {
       if (data.length > this.model.ninvites) {
         log('more invitees than invites', data);
@@ -384,16 +384,16 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
       update['/notifications/'+nextid()] = {type: 'info', message: msg, autoClose: 30};
       this.sync(update);
     }
-  } else if (interaction == INTERACTION.continue) {
+  } else if (interaction === INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal();
-  } else if (interaction == INTERACTION.accept ||
-             interaction == INTERACTION.decline) {
+  } else if (interaction === INTERACTION.accept ||
+             interaction === INTERACTION.decline) {
     var pending = getByPath(this.model, '/friends/pending') || [],
         i = _.pluck(pending, 'email').indexOf(data.email);
-    if (i == -1) return res.writeHead(400);
+    if (i === -1) return res.writeHead(400);
     var patch = [{op: 'remove', path: '/friends/pending/'+i}], msg;
-    if (interaction == INTERACTION.accept) {
+    if (interaction === INTERACTION.accept) {
       patch.push({op: 'add', value: data, path: '/friends/current/-'});
       patch.push({op: 'add', value: data, path: '/roster/-'});
       msg = 'Accepted friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
@@ -408,9 +408,9 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
 };
 
 MockBackend._handlerForModal[MODAL.notInvited] = function(interaction, res) {
-  if (interaction == INTERACTION.retry) {
+  if (interaction === INTERACTION.retry) {
     this.sync({'/modal': MODAL.authorize});
-  } else if (interaction == INTERACTION.requestInvite) {
+  } else if (interaction === INTERACTION.requestInvite) {
     this.sync({'/modal': MODAL.requestInvite});
   } else {
     res.writeHead(400);
@@ -418,22 +418,22 @@ MockBackend._handlerForModal[MODAL.notInvited] = function(interaction, res) {
 };
 
 MockBackend._handlerForModal[MODAL.requestSent] = function(interaction, res) {
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
+  if (interaction !== INTERACTION.continue) return res.writeHead(400);
   this.sync({'/modal': MODAL.none, '/showVis': true});
 };
 
 MockBackend._handlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
+  if (interaction !== INTERACTION.continue) return res.writeHead(400);
   this._advanceModal(this._internalState.lastModal);
 };
 
 MockBackend._handlerForModal[MODAL.finished] = function(interaction, res, data) {
-  if (interaction == INTERACTION.set && data &&
-      data.path == '/settings/autoReport' && _.isBoolean(data.value)) {
+  if (interaction === INTERACTION.set && data &&
+      data.path === '/settings/autoReport' && _.isBoolean(data.value)) {
     this.sync({'/settings/autoReport': data.value});
     return;
   }
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
+  if (interaction !== INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.finished] = true;
   this._internalState.lastModal = MODAL.none;
   this.sync({'/modal': MODAL.none, '/setupComplete': true, '/showVis': true});
@@ -442,7 +442,7 @@ MockBackend._handlerForModal[MODAL.finished] = function(interaction, res, data) 
 MockBackend._handlerForModal[MODAL.settings] = function(interaction, res, data) {
   this._internalState.lastModal = MODAL.settings;
   if (interaction in MODE) {
-    if (interaction == MODE.give && this.inCensoringCountry()) {
+    if (interaction === MODE.give && this.inCensoringCountry()) {
       this.sync({'/modal': MODAL.giveModeForbidden});
       res.writeHead(400);
       return;
@@ -453,15 +453,15 @@ MockBackend._handlerForModal[MODAL.settings] = function(interaction, res, data) 
     this.sync({'/settings/mode': interaction});
     // switching from Give to Get for the first time shows unseen Get Mode modals
     this._advanceModal(MODAL.settings);
-  } else if (interaction == INTERACTION.proxiedSites) {
+  } else if (interaction === INTERACTION.proxiedSites) {
     this.sync({'/modal': MODAL.proxiedSites});
-  } else if (interaction == INTERACTION.close) {
+  } else if (interaction === INTERACTION.close) {
     this.sync({'/modal': MODAL.none});
-  } else if (interaction == INTERACTION.reset) {
+  } else if (interaction === INTERACTION.reset) {
     this.sync({'/modal': MODAL.confirmReset});
-  } else if (interaction == INTERACTION.set) {
+  } else if (interaction === INTERACTION.set) {
     var l = '/settings/'.length, setting = data.path.substring(l);
-    if (data.path.substring(0, l) != '/settings/' || !(setting in SETTING)) return res.writeHead(400); // XXX better validation
+    if (data.path.substring(0, l) !== '/settings/' || !(setting in SETTING)) return res.writeHead(400); // XXX better validation
     data.op = 'replace';
     this.sync([data]);
   } else {
@@ -470,9 +470,9 @@ MockBackend._handlerForModal[MODAL.settings] = function(interaction, res, data) 
 };
 
 MockBackend._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
-  if (interaction == INTERACTION.cancel) {
+  if (interaction === INTERACTION.cancel) {
     this.sync({'/modal': this._internalState.lastModal});
-  } else if (interaction == INTERACTION.reset) {
+  } else if (interaction === INTERACTION.reset) {
     SKIPSETUP = false;
     this.reset();
   } else {
@@ -484,7 +484,7 @@ MockBackend.prototype.handleRequest = function(req, res) {
   var self = this, handled = false;
   log(req.url.href);
   // POST /api/<x.y.z>/interaction/<interactionid>
-  if (req.method != 'POST') {
+  if (req.method !== 'POST') {
     res.writeHead(405);
   } else {
     var path = url.parse(req.url).pathname,
@@ -492,9 +492,11 @@ MockBackend.prototype.handleRequest = function(req, res) {
         mnt = parts[1],
         verstr = parts[2],
         ver = (verstr || '').split('.'),
+        major = parseInt(ver[0]),
+        minor = parseInt(ver[1]),
         interaction = parts[3],
         interactionid = parts[4];
-    if (mnt != MOUNT_POINT || ver[0] != VERSION.major || ver[1] != VERSION.minor) {
+    if (mnt !== MOUNT_POINT || major !== VERSION.major || minor !== VERSION.minor) {
       res.writeHead(404);
     } else if (interaction !== 'interaction' && interaction !== 'exception') {
       res.writeHead(404);

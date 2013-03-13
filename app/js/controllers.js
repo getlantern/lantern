@@ -1,10 +1,5 @@
 'use strict';
 
-// XXX have modal controllers inherit from a base class to be more DRY?
-
-// XXX use data-loading-text instead of submitButtonLabelKey below?
-// see http://twitter.github.com/bootstrap/javascript.html#buttons
-
 function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
@@ -57,8 +52,8 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   }, true);
 
   $scope.$watch('model.settings.mode', function(mode) {
-    $scope.inGiveMode = mode == MODE.give;
-    $scope.inGetMode = mode == MODE.get;
+    $scope.inGiveMode = mode === MODE.give;
+    $scope.inGetMode = mode === MODE.get;
   }, true);
 
   $scope.$watch('model.mock', function(mock) {
@@ -72,9 +67,9 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   }, true);
 
   $scope.$watch('model.connectivity.gtalk', function(gtalk) {
-    $scope.gtalkNotConnected = gtalk == CONNECTIVITY.notConnected;
-    $scope.gtalkConnecting = gtalk == CONNECTIVITY.connecting;
-    $scope.gtalkConnected = gtalk == CONNECTIVITY.connected;
+    $scope.gtalkNotConnected = gtalk === CONNECTIVITY.notConnected;
+    $scope.gtalkConnecting = gtalk === CONNECTIVITY.connecting;
+    $scope.gtalkConnected = gtalk === CONNECTIVITY.connected;
   }, true);
 
   function reload() {
@@ -118,7 +113,7 @@ function SanityCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER
   $scope.$watch('model.version.installed.api', function(installed) {
     if (angular.isUndefined(installed)) return;
     for (var key in {major: 'major', minor: 'minor'}) {
-      if (installed[key] != REQUIRED_API_VER[key]) {
+      if (installed[key] !== REQUIRED_API_VER[key]) {
         log.error('Backend api version', installed, 'incompatible with required version', REQUIRED_API_VER);
         // XXX this might well 404 due to the version mismatch but worth a shot?
         apiSrvc.exception({error: 'versionMismatch', installed: installed, required: REQUIRED_API_VER});
@@ -177,7 +172,7 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
 
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.contact;
+    $scope.show = modal === MODAL.contact;
     if ($scope.show) {
       $scope.message = $scope.defaultReportMsg();
       if ($scope.contactForm && $scope.contactForm.contactMsg) {
@@ -216,7 +211,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       normalized;
 
   $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.proxiedSites;
+    $scope.show = modal === MODAL.proxiedSites;
   });
 
   function updateComplete() {

@@ -41,11 +41,10 @@ function byteDimension(nbytes) {
 }
 
 function randomChoice(collection) {
-  if (_.isArray(collection)) {
+  if (_.isArray(collection))
     return collection[_.random(0, collection.length-1)];
-  } else if (_.isPlainObject(collection)) {
+  if (_.isPlainObject(collection))
     return randomChoice(_.keys(collection));
-  }
   throw new TypeError('expected array or plain object, got '+typeof collection);
 }
 

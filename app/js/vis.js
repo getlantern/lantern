@@ -86,6 +86,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         break;
       case 'orthographic':
         φ.range([90, -90]);
+        break;
+      default:
+        throw new Error('Unexpected key '+key);
     }
     $scope.projectionKey = key;
     projection = projections[key];
@@ -170,7 +173,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         break;
       case 'mercator':
         projection.scale(max(dim.width, dim.height));
-        projection.translate([dim.width >> 1, round(.56*dim.height)]);
+        projection.translate([dim.width >> 1, round(0.56*dim.height)]);
     }
     //zoom.scale(projection.scale());
     redrawThrottled();
@@ -198,7 +201,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         var pSelf = projection([model.location.lon, model.location.lat]),
             pPeer = projection([peer.lon, peer.lat]),
             xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1],
-            controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*.3],
+            controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
             xC = controlPoint[0], yC = controlPoint[1];
         return 'M'+xS+' '+yS+'Q'+xC+' '+yC+' '+xP+' '+yP;
     }
@@ -286,7 +289,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       peerid: peer.peerid,
       mode: peer.mode,
       bytesUp: prettyBytes(peer.bytesUp)+' '+i18n('SENT'),
-      bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED'),
+      bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED')
     }, tmpl;
     if (peer.rosterEntry) {
       _.merge(ctx, peer.rosterEntry);

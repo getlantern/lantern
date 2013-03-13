@@ -6,14 +6,12 @@ angular.module('app.services', [])
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
   .factory('logFactory', function($log, config, logWhiteList) {
     return function(prefix) {
-      var match = prefix
-        ? prefix.match(logWhiteList)
-        : true;
+      var match = prefix ? prefix.match(logWhiteList) : true;
       function extracted(prop) {
         if (!match) return angular.noop;
         return function() {
           var args = [].slice.call(arguments);
-          prefix && args.unshift('[' + prefix + ']');
+          if (prefix) args.unshift('[' + prefix + ']');
           $log[prop].apply($log, args);
         };
       }
@@ -25,7 +23,7 @@ angular.module('app.services', [])
         // XXX angular now has support for console.debug?
         debug: function() { if (config.dev) logLogger.apply(logLogger, arguments); }
       };
-    }
+    };
   })
   .service('cometdSrvc', function(COMETD_URL, logFactory, apiSrvc, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
@@ -95,7 +93,7 @@ angular.module('app.services', [])
         key.sub = cometd.subscribe(key.chan, key.cb);
         log.debug('subscribed', key);
       } else {
-        log.debug('queuing subscription request', key)
+        log.debug('queuing subscription request', key);
       }
       subscriptions.push(key);
       if (angular.isUndefined(key.renewOnReconnect))
@@ -118,9 +116,9 @@ angular.module('app.services', [])
           renew.push(key);
       });
       subscriptions = [];
-      angular.forEach(renew, function(key) {
+      _.each(renew, function(key) {
         subscribe(key);
-      })
+      });
     }
 
     cometd.addListener('/meta/handshake', function(handshake) {
