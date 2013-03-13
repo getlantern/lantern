@@ -158,7 +158,9 @@ public class TestUtils {
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
+        LOG.debug("set access token: {}", getAccessToken.substring(0, 4));
         set.setRefreshToken(getRefreshToken());
+        LOG.debug("set refresh token: {}", getRefreshToken.substring(0, 4));
         set.setUseGoogleOAuth2(true);
         start(start);
     }
@@ -225,19 +227,19 @@ public class TestUtils {
 
     public static String getRefreshToken() {
         return privateProps.getProperty("refresh_token",
-            System.getenv("LANTERN_GTALK_REFTOKEN")
+            System.getenv("LANTERN_OAUTH_REFTOKEN")
         );
     }
 
     public static String getAccessToken() {
         return privateProps.getProperty("access_token",
-            System.getenv("LANTERN_GTALK_ACCTOKEN")
+            System.getenv("LANTERN_OAUTH_ACCTOKEN")
         );
     }
     
     public static String getUserName() {
         return privateProps.getProperty("username",
-            System.getenv("LANTERN_GTALK_USERNAME")
+            System.getenv("LANTERN_OAUTH_USERNAME")
         );
     }
 
