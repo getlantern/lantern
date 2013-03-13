@@ -194,3 +194,11 @@ textarea
     border-bottom-color: $successText
   &.alert-error .titled
     border-bottom-color: $errorText
+
+// .alert-important -> .alert-error alias
+.alert-important
+  background-color: $errorBackground
+  border-color: $errorBorder
+  color: $errorText
+  .titled
+    border-bottom-color: $errorText

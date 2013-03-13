@@ -6706,6 +6706,15 @@ textarea {
   border-bottom-color: #b94a48;
 }
 
+.alert-important {
+  background-color: #f2dede;
+  border-color: #eed3d7;
+  color: #b94a48;
+}
+.alert-important .titled {
+  border-bottom-color: #b94a48;
+}
+
 @-webkit-keyframes defaultPulse {
   from {
     opacity: 1;

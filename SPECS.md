@@ -340,7 +340,7 @@ the backend maintains on the frontend through comet publications:
             generated /interaction/close requests will additionally pass an
             "auto": true parameter in the JSON body. Auto-close requests for
             already-closed notifications should be ignored.</td></tr>
-          <tr><td><strong>type</strong><br>"info" | "warning" | "error" | "success"</td>
+          <tr><td><strong>type</strong><br>"info" | "warning" | "important" | "error" | "success"</td>
             <td>controls how the UI should display the alert</td></tr>
           <tr><td><strong>message</strong><br><em>string</em></td>
             <td>Message to display. May contain html; unsafe elements will
