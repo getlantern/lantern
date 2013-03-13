@@ -9,20 +9,20 @@ import org.littleshoot.util.FiveTuple.Protocol;
 public final class ProxyHolder {
 
     private final String id;
-    private final FiveTuple isa;
+    private final FiveTuple fiveTuple;
     private final LanternTrafficCounter trafficShapingHandler;
 
     public ProxyHolder(final String id, final InetSocketAddress isa, 
         final LanternTrafficCounter trafficShapingHandler) {
         this.id = id;
-        this.isa = new FiveTuple(null, isa, Protocol.TCP);
+        this.fiveTuple = new FiveTuple(null, isa, Protocol.TCP);
         this.trafficShapingHandler = trafficShapingHandler;
     }
     
     public ProxyHolder(final String id, final FiveTuple tuple, 
         final LanternTrafficCounter trafficShapingHandler) {
         this.id = id;
-        this.isa = tuple;
+        this.fiveTuple = tuple;
         this.trafficShapingHandler = trafficShapingHandler;
     }
 
@@ -31,7 +31,7 @@ public final class ProxyHolder {
     }
 
     public FiveTuple getFiveTuple() {
-        return isa;
+        return fiveTuple;
     }
     
     public LanternTrafficCounter getTrafficShapingHandler() {
@@ -49,7 +49,7 @@ public final class ProxyHolder {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((isa == null) ? 0 : isa.hashCode());
+        result = prime * result + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
         return result;
     }
 
@@ -67,10 +67,10 @@ public final class ProxyHolder {
                 return false;
         } else if (!id.equals(other.id))
             return false;
-        if (isa == null) {
-            if (other.isa != null)
+        if (fiveTuple == null) {
+            if (other.fiveTuple != null)
                 return false;
-        } else if (!isa.equals(other.isa))
+        } else if (!fiveTuple.equals(other.fiveTuple))
             return false;
         return true;
     }
