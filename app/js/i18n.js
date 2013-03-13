@@ -108,7 +108,7 @@ angular.module('app.i18n', [])
       ERROR_MAX_PROXIED_SITES_EXCEEDED: 'Maximum number of proxied sites exceeded',
       ERROR_SETTING_PROXIED_SITES: 'Error setting proxied sites.',
       SYSTEM_PROXY_TITLE: 'System Proxy',
-      SYSTEM_PROXY_PROMPT: 'Lantern can be configured as your system proxy so your browser will use it automatically.',
+      SYSTEM_PROXY_PROMPT: 'By default, Lantern sets itself as your system proxy so your browser will use it automatically.',
       SYSTEM_PROXY_TRUE: 'Set Lantern as my system proxy (recommended)',
       AUTO_PROXY: 'Lantern will manage your system proxy settings automatically.',
       SYSTEM_PROXY_FALSE: 'I will manually configure my browser to use Lantern.',
