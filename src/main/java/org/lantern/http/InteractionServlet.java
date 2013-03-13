@@ -21,6 +21,7 @@ import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SyncEvent;
@@ -607,6 +608,17 @@ public class InteractionServlet extends HttpServlet {
                     Events.syncModal(model, Modal.giveModeForbidden);
                 }
             }
+        }
+    }
+
+    @Subscribe
+    public void onInvitesChanged(final InvitesChangedEvent e) {
+        if (e.getOldInvites() == 0) {
+            String invitationNumbered = e.getNewInvites() == 1 ? "invitation" : "invitations";
+            String text = "You now have " + e.getNewInvites() + invitationNumbered;
+            model.addNotification(text, "message");
+        } else if (e.getNewInvites() == 0) {
+            model.addNotification("You have no more invitations. You will be notified when you receive more.", "message");
         }
     }
 }
