@@ -27,6 +27,7 @@ var app = angular.module('app', [
   })
   // angular-ui config
   .value('ui.config', {
+    animate: 'ui-hide',
     jq: {
       tooltip: {
         container: 'body'

@@ -57,6 +57,11 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
     MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
     MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 
+function nextid() {
+  return ++nextid.id;
+}
+nextid.id = 0;
+
 function MockBackend(bayeuxBackend) {
   var this_ = this;
   this.clients = {};
@@ -169,8 +174,10 @@ _.each(_globalModals, function(modal, interaction) {
 
 MockBackend._handlerForInteraction[INTERACTION.close] = function(res, data) {
   if (_.isPlainObject(data) && 'notification' in data) {
-    // XXX verify that there is a notification in model.alerts at index data.notification
-    this.sync([{op: 'remove', path: '/notifications/'+data.notification}]);
+    var path = '/notifications/'+data.notification;
+    if (getByPath(this.model, path)) {
+      this.sync([{op: 'remove', path: path}]);
+    }
     return;
   }
   this.sync({'/modal': this._internalState.lastModal});
@@ -194,8 +201,10 @@ MockBackend._handlerForModal[MODAL.contact] = function(interaction, res, data) {
     return;
   }
   if (interaction == INTERACTION.continue) {
-    var msg = 'Message sent.';
-    this.sync({'/notifications/-': {type: 'info', message: msg}});
+    var id = nextid(), msg = 'Message sent.', update = {},
+        notification = {type: 'info', message: msg, autoClose: 30};
+    update['/notifications/'+id] = notification;
+    this.sync(update);
   }
   this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
@@ -371,10 +380,9 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
       } else {
         msg += '.';
       }
-      this.sync({
-        '/ninvites': this.model.ninvites - data.length,
-        '/notifications/-': {type: 'info', message: msg}
-      });
+      var update = {'/ninvites': this.model.ninvites - data.length};
+      update['/notifications/'+nextid()] = {type: 'info', message: msg, autoClose: 30};
+      this.sync(update);
     }
   } else if (interaction == INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
@@ -392,7 +400,7 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
     } else {
       msg = 'Declined friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
     }
-    patch.push({op: 'add', path: '/notifications/-', value: {type: 'info', message: msg}});
+    patch.push({op: 'add', path: '/notifications/'+nextid(), value: {type: 'info', message: msg, autoClose: 30}});
     this.sync(patch);
   } else {
     res.writeHead(400);

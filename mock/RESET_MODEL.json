@@ -11,7 +11,7 @@
     "lang":"en"
   },
   "modal":"welcome",
-  "notifications":[],
+  "notifications":{},
   "showVis": false,
   "connectivity":{
     "gtalkOauthUrl":"/mock/googleOauth.html",

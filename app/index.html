@@ -58,8 +58,8 @@
     </div>
 
     <div id="alerts">
-      <alert ng-repeat="notification in model.notifications"
-             type="notification.type" close="interaction(INTERACTION.close, {notification: $index})">
+      <alert ng-repeat="(id, notification) in model.notifications" ui-animate
+             type="notification.type" close="interaction(INTERACTION.close, {notification: id})">
         <span ng-bind-html="notification.message"></span>
       </alert>
     </div>

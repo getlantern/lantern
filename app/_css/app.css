@@ -6610,7 +6610,7 @@ a.disabled:hover {
 }
 
 .ui-hide {
-  opacity: 0;
+  opacity: 0 !important;
 }
 
 a[rel=tooltip]:not(.btn) {

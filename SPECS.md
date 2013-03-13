@@ -327,13 +327,26 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>notifications</strong><br><em>object[]</em></td>
-    <td>Array of notifications the frontend should display to the user.
-        Notification objects are of the form <code>{"type": &lt;notification type&gt;,
-        "message": &lt;notification message&gt;}</code>, where "type" can be one of
-        "info", "warning", "error", or "success", and "message" is a string
-        which may contain html; unsafe elements will be sanitized. Message
-        strings are expected to be translated into the user's chosen language.
+    <td><strong>notifications</strong><br><em>object</em></td>
+    <td>Hash of {notificationid: notificationObject} mappings the frontend should
+        display to the user. A notificationid key is the unique id of the
+        notification object it maps to. Notification objects look like:
+        <table>
+          <tr><td><strong>autoClose</strong><br><em>int</em></td>
+            <td>How many seconds the frontend should wait before automatically
+            sending an /interaction/close request for this alert. A value of 0
+            means never auto close. /interaction/close requests contain a JSON
+            request body like {"notification": notificationid}. Automatically
+            generated /interaction/close requests will additionally pass an
+            "auto": true parameter in the JSON body. Auto-close requests for
+            already-closed notifications should be ignored.</td></tr>
+          <tr><td><strong>type</strong><br>"info" | "warning" | "error" | "success"</td>
+            <td>controls how the UI should display the alert</td></tr>
+          <tr><td><strong>message</strong><br><em>string</em></td>
+            <td>Message to display. May contain html; unsafe elements will
+            be sanitized. Message strings are expected to be translated into the
+            user's chosen language.</td></tr>
+        </table>
     </td>
   </tr>
   <tr>

@@ -5,7 +5,7 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(config, $scope, $filter, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
+function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       i18nFltr = $filter('i18n'),
@@ -45,6 +45,16 @@ function RootCtrl(config, $scope, $filter, logFactory, modelSrvc, cometdSrvc, la
     var reportedState = jsonFltr(reportedStateFltr($scope.model));
     return i18nFltr('MESSAGE_PLACEHOLDER') + reportedState;
   };
+
+  $scope.$watch('model.notifications', function(notifications) {
+    _.each(notifications, function(notification, id) {
+      if (notification.autoClose) {
+        $timeout(function() {
+          $scope.interaction(INTERACTION.close, {notification: id, auto: true});
+        }, notification.autoClose * 1000);
+      }
+    });
+  }, true);
 
   $scope.$watch('model.settings.mode', function(mode) {
     $scope.inGiveMode = mode == MODE.give;
@@ -170,7 +180,7 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
     $scope.show = modal == MODAL.contact;
     if ($scope.show) {
       $scope.message = $scope.defaultReportMsg();
-      if ($scope.contactForm) {
+      if ($scope.contactForm && $scope.contactForm.contactMsg) {
         $scope.contactForm.contactMsg.$pristine = true;
       }
     }

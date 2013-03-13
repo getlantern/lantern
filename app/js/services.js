@@ -164,10 +164,18 @@ angular.module('app.services', [])
           log.debug('ignoring', msg, 'while model has not yet been populated');
           return;
         }
+        // if this causes an error (e.g. bad patch), we will immediately
+        // disconnect from the backend
         applyPatch(model, patch);
       }
-      $rootScope.$apply();
+      try {
+        $rootScope.$apply();
       //log.debug('[handleSync] applied patch', msg.data);
+      } catch(e) {
+        // probably too many $digest iterations
+        debugger; // heisenbug! leaving this here causes this to never happen
+        log.debug('$rootScope.$apply threw error:', e);
+      }
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
