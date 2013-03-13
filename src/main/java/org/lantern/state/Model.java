@@ -2,8 +2,8 @@ package org.lantern.state;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -15,6 +15,9 @@ import org.lantern.LanternClientConstants;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
+import org.lantern.event.Events;
+import org.lantern.event.InvitesChangedEvent;
+import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +72,9 @@ public class Model {
 
     private Peers peerCollector = new Peers();
 
-    private final ArrayList<Notification> notifications = new ArrayList<Notification>();
+    private final HashMap<Integer, Notification> notifications = new HashMap<Integer, Notification>();
+
+    private int maxNotificationId = 0;
 
     private Roster roster;
 
@@ -120,7 +125,11 @@ public class Model {
     }
 
     public void setNinvites(int ninvites) {
+        int oldInvites = this.ninvites;
         this.ninvites = ninvites;
+        if (oldInvites != ninvites) {
+            Events.eventBus().post(new InvitesChangedEvent(oldInvites, ninvites));
+        }
     }
 
     @JsonView({Run.class, Persistent.class})
@@ -231,12 +240,29 @@ public class Model {
         notifications.remove(notification);
     }
 
-    public ArrayList<Notification> getNotifications() {
+    public HashMap<Integer, Notification> getNotifications() {
         return notifications;
     }
 
-    public void addNotification(String message, String type) {
-        notifications.add(new Notification(message, type));
+    public void addNotification(String message, MessageType type, int timeout) {
+        Notification notification = new Notification(message, type, timeout);
+        addNotification(notification);
+    }
+
+    public void addNotification(String message, MessageType type) {
+        addNotification(new Notification(message, type));
+    }
+
+    public void addNotification(Notification notification) {
+        if (maxNotificationId == 0) {
+            //this happens at startup?
+            for (Integer k : notifications.keySet()) {
+                if (k > maxNotificationId)
+                    maxNotificationId = k;
+            }
+        }
+        int id = maxNotificationId ++;
+        notifications.put(id, notification);
     }
 
     public void clearNotifications() {

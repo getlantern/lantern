@@ -21,6 +21,7 @@ import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SyncEvent;
@@ -31,6 +32,7 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lantern.LanternFeedback;
@@ -432,9 +434,13 @@ public class InteractionServlet extends HttpServlet {
                     break;
                 default:
                     try {
-                        lanternFeedback.submit(json, 
+                        lanternFeedback.submit(json,
                             this.model.getProfile().getEmail());
+                        model.addNotification("Message sent.", MessageType.success);
                     } catch(Exception e) {
+                        model.addNotification(
+                            "Failed to send message.  Try again later.",
+                            MessageType.error);
                         log.error("Could not post to contact form: {}", e);
                     }
                     this.internalState.setModalCompleted(Modal.finished);
@@ -466,8 +472,8 @@ public class InteractionServlet extends HttpServlet {
         Map<String, Object> map;
         try {
             map = om.readValue(json, Map.class);
-            final Integer notification = (Integer) map.get("notification");
-            model.closeNotification(notification);
+            final String notification = (String) map.get("notification");
+            model.closeNotification(Integer.parseInt(notification));
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         } catch (JsonParseException e) {
             e.printStackTrace();
@@ -607,6 +613,18 @@ public class InteractionServlet extends HttpServlet {
                     Events.syncModal(model, Modal.giveModeForbidden);
                 }
             }
+        }
+    }
+
+    @Subscribe
+    public void onInvitesChanged(final InvitesChangedEvent e) {
+        int newInvites = e.getNewInvites();
+        if (e.getOldInvites() == 0) {
+            String invitation = newInvites == 1 ? "invitation" : "invitations";
+            String text = "You now have " + newInvites + " " + invitation;
+            model.addNotification(text, MessageType.info);
+        } else if (newInvites == 0) {
+            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.info);
         }
     }
 }

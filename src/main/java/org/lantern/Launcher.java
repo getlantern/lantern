@@ -285,12 +285,9 @@ public class Launcher {
             }
             // If setup is complete and we're not running on startup, open
             // the dashboard.
-            else if (model.isSetupComplete()) {
-                if (set.isUiEnabled()) {
-                    browserService.openBrowserWhenPortReady();
-                }
+            else {
+                launchWithOrWithoutUi();
             }
-            launchWithOrWithoutUi();
         }
 
 
