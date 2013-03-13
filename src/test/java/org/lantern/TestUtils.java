@@ -158,6 +158,7 @@ public class TestUtils {
         
         final Settings set = model.getSettings();
         LOG.debug("setting oauth token values...");
+        LOG.debug("    -- TRAVIS_SECURE_ENV_VARS: {}", System.getenv("TRAVIS_SECURE_ENV_VARS"));
         set.setAccessToken(getAccessToken());
         LOG.debug("set access token: {}", getAccessToken().substring(0, 4));
         set.setRefreshToken(getRefreshToken());
