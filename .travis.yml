@@ -5,3 +5,8 @@ jdk:
 install: ./install.bash
 notifications:
   irc: irc.freenode.net#lantern
+env:
+  global:
+  - secure: ! 'peGumAS3zV77Txc6vYF2BDm2riHaoGhxSf+HhJ+XbmproKEug1Y+fj2Np9V66VJ970MW9EkWoHIFykGtIsQ0EwHrqIO/WBOwgrVzEqFWde1nuPx62f2cf6L1Lvak1eVefDAaWwLVj/DtCN9swQJ5AOJ3a+DqbM+0FY4ehWLQGo4='
+  - secure: ! 'bCoLr83TW1+pxAnVTWPujhPfHFxl9OHh8cJZ1wAeUEirmhxnXFij6ZVojdAI5i6OvTeOaI3HjYeH3mXxT/wWmSFdn484zZLViNliXejGBczBGe2t3qkMFAEdhvgPXOlhQaxmBgt+2EFHpz9JwILEEA2YOhVf8a2Zv8PV+b8gwg4='
+  - secure: ! 'TRnkXfRadkMhCyXnbraYQV1dwl/wg0nltEMAbJsQksY79x1JMIw/wiETVY0tO4HPEx/+HySLX544Fr/rDbURZcyiL//8yI0ky9MZ4B8/cNfFp2mvxHwj0hn8juT/jKG3jPkRD+njTCcWmJ8XUZvO9csTbuypZ/S1ssunbllccRE='
