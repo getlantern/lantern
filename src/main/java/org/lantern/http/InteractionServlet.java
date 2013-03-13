@@ -624,7 +624,7 @@ public class InteractionServlet extends HttpServlet {
             String text = "You now have " + newInvites + " " + invitation;
             model.addNotification(text, MessageType.info);
         } else if (newInvites == 0) {
-            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.info);
+            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.important);
         }
     }
 }
