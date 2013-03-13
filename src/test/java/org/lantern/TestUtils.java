@@ -157,6 +157,7 @@ public class TestUtils {
         globalTraffic = instance(GlobalLanternServerTrafficShapingHandler.class);
         
         final Settings set = model.getSettings();
+        LOG.debug("setting oauth token values...");
         set.setAccessToken(getAccessToken());
         LOG.debug("set access token: {}", getAccessToken().substring(0, 4));
         set.setRefreshToken(getRefreshToken());
@@ -226,21 +227,15 @@ public class TestUtils {
     }
 
     public static String getRefreshToken() {
-        return privateProps.getProperty("refresh_token",
-            System.getenv("LANTERN_OAUTH_REFTOKEN")
-        );
+        return System.getenv("LANTERN_OAUTH_REFTOKEN");
     }
 
     public static String getAccessToken() {
-        return privateProps.getProperty("access_token",
-            System.getenv("LANTERN_OAUTH_ACCTOKEN")
-        );
+        return System.getenv("LANTERN_OAUTH_ACCTOKEN");
     }
     
     public static String getUserName() {
-        return privateProps.getProperty("username",
-            System.getenv("LANTERN_OAUTH_USERNAME")
-        );
+        return System.getenv("LANTERN_OAUTH_USERNAME");
     }
 
     public static JettyLauncher getJettyLauncher() {
