@@ -7,6 +7,6 @@ notifications:
   irc: irc.freenode.net#lantern
 env:
   global:
-  - secure: 'peGumAS3zV77Txc6vYF2BDm2riHaoGhxSf+HhJ+XbmproKEug1Y+fj2Np9V66VJ970MW9EkWoHIFykGtIsQ0EwHrqIO/WBOwgrVzEqFWde1nuPx62f2cf6L1Lvak1eVefDAaWwLVj/DtCN9swQJ5AOJ3a+DqbM+0FY4ehWLQGo4='
-  - secure: 'bCoLr83TW1+pxAnVTWPujhPfHFxl9OHh8cJZ1wAeUEirmhxnXFij6ZVojdAI5i6OvTeOaI3HjYeH3mXxT/wWmSFdn484zZLViNliXejGBczBGe2t3qkMFAEdhvgPXOlhQaxmBgt+2EFHpz9JwILEEA2YOhVf8a2Zv8PV+b8gwg4='
-  - secure: 'TRnkXfRadkMhCyXnbraYQV1dwl/wg0nltEMAbJsQksY79x1JMIw/wiETVY0tO4HPEx/+HySLX544Fr/rDbURZcyiL//8yI0ky9MZ4B8/cNfFp2mvxHwj0hn8juT/jKG3jPkRD+njTCcWmJ8XUZvO9csTbuypZ/S1ssunbllccRE='
+  - secure: 'XBz3u8Ro1p7+fk5i3ljYJlGD8n2LG2K+wzdSCekoe8SfczAMjB4uf+LvpdJlces7KGRolHctrQIURzXcA2gIwfMY8D5NfdAQNcOqViPK78h2YYKW2HWDWJhKITtDNmPr79HsLKJGMJKb+mJrd4C206ujgTsG94nz+ekbRiRbYm8='
+  - secure: 'VJEBfxvFF5I+VScQ8+C0aCfDKPrDivLi9xpGDRjVVdwQj6YFnaKdRzncHNv9Hgg97Rotl706HIy3VTzyssoa5j1z706fvr78UQaG+zV3sY8o24KmsfFHUGrW7ZBIlw7cOBz5YjQ5KvrgU8ru7wCyTgSqDxZBMajVkxyLs3eX6fM='
+  - secure: 'DDIzm2sirA3vVdpnie1LEgDdbMom7mgK+dTM0/arFjECIMAR5rJIg75HU000NZpR6epYN+NGBAsv3p49Nu8+vKzbpA/bPTGXCIei9lhL+7zbledZfDNnq4GvNJXMTIlIRZcKm7IfaQIWWq2i/6bWJym4lQgYsWDmZRNJ2LWcND0='
