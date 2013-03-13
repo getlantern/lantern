@@ -15,6 +15,8 @@ import org.lantern.LanternClientConstants;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
+import org.lantern.event.Events;
+import org.lantern.event.InvitesChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +122,11 @@ public class Model {
     }
 
     public void setNinvites(int ninvites) {
+        int oldInvites = this.ninvites;
         this.ninvites = ninvites;
+        if (oldInvites != ninvites) {
+            Events.eventBus().post(new InvitesChangedEvent(oldInvites, ninvites));
+        }
     }
 
     @JsonView({Run.class, Persistent.class})
