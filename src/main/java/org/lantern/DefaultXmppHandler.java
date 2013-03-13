@@ -985,8 +985,9 @@ public class DefaultXmppHandler implements XmppHandler {
             final LanternKscopeAdvertisement ad =
                 mapper.readValue(payload, LanternKscopeAdvertisement.class);
 
-            sendAndRequestCert(new URI(ad.getJid()));
-            this.kscopeAdHandler.handleAd(from, ad);
+            if (this.kscopeAdHandler.handleAd(from, ad)) {
+                sendAndRequestCert(new URI(ad.getJid()));
+            }
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
         } catch (final JsonMappingException e) {

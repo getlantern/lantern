@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,7 +61,8 @@ public class DefaultProxyTracker implements ProxyTracker {
      * JIDs - i.e. they don't have their ports mapped such that we can 
      * access them directly.
      */
-    private final Set<ProxyHolder> peerProxySet = new HashSet<ProxyHolder>();
+    private final Map<URI, ProxyHolder> peerProxyMap = 
+            new ConcurrentHashMap<URI, ProxyHolder>();
     private final Queue<ProxyHolder> peerProxyQueue =
             new ConcurrentLinkedQueue<ProxyHolder>();
 
@@ -149,7 +151,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void clear() {
         this.proxies.clear();
         this.proxySet.clear();
-        this.peerProxySet.clear();
+        this.peerProxyMap.clear();
         this.laeProxySet.clear();
         this.laeProxies.clear();
 
@@ -159,7 +161,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void clearPeerProxySet() {
-        this.peerProxySet.clear();
+        this.peerProxyMap.clear();
     }
 
 
@@ -226,6 +228,12 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
+
+    @Override
+    public boolean hasJidProxy(final URI uri) {
+        return this.peerProxyMap.containsKey(uri);
+    }
+    
     @Override
     public void addJidProxy(final URI peerUri) {
         log.debug("Considering peer proxy");
@@ -261,6 +269,14 @@ public class DefaultProxyTracker implements ProxyTracker {
                     
                     peerFactory.addOutgoingPeer(jid, remote, Type.desktop, 
                             ph.getTrafficShapingHandler());
+                    
+                    synchronized (peerProxyMap) {
+                        if (!peerProxyMap.containsKey(peerUri)) {
+                            peerProxyMap.put(peerUri, ph);
+                            peerProxyQueue.add(ph);
+                            log.debug("Queue is now: {}", peerProxyQueue);
+                        }
+                    }
                     if (!gotConnected) {
                         Events.eventBus().post(
                             new ProxyConnectionEvent(
@@ -361,30 +377,15 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void removePeer(final URI uri) {
-        // We always remove from both since their trusted status could have
-        // changed
-        removePeerUri(uri);
-        removeAnonymousPeerUri(uri);
-        //if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
-            //peerProxyManager.removePeer(uri);
-        //} else {
-        //    LanternHub.anonymousPeerProxyManager().removePeer(uri);
-        //}
-    }
-
-    private void removePeerUri(final URI peerUri) {
-        log.debug("Removing peer with URI: {}", peerUri);
-        //remove(peerUri, this.establishedPeerProxies);
-    }
-
-    private void removeAnonymousPeerUri(final URI peerUri) {
-        log.debug("Removing anonymous peer with URI: {}", peerUri);
-        //remove(peerUri, this.establishedAnonymousProxies);
-    }
-
-    private void remove(final URI peerUri, final Queue<URI> queue) {
-        log.debug("Removing peer with URI: {}", peerUri);
-        queue.remove(peerUri);
+        log.debug("Removing peer on error or connection failure: {}", uri);
+        synchronized (this.peerProxyMap) {
+            final ProxyHolder ph = this.peerProxyMap.remove(uri);
+            if (ph == null) {
+                log.warn("Peer not in map?", uri);
+            } else {
+                this.peerProxyQueue.remove(ph);
+            }
+        }
     }
 
     @Override
