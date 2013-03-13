@@ -87,6 +87,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             this.trustStore.addBase64Cert(jid, base64Cert);
         } catch (final IOException e) {
             log.error("Could not add cert?", e);
+            return;
         }
         
         final LanternKscopeAdvertisement ad = awaitingCerts.get(jid);
