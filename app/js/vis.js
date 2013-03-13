@@ -244,9 +244,15 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     _.each(connectedPeers, function(p) { if (maxBpsUpDn < p.bpsUpDn) maxBpsUpDn = p.bpsUpDn; });
     connectionOpacityScale.domain([0, maxBpsUpDn]);
     connectionPaths = $$peers.selectAll('path.connection').data(connectedPeers, getPeerid);
-    connectionPaths.enter().append('path').classed('connection', true);
-    connectionPaths.attr('d', pathConnection)
-      .style('stroke-opacity', function(d) { return connectionOpacityScale(d.bpsUpDn); });
+    connectionPaths.enter().append('path').classed('connection', true)
+      .attr('d', pathConnection)
+      .attr('stroke-dashoffset', function(d) { return this.getTotalLength(); })
+      .attr('stroke-dasharray', function(d) {
+        var totalLength = this.getTotalLength();
+        return totalLength + ' ' + totalLength;
+      })
+      .transition().duration(500).ease('linear').attr('stroke-dashoffset', 0);
+    connectionPaths.style('stroke-opacity', function(d) { return connectionOpacityScale(d.bpsUpDn); });
     connectionPaths.exit().remove();
   }, true);
 
