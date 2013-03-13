@@ -293,10 +293,13 @@
           dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
       </form>
     </div>
+    <!-- XXX https://github.com/getlantern/lantern/issues/465#issuecomment-14825659
+         uncomment this out once it's actually true:
     <div class="tip" ui-toggle="!model.settings.proxyAllSites">
       <i class="icon-info-sign"></i>
       {{ 'PROXIED_SITES_TIP' | i18n }}
     </div>
+    -->
     <div class="error" ui-toggle="errorLabelKey">
       {{ errorLabelKey | i18n }}
       <pre class="errorCause" ng-show="!!errorCause">{{ errorCause }}</pre>
