@@ -6,8 +6,6 @@ import org.lantern.StatsTracker;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
-import com.google.inject.Inject;
-
 /**
  * Class representing all uploads and downloads data.
  */
@@ -16,10 +14,9 @@ public class Transfers {
     private StatsTracker statsTracker;
 
     public Transfers() {
-        //for
+        //for JSON loading
     }
 
-    @Inject
     public Transfers(StatsTracker tracker) {
         this.setStatsTracker(tracker);
     }
