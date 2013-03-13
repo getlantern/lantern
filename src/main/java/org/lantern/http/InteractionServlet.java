@@ -615,7 +615,7 @@ public class InteractionServlet extends HttpServlet {
     public void onInvitesChanged(final InvitesChangedEvent e) {
         if (e.getOldInvites() == 0) {
             String invitationNumbered = e.getNewInvites() == 1 ? "invitation" : "invitations";
-            String text = "You now have " + e.getNewInvites() + invitationNumbered;
+            String text = "You now have " + e.getNewInvites() + " " + invitationNumbered;
             model.addNotification(text, "message");
         } else if (e.getNewInvites() == 0) {
             model.addNotification("You have no more invitations. You will be notified when you receive more.", "message");
