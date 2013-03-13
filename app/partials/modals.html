@@ -33,7 +33,6 @@
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET' | i18n }}
     </button>
-    <button type="button" ng-click="interaction(INTERACTION.restart, {notify: notify, report: report})" class="btn" tabindex="{{ show && 4 || ''}}">{{ 'RESTART' | i18n }}</button>
     <button type="button" ng-click="refresh({notify: notify, report: bugReport})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
@@ -57,7 +56,10 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report})" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
+      <i class="icon-warning-sign warning-colored"></i>
+      {{ 'RESET' | i18n }}
+    </button>
     <button type="button" ng-click="interaction(INTERACTION.retry, {notify: notify, report: report})" class="btn btn-primary">{{ 'RETRY' | i18n }}</button>
   </div>
 </div>
