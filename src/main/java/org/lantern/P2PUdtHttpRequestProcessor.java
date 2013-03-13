@@ -49,7 +49,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final ProxyTracker proxyTracker;
 
-    private FiveTuple proxyAddress;
+    private FiveTuple fiveTuple;
 
     private final ChannelGroup channelGroup;
 
@@ -75,14 +75,14 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
     }
     
     private boolean hasProxy() {
-        if (this.proxyAddress != null) {
+        if (this.fiveTuple != null) {
             return true;
         }
         final ProxyHolder ph = this.proxyTracker.getJidProxy();
         
         if (ph != null) {
             this.proxyHolder = ph;
-            this.proxyAddress = ph.getFiveTuple();
+            this.fiveTuple = ph.getFiveTuple();
             //this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
         }
@@ -170,11 +170,11 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             // We need to bind to the local address here, as that's what is
             // NAT/firewall traversed (anything else might not work).
             try {
-                boot.bind(proxyAddress.getLocal()).sync();
+                boot.bind(fiveTuple.getLocal()).sync();
             } catch (final InterruptedException e) {
                 log.error("Could not sync on bind? Reuse address no working?", e);
             }
-            return boot.connect(proxyAddress.getRemote());
+            return boot.connect(fiveTuple.getRemote());
         } finally {
             // Shut down the event loop to terminate all threads.
             boot.shutdown();
@@ -208,11 +208,11 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             // We need to bind to the local address here, as that's what is
             // NAT/firewall traversed (anything else might not work).
             try {
-                boot.bind(proxyAddress.getLocal()).sync();
+                boot.bind(fiveTuple.getLocal()).sync();
             } catch (final InterruptedException e) {
                 log.error("Could not sync on bind? Reuse address no working?", e);
             }
-            return boot.connect(proxyAddress.getRemote());
+            return boot.connect(fiveTuple.getRemote());
         } finally {
             // Shut down the event loop to terminate all threads.
             boot.shutdown();

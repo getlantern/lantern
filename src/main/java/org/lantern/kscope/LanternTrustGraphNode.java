@@ -61,7 +61,7 @@ public class LanternTrustGraphNode extends TrustGraphNode {
         msg.setTo(id);
         log.debug("Sending kscope ad to {}.", id);
         log.debug("-- Payload: {}", payload);
-        handler.getP2PClient().getXmppConnection().sendPacket(msg);
+        handler.sendPacket(msg);
     }
 
     @Override

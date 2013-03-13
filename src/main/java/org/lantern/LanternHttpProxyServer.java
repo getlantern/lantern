@@ -49,7 +49,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final Timer timer;
 
-    private final PeerProxyManager peerProxyManager;
+    //private final PeerProxyManager peerProxyManager;
 
     private final Stats stats;
 
@@ -76,12 +76,12 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final ServerSocketChannelFactory serverChannelFactory, 
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer, final ChannelGroup channelGroup,
-        final PeerProxyManager peerProxyManager,
+        //final PeerProxyManager peerProxyManager,
         final Stats stats,
         final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
         final LanternTrustStore trustStore) {
-        this.peerProxyManager = peerProxyManager;
+        //this.peerProxyManager = peerProxyManager;
         //this.setCookieObserver = setCookieObserver;
         //this.cookieFilterFactory = cookieFilterFactory;
         this.serverChannelFactory = serverChannelFactory;
@@ -162,7 +162,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 
                 final SimpleChannelUpstreamHandler dispatcher = 
                     new DispatchingProxyRelayHandler(clientChannelFactory, 
-                        channelGroup, peerProxyManager, stats, 
+                        channelGroup, stats, 
                         model, proxyTracker, httpsEverywhere, 
                         trustStore);
                 

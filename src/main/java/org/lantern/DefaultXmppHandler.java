@@ -146,7 +146,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private MappedServerSocket mappedServer;
 
-    private final PeerProxyManager trustedPeerProxyManager;
+    //private final PeerProxyManager trustedPeerProxyManager;
 
     private final Timer timer;
 
@@ -172,7 +172,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final Censored censored;
 
-    private final LanternTrustStore trustStore;
+    //private final LanternTrustStore trustStore;
 
     private final KscopeAdHandler kscopeAdHandler;
 
@@ -186,7 +186,7 @@ public class DefaultXmppHandler implements XmppHandler {
      */
     @Inject
     public DefaultXmppHandler(final Model model,
-        final PeerProxyManager trustedPeerProxyManager,
+        //final PeerProxyManager trustedPeerProxyManager,
         final Timer updateTimer, final Stats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
@@ -199,7 +199,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final KscopeAdHandler kscopeAdHandler,
         final SslHttpProxyServer peerProxyServer) {
         this.model = model;
-        this.trustedPeerProxyManager = trustedPeerProxyManager;
+        //this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.timer = updateTimer;
         this.stats = stats;
         this.keyStoreManager = keyStoreManager;
@@ -210,7 +210,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.roster = roster;
         this.proxyTracker = proxyTracker;
         this.censored = censored;
-        this.trustStore = trustStore;
+        //this.trustStore = trustStore;
         this.kscopeAdHandler = kscopeAdHandler;
         this.peerProxyServer = peerProxyServer;
         this.upnpService = new Upnp(stats);
@@ -272,8 +272,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.error("Null client for instance: "+hashCode());
                 return;
             }
-            final XMPPConnection conn = cl.getXmppConnection();
-            this.roster.onRoster(conn);
+            this.roster.onRoster(this);
             break;
         case notConnected:
             this.roster.reset();
@@ -1296,5 +1295,10 @@ public class DefaultXmppHandler implements XmppHandler {
     @Subscribe
     public void onReset(final ResetEvent event) {
         disconnect();
+    }
+
+    @Override
+    public void sendPacket(final Packet packet) {
+        this.client.get().getXmppConnection().sendPacket(packet);
     }
 }

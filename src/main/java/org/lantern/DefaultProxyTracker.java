@@ -69,7 +69,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final Queue<ProxyHolder> laeProxies =
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    private final PeerProxyManager peerProxyManager;
+    //private final PeerProxyManager peerProxyManager;
 
     private final Model model;
 
@@ -94,11 +94,11 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Inject
     public DefaultProxyTracker(final Model model,
-        final PeerProxyManager trustedPeerProxyManager,
+        //final PeerProxyManager trustedPeerProxyManager,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
         final XmppHandler xmppHandler) {
         this.model = model;
-        this.peerProxyManager = trustedPeerProxyManager;
+        //this.peerProxyManager = trustedPeerProxyManager;
         this.peerFactory = peerFactory;
         this.timer = timer;
         this.xmppHandler = xmppHandler;
@@ -259,8 +259,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     final ProxyHolder ph =
                         new ProxyHolder(jid, tuple, trafficTracker());
                     
-                    peerFactory.addPeer(jid, remote.getAddress(), 
-                            remote.getPort(), Type.desktop, false, 
+                    peerFactory.addOutgoingPeer(jid, remote, Type.desktop, 
                             ph.getTrafficShapingHandler());
                     if (!gotConnected) {
                         Events.eventBus().post(
@@ -293,8 +292,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 try {
                     sock.connect(remote, 60*1000);
                     
-                    peerFactory.addPeer("", remote.getAddress(), 
-                        remote.getPort(), type, false, 
+                    peerFactory.addOutgoingPeer("", remote, type, 
                         ph.getTrafficShapingHandler());
                     synchronized (set) {
                         if (!set.contains(ph)) {
@@ -368,7 +366,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         removePeerUri(uri);
         removeAnonymousPeerUri(uri);
         //if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
-            peerProxyManager.removePeer(uri);
+            //peerProxyManager.removePeer(uri);
         //} else {
         //    LanternHub.anonymousPeerProxyManager().removePeer(uri);
         //}
