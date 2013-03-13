@@ -987,6 +987,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
             if (this.kscopeAdHandler.handleAd(from, ad)) {
                 sendAndRequestCert(new URI(ad.getJid()));
+            } else {
+                LOG.debug("Not requesting cert -- duplicate kscope ad?");
             }
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
