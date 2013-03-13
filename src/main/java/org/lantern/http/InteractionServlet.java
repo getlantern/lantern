@@ -32,6 +32,7 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lantern.LanternFeedback;
@@ -433,9 +434,13 @@ public class InteractionServlet extends HttpServlet {
                     break;
                 default:
                     try {
-                        lanternFeedback.submit(json, 
+                        lanternFeedback.submit(json,
                             this.model.getProfile().getEmail());
+                        model.addNotification("Message sent.", MessageType.success);
                     } catch(Exception e) {
+                        model.addNotification(
+                            "Failed to send message.  Try again later.",
+                            MessageType.error);
                         log.error("Could not post to contact form: {}", e);
                     }
                     this.internalState.setModalCompleted(Modal.finished);
@@ -613,12 +618,13 @@ public class InteractionServlet extends HttpServlet {
 
     @Subscribe
     public void onInvitesChanged(final InvitesChangedEvent e) {
+        int newInvites = e.getNewInvites();
         if (e.getOldInvites() == 0) {
-            String invitationNumbered = e.getNewInvites() == 1 ? "invitation" : "invitations";
-            String text = "You now have " + e.getNewInvites() + " " + invitationNumbered;
-            model.addNotification(text, "message");
-        } else if (e.getNewInvites() == 0) {
-            model.addNotification("You have no more invitations. You will be notified when you receive more.", "message");
+            String invitation = newInvites == 1 ? "invitation" : "invitations";
+            String text = "You now have " + newInvites + " " + invitation;
+            model.addNotification(text, MessageType.info);
+        } else if (newInvites == 0) {
+            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.info);
         }
     }
 }
