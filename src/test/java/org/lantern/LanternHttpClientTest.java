@@ -3,6 +3,11 @@ package org.lantern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +30,8 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
 import org.lantern.state.ModelUtils;
 import org.lantern.util.LanternHttpClient;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class LanternHttpClientTest {
 
@@ -72,8 +79,17 @@ public class LanternHttpClientTest {
 
     private void testGoogleDocs(final LanternHttpClient client) 
         throws Exception {
-        final LanternFeedback feedback = new LanternFeedback(client);
-        final int responseCode = 
+        final LanternFeedback feedback = spy(new LanternFeedback(client));
+        when(feedback.getHttpPost(anyString())).thenAnswer(new Answer<HttpPost>() {
+            @Override
+            public HttpPost answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                HttpPost mockPost = spy(new HttpPost((String)args[0]));
+                doNothing().when(mockPost).setEntity((HttpEntity)any());
+                return mockPost;
+            }
+        });
+        final int responseCode =
             feedback.submit("Testing", "lanternftw@gmail.com");
         assertEquals(200, responseCode);
     }
