@@ -224,15 +224,21 @@ public class TestUtils {
     }
 
     public static String getRefreshToken() {
-        return privateProps.getProperty("refresh_token");
+        return privateProps.getProperty("refresh_token",
+            System.getenv("LANTERN_GTALK_REFTOKEN")
+        );
     }
 
     public static String getAccessToken() {
-        return privateProps.getProperty("access_token");
+        return privateProps.getProperty("access_token",
+            System.getenv("LANTERN_GTALK_ACCTOKEN")
+        );
     }
     
     public static String getUserName() {
-        return privateProps.getProperty("username");
+        return privateProps.getProperty("username",
+            System.getenv("LANTERN_GTALK_USERNAME")
+        );
     }
 
     public static JettyLauncher getJettyLauncher() {

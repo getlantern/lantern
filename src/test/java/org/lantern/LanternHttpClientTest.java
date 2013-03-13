@@ -72,7 +72,7 @@ public class LanternHttpClientTest {
 
     private void testGoogleDocs(final LanternHttpClient client) 
         throws Exception {
-        final LanternFeedback feedback = new LanternFeedback(client, true);
+        final LanternFeedback feedback = new LanternFeedback(client);
         final int responseCode = 
             feedback.submit("Testing", "lanternftw@gmail.com");
         assertEquals(200, responseCode);
