@@ -3,6 +3,7 @@
 if __name__ == "__main__":
 
     from Crypto.PublicKey import RSA
+    from Crypto.Cipher import PKCS1_OAEP 
     import sys
     import base64
 
@@ -10,4 +11,7 @@ if __name__ == "__main__":
 
     imp_key = RSA.importKey(pub_key)
 
-    print base64.b64encode(imp_key.encrypt(sys.stdin.read(), 0)[0])
+    cipher = PKCS1_OAEP.new(imp_key)
+    ciphertext = cipher.encrypt(sys.stdin.read())
+
+    print base64.b64encode(ciphertext)
