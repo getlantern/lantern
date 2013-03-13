@@ -9,6 +9,10 @@ import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class listens for incoming NAT-traversed five tuples (endpoint pairs
+ * plus protocol) 
+ */
 public class UdtRelayServerFiveTupleListener 
     implements OfferAnswerListener<FiveTuple>{
     
@@ -16,16 +20,18 @@ public class UdtRelayServerFiveTupleListener
     
     @Override
     public void onOfferAnswerFailed(final OfferAnswer offerAnswer) {
-        
+        // We don't really care about this on the server side.
+        log.debug("Offer/answer failed");
     }
 
     @Override
-    public void onTcpSocket(final FiveTuple sock) {
-        
+    public void onTcpSocket(final FiveTuple fiveTuple) {
+        log.warn("Received TCP tuple here?");
     }
 
     @Override
     public void onUdpSocket(final FiveTuple sock) {
+        log.info("Received inbound P2P UDT connection from: {}", sock);
         final InetSocketAddress local = sock.getLocal();
         final UdtRelayProxy proxy = 
             new UdtRelayProxy(local, 
