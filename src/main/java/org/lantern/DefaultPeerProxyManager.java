@@ -1,11 +1,9 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,23 +15,18 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.event.Events;
-import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
-import org.lantern.state.Settings.Mode;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -342,6 +335,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
      */
     @Subscribe
     public void onP2PConnectionEvent(final P2PConnectionEvent event) {
+        /*
         log.debug("Got p2p connection event: {}", event);
         final String fullJid = event.getJid();
         final URI peerUri;
@@ -361,6 +355,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         new PeerSocketWrapper(peerUri, System.currentTimeMillis(),
             sock, this.channelGroup, this.stats,
             this.socketsUtil, event.isIncoming());
+        */
 
         /*
         final Peer peer;

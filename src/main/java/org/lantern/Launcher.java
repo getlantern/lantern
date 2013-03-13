@@ -94,7 +94,7 @@ public class Launcher {
     private SyncService syncService;
 
     public Launcher(final String... args) {
-        //System.setProperty("javax.net.debug", "ssl");
+        System.setProperty("javax.net.debug", "ssl");
         this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
         //Connection.DEBUG_ENABLED = true;

@@ -58,7 +58,6 @@ public class Roster implements RosterListener {
       //  new TreeMap<String, Profile>();
 
     private final RandomRoutingTable kscopeRoutingTable;
-    private final XmppHandler xmppHandler;
     private final Model model;
 
     private org.jivesoftware.smack.Roster smackRoster;
@@ -68,24 +67,26 @@ public class Roster implements RosterListener {
      */
     private Set<String> invited = new HashSet<String>();
 
+    private XmppHandler xmppHandler;
+
     /**
      * Creates a new roster.
      */
     @Inject
     public Roster(final RandomRoutingTable routingTable, 
-            final XmppHandler xmppHandler,
             final Model model) {
         this.kscopeRoutingTable = routingTable;
-        this.xmppHandler = xmppHandler;
         this.model = model;
         model.setRoster(this);
         Events.register(this);
     }
 
-    public void onRoster(final XMPPConnection conn) {
+    public void onRoster(final XmppHandler xmppHandler) {
+        this.xmppHandler = xmppHandler;
         log.info("Got logged in event");
         // Threaded to avoid this holding up setting the logged-in state in
         // the UI.
+        final XMPPConnection conn = xmppHandler.getP2PClient().getXmppConnection();
         final org.jivesoftware.smack.Roster ros = conn.getRoster();
         this.smackRoster = ros;
         final Runnable r = new Runnable() {
@@ -169,6 +170,10 @@ public class Roster implements RosterListener {
             log.info("Not sending kscope on unavailable: {}", presence.toXML());
             return;
         }
+        if (xmppHandler == null) {
+            log.warn("Null xmppHandler?");
+            return;
+        }
         final InetAddress address = 
             new PublicIpAddress().getPublicIpAddress();
 
@@ -177,15 +182,13 @@ public class Roster implements RosterListener {
         final MappedServerSocket ms = xmppHandler.getMappedServer();
         if (ms.isPortMapped()) {
             ad = new LanternKscopeAdvertisement(user, address, 
-                xmppHandler.getMappedServer().getMappedPort(),
-                xmppHandler.getMappedServer().getHostAddress()
+                ms.getMappedPort(), ms.getHostAddress()
             );
         } else {
             ad = new LanternKscopeAdvertisement(user, ms.getHostAddress());
         }
 
-        final TrustGraphNode tgn = 
-            new LanternTrustGraphNode(xmppHandler);
+        final TrustGraphNode tgn = new LanternTrustGraphNode(xmppHandler);
         // set ttl to max for now
         ad.setTtl(tgn.getMaxRouteLength());
         final String adPayload = JsonUtils.jsonify(ad);

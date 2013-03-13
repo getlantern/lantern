@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.security.auth.login.CredentialException;
 
+import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -91,4 +92,6 @@ public interface XmppHandler extends LanternService {
     String getJid();
 
     MappedServerSocket getMappedServer();
+
+    void sendPacket(Packet packet);
 }

@@ -51,7 +51,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final ChannelGroup channelGroup;
 
-    private final PeerProxyManager trustedPeerProxyManager;
+    //private final PeerProxyManager trustedPeerProxyManager;
 
     //private final PeerProxyManager anonymousPeerProxyManager;
 
@@ -76,13 +76,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public DispatchingProxyRelayHandler(
         final ClientSocketChannelFactory clientChannelFactory,
         final ChannelGroup channelGroup,
-        final PeerProxyManager trustedPeerProxyManager,
+        //final PeerProxyManager trustedPeerProxyManager,
         final Stats stats, final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
         final LanternTrustStore trustStore) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
-        this.trustedPeerProxyManager = trustedPeerProxyManager;
+        //this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.stats = stats;
         this.model = model;
         this.proxyTracker = proxyTracker;
@@ -198,6 +198,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (request.getMethod() == HttpMethod.CONNECT) {
             log.debug("Processing connect...");
             try {
+                /*
                 if (this.model.getSettings().isUseTrustedPeers() && 
                     trustedPeerProxyManager.processRequest(
                 //if (LanternHub.settings().isUseTrustedPeers() &&
@@ -205,7 +206,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
-                } else if (useStandardProxies()){
+                } else 
+                */
+                if (useStandardProxies()){
                     // We need to forward the CONNECT request from this proxy
                     // to an external proxy that can handle it. We effectively
                     // want to relay all traffic in this case without doing

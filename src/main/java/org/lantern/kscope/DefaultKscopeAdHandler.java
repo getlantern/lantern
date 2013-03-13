@@ -77,6 +77,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
 
         final TrustGraphNode tgn = 
             new LanternTrustGraphNode(xmppHandler);
+        
         tgn.sendAdvertisement(message, nextNid, relayAd.getTtl()); 
     }
     
@@ -90,6 +91,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         
         final LanternKscopeAdvertisement ad = awaitingCerts.get(jid);
         if (ad != null) {
+            //this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
+            
             if (ad.hasMappedEndpoint()) {
                 this.proxyTracker.addProxy(
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
@@ -105,7 +108,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         } else {
             // This could happen if we negotiated certs in some way other than
             // in response to a kscope ad, such as for peers from the 
-            // controller.
+            // controller or just peers from the roster who we haven't 
+            // exchanged ads with yet.
             log.info("No ad for cert?");
             this.proxyTracker.addJidProxy(LanternUtils.newURI(jid));
         }
