@@ -158,9 +158,9 @@ public class TestUtils {
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
-        LOG.debug("set access token: {}", getAccessToken.substring(0, 4));
+        LOG.debug("set access token: {}", getAccessToken().substring(0, 4));
         set.setRefreshToken(getRefreshToken());
-        LOG.debug("set refresh token: {}", getRefreshToken.substring(0, 4));
+        LOG.debug("set refresh token: {}", getRefreshToken().substring(0, 4));
         set.setUseGoogleOAuth2(true);
         start(start);
     }
