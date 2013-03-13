@@ -1,6 +1,7 @@
 package org.lantern.udtrelay;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
 
 import org.lantern.LanternUtils;
 import org.lastbamboo.common.offer.answer.OfferAnswer;
@@ -25,8 +26,8 @@ public class UdtRelayServerFiveTupleListener
     }
 
     @Override
-    public void onTcpSocket(final FiveTuple fiveTuple) {
-        log.warn("Received TCP tuple here?");
+    public void onTcpSocket(final Socket fiveTuple) {
+        log.warn("Received TCP socket here?");
     }
 
     @Override
