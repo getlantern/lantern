@@ -25,6 +25,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
+import org.lantern.state.Settings.Mode;
 import org.lantern.util.LanternTrafficCounterHandler;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
@@ -116,6 +117,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     
 
     private void prepopulateProxies() {
+        if (this.model.getSettings().getMode() == Mode.give) {
+            log.debug("Not loading proxies in give mode");
+            return;
+        }
         // Add all the stored proxies.
         final Collection<String> saved = this.model.getSettings().getProxies();
         log.debug("Proxy set is: {}", saved);
@@ -198,6 +203,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     private void addProxy(final String host, final int port, final Type type) {
         final InetSocketAddress isa = LanternUtils.isa(host, port);
+        if (this.model.getSettings().getMode() == Mode.give) {
+            log.debug("Not adding proxy in give mode");
+            return;
+        }
+        
         addProxyWithChecks(proxySet, proxies, 
             new ProxyHolder(host, isa, trafficTracker()),
                 host+":"+port, type);
@@ -219,6 +229,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void addJidProxy(final URI peerUri) {
         log.debug("Considering peer proxy");
+        if (this.model.getSettings().getMode() == Mode.give) {
+            log.debug("Not adding JID proxy in give mode");
+            return;
+        }
         final String jid = peerUri.toASCIIString();
         proxyBookkeeping(jid);
         
