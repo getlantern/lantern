@@ -272,11 +272,6 @@ public class InteractionServlet extends HttpServlet {
                 break;
             }
             switch (inter) {
-            case RESET:
-                this.modelService.resetProxiedSites();
-                this.internalState.setModalCompleted(Modal.proxiedSites);
-                this.internalState.advanceModal(null);
-                break;
             case CONTINUE:
                 applyJson(json);
                 this.internalState.setModalCompleted(Modal.proxiedSites);
@@ -380,6 +375,10 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case RESET:
                 Events.syncModal(model, Modal.welcome);
+                break;
+            default:
+                log.error("Did not handle interaction for modal {} with "
+                        + "params: {}", modal, params);
                 break;
             }
             break;
