@@ -103,6 +103,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * @return The processor.
      */
     private HttpRequestProcessor newRequestProcessor() {
+        return newP2PRequestProcessor();
+        
+        /*
         return new TcpHttpRequestProcessor(this.proxyTracker,
             new HttpRequestTransformer() {
                 @Override
@@ -111,6 +114,19 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     // Does nothing.
                 }
             }, false,
+            this.clientChannelFactory, this.channelGroup, this.stats, 
+            this.trustStore);
+            */
+    }
+    
+    /**
+     * Creates new default request processors to avoid worrying about holding
+     * state across calls.
+     *
+     * @return The processor.
+     */
+    private HttpRequestProcessor newP2PRequestProcessor() {
+        return new P2PUdtHttpRequestProcessor(this.proxyTracker,
             this.clientChannelFactory, this.channelGroup, this.stats, 
             this.trustStore);
     }

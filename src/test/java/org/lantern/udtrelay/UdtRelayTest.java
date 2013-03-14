@@ -15,6 +15,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
+import io.netty.handler.ssl.SslHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,8 +25,13 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,13 +60,19 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
+import org.lantern.DefaultXmppHandler;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
+import org.lantern.Launcher;
+import org.lantern.TestUtils;
 import org.lantern.util.Threads;
+import org.lastbamboo.common.offer.answer.IceConfig;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyCacheManager;
+import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,14 +95,43 @@ public class UdtRelayTest {
         startProxyServer(proxyPort);
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
+        
+        /*
         final UdtRelayProxy relay = 
             new UdtRelayProxy(localRelayAddress, proxyPort);
         startRelay(relay, localRelayAddress.getPort(), udt);
+        */
         
         // Hit the proxy directly first so we can verify we get the exact
         // same thing (except a few specific HTTP headers) from the relay.
         //final String expected = hitProxyDirect(proxyPort);
         
+        IceConfig.setDisableUdpOnLocalNetwork(false);
+        IceConfig.setTcp(false);
+        Launcher.configureCipherSuites();
+        TestUtils.load(true);
+        final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
+        xmpp.connect();
+        XmppP2PClient<FiveTuple> client = xmpp.getP2PClient();
+        int attempts = 0;
+        while (client == null && attempts < 100) {
+            Thread.sleep(100);
+            client = xmpp.getP2PClient();
+            attempts++;
+        }
+        
+        assertTrue("Still no p2p client!!?!?!", client != null);
+        
+        // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
+        final String peer = "lanternftw@gmail.com/-lan-58ADF9F5";
+        if (StringUtils.isBlank(peer)) {
+            return;
+        }
+        final URI peerUri = new URI(peer);
+
+        final FiveTuple ft = LanternUtils.openOutgoingPeer(peerUri, 
+                xmpp.getP2PClient(), 
+            new HashMap<URI, AtomicInteger>());
         
 
         // We do this a few times to make sure there are no issues with 
@@ -105,7 +146,7 @@ public class UdtRelayTest {
             request.addHeader("Proxy-Connection", "Keep-Alive");
             if (udt) {
                 //hitRelayUdtNetty(relayPort, "");
-                hitRelayUdtNetty(createDummyChannel(), request, relayPort);
+                hitRelayUdtNetty(createDummyChannel(), request, ft);
             } else {
                 hitRelayRaw(relayPort);
             }
@@ -329,7 +370,7 @@ public class UdtRelayTest {
     
     private void hitRelayUdtNetty(
         final DummyChannel browserToProxyChannel, final HttpRequest request,
-        final int relayPort) throws Exception {
+        final FiveTuple ft) throws Exception {
         browserToProxyChannel.setReadable(false);
         
         final Bootstrap boot = new Bootstrap();
@@ -340,20 +381,35 @@ public class UdtRelayTest {
         try {
             boot.group(connectGroup)
                 .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
+                .option(ChannelOption.SO_REUSEADDR, true)
                 .handler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
                             throws Exception {
                         final ChannelPipeline p = ch.pipeline();
+                        final SSLEngine engine = TestUtils.getTrustStore().getContext().createSSLEngine();
+                        
+                        //SSLEngine serverEngine = sslc.createSSLEngine();
+                        engine.setUseClientMode(true);
+
+                        p.addLast("ssl", new SslHandler(engine));
                         p.addLast(
                             //new LoggingHandler(LogLevel.INFO),
                             new HttpResponseClientHandler(
                                 browserToProxyChannel, request));
                     }
                 });
+            /*
+            try {
+                boot.bind(ft.getLocal()).sync();
+            } catch (final InterruptedException e) {
+                log.error("Could not sync on bind? Reuse address no working?", e);
+            }
+            */
+            
             // Start the client.
             final ChannelFuture f = 
-                boot.connect(LanternClientConstants.LOCALHOST, relayPort).sync();
+                boot.connect(ft.getRemote()).sync();
             
             
             synchronized(browserToProxyChannel) {
