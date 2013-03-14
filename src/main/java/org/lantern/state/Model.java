@@ -80,6 +80,8 @@ public class Model {
 
     private Transfers transfers;
 
+    private String serverPrefix = "";
+
     @JsonView({Run.class})
     private Transfers getTransfers() {
         return transfers;
@@ -299,4 +301,15 @@ public class Model {
         }
 
     }
+
+    public String getServerPrefix() {
+        return serverPrefix;
+    }
+
+    public void setServerPrefix(String serverPrefix) {
+        assert serverPrefix != null;
+        assert serverPrefix.startsWith("/");
+        this.serverPrefix = serverPrefix;
+    }
+
 }

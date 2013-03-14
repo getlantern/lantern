@@ -79,9 +79,9 @@ public class Launcher {
     private StatsUpdater statsUpdater;
 
     private SslHttpProxyServer sslProxy;
-    
+
     private LocalCipherProvider localCipherProvider;
-    
+
     private MessageService messageService;
     private Injector injector;
     private SystemTray systemTray;
@@ -89,11 +89,11 @@ public class Launcher {
     private ModelUtils modelUtils;
     private Settings set;
     private Censored censored;
-    
+
     private InternalState internalState;
     private LanternHttpClient httpClient;
-    
-    
+
+
     private final String[] commandLineArgs;
     private SyncService syncService;
 
@@ -118,19 +118,19 @@ public class Launcher {
             handleError(t, true);
         }
     }
-    
+
     /**
      * Starts the proxy from the command line.
-     * 
+     *
      * @param args Any command line arguments.
      */
     public static void main(final String... args) {
         main(true, args);
     }
-    
+
     /**
      * Starts the proxy from the command line.
-     * 
+     *
      * @param args Any command line arguments.
      */
     public static void main(final boolean configureLogger, final String... args) {
@@ -160,7 +160,7 @@ public class Launcher {
             printHelp(options, e.getMessage()+" args: "+Arrays.asList(args));
             return;
         }
-        
+
         if (cmd.hasOption(OPTION_HELP)) {
             printHelp(options, null);
             return;
@@ -171,8 +171,9 @@ public class Launcher {
 
         injector = Guice.createInjector(new LanternModule());
         model = instance(Model.class);
+        StaticSettings.setModel(model);
         set = model.getSettings();
-        
+
         // We parse this one separately because we need this value right away.
         if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
@@ -181,36 +182,36 @@ public class Launcher {
         else {
             set.setUiEnabled(true);
         }
-        
+
         censored = instance(Censored.class);
-        
+
         LOG.debug("Creating display...");
         final Display display;
         if (set.isUiEnabled()) {
-            // We initialize this super early in case there are any errors 
+            // We initialize this super early in case there are any errors
             // during startup we have to display to the user.
             Display.setAppName("Lantern");
             //display = injector.getInstance(Display.class);;
             display = DisplayWrapper.getDisplay();
             // Also, We need the system tray to listen for events early on.
             //LanternHub.systemTray().createTray();
-            
+
         }
         else {
             display = null;
         }
-        
+
         messageService = instance(MessageService.class);
         instance(Proxifier.class);
         if (set.isUiEnabled()) {
             browserService = instance(BrowserService.class);
             systemTray = instance(SystemTray.class);
         }
-        
+
         // We need to make sure the trust store is initialized before we
         // do our public IP lookup as well as modelUtils.
         instance(LanternTrustStore.class);
-        
+
         xmpp = instance(DefaultXmppHandler.class);
         jettyLauncher = instance(JettyLauncher.class);
 
@@ -218,21 +219,21 @@ public class Launcher {
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
         modelUtils = instance(ModelUtils.class);
-        
+
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
         httpClient = instance(LanternHttpClient.class);
         syncService = instance(SyncService.class);
 
         final ProxyTracker proxyTracker = instance(ProxyTracker.class);
-        
+
         // We do this to make sure it's added to the shutdown list.
         instance(GlobalLanternServerTrafficShapingHandler.class);
-        
+
         LOG.debug("Processing command line options...");
         processCommandLineOptions(cmd);
         LOG.debug("Processed command line options...");
-        
+
         threadPublicIpLookup();
         threadPeriodicConnectivityUpdate();
 
@@ -245,9 +246,9 @@ public class Launcher {
             }
             LOG.debug("Started system tray..");
         }
-        
+
         shutdownable(ModelIo.class);
-        
+
         try {
             proxyTracker.start();
         } catch (final Exception e) {
@@ -264,7 +265,7 @@ public class Launcher {
         statsUpdater.start();
 
         gnomeAutoStart();
-        
+
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
         if (stunServers != null && !stunServers.isEmpty()) {
@@ -332,7 +333,7 @@ public class Launcher {
     }
 
     /**
-     * We thread this because otherwise looking up our public IP address 
+     * We thread this because otherwise looking up our public IP address
      * over the network can delay the creation of settings altogether. That's
      * problematic if the UI is waiting on them, for example.
      */
@@ -346,22 +347,22 @@ public class Launcher {
                 // This performs the public IP lookup so by the time we set
                 // GET versus GIVE mode we already know the IP and don't have
                 // to wait.
-                
+
                 // We get the address here to set it in Connectivity.
-                final InetAddress ip = 
+                final InetAddress ip =
                     new PublicIpAddress().getPublicIpAddress();
                 if (ip == null) {
                     LOG.info("No IP -- possibly no internet connection");
                     return;
                 }
                 model.getConnectivity().setIp(ip.getHostAddress());
-                
+
                 final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
                 loc.setCountry(geo.getCountrycode());
                 loc.setLat(geo.getLatitude());
                 loc.setLon(geo.getLongitude());
-                
+
                 // The IP is cached at this point.
                 /*
                 try {
@@ -380,7 +381,7 @@ public class Launcher {
                     }
                 }
             }
-            
+
         }, "Public-IP-Lookup-Thread");
         thread.setDaemon(true);
         thread.start();
@@ -413,17 +414,17 @@ public class Launcher {
         }, "ShutdownHook-For-Service-"+service.getClass().getSimpleName());
         Runtime.getRuntime().addShutdownHook(serviceHook);
     }
-    
+
     private void gnomeAutoStart() {
         // Before setup we should just do the default, which is to run on
-        // startup. The user can configure this differently at any point 
+        // startup. The user can configure this differently at any point
         // hereafter.
-        if (SystemUtils.IS_OS_LINUX && 
+        if (SystemUtils.IS_OS_LINUX &&
             !LanternClientConstants.GNOME_AUTOSTART.isFile()) {
             final File lanternDesktop;
-            final File candidate1 = 
+            final File candidate1 =
                 new File(LanternClientConstants.GNOME_AUTOSTART.getName());
-            final File candidate2 = 
+            final File candidate2 =
                 new File("install/linux", LanternClientConstants.GNOME_AUTOSTART.getName());
             if (candidate1.isFile()) {
                 lanternDesktop = candidate1;
@@ -442,20 +443,20 @@ public class Launcher {
                     }
                 }
                 FileUtils.copyFileToDirectory(lanternDesktop, parent);
-                
+
                 LOG.info("Copied {} to {}", lanternDesktop, parent);
             } catch (final IOException e) {
                 LOG.error("Could not configure gnome autostart", e);
             }
         }
     }
-    
-    public static String CIPHER_SUITE_LOW_BIT = 
+
+    public static String CIPHER_SUITE_LOW_BIT =
             "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
 
-    public static String CIPHER_SUITE_HIGH_BIT = 
+    public static String CIPHER_SUITE_HIGH_BIT =
             "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
-    
+
     public static void configureCipherSuites() {
         Security.addProvider(new BouncyCastleProvider());
         if (!LanternUtils.isUnlimitedKeyStrength()) {
@@ -470,11 +471,11 @@ public class Launcher {
                 //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
             });
         } else {
-            // Note the following just sets what cipher suite the server 
+            // Note the following just sets what cipher suite the server
             // side selects. DHE is for perfect forward secrecy.
-            
-            // We include 128 because we never have enough permissions to 
-            // copy the unlimited strength policy files on Vista, so we have 
+
+            // We include 128 because we never have enough permissions to
+            // copy the unlimited strength policy files on Vista, so we have
             // to revert back to 128.
             IceConfig.setCipherSuites(new String[] {
                     CIPHER_SUITE_HIGH_BIT
@@ -485,8 +486,8 @@ public class Launcher {
             });
         }
     }
-    
-    
+
+
     private static void log(final String msg) {
         if (LOG != null) {
             LOG.error(msg);
@@ -497,7 +498,7 @@ public class Launcher {
 
     private static Collection<InetSocketAddress> toSocketAddresses(
         final Collection<String> stunServers) {
-        final Collection<InetSocketAddress> isas = 
+        final Collection<InetSocketAddress> isas =
             new HashSet<InetSocketAddress>();
         for (final String server : stunServers) {
             final String host = StringUtils.substringBefore(server, ":");
@@ -513,11 +514,11 @@ public class Launcher {
             LOG.info("Found option: "+option);
             return false;
         }
-        
+
         // DEFAULTS TO TRUE!!
         return true;
     }
-    
+
     private void loadLocalPasswordFile(final String pwFilename) {
         //final LocalCipherProvider lcp = localCipherProvider;
         if (!localCipherProvider.requiresAdditionalUserInput()) {
@@ -570,7 +571,7 @@ public class Launcher {
 
         LOG.debug("Is launchd: {}", model.isLaunchd());
         launchLantern();
-        
+
         model.getConnectivity().setInternet(
             LanternUtils.hasNetworkConnection());
     }
@@ -583,16 +584,16 @@ public class Launcher {
         if (set.isUiEnabled()) {
             browserService.openBrowserWhenPortReady();
         }
-        
-        autoConnect(); 
-        
+
+        autoConnect();
+
         lanternStarted = true;
     }
 
-        
+
     private void autoConnect() {
         LOG.debug("Connecting if oauth is configured...");
-        // This won't connect in the case where the user hasn't entered 
+        // This won't connect in the case where the user hasn't entered
         // their user name and password and the user is running with a UI.
         // Otherwise, it will connect.
         if (modelUtils.isConfigured()) {
@@ -622,21 +623,21 @@ public class Launcher {
                 Events.syncModal(model, Modal.authorize);
         }
     }
-    
+
     private void printHelp(Options options, String errorMessage) {
         if (errorMessage != null) {
             LOG.error(errorMessage);
             System.err.println(errorMessage);
         }
-    
+
         final HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("lantern", options);
     }
-    
+
     private void printVersion() {
         System.out.println("Lantern version "+LanternClientConstants.VERSION);
     }
-    
+
     private void configureDefaultLogger() {
         final String propsPath = "src/main/resources/log4j.properties";
         final File props = new File(propsPath);
@@ -648,7 +649,7 @@ public class Launcher {
             configureProductionLogger();
         }
     }
-    
+
     private void configureProductionLogger() {
         final File logDir = LanternClientConstants.LOG_DIR;
         final File logFile = new File(logDir, "java.log");
@@ -671,11 +672,11 @@ public class Launcher {
             // doesn't matter. Just weird.
             PropertyConfigurator.configure(props);
             System.out.println("Set logger file to: " + logPath);
-            final ExceptionalAppenderCallback callback = 
+            final ExceptionalAppenderCallback callback =
                 new ExceptionalAppenderCallback() {
 
                     @Override
-                    public boolean addData(final JSONObject json, 
+                    public boolean addData(final JSONObject json,
                         final LoggingEvent le) {
                         if (!set.isAutoReport()) {
                             // Don't report anything if the user doesn't have
@@ -689,7 +690,7 @@ public class Launcher {
             final Appender bugAppender = new ExceptionalAppender(
                     LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback,
                httpClient);
-            
+
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
@@ -697,17 +698,17 @@ public class Launcher {
             e.printStackTrace();
         }
     }
-    
+
     private void handleError(final Throwable t, final boolean exit) {
         final String msg = msg(t);
         LOG.error("Uncaught exception: "+msg, t);
         if (t instanceof SWTError || msg.contains("SWTError")) {
             System.out.println(
-                "To run without a UI, run lantern with the --" + 
+                "To run without a UI, run lantern with the --" +
                 OPTION_DISABLE_UI +
                 " command line argument");
-        } 
-        else if (t instanceof UnsatisfiedLinkError && 
+        }
+        else if (t instanceof UnsatisfiedLinkError &&
             msg.contains("Cannot load 32-bit SWT libraries on 64-bit JVM")) {
             messageService.showMessage("Architecture Error",
                 "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");
@@ -728,12 +729,12 @@ public class Launcher {
         final String msg = t.getMessage();
         if (msg == null) {
             return "";
-        } 
+        }
         return msg;
     }
 
 
-    // the following are command line options 
+    // the following are command line options
     public static final String OPTION_DISABLE_UI = "disable-ui";
     public static final String OPTION_HELP = "help";
     public static final String OPTION_LAUNCHD = "launchd";
@@ -775,9 +776,9 @@ public class Launcher {
             "display command line help");
         options.addOption(null, OPTION_LAUNCHD, false,
             "running from launchd - not normally called from command line");
-        options.addOption(null, OPTION_DISABLE_KEYCHAIN, false, 
+        options.addOption(null, OPTION_DISABLE_KEYCHAIN, false,
             "disable use of system keychain and ask for local password");
-        options.addOption(null, OPTION_PASSWORD_FILE, true, 
+        options.addOption(null, OPTION_PASSWORD_FILE, true,
             "read local password from the file specified");
         options.addOption(null, OPTION_TRUSTED_PEERS, false,
             "disable use of trusted peer-to-peer connections for proxies.");
@@ -799,7 +800,7 @@ public class Launcher {
         options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
         options.addOption(null, OPTION_NO_CACHE, false,
             "Don't allow caching of static files in the dashboard");
-        options.addOption(null, OPTION_VERSION, false, 
+        options.addOption(null, OPTION_VERSION, false,
             "Print the Lantern version");
         options.addOption(null, OPTION_NEW_UI, false,
             "Use the new UI under the 'ui' directory");
@@ -815,7 +816,7 @@ public class Launcher {
             "GAE id of the lantern-controller");
         return options;
     }
-    
+
 
     private void processCommandLineOptions(final CommandLine cmd) {
 
@@ -836,17 +837,17 @@ public class Launcher {
             modelUtils.loadOAuth2UserCredentialsFile(
                 cmd.getOptionValue(credOpt));
         }
-        
+
         //final Settings set = LanternHub.settings();
-        
+
         set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
         set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
         set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
         set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
-        
+
         IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
         IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
-        
+
         /*
         if (cmd.hasOption(OPTION_USER)) {
             set.setUserId(cmd.getOptionValue(OPTION_USER));
@@ -855,14 +856,14 @@ public class Launcher {
             set.(cmd.getOptionValue(OPTION_PASS));
         }
         */
-        
+
         if (cmd.hasOption(OPTION_REFRESH_TOK)) {
             set.setRefreshToken(cmd.getOptionValue(OPTION_REFRESH_TOK));
         }
         if (cmd.hasOption(OPTION_ACCESS_TOK)) {
             set.setAccessToken(cmd.getOptionValue(OPTION_ACCESS_TOK));
         }
-        // option to disable use of keychains in local privacy 
+        // option to disable use of keychains in local privacy
         if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
             LOG.info("Disabling use of system keychains");
             set.setKeychainEnabled(false);
@@ -870,7 +871,7 @@ public class Launcher {
         else {
             set.setKeychainEnabled(true);
         }
-        
+
         if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
             loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
         }
@@ -906,20 +907,20 @@ public class Launcher {
             }
         }
         LOG.info("Running give mode proxy on port: {}", set.getServerPort());
-        
+
         if (cmd.hasOption(OPTION_LAUNCHD)) {
             LOG.debug("Running from launchd or launchd set on command line");
             model.setLaunchd(true);
         } else {
             model.setLaunchd(false);
         }
-        
+
         if (cmd.hasOption(OPTION_GIVE)) {
             model.getSettings().setMode(Mode.give);
         } else if (cmd.hasOption(OPTION_GET)) {
             model.getSettings().setMode(Mode.get);
         }
-        
+
         model.setCache(!LanternUtils.isDevMode());
         if (cmd.hasOption(OPTION_NO_CACHE)) {
             model.setCache(false);

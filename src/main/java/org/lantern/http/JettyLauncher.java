@@ -80,8 +80,10 @@ public class JettyLauncher implements LanternService {
         final String apiName = "Lantern-API";
         final ContextHandlerCollection contexts = 
             new ContextHandlerCollection();
-        
-        final ServletContextHandler contextHandler = newContext("/", apiName);
+
+        String prefix = model.getServerPrefix();
+
+        final ServletContextHandler contextHandler = newContext(prefix, apiName);
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
