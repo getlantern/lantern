@@ -123,6 +123,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("Not loading proxies in give mode");
             return;
         }
+        /*
         // Add all the stored proxies.
         final Collection<String> saved = this.model.getSettings().getProxies();
         log.debug("Proxy set is: {}", saved);
@@ -134,12 +135,15 @@ public class DefaultProxyTracker implements ProxyTracker {
                 addProxy(proxy);
             }
         }
+        */
     }
 
     private void addFallbackProxy() {
+        /*
         addProxy(LanternClientConstants.FALLBACK_SERVER_HOST, 
             Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), 
             Type.cloud);
+            */
     }
 
     @Override
@@ -204,6 +208,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
     
     private void addProxy(final String host, final int port, final Type type) {
+        /*
         final InetSocketAddress isa = LanternUtils.isa(host, port);
         if (this.model.getSettings().getMode() == Mode.give) {
             log.debug("Not adding proxy in give mode");
@@ -213,6 +218,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxyWithChecks(proxySet, proxies, 
             new ProxyHolder(host, isa, trafficTracker()),
                 host+":"+port, type);
+                */
     }
     
     private ProxyHolder getProxy(final Queue<ProxyHolder> queue) {
@@ -258,6 +264,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 // delays. We should probably do that again!.
                 boolean gotConnected = false;
                 try {
+                    log.debug("Opening outgoing peer...");
                     final FiveTuple tuple = LanternUtils.openOutgoingPeer(
                         peerUri, xmppHandler.getP2PClient(),
                         peerFailureCount);
@@ -308,13 +315,14 @@ public class DefaultProxyTracker implements ProxyTracker {
                 try {
                     sock.connect(remote, 60*1000);
                     
-                    peerFactory.addOutgoingPeer("", remote, type, 
-                        ph.getTrafficShapingHandler());
                     synchronized (set) {
                         if (!set.contains(ph)) {
                             set.add(ph);
                             queue.add(ph);
-                            log.debug("Queue is now: {}", queue);
+                            log.debug("Added connected TCP proxy. " +
+                                "Queue is now: {}", queue);
+                            peerFactory.addOutgoingPeer("", remote, type, 
+                                    ph.getTrafficShapingHandler());
                         }
                     }
                     

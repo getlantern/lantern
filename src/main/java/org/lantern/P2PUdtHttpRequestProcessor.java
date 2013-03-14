@@ -2,6 +2,8 @@ package org.lantern;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInboundByteHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -93,8 +95,10 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
     public boolean processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final HttpRequest request) {
         if (!hasProxy()) {
+            log.debug("No proxy!!");
             return false;
         }
+        log.debug("Processing request...");
         final HttpMethod method = request.getMethod();
         final boolean connect = method == HttpMethod.CONNECT;
         
@@ -107,7 +111,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         }
         if (!connect) {
             try {
-                LanternUtils.writeRequest(this.httpRequests, request, cf);
+                LanternUtils.writeRequest(request, cf);
             } catch (Exception e) {
                 return false;
             }
@@ -173,7 +177,19 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             } catch (final InterruptedException e) {
                 log.error("Could not sync on bind? Reuse address no working?", e);
             }
-            return boot.connect(fiveTuple.getRemote());
+            final ChannelFuture cf = boot.connect(fiveTuple.getRemote());
+            cf.addListener(new ChannelFutureListener() {
+                
+                @Override
+                public void operationComplete(final ChannelFuture future) throws Exception {
+                    if (future.isSuccess()) {
+                        browserToProxyChannel.setReadable(true);
+                    } else {
+                        log.debug("Could not connect?");
+                    }
+                }
+            });
+            return cf;
         } finally {
             // Shut down the event loop to terminate all threads.
             boot.shutdown();
@@ -211,7 +227,19 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             } catch (final InterruptedException e) {
                 log.error("Could not sync on bind? Reuse address no working?", e);
             }
-            return boot.connect(fiveTuple.getRemote());
+            final ChannelFuture cf = boot.connect(fiveTuple.getRemote());
+            cf.addListener(new ChannelFutureListener() {
+                
+                @Override
+                public void operationComplete(final ChannelFuture future) throws Exception {
+                    if (future.isSuccess()) {
+                        browserToProxyChannel.setReadable(true);
+                    } else {
+                        log.debug("Could not connect?");
+                    }
+                }
+            });
+            return cf;
         } finally {
             // Shut down the event loop to terminate all threads.
             boot.shutdown();

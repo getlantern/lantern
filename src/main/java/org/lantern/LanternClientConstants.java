@@ -26,7 +26,7 @@ public class LanternClientConstants {
      * This is the version of Lantern we're running. This is automatically
      * replaced when we push new releases.
      */
-    public static final String VERSION = "0.21.0-dev";
+    public static final String VERSION = "lantern_version_tok";
 
     public static File DATA_DIR;
 

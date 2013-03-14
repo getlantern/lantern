@@ -98,7 +98,7 @@ public class LanternUtils {
      * @param request The request.
      */
     public static void writeRequest(final Queue<HttpRequest> httpRequests,
-        final HttpRequest request, final ChannelFuture cf) {
+        final HttpRequest request, final org.jboss.netty.channel.ChannelFuture cf) {
         httpRequests.add(request);
         LOG.debug("Writing request: {}", request);
         LanternUtils.genericWrite(request, cf);
@@ -135,10 +135,9 @@ public class LanternUtils {
     
     public static final HttpRequestConverter encoder = new HttpRequestConverter();
     
-    public static void writeRequest(final Queue<HttpRequest> httpRequests,
-        final HttpRequest request, final io.netty.channel.ChannelFuture cf) 
+    public static void writeRequest(final HttpRequest request, 
+            final io.netty.channel.ChannelFuture cf) 
         throws Exception {
-        httpRequests.add(request);
         LOG.debug("Writing request: {}", request);
         LanternUtils.genericWrite(encoder.encode(request), cf);
     }
