@@ -13,6 +13,8 @@ var fs = require('fs'),
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
+      APP_MOUNT_POINT = constants.APP_MOUNT_POINT,
+      API_MOUNT_POINT = constants.API_MOUNT_POINT,
       COMETD_MOUNT_POINT = constants.COMETD_MOUNT_POINT,
       MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
       EMAIL = constants.INPUT_PAT.EMAIL,
@@ -27,7 +29,6 @@ var fs = require('fs'),
 
 var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--skip-setup',
     VERSION = {major: 0, minor: 0, patch: 1},
-    MOUNT_POINT = 'api',
     RESET_MODEL = JSON.parse(fs.readFileSync(__dirname+'/RESET_MODEL.json')),
     RESET_INTERNAL_STATE = {
       lastModal: MODAL.none,
@@ -66,7 +67,7 @@ nextid.id = 0;
 function MockBackend(bayeuxBackend) {
   var this_ = this;
   this.clients = {};
-  this.bayeux = new faye.NodeAdapter({mount: COMETD_MOUNT_POINT, timeout: 45});
+  this.bayeux = new faye.NodeAdapter({mount: '/'+APP_MOUNT_POINT+'/'+COMETD_MOUNT_POINT, timeout: 45});
   this.bayeux.bind('subscribe', function(clientId, channel) {
     log('[subscribe]', 'client:', clientId, 'channel:', channel);
     if (channel === MODEL_SYNC_CHANNEL) this_.clients[clientId] = true;
@@ -484,20 +485,21 @@ MockBackend._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
 MockBackend.prototype.handleRequest = function(req, res) {
   var self = this, handled = false;
   log(req.url.href);
-  // POST /api/<x.y.z>/interaction/<interactionid>
+  // POST /app/api/<x.y.z>/interaction/<interactionid>
   if (req.method !== 'POST') {
     res.writeHead(405);
   } else {
     var path = url.parse(req.url).pathname,
         parts = path.split('/'),
-        mnt = parts[1],
-        verstr = parts[2],
+        app = parts[1],
+        api = parts[2],
+        verstr = parts[3],
         ver = (verstr || '').split('.'),
         major = parseInt(ver[0]),
         minor = parseInt(ver[1]),
-        interaction = parts[3],
-        interactionid = parts[4];
-    if (mnt !== MOUNT_POINT || major !== VERSION.major || minor !== VERSION.minor) {
+        interaction = parts[4],
+        interactionid = parts[5];
+    if (app !== APP_MOUNT_POINT || api !== API_MOUNT_POINT || major !== VERSION.major || minor !== VERSION.minor) {
       res.writeHead(404);
     } else if (interaction !== 'interaction' && interaction !== 'exception') {
       res.writeHead(404);

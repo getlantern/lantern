@@ -21,10 +21,13 @@ var DEFAULT_LANG = 'en',
       ar: {dir: 'rtl', name: 'العربية'}
       */
     },
-    COMETD_MOUNT_POINT = '/cometd',
-    COMETD_URL = typeof location == 'object' ?
-                   location.protocol+'//'+location.host+COMETD_MOUNT_POINT :
-                   COMETD_MOUNT_POINT,
+    loc = typeof location == 'object' ? location : undefined,
+    // this allows the real backend to mount the entire app under a random path
+    // for security while the mock backend can always use '/app':
+    APP_MOUNT_POINT = loc ? loc.pathname.split('/')[1] : 'app',
+    API_MOUNT_POINT = 'api',
+    COMETD_MOUNT_POINT = 'cometd',
+    COMETD_URL = loc && loc.protocol+'//'+loc.host+'/'+APP_MOUNT_POINT+'/'+COMETD_MOUNT_POINT,
     MODEL_SYNC_CHANNEL = '/sync',
     CONTACT_FORM_MAXLEN = 500000,
     INPUT_PAT = {
@@ -115,6 +118,8 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('DEFAULT_LANG', DEFAULT_LANG)
     .constant('DEFAULT_DIRECTION', DEFAULT_DIRECTION)
     .constant('LANG', LANG)
+    .constant('API_MOUNT_POINT', API_MOUNT_POINT)
+    .constant('APP_MOUNT_POINT', APP_MOUNT_POINT)
     .constant('COMETD_MOUNT_POINT', COMETD_MOUNT_POINT)
     .constant('COMETD_URL', COMETD_URL)
     .constant('MODEL_SYNC_CHANNEL', MODEL_SYNC_CHANNEL)
@@ -137,6 +142,8 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     DEFAULT_LANG: DEFAULT_LANG,
     DEFAULT_DIRECTION: DEFAULT_DIRECTION,
     LANG: LANG,
+    API_MOUNT_POINT: API_MOUNT_POINT,
+    APP_MOUNT_POINT: APP_MOUNT_POINT,
     COMETD_MOUNT_POINT: COMETD_MOUNT_POINT,
     COMETD_URL: COMETD_URL,
     MODEL_SYNC_CHANNEL: MODEL_SYNC_CHANNEL,

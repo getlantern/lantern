@@ -5,7 +5,7 @@
   <script>
     $(function() {
       $('#allow').click(function() {
-        $.post('/api/0.0/interaction/continue');
+        $.post('/app/api/0.0/interaction/continue');
         setTimeout(function() {
           window.close();
         }, 100);

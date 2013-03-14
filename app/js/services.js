@@ -184,10 +184,10 @@ angular.module('app.services', [])
       sane: true
     };
   })
-  .service('apiSrvc', function($http, REQUIRED_API_VER) {
+  .service('apiSrvc', function($http, APP_MOUNT_POINT, API_MOUNT_POINT, REQUIRED_API_VER) {
     var ver = [REQUIRED_API_VER.major,
                REQUIRED_API_VER.minor].join('.'),
-        urlPrefix = ['', 'api', ver].join('/');
+        urlPrefix = ['', APP_MOUNT_POINT, API_MOUNT_POINT, ver].join('/');
     return {
       exception: function(data) {
         return $http.post(urlPrefix+'/exception', data);
