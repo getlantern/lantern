@@ -992,6 +992,15 @@ public class LanternUtils {
     public static String defaultPhotoUrl() {
         return LanternUtils.photoUrlBase() + "?email=default";
     }
+
+    /**
+     * Closes the specified channel after all queued write requests are flushed.
+     */
+    public static void closeOnFlush(final io.netty.channel.Channel ch) {
+        if (ch.isActive()) {
+            ch.flush().addListener(io.netty.channel.ChannelFutureListener.CLOSE);
+        }
+    }
 }
 
 
