@@ -389,7 +389,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         synchronized (this.peerProxyMap) {
             final ProxyHolder ph = this.peerProxyMap.remove(uri);
             if (ph == null) {
-                log.warn("Peer not in map?", uri);
+                // This will typically be the case for give mode peers who
+                // just may not store the peer in the first place.
+                log.debug("Peer not in map?", uri);
             } else {
                 this.peerProxyQueue.remove(ph);
             }
