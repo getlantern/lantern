@@ -69,6 +69,8 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private ProxyHolder proxyHolder;
 
+    private final Bootstrap clientBootstrap = new Bootstrap();
+
     public P2PUdtHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
@@ -114,12 +116,14 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             } else {
                 try {
                     cf = openOutgoingChannel(browserToProxyChannel, request);
-                } catch (InterruptedException e) {
+                    cf.channel().write(LanternUtils.encoder.encode(request)).sync();
+                } catch (final Exception e) {
                     log.error("Could not connect?", e);
                     return false;
                 }
             }
         }
+        /*
         if (!connect) {
             try {
                 LanternUtils.writeRequest(request, cf);
@@ -127,6 +131,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                 return false;
             }
         }
+        */
         return true;
     }
     
@@ -146,14 +151,8 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         if (cf == null) {
             return;
         }
-        cf.channel().flush().addListener(new io.netty.channel.ChannelFutureListener() {
-            
-            @Override
-            public void operationComplete(io.netty.channel.ChannelFuture future)
-                    throws Exception {
-                cf.channel().close();
-            }
-        });
+        LanternUtils.closeOnFlush(cf.channel());
+        this.clientBootstrap.shutdown();
     }
     
     private void remove(final ChannelPipeline cp, final String name) {
@@ -167,132 +166,118 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         final HttpRequest request) throws InterruptedException {
         browserToProxyChannel.setReadable(false);
         
-        final Bootstrap boot = new Bootstrap();
         final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 
+        clientBootstrap.group(connectGroup)
+            .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .handler(new ChannelInitializer<UdtChannel>() {
+                @Override
+                public void initChannel(final UdtChannel ch)
+                        throws Exception {
+                    final io.netty.channel.ChannelPipeline p = ch.pipeline();
+                    final SSLEngine engine = 
+                        trustStore.getContext().createSSLEngine();
+                    engine.setUseClientMode(true);
+                    p.addLast("ssl", new SslHandler(engine));
+                    p.addLast(
+                        //new LoggingHandler(LogLevel.INFO),
+                        new HttpResponseClientHandler(
+                            browserToProxyChannel, request));
+                }
+            });
+        /*
         try {
-            boot.group(connectGroup)
-                .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
-                .option(ChannelOption.SO_REUSEADDR, true)
-                .handler(new ChannelInitializer<UdtChannel>() {
-                    @Override
-                    public void initChannel(final UdtChannel ch)
-                            throws Exception {
-                        final io.netty.channel.ChannelPipeline p = ch.pipeline();
-                        final SSLEngine engine = 
-                            trustStore.getContext().createSSLEngine();
-                        engine.setUseClientMode(true);
-                        p.addLast("ssl", new SslHandler(engine));
-                        p.addLast(
-                            //new LoggingHandler(LogLevel.INFO),
-                            new HttpResponseClientHandler(
-                                browserToProxyChannel, request));
-                    }
-                });
-            /*
-            try {
-                boot.bind(ft.getLocal()).sync();
-            } catch (final InterruptedException e) {
-                log.error("Could not sync on bind? Reuse address no working?", e);
-            }
-            */
-            
-            // Start the client.
-            final ChannelFuture f = 
-                boot.connect(this.fiveTuple.getRemote()).sync();
-            
-            return f;
-            // Wait until the connection is closed.
-            //f.channel().close();
-            
-        } finally {
-            // Shut down the event loop to terminate all threads.
-            
-            // TODO: Should we shutdown here?
-            boot.shutdown();
+            boot.bind(ft.getLocal()).sync();
+        } catch (final InterruptedException e) {
+            log.error("Could not sync on bind? Reuse address no working?", e);
         }
+        */
+        
+        log.debug("Connecting to {}", this.fiveTuple);
+        // Start the client.
+        final ChannelFuture f = 
+            clientBootstrap.connect(this.fiveTuple.getRemote(), this.fiveTuple.getLocal()).sync();
+        log.debug("Opened outgoing channel");
+        
+        return f;
+        // Wait until the connection is closed.
+        //f.channel().close();
+
     }
     
 
-    private ChannelFuture openOutgoingConnectChannel(final Channel browserToProxyChannel, 
-        final HttpRequest request) {
+    private ChannelFuture openOutgoingConnectChannel(
+        final Channel browserToProxyChannel, final HttpRequest request) {
         browserToProxyChannel.setReadable(false);
         
-        final Bootstrap boot = new Bootstrap();
         final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 
-        try {
-            boot.group(connectGroup)
-                .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
-                .option(ChannelOption.SO_REUSEADDR, true)
-                .handler(new ChannelInitializer<UdtChannel>() {
-                    @Override
-                    public void initChannel(final UdtChannel ch)
-                            throws Exception {
-                        final io.netty.channel.ChannelPipeline p = ch.pipeline();
-                        final SSLEngine engine = 
-                            trustStore.getContext().createSSLEngine();
-                        engine.setUseClientMode(true);
-                        p.addLast("ssl", new SslHandler(engine));
-                        p.addLast(
-                            //new LoggingHandler(LogLevel.INFO),
-                            new HttpResponseClientHandler(
-                                browserToProxyChannel, request));
-                    }
-                });
-            /*
-            try {
-                boot.bind(ft.getLocal()).sync();
-            } catch (final InterruptedException e) {
-                log.error("Could not sync on bind? Reuse address no working?", e);
-            }
-            */
-            // Start the client.
-            final ChannelFuture destinationConnect = 
-                boot.connect(this.fiveTuple.getRemote(), this.fiveTuple.getLocal());
-            
-            final ChannelPipeline browserPipeline = 
-                browserToProxyChannel.getPipeline();
-            remove(browserPipeline, "encoder");
-            remove(browserPipeline, "decoder");
-            remove(browserPipeline, "handler");
-            remove(browserPipeline, "encoder");
-            browserPipeline.addLast("handler", 
-                new Netty3ToNetty4HttpConnectRelayingHandler(cf.channel(), 
-                    this.channelGroup));
-            
-            destinationConnect.addListener(new ChannelFutureListener() {
-                
+        this.clientBootstrap.group(connectGroup)
+            .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
+            .option(ChannelOption.SO_REUSEADDR, true)
+            .handler(new ChannelInitializer<UdtChannel>() {
                 @Override
-                public void operationComplete(final ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                        future.channel().write(LanternUtils.encoder.encode(request));
-                        // we're using HTTP connect here, so we need
-                        // to remove the encoder and start reading
-                        // from the inbound channel only when we've
-                        // used the original encoder to properly encode
-                        // the CONNECT request.
-                        //destinationConnect.remove("encoder");
-                        
-                        // Begin to accept incoming traffic.
-                        browserToProxyChannel.setReadable(true);
-                    }
+                public void initChannel(final UdtChannel ch)
+                        throws Exception {
+                    final io.netty.channel.ChannelPipeline p = ch.pipeline();
+                    final SSLEngine engine = 
+                        trustStore.getContext().createSSLEngine();
+                    engine.setUseClientMode(true);
+                    p.addLast("ssl", new SslHandler(engine));
+                    p.addLast(
+                        //new LoggingHandler(LogLevel.INFO),
+                        new HttpResponseClientHandler(
+                            browserToProxyChannel, request));
                 }
             });
-            return destinationConnect;
-            // Wait until the connection is closed.
-            //f.channel().close();
-            
-        } finally {
-            // Shut down the event loop to terminate all threads.
-            
-            // TODO: Should we shutdown here?
-            boot.shutdown();
+        /*
+        try {
+            boot.bind(ft.getLocal()).sync();
+        } catch (final InterruptedException e) {
+            log.error("Could not sync on bind? Reuse address no working?", e);
         }
+        */
+        // Start the client.
+        final ChannelFuture destinationConnect = 
+            this.clientBootstrap.connect(this.fiveTuple.getRemote(), 
+                this.fiveTuple.getLocal());
+        
+        final ChannelPipeline browserPipeline = 
+            browserToProxyChannel.getPipeline();
+        remove(browserPipeline, "encoder");
+        remove(browserPipeline, "decoder");
+        remove(browserPipeline, "handler");
+        remove(browserPipeline, "encoder");
+        browserPipeline.addLast("handler", 
+            new Netty3ToNetty4HttpConnectRelayingHandler(cf.channel(), 
+                this.channelGroup));
+        
+        destinationConnect.addListener(new ChannelFutureListener() {
+            
+            @Override
+            public void operationComplete(final ChannelFuture future) throws Exception {
+                if (future.isSuccess()) {
+                    future.channel().write(LanternUtils.encoder.encode(request));
+                    // we're using HTTP connect here, so we need
+                    // to remove the encoder and start reading
+                    // from the inbound channel only when we've
+                    // used the original encoder to properly encode
+                    // the CONNECT request.
+                    //destinationConnect.remove("encoder");
+                    
+                    // Begin to accept incoming traffic.
+                    browserToProxyChannel.setReadable(true);
+                }
+            }
+        });
+        return destinationConnect;
+        // Wait until the connection is closed.
+        //f.channel().close();
     }
     
     private static class HttpResponseClientHandler 
@@ -328,7 +313,9 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             log.debug("Channel active " + 
                NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
             
-            ctx.write(encoder.encode(httpRequest));
+            //log.debug("Writing request...");
+            //ctx.write(encoder.encode(httpRequest));
+            //log.debug("Wrote request");
         }
 
         @Override
