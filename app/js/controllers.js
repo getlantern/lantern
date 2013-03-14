@@ -96,8 +96,8 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   };
 }
 
-function SanityCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
-  var log = logFactory('SanityCtrl');
+function UnexpectedStateCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
+  var log = logFactory('UnexpectedStateCtrl');
 
   $scope.modelSrvc = modelSrvc;
 

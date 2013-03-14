@@ -50,6 +50,7 @@ var DEFAULT_LANG = 'en',
     OS = makeEnum(['windows', 'linux', 'osx']),
     MODAL = makeEnum([
       'settingsLoadFailure',
+      'unexpectedState', // frontend only
       'welcome',
       'authorize',
       'connecting',
