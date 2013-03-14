@@ -41,6 +41,9 @@ public class UdtRelayProxy {
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
         // Configure the server.
         final ServerBootstrap boot = new ServerBootstrap();
+        
+        // Note that we don't need to configure SSL here, as this is just a
+        // simple relay that passes all bytes to the local proxy server.
         try {
             boot.group(acceptGroup, connectGroup)
                 .channelFactory(NioUdtProvider.BYTE_ACCEPTOR)
@@ -48,22 +51,6 @@ public class UdtRelayProxy {
                 .option(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_TIMEOUT, 400 * 1000)
-                //.handler(new LoggingHandler(LogLevel.INFO))
-                //.childHandler(new UdtRelayInitializer(remoteHost, remotePort))
-                //.childOption(ChannelOption.AUTO_READ, false)
-            
-                /*
-                .childHandler(new ChannelInitializer<UdtChannel>() {
-                    @Override
-                    public void initChannel(final UdtChannel ch)
-                            throws Exception {
-                        ch.pipeline().addLast(
-                            new LoggingHandler(LogLevel.INFO),
-                            new UdtRelayFrontendHandler(remoteHost, remotePort));
-                    }
-                });
-                */
-            
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
