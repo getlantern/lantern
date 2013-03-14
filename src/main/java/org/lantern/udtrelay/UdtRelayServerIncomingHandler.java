@@ -1,18 +1,3 @@
-/*
- * Copyright 2012 The Netty Project
- *
- * The Netty Project licenses this file to you under the Apache License,
- * version 2.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
 package org.lantern.udtrelay;
 
 import io.netty.bootstrap.Bootstrap;
@@ -37,11 +22,14 @@ import java.net.Socket;
 
 import org.apache.commons.io.IOUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Handler implementation for the UDT relay server.
+ * Handler implementation for the UDT relay server. This processes incoming
+ * connections to the relay server and copies incoming data to the destination
+ * server over a socket.
  */
 @Sharable
 public class UdtRelayServerIncomingHandler 
@@ -195,8 +183,10 @@ public class UdtRelayServerIncomingHandler
         final byte[] buffer = new byte[bufferSize];
         int n = 0;
         while (-1 != (n = input.read(buffer))) {
-            //log.debug("Copying buf to inbound: {}\n"+new String(buffer), inboundChannel.hashCode());
-            inboundChannel.write(Unpooled.wrappedBuffer(buffer, 0, n));
+            final ByteBuf wrapped = Unpooled.wrappedBuffer(buffer, 0, n);
+            log.debug("Writing to inbound channel: {}", 
+                wrapped.toString(LanternConstants.UTF8));
+            inboundChannel.write(wrapped);
             
             // We need to flush and sync here, as otherwise the buffer will
             // get overwritten with new data.
