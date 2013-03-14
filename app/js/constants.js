@@ -28,6 +28,9 @@ var DEFAULT_LANG = 'en',
     API_MOUNT_POINT = 'api',
     COMETD_MOUNT_POINT = 'cometd',
     COMETD_URL = loc && loc.protocol+'//'+loc.host+'/'+APP_MOUNT_POINT+'/'+COMETD_MOUNT_POINT,
+    REQUIRED_API_VER = {major: 0, minor: 0}, // api version required by frontend
+    REQ_VER_STR = [REQUIRED_API_VER.major, REQUIRED_API_VER.minor].join('.'),
+    API_URL_PREFIX = ['', APP_MOUNT_POINT, API_MOUNT_POINT, REQ_VER_STR].join('/'),
     MODEL_SYNC_CHANNEL = '/sync',
     CONTACT_FORM_MAXLEN = 500000,
     INPUT_PAT = {
@@ -136,7 +139,8 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('GTALK_STATUS', GTALK_STATUS)
     // frontend-only
     .constant('VER', [0, 0, 1]) // XXX pull from package.json or some such?
-    .constant('REQUIRED_API_VER', {major: 0, minor: 0});
+    .constant('REQUIRED_API_VER', REQUIRED_API_VER)
+    .constant('API_URL_PREFIX', API_URL_PREFIX);
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {
     DEFAULT_LANG: DEFAULT_LANG,

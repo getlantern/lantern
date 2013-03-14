@@ -184,16 +184,13 @@ angular.module('app.services', [])
       sane: true
     };
   })
-  .service('apiSrvc', function($http, APP_MOUNT_POINT, API_MOUNT_POINT, REQUIRED_API_VER) {
-    var ver = [REQUIRED_API_VER.major,
-               REQUIRED_API_VER.minor].join('.'),
-        urlPrefix = ['', APP_MOUNT_POINT, API_MOUNT_POINT, ver].join('/');
+  .service('apiSrvc', function($http, API_URL_PREFIX) {
     return {
       exception: function(data) {
-        return $http.post(urlPrefix+'/exception', data);
+        return $http.post(API_URL_PREFIX+'/exception', data);
       },
       interaction: function(interactionid, data) {
-        var url = urlPrefix+'/interaction/'+interactionid;
+        var url = API_URL_PREFIX+'/interaction/'+interactionid;
         return $http.post(url, data);
       }
     };
