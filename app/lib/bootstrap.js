@@ -912,6 +912,7 @@
         $tip
           .detach()
           .css({ top: 0, left: 0, display: 'block' })
+          .addClass(this.options.cssClass) // XXX
 
         this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element)
 

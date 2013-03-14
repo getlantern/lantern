@@ -1,4 +1,5 @@
 $giveModeColorMap: #aad092
+$cloudPeerColor: #008000
 
 #projectionButtons
   +position(false, false, 75px, 25px)
@@ -41,34 +42,44 @@ $waterColor: rgba(6, 21, 50, .1)
 .peer.give, #self.give
   fill: $giveModeColorMap
 
-path.connection
+.peer.cloud, .peer.laeproxy
+  fill: $cloudPeerColor !important
+
+.connection
   fill: none
   stroke-width: 1px
   stroke: #fff
   +single-transition(stroke-opacity, 0.5s, ease)
 
-g.transferring path.connection
+g.transferring .connection
   opacity: 1
 
-.visTooltip
-  text-align: left
-  > *
-    max-width: 200px
-    overflow: hidden
-    text-overflow: ellipsis
-    white-space: nowrap
-  h5
-    margin: 0
+.tooltip.vis .tooltip-inner
+  max-width: none // override bootstrap's value of 200px
+  text-align: left // override bootstrap's value of center
+  white-space: nowrap
+  text-overflow: ellipsis
   .picture
-    margin: 4px 10px 0 0
-    height: 50px
-    width: 50px
-  &.give-mode h5
-    color: $giveModeColorMap
-  &.get-mode h5
+    height: 64px
+    width: 64px
+    margin: 5px 10px 0 0
+  .picture, .headers
+    float: left
+  .header
+    +bold
+  .get .header, .get .type
     +get-colored
-  .bytesUp, .bytesDn
+  .give .header, .give .type
+    color: $giveModeColorMap
+  .cloud .header, .laeproxy .header, .cloud .type, .laeproxy .type
+    color: $cloudPeerColor !important
+  .type
+    +smaller
+  .peerid, .id
     +smaller
     +gray
-  .bytesUp:after
-    content: ', '
+  .stats
+    clear: both
+    +smaller
+  .lastConnected
+    +smaller

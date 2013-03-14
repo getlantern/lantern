@@ -6772,10 +6772,10 @@ textarea {
   color: #999999;
 }
 
-#sanity form, #settingsLoadFailure form {
+#unexpectedState form, #settingsLoadFailure form {
   margin: 15px 30px 0 30px;
 }
-#sanity form *, #settingsLoadFailure form * {
+#unexpectedState form *, #settingsLoadFailure form * {
   font-size: 11.9px;
 }
 
@@ -7224,7 +7224,11 @@ textarea.report {
   fill: #aad092;
 }
 
-path.connection {
+.peer.cloud, .peer.laeproxy {
+  fill: green !important;
+}
+
+.connection {
   fill: none;
   stroke-width: 1px;
   stroke: white;
@@ -7232,39 +7236,49 @@ path.connection {
   transition: stroke-opacity 0.5s ease;
 }
 
-g.transferring path.connection {
+g.transferring .connection {
   opacity: 1;
 }
 
-.visTooltip {
+.tooltip.vis .tooltip-inner {
+  max-width: none;
   text-align: left;
-}
-.visTooltip > * {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.visTooltip h5 {
-  margin: 0;
+.tooltip.vis .tooltip-inner .picture {
+  height: 64px;
+  width: 64px;
+  margin: 5px 10px 0 0;
 }
-.visTooltip .picture {
-  margin: 4px 10px 0 0;
-  height: 50px;
-  width: 50px;
+.tooltip.vis .tooltip-inner .picture, .tooltip.vis .tooltip-inner .headers {
+  float: left;
 }
-.visTooltip.give-mode h5 {
-  color: #aad092;
+.tooltip.vis .tooltip-inner .header {
+  font-weight: bold;
 }
-.visTooltip.get-mode h5 {
+.tooltip.vis .tooltip-inner .get .header, .tooltip.vis .tooltip-inner .get .type {
   color: #ffcc66;
 }
-.visTooltip .bytesUp, .visTooltip .bytesDn {
+.tooltip.vis .tooltip-inner .give .header, .tooltip.vis .tooltip-inner .give .type {
+  color: #aad092;
+}
+.tooltip.vis .tooltip-inner .cloud .header, .tooltip.vis .tooltip-inner .laeproxy .header, .tooltip.vis .tooltip-inner .cloud .type, .tooltip.vis .tooltip-inner .laeproxy .type {
+  color: green !important;
+}
+.tooltip.vis .tooltip-inner .type {
+  font-size: 10.5px;
+}
+.tooltip.vis .tooltip-inner .peerid, .tooltip.vis .tooltip-inner .id {
   font-size: 10.5px;
   color: #999999;
 }
-.visTooltip .bytesUp:after {
-  content: ", ";
+.tooltip.vis .tooltip-inner .stats {
+  clear: both;
+  font-size: 10.5px;
+}
+.tooltip.vis .tooltip-inner .lastConnected {
+  font-size: 10.5px;
 }
 
 #footer {

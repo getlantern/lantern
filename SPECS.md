@@ -405,6 +405,15 @@ the backend maintains on the frontend through comet publications:
           <td>The peerid of this user.</td>
         </tr>
         <tr>
+          <td><strong>type</strong><br>"pc" | "cloud" | "laeproxy"</td>
+          <td>The peer type of this user.</td>
+        </tr>
+        <tr>
+          <td><strong>lastConnected</strong><br><em>date</em></td>
+          <td>The datetime the user last connected to a peer. Blank if 
+              currently connected to some peer.</td>
+        </tr>
+        <tr>
           <td><strong>invited</strong><br><em>boolean</em></td>
           <td>Whether the user has been invited to Lantern.</td>
         </tr>
@@ -430,7 +439,7 @@ the backend maintains on the frontend through comet publications:
                 associated user</small></strong></td></tr>
         <tr><td><strong>rosterEntry</strong><br><em>object</em></td>
           <td>roster entry for this peer if in roster</td></tr>
-        <tr><td><strong>type</strong><br>"desktop" | "cloud" | "laeproxy"</td>
+        <tr><td><strong>type</strong><br>"pc" | "cloud" | "laeproxy"</td>
             <td>type of Lantern peer<br><br>
             <strong><small>* cloud and laeproxy peers will have
             users associated with them via kaleidoscope</small>

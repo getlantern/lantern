@@ -7,6 +7,7 @@ var sleep = require('./node_modules/sleep'),
       getByPath = helpers.getByPath,
     constants = require('../app/js/constants.js'),
       ENUMS = constants.ENUMS,
+        PEER_TYPE = ENUMS.PEER_TYPE,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODAL = ENUMS.MODAL,
         MODE = ENUMS.MODE,
@@ -116,6 +117,7 @@ exports.SCENARIOS = {
               sleep.usleep(3000000);
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
                          '/connectivity/peerid': 'lantern-45678',
+                         '/connectivity/type': 'pc',
                          '/connectivity/invited': true});
             }
     },
@@ -165,7 +167,7 @@ exports.SCENARIOS = {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connected,
                 '/profile': {
                   email: 'user@example.com',
-                  name: 'Example User',
+                  name: 'Your Name Here',
                   link: 'https://plus.google.com/1234567',
                   picture: 'img/default-avatar.png',
                   gender: '',
@@ -181,34 +183,34 @@ exports.SCENARIOS = {
       func: function() {
               var roster = [{
                 email: 'lantern_friend1@example.com',
-                name: 'Lantern Friend 1',
+                name: 'Snyder Pearson',
                 link: '',
                 picture: 'img/default-avatar.png',
                 status: 'away',
                 statusMessage: 'meeting'
               },{
                 email: 'lantern_friend2@example.com',
-                name: 'Lantern Friend 2',
+                name: 'Leah X Schmidt',
                 link: '',
                 picture: 'img/default-avatar.png',
                 status: 'available',
                 statusMessage: 'Bangkok'
               },{
                 email: 'user1@example.com',
-                name: 'User 1',
+                name: 'Willie Forkner',
                 link: '',
                 picture: 'img/default-avatar.png',
                 status: 'idle',
                 statusMessage: 'sleeping'
               },{
                 email: 'user2@example.com',
-                name: 'User 2',
+                name: 'J.P. Zenger',
                 link: '',
                 picture: 'img/default-avatar.png',
                 status: 'offline'
               },{
                 email: 'lantern_power_user@example.com',
-                name: 'Lantern Power User',
+                name: 'Myles Horton',
                 link: '',
                 picture: 'img/default-avatar.png',
                 status: 'available',
@@ -229,17 +231,17 @@ exports.SCENARIOS = {
                 current: [{
                            email: 'lantern_friend1@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Lantern Friend 1'
+                           name: 'Snyder Pearson'
                           },
                           {
                            email: 'lantern_friend2@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Lantern Friend 2'
+                           name: 'Leah X Schmidt'
                           },
                           {
                            email: 'lantern_power_user@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Lantern Power User'
+                           name: 'Myles Horton'
                           }],
                 pending: [{
                            email: 'inviter1@example.com',
@@ -272,7 +274,7 @@ exports.SCENARIOS = {
                     lat: 51,
                     lon: 9,
                     country: 'DE',
-                    type: 'desktop'
+                    type: 'pc'
                   },{
                     peerid: 'friend2-1',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_friend2@example.com'}),
@@ -281,7 +283,7 @@ exports.SCENARIOS = {
                     lat: 13.754,
                     lon: 100.5014,
                     country: 'TH',
-                    type: 'desktop'
+                    type: 'pc'
                   },{
                     peerid: 'poweruser-1',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
@@ -304,7 +306,7 @@ exports.SCENARIOS = {
                     peerid: 'poweruser-3',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
-                    ip: '...',
+                    ip: '195.27.40.32',
                     lat: 54,
                     lon: -2,
                     country: 'GB',
@@ -313,11 +315,11 @@ exports.SCENARIOS = {
                     peerid: 'poweruser-4',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'get',
-                    ip: '...',
+                    ip: '59.108.60.58',
                     lat: 31.230381,
                     lon: 121.473684,
                     country: 'CN',
-                    type: 'desktop'
+                    type: 'pc'
                   },{
                     peerid: 'friend-of-friend1-1',
                     mode: 'get',
@@ -325,8 +327,67 @@ exports.SCENARIOS = {
                     lat: 26.3032,
                     lon: 50.1353,
                     country: 'SA',
-                    type: 'desktop'
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-2',
+                    mode: 'give',
+                    ip: '186.2.61.111',
+                    lat: -16.5,
+                    lon: -68.15,
+                    country: 'BO',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-3',
+                    mode: 'give',
+                    ip: '187.137.225.219',
+                    lat: 22.15,
+                    lon: -100.9833,
+                    country: 'MX',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-4',
+                    mode: 'get',
+                    ip: '78.108.178.25',
+                    lat: 49.75,
+                    lon: 15.5,
+                    country: 'CZ',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-5',
+                    mode: 'get',
+                    ip: '88.19.63.196',
+                    lat: 37.3824,
+                    lon: -5.9761,
+                    country: 'ES',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-6',
+                    mode: 'give',
+                    ip: '79.55.82.37',
+                    lat: 39.2167,
+                    lon: 9.1167,
+                    country: 'IT',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-7',
+                    mode: 'get',
+                    ip: '77.49.7.129',
+                    lat: 37.9833,
+                    lon: 23.7333,
+                    country: 'GR',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-8',
+                    mode: 'give',
+                    ip: '177.64.207.97',
+                    lat: -5.7833,
+                    lon: -35.2167,
+                    country: 'BR',
+                    type: 'pc'
                   }];
+              _.each(testPeers, function(peer) {
+                _.merge(peer, {bytesUp: 0, bytesDn: 0, lastConnected: new Date().toJSON()});
+              });
               this.sync({'/peers': testPeers});
               setInterval(function() {
                 if (!this_.model.setupComplete) return;
@@ -406,9 +467,10 @@ exports.SCENARIOS = {
                   return done();
                 }
 
-                if (Math.random() < .9) { // switch modes for a random peer
+                if (Math.random() < .9) { // switch modes for a random non-cloud peer running from a non-censoring country
                   var randomPeer = randomChoice(peersCurrent),
                       i = _.indexOf(peers, randomPeer);
+                  if (randomPeer.type !== PEER_TYPE.pc) return;
                   if (getByPath(this_.model, '/countries/'+randomPeer.country+'/censors')) return;
                   var mode = randomPeer.mode === MODE.give ? MODE.get : MODE.give;
                   update.push({op: 'add', path: '/peers/'+i+'/mode', value: mode});

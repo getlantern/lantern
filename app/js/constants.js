@@ -98,6 +98,11 @@ var DEFAULT_LANG = 'en',
       'proxyAllSites',
       'proxyPort',
       'proxiedSites']),
+    PEER_TYPE = makeEnum([
+      'pc',
+      'cloud',
+      'laeproxy'
+      ]),
     CONNECTIVITY = makeEnum([
       'notConnected',
       'connecting',
@@ -113,6 +118,7 @@ var DEFAULT_LANG = 'en',
       MODAL: MODAL,
       INTERACTION: INTERACTION,
       SETTING: SETTING,
+      PEER_TYPE: PEER_TYPE,
       CONNECTIVITY: CONNECTIVITY,
       GTALK_STATUS: GTALK_STATUS
     };

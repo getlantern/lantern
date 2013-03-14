@@ -21,21 +21,23 @@ angular.module('app.vis', [])
       container: 'body',
       html: true,
       selector: 'path',
+      cssClass: 'vis', // XXX hacked app/lib/bootstrap.js to look for this (search it for XXX)
       placement: 'mouse' // XXX http://stackoverflow.com/a/14761335/161642
     }
   });
 
-function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc, CONFIG, ENUMS) {
+function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc, CONFIG) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      MODE = ENUMS.MODE,
       abs = Math.abs,
       min = Math.min,
       max = Math.max,
       round = Math.round,
       dim = {},
       i18n = $filter('i18n'),
+      date = $filter('date'),
       prettyUser = $filter('prettyUser'),
+      prettyBps = $filter('prettyBps'),
       prettyBytes = $filter('prettyBytes'),
       $map = $('#map'),
       $$map = d3.select('#map'),
@@ -231,10 +233,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
     path.pointRadius(CONFIG.style.pointRadiusPeer);
     peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid);
-    peerPaths.enter().append('path').classed('peer', true);
+    peerPaths.enter().append('path')
     peerPaths
-      .classed('give', function(d) { return d.mode === MODE.give; })
-      .classed('get', function(d) { return d.mode === MODE.get; })
+      .attr('class', function(d) { return 'peer '+d.mode+' '+d.type; })
       .attr('id', function(d) { return d.peerid; })
       .attr('data-original-title', function(d) { return hoverContentForPeer(d); })
       .attr('d', pathPeer);
@@ -251,7 +252,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         var totalLength = this.getTotalLength();
         return totalLength + ' ' + totalLength;
       })
-      .transition().duration(500).ease('linear').attr('stroke-dashoffset', 0);
+      .transition().duration(500).attr('stroke-dashoffset', 0);
     connectionPaths.style('stroke-opacity', function(d) { return connectionOpacityScale(d.bpsUpDn); });
     connectionPaths.exit().remove();
   }, true);
@@ -279,12 +280,22 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     if (!model.showVis) return;
     try {
       var ctx = _.merge({
+        picture: model.profile.picture,
+        name: model.profile.name,
+        email: model.profile.email,
         peerid: model.connectivity.peerid,
+        ip: model.connectivity.ip,
+        type: model.connectivity.type,
         mode: model.settings.mode,
+        typeDesc: i18n(angular.uppercase(model.connectivity.type + model.settings.mode)),
+        bpsUp: prettyBps(model.transfers.bpsUp)+' '+i18n('UP'),
+        bpsDn: prettyBps(model.transfers.bpsDn)+' '+i18n('DOWN'),
         bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
         bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
+        lastConnectedLabel: model.connectivity.lastConnected ? i18n('LAST_CONNECTED') : '',
+        lastConnected: date(model.connectivity.lastConnected, 'medium')
       }, model.profile);
-      return hoverContentForPeer.onRosterTemplate(ctx);
+      return hoverContentForPeer.tmpl(ctx);
     } catch(e) {
       // ignore, fields probably just not populated yet
     }
@@ -292,34 +303,38 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   function hoverContentForPeer(peer) {
     var ctx = {
+      picture: 'img/default-avatar.png',
+      name: '',
+      email: '',
       peerid: peer.peerid,
+      ip: peer.ip,
+      type: peer.type,
       mode: peer.mode,
+      typeDesc: i18n(angular.uppercase(peer.type + peer.mode)),
+      bpsUp: peer.connected ? prettyBps(peer.bpsUp)+' '+i18n('UP') : '',
+      bpsDn: peer.connected ? prettyBps(peer.bpsDn)+' '+i18n('DOWN') : '',
       bytesUp: prettyBytes(peer.bytesUp)+' '+i18n('SENT'),
-      bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED')
-    }, tmpl;
-    if (peer.rosterEntry) {
-      _.merge(ctx, peer.rosterEntry);
-      tmpl = hoverContentForPeer.onRosterTemplate;
-    } else {
-      tmpl = hoverContentForPeer.notOnRosterTemplate;
-    }
-    return tmpl(ctx);
+      bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED'),
+      lastConnectedLabel: peer.connected ? '' : i18n('LAST_CONNECTED'),
+      lastConnected: peer.connected ? '' : date(peer.lastConnected, 'medium')
+    };
+    if (peer.rosterEntry) _.merge(ctx, peer.rosterEntry);
+    return hoverContentForPeer.tmpl(ctx);
   }
-  hoverContentForPeer.onRosterTemplate = _.template(
-    '<div class="visTooltip ${mode}-mode">'+
-    '<img class="picture pull-left" src="${picture}">'+
-    '<h5>${name}</h5>'+
-    '<div class="email">${email}</div>'+
-    '<div class="peerid">${peerid}</div>'+
-    '<span class="bytesUp">${bytesUp}</span>'+
-    '<span class="bytesDn">${bytesDn}</span>'+
-    '</div>'
-  );
-  hoverContentForPeer.notOnRosterTemplate = _.template(
-    '<div class="visTooltip ${mode}-mode">'+
-    '<h5>${peerid}</h5>'+
-    '<span class="bytesUp">${bytesUp}</span>'+
-    '<span class="bytesDn">${bytesDn}</span>'+
+  hoverContentForPeer.tmpl = _.template(
+    '<div class="${mode} ${type}">'+
+        '<img class="picture" src="${picture}">'+
+        '<div class="headers">'+
+          '<div class="header">${name}</div>'+
+          '<div class="email">${email}</div>'+
+          '<div class="peerid ip">${peerid} (${ip})</div>'+
+          '<div class="type">${typeDesc}</div>'+
+      '</div>'+
+      '<div class="stats">'+
+        '<div class="bps">${bpsUp} ${bpsDn}</div>'+
+        '<div class="bytes">${bytesUp} ${bytesDn}</div>'+
+        '<div class="lastConnected">${lastConnectedLabel} <time>${lastConnected}</time></div>'+
+      '</div>'+
     '</div>'
   );
 
@@ -332,11 +347,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     });
   }
   hoverContentForCountry.template = _.template(
-    '<div class="visTooltip">'+
-    '<h5>${countryName}</h5>'+
+    '<div class="header">${countryName}</div>'+
     '<div class="give-colored">${npeersOnlineGive}</div>'+
-    '<div class="get-colored">${npeersOnlineGet}</div>'+
-    '</div>'
+    '<div class="get-colored">${npeersOnlineGet}</div>'
   );
 
   function updateCountry(alpha2, peerCount, animate) {
