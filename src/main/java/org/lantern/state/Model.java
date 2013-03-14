@@ -258,7 +258,7 @@ public class Model {
             //this happens at startup?
             for (Integer k : notifications.keySet()) {
                 if (k > maxNotificationId)
-                    maxNotificationId = k;
+                    maxNotificationId = k+1;
             }
         }
         int id = maxNotificationId ++;
