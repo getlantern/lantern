@@ -13,6 +13,7 @@ var fs = require('fs'),
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
+      COMETD_MOUNT_POINT = constants.COMETD_MOUNT_POINT,
       MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
       EMAIL = constants.INPUT_PAT.EMAIL,
       LANG = constants.LANG,
@@ -65,7 +66,7 @@ nextid.id = 0;
 function MockBackend(bayeuxBackend) {
   var this_ = this;
   this.clients = {};
-  this.bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
+  this.bayeux = new faye.NodeAdapter({mount: COMETD_MOUNT_POINT, timeout: 45});
   this.bayeux.bind('subscribe', function(clientId, channel) {
     log('[subscribe]', 'client:', clientId, 'channel:', channel);
     if (channel === MODEL_SYNC_CHANNEL) this_.clients[clientId] = true;
