@@ -36,6 +36,12 @@ public class Connectivity {
     
     private String connectingStatus;
 
+    enum Type {
+        pc, cloud, laeproxy
+    }
+
+    private Type type;
+
     public Connectivity() {
         Events.register(this);
     }
@@ -154,5 +160,13 @@ public class Connectivity {
 
     public void setConnectingStatus(final String connectingStatus) {
         this.connectingStatus = connectingStatus;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 }
