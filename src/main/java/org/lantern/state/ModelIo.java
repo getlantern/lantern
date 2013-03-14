@@ -1,7 +1,9 @@
 package org.lantern.state;
 
 import java.io.File;
+import java.security.SecureRandom;
 
+import org.apache.commons.codec.binary.Base64;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.privacy.EncryptedFileService;
@@ -70,6 +72,11 @@ public class ModelIo extends Storage<Model> {
         log.info("Loading empty model!!");
         Model mod = new Model();
         mod.setModal(Modal.settingsLoadFailure);
+
+        byte [] bytes = new byte[16];
+        new SecureRandom().nextBytes(bytes);
+        String randomPrefix = Base64.encodeBase64URLSafeString(bytes);
+        mod.setServerPrefix("/" + randomPrefix);
         return mod;
     }
 
