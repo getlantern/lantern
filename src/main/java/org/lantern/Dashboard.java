@@ -74,14 +74,15 @@ public class Dashboard implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady() {
-        openBrowserWhenPortReady(StaticSettings.getApiPort());
+        openBrowserWhenPortReady(StaticSettings.getApiPort(),
+                StaticSettings.getPrefix());
     }
     
     @Override
-    public void openBrowserWhenPortReady(final int port) {
+    public void openBrowserWhenPortReady(final int port, final String prefix) {
         LanternUtils.waitForServer(port);
         log.info("Server is running. Opening browser...");
-        openBrowser(port);
+        openBrowser(port, prefix);
     }
     
     @Override
@@ -344,8 +345,8 @@ public class Dashboard implements BrowserService {
     }
 
     @Override
-    public void openBrowser(int port) {
+    public void openBrowser(int port, String prefix) {
         // TODO Auto-generated method stub
-        
+
     }
 }
