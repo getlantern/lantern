@@ -74,7 +74,7 @@ public class Events {
     public static void syncRosterEntry(final LanternRosterEntry entry, final int index) {
         final String path = SyncPath.ROSTER.getPath()+"/"+index;
         LOG.debug("Syncing roster entry at path {} with entry {}", path, entry);
-        Events.eventBus().post(new SyncEvent(SyncType.ADD, path, entry));
+        //Events.eventBus().post(new SyncEvent(SyncType.ADD, path, entry));
     }
 
 
