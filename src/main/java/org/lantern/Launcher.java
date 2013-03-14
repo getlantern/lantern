@@ -95,6 +95,8 @@ public class Launcher {
 
     public Launcher(final String... args) {
         System.setProperty("javax.net.debug", "ssl");
+        IceConfig.setDisableUdpOnLocalNetwork(false);
+        IceConfig.setTcp(false);
         this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
         //Connection.DEBUG_ENABLED = true;
