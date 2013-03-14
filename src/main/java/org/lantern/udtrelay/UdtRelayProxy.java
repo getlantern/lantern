@@ -49,8 +49,8 @@ public class UdtRelayProxy {
                 .channelFactory(NioUdtProvider.BYTE_ACCEPTOR)
                 .option(ChannelOption.SO_BACKLOG, 10)
                 .option(ChannelOption.SO_REUSEADDR, true)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.SO_TIMEOUT, 400 * 1000)
+                //.childOption(ChannelOption.SO_KEEPALIVE, true)
+                //.childOption(ChannelOption.SO_TIMEOUT, 400 * 1000)
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
