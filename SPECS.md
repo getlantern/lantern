@@ -410,8 +410,9 @@ the backend maintains on the frontend through comet publications:
         </tr>
         <tr>
           <td><strong>lastConnected</strong><br><em>date</em></td>
-          <td>The datetime the user last connected to a peer. Blank if 
-              currently connected to some peer.</td>
+          <td>The datetime the user was last connected to a peer (i.e. the most
+              recent disconnect from the last remaining peer the user was
+              connected to). Blank if currently connected to some peer.</td>
         </tr>
         <tr>
           <td><strong>invited</strong><br><em>boolean</em></td>
