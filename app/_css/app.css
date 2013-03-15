@@ -7284,6 +7284,9 @@ g.transferring .connection {
 .tooltip.vis .tooltip-inner .npeersEver {
   color: #999999;
 }
+.tooltip.vis .tooltip-inner .give-colored {
+  color: #aad092;
+}
 
 #footer {
   width: 100%;
