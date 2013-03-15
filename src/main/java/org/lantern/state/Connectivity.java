@@ -1,5 +1,7 @@
 package org.lantern.state;
 
+import java.util.Date;
+
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.event.Events;
@@ -7,6 +9,7 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +44,8 @@ public class Connectivity {
     }
 
     private Type type;
+
+    private Date lastConnected;
 
     public Connectivity() {
         Events.register(this);
@@ -168,5 +173,28 @@ public class Connectivity {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Date getLastConnected() {
+        return lastConnected;
+    }
+
+    public void setLastConnected(Date lastConnected) {
+        this.lastConnected = lastConnected;
+    }
+
+    private int peers = 0;
+
+    @Subscribe
+    protected void onP2PConnectionEvent(final P2PConnectionEvent event) {
+        if (event.isConnected()) {
+            lastConnected = null;
+            ++peers;
+        }
+        else {
+            if (--peers == 0) {
+                lastConnected = new Date();
+            }
+        }
     }
 }
