@@ -587,7 +587,6 @@ public class InteractionServlet extends HttpServlet {
         }
         final Model base = new Model();
         model.setCache(base.isCache());
-        model.setConnectivity(base.getConnectivity());
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
         model.setNinvites(base.getNinvites());
