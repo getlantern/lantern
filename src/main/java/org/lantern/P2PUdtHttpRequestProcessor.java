@@ -30,6 +30,7 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.util.Netty3ToNetty4HttpConnectRelayingHandler;
+import org.lantern.util.NettyUtils;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -288,16 +289,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         @Override
         public void inboundBufferUpdated(
             final io.netty.channel.ChannelHandlerContext ctx, final ByteBuf in) {
-            final byte[] data = new byte[in.readableBytes()];
-            in.readBytes(data);
-            this.browserToProxyChannel.write(
-                    ChannelBuffers.wrappedBuffer(data));
-            /*
-            while (in.isReadable()) {
-                this.browserToProxyChannel.write(
-                    ChannelBuffers.wrappedBuffer(new byte[]{in.readByte()}));
-            }
-            */
+            NettyUtils.copyByteBufToChannel(in, this.browserToProxyChannel);
         }
 
         @Override
