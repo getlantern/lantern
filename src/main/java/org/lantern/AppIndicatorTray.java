@@ -112,6 +112,7 @@ public class AppIndicatorTray implements SystemTray {
 
     @Override
     public void createTray() {
+        // TODO share menu item strings with SystemTrayImpl.java
 
         /*uniqueApp = libunique.unique_app_new("org.lantern.lantern", null);
         if (libunique.unique_app_is_running(uniqueApp)) {
@@ -127,7 +128,7 @@ public class AppIndicatorTray implements SystemTray {
         libgtk.gtk_menu_shell_append(menu, connectionStatusItem);
         libgtk.gtk_widget_show_all(connectionStatusItem);
         
-        dashboardItem = libgtk.gtk_menu_item_new_with_label("Open Dashboard");
+        dashboardItem = libgtk.gtk_menu_item_new_with_label("Show Lantern"); // XXX i18n
         dashboardItemCallback = new Gobject.GCallback() {
             @Override
             public void callback(Pointer instance, Pointer data) {
@@ -141,7 +142,7 @@ public class AppIndicatorTray implements SystemTray {
         
         //updateItem = Gtk.gtk_menu_item_new_with_label();
         
-        quitItem = libgtk.gtk_menu_item_new_with_label("Quit");
+        quitItem = libgtk.gtk_menu_item_new_with_label("Quit Lantern"); // XXX i18n
         quitItemCallback = new Gobject.GCallback() {
             @Override
             public void callback(Pointer instance, Pointer data) {
