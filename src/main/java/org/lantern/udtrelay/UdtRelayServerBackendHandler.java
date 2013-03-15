@@ -7,7 +7,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundByteHandlerAdapter;
 
-import org.lantern.LanternUtils;
+import org.lantern.util.NettyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class UdtRelayServerBackendHandler extends ChannelInboundByteHandlerAdapt
     public void channelInactive(final ChannelHandlerContext ctx) 
         throws Exception {
         log.debug("Closing inactive inbound channel: {}", inboundChannel);
-        LanternUtils.closeOnFlush(inboundChannel);
+        NettyUtils.closeOnFlush(inboundChannel);
     }
 
     @Override
@@ -64,6 +64,6 @@ public class UdtRelayServerBackendHandler extends ChannelInboundByteHandlerAdapt
         final Throwable cause) throws Exception {
         cause.printStackTrace();
         log.debug("Closing channel with error", cause);
-        LanternUtils.closeOnFlush(ctx.channel());
+        NettyUtils.closeOnFlush(ctx.channel());
     }
 }

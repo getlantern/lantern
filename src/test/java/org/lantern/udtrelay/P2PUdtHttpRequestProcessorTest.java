@@ -277,7 +277,8 @@ public class P2PUdtHttpRequestProcessorTest {
         t.start();
         if (udt) {
             // Just sleep if it's UDT...
-            Thread.sleep(800);
+            //Thread.sleep(800);
+            Thread.yield();
         } else if (!LanternUtils.waitForServer(localRelayPort, 6000)) {
             fail("Could not start relay server!!");
         }
@@ -288,32 +289,23 @@ public class P2PUdtHttpRequestProcessorTest {
         return new ProxyTracker() {
             
             @Override
-            public void stop() {
-                // TODO Auto-generated method stub
-                
-            }
+            public void stop() {}
             
             @Override
-            public void start() throws Exception {
-                // TODO Auto-generated method stub
-                
-            }
+            public void start() throws Exception {}
             
             @Override
             public boolean hasProxy() {
-                // TODO Auto-generated method stub
                 return false;
             }
             
             @Override
             public ProxyHolder getProxy() {
-                // TODO Auto-generated method stub
                 return null;
             }
             
             @Override
             public ProxyHolder getLaeProxy() {
-                // TODO Auto-generated method stub
                 return null;
             }
             
@@ -324,80 +316,58 @@ public class P2PUdtHttpRequestProcessorTest {
             
             @Override
             public void onError(URI peerUri) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void onCouldNotConnectToPeer(URI peerUri) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void onCouldNotConnect(ProxyHolder proxyAddress) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void removePeer(URI uri) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public boolean isEmpty() {
-                // TODO Auto-generated method stub
                 return false;
             }
             
             @Override
             public boolean hasJidProxy(URI uri) {
-                // TODO Auto-generated method stub
                 return false;
             }
             
             @Override
             public void clearPeerProxySet() {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void clear() {
-                // TODO Auto-generated method stub
                 
             }
             
             @Override
             public void addProxy(InetSocketAddress iae) {
-                // TODO Auto-generated method stub
                 
             }
             
             @Override
             public void addProxy(String hostPort) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void addLaeProxy(String cur) {
-                // TODO Auto-generated method stub
-                
             }
             
             @Override
             public void addJidProxy(URI jid) {
-                // TODO Auto-generated method stub
-                
             }
         };
     }

@@ -148,7 +148,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         if (cf == null) {
             return;
         }
-        LanternUtils.closeOnFlush(cf.channel());
+        NettyUtils.closeOnFlush(cf.channel());
         this.clientBootstrap.shutdown();
     }
     

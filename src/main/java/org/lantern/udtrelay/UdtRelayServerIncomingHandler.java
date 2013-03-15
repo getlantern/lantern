@@ -22,6 +22,7 @@ import java.net.Socket;
 
 import org.apache.commons.io.IOUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.util.NettyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,7 @@ public class UdtRelayServerIncomingHandler
             log.error("Socket not connected?");
             log.debug("Failed to flush data?");
             IOUtils.closeQuietly(sock);
-            ctx.channel().close();
+            NettyUtils.closeOnFlush(ctx.channel());
         }
     }
     
@@ -135,7 +136,7 @@ public class UdtRelayServerIncomingHandler
             log.warn("Outbound channel connection failed!");
             // Close the connection if the connection attempt has 
             // failed.
-            inboundChannel.close();
+            NettyUtils.closeOnFlush(inboundChannel);
         }
         
         readFromSocketThread(inboundChannel);
@@ -157,15 +158,7 @@ public class UdtRelayServerIncomingHandler
                     log.warn("Error copying socket data on", t);
                 } finally {
                     // Flush to be sure we've written everything.
-                    inboundChannel.flush().addListener(new ChannelFutureListener() {
-                        @Override
-                        public void operationComplete(final ChannelFuture cf) 
-                            throws Exception {
-                            log.info("Closing inbound channel on flush");
-                            inboundChannel.close();
-                        }
-                    });
-                    IOUtils.closeQuietly(is);
+                    NettyUtils.closeOnFlush(inboundChannel);
                     
                     // This happens on JVM shutdown, for example.
                     log.info("Closing socket...already closed streams...");
