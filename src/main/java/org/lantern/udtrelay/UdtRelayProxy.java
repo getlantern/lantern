@@ -5,7 +5,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
 
@@ -67,21 +66,6 @@ public class UdtRelayProxy {
         } finally {
             // Shut down all event loops to terminate all threads.
             boot.shutdown();
-        }
-    }
-    
-    public void runTcp() throws Exception {
-        // Configure the bootstrap.
-        final ServerBootstrap sb = new ServerBootstrap();
-        try {
-            sb.group(new NioEventLoopGroup(), new NioEventLoopGroup())
-                .channel(NioServerSocketChannel.class)
-                .childHandler(new UdtRelayInitializer(destinationPort))
-                .childOption(ChannelOption.AUTO_READ, false)
-                .bind(local).sync().channel().closeFuture().sync();
-                //.bind("127.0.0.1", localPort).sync().channel();
-        } finally {
-            sb.shutdown();
         }
     }
 }

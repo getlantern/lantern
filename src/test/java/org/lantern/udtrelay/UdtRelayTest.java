@@ -594,7 +594,8 @@ public class UdtRelayTest {
                     if (udt) {
                         relay.run();
                     } else {
-                        relay.runTcp();
+                        //relay.runTcp();
+                        throw new Error("Not running UDT?");
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("Error running server", e);

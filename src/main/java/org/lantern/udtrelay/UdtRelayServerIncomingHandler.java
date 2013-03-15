@@ -22,7 +22,6 @@ import java.net.Socket;
 
 import org.apache.commons.io.IOUtils;
 import org.lantern.LanternClientConstants;
-import org.lantern.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +141,8 @@ public class UdtRelayServerIncomingHandler
         readFromSocketThread(inboundChannel);
     }
     
-    private void readFromSocketThread(final Channel inboundChannel) throws IOException {
+    private void readFromSocketThread(final Channel inboundChannel) 
+        throws IOException {
         final InputStream is = this.sock.getInputStream();
         
         final Runnable runner = new Runnable() {
@@ -186,8 +186,8 @@ public class UdtRelayServerIncomingHandler
         int n = 0;
         while (-1 != (n = input.read(buffer))) {
             final ByteBuf wrapped = Unpooled.wrappedBuffer(buffer, 0, n);
-            log.debug("Writing to inbound channel: {}", 
-                wrapped.toString(LanternConstants.UTF8));
+            //log.debug("Writing to inbound channel: {}", 
+            //    wrapped.toString(LanternConstants.UTF8));
             inboundChannel.write(wrapped);
             
             // We need to flush and sync here, as otherwise the buffer will
