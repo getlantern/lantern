@@ -113,7 +113,6 @@ angular.module('app.i18n', [])
       AUTO_PROXY: 'Lantern will manage your system proxy settings automatically.',
       SYSTEM_PROXY_FALSE: 'I will manually configure my browser to use Lantern.',
       PAC_FILE_LOC: 'Lantern PAC file:',
-      URL_CHANGE_WARNING: 'This URL changes when Lantern is restarted.',
       SYSTEM_PROXY_ERROR: 'Proxy configuration failed',
       FINISHED_TITLE: 'Finished!',
       FINISHED_PROMPT: 'Thank you for joining Lantern. Your participation at this early stage is invaluable.',
