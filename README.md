@@ -78,7 +78,7 @@ The scripts that build the installers expect the described files in the correspo
     # OS X install4j license certificate.
     ../secure/bns-osx-cert-developer-id-application.p12
 
-In addition, install4jc expects the variables defined in env-vars.txt in the environment:
+In addition, install4jc expects the following variables defined in the environment:
 
     INSTALL4J_KEY
     INSTALL4J_MAC_PASS
