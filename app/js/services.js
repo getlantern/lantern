@@ -166,14 +166,7 @@ angular.module('app.services', [])
         // disconnect from the backend
         applyPatch(model, patch);
       }
-      try {
-        $rootScope.$apply();
-      //log.debug('[handleSync] applied patch', msg.data);
-      } catch(e) {
-        // probably too many $digest iterations
-        debugger; // heisenbug! leaving this here causes this to never happen
-        log.debug('$rootScope.$apply threw error:', e);
-      }
+      $rootScope.$apply();
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
