@@ -54,7 +54,7 @@ fi
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
 curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-git pull origin $curBranch || die '"git pull origin" failed?'
+git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
