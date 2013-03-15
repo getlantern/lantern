@@ -2,7 +2,6 @@ package org.lantern;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
@@ -20,7 +19,6 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.net.ssl.SSLEngine;
 
-import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler;
@@ -31,8 +29,6 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.lantern.udtrelay.ChannelAdapter;
 import org.lantern.util.Netty3ToNetty4HttpConnectRelayingHandler;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
@@ -115,7 +111,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                 cf = openOutgoingConnectChannel(browserToProxyChannel, request);
             } else {
                 try {
-                    cf = openOutgoingChannel(browserToProxyChannel, request);
+                    cf = openOutgoingChannel(browserToProxyChannel);
                     cf.channel().write(LanternUtils.encoder.encode(request)).sync();
                 } catch (final Exception e) {
                     log.error("Could not connect?", e);
@@ -162,8 +158,8 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         }
     }
     
-    private ChannelFuture openOutgoingChannel(final Channel browserToProxyChannel, 
-        final HttpRequest request) throws InterruptedException {
+    private ChannelFuture openOutgoingChannel(
+        final Channel browserToProxyChannel) throws InterruptedException {
         browserToProxyChannel.setReadable(false);
         
         final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
@@ -184,17 +180,9 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                     p.addLast("ssl", new SslHandler(engine));
                     p.addLast(
                         //new LoggingHandler(LogLevel.INFO),
-                        new HttpResponseClientHandler(
-                            browserToProxyChannel, request));
+                        new HttpResponseClientHandler(browserToProxyChannel));
                 }
             });
-        /*
-        try {
-            boot.bind(ft.getLocal()).sync();
-        } catch (final InterruptedException e) {
-            log.error("Could not sync on bind? Reuse address no working?", e);
-        }
-        */
         
         log.debug("Connecting to {}", this.fiveTuple);
         // Start the client.
@@ -203,8 +191,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         log.debug("Opened outgoing channel");
         
         return f;
-        // Wait until the connection is closed.
-        //f.channel().close();
 
     }
     
@@ -231,8 +217,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                     p.addLast("ssl", new SslHandler(engine));
                     p.addLast(
                         //new LoggingHandler(LogLevel.INFO),
-                        new HttpResponseClientHandler(
-                            browserToProxyChannel, request));
+                        new HttpResponseClientHandler(browserToProxyChannel));
                 }
             });
         /*
@@ -288,23 +273,8 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
         private final Channel browserToProxyChannel;
 
-        private HttpRequest httpRequest;
-        
-        private static final class HttpRequestConverter extends HttpRequestEncoder {
-            private Channel basicChannel = new ChannelAdapter();
-
-            public ByteBuf encode(final HttpRequest request) throws Exception {
-                final ChannelBuffer cb = (ChannelBuffer) super.encode(null, basicChannel, request);
-                return Unpooled.wrappedBuffer(cb.toByteBuffer());
-            }
-        };
-        
-        private static final HttpRequestConverter encoder = new HttpRequestConverter();
-
-        private HttpResponseClientHandler(
-            final Channel browserToProxyChannel, final HttpRequest request) {
+        private HttpResponseClientHandler(final Channel browserToProxyChannel) {
             this.browserToProxyChannel = browserToProxyChannel;
-            this.httpRequest = request;
         }
 
         @Override
@@ -312,20 +282,16 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             final io.netty.channel.ChannelHandlerContext ctx) throws Exception {
             log.debug("Channel active " + 
                NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
-            
-            //log.debug("Writing request...");
-            //ctx.write(encoder.encode(httpRequest));
-            //log.debug("Wrote request");
         }
 
         @Override
         public void inboundBufferUpdated(
             final io.netty.channel.ChannelHandlerContext ctx, final ByteBuf in) {
-            final String response = in.toString(LanternConstants.UTF8);
-            log.debug("INBOUND UPDATED!!\n"+response);
-            final ChannelBuffer wrapped = 
-                ChannelBuffers.wrappedBuffer(response.getBytes());
-            this.browserToProxyChannel.write(wrapped);
+            while (in.isReadable()) {
+                this.browserToProxyChannel.write(
+                    ChannelBuffers.wrappedBuffer(new byte[]{in.readByte()}));
+            }
+            
         }
 
         @Override
@@ -344,58 +310,4 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         }
 
     }
-
-    /*
-    private static class HttpResponseClientHandler extends ChannelInboundByteHandlerAdapter {
-
-        private static final Logger log = 
-                LoggerFactory.getLogger(HttpResponseClientHandler.class);
-
-
-        private final Channel browserToProxyChannel;
-
-        private HttpResponseClientHandler(
-            final Channel browserToProxyChannel, final HttpRequest request) {
-            this.browserToProxyChannel = browserToProxyChannel;
-        }
-
-        @Override
-        public void channelActive(final io.netty.channel.ChannelHandlerContext ctx) throws Exception {
-            log.debug("Channel active " + NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
-        }
-
-        @Override
-        public void inboundBufferUpdated(final io.netty.channel.ChannelHandlerContext ctx,
-                final ByteBuf in) {
-            
-            // TODO: We should be able to do this more efficiently than
-            // converting to a string and back out.
-            final String response = in.toString(LanternConstants.UTF8);
-            log.debug("INBOUND UPDATED!!\n"+response);
-            
-            synchronized (browserToProxyChannel) {
-                final ChannelBuffer wrapped = 
-                    ChannelBuffers.wrappedBuffer(response.getBytes());
-                this.browserToProxyChannel.write(wrapped);
-                this.browserToProxyChannel.notifyAll();
-            }
-        }
-
-        @Override
-        public void exceptionCaught(final io.netty.channel.ChannelHandlerContext ctx,
-                final Throwable cause) {
-            log.debug("close the connection when an exception is raised", cause);
-            ctx.close();
-        }
-
-        @Override
-        public ByteBuf newInboundBuffer(final io.netty.channel.ChannelHandlerContext ctx)
-                throws Exception {
-            log.debug("NEW INBOUND BUFFER");
-            return ctx.alloc().directBuffer(
-                    ctx.channel().config().getOption(ChannelOption.SO_RCVBUF));
-        }
-
-    }
-    */
 }

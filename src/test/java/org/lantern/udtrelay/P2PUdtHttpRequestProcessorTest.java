@@ -1,13 +1,18 @@
 package org.lantern.udtrelay;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.AbstractChannel;
 import org.jboss.netty.channel.AbstractChannelSink;
@@ -37,6 +42,7 @@ import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lastbamboo.common.offer.answer.IceConfig;
+import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.util.FiveTuple;
@@ -67,7 +73,7 @@ public class P2PUdtHttpRequestProcessorTest {
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
         final int relayPort = LanternUtils.randomPort();
-        startProxyServer(proxyPort, ksm);
+        startProxyServer(proxyPort, ksm, true);
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         
@@ -85,10 +91,11 @@ public class P2PUdtHttpRequestProcessorTest {
         // subsequent runs.
         for (int i = 0; i < 1; i++) {
             final String uri = 
-                "http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
+                //"http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
+                "http://lantern.s3.amazonaws.com/testFile.txt ";
             final HttpRequest request = 
                 new org.jboss.netty.handler.codec.http.DefaultHttpRequest(
-                    HttpVersion.HTTP_1_1, HttpMethod.HEAD, uri);
+                    HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
             
             request.addHeader("Host", "lantern.s3.amazonaws.com");
             request.addHeader("Proxy-Connection", "Keep-Alive");
@@ -97,34 +104,40 @@ public class P2PUdtHttpRequestProcessorTest {
         }
     }
     
-    private void startProxyServer(final int port, final LanternKeyStoreManager ksm) throws Exception {
+    private void startProxyServer(final int port, 
+        final LanternKeyStoreManager ksm, final boolean ssl) throws Exception {
         // We configure the proxy server to always return a cache hit with 
         // the same generic response.
-        ClientSocketChannelFactory clientChannelFactory;
         final Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                
-                org.jboss.netty.util.Timer timer = 
-                    new org.jboss.netty.util.HashedWheelTimer();
-                final HttpProxyServer server = new StatsTrackingDefaultHttpProxyServer(port,             
-                    new HttpResponseFilters() {
-                        @Override
-                        public HttpFilter getFilter(String arg0) {
-                            return null;
-                        }
-                    }, null, null,
-                    provideClientSocketChannelFactory(), timer,
-                    provideServerSocketChannelFactory(), ksm, null,
-                    null);
-                
-                System.out.println("About to start...");
-                try {
-                    server.start();
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                if (ssl) {
+                    org.jboss.netty.util.Timer timer = 
+                        new org.jboss.netty.util.HashedWheelTimer();
+                    final HttpProxyServer server = new StatsTrackingDefaultHttpProxyServer(port,
+                        new HttpResponseFilters() {
+                            @Override
+                            public HttpFilter getFilter(String arg0) {
+                                return null;
+                            }
+                        }, null, null,
+                        provideClientSocketChannelFactory(), timer,
+                        provideServerSocketChannelFactory(), ksm, null,
+                        null);
+                    try {
+                        server.start();
+                    } catch (final Exception e) {
+                        log.error("Error starting server!!", e);
+                    }
+                } else {
+                    final org.littleshoot.proxy.HttpProxyServer server =
+                            new DefaultHttpProxyServer(port);
+                    try {
+                        server.start();
+                    } catch (final Exception e) {
+                        log.error("Error starting server!!", e);
+                    }
                 }
             }
         }, "Relay-to-Proxy-Test-Thread");
@@ -177,8 +190,8 @@ public class P2PUdtHttpRequestProcessorTest {
         @Override public org.jboss.netty.channel.ChannelFuture write(final Object message) {
             final ChannelBuffer cb = (ChannelBuffer) message;
             final String msg = cb.toString(LanternConstants.UTF8);
-            log.debug("Got message on dummy client channel:\n{}", msg);
-            this.message = msg;
+            //log.debug("Got message on dummy client channel..");
+            this.message += msg;
             final org.jboss.netty.channel.ChannelFuture cf = super.write(message);
             //cf.setSuccess();
             return cf;
@@ -227,16 +240,20 @@ public class P2PUdtHttpRequestProcessorTest {
         
         assertTrue("Could not process request?", processed);
         int count = 0;
-        while (browserToProxyChannel.message.length() == 0 && count < 100) {
+        while (browserToProxyChannel.message.length() < 40000 && count < 100) {
             Thread.sleep(100);
             count++;
         }
         
-        //Thread.sleep(10000);
-        
-        //System.err.println(chan.message);
         assertTrue("Unexpected response: "+browserToProxyChannel.message, 
                 browserToProxyChannel.message.startsWith("HTTP/1.1 200 OK"));
+        
+        // Now check the body:
+        final String body = 
+            StringUtils.substringAfter(browserToProxyChannel.message, "\r\n\r\n");
+        assertEquals("Unexpected body length: "+body.length(), 40129, body.length());
+        final File test = new File("src/test/resources/testFile.txt");
+        assertEquals(IOUtils.toString(new FileInputStream(test)), body);
     }
     
     private void startRelay(final UdtRelayProxy relay, 
