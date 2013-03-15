@@ -81,6 +81,7 @@ public class Model {
     private Transfers transfers;
 
     private String serverPrefix = "";
+    private boolean isEverGetMode;
 
     @JsonView({Run.class})
     private Transfers getTransfers() {
@@ -312,4 +313,11 @@ public class Model {
         this.serverPrefix = serverPrefix;
     }
 
+    public boolean isEverGetMode() {
+        return isEverGetMode;
+    }
+
+    public void setEverGetMode(boolean b) {
+        this.isEverGetMode = b;
+    }
 }
