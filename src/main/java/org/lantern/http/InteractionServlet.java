@@ -329,7 +329,9 @@ public class InteractionServlet extends HttpServlet {
                     //  need to do more setup to switch to get mode from give mode
                     model.setSetupComplete(false);
                     this.internalState.advanceModal(null);
-                    Events.syncModal(model, Modal.proxiedSites);
+                    if (!model.isEverGetMode()) {
+                        Events.syncModal(model, Modal.proxiedSites);
+                    }
                     Events.syncModel(this.model);
                 }
                 handleGiveGet(Mode.get);
