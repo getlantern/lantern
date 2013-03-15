@@ -51,8 +51,8 @@ public class UdtRelayServerIncomingHandler
     @Override
     public void inboundBufferUpdated(final ChannelHandlerContext ctx,
             final ByteBuf in) throws IOException {
-        // Just write incoming bytes to the outgoing connection to the 
-        // destination server.
+        // Just write incoming HTTP request bytes to the outgoing connection 
+        // to the destination server.
         log.debug("Inbound buffer with bytes: {}", in.readableBytes());
         //final ByteBuf out = outboundChannel.outboundByteBuffer();
         //out.writeBytes(in);
@@ -67,6 +67,8 @@ public class UdtRelayServerIncomingHandler
                 if (read != incoming.length) {
                     log.warn("Didn't read all the available bytes?!?");
                 }
+                // Note this will typically be encrypted data here, but is the
+                // HTTP request.
                 os.write(incoming);
                 os.flush();
                 ctx.channel().read();
