@@ -6,39 +6,45 @@ import static org.junit.Assert.fail;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.AbstractChannel;
 import org.jboss.netty.channel.AbstractChannelSink;
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelConfig;
 import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelPipelineException;
 import org.jboss.netty.channel.ChannelSink;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.DefaultChannelConfig;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
+import org.lantern.HttpProxyServer;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
+import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.Launcher;
 import org.lantern.P2PUdtHttpRequestProcessor;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
-import org.lantern.TestUtils;
+import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lastbamboo.common.offer.answer.IceConfig;
-import org.littleshoot.proxy.DefaultHttpProxyServer;
-import org.littleshoot.proxy.HttpProxyServer;
-import org.littleshoot.proxy.ProxyCacheManager;
+import org.littleshoot.proxy.HttpFilter;
+import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class P2PUdtHttpRequestProcessorTest {
 
@@ -52,10 +58,16 @@ public class P2PUdtHttpRequestProcessorTest {
         
         final boolean udt = true;
         
+        IceConfig.setDisableUdpOnLocalNetwork(false);
+        IceConfig.setTcp(false);
+        Launcher.configureCipherSuites();
+        
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
+        
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
         final int relayPort = LanternUtils.randomPort();
-        startProxyServer(proxyPort);
+        startProxyServer(proxyPort, ksm);
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         
@@ -69,14 +81,11 @@ public class P2PUdtHttpRequestProcessorTest {
         // same thing (except a few specific HTTP headers) from the relay.
         //final String expected = hitProxyDirect(proxyPort);
         
-        IceConfig.setDisableUdpOnLocalNetwork(false);
-        IceConfig.setTcp(false);
-        Launcher.configureCipherSuites();
-        
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 1; i++) {
-            final String uri = "http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
+            final String uri = 
+                "http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
             final HttpRequest request = 
                 new org.jboss.netty.handler.codec.http.DefaultHttpRequest(
                     HttpVersion.HTTP_1_1, HttpMethod.HEAD, uri);
@@ -84,40 +93,39 @@ public class P2PUdtHttpRequestProcessorTest {
             request.addHeader("Host", "lantern.s3.amazonaws.com");
             request.addHeader("Proxy-Connection", "Keep-Alive");
             testRequestProcessing(createDummyChannel(), request, 
-                new FiveTuple(null, localRelayAddress, Protocol.TCP));
+                new FiveTuple(null, localRelayAddress, Protocol.TCP), ksm);
         }
     }
     
-    private void startProxyServer(final int port) throws Exception {
+    private void startProxyServer(final int port, final LanternKeyStoreManager ksm) throws Exception {
         // We configure the proxy server to always return a cache hit with 
         // the same generic response.
+        ClientSocketChannelFactory clientChannelFactory;
         final Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                final HttpProxyServer server = new DefaultHttpProxyServer(port, 
-                    new ProxyCacheManager() {
-                    
-                    @Override
-                    public boolean returnCacheHit(final HttpRequest request, 
-                           final Channel channel) {
-                        //System.err.println("GOT REQUEST:\n"+request);
-                        //channel.write(ChannelBuffers.wrappedBuffer(RESPONSE.getBytes()));
-                        //ProxyUtils.closeOnFlush(channel);
-                        //return true;
-                        return false;
-                    }
-                    
-                    @Override
-                    public Future<String> cache(final HttpRequest originalRequest,
-                        final org.jboss.netty.handler.codec.http.HttpResponse httpResponse,
-                        final Object response, ChannelBuffer encoded) {
-                        return null;
-                    }
-                });
+                
+                org.jboss.netty.util.Timer timer = 
+                    new org.jboss.netty.util.HashedWheelTimer();
+                final HttpProxyServer server = new StatsTrackingDefaultHttpProxyServer(port,             
+                    new HttpResponseFilters() {
+                        @Override
+                        public HttpFilter getFilter(String arg0) {
+                            return null;
+                        }
+                    }, null, null,
+                    provideClientSocketChannelFactory(), timer,
+                    provideServerSocketChannelFactory(), ksm, null,
+                    null);
                 
                 System.out.println("About to start...");
-                server.start();
+                try {
+                    server.start();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }, "Relay-to-Proxy-Test-Thread");
         t.setDaemon(true);
@@ -125,6 +133,26 @@ public class P2PUdtHttpRequestProcessorTest {
         if (!LanternUtils.waitForServer(port, 6000)) {
             fail("Could not start local test proxy server!!");
         }
+    }
+    
+    ServerSocketChannelFactory provideServerSocketChannelFactory() {
+        return new NioServerSocketChannelFactory(
+            Executors.newCachedThreadPool(
+                new ThreadFactoryBuilder().setNameFormat(
+                    "Lantern-Netty-Server-Boss-Thread-%d").setDaemon(true).build()),
+            Executors.newCachedThreadPool(
+                new ThreadFactoryBuilder().setNameFormat(
+                    "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
+    }
+    
+    ClientSocketChannelFactory provideClientSocketChannelFactory() {
+        return new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(
+                new ThreadFactoryBuilder().setNameFormat(
+                    "Lantern-Netty-Client-Boss-Thread-%d").setDaemon(true).build()),
+            Executors.newCachedThreadPool(
+                new ThreadFactoryBuilder().setNameFormat(
+                    "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
     }
     
     public static class DummyChannel extends AbstractChannel {
@@ -183,11 +211,13 @@ public class P2PUdtHttpRequestProcessorTest {
     
     private void testRequestProcessing(
         final DummyChannel browserToProxyChannel, final HttpRequest request,
-        final FiveTuple ft) throws Exception {
+        final FiveTuple ft, final LanternKeyStoreManager ksm) throws Exception {
         // First we need the proxy tracker to 
  
         final ProxyTracker proxyTracker = newProxyTracker(ft);
-        final LanternTrustStore trustStore = TestUtils.buildTrustStore();
+        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final String dummyId = "test@gmail.com/-lan-22LJDEE";
+        trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
         final P2PUdtHttpRequestProcessor processor =
                 new P2PUdtHttpRequestProcessor(proxyTracker, null, null, null, 
                     trustStore);
