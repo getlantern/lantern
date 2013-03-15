@@ -73,6 +73,7 @@ import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyCacheManager;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +81,7 @@ import com.barchart.udt.net.NetSocketUDT;
 
 public class UdtRelayTest {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final static Logger log = LoggerFactory.getLogger(UdtRelayTest.class);
     
     @Test
     public void test() throws Exception {
@@ -96,11 +97,11 @@ public class UdtRelayTest {
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         
-        /*
+        
         final UdtRelayProxy relay = 
             new UdtRelayProxy(localRelayAddress, proxyPort);
         startRelay(relay, localRelayAddress.getPort(), udt);
-        */
+        
         
         // Hit the proxy directly first so we can verify we get the exact
         // same thing (except a few specific HTTP headers) from the relay.
@@ -109,6 +110,8 @@ public class UdtRelayTest {
         IceConfig.setDisableUdpOnLocalNetwork(false);
         IceConfig.setTcp(false);
         Launcher.configureCipherSuites();
+        
+        
         TestUtils.load(true);
         final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
         xmpp.connect();
@@ -123,7 +126,7 @@ public class UdtRelayTest {
         assertTrue("Still no p2p client!!?!?!", client != null);
         
         // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
-        final String peer = "lanternftw@gmail.com/-lan-58ADF9F5";
+        final String peer = "lanternftw@gmail.com/-lan-4E2DD9D6";
         if (StringUtils.isBlank(peer)) {
             return;
         }
@@ -136,7 +139,7 @@ public class UdtRelayTest {
 
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 1; i++) {
             final String uri = "http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
             final HttpRequest request = 
                 new org.jboss.netty.handler.codec.http.DefaultHttpRequest(
@@ -146,6 +149,7 @@ public class UdtRelayTest {
             request.addHeader("Proxy-Connection", "Keep-Alive");
             if (udt) {
                 //hitRelayUdtNetty(relayPort, "");
+                //hitRelayUdtNetty(createDummyChannel(), request, new FiveTuple(null, localRelayAddress, Protocol.TCP));
                 hitRelayUdtNetty(createDummyChannel(), request, ft);
             } else {
                 hitRelayRaw(relayPort);
@@ -337,7 +341,9 @@ public class UdtRelayTest {
         
         @Override public org.jboss.netty.channel.ChannelFuture write(final Object message) {
             final ChannelBuffer cb = (ChannelBuffer) message;
-            this.message = cb.toString(LanternConstants.UTF8);
+            final String msg = cb.toString(LanternConstants.UTF8);
+            log.debug("Got message on dummy client channel:\n{}", msg);
+            this.message = msg;
             final org.jboss.netty.channel.ChannelFuture cf = super.write(message);
             //cf.setSuccess();
             return cf;
@@ -409,14 +415,18 @@ public class UdtRelayTest {
             
             // Start the client.
             final ChannelFuture f = 
-                boot.connect(ft.getRemote()).sync();
+                boot.connect(ft.getRemote(), ft.getLocal()).sync();
             
+            log.debug("Got connected!! Encoding request");
+            f.channel().write(encoder.encode(request)).sync();
             
             synchronized(browserToProxyChannel) {
                 if (browserToProxyChannel.message.length() == 0) {
                     browserToProxyChannel.wait(2000);
                 }
             }
+            
+            Thread.sleep(10000);
             
             //System.err.println(chan.message);
             assertTrue("Unexpected response: "+browserToProxyChannel.message, 
@@ -426,9 +436,22 @@ public class UdtRelayTest {
             
         } finally {
             // Shut down the event loop to terminate all threads.
-            boot.shutdown();
+            //boot.shutdown();
         }
     }
+    
+    private HttpRequest httpRequest;
+    
+    private static final class HttpRequestConverter extends HttpRequestEncoder {
+        private Channel basicChannel = new ChannelAdapter();
+
+        public ByteBuf encode(final HttpRequest request) throws Exception {
+            final ChannelBuffer cb = (ChannelBuffer) super.encode(null, basicChannel, request);
+            return Unpooled.wrappedBuffer(cb.toByteBuffer());
+        }
+    };
+    
+    private static final HttpRequestConverter encoder = new HttpRequestConverter();
     
     private static class HttpResponseClientHandler extends ChannelInboundByteHandlerAdapter {
 
@@ -439,30 +462,17 @@ public class UdtRelayTest {
 
         private final Channel browserToProxyChannel;
 
-        private HttpRequest httpRequest;
-        
-        private static final class HttpRequestConverter extends HttpRequestEncoder {
-            private Channel basicChannel = new ChannelAdapter();
-
-            public ByteBuf encode(final HttpRequest request) throws Exception {
-                final ChannelBuffer cb = (ChannelBuffer) super.encode(null, basicChannel, request);
-                return Unpooled.wrappedBuffer(cb.toByteBuffer());
-            }
-        };
-        
-        private static final HttpRequestConverter encoder = new HttpRequestConverter();
-
         private HttpResponseClientHandler(
             final Channel browserToProxyChannel, final HttpRequest request) {
             this.browserToProxyChannel = browserToProxyChannel;
-            this.httpRequest = request;
+            //this.httpRequest = request;
         }
 
         @Override
         public void channelActive(final ChannelHandlerContext ctx) throws Exception {
             log.info("Channel active " + NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
             
-            ctx.write(encoder.encode(httpRequest));
+            //ctx.write(encoder.encode(httpRequest));
         }
 
         @Override
