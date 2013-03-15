@@ -13,4 +13,13 @@ public class NettyUtils {
         out.write(ChannelBuffers.wrappedBuffer(data));
     }
 
+
+    /**
+     * Closes the specified channel after all queued write requests are flushed.
+     */
+    public static void closeOnFlush(final io.netty.channel.Channel ch) {
+        if (ch.isActive()) {
+            ch.flush().addListener(io.netty.channel.ChannelFutureListener.CLOSE);
+        }
+    }
 }
