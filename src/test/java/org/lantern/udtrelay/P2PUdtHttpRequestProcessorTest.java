@@ -266,7 +266,7 @@ public class P2PUdtHttpRequestProcessorTest {
                     if (udt) {
                         relay.run();
                     } else {
-                        relay.runTcp();
+                        throw new Error("Not running UDT?");
                     }
                 } catch (Exception e) {
                     throw new RuntimeException("Error running server", e);

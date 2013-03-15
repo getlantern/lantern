@@ -187,7 +187,8 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         log.debug("Connecting to {}", this.fiveTuple);
         // Start the client.
         final ChannelFuture f = 
-            clientBootstrap.connect(this.fiveTuple.getRemote(), this.fiveTuple.getLocal()).sync();
+            clientBootstrap.connect(this.fiveTuple.getRemote(), 
+                this.fiveTuple.getLocal()).sync();
         log.debug("Opened outgoing channel");
         
         return f;
@@ -287,11 +288,16 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         @Override
         public void inboundBufferUpdated(
             final io.netty.channel.ChannelHandlerContext ctx, final ByteBuf in) {
+            final byte[] data = new byte[in.readableBytes()];
+            in.readBytes(data);
+            this.browserToProxyChannel.write(
+                    ChannelBuffers.wrappedBuffer(data));
+            /*
             while (in.isReadable()) {
                 this.browserToProxyChannel.write(
                     ChannelBuffers.wrappedBuffer(new byte[]{in.readByte()}));
             }
-            
+            */
         }
 
         @Override
