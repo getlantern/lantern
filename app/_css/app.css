@@ -7256,6 +7256,7 @@ g.transferring .connection {
 }
 .tooltip.vis .tooltip-inner .header {
   font-weight: bold;
+  font-size: 14.7px;
 }
 .tooltip.vis .tooltip-inner .get .header, .tooltip.vis .tooltip-inner .get .type {
   color: #ffcc66;
@@ -7279,6 +7280,9 @@ g.transferring .connection {
 }
 .tooltip.vis .tooltip-inner .lastConnected {
   font-size: 10.5px;
+}
+.tooltip.vis .tooltip-inner .npeersEver {
+  color: #999999;
 }
 
 #footer {

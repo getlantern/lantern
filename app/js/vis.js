@@ -289,7 +289,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         mode: model.settings.mode,
         typeDesc: i18n(angular.uppercase(model.connectivity.type + model.settings.mode)),
         bpsUp: prettyBps(model.transfers.bpsUp)+' '+i18n('UP'),
-        bpsDn: prettyBps(model.transfers.bpsDn)+' '+i18n('DOWN'),
+        bpsDn: prettyBps(model.transfers.bpsDn)+' '+i18n('DN'),
         bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
         bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
         lastConnectedLabel: model.connectivity.lastConnected ? i18n('LAST_CONNECTED') : '',
@@ -312,7 +312,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       mode: peer.mode,
       typeDesc: i18n(angular.uppercase(peer.type + peer.mode)),
       bpsUp: peer.connected ? prettyBps(peer.bpsUp)+' '+i18n('UP') : '',
-      bpsDn: peer.connected ? prettyBps(peer.bpsDn)+' '+i18n('DOWN') : '',
+      bpsDn: peer.connected ? prettyBps(peer.bpsDn)+' '+i18n('DN') : '',
       bytesUp: prettyBytes(peer.bytesUp)+' '+i18n('SENT'),
       bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED'),
       lastConnectedLabel: peer.connected ? '' : i18n('LAST_CONNECTED'),
@@ -338,26 +338,37 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     '</div>'
   );
 
-  function hoverContentForCountry(alpha2, peerCount) {
+  function hoverContentForCountry(alpha2, country) {
     if (!alpha2) return;
-    return hoverContentForCountry.template({
+    return hoverContentForCountry.tmpl({
       countryName: i18n(alpha2),
-      npeersOnlineGet: i18n('NPEERS_ONLINE_GET', peerCount.get),
-      npeersOnlineGive: i18n('NPEERS_ONLINE_GIVE', peerCount.give)
+      npeersOnlineGet: i18n('NPEERS_ONLINE_GET', country.npeers.online.get),
+      npeersOnlineGive: i18n('NPEERS_ONLINE_GIVE', country.npeers.online.give),
+      npeersEver: i18n('NPEERS_EVER', getByPath(country, '/npeers/ever/giveGet')||0),
+      bpsUp: prettyBps(getByPath(country, '/bpsUp')||0)+' '+i18n('UP'),
+      bpsDn: prettyBps(getByPath(country, '/bpsDn')||0)+' '+i18n('DN'),
+      bytesUp: prettyBytes(getByPath(country, '/bytesUp')||0)+' '+i18n('UP_EVER'),
+      bytesDn: prettyBytes(getByPath(country, '/bytesDn')||0)+' '+i18n('DN_EVER')
     });
   }
-  hoverContentForCountry.template = _.template(
+  hoverContentForCountry.tmpl = _.template(
     '<div class="header">${countryName}</div>'+
     '<div class="give-colored">${npeersOnlineGive}</div>'+
-    '<div class="get-colored">${npeersOnlineGet}</div>'
+    '<div class="get-colored">${npeersOnlineGet}</div>'+
+    '<div class="npeersEver">${npeersEver}</div>'+
+    '<div class="stats">'+
+      '<div class="bps">${bpsUp} ${bpsDn}</div>'+
+      '<div class="bytes">${bytesUp} ${bytesDn}</div>'+
+    '</div>'
   );
 
   function updateCountry(alpha2, peerCount, animate) {
     var stroke = CONFIG.style.countryStrokeNoActivity,
-        censors = getByPath(model, '/countries/'+alpha2+'/censors'),
+        country = getByPath(model, '/countries/'+alpha2),
+        censors = country.censors,
         peersOnline = false,
         el = d3.selectAll('path.'+alpha2);
-    peerCount = peerCount || getByPath(model, '/countries/'+alpha2+'/npeers/online');
+    peerCount = peerCount || getByPath(country, '/npeers/online');
     if (peerCount) {
       peersOnline = peerCount.giveGet > 0;
       if (censors) {
@@ -373,9 +384,10 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       }
     } else {
       peerCount = {give: 0, get: 0, giveGet: 0};
+      country.npeers = {online: peerCount, ever: peerCount};
     }
     updateElement(el, {'stroke': stroke}, animate);
-    el.attr('data-original-title', hoverContentForCountry(alpha2, peerCount));
+    el.attr('data-original-title', hoverContentForCountry(alpha2, country));
     el.classed('censors', censors);
     el.classed('peersOnline', peersOnline);
   }
