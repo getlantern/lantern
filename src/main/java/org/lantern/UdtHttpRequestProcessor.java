@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * HTTP request processor that uses Netty 4 to communicate with a UDT socket
  * on a remote peer.
  */
-public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
+public class UdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -56,7 +56,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Bootstrap clientBootstrap = new Bootstrap();
 
-    public P2PUdtHttpRequestProcessor( 
+    public UdtHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
         final ChannelGroup channelGroup, final Stats stats,
         final LanternTrustStore trustStore) {
