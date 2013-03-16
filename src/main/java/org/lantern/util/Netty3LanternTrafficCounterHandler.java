@@ -4,19 +4,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
 import org.lantern.LanternClientConstants;
 
-public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
+public class Netty3LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
     implements LanternTrafficCounter {
 
     private final AtomicInteger connectedChannels = new AtomicInteger(0);
 
     private long lastConnected = 0L;
 
-    public LanternTrafficCounterHandler(final Timer timer, 
+    public Netty3LanternTrafficCounterHandler(final Timer timer, 
         final boolean connected) {
         super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
         
@@ -26,18 +25,6 @@ public class LanternTrafficCounterHandler extends GlobalTrafficShapingHandler
         if (connected) {
             this.connectedChannels.incrementAndGet();
             this.lastConnected = System.currentTimeMillis();
-        }
-    }
-
-    @Override
-    public void messageReceived(final ChannelHandlerContext ctx, 
-        final MessageEvent e) throws Exception {
-        try {
-            this.connectedChannels.incrementAndGet();
-            this.lastConnected = System.currentTimeMillis();
-        } finally {
-            // The message is then just passed to the next handler
-            super.messageReceived(ctx, e);
         }
     }
     

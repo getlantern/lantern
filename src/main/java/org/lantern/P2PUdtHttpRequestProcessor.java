@@ -27,7 +27,9 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.lantern.util.LanternTrafficCounter;
 import org.lantern.util.Netty3ToNetty4HttpConnectRelayingHandler;
+import org.lantern.util.Netty4LanternTrafficCounterHandler;
 import org.lantern.util.NettyUtils;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
@@ -60,7 +62,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final LanternTrustStore trustStore;
 
-    private GlobalTrafficShapingHandler trafficHandler;
+    private LanternTrafficCounter trafficHandler;
 
     private ProxyHolder proxyHolder;
 
@@ -87,7 +89,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         if (ph != null) {
             this.proxyHolder = ph;
             this.fiveTuple = ph.getFiveTuple();
-            //this.trafficHandler = ph.getTrafficShapingHandler();
+            this.trafficHandler = ph.getTrafficShapingHandler();
             return true;
         }
         log.info("No proxy!");
@@ -157,7 +159,8 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         final Channel browserToProxyChannel, final HttpRequest request) {
         browserToProxyChannel.setReadable(false);
         
-        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
+        final ThreadFactory connectFactory = 
+            Threads.newNonDaemonThreadFactory("connect");
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 
@@ -169,6 +172,15 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                 public void initChannel(final UdtChannel ch)
                         throws Exception {
                     final io.netty.channel.ChannelPipeline p = ch.pipeline();
+                    
+                    if (trafficHandler instanceof Netty4LanternTrafficCounterHandler) {
+                        p.addLast("trafficHandler", 
+                            (Netty4LanternTrafficCounterHandler)trafficHandler);
+                    } else{
+                        log.error("Not a GlobalTrafficShapingHandler??? "+
+                                trafficHandler.getClass());
+                    }
+                    
                     final SSLEngine engine = 
                         trustStore.getContext().createSSLEngine();
                     engine.setUseClientMode(true);

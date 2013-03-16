@@ -10,7 +10,7 @@ import org.lantern.LanternRosterEntry;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.util.LanternTrafficCounter;
-import org.lantern.util.LanternTrafficCounterHandler;
+import org.lantern.util.Netty3LanternTrafficCounterHandler;
 
 /**
  * Class containing data for an individual peer, including active connections,

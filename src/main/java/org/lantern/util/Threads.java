@@ -2,6 +2,7 @@ package org.lantern.util;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,7 +23,7 @@ public class Threads {
         });
     }
     
-    public static ThreadFactory newThreadFactory(final String name) {
+    public static ThreadFactory newNonDaemonThreadFactory(final String name) {
         final AtomicInteger counter = new AtomicInteger();
         return new ThreadFactory() {
             @Override
@@ -30,6 +31,24 @@ public class Threads {
                 return new Thread(run, name + '-' + counter.getAndIncrement());
             }
         };
+    }
+    
+    public static ThreadFactory newDaemonThreadFactory(final String name) {
+        final AtomicInteger counter = new AtomicInteger();
+        return new ThreadFactory() {
+            @Override
+            public Thread newThread(final Runnable run) {
+                final Thread t =
+                    new Thread(run, name + '-' + counter.getAndIncrement());
+                t.setDaemon(true);
+                return t;
+            }
+        };
+    }
+
+    public static ScheduledExecutorService newScheduledThreadPool(
+        final String name) {
+        return Executors.newScheduledThreadPool(4, newDaemonThreadFactory(name));
     }
 
 }

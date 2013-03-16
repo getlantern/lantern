@@ -12,10 +12,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class PlainTestRelayHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
+public class PlainTextRelayHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
 
     @Inject
-    public PlainTestRelayHttpProxyServer(final HttpRequestFilter requestFilter,
+    public PlainTextRelayHttpProxyServer(final HttpRequestFilter requestFilter,
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory, 
