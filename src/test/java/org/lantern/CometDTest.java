@@ -25,14 +25,12 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
-import org.lantern.state.StaticSettings;
 
 public class CometDTest {
 
     @Test
     public void test() throws Exception {
         final int port = LanternUtils.randomPort();
-        StaticSettings.setApiPort(port);
         //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
