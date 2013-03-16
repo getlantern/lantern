@@ -77,7 +77,6 @@ public class Model {
 
     private Transfers transfers;
 
-    private String serverPrefix = "";
     private boolean isEverGetMode;
 
     @JsonView({Run.class})
@@ -299,16 +298,6 @@ public class Model {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public String getServerPrefix() {
-        return serverPrefix;
-    }
-
-    public void setServerPrefix(String serverPrefix) {
-        assert serverPrefix != null;
-        assert serverPrefix.startsWith("/");
-        this.serverPrefix = serverPrefix;
     }
 
     public boolean isEverGetMode() {
