@@ -302,7 +302,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void addProxyWithChecks(final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
         final String fullProxyString, final Type type) {
-        if (this.model.getSettings().isTcp()) {
+        if (!this.model.getSettings().isTcp()) {
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
