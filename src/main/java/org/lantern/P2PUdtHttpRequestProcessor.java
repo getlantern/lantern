@@ -10,11 +10,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 
-import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
 
 import javax.net.ssl.SSLEngine;
@@ -24,8 +20,6 @@ import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.util.LanternTrafficCounter;
 import org.lantern.util.Netty3ToNetty4HttpConnectRelayingHandler;
@@ -36,22 +30,16 @@ import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * HTTP request processor that uses Netty 4 to communicate with a UDT socket
+ * on a remote peer.
+ */
 public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private io.netty.channel.ChannelFuture cf;
     
-    private final ClientSocketChannelFactory clientSocketChannelFactory;
-
-    /**
-     * These need to be synchronized with HTTP responses in the case where we
-     * need to issue multiple HTTP range requests in response to 206 responses.
-     * This is particularly relevant for LAE because of response size limits.
-     */
-    private final Queue<HttpRequest> httpRequests = 
-        new ConcurrentLinkedQueue<HttpRequest>();
-
     private final ProxyTracker proxyTracker;
 
     private FiveTuple fiveTuple;
@@ -70,11 +58,9 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
 
     public P2PUdtHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
-        final ClientSocketChannelFactory clientSocketChannelFactory,
         final ChannelGroup channelGroup, final Stats stats,
         final LanternTrustStore trustStore) {
         this.proxyTracker = proxyTracker;
-        this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
         this.stats = stats;
         this.trustStore = trustStore;
@@ -112,17 +98,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             cf = openOutgoingChannel(browserToProxyChannel, request);
         }
         return true;
-    }
-    
-    @Override
-    public boolean processChunk(final ChannelHandlerContext ctx, 
-        final HttpChunk chunk) throws IOException {
-        try {
-            cf.channel().write(NettyUtils.encoder.encode(chunk));
-            return true;
-        } catch (final Exception e) {
-            throw new IOException("Could not write chunk?", e);
-        }
     }
 
     @Override
@@ -191,7 +166,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                 }
             });
         // Start the client.
-        final ChannelFuture destinationConnect = 
+        final ChannelFuture connectFuture = 
             this.clientBootstrap.connect(this.fiveTuple.getRemote(), 
                 this.fiveTuple.getLocal());
         
@@ -201,16 +176,15 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         remove(browserPipeline, "decoder");
         remove(browserPipeline, "handler");
         remove(browserPipeline, "encoder");
-
+        browserPipeline.addLast("handler", 
+            new Netty3ToNetty4HttpConnectRelayingHandler(connectFuture.channel(), 
+                channelGroup));
         
-        destinationConnect.addListener(new ChannelFutureListener() {
+        connectFuture.addListener(new ChannelFutureListener() {
             
             @Override
             public void operationComplete(final ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-                    browserPipeline.addLast("handler", 
-                            new Netty3ToNetty4HttpConnectRelayingHandler(cf.channel(), 
-                                channelGroup));
                     future.channel().write(NettyUtils.encoder.encode(request));
                     // we're using HTTP connect here, so we need
                     // to remove the encoder and start reading
@@ -221,10 +195,13 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                     
                     // Begin to accept incoming traffic.
                     browserToProxyChannel.setReadable(true);
+                } else {
+                    browserToProxyChannel.close();
+                    proxyTracker.onCouldNotConnect(proxyHolder);
                 }
             }
         });
-        return destinationConnect;
+        return connectFuture;
     }
     
     private static class HttpResponseClientHandler 

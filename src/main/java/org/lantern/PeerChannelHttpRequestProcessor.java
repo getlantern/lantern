@@ -15,7 +15,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
@@ -155,12 +154,14 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
             new RelayToBrowserHandler(browserToProxyChannel));
     }
 
+    /*
     @Override
     public boolean processChunk(final ChannelHandlerContext ctx, 
         final HttpChunk chunk) throws IOException {
         Channels.write(peerChannel, chunk);
         return true;
     }
+    */
 
     @Override
     public void close() {

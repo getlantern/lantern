@@ -104,11 +104,9 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Inject
     public DefaultProxyTracker(final Model model,
-        //final PeerProxyManager trustedPeerProxyManager,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
         final XmppHandler xmppHandler) {
         this.model = model;
-        //this.peerProxyManager = trustedPeerProxyManager;
         this.peerFactory = peerFactory;
         this.timer = timer;
         this.xmppHandler = xmppHandler;
@@ -131,7 +129,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("Not loading proxies in give mode");
             return;
         }
-        /*
         // Add all the stored proxies.
         final Collection<String> saved = this.model.getSettings().getProxies();
         log.debug("Proxy set is: {}", saved);
@@ -143,15 +140,14 @@ public class DefaultProxyTracker implements ProxyTracker {
                 addProxy(proxy);
             }
         }
-        */
     }
 
     private void addFallbackProxy() {
-        /*
-        addProxy(LanternClientConstants.FALLBACK_SERVER_HOST, 
-            Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), 
-            Type.cloud);
-            */
+        if (this.model.getSettings().isTcp()) {
+            addProxy(LanternClientConstants.FALLBACK_SERVER_HOST, 
+                Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), 
+                Type.cloud);
+        }
     }
 
     @Override
@@ -216,7 +212,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
     
     private void addProxy(final String host, final int port, final Type type) {
-        /*
         final InetSocketAddress isa = LanternUtils.isa(host, port);
         if (this.model.getSettings().getMode() == Mode.give) {
             log.debug("Not adding proxy in give mode");
@@ -224,9 +219,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         
         addProxyWithChecks(proxySet, proxies, 
-            new ProxyHolder(host, isa, trafficTracker()),
+            new ProxyHolder(host, isa, netty3TrafficCounter()),
                 host+":"+port, type);
-                */
     }
     
     private ProxyHolder getProxy(final Queue<ProxyHolder> queue) {
@@ -308,6 +302,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void addProxyWithChecks(final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
         final String fullProxyString, final Type type) {
+        if (this.model.getSettings().isTcp()) {
+            log.debug("Not checking proxy when not running with TCP");
+            return;
+        }
         if (set.contains(ph)) {
             log.debug("We already know about proxy "+ph+" in {}", set);
             return;
