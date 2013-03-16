@@ -84,6 +84,7 @@ public class LanternModule extends AbstractModule {
         bind(MessageService.class).to(SwtMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
         
+        bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
@@ -105,14 +106,14 @@ public class LanternModule extends AbstractModule {
         bind(LanternTrustStore.class);
         bind(LanternHttpClient.class);
         bind(SslHttpProxyServer.class);
-        bind(PlainTestRelayHttpProxyServer.class);
+        bind(PlainTextRelayHttpProxyServer.class);
         bind(PhotoServlet.class);
         bind(LanternFeedback.class);
         
         bind(Censored.class).to(DefaultCensored.class);
         bind(ProxyTracker.class).to(DefaultProxyTracker.class);
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
-        bind(PeerProxyManager.class).to(DefaultPeerProxyManager.class);
+        //bind(PeerProxyManager.class).to(DefaultPeerProxyManager.class);
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);

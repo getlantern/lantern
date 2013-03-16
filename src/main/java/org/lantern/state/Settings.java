@@ -61,6 +61,10 @@ public class Settings {
     private boolean useAnonymousPeers = true;
 
     private boolean useCentralProxies = true;
+    
+    private boolean tcp = true;
+    
+    private boolean udp = true;
 
     private Set<String> stunServers = new HashSet<String>();
 
@@ -353,5 +357,23 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public void setRunAtSystemStart(boolean runOnSystemStartup) {
         this.runAtSystemStart = runOnSystemStartup;
+    }
+
+    @JsonIgnore
+    public boolean isTcp() {
+        return tcp;
+    }
+
+    public void setTcp(boolean tcp) {
+        this.tcp = tcp;
+    }
+
+    @JsonIgnore
+    public boolean isUdp() {
+        return udp;
+    }
+
+    public void setUdp(boolean udp) {
+        this.udp = udp;
     }
 }

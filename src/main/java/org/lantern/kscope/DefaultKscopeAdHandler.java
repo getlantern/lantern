@@ -1,6 +1,9 @@
 package org.lantern.kscope;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
@@ -31,6 +34,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
      */
     private final ConcurrentHashMap<String, LanternKscopeAdvertisement> awaitingCerts = 
         new ConcurrentHashMap<String, LanternKscopeAdvertisement>();
+    
+    private final Set<LanternKscopeAdvertisement> processedAds =
+            new HashSet<LanternKscopeAdvertisement>();
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
@@ -47,24 +53,31 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     }
     
     @Override
-    public void handleAd(final String from, 
+    public boolean handleAd(final String from, 
             final LanternKscopeAdvertisement ad) {
         log.debug("*** got kscope ad from {} for {}", from, ad.getJid());
-        awaitingCerts.put(ad.getJid(), ad);
+        final LanternKscopeAdvertisement existing = 
+            awaitingCerts.put(ad.getJid(), ad);
 
+        if (existing != null) {
+            if (existing.equals(ad)) {
+                log.debug("Ignoring identical kscope ad - already processed");
+                return false;
+            }
+        }
         // do we want to relay this?
         int inboundTtl = ad.getTtl();
         if(inboundTtl <= 0) {
             log.debug("End of the line for kscope ad for {} from {}.", 
                 ad.getJid(), from
             );
-            return;
+            return false;
         }
         TrustGraphNodeId nid = new BasicTrustGraphNodeId(ad.getJid());
         TrustGraphNodeId nextNid = routingTable.getNextHop(nid);
         if(nextNid == null) {
             log.error("Could not relay ad: Node ID not in routing table");
-            return;
+            return false;
         }
         LanternKscopeAdvertisement relayAd = 
             LanternKscopeAdvertisement.makeRelayAd(ad);
@@ -77,7 +90,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
 
         final TrustGraphNode tgn = 
             new LanternTrustGraphNode(xmppHandler);
+        
         tgn.sendAdvertisement(message, nextNid, relayAd.getTtl()); 
+        return true;
     }
     
     @Override
@@ -86,25 +101,36 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             this.trustStore.addBase64Cert(jid, base64Cert);
         } catch (final IOException e) {
             log.error("Could not add cert?", e);
+            return;
         }
         
-        final LanternKscopeAdvertisement ad = awaitingCerts.get(jid);
+        final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
         if (ad != null) {
             if (ad.hasMappedEndpoint()) {
                 this.proxyTracker.addProxy(
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
             } else {
-                this.proxyTracker.addJidProxy(ad.getJid());
+                this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
             }
+            
+            // Also add the local network advertisement in case they're on
+            // the local network.
             this.proxyTracker.addProxy(
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
-            awaitingCerts.remove(jid);
+            processedAds.add(ad);
         } else {
-            // This could happen if we negotiated certs in some way other than
-            // in response to a kscope ad, such as for peers from the 
-            // controller.
-            log.info("No ad for cert?");
-            this.proxyTracker.addJidProxy(jid);
+            final URI uri = LanternUtils.newURI(jid);
+            if (processedAds.contains(ad) && this.proxyTracker.hasJidProxy(uri)) {
+                log.debug("Ignoring cert from peer we already have: {}", uri);
+                return;
+            } else {
+                // This could happen if we negotiated certs in some way other 
+                // than in response to a kscope ad, such as for peers from the 
+                // controller or just peers from the roster who we haven't 
+                // exchanged ads with yet.
+                log.debug("No ad for cert?");
+                this.proxyTracker.addJidProxy(uri);
+            }
         }
     }
 
