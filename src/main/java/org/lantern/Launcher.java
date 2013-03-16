@@ -843,8 +843,12 @@ public class Launcher {
         set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
         set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
         
-        IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
-        IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
+        final boolean tcp = parseOptionDefaultTrue(cmd, OPTION_TCP);
+        final boolean udp = parseOptionDefaultTrue(cmd, OPTION_UDP);
+        IceConfig.setTcp(tcp);
+        IceConfig.setUdp(udp);
+        set.setTcp(tcp);
+        set.setUdp(udp);
         
         /*
         if (cmd.hasOption(OPTION_USER)) {

@@ -16,8 +16,8 @@ public interface HttpRequestProcessor {
     boolean processRequest(Channel browserToProxyChannel,
         ChannelHandlerContext ctx, HttpRequest request) throws IOException;
 
-    boolean processChunk(ChannelHandlerContext ctx, HttpChunk chunk) 
-        throws IOException;
+    //boolean processChunk(ChannelHandlerContext ctx, HttpChunk chunk) 
+      //  throws IOException;
 
     void close();
 
