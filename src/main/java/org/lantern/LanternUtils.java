@@ -29,7 +29,6 @@ import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,8 +47,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
@@ -86,36 +83,6 @@ public class LanternUtils {
 
     public static boolean isDevMode() {
         return LanternClientConstants.VERSION.equals("lantern_version_tok");
-    }
-
-    /**
-     * Helper method that ensures all written requests are properly recorded.
-     *
-     * @param request The request.
-     */
-    public static void writeRequest(final Queue<HttpRequest> httpRequests,
-        final HttpRequest request, final ChannelFuture cf) {
-        httpRequests.add(request);
-        LOG.debug("Writing request: {}", request);
-        LanternUtils.genericWrite(request, cf);
-    }
-
-    public static void genericWrite(final Object message,
-        final ChannelFuture future) {
-        final Channel ch = future.getChannel();
-        if (ch.isConnected()) {
-            ch.write(message);
-        } else {
-            future.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(final ChannelFuture cf)
-                    throws Exception {
-                    if (cf.isSuccess()) {
-                        ch.write(message);
-                    }
-                }
-            });
-        }
     }
 
     /*
@@ -721,11 +688,11 @@ public class LanternUtils {
     }
     
 
-    public static void waitForServer(final int port) {
-        waitForServer(port, 60 * 1000);
+    public static boolean waitForServer(final int port) {
+        return waitForServer(port, 60 * 1000);
     }
 
-    public static void waitForServer(final int port, final int millis) {
+    public static boolean waitForServer(final int port, final int millis) {
         final long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < millis) {
             final Socket sock = new Socket();
@@ -734,7 +701,7 @@ public class LanternUtils {
                     new InetSocketAddress("127.0.0.1", port);
                 sock.connect(isa, 2000);
                 sock.close();
-                return;
+                return true;
             } catch (final IOException e) {
             }
             try {
@@ -745,6 +712,7 @@ public class LanternUtils {
         }
         LOG.error("Never able to connect with local server! " +
             "Maybe couldn't bind?");
+        return false;
     }
 
     /*
