@@ -1,7 +1,7 @@
 package org.lantern.udtrelay;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,8 +21,6 @@ import org.jboss.netty.channel.ChannelPipelineException;
 import org.jboss.netty.channel.ChannelSink;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.DefaultChannelConfig;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -37,10 +34,10 @@ import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.Launcher;
-import org.lantern.UdtHttpRequestProcessor;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
+import org.lantern.UdtHttpRequestProcessor;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
@@ -49,8 +46,6 @@ import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class UdtHttpRequestProcessorTest {
 
@@ -132,15 +127,16 @@ public class UdtHttpRequestProcessorTest {
                 if (ssl) {
                     org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
-                    final HttpProxyServer server = new StatsTrackingDefaultHttpProxyServer(port,
+                    final HttpProxyServer server = 
+                        new StatsTrackingDefaultHttpProxyServer(port,
                         new HttpResponseFilters() {
                             @Override
                             public HttpFilter getFilter(String arg0) {
                                 return null;
                             }
                         }, null, null,
-                        provideClientSocketChannelFactory(), timer,
-                        provideServerSocketChannelFactory(), ksm, null,
+                        new NioClientSocketChannelFactory(), timer,
+                        new NioServerSocketChannelFactory(), ksm, null,
                         null);
                     try {
                         server.start();
@@ -163,26 +159,6 @@ public class UdtHttpRequestProcessorTest {
         if (!LanternUtils.waitForServer(port, 6000)) {
             fail("Could not start local test proxy server!!");
         }
-    }
-    
-    ServerSocketChannelFactory provideServerSocketChannelFactory() {
-        return new NioServerSocketChannelFactory(
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Server-Boss-Thread-%d").setDaemon(true).build()),
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
-    }
-    
-    ClientSocketChannelFactory provideClientSocketChannelFactory() {
-        return new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Client-Boss-Thread-%d").setDaemon(true).build()),
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
     }
     
     public static class DummyChannel extends AbstractChannel {

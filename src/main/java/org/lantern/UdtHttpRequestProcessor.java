@@ -148,12 +148,14 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                         throws Exception {
                     final io.netty.channel.ChannelPipeline p = ch.pipeline();
                     
-                    if (trafficHandler instanceof Netty4LanternTrafficCounterHandler) {
-                        p.addLast("trafficHandler", 
-                            (Netty4LanternTrafficCounterHandler)trafficHandler);
-                    } else{
-                        log.error("Not a GlobalTrafficShapingHandler??? "+
-                                trafficHandler.getClass());
+                    if (trafficHandler != null) {
+                        if (trafficHandler instanceof Netty4LanternTrafficCounterHandler) {
+                            p.addLast("trafficHandler", 
+                                (Netty4LanternTrafficCounterHandler)trafficHandler);
+                        } else{
+                            log.error("Not a GlobalTrafficShapingHandler??? "+
+                                    trafficHandler.getClass());
+                        }
                     }
                     
                     final SSLEngine engine = 
