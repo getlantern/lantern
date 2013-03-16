@@ -25,11 +25,7 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
 
@@ -55,24 +51,26 @@ import org.jboss.netty.channel.ChannelPipelineException;
 import org.jboss.netty.channel.ChannelSink;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.DefaultChannelConfig;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
-import org.lantern.DefaultXmppHandler;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
+import org.lantern.LanternKeyStoreManager;
+import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
-import org.lantern.Launcher;
+import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lantern.TestUtils;
 import org.lantern.util.Threads;
-import org.lastbamboo.common.offer.answer.IceConfig;
-import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
-import org.littleshoot.proxy.HttpProxyServer;
-import org.littleshoot.proxy.ProxyCacheManager;
+import org.littleshoot.proxy.HttpFilter;
+import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,25 +85,25 @@ public class UdtRelayTest {
         // The idea here is to start an HTTP proxy server locally that the UDT
         // relay relays to -- i.e. just like the real world setup.
         
-        final boolean udt = true;
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
         final int relayPort = LanternUtils.randomPort();
-        startProxyServer(proxyPort);
+        startProxyServer(proxyPort, ksm, true);
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         
         
         final UdtRelayProxy relay = 
             new UdtRelayProxy(localRelayAddress, proxyPort);
-        startRelay(relay, localRelayAddress.getPort(), udt);
+        startRelay(relay, localRelayAddress.getPort());
         
         
         // Hit the proxy directly first so we can verify we get the exact
         // same thing (except a few specific HTTP headers) from the relay.
         //final String expected = hitProxyDirect(proxyPort);
-        
+        /*
         IceConfig.setDisableUdpOnLocalNetwork(false);
         IceConfig.setTcp(false);
         Launcher.configureCipherSuites();
@@ -134,6 +132,7 @@ public class UdtRelayTest {
         final FiveTuple ft = LanternUtils.openOutgoingPeer(peerUri, 
                 xmpp.getP2PClient(), 
             new HashMap<URI, AtomicInteger>());
+            */
         
 
         // We do this a few times to make sure there are no issues with 
@@ -146,13 +145,10 @@ public class UdtRelayTest {
             
             request.addHeader("Host", "lantern.s3.amazonaws.com");
             request.addHeader("Proxy-Connection", "Keep-Alive");
-            if (udt) {
-                //hitRelayUdtNetty(relayPort, "");
-                //hitRelayUdtNetty(createDummyChannel(), request, new FiveTuple(null, localRelayAddress, Protocol.TCP));
-                hitRelayUdtNetty(createDummyChannel(), request, ft);
-            } else {
-                hitRelayRaw(relayPort);
-            }
+            //hitRelayUdtNetty(relayPort, "");
+            hitRelayUdtNetty(createDummyChannel(), request, 
+                new FiveTuple(null, localRelayAddress, Protocol.TCP), ksm);
+            //hitRelayUdtNetty(createDummyChannel(), request, ft);
         }
     }
     
@@ -199,36 +195,42 @@ public class UdtRelayTest {
             "Content-Length: 0\r\n" +
             "\r\n";
     
-    private void startProxyServer(final int port) throws Exception {
+    private void startProxyServer(final int port,
+        final LanternKeyStoreManager ksm, final boolean ssl) throws Exception {
         // We configure the proxy server to always return a cache hit with 
         // the same generic response.
         final Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                final HttpProxyServer server = new DefaultHttpProxyServer(port, 
-                    new ProxyCacheManager() {
-                    
-                    @Override
-                    public boolean returnCacheHit(final HttpRequest request, 
-                           final Channel channel) {
-                        //System.err.println("GOT REQUEST:\n"+request);
-                        //channel.write(ChannelBuffers.wrappedBuffer(RESPONSE.getBytes()));
-                        //ProxyUtils.closeOnFlush(channel);
-                        //return true;
-                        return false;
+                if (ssl) {
+                    org.jboss.netty.util.Timer timer = 
+                        new org.jboss.netty.util.HashedWheelTimer();
+                    final org.lantern.HttpProxyServer server = 
+                        new StatsTrackingDefaultHttpProxyServer(port,
+                        new HttpResponseFilters() {
+                            @Override
+                            public HttpFilter getFilter(String arg0) {
+                                return null;
+                            }
+                        }, null, null,
+                        new NioClientSocketChannelFactory(), timer,
+                        new NioServerSocketChannelFactory(), ksm, null,
+                        null);
+                    try {
+                        server.start();
+                    } catch (final Exception e) {
+                        log.error("Error starting server!!", e);
                     }
-                    
-                    @Override
-                    public Future<String> cache(final HttpRequest originalRequest,
-                        final org.jboss.netty.handler.codec.http.HttpResponse httpResponse,
-                        final Object response, ChannelBuffer encoded) {
-                        return null;
+                } else {
+                    final org.littleshoot.proxy.HttpProxyServer server =
+                            new DefaultHttpProxyServer(port);
+                    try {
+                        server.start();
+                    } catch (final Exception e) {
+                        log.error("Error starting server!!", e);
                     }
-                });
-                
-                System.out.println("About to start...");
-                server.start();
+                }
             }
         }, "Relay-to-Proxy-Test-Thread");
         t.setDaemon(true);
@@ -375,7 +377,7 @@ public class UdtRelayTest {
     
     private void hitRelayUdtNetty(
         final DummyChannel browserToProxyChannel, final HttpRequest request,
-        final FiveTuple ft) throws Exception {
+        final FiveTuple ft, final LanternKeyStoreManager ksm) throws Exception {
         browserToProxyChannel.setReadable(false);
         
         final Bootstrap boot = new Bootstrap();
@@ -384,6 +386,9 @@ public class UdtRelayTest {
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 
+        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final String dummyId = "test@gmail.com/-lan-22LJDEE";
+        trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
         try {
             boot.group(connectGroup)
                 .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
@@ -393,7 +398,8 @@ public class UdtRelayTest {
                     public void initChannel(final UdtChannel ch)
                             throws Exception {
                         final ChannelPipeline p = ch.pipeline();
-                        final SSLEngine engine = TestUtils.getTrustStore().getContext().createSSLEngine();
+                        final SSLEngine engine = 
+                            trustStore.getContext().createSSLEngine();
                         
                         //SSLEngine serverEngine = sslc.createSSLEngine();
                         engine.setUseClientMode(true);
@@ -585,18 +591,13 @@ public class UdtRelayTest {
     }
     
     private void startRelay(final UdtRelayProxy relay, 
-        final int localRelayPort, final boolean udt) throws Exception {
+        final int localRelayPort) throws Exception {
         final Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    if (udt) {
-                        relay.run();
-                    } else {
-                        //relay.runTcp();
-                        throw new Error("Not running UDT?");
-                    }
+                    relay.run();
                 } catch (Exception e) {
                     throw new RuntimeException("Error running server", e);
                 }
@@ -604,12 +605,8 @@ public class UdtRelayTest {
         }, "Relay-Test-Thread");
         t.setDaemon(true);
         t.start();
-        if (udt) {
-            // Just sleep if it's UDT...
-            Thread.sleep(800);
-        } else if (!LanternUtils.waitForServer(localRelayPort, 6000)) {
-            fail("Could not start relay server!!");
-        }
+        // Just sleep if it's UDT...
+        Thread.sleep(400);
     }
 
 }

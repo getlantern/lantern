@@ -60,7 +60,7 @@ public class RosterTest {
             
             // The presence notification in the sync event (see below) will have
             // updated our path variable here.
-            assertEquals("roster."+index, path.get());
+            assertEquals("roster/"+index, path.get());
             
             assertEquals(index, entry.getIndex());
             index++;
@@ -86,7 +86,7 @@ public class RosterTest {
             roster.presenceChanged(pres);
             // The presence notification in the sync event (see below) will have
             // updated our path variable here.
-            assertEquals("roster."+index, path.get());
+            assertEquals("roster/"+index, path.get());
             
             assertEquals(index, entry.getIndex());
             index++;
@@ -107,7 +107,7 @@ public class RosterTest {
             roster.presenceChanged(pres);
             // The presence notification in the sync event (see below) will have
             // updated our path variable here.
-            assertEquals("roster."+index, path.get());
+            assertEquals("roster/"+index, path.get());
             
             assertEquals(index, entry.getIndex());
             index++;
