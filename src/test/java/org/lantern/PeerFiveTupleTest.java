@@ -33,10 +33,9 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelConfig;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
+import org.lantern.util.NettyUtils;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -200,7 +199,7 @@ public class PeerFiveTupleTest {
         @Override
         public void channelActive(final io.netty.channel.ChannelHandlerContext ctx) throws Exception {
             log.debug("Channel active " + NioUdtProvider.socketUDT(ctx.channel()).toStringOptions());
-            ctx.write(LanternUtils.encoder.encode(httpRequest)).sync();
+            ctx.write(NettyUtils.encoder.encode(httpRequest)).sync();
         }
 
         @Override

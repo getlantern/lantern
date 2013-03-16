@@ -24,6 +24,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.lantern.util.LanternTrafficCounter;
+import org.lantern.util.NettyUtils;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
@@ -112,7 +113,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
         }
         if (!connect) {
             this.transformer.transform(request, proxyAddress);
-            LanternUtils.writeRequest(this.httpRequests, request, cf);
+            NettyUtils.writeRequest(this.httpRequests, request, cf);
         }
         return true;
     }

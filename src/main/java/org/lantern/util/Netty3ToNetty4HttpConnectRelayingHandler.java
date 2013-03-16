@@ -9,7 +9,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.lantern.LanternUtils;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +47,6 @@ public class Netty3ToNetty4HttpConnectRelayingHandler
         if (netty4Channel == null) {
             throw new NullPointerException("Relay channel is null!");
         }
-        if (channelGroup == null) {
-            throw new NullPointerException("Channel group is null!!");
-        }
         this.netty4RelayChannel = netty4Channel;
         this.channelGroup = channelGroup;
     }
@@ -69,7 +65,8 @@ public class Netty3ToNetty4HttpConnectRelayingHandler
                         LOG.debug("Finished writing data on CONNECT channel");
                     }
                 };
-            netty4RelayChannel.write(LanternUtils.channelBufferToByteBuf(msg)).addListener(logListener);
+            netty4RelayChannel.write(
+                NettyUtils.channelBufferToByteBuf(msg)).addListener(logListener);
         }
         else {
             LOG.debug("Channel not open. Connected? {}", netty4RelayChannel.isOpen());
@@ -83,7 +80,11 @@ public class Netty3ToNetty4HttpConnectRelayingHandler
         final ChannelStateEvent cse) throws Exception {
         final Channel ch = cse.getChannel();
         LOG.debug("New CONNECT channel opened from proxy to web: {}", ch);
-        this.channelGroup.add(ch);
+        
+        // Could be null for testing.
+        if (this.channelGroup != null) {
+            this.channelGroup.add(ch);
+        }
     }
 
     @Override
