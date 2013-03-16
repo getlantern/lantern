@@ -94,12 +94,16 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final String uri = request.getUri();
         log.debug("URI is: {}", uri);
         this.stats.incrementProxiedRequests();
+        boolean processed = false;
         try {
-            newRequestProcessor().processRequest(browserToProxyChannel, ctx, 
-                request);
+            processed = newRequestProcessor().processRequest(
+                browserToProxyChannel, ctx, request);
         } catch (final IOException e) {
-            newP2PRequestProcessor().processRequest(browserToProxyChannel, ctx, 
-                request);
+            processed = newP2PRequestProcessor().processRequest(
+                browserToProxyChannel, ctx, request);
+        }
+        if (!processed) {
+            ProxyUtils.closeOnFlush(ctx.getChannel());
         }
     }
 
