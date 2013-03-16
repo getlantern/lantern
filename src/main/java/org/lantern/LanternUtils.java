@@ -1,8 +1,5 @@
 package org.lantern;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -32,7 +29,6 @@ import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,8 +47,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
@@ -62,7 +56,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.lantern.state.StaticSettings;
-import org.lantern.udtrelay.ChannelAdapter;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -90,79 +83,6 @@ public class LanternUtils {
 
     public static boolean isDevMode() {
         return LanternClientConstants.VERSION.equals("lantern_version_tok");
-    }
-
-    /**
-     * Helper method that ensures all written requests are properly recorded.
-     *
-     * @param request The request.
-     */
-    public static void writeRequest(final Queue<HttpRequest> httpRequests,
-        final HttpRequest request, final org.jboss.netty.channel.ChannelFuture cf) {
-        httpRequests.add(request);
-        LOG.debug("Writing request: {}", request);
-        LanternUtils.genericWrite(request, cf);
-    }
-
-    public static void genericWrite(final Object message,
-        final ChannelFuture future) {
-        final Channel ch = future.getChannel();
-        if (ch.isConnected()) {
-            ch.write(message);
-        } else {
-            future.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(final ChannelFuture cf)
-                    throws Exception {
-                    if (cf.isSuccess()) {
-                        ch.write(message);
-                    }
-                }
-            });
-        }
-    }
-
-
-    public static ByteBuf channelBufferToByteBuf(final ChannelBuffer cb) {
-        return Unpooled.wrappedBuffer(cb.toByteBuffer());
-    }
-
-    static final class HttpRequestConverter extends HttpRequestEncoder {
-        private org.jboss.netty.channel.Channel basicChannel = new ChannelAdapter();
-
-        public ByteBuf encode(final Object msg) throws Exception {
-            final org.jboss.netty.buffer.ChannelBuffer cb = 
-                (org.jboss.netty.buffer.ChannelBuffer) super.encode(null, basicChannel, msg);
-            return Unpooled.wrappedBuffer(cb.toByteBuffer());
-        }
-    };
-    
-    public static final HttpRequestConverter encoder = new HttpRequestConverter();
-    
-    public static void writeRequest(final HttpRequest request, 
-            final io.netty.channel.ChannelFuture cf) 
-        throws Exception {
-        LOG.debug("Writing request: {}", request);
-        LanternUtils.genericWrite(encoder.encode(request), cf);
-    }
-    
-    public static void genericWrite(final ByteBuf message,
-        final io.netty.channel.ChannelFuture future) {
-        final io.netty.channel.Channel ch = future.channel();
-        if (ch.isOpen()) {
-            ch.write(message);
-        } else {
-            future.addListener(new io.netty.channel.ChannelFutureListener() {
-                
-                @Override
-                public void operationComplete(
-                    final io.netty.channel.ChannelFuture cf) throws Exception {
-                    if (cf.isSuccess()) {
-                        ch.write(message);
-                    }
-                }
-            });
-        }
     }
 
     /*

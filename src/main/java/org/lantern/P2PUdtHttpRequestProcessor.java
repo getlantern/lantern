@@ -19,7 +19,6 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.net.ssl.SSLEngine;
 
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -27,7 +26,6 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
-import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.util.Netty3ToNetty4HttpConnectRelayingHandler;
 import org.lantern.util.NettyUtils;
@@ -104,31 +102,13 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             return false;
         }
         log.debug("Processing request...");
-        final HttpMethod method = request.getMethod();
-        final boolean connect = method == HttpMethod.CONNECT;
-        
+        // Note we're able to just create this simple channel for both CONNECT
+        // and "normal" requests because we remove all encoders and decoders
+        // after the initial request on the connection and just relay in 
+        // both directions thereafter.
         if (cf == null) {
-            if (connect) {
-                cf = openOutgoingConnectChannel(browserToProxyChannel, request);
-            } else {
-                try {
-                    cf = openOutgoingChannel(browserToProxyChannel);
-                    cf.channel().write(LanternUtils.encoder.encode(request)).sync();
-                } catch (final Exception e) {
-                    log.error("Could not connect?", e);
-                    return false;
-                }
-            }
+            cf = openOutgoingChannel(browserToProxyChannel, request);
         }
-        /*
-        if (!connect) {
-            try {
-                LanternUtils.writeRequest(request, cf);
-            } catch (Exception e) {
-                return false;
-            }
-        }
-        */
         return true;
     }
     
@@ -136,7 +116,7 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
     public boolean processChunk(final ChannelHandlerContext ctx, 
         final HttpChunk chunk) throws IOException {
         try {
-            cf.channel().write(LanternUtils.encoder.encode(chunk));
+            cf.channel().write(NettyUtils.encoder.encode(chunk));
             return true;
         } catch (final Exception e) {
             throw new IOException("Could not write chunk?", e);
@@ -158,46 +138,22 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             cp.remove(name);
         }
     }
-    
+
+    /**
+     * Opens an outgoing channel to the destination proxy. Note we use this
+     * for both normal requests as well as HTTP CONNECT requests, as we
+     * remove all the encoders and decoders from both incoming and outgoing 
+     * channels and just act as a relay after the initial first request.
+     * Note that it is possible for a requester to call HTTP CONNECT in the
+     * middle of a persistent HTTP 1.1 connection, potentially causing 
+     * issues for remote proxies that don't support CONNECT, but in 
+     * practice this will rarely if ever happen.
+     * 
+     * @param browserToProxyChannel The clinet channel
+     * @param request The request
+     * @return The future for connecting to the destination site.
+     */
     private ChannelFuture openOutgoingChannel(
-        final Channel browserToProxyChannel) throws InterruptedException {
-        browserToProxyChannel.setReadable(false);
-        
-        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
-        final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
-                connectFactory, NioUdtProvider.BYTE_PROVIDER);
-
-        clientBootstrap.group(connectGroup)
-            .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
-            .option(ChannelOption.SO_REUSEADDR, true)
-            .handler(new ChannelInitializer<UdtChannel>() {
-                @Override
-                public void initChannel(final UdtChannel ch)
-                        throws Exception {
-                    final io.netty.channel.ChannelPipeline p = ch.pipeline();
-                    final SSLEngine engine = 
-                        trustStore.getContext().createSSLEngine();
-                    engine.setUseClientMode(true);
-                    p.addLast("ssl", new SslHandler(engine));
-                    p.addLast(
-                        //new LoggingHandler(LogLevel.INFO),
-                        new HttpResponseClientHandler(browserToProxyChannel));
-                }
-            });
-        
-        log.debug("Connecting to {}", this.fiveTuple);
-        // Start the client.
-        final ChannelFuture f = 
-            clientBootstrap.connect(this.fiveTuple.getRemote(), 
-                this.fiveTuple.getLocal()).sync();
-        log.debug("Opened outgoing channel");
-        
-        return f;
-
-    }
-    
-
-    private ChannelFuture openOutgoingConnectChannel(
         final Channel browserToProxyChannel, final HttpRequest request) {
         browserToProxyChannel.setReadable(false);
         
@@ -222,13 +178,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
                         new HttpResponseClientHandler(browserToProxyChannel));
                 }
             });
-        /*
-        try {
-            boot.bind(ft.getLocal()).sync();
-        } catch (final InterruptedException e) {
-            log.error("Could not sync on bind? Reuse address no working?", e);
-        }
-        */
         // Start the client.
         final ChannelFuture destinationConnect = 
             this.clientBootstrap.connect(this.fiveTuple.getRemote(), 
@@ -240,16 +189,17 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
         remove(browserPipeline, "decoder");
         remove(browserPipeline, "handler");
         remove(browserPipeline, "encoder");
-        browserPipeline.addLast("handler", 
-            new Netty3ToNetty4HttpConnectRelayingHandler(cf.channel(), 
-                this.channelGroup));
+
         
         destinationConnect.addListener(new ChannelFutureListener() {
             
             @Override
             public void operationComplete(final ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-                    future.channel().write(LanternUtils.encoder.encode(request));
+                    browserPipeline.addLast("handler", 
+                            new Netty3ToNetty4HttpConnectRelayingHandler(cf.channel(), 
+                                channelGroup));
+                    future.channel().write(NettyUtils.encoder.encode(request));
                     // we're using HTTP connect here, so we need
                     // to remove the encoder and start reading
                     // from the inbound channel only when we've
@@ -263,8 +213,6 @@ public class P2PUdtHttpRequestProcessor implements HttpRequestProcessor {
             }
         });
         return destinationConnect;
-        // Wait until the connection is closed.
-        //f.channel().close();
     }
     
     private static class HttpResponseClientHandler 

@@ -89,6 +89,7 @@ public class P2PUdtHttpRequestProcessorTest {
         
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
+        
         for (int i = 0; i < 1; i++) {
             final String uri = 
                 //"http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
@@ -102,6 +103,22 @@ public class P2PUdtHttpRequestProcessorTest {
             testRequestProcessing(createDummyChannel(), request, 
                 new FiveTuple(null, localRelayAddress, Protocol.TCP), ksm);
         }
+       
+        /*
+        for (int i = 0; i < 1; i++) {
+            final String uri = 
+                //"http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz";
+                "http://lantern.s3.amazonaws.com/testFile.txt ";
+            final HttpRequest request = 
+                new org.jboss.netty.handler.codec.http.DefaultHttpRequest(
+                    HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri);
+            
+            //request.addHeader("Host", "lantern.s3.amazonaws.com");
+            //request.addHeader("Proxy-Connection", "Keep-Alive");
+            testRequestProcessing(createDummyChannel(), request, 
+                new FiveTuple(null, localRelayAddress, Protocol.TCP), ksm);
+        }
+         */
     }
     
     private void startProxyServer(final int port, 
