@@ -37,7 +37,7 @@ import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.Launcher;
-import org.lantern.P2PUdtHttpRequestProcessor;
+import org.lantern.UdtHttpRequestProcessor;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
@@ -52,10 +52,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-public class P2PUdtHttpRequestProcessorTest {
+public class UdtHttpRequestProcessorTest {
 
     private final static Logger log = 
-        LoggerFactory.getLogger(P2PUdtHttpRequestProcessorTest.class);
+        LoggerFactory.getLogger(UdtHttpRequestProcessorTest.class);
     
     @Test
     public void test() throws Exception {
@@ -248,8 +248,8 @@ public class P2PUdtHttpRequestProcessorTest {
         final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
         final String dummyId = "test@gmail.com/-lan-22LJDEE";
         trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
-        final P2PUdtHttpRequestProcessor processor =
-                new P2PUdtHttpRequestProcessor(proxyTracker, null, null, null, 
+        final UdtHttpRequestProcessor processor =
+                new UdtHttpRequestProcessor(proxyTracker, null, null, 
                     trustStore);
         
         final boolean processed = 

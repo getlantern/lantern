@@ -81,9 +81,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * @return The processor.
      */
     private HttpRequestProcessor newP2PRequestProcessor() {
-        return new P2PUdtHttpRequestProcessor(this.proxyTracker,
-            this.clientChannelFactory, this.channelGroup, this.stats, 
-            this.trustStore);
+        return new UdtHttpRequestProcessor(this.proxyTracker,
+            this.channelGroup, this.stats, this.trustStore);
     }
 
     @Override
