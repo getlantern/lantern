@@ -34,6 +34,7 @@ import org.jboss.netty.channel.ChannelConfig;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.util.NettyUtils;
 import org.lantern.util.Threads;
@@ -45,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import com.barchart.udt.net.NetSocketUDT;
 
-
+@Ignore
 public class PeerFiveTupleTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
