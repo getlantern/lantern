@@ -32,8 +32,10 @@ public class UdtRelayProxy {
         log.debug("Proxying clients from "+ local + " to " +
             "127.0.0.1:" + destinationPort + " ...");
 
-        final ThreadFactory acceptFactory = Threads.newThreadFactory("accept");
-        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
+        final ThreadFactory acceptFactory = 
+            Threads.newNonDaemonThreadFactory("accept");
+        final ThreadFactory connectFactory = 
+            Threads.newNonDaemonThreadFactory("connect");
         final NioEventLoopGroup acceptGroup = new NioEventLoopGroup(1,
                 acceptFactory, NioUdtProvider.BYTE_PROVIDER);
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,

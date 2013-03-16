@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.IOUtils;
@@ -27,7 +28,8 @@ import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings.Mode;
-import org.lantern.util.LanternTrafficCounterHandler;
+import org.lantern.util.Netty3LanternTrafficCounterHandler;
+import org.lantern.util.Netty4LanternTrafficCounterHandler;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -81,9 +83,15 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     private boolean populatedProxies = false;
     
-    private Collection<GlobalTrafficShapingHandler> trafficShapers =
-            new ArrayList<GlobalTrafficShapingHandler>();
+    private Collection<Netty3LanternTrafficCounterHandler> netty3TrafficShapers =
+            new ArrayList<Netty3LanternTrafficCounterHandler>();
     
+    private Collection<Netty4LanternTrafficCounterHandler> netty4TrafficShapers =
+            new ArrayList<Netty4LanternTrafficCounterHandler>();
+    
+    
+    private static final ScheduledExecutorService netty4TrafficCounterExecutor = 
+            Threads.newScheduledThreadPool("Netty4-Traffic-Counter-");
     
     /**
      * Thread pool for checking connections to proxies -- otherwise these
@@ -186,7 +194,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         log.debug("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
             new ProxyHolder(cur, new InetSocketAddress(cur, 443), 
-                trafficTracker()), cur, Type.laeproxy);
+                netty3TrafficCounter()), cur, Type.laeproxy);
     }
 
     @Override
@@ -272,7 +280,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     final InetSocketAddress remote = tuple.getRemote();
                     final ProxyHolder ph =
-                        new ProxyHolder(jid, tuple, trafficTracker());
+                        new ProxyHolder(jid, tuple, netty4TrafficCounter());
                     
                     peerFactory.addOutgoingPeer(jid, remote, Type.desktop, 
                             ph.getTrafficShapingHandler());
@@ -440,7 +448,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void stop() {
-        for (final GlobalTrafficShapingHandler handler : this.trafficShapers) {
+        for (final GlobalTrafficShapingHandler handler : this.netty3TrafficShapers) {
             handler.releaseExternalResources();
         }
     }
@@ -455,10 +463,18 @@ public class DefaultProxyTracker implements ProxyTracker {
         start();
     }
     
-    private LanternTrafficCounterHandler trafficTracker() {
-        final LanternTrafficCounterHandler handler = 
-            new LanternTrafficCounterHandler(this.timer, false);
-        trafficShapers.add(handler);
+    private Netty3LanternTrafficCounterHandler netty3TrafficCounter() {
+        final Netty3LanternTrafficCounterHandler handler = 
+            new Netty3LanternTrafficCounterHandler(this.timer, false);
+        netty3TrafficShapers.add(handler);
+        return handler;
+    }
+    
+    private Netty4LanternTrafficCounterHandler netty4TrafficCounter() {
+        final Netty4LanternTrafficCounterHandler handler =
+                new Netty4LanternTrafficCounterHandler(
+                        netty4TrafficCounterExecutor, false);
+        netty4TrafficShapers.add(handler);
         return handler;
     }
 

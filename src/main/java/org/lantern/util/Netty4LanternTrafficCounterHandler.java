@@ -1,5 +1,8 @@
 package org.lantern.util;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelStateHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,42 +30,40 @@ public class Netty4LanternTrafficCounterHandler extends GlobalTrafficShapingHand
         }
     }
 
-    /*
+
+    /**
+     * Calls {@link ChannelHandlerContext#fireChannelActive()} to forward
+     * to the next {@link ChannelStateHandler} in the {@link ChannelPipeline}.
+     *
+     * Sub-classes may override this method to change behavior.
+     */
     @Override
-    public void messageReceived(final ChannelHandlerContext ctx, 
-        final MessageEvent e) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
         try {
             this.connectedChannels.incrementAndGet();
             this.lastConnected = System.currentTimeMillis();
         } finally {
             // The message is then just passed to the next handler
-            super.messageReceived(ctx, e);
+            super.channelActive(ctx);
         }
     }
     
+    /**
+     * Calls {@link ChannelHandlerContext#fireChannelInactive()} to forward
+     * to the next {@link ChannelStateHandler} in the {@link ChannelPipeline}.
+     *
+     * Sub-classes may override this method to change behavior.
+     */
     @Override
-    public void channelConnected(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent e) throws Exception {
-        try {
-            this.connectedChannels.incrementAndGet();
-            this.lastConnected = System.currentTimeMillis();
-        } finally {
-            // The message is then just passed to the next handler
-            super.channelConnected(ctx, e);
-        }
-    }
-    
-    @Override
-    public void channelClosed(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent e) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ctx.fireChannelInactive();
         try {
             this.connectedChannels.decrementAndGet();
         } finally {
             // The message is then just passed to the next handler
-            super.channelClosed(ctx, e);
+            super.channelInactive(ctx);
         }
     }
-    */
     
     public boolean isConnected() {
         return connectedChannels.get() > 0;

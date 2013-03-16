@@ -73,7 +73,6 @@ import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyCacheManager;
 import org.littleshoot.util.FiveTuple;
-import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -380,7 +379,8 @@ public class UdtRelayTest {
         browserToProxyChannel.setReadable(false);
         
         final Bootstrap boot = new Bootstrap();
-        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
+        final ThreadFactory connectFactory = 
+                Threads.newNonDaemonThreadFactory("connect");
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 

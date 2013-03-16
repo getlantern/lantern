@@ -105,7 +105,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternTrustStore.class);
         bind(LanternHttpClient.class);
         bind(SslHttpProxyServer.class);
-        bind(PlainTestRelayHttpProxyServer.class);
+        bind(PlainTextRelayHttpProxyServer.class);
         bind(PhotoServlet.class);
         
         bind(Censored.class).to(DefaultCensored.class);

@@ -68,7 +68,7 @@ public class Launcher {
     private static Logger LOG;
     private boolean lanternStarted = false;
     private LanternHttpProxyServer localProxy;
-    private PlainTestRelayHttpProxyServer plainTextAnsererRelayProxy;
+    private PlainTextRelayHttpProxyServer plainTextAnsererRelayProxy;
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
@@ -214,7 +214,7 @@ public class Launcher {
 
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
+        plainTextAnsererRelayProxy = instance(PlainTextRelayHttpProxyServer.class);
         modelUtils = instance(ModelUtils.class);
         
         localProxy = instance(LanternHttpProxyServer.class);
