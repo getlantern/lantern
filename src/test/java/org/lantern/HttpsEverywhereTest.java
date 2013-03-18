@@ -2,11 +2,13 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Ignore
 public class HttpsEverywhereTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
