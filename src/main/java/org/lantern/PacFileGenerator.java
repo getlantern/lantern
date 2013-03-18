@@ -1,8 +1,8 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -50,9 +50,9 @@ public class PacFileGenerator {
                 throw new Error("Could not load template from jar!!", e);
             }
         }
-        FileReader fr = null;
+        FileInputStream fr = null;
         try {
-            fr = new FileReader(file);
+            fr = new FileInputStream(file);
             return IOUtils.toString(fr);
         } catch (final IOException e) {
             
