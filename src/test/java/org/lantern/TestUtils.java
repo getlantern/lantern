@@ -225,15 +225,27 @@ public class TestUtils {
     }
 
     public static String getRefreshToken() {
-        return System.getenv("LANTERN_OAUTH_REFTOKEN");
-    }
+        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("refresh_token");
+        }
+        return oauth;
+     }
 
     public static String getAccessToken() {
-        return System.getenv("LANTERN_OAUTH_ACCTOKEN");
+        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("access_token");
+        }
+        return oauth;
     }
     
     public static String getUserName() {
-        return System.getenv("LANTERN_OAUTH_USERNAME");
+        final String oauth = System.getenv("LANTERN_OAUTH_USERNAME");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("username");
+        }
+        return oauth;
     }
 
     public static JettyLauncher getJettyLauncher() {
