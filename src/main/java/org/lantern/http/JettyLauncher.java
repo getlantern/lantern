@@ -139,7 +139,7 @@ public class JettyLauncher implements LanternService {
                 protected void doGet(final HttpServletRequest req,
                                      final HttpServletResponse resp)
                     throws ServletException, IOException {
-                    resp.sendRedirect("/");
+                    resp.sendRedirect(StaticSettings.getLocalEndpoint());
                 }
         });
         redirectIndex.setInitOrder(1);
