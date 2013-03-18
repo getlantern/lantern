@@ -65,8 +65,6 @@ public class TestUtils {
 
     private static ModelService modelService;
     
-    private static DefaultPeerProxyManager peerProxyManager;
-    
     private static Proxifier proxifier;
     
     private static ModelIo modelIo;
@@ -144,7 +142,6 @@ public class TestUtils {
         statsTracker = instance(Stats.class);
         roster = instance(Roster.class);
         modelService = instance(ModelService.class);
-        peerProxyManager = instance(DefaultPeerProxyManager.class);
         proxifier = instance(Proxifier.class);
         modelUtils = instance(ModelUtils.class);
         modelIo = instance(ModelIo.class);
@@ -157,6 +154,8 @@ public class TestUtils {
         globalTraffic = instance(GlobalLanternServerTrafficShapingHandler.class);
         
         final Settings set = model.getSettings();
+        LOG.debug("setting oauth token values...");
+        LOG.debug("secure env vars available? {}", System.getenv("TRAVIS_SECURE_ENV_VARS"));
         set.setAccessToken(getAccessToken());
         set.setRefreshToken(getRefreshToken());
         set.setUseGoogleOAuth2(true);
@@ -224,15 +223,27 @@ public class TestUtils {
     }
 
     public static String getRefreshToken() {
-        return privateProps.getProperty("refresh_token");
-    }
+        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("refresh_token");
+        }
+        return oauth;
+     }
 
     public static String getAccessToken() {
-        return privateProps.getProperty("access_token");
+        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("access_token");
+        }
+        return oauth;
     }
     
     public static String getUserName() {
-        return privateProps.getProperty("username");
+        final String oauth = System.getenv("LANTERN_OAUTH_USERNAME");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("username");
+        }
+        return oauth;
     }
 
     public static JettyLauncher getJettyLauncher() {
@@ -295,11 +306,6 @@ public class TestUtils {
         return modelService;
     }
 
-    public static DefaultPeerProxyManager getTrusted() {
-        if (!loaded) load();
-        return peerProxyManager;
-    }
-    
     public static Proxifier getProxifier() {
         if (!loaded) load();
         return proxifier;

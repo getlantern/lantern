@@ -65,6 +65,25 @@ If you want to load the Lantern source code in Eclipse, you can do the following
 
 That should get Lantern building successfully in Eclipse.
 
+## Building Installers
+
+As of this writing, the Lantern installers are built using [install4j](http://www.ej-technologies.com/products/install4j/overview.html).  In addition, the installation scripts require an [Exceptional](http://www.exceptional.io) license.  If you want to build installers using the `(deb|osx|win)Install*.bash` scripts, you need to obtain a license of these programs.  Note that this is not required in order to build and run Lantern from source.  
+
+The scripts that build the installers expect the described files in the corresponding paths relative to the lantern base folder:
+
+    # Exceptional license key.
+    ./lantern_getexceptional.txt
+    # Windows install4j license certificate.
+    ../secure/bns_cert.p12
+    # OS X install4j license certificate.
+    ../secure/bns-osx-cert-developer-id-application.p12
+
+In addition, install4jc expects the following variables defined in the environment:
+
+    INSTALL4J_KEY
+    INSTALL4J_MAC_PASS
+    INSTALL4J_WIN_PASS
+
 Further Reading
 ---------------
 

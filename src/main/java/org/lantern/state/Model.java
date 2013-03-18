@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Country;
-import org.lantern.LanternClientConstants;
+import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
@@ -40,9 +40,6 @@ public class Model {
     private final Location location = new Location();
 
     private boolean showVis = false;
-
-    private final boolean dev =
-            LanternClientConstants.VERSION.equals("lantern_version_tok");
 
     private int ninvites = 0;
 
@@ -79,6 +76,9 @@ public class Model {
     private Roster roster;
 
     private Transfers transfers;
+
+    private String serverPrefix = "";
+    private boolean isEverGetMode;
 
     @JsonView({Run.class})
     private Transfers getTransfers() {
@@ -149,8 +149,9 @@ public class Model {
         this.connectivity = connectivity;
     }
 
+    @JsonView({Run.class})
     public boolean isDev() {
-        return dev;
+        return LanternUtils.isDevMode();
     }
 
     @JsonView({Run.class, Persistent.class})
@@ -258,7 +259,7 @@ public class Model {
             //this happens at startup?
             for (Integer k : notifications.keySet()) {
                 if (k > maxNotificationId)
-                    maxNotificationId = k;
+                    maxNotificationId = k+1;
             }
         }
         int id = maxNotificationId ++;
@@ -298,5 +299,23 @@ public class Model {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public String getServerPrefix() {
+        return serverPrefix;
+    }
+
+    public void setServerPrefix(String serverPrefix) {
+        assert serverPrefix != null;
+        assert serverPrefix.startsWith("/");
+        this.serverPrefix = serverPrefix;
+    }
+
+    public boolean isEverGetMode() {
+        return isEverGetMode;
+    }
+
+    public void setEverGetMode(boolean b) {
+        this.isEverGetMode = b;
     }
 }

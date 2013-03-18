@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.net.URI;
 
-import org.lantern.DefaultProxyTracker.ProxyHolder;
 
 /**
  * Listener for the state of proxies.

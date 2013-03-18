@@ -272,11 +272,6 @@ public class InteractionServlet extends HttpServlet {
                 break;
             }
             switch (inter) {
-            case RESET:
-                this.modelService.resetProxiedSites();
-                this.internalState.setModalCompleted(Modal.proxiedSites);
-                this.internalState.advanceModal(null);
-                break;
             case CONTINUE:
                 applyJson(json);
                 this.internalState.setModalCompleted(Modal.proxiedSites);
@@ -334,7 +329,9 @@ public class InteractionServlet extends HttpServlet {
                     //  need to do more setup to switch to get mode from give mode
                     model.setSetupComplete(false);
                     this.internalState.advanceModal(null);
-                    Events.syncModal(model, Modal.proxiedSites);
+                    if (!model.isEverGetMode()) {
+                        Events.syncModal(model, Modal.proxiedSites);
+                    }
                     Events.syncModel(this.model);
                 }
                 handleGiveGet(Mode.get);
@@ -380,6 +377,10 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case RESET:
                 Events.syncModal(model, Modal.welcome);
+                break;
+            default:
+                log.error("Did not handle interaction for modal {} with "
+                        + "params: {}", modal, params);
                 break;
             }
             break;
@@ -588,7 +589,6 @@ public class InteractionServlet extends HttpServlet {
         }
         final Model base = new Model();
         model.setCache(base.isCache());
-        model.setConnectivity(base.getConnectivity());
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
         model.setNinvites(base.getNinvites());
@@ -624,7 +624,7 @@ public class InteractionServlet extends HttpServlet {
             String text = "You now have " + newInvites + " " + invitation;
             model.addNotification(text, MessageType.info);
         } else if (newInvites == 0) {
-            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.info);
+            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.important);
         }
     }
 }

@@ -138,7 +138,7 @@ public class SystemTrayImpl implements SystemTray {
             connectionStatusItem.setEnabled(false);
             
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
-            dashboardItem.setText("Open Dashboard"); // XXX i18n
+            dashboardItem.setText("Show Lantern"); // XXX i18n
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {

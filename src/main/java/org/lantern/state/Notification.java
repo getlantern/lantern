@@ -4,7 +4,7 @@ public class Notification {
     private MessageType type;
     private String message;
     public enum MessageType {
-        info, warning, error, success;
+        info, warning, error, success, important;
     }
 
     /**

@@ -80,8 +80,10 @@ public class JettyLauncher implements LanternService {
         final String apiName = "Lantern-API";
         final ContextHandlerCollection contexts = 
             new ContextHandlerCollection();
-        
-        final ServletContextHandler contextHandler = newContext("/", apiName);
+
+        String prefix = model.getServerPrefix();
+
+        final ServletContextHandler contextHandler = newContext(prefix, apiName);
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
@@ -161,23 +163,16 @@ public class JettyLauncher implements LanternService {
             protected void doGet(final HttpServletRequest req, 
                 final HttpServletResponse resp) throws ServletException, 
                 IOException {
-                final String uri = req.getRequestURI();
-                final String onPath = "/proxy_on.pac";
-                final String offPath = "/proxy_off.pac";
-                final String allPath = "/proxy_all.pac";
-                final String googlePath = "/"+Proxifier.PROXY_GOOGLE;
-                if (uri.startsWith("/proxy_on") && !uri.equals(onPath)) {
+                final String uri = req.getPathInfo();
+                log.debug("Processing get request for static file: "+uri);
+                if (uri.startsWith("/proxy_on")) {
                     writeFileToResponse(resp, Proxifier.PROXY_ON);
-                    //resp.sendRedirect(onPath);
-                } else if (uri.startsWith("/proxy_off") && !uri.equals(offPath)) {
+                } else if (uri.startsWith("/proxy_off")) {
                     writeFileToResponse(resp, Proxifier.PROXY_OFF);
-                    //resp.sendRedirect(offPath);
-                } else if (uri.startsWith("/proxy_all") && !uri.equals(allPath)) {
+                } else if (uri.startsWith("/proxy_all")) {
                     writeFileToResponse(resp, Proxifier.PROXY_ALL);
-                    //resp.sendRedirect(allPath);
-                } else if (uri.startsWith("/proxy_google") && !uri.equals(googlePath)) {
+                } else if (uri.startsWith("/proxy_google")) {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
-                    //resp.sendRedirect(allPath);
                 } else {
                     super.doGet(req, resp);
                 }

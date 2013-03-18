@@ -11,6 +11,7 @@ import net.sourceforge.jdpapi.DataProtector;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
             final Base64 base64 = new Base64();
             final byte [] encryptedKey = FileUtils.readFileToByteArray(keyFile);
             final String encodedKey = dpapi.unprotect(encryptedKey);
-            return base64.decode(encodedKey.getBytes());
+            return base64.decode(encodedKey.getBytes(LanternConstants.UTF8));
         } catch (DPAPIException e) {
             throw new GeneralSecurityException(e);
         }
@@ -75,7 +76,8 @@ public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
         try {
             final DataProtector dpapi = new DataProtector(false);
             final Base64 base64 = new Base64();
-            final String encodedKey = new String(base64.encode(key));
+            final String encodedKey = 
+                new String(base64.encode(key), LanternConstants.UTF8);
             final byte [] encryptedKey = dpapi.protect(encodedKey);
             FileUtils.writeByteArrayToFile(keyFile, encryptedKey);
         } catch (DPAPIException e) {

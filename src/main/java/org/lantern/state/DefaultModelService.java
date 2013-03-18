@@ -207,6 +207,10 @@ public class DefaultModelService implements ModelService {
             return;
         }
 
+        if (mode == Mode.get) {
+            model.setEverGetMode(true);
+        }
+
         // Go ahead and set the setting although it will also be
         // updated by the api as well. We want to make sure the
         // state seen by the following calls is consistent with

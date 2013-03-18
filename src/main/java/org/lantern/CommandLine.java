@@ -193,7 +193,7 @@ public class CommandLine {
       drainerThread.start();
 
       if (allInput != null) {
-        byte[] bytes = allInput.getBytes();
+        byte[] bytes = allInput.getBytes(LanternConstants.UTF8);
         proc.getOutputStream().write(bytes);
         proc.getOutputStream().close();
       }
@@ -337,7 +337,7 @@ public class CommandLine {
     }
 
     public String getStdOut() {
-      return new String(inputOut.toByteArray());
+      return new String(inputOut.toByteArray(), LanternConstants.UTF8);
     }
   }
 }

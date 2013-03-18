@@ -23,7 +23,20 @@ public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
         final LanternKeyStoreManager ksm,
         final Stats stats, final Model model,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
-        super(model.getSettings().getServerPort(),             
+        this(model.getSettings().getServerPort(),requestFilter,
+                clientChannelFactory, timer, serverChannelFactory, ksm, stats,
+                serverTrafficHandler);
+    }
+    
+    public SslHttpProxyServer(final int port, 
+        final HttpRequestFilter requestFilter,
+        final ClientSocketChannelFactory clientChannelFactory, 
+        final Timer timer,
+        final ServerSocketChannelFactory serverChannelFactory, 
+        final LanternKeyStoreManager ksm,
+        final Stats stats, 
+        final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
+        super(port,             
             new HttpResponseFilters() {
                 @Override
                 public HttpFilter getFilter(String arg0) {

@@ -29,9 +29,9 @@ public class LanternClientConstants {
      */
     public static final String VERSION = "lantern_version_tok";
 
-    public static File DATA_DIR;
+    public static final File DATA_DIR;
 
-    public static File LOG_DIR;
+    public static final File LOG_DIR;
     
     public static final File CONFIG_DIR =
         new File(System.getProperty("user.home"), ".lantern");
@@ -109,6 +109,7 @@ public class LanternClientConstants {
     public static final File GEOIP = new File(DATA_DIR, "GeoIP.dat");
     
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
+    public static final String LOCALHOST = "127.0.0.1";
     public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
 
     // Not final because it may be set from the command line for debugging.
@@ -119,7 +120,7 @@ public class LanternClientConstants {
 
     public static void setControllerId(final String id) {
         LANTERN_JID = id + "@appspot.com";
-        STATS_URL = "http://" + id + ".appspot.com/stats";
+        STATS_URL = "https://" + id + ".appspot.com/stats";
     }
 
     static {

@@ -106,10 +106,10 @@ public class ChromeRunner {
     }
 
     public void open() throws IOException {
-        open(StaticSettings.getApiPort());
+        open(StaticSettings.getApiPort(), StaticSettings.getPrefix());
     }
-    
-    public void open(final int port) throws IOException {
+
+    public void open(final int port, String prefix) throws IOException {
 
         if (this.process != null) {
             try {
@@ -121,7 +121,7 @@ public class ChromeRunner {
                 return;
             }
         }
-        final String endpoint = StaticSettings.getLocalEndpoint(port);
+        final String endpoint = StaticSettings.getLocalEndpoint(port, prefix);
         log.debug("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
