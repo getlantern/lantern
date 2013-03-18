@@ -3,9 +3,6 @@ package org.lantern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
