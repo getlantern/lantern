@@ -297,7 +297,7 @@ exports.SCENARIOS = {
                     peerid: 'poweruser-2',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
-                    ip: '173.194.66.141',
+                    ip: '123.456.789.123',
                     lat: 37.4192,
                     lon: -122.0574,
                     country: 'US',
@@ -378,6 +378,14 @@ exports.SCENARIOS = {
                     type: 'pc'
                   },{
                     peerid: 'friend-of-friend1-8',
+                    mode: 'give',
+                    ip: '123.456.789.123',
+                    lat: 39.0437,
+                    lon: -77.4875,
+                    country: 'US',
+                    type: 'cloud'
+                  },{
+                    peerid: 'friend-of-friend1-9',
                     mode: 'give',
                     ip: '177.64.207.97',
                     lat: -5.7833,
