@@ -48,6 +48,7 @@ public class LanternUtilsTest {
     
     @BeforeClass
     public static void setup() throws Exception {
+        LOG.debug("Setting up LanternUtilsTests...");
         TestUtils.load(true);
         System.setProperty("javax.net.debug", "ssl");
     }
