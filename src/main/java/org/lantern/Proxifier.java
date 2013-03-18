@@ -411,50 +411,6 @@ public class Proxifier implements LanternService {
         }
     }
 
-    static class Version {
-        private int[] numbers;
-        public Version(String versionNumber) {
-            String[] parts = versionNumber.split("\\.");
-            numbers = new int[parts.length];
-            for (int i = 0; i < parts.length; ++i) {
-                try {
-                    numbers[i] = Integer.parseInt(parts[i]);
-                } catch (NumberFormatException e) {
-                    numbers[i] = 0;
-                }
-            }
-        }
-        public boolean greaterThanOrEqualTo(Version other) {
-            for (int i = 0; i < numbers.length; ++i) {
-                if (i >= other.numbers.length) {
-                    return true;
-                }
-                if (numbers[i] > other.numbers[i]) {
-                    return true;
-                } else if (numbers[i] < other.numbers[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        public String toString() {
-            String result = "Version(";
-            for (int i = 0; i < numbers.length; ++i) {
-                result += numbers[i];
-                if (i != numbers.length - 1) {
-                    result += ".";
-                }
-            }
-            result += ")";
-            return result;
-        }
-    }
-
-    private Version getOsxVersion() {
-        return new Version(System.getProperty("os.version"));
-    }
-
     private void proxyWindows(final String url) {
         if (!SystemUtils.IS_OS_WINDOWS) {
             LOG.debug("Not running on Windows");
