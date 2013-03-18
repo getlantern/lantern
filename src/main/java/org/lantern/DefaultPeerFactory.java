@@ -33,7 +33,7 @@ public class DefaultPeerFactory implements PeerFactory {
     /**
      * We create an executor here because we need to thread our geo-ip lookups.
      */
-    private final ExecutorService exec = 
+    private final ExecutorService exec =
         Threads.newCachedThreadPool("Peer-Factory-Thread-");
 
     private final Roster roster;
@@ -45,30 +45,30 @@ public class DefaultPeerFactory implements PeerFactory {
         this.roster = roster;
         this.peers = model.getPeerCollector();
     }
-    
+
     /**
      * Adds an incoming peer. Note that this method purely uses the address
      * of the incoming peer and not the JID. For the case of port-mapped peers,
      * this will be accurate because the remote address is in fact the address
-     * of the peer. For p2p connections, however, there's an intermediary 
-     * step where we typically copy data from a temporary local server to the 
-     * local HTTP server, for the purposes of making ICE work more simply 
-     * (i.e. that way the HTTP server doesn't have to worry about ICE but 
-     * rather just about servicing incoming sockets). The problem is that if 
-     * this method is used to add those peers, their IP address will always 
-     * be the IP address of localhost, so they will not be mapped correctly. 
-     * Their data will be tracked correctly, however. 
-     * 
+     * of the peer. For p2p connections, however, there's an intermediary
+     * step where we typically copy data from a temporary local server to the
+     * local HTTP server, for the purposes of making ICE work more simply
+     * (i.e. that way the HTTP server doesn't have to worry about ICE but
+     * rather just about servicing incoming sockets). The problem is that if
+     * this method is used to add those peers, their IP address will always
+     * be the IP address of localhost, so they will not be mapped correctly.
+     * Their data will be tracked correctly, however.
+     *
      * See:
-     * 
+     *
      * https://github.com/adamfisk/littleshoot-util/blob/master/src/main/java/org/littleshoot/util/RelayingSocketHandler.java
-     * 
+     *
      * @param address The address of the peer.
      * @param trafficCounter The counter for keeping track of traffic to and
      * from the peer.
      */
     @Override
-    public void addIncomingPeer(final InetAddress address, 
+    public void addIncomingPeer(final InetAddress address,
         final LanternTrafficCounter trafficCounter) {
         exec.submit(new Runnable() {
             @Override
@@ -77,22 +77,22 @@ public class DefaultPeerFactory implements PeerFactory {
                 peers.addPeer(address, peer);
             }
         });
-        // Note we don't sync peers with the frontend here because the timer 
+        // Note we don't sync peers with the frontend here because the timer
         // will do it for us
     }
-    
+
     @Override
-    public void addOutgoingPeer(final String fullJid, 
-        final InetSocketAddress isa, final Type type, 
+    public void addOutgoingPeer(final String fullJid,
+        final InetSocketAddress isa, final Type type,
         final LanternTrafficCounter trafficCounter) {
-        addPeer(fullJid, isa.getAddress(), isa.getPort(), type, false, 
+        addPeer(fullJid, isa.getAddress(), isa.getPort(), type, false,
             trafficCounter);
     }
 
-    private void addPeer(final String fullJid, final InetAddress address, 
-        final int port, final Type type, final boolean incoming, 
+    private void addPeer(final String fullJid, final InetAddress address,
+        final int port, final Type type, final boolean incoming,
         final LanternTrafficCounter trafficCounter) {
-        
+
         // We thread this because there's a geo IP lookup that could otherwise
         // stall the calling thread.
         exec.submit(new Runnable() {
@@ -109,10 +109,10 @@ public class DefaultPeerFactory implements PeerFactory {
                 }
                 if (existing != null) {
                     log.debug("Peer already exists...");
-                    
+
                     // It could have just been deserialized from disk, so we
                     // want to give it a real traffic counter.
-                    final LanternTrafficCounter tc = 
+                    final LanternTrafficCounter tc =
                         existing.getTrafficCounter();
                     if (tc != null) {
                         log.warn("Existing traffic counter?");
@@ -126,30 +126,30 @@ public class DefaultPeerFactory implements PeerFactory {
                     peers.addPeer(address, peer);
                 }
             }
-            // Note we don't sync peers with the frontend here because the timer 
+            // Note we don't sync peers with the frontend here because the timer
             // will do it for us
         });
     }
-    
+
 
     private Peer newGetModePeer(final InetAddress address,
             final LanternTrafficCounter trafficCounter) {
         final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
-        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(), 
-            geo.getLongitude(), Type.pc, hostAddress, Mode.get, 
+        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(),
+            geo.getLongitude(), Type.pc, hostAddress, Mode.get,
             true, trafficCounter, null);
     }
-    
-    
-    private Peer newGiveModePeer(final String fullJid, final InetAddress address, 
-        final int port, final Type type, final boolean incoming, 
+
+
+    private Peer newGiveModePeer(final String fullJid, final InetAddress address,
+        final int port, final Type type, final boolean incoming,
         final LanternTrafficCounter trafficCounter) {
         final LanternRosterEntry entry = rosterEntry(fullJid);
 
         final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
-        return new Peer(fullJid, geo.getCountrycode(), true, geo.getLatitude(), 
-            geo.getLongitude(), type, address.getHostAddress(), Mode.give, 
+        return new Peer(fullJid, geo.getCountrycode(), true, geo.getLatitude(),
+            geo.getLongitude(), type, address.getHostAddress(), Mode.give,
             incoming, trafficCounter, entry);
     }
 
