@@ -22,22 +22,18 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
-import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
+
 
 public class CometDTest {
 
     @Test
     public void test() throws Exception {
         final int port = LanternUtils.randomPort();
-        StaticSettings.setApiPort(port);
         //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
-        
-        final Model model = TestUtils.getModel();
-        StaticSettings.setModel(model);
-        model.setServerPrefix("/testingtesting");
+
         startJetty(TestUtils.getJettyLauncher(), port);
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:

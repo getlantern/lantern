@@ -171,7 +171,6 @@ public class Launcher {
 
         injector = Guice.createInjector(new LanternModule());
         model = instance(Model.class);
-        StaticSettings.setModel(model);
         set = model.getSettings();
 
         // We parse this one separately because we need this value right away.
@@ -746,7 +745,6 @@ public class Launcher {
     public static final String OPTION_HELP = "help";
     public static final String OPTION_LAUNCHD = "launchd";
     public static final String OPTION_PUBLIC_API = "public-api";
-    public static final String OPTION_API_PORT = "api-port";
     public static final String OPTION_SERVER_PORT = "server-port";
     public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
     public static final String OPTION_PASSWORD_FILE = "password-file";
@@ -773,8 +771,6 @@ public class Launcher {
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
             "run without a graphical user interface.");
-        options.addOption(null, OPTION_API_PORT, true,
-            "the port to run the API server on.");
         options.addOption(null, OPTION_SERVER_PORT, true,
             "the port to run the give mode proxy server on.");
         options.addOption(null, OPTION_PUBLIC_API, false,
@@ -890,15 +886,7 @@ public class Launcher {
         if (cmd.hasOption(OPTION_PUBLIC_API)) {
             set.setBindToLocalhost(false);
         }
-        if (cmd.hasOption(OPTION_API_PORT)) {
-            final String apiPortStr =
-                cmd.getOptionValue(OPTION_API_PORT);
-            LOG.info("Using command-line port: "+ apiPortStr);
-            final int apiPort = Integer.parseInt(apiPortStr);
-            StaticSettings.setApiPort(apiPort);
-        } else {
-            LOG.debug("Using random port...");
-        }
+
         LOG.info("Running API on port: {}", StaticSettings.getApiPort());
 
         if (cmd.hasOption(OPTION_SERVER_PORT)) {

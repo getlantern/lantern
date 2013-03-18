@@ -14,6 +14,16 @@
 #echo "Copying lantern.desktop so ubuntu can find it"
 #echo "User is '$USER'"
 cp /opt/lantern/lantern.desktop /usr/share/applications
+# DRY warning: see
+#  - install/linux/lantern-autostart.desktop
+#  - src/main/java/org/lantern/ChromeRunner.java
+#  - src/main/java/org/lantern/http/JettyLauncher.java
+#
+#  StartupWMClass=127.0.0.1 is needed so the lantern icon will show up in the
+#  Unity launcher/dock.  But if we specify only that, the lantern icon might
+#  appear for any other chrome app served from localhost.  So we rename the
+#  index file to something less likely to cause name clashes.
+echo 'StartupWMClass=127.0.0.1__org.lantern.index.html' >> /usr/share/applications/lantern.desktop
 cp $I4J_INSTALL_LOCATION/java7/* $I4J_INSTALL_LOCATION/jre/lib/security/ || echo "Could not copy policy files!!"
 
 echo "************************************************************************************"

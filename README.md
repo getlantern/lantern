@@ -7,7 +7,7 @@ around the world connected by a peer-to-peer network.
 Lantern is written primarily in Java and runs on modern OS X, Windows, and
 Ubuntu Linux desktop systems.
 
-![screenshot](https://f.cloud.github.com/assets/475147/69151/13c65cb2-5f51-11e2-8608-aa245a63287e.png)
+![screenshot](https://raw.github.com/getlantern/lantern-ui/master/screenshot.png)
 
 
 ## Setting up a development environment
