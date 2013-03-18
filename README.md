@@ -2,7 +2,7 @@
 [![Build
 Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-ci.org/getlantern/lantern-ui)
 
-![screenshot](https://f.cloud.github.com/assets/475147/69151/13c65cb2-5f51-11e2-8608-aa245a63287e.png)
+![screenshot](./screenshot.png)
 
 UI for [Lantern](https://github.com/getlantern/lantern).
 
