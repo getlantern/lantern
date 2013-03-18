@@ -73,7 +73,7 @@ public class NatPmpImpl implements NatPmpService {
     public boolean isNatPmpSupported() {
         // tests to see if NAT-PMP is supported by issuing a getExternalAddress
         // query
-        log.debug("NAT-PMP device = {}"), pmpDevice;
+        log.debug("NAT-PMP device = {}", pmpDevice);
         pmpDevice.sendPublicAddressRequest();
         for (int i = 0; i < 5; ++i) {
             NatPmpResponse response = new NatPmpResponse();
