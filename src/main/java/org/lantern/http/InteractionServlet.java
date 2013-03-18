@@ -427,13 +427,7 @@ public class InteractionServlet extends HttpServlet {
             break;
         case contact:
             switch(inter) {
-                case CANCEL:
-                    Events.syncModal(this.model, Modal.none);
-                    break;
                 case CONTINUE:
-                    Events.syncModal(this.model, Modal.none);
-                    break;
-                default:
                     try {
                         lanternFeedback.submit(json,
                             this.model.getProfile().getEmail());
@@ -444,10 +438,17 @@ public class InteractionServlet extends HttpServlet {
                             MessageType.error);
                         log.error("Could not post to contact form: {}", e);
                     }
+                    Events.syncModal(this.model, Modal.none);
+                    break;
+                default:
+                    if (handleModeSwitch(inter)) {
+                        break;
+                    }
                     this.internalState.setModalCompleted(Modal.finished);
                     this.internalState.advanceModal(null);
-                    Events.syncModal(this.model, Modal.contact);
+                    Events.syncModel(this.model);
                     break;
+
             }
             break;
         case giveModeForbidden:
