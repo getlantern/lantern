@@ -33,14 +33,10 @@ public class ModelIoTest {
         
         final String id = model.getNodeId();
         SystemData system = model.getSystem();
-        Settings settings = model.getSettings();
         Connectivity connectivity = model.getConnectivity();
         assertEquals("", connectivity.getIp());
-        
-        final String ip = "30.2.2.2";
-        //connectivity.setIp(ip);
-        
-        assertEquals(0, model.getNinvites());
+
+        assertEquals(-1, model.getNinvites());
         model.setNinvites(10);
         assertEquals(10, model.getNinvites());
         
@@ -52,7 +48,6 @@ public class ModelIoTest {
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null);
         model = io.get();
         system = model.getSystem();
-        settings = model.getSettings();
         connectivity = model.getConnectivity();
         assertEquals(10, model.getNinvites());
         
