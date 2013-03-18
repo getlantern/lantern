@@ -900,9 +900,6 @@ public class Launcher {
             LOG.debug("Using random port...");
         }
         LOG.info("Running API on port: {}", StaticSettings.getApiPort());
-        model.getConnectivity().setPacUrl(
-            StaticSettings.getLocalEndpoint() + "/proxy_on.lantern.pac"
-        );
 
         if (cmd.hasOption(OPTION_SERVER_PORT)) {
             final String serverPortStr =

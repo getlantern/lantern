@@ -152,11 +152,7 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public String getPacUrl() {
-        return this.pacUrl;
-    }
-
-    public void setPacUrl(final String pacUrl) {
-        this.pacUrl = pacUrl;
+        return StaticSettings.getLocalEndpoint() + "/proxy_on.pac";
     }
 
     public String getConnectingStatus() {
