@@ -316,7 +316,7 @@ public class Launcher {
                     Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
                     return;
                 }
-                if (ip.equals(connectivity.getIp())) {
+                if (ip.getHostAddress().equals(connectivity.getIp())) {
                     return; //no change to IP address, so nothing to do
                 }
                 connectivity.setInternet(true);
