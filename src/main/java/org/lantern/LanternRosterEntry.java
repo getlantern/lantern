@@ -28,17 +28,11 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final int sortKey;
 
     public LanternRosterEntry(final RosterEntry entry) {
-        this(false, false, entry.getUser(), entry.getName(),
-                extractSubscriptionStatus(entry), entry.isAutosub(),
-                entry.getEmc() + entry.getMc() + entry.getW());
-    }
-
-    private LanternRosterEntry(final boolean available, final boolean away,
-            final String email, final String name,
-            final String subscriptionStatus, final boolean autosub,
-            int sortKey) {
-        this.available = available;
-        this.away = away;
+        String email = entry.getUser();
+        String name = entry.getName();
+        String subscriptionStatus = extractSubscriptionStatus(entry);
+        this.available = false;
+        this.away = false;
 
         if (StringUtils.isBlank(email)) {
             this.email = "";
@@ -49,8 +43,8 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.subscriptionStatus = subscriptionStatus == null ? ""
                 : subscriptionStatus;
         this.statusMessage = "";
-        this.autosub = autosub;
-        this.sortKey = sortKey;
+        this.autosub = entry.isAutosub();
+        this.sortKey = entry.getEmc() + entry.getMc() + entry.getW();
     }
 
     private static String extractSubscriptionStatus(final RosterEntry entry) {

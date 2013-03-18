@@ -127,7 +127,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         return index;
     }
 
-    class UpnpMapping {
+    static class UpnpMapping {
         public PortMappingProtocol prot;
         public int internalPort;
         public int externalPort;
@@ -238,10 +238,10 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     private String zeroTerminatedString(byte[] array) {
         for (int i = 0; i < array.length; ++i) {
             if (array[i] == 0) {
-                return new String(array, 0, i);
+                return new String(array, 0, i, LanternConstants.UTF8);
             }
         }
-        return new String(array);
+        return new String(array, LanternConstants.UTF8);
     }
 
     @Override

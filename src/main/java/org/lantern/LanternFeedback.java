@@ -102,7 +102,7 @@ public class LanternFeedback {
         return new HttpPost(url);
     }
 
-    private final static String HOST = "https://docs.google.com";
+    public final static String HOST = "https://docs.google.com";
     /**
      * quick and dirty google spreadsheet submitter
      */

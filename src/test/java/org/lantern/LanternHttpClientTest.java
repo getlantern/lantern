@@ -36,39 +36,39 @@ import org.mockito.stubbing.Answer;
 public class LanternHttpClientTest {
 
     /**
-     * We've seen issues with HttpClient redirects from HTTPS sites to HTTP 
+     * We've seen issues with HttpClient redirects from HTTPS sites to HTTP
      * sites. In practice though it shouldn't really affect us because none
      * of the HTTPS sites we hit should do that, nor should we allow it.
      * We just make sure to test all the sites we use to ensure this doesn't
      * happen.
-     * 
+     *
      * docs.google.com (feedback form)
      * exceptional.io -- error reporting
      * query.yahooapis.com (geo data lookup)
      * www.googleapis.com
      * lanternctrl.appspot.com (stats)
-     * 
+     *
      * @throws Exception If any unexpected errors occur.
      */
     @Test
     public void testAllInternallyProxiedSites() throws Exception {
         final LanternHttpClient client = TestUtils.getHttpClient();
         client.setForceCensored(true);
-        
+
         final ModelUtils modelUtils = TestUtils.getModelUtils();
         final GeoData data = modelUtils.getGeoData("86.170.128.133");
         assertTrue(data.getLatitude() > 50.0);
         assertTrue(data.getLongitude() < 3.0);
         assertEquals("GB", data.getCountrycode());
-        
+
         testExceptional(client);
         testGoogleDocs(client);
         testStats(client);
     }
-    
+
     private void testStats(final LanternHttpClient client) throws Exception {
         final String uri = "https://lanternctrl.appspot.com/stats";
-        
+
         final HttpGet get = new HttpGet(uri);
         final HttpResponse response = client.execute(get);
         final StatusLine line = response.getStatusLine();
@@ -77,14 +77,13 @@ public class LanternHttpClientTest {
         assertEquals(200, code);
     }
 
-    private void testGoogleDocs(final LanternHttpClient client) 
+    private void testGoogleDocs(final LanternHttpClient client)
         throws Exception {
         final LanternFeedback feedback = spy(new LanternFeedback(client));
         when(feedback.getHttpPost(anyString())).thenAnswer(new Answer<HttpPost>() {
             @Override
             public HttpPost answer(InvocationOnMock invocation) {
-                Object[] args = invocation.getArguments();
-                HttpPost mockPost = spy(new HttpPost((String)args[0]));
+                HttpPost mockPost = spy(new HttpPost(LanternFeedback.HOST));
                 doNothing().when(mockPost).setEntity((HttpEntity)any());
                 return mockPost;
             }
@@ -94,7 +93,7 @@ public class LanternHttpClientTest {
         assertEquals(200, responseCode);
     }
 
-    private void testExceptional(final LanternHttpClient client) 
+    private void testExceptional(final LanternHttpClient client)
         throws Exception {
         final String requestBody = "{request: {}}";
         final String url = "https://www.exceptional.io/api/errors?" +

@@ -1,6 +1,12 @@
+---
 language: java
 jdk:
-  - oraclejdk7
+- oraclejdk7
 install: ./install.bash
 notifications:
-  irc: "irc.freenode.net#lantern"
+  irc: irc.freenode.net#lantern
+env:
+  global:
+  - secure: 'XBz3u8Ro1p7+fk5i3ljYJlGD8n2LG2K+wzdSCekoe8SfczAMjB4uf+LvpdJlces7KGRolHctrQIURzXcA2gIwfMY8D5NfdAQNcOqViPK78h2YYKW2HWDWJhKITtDNmPr79HsLKJGMJKb+mJrd4C206ujgTsG94nz+ekbRiRbYm8='
+  - secure: 'VJEBfxvFF5I+VScQ8+C0aCfDKPrDivLi9xpGDRjVVdwQj6YFnaKdRzncHNv9Hgg97Rotl706HIy3VTzyssoa5j1z706fvr78UQaG+zV3sY8o24KmsfFHUGrW7ZBIlw7cOBz5YjQ5KvrgU8ru7wCyTgSqDxZBMajVkxyLs3eX6fM='
+  - secure: 'DDIzm2sirA3vVdpnie1LEgDdbMom7mgK+dTM0/arFjECIMAR5rJIg75HU000NZpR6epYN+NGBAsv3p49Nu8+vKzbpA/bPTGXCIei9lhL+7zbledZfDNnq4GvNJXMTIlIRZcKm7IfaQIWWq2i/6bWJym4lQgYsWDmZRNJ2LWcND0='

@@ -53,7 +53,6 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
-import org.lantern.DefaultProxyTracker.ProxyHolder;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.StoredCookie;
 import org.littleshoot.proxy.KeyStoreManager;
