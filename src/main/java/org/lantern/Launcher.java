@@ -85,7 +85,7 @@ public class Launcher {
     private MessageService messageService;
     private Injector injector;
     private SystemTray systemTray;
-    private Model model;
+    Model model;
     private ModelUtils modelUtils;
     private Settings set;
     private Censored censored;
@@ -644,7 +644,7 @@ public class Launcher {
         System.out.println("Lantern version "+LanternClientConstants.VERSION);
     }
 
-    private void configureDefaultLogger() {
+    void configureDefaultLogger() {
         final String propsPath = "src/main/resources/log4j.properties";
         final File props = new File(propsPath);
         if (props.isFile()) {

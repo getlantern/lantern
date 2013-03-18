@@ -120,6 +120,8 @@ public class DefaultProxyTracker implements ProxyTracker {
             addFallbackProxy();
             prepopulateProxies();
             populatedProxies = true;
+        } else {
+            log.debug("Not starting when setup is not complete...");
         }
     }
     
