@@ -8,6 +8,7 @@ import java.lang.management.ManagementFactory;
 import org.apache.commons.io.FileSystemUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement;
 import org.lantern.state.Model.Run;
 
 import com.sun.management.OperatingSystemMXBean;
@@ -21,6 +22,7 @@ public class SystemData {
     private long bytesFree;
     private final long memory;
     
+    @IgnoreJRERequirement
     public SystemData() {
         
         if (SystemUtils.IS_OS_MAC_OSX) {
