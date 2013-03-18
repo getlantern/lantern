@@ -34,9 +34,8 @@ public class RosterTest {
         Events.register(this);
         TestUtils.load(true);
         RandomRoutingTable routingTable = new BasicRandomRoutingTable();
-        XmppHandler xmppHandler = TestUtils.getXmppHandler();
         Model model = TestUtils.getModel();
-        final Roster roster = new Roster(routingTable, xmppHandler, model);
+        final Roster roster = new Roster(routingTable, model);
         
         final String url = "http://127.0.0.1:2174/photo/";
         final Map<String, LanternRosterEntry> entries = 
@@ -64,7 +63,7 @@ public class RosterTest {
             
             // The presence notification in the sync event (see below) will have
             // updated our path variable here.
-            assertEquals("roster."+index, path.get());
+            assertEquals("roster/"+index, path.get());
             
             assertEquals(index, entry.getIndex());
             index++;
@@ -91,7 +90,7 @@ public class RosterTest {
             roster.presenceChanged(pres);
             // The presence notification in the sync event (see below) will have
             // updated our path variable here.
-            assertEquals("roster."+index, path.get());
+            assertEquals("roster/"+index, path.get());
             
             assertEquals(index, entry.getIndex());
             index++;
@@ -112,7 +111,7 @@ public class RosterTest {
             roster.presenceChanged(pres);
             // The presence notification in the sync event (see below) will have
             // updated our path variable here.
-            assertEquals("roster."+index, path.get());
+            assertEquals("roster/"+index, path.get());
             
             assertEquals(index, entry.getIndex());
             index++;

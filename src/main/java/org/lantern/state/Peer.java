@@ -11,7 +11,8 @@ import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.lantern.util.LanternTrafficCounterHandler;
+import org.lantern.util.LanternTrafficCounter;
+import org.lantern.util.Netty3LanternTrafficCounterHandler;
 
 /**
  * Class containing data for an individual peer, including active connections,
@@ -50,7 +51,7 @@ public class Peer {
     
     private boolean incoming;
 
-    private LanternTrafficCounterHandler trafficCounter;
+    private LanternTrafficCounter trafficCounter;
     
     private long bytesUp;
     
@@ -70,7 +71,7 @@ public class Peer {
         final boolean mapped, final double latitude,
         final double longitude, final Type type,
         final String ip, final Mode mode, final boolean incoming,
-        final LanternTrafficCounterHandler trafficCounter,
+        final LanternTrafficCounter trafficCounter,
         final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;
         this.lat = latitude;
@@ -173,7 +174,7 @@ public class Peer {
     @JsonView({Run.class})
     public long getBpsUp() {
         if (this.trafficCounter != null) {
-            return trafficCounter.getTrafficCounter().getCurrentWrittenBytes() * 
+            return trafficCounter.getCurrentWrittenBytes() * 
                 LanternClientConstants.SYNC_INTERVAL_SECONDS;
         }
         return 0L;
@@ -182,7 +183,7 @@ public class Peer {
     @JsonView({Run.class})
     public long getBpsDown() {
         if (this.trafficCounter != null) {
-            return trafficCounter.getTrafficCounter().getCurrentReadBytes() * 
+            return trafficCounter.getCurrentReadBytes() * 
                 LanternClientConstants.SYNC_INTERVAL_SECONDS;
         }
         return 0L;
@@ -196,7 +197,8 @@ public class Peer {
     public long getBytesUp() {
         if (this.trafficCounter != null) {
             return bytesUp + 
-                trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
+                //trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
+            trafficCounter.getCumulativeWrittenBytes();
         }
         return this.bytesUp;
     }
@@ -208,7 +210,8 @@ public class Peer {
     public long getBytesDn() {
         if (this.trafficCounter != null) {
             return bytesDn + 
-                trafficCounter.getTrafficCounter().getCumulativeReadBytes();
+                //trafficCounter.getTrafficCounter().getCumulativeReadBytes();
+            trafficCounter.getCumulativeReadBytes();
         }
         return this.bytesDn;
     }
@@ -226,12 +229,12 @@ public class Peer {
     }
 
     @JsonIgnore
-    public LanternTrafficCounterHandler getTrafficCounter() {
+    public LanternTrafficCounter getTrafficCounter() {
         return trafficCounter;
     }
 
     public void setTrafficCounter(
-        final LanternTrafficCounterHandler trafficCounter) {
+        final LanternTrafficCounter trafficCounter) {
         this.trafficCounter = trafficCounter;
     }
 

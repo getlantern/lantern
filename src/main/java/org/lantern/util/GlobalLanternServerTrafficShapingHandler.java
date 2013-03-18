@@ -29,8 +29,8 @@ public class GlobalLanternServerTrafficShapingHandler
     
     private final AtomicInteger totalChannels = new AtomicInteger(0);
 
-    private final ConcurrentHashMap<InetAddress, LanternTrafficCounterHandler> handlers =
-            new ConcurrentHashMap<InetAddress, LanternTrafficCounterHandler>();
+    private final ConcurrentHashMap<InetAddress, Netty3LanternTrafficCounterHandler> handlers =
+            new ConcurrentHashMap<InetAddress, Netty3LanternTrafficCounterHandler>();
 
     private final PeerFactory peerFactory;
 
@@ -67,12 +67,12 @@ public class GlobalLanternServerTrafficShapingHandler
                 (InetSocketAddress) ctx.getChannel().getRemoteAddress();
             final InetAddress address = isa.getAddress();
             
-            final LanternTrafficCounterHandler newHandler = 
-                    new LanternTrafficCounterHandler(timer, true);
-            final LanternTrafficCounterHandler existingHandler =
+            final Netty3LanternTrafficCounterHandler newHandler = 
+                    new Netty3LanternTrafficCounterHandler(timer, true);
+            final Netty3LanternTrafficCounterHandler existingHandler =
                     handlers.putIfAbsent(address, newHandler);
             
-            final LanternTrafficCounterHandler toUse;
+            final Netty3LanternTrafficCounterHandler toUse;
             if (existingHandler == null) {
                 toUse = newHandler;
                 this.peerFactory.addIncomingPeer(isa.getAddress(), newHandler);
