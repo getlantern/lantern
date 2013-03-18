@@ -18,6 +18,7 @@ import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
+import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,6 +165,11 @@ public class Model {
 
     public void setSetupComplete(final boolean setupComplete) {
         this.setupComplete = setupComplete;
+        if (setupComplete) {
+            // Things like configuring the system proxy rely on setup being
+            // complete, so propagate the event.
+            Events.asyncEventBus().post(new SetupCompleteEvent());
+        }
     }
 
     @JsonView({Run.class, Persistent.class})

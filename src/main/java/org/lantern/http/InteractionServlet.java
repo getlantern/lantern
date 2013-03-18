@@ -189,9 +189,6 @@ public class InteractionServlet extends HttpServlet {
                 this.model.setShowVis(true);
                 this.model.setSetupComplete(true);
 
-                // Things like configuring the system proxy rely on setup being
-                // complete, so propagate the event.
-                Events.asyncEventBus().post(new SetupCompleteEvent());
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
                 Events.syncModel(this.model);
