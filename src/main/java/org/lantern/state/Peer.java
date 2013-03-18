@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
+import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.util.LanternTrafficCounter;
@@ -265,6 +266,7 @@ public class Peer {
     
     public void setLastConnectedLong(final long lastConnectedLong) {
         this.lastConnectedLong = lastConnectedLong;
+        Events.eventBus().post(new PeerLastConnectedChangedEvent(this));
     }
 
     public String getPeerid() {
