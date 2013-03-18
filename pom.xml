@@ -71,6 +71,15 @@
       <version>4.0.0.Beta3</version>
     </dependency>
     <dependency>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>animal-sniffer-annotations</artifactId>
+      <version>1.9</version>
+      <optional>true</optional>
+      <!-- if you are using badly written Maven plugins then blame them and add
+      <scope>provided</scope>
+      -->
+    </dependency>
+    <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>kaleidoscope</artifactId>
       <version>1.0-SNAPSHOT</version>
@@ -538,6 +547,31 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>animal-sniffer-maven-plugin</artifactId>
+        <version>1.9</version>
+        <configuration>
+          <jdk>
+            <version>1.6.0</version>
+            <vendor>sun</vendor>
+          </jdk>
+          <signature>
+            <groupId>org.codehaus.mojo.signature</groupId>
+            <artifactId>java16</artifactId>
+            <version>1.0</version>
+          </signature>
+        </configuration>
+        <executions>
+          <execution>
+            <id>java-api-check</id>
+            <phase>package</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 <!--
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
