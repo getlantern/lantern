@@ -47,9 +47,9 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ExecutorService p2pSocketThreadPool = 
+    private final ExecutorService p2pSocketThreadPool =
         Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
-    
+
     /**
      * These are the centralized proxies this Lantern instance is using.
      */
@@ -60,10 +60,10 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     /**
      * This is the set of the peer proxies we know about only through their
-     * JIDs - i.e. they don't have their ports mapped such that we can 
+     * JIDs - i.e. they don't have their ports mapped such that we can
      * access them directly.
      */
-    private final Map<URI, ProxyHolder> peerProxyMap = 
+    private final Map<URI, ProxyHolder> peerProxyMap =
             new ConcurrentHashMap<URI, ProxyHolder>();
     private final Queue<ProxyHolder> peerProxyQueue =
             new ConcurrentLinkedQueue<ProxyHolder>();
@@ -80,24 +80,24 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final PeerFactory peerFactory;
 
     private final Timer timer;
-    
+
     private boolean populatedProxies = false;
-    
-    private Collection<Netty3LanternTrafficCounterHandler> netty3TrafficShapers =
+
+    private final Collection<Netty3LanternTrafficCounterHandler> netty3TrafficShapers =
             new ArrayList<Netty3LanternTrafficCounterHandler>();
-    
-    private Collection<Netty4LanternTrafficCounterHandler> netty4TrafficShapers =
+
+    private final Collection<Netty4LanternTrafficCounterHandler> netty4TrafficShapers =
             new ArrayList<Netty4LanternTrafficCounterHandler>();
-    
-    
-    private static final ScheduledExecutorService netty4TrafficCounterExecutor = 
+
+
+    private static final ScheduledExecutorService netty4TrafficCounterExecutor =
             Threads.newScheduledThreadPool("Netty4-Traffic-Counter-");
-    
+
     /**
      * Thread pool for checking connections to proxies -- otherwise these
      * can hold up the XMPP processing thread or any other calling thread.
      */
-    private final ExecutorService proxyCheckThreadPool = 
+    private final ExecutorService proxyCheckThreadPool =
             Threads.newCachedThreadPool("Proxy-Connection-Check-Pool-");
 
     private final XmppHandler xmppHandler;
@@ -110,10 +110,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.peerFactory = peerFactory;
         this.timer = timer;
         this.xmppHandler = xmppHandler;
-        
+
         Events.register(this);
     }
-    
+
     @Override
     public void start() {
         if (this.model.isSetupComplete()) {
@@ -124,7 +124,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("Not starting when setup is not complete...");
         }
     }
-    
+
 
     private void prepopulateProxies() {
         if (this.model.getSettings().getMode() == Mode.give) {
@@ -146,8 +146,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxy() {
         if (this.model.getSettings().isTcp()) {
-            addProxy(LanternClientConstants.FALLBACK_SERVER_HOST, 
-                Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), 
+            addProxy(LanternClientConstants.FALLBACK_SERVER_HOST,
+                Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT),
                 Type.cloud);
         }
     }
@@ -177,12 +177,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void proxyBookkeeping(final String proxy) {
         log.debug("Adding proxy to settings");
-        
+
         // We want to keep track of it for future user regardless of whether
         // or not we can connect now.
-        
-        // This is a little odd because the proxy could have 
-        // originally come from the settings themselves, but 
+
+        // This is a little odd because the proxy could have
+        // originally come from the settings themselves, but
         // it'll remove duplicates, so no harm done.
         model.getSettings().addProxy(proxy);
     }
@@ -191,18 +191,18 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void addLaeProxy(final String cur) {
         log.debug("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
-            new ProxyHolder(cur, new InetSocketAddress(cur, 443), 
+            new ProxyHolder(cur, new InetSocketAddress(cur, 443),
                 netty3TrafficCounter()), cur, Type.laeproxy);
     }
 
     @Override
     public void addProxy(final String hostPort) {
         log.debug("Adding proxy as string: {}", hostPort);
-        final String hostname = 
+        final String hostname =
             StringUtils.substringBefore(hostPort, ":");
-        final int port = 
+        final int port =
             Integer.parseInt(StringUtils.substringAfter(hostPort, ":"));
-        
+
         addProxy(hostname, port, Type.pc);
     }
 
@@ -212,19 +212,19 @@ public class DefaultProxyTracker implements ProxyTracker {
         log.debug("Adding proxy: {}", isa);
         addProxy(isa.getHostName(), isa.getPort(), Type.pc);
     }
-    
+
     private void addProxy(final String host, final int port, final Type type) {
         final InetSocketAddress isa = LanternUtils.isa(host, port);
         if (this.model.getSettings().getMode() == Mode.give) {
             log.debug("Not adding proxy in give mode");
             return;
         }
-        
-        addProxyWithChecks(proxySet, proxies, 
+
+        addProxyWithChecks(proxySet, proxies,
             new ProxyHolder(host, isa, netty3TrafficCounter()),
                 host+":"+port, type);
     }
-    
+
     private ProxyHolder getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
             if (queue.isEmpty()) {
@@ -243,7 +243,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     public boolean hasJidProxy(final URI uri) {
         return this.peerProxyMap.containsKey(uri);
     }
-    
+
     @Override
     public void addJidProxy(final URI peerUri) {
         log.debug("Considering peer proxy");
@@ -253,9 +253,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         final String jid = peerUri.toASCIIString();
         proxyBookkeeping(jid);
-        
+
         // The idea here is to start with the JID and to basically convert it
-        // into a NAT/firewall traversed FiveTuple containing a local and 
+        // into a NAT/firewall traversed FiveTuple containing a local and
         // remote InetSocketAddress we can use a little more easily.
         final Map<URI, AtomicInteger> peerFailureCount =
                 new HashMap<URI, AtomicInteger>();
@@ -264,7 +264,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             @Override
             public void run() {
                 // TODO: In the past we created a bunch of connections here -
-                // a socket pool -- to avoid dealing with connection time 
+                // a socket pool -- to avoid dealing with connection time
                 // delays. We should probably do that again!.
                 boolean gotConnected = false;
                 try {
@@ -277,10 +277,10 @@ public class DefaultProxyTracker implements ProxyTracker {
                     final InetSocketAddress remote = tuple.getRemote();
                     final ProxyHolder ph =
                         new ProxyHolder(jid, tuple, netty4TrafficCounter());
-                    
-                    peerFactory.addOutgoingPeer(jid, remote, Type.pc, 
+
+                    peerFactory.addOutgoingPeer(jid, remote, Type.pc,
                             ph.getTrafficShapingHandler());
-                    
+
                     synchronized (peerProxyMap) {
                         if (!peerProxyMap.containsKey(peerUri)) {
                             peerProxyMap.put(peerUri, ph);
@@ -300,7 +300,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         });
     }
-    
+
     private void addProxyWithChecks(final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
         final String fullProxyString, final Type type) {
@@ -313,27 +313,27 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
         proxyBookkeeping(fullProxyString);
-        
+
         proxyCheckThreadPool.submit(new Runnable() {
-            
+
             @Override
             public void run() {
                 final Socket sock = new Socket();
                 final InetSocketAddress remote = ph.getFiveTuple().getRemote();
                 try {
                     sock.connect(remote, 60*1000);
-                    
+
                     synchronized (set) {
                         if (!set.contains(ph)) {
                             set.add(ph);
                             queue.add(ph);
                             log.debug("Added connected TCP proxy. " +
                                 "Queue is now: {}", queue);
-                            peerFactory.addOutgoingPeer("", remote, type, 
+                            peerFactory.addOutgoingPeer("", remote, type,
                                     ph.getTrafficShapingHandler());
                         }
                     }
-                    
+
                     log.debug("Dispatching CONNECTED event");
                     Events.asyncEventBus().post(
                         new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
@@ -353,8 +353,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         // This can happen in several scenarios. First, it can happen if you've
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
-        // down for some reason. 
-        
+        // down for some reason.
+
         // We should remove the proxy here but should certainly keep it on disk
         // so we can try to connect to it in the future.
         log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}",
@@ -415,13 +415,13 @@ public class DefaultProxyTracker implements ProxyTracker {
     public ProxyHolder getProxy() {
         return getProxy(this.proxies);
     }
-    
+
     @Override
     public ProxyHolder getJidProxy() {
         // We handle p2p JIDs a little differently, as we can't make multiple
         // connections from ephemeral local ports to the same remote endpoint
         // because NAT traversal is local port-specific (at least in many
-        // cases). So instead of always adding the proxy back to the end of 
+        // cases). So instead of always adding the proxy back to the end of
         // the queue, we add it using the full FiveTuple creation process
         // from the beginning.
         synchronized (this.peerProxyQueue) {
@@ -435,7 +435,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             return proxy;
         }
     }
-    
+
     @Override
     public boolean hasProxy() {
         return !this.proxies.isEmpty();
@@ -452,7 +452,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             handler.releaseExternalResources();
         }
     }
-    
+
     @Subscribe
     public void onSetupComplete(final SetupCompleteEvent event) {
         log.debug("Got setup complete!");
@@ -462,14 +462,14 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         start();
     }
-    
+
     private Netty3LanternTrafficCounterHandler netty3TrafficCounter() {
-        final Netty3LanternTrafficCounterHandler handler = 
+        final Netty3LanternTrafficCounterHandler handler =
             new Netty3LanternTrafficCounterHandler(this.timer, false);
         netty3TrafficShapers.add(handler);
         return handler;
     }
-    
+
     private Netty4LanternTrafficCounterHandler netty4TrafficCounter() {
         final Netty4LanternTrafficCounterHandler handler =
                 new Netty4LanternTrafficCounterHandler(
