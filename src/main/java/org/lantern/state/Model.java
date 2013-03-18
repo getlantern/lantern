@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Country;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
@@ -41,7 +42,10 @@ public class Model {
 
     private boolean showVis = false;
 
-    private int ninvites = 0;
+    private final boolean dev =
+            LanternClientConstants.VERSION.equals("lantern_version_tok");
+
+    private int ninvites = -1;
 
     private Modal modal = Modal.welcome;
 
