@@ -1,12 +1,15 @@
 package otto
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode/utf16"
+	"unicode/utf8"
 )
 
 // Global
@@ -71,6 +74,8 @@ func builtinGlobal_parseFloat(call FunctionCall) Value {
 	return toValue(value)
 }
 
+// encodeURI/decodeURI
+
 func _builtinGlobal_encodeURI(call FunctionCall, characterRegexp *regexp.Regexp) Value {
 	value := []byte(toString(call.Argument(0)))
 	value = characterRegexp.ReplaceAllFunc(value, func(target []byte) []byte {
@@ -101,6 +106,87 @@ func builtinGlobal_decodeURI_decodeURIComponent(call FunctionCall) Value {
 		panic(newURIError("URI malformed"))
 	}
 	return toValue(value)
+}
+
+// escape/unescape
+
+func builtin_shouldEscape(chr byte) bool {
+	if 'A' <= chr && chr <= 'Z' || 'a' <= chr && chr <= 'z' || '0' <= chr && chr <= '9' {
+		return false
+	}
+	return !strings.ContainsRune("*_+-./", rune(chr))
+}
+
+const escapeBase16 = "0123456789ABCDEF"
+
+func builtin_escape(input string) string {
+	output := make([]byte, 0, len(input))
+	length := len(input)
+	for index := 0; index < length; {
+		if builtin_shouldEscape(input[index]) {
+			chr, width := utf8.DecodeRuneInString(input[index:])
+			chr16 := utf16.Encode([]rune{chr})[0]
+			if 256 > chr16 {
+				output = append(output, '%',
+					escapeBase16[chr16>>4],
+					escapeBase16[chr16&15],
+				)
+			} else {
+				output = append(output, '%', 'u',
+					escapeBase16[chr16>>12],
+					escapeBase16[(chr16>>8)&15],
+					escapeBase16[(chr16>>4)&15],
+					escapeBase16[chr16&15],
+				)
+			}
+			index += width
+
+		} else {
+			output = append(output, input[index])
+			index += 1
+		}
+	}
+	return string(output)
+}
+
+func builtin_unescape(input string) string {
+	output := make([]rune, 0, len(input))
+	length := len(input)
+	for index := 0; index < length; {
+		if input[index] == '%' {
+			if index <= length-6 && input[index+1] == 'u' {
+				byte16, err := hex.DecodeString(input[index+2 : index+6])
+				if err == nil {
+					value := uint16(byte16[0])<<8 + uint16(byte16[1])
+					chr := utf16.Decode([]uint16{value})[0]
+					output = append(output, chr)
+					index += 6
+					continue
+				}
+			}
+			if index <= length-3 {
+				byte8, err := hex.DecodeString(input[index+1 : index+3])
+				if err == nil {
+					value := uint16(byte8[0])
+					chr := utf16.Decode([]uint16{value})[0]
+					output = append(output, chr)
+					index += 3
+					continue
+				}
+			}
+		}
+		output = append(output, rune(input[index]))
+		index += 1
+	}
+	return string(output)
+}
+
+func builtinGlobal_escape(call FunctionCall) Value {
+	return toValue(builtin_escape(toString(call.Argument(0))))
+}
+
+func builtinGlobal_unescape(call FunctionCall) Value {
+	return toValue(builtin_unescape(toString(call.Argument(0))))
 }
 
 // Error

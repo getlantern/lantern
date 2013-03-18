@@ -672,6 +672,8 @@ func newContext() *_runtime {
 		"decodeURIComponent", builtinGlobal_decodeURI_decodeURIComponent,
 		"encodeURI", builtinGlobal_encodeURI,
 		"encodeURIComponent", builtinGlobal_encodeURIComponent,
+		"escape", builtinGlobal_escape,
+		"unescape", builtinGlobal_unescape,
 	)
 
 	self._newError["EvalError"] = self.defineError("EvalError")

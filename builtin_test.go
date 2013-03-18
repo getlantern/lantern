@@ -68,3 +68,41 @@ func TestString_substr(t *testing.T) {
 
 	test(`"abcd".substr(3, 5)`, "d")
 }
+
+func Test_builtin_escape(t *testing.T) {
+	Terst(t)
+
+	Is(builtin_escape("abc"), "abc")
+	Is(builtin_escape("="), "%3D")
+	Is(builtin_escape("abc=%+32"), "abc%3D%25+32")
+	Is(builtin_escape("世界"), "%u4E16%u754C")
+}
+
+func Test_builtin_unescape(t *testing.T) {
+	Terst(t)
+
+	Is(builtin_unescape("abc"), "abc")
+	Is(builtin_unescape("=%3D"), "==")
+	Is(builtin_unescape("abc%3D%25+32"), "abc=%+32")
+	Is(builtin_unescape("%u4E16%u754C"), "世界")
+}
+
+func TestGlobal_escape(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`escape("abc")`, "abc")
+	test(`escape("=")`, "%3D")
+	test(`escape("abc=%+32")`, "abc%3D%25+32")
+	test(`escape("\u4e16\u754c")`, "%u4E16%u754C")
+}
+
+func TestGlobal_unescape(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`unescape("abc")`, "abc")
+	test(`unescape("=%3D")`, "==")
+	test(`unescape("abc%3D%25+32")`, "abc=%+32")
+	test(`unescape("%u4E16%u754C")`, "世界")
+}
