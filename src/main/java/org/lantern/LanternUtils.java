@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.IOError;
@@ -474,12 +475,13 @@ public class LanternUtils {
         Console console = System.console();
         if (console == null) {
             LOG.debug("No console -- using System.in...");
-            Scanner sc = null;
+            BufferedInputStream bis = null;
             try {
-                sc = new Scanner(System.in, "UTF-8");
+                bis = new BufferedInputStream(System.in);
+                Scanner sc = new Scanner(bis, "UTF-8");
                 return sc.nextLine().toCharArray();
             } finally {
-                org.apache.commons.io.IOUtils.closeQuietly(sc);
+                IOUtils.closeQuietly(bis);
             }
         }
         try {
