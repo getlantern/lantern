@@ -44,7 +44,7 @@ public class Model {
     private final boolean dev =
             LanternClientConstants.VERSION.equals("lantern_version_tok");
 
-    private int ninvites = 0;
+    private int ninvites = -1;
 
     private Modal modal = Modal.welcome;
 
