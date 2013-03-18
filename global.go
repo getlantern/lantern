@@ -312,6 +312,7 @@ func newContext() *_runtime {
 
 	self.Global.Math = self.newGlobalObject(
 		"Math",
+		"abs", 1, builtinMath_abs,
 		"acos", 1, builtinMath_acos,
 		"asin", 1, builtinMath_asin,
 		"atan", 1, builtinMath_atan,

@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+func TestMath_abs(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.abs(NaN)`, "NaN")
+	test(`Math.abs(2)`, "2")
+	test(`Math.abs(-2)`, "2")
+	test(`Math.abs(-Infinity)`, "Infinity")
+
+	test(`Math.acos(0.5)`, "1.0471975511965976")
+
+	test(`Math.abs('-1')`, "1")
+	test(`Math.abs(-2)`, "2")
+	test(`Math.abs(null)`, "0")
+	test(`Math.abs("string")`, "NaN")
+	test(`Math.abs()`, "NaN")
+}
+
 func TestMath_acos(t *testing.T) {
 	Terst(t)
 

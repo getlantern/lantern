@@ -7,6 +7,11 @@ import (
 
 // Math
 
+func builtinMath_abs(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Abs(number))
+}
+
 func builtinMath_acos(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
 	return toValue(math.Acos(number))
