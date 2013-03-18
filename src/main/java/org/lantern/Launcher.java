@@ -451,10 +451,10 @@ public class Launcher {
         }
     }
 
-    public static String CIPHER_SUITE_LOW_BIT =
+    private static final String CIPHER_SUITE_LOW_BIT =
             "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
 
-    public static String CIPHER_SUITE_HIGH_BIT =
+    private static final String CIPHER_SUITE_HIGH_BIT =
             "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
 
     public static void configureCipherSuites() {
