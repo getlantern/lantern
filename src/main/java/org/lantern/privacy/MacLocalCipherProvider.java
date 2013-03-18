@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.lantern.LanternConstants;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
             final Base64 base64 = new Base64();
             final String encodedKey = 
                 keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
-            return base64.decode(encodedKey.getBytes());
+            return base64.decode(encodedKey.getBytes(LanternConstants.UTF8));
         } catch (final OSXKeychainException e) {
             throw new GeneralSecurityException("Keychain error?", e);
         }

@@ -474,8 +474,13 @@ public class LanternUtils {
         Console console = System.console();
         if (console == null) {
             LOG.debug("No console -- using System.in...");
-            final Scanner sc = new Scanner(System.in);
-            return sc.nextLine().toCharArray();
+            Scanner sc = null;
+            try {
+                sc = new Scanner(System.in, "UTF-8");
+                return sc.nextLine().toCharArray();
+            } finally {
+                IOUtils.closeQuietly(sc);
+            }
         }
         try {
             return console.readPassword();
