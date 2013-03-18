@@ -186,6 +186,16 @@ MockBackend._handlerForInteraction[INTERACTION.close] = function(res, data) {
   this._internalState.lastModal = MODAL.none;
 };
 
+MockBackend._handlerForInteraction[INTERACTION.unexpectedStateRefresh] = function(res, data) {
+  log('Got unexpectedStateRefresh', data);
+};
+
+MockBackend._handlerForInteraction[INTERACTION.unexpectedStateReset] = function(res, data) {
+  log('Got unexpectedStateReset', data);
+  SKIPSETUP = false;
+  this.reset();
+};
+
 MockBackend._handlerForInteraction[INTERACTION.developer] = function(res, data) {
   if (!_.isArray(data)) {
     log('Expected array, got', data);
@@ -512,7 +522,7 @@ MockBackend.prototype.handleRequest = function(req, res) {
         if (data) {
           try {
             data = JSON.parse(data);
-            log('got data:', data);
+            //log('got data:', data);
           } catch (e) {
             log('Error parsing JSON:', e)
             res.writeHead(400);

@@ -49,7 +49,7 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}" dir="{{ direction() }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
-    <div id="waiting" ng-show="!cometdConnected">
+    <div id="waiting" ng-show="modelSrvc.sane && !cometdConnected">
       <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
       <!-- XXX https://github.com/FortAwesome/Font-Awesome/issues/701
       <i class="icon-spinner icon-spin icon-3x"></i>

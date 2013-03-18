@@ -44,6 +44,11 @@ angular.module('app.services', [])
     });
     //cometd.websocketsEnabled = false; // XXX can we re-enable in Lantern?
 
+    function disconnect() {
+      cometd.disconnect(true);
+    }
+    $($window).unload(disconnect);
+
     // http://cometd.org/documentation/cometd-javascript/subscription
     cometd.onListenerException = function(exception, subscriptionHandle, isListener, message) {
       log.error('Uncaught exception for subscription', subscriptionHandle, ':', exception, 'message:', message);
@@ -55,7 +60,7 @@ angular.module('app.services', [])
         cometd.unsubscribe(subscriptionHandle);
         log.error('unsubscribed');
       }
-      cometd.disconnect(true);
+      disconnect();
     };
 
     cometd.addListener('/meta/connect', function(msg) {
@@ -133,15 +138,13 @@ angular.module('app.services', [])
       }
     });
 
-    $($window).unload(function() {
-      cometd.disconnect(true);
-    });
 
     cometd.handshake();
 
     return {
       subscribe: subscribe,
-      unsubscribe: unsubscribe
+      unsubscribe: unsubscribe,
+      disconnect: disconnect
     };
   })
   .service('modelSrvc', function($rootScope, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {

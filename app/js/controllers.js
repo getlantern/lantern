@@ -76,11 +76,8 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
     $scope.ninvitesUnknown = ninvites === -1;
   }, true);
 
-  function reload() {
+  $scope.reload = function() {
     location.reload(true); // true to bypass cache and force request to server
-  }
-  $scope.refresh = function(extra) {
-    var promise = $scope.interaction(INTERACTION.refresh, extra).then(reload, reload);
   };
 
   $scope.interaction = function(interactionid, extra) {
@@ -100,7 +97,7 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   };
 }
 
-function UnexpectedStateCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, logFactory) {
+function UnexpectedStateCtrl($scope, $filter, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {
   var log = logFactory('UnexpectedStateCtrl');
 
   $scope.modelSrvc = modelSrvc;
@@ -108,6 +105,8 @@ function UnexpectedStateCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRE
   $scope.show = false;
   $scope.$watch('modelSrvc.sane', function(sane) {
     if (!sane) {
+      // disconnect immediately from insane backend
+      cometdSrvc.disconnect();
       $scope.report = $scope.defaultReportMsg();
       modelSrvc.model.modal = MODAL.none;
       $scope.show = true;
@@ -126,6 +125,16 @@ function UnexpectedStateCtrl($scope, $filter, apiSrvc, modelSrvc, MODAL, REQUIRE
       }
     }
   }, true);
+
+  function handleChoice(choice) {
+    $scope.interaction(choice, {notify: $scope.notify, report: $scope.report}).then($scope.reload);
+  }
+  $scope.handleReset = function() {
+    handleChoice(INTERACTION.unexpectedStateReset);
+  };
+  $scope.handleRefresh = function() {
+    handleChoice(INTERACTION.unexpectedStateRefresh);
+  };
 }
 
 function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {

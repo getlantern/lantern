@@ -29,11 +29,11 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report, context: MODAL.unexpectedState})" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
+    <button type="button" ng-click="handleReset()" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET' | i18n }}
     </button>
-    <button type="button" ng-click="refresh({notify: notify, report: bugReport, context: MODAL.unexpectedState})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
+    <button type="button" ng-click="handleRefresh()" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
 

@@ -87,6 +87,8 @@ var DEFAULT_LANG = 'en',
       'close',
       'quit',
       'refresh',
+      'unexpectedStateReset',
+      'unexpectedStateRefresh',
       'developer',
       'scenarios']),
     SETTING = makeEnum([
