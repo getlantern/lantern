@@ -29,9 +29,9 @@ public class LanternClientConstants {
      */
     public static final String VERSION = "lantern_version_tok";
 
-    public static File DATA_DIR;
+    public static final File DATA_DIR;
 
-    public static File LOG_DIR;
+    public static final File LOG_DIR;
     
     public static final File CONFIG_DIR =
         new File(System.getProperty("user.home"), ".lantern");
