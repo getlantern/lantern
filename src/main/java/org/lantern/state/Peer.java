@@ -26,7 +26,7 @@ public class Peer {
     private String country = "";
     
     public enum Type {
-        desktop,
+        pc,
         cloud,
         laeproxy
     }

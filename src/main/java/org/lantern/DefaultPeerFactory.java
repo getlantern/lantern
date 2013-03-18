@@ -137,7 +137,7 @@ public class DefaultPeerFactory implements PeerFactory {
         final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
         return new Peer("", geo.getCountrycode(), false, geo.getLatitude(), 
-            geo.getLongitude(), Type.desktop, hostAddress, Mode.get, 
+            geo.getLongitude(), Type.pc, hostAddress, Mode.get, 
             true, trafficCounter, null);
     }
     

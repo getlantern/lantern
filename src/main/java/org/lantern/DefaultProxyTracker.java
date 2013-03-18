@@ -203,14 +203,14 @@ public class DefaultProxyTracker implements ProxyTracker {
         final int port = 
             Integer.parseInt(StringUtils.substringAfter(hostPort, ":"));
         
-        addProxy(hostname, port, Type.desktop);
+        addProxy(hostname, port, Type.pc);
     }
 
 
     @Override
     public void addProxy(final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
-        addProxy(isa.getHostName(), isa.getPort(), Type.desktop);
+        addProxy(isa.getHostName(), isa.getPort(), Type.pc);
     }
     
     private void addProxy(final String host, final int port, final Type type) {
@@ -278,7 +278,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     final ProxyHolder ph =
                         new ProxyHolder(jid, tuple, netty4TrafficCounter());
                     
-                    peerFactory.addOutgoingPeer(jid, remote, Type.desktop, 
+                    peerFactory.addOutgoingPeer(jid, remote, Type.pc, 
                             ph.getTrafficShapingHandler());
                     
                     synchronized (peerProxyMap) {
