@@ -41,8 +41,11 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       prettyBytes = $filter('prettyBytes'),
       $map = $('#map'),
       $$map = d3.select('#map'),
-      $$self = d3.select('#self'),
+      $peers = $('#peers'),
       $$peers = d3.select('#peers'),
+      $countries = $('#countries'),
+      $$countries = d3.select('#countries'),
+      $$self = d3.select('#self'),
       projections = {
         orthographic: d3.geo.orthographic().clipAngle(90),
         mercator: d3.geo.mercator()
@@ -67,11 +70,11 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   $scope.$watch('model.showVis', function(showVis, oldShowVis) {
     if (showVis === true) {
-      $('#peers').tooltip(CONFIG.tooltip);
-      $('#countries').tooltip(CONFIG.tooltip);
+      $peers.tooltip(CONFIG.tooltip);
+      $countries.tooltip(CONFIG.tooltip);
     } else if (showVis === false && oldShowVis) {
-      $('#peers').tooltip('destroy');
-      $('#countries').tooltip('destroy');
+      $peers.tooltip('destroy');
+      $countries.tooltip('destroy');
       log.debug('showVis toggled off, destroyed tooltips');
     }
   });
@@ -154,7 +157,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   function dataFetched(error, world) {
     var countryGeometries = topojson.object(world, world.objects.countries).geometries;
-    countryPaths = d3.select('#countries').selectAll('path')
+    countryPaths = $$countries.selectAll('path')
       .data(countryGeometries).enter().append('path')
         .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
         .attr('d', pathForData);
