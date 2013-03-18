@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.udtrelay;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -7,59 +7,62 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
 
 import org.lantern.util.Threads;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * UDT Message Flow Server
- * <p>
- * Echoes back any received data from a client.
- */
-public class UdtRelayServer {
+public class UdtRelayProxy {
 
-    private static final Logger log = 
-            Logger.getLogger(UdtRelayServer.class.getName());
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private final int destinationPort;
 
-    private final int serverPort;
+    private final InetSocketAddress local;
 
-    private final int relayPort;
-
-    public UdtRelayServer(final int serverPort, final int relayPort) {
-        this.serverPort = serverPort;
-        this.relayPort = relayPort;
+    public UdtRelayProxy(final InetSocketAddress local, final int localProxyPort) {
+        this.local = local;
+        this.destinationPort = localProxyPort;
     }
 
     public void run() throws Exception {
-        final ThreadFactory acceptFactory = Threads.newThreadFactory("accept");
-        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
+        log.debug("Proxying clients from "+ local + " to " +
+            "127.0.0.1:" + destinationPort + " ...");
+
+        final ThreadFactory acceptFactory = 
+            Threads.newNonDaemonThreadFactory("accept");
+        final ThreadFactory connectFactory = 
+            Threads.newNonDaemonThreadFactory("connect");
         final NioEventLoopGroup acceptGroup = new NioEventLoopGroup(1,
                 acceptFactory, NioUdtProvider.BYTE_PROVIDER);
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
         // Configure the server.
         final ServerBootstrap boot = new ServerBootstrap();
+        
+        // Note that we don't need to configure SSL here, as this is just a
+        // simple relay that passes all bytes to the local proxy server.
         try {
             boot.group(acceptGroup, connectGroup)
                 .channelFactory(NioUdtProvider.BYTE_ACCEPTOR)
                 .option(ChannelOption.SO_BACKLOG, 10)
-                .handler(new LoggingHandler(LogLevel.INFO))
+                .option(ChannelOption.SO_REUSEADDR, true)
+                //.childOption(ChannelOption.SO_KEEPALIVE, true)
+                //.childOption(ChannelOption.SO_TIMEOUT, 400 * 1000)
                 .childHandler(new ChannelInitializer<UdtChannel>() {
                     @Override
                     public void initChannel(final UdtChannel ch)
                             throws Exception {
                         ch.pipeline().addLast(
-                                new LoggingHandler(LogLevel.INFO),
-                                new UdtRelayServerHandler(relayPort));
+                            //new LoggingHandler(LogLevel.INFO),x
+                            new UdtRelayServerIncomingHandler(destinationPort));
                     }
                 });
-            // Start the server.
-            //final ChannelFuture future = boot.bind(serverPort).sync();
-            final ChannelFuture future = boot.bind("127.0.0.1", serverPort).sync();
+            
+            final ChannelFuture future = boot.bind(local).sync();
             // Wait until the server socket is closed.
             future.channel().closeFuture().sync();
         } finally {
@@ -67,5 +70,4 @@ public class UdtRelayServer {
             boot.shutdown();
         }
     }
-
 }

@@ -5,10 +5,14 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashSet;
 
 import org.junit.Test;
+import org.lantern.event.ClosedBetaEvent;
+import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Test for the XMPP handler.
@@ -18,6 +22,16 @@ public class DefaultXmppHandlerTest {
     private static Logger LOG = 
         LoggerFactory.getLogger(DefaultXmppHandlerTest.class);
     
+    private ClosedBetaEvent closedBetaEvent;
+    
+    public DefaultXmppHandlerTest() {
+        Events.register(this);
+    }
+    
+    @Subscribe
+    public void onClosedBetaEvent(ClosedBetaEvent event) {
+        this.closedBetaEvent = event;
+    }
     
     /**
      * Make sure we're getting messages back from the controller.
@@ -32,22 +46,20 @@ public class DefaultXmppHandlerTest {
         settings.setProxies(new HashSet<String>());
         
         settings.setMode(Mode.get);
+        this.closedBetaEvent = null;
         
         final XmppHandler handler = TestUtils.getXmppHandler();
-        final ProxyTracker proxyTracker = TestUtils.getProxyTracker();
-        proxyTracker.clear();
         handler.connect();
         
         LOG.debug("Checking for proxies in settings: {}", settings);
         int count = 0;
-        while (proxyTracker.isEmpty() && count < 200) {
-            if (!proxyTracker.isEmpty()) break;
-            Thread.sleep(200);
+        while (closedBetaEvent == null && count < 200) {
+            Thread.sleep(100);
             count++;
         }
         
-        assertTrue("Should have received proxies from the controller", 
-            !proxyTracker.isEmpty());
+        assertTrue("Should have received event from the controller", 
+            this.closedBetaEvent != null);
         //TestUtils.close();
     }
 }

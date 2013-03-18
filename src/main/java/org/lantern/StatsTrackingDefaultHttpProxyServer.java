@@ -198,20 +198,26 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         @Override
         public ChannelPipeline getPipeline() throws Exception {
             final ChannelPipeline pipeline = super.getPipeline();
-            pipeline.addFirst("stats", new StatsTrackingHandler() {
-                @Override
-                public void addUpBytes(long bytes) {
-                    stats.addUpBytesToPeers(bytes);
-                }
-                @Override
-                public void addDownBytes(long bytes) {
-                    stats.addDownBytesFromPeers(bytes);
-                }
-            });
+            // Could be null for testing.
+            if (stats != null) {
+                pipeline.addFirst("stats", new StatsTrackingHandler() {
+                    @Override
+                    public void addUpBytes(long bytes) {
+                        stats.addUpBytesToPeers(bytes);
+                    }
+                    @Override
+                    public void addDownBytes(long bytes) {
+                        stats.addDownBytesFromPeers(bytes);
+                    }
+                });
+            }
             
             // This allows us to track global stats and also acts as our
             // hook to add per-IP stats tracking.
-            pipeline.addFirst("globalTrafficHandler", serverTrafficHandler);
+            // Could be null for testing.
+            if (serverTrafficHandler != null) {
+                pipeline.addFirst("globalTrafficHandler", serverTrafficHandler);
+            }
             return pipeline;
         }
     }
@@ -248,16 +254,18 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 @Override
                 public ChannelPipeline getPipeline() throws Exception {
                     final ChannelPipeline pipeline = innerFactory.getPipeline();
-                    pipeline.addFirst("stats", new StatsTrackingHandler() {
-                        @Override
-                        public void addUpBytes(final long bytes) {
-                            stats.addUpBytesForPeers(bytes);
-                        }
-                        @Override
-                        public void addDownBytes(final long bytes) {
-                            stats.addDownBytesForPeers(bytes);
-                        }
-                    });
+                    if (stats != null) {
+                        pipeline.addFirst("stats", new StatsTrackingHandler() {
+                            @Override
+                            public void addUpBytes(final long bytes) {
+                                stats.addUpBytesForPeers(bytes);
+                            }
+                            @Override
+                            public void addDownBytes(final long bytes) {
+                                stats.addDownBytesForPeers(bytes);
+                            }
+                        });
+                    }
                     return pipeline;
                 }
             };

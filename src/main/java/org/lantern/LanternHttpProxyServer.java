@@ -19,7 +19,6 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.util.Timer;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,24 +39,17 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private final int httpLocalPort = 
         LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
 
-    //private final SetCookieObserver setCookieObserver;
-    //private final CookieFilter.Factory cookieFilterFactory;
-
     private final ServerSocketChannelFactory serverChannelFactory;
 
     private final ClientSocketChannelFactory clientChannelFactory;
 
     private final Timer timer;
 
-    private final PeerProxyManager peerProxyManager;
-
     private final Stats stats;
 
     private final Model model;
 
     private final ProxyTracker proxyTracker;
-
-    private final HttpsEverywhere httpsEverywhere;
 
     private final LanternTrustStore trustStore;
 
@@ -76,14 +68,9 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final ServerSocketChannelFactory serverChannelFactory, 
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer, final ChannelGroup channelGroup,
-        final PeerProxyManager peerProxyManager,
         final Stats stats,
         final Model model, final ProxyTracker proxyTracker,
-        final HttpsEverywhere httpsEverywhere,
         final LanternTrustStore trustStore) {
-        this.peerProxyManager = peerProxyManager;
-        //this.setCookieObserver = setCookieObserver;
-        //this.cookieFilterFactory = cookieFilterFactory;
         this.serverChannelFactory = serverChannelFactory;
         this.clientChannelFactory = clientChannelFactory;
         this.timer = timer;
@@ -91,7 +78,6 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         this.stats = stats;
         this.model = model;
         this.proxyTracker = proxyTracker;
-        this.httpsEverywhere = httpsEverywhere;
         this.trustStore = trustStore;
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -162,8 +148,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 
                 final SimpleChannelUpstreamHandler dispatcher = 
                     new DispatchingProxyRelayHandler(clientChannelFactory, 
-                        channelGroup, peerProxyManager, stats, 
-                        model, proxyTracker, httpsEverywhere, 
+                        channelGroup, stats, model, proxyTracker, 
                         trustStore);
                 
                 final ChannelPipeline pipeline = pipeline();
@@ -171,20 +156,6 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     new HttpRequestDecoder(8192, 8192*2, 8192*2));
                 pipeline.addLast("encoder", 
                     new LanternHttpResponseEncoder(stats));
-                
-                /*
-                if (setCookieObserver != null) {
-                    final ChannelHandler watchCookies = 
-                        new SetCookieObserverHandler(setCookieObserver);
-                    pipeline.addLast("setCookieObserver", watchCookies);
-                }
-                
-                if (cookieFilterFactory != null) {
-                    final ChannelHandler filterCookies =
-                        new UpstreamCookieFilterHandler(cookieFilterFactory);
-                    pipeline.addLast("cookieFilter", filterCookies);
-                }
-                */
 
                 pipeline.addLast("handler", dispatcher);
 

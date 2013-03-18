@@ -29,6 +29,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.GeoData;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
@@ -83,8 +84,8 @@ public class DefaultModelUtils implements ModelUtils {
             final InetAddress ia = InetAddress.getByName(ip);
             if (!NetworkUtils.isPublicAddress(ia)) {
                 LOG.debug("Using public address for network local: {}", ia);
-                return getGeoData(
-                    new PublicIpAddress().getPublicIpAddress().getHostAddress());
+                //return getGeoData(
+                //    new PublicIpAddress().getPublicIpAddress().getHostAddress());
             }
         } catch (final UnknownHostException e) {
             LOG.error("Unknown host here?", e);
@@ -286,7 +287,7 @@ public class DefaultModelUtils implements ModelUtils {
     @Override
     public GoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
         final Settings set = this.model.getSettings();
-        if (isDevMode()) {
+        if (LanternUtils.isDevMode()) {
             final File oauth = LanternClientConstants.TEST_PROPS;
             if (!oauth.isFile()) {
                 final Properties props = new Properties();
@@ -308,10 +309,6 @@ public class DefaultModelUtils implements ModelUtils {
             set.getClientID(), set.getClientSecret(), 
             set.getAccessToken(), set.getRefreshToken(), 
             resource);
-    }
-
-    public boolean isDevMode() {
-        return this.model.isDev();
     }
 
     @Override
