@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
-import org.lantern.state.StaticSettings;
 
 
 public class CometDTest {
