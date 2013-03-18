@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
+import org.lantern.LanternConstants;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
@@ -39,7 +40,7 @@ public class Connectivity {
 
     private String connectingStatus;
 
-    private Type type;
+    private Type type = LanternConstants.ON_APP_ENGINE ? Type.laeproxy : Type.pc;
 
     private long lastConnectedLong;
 
