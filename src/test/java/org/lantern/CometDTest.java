@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
+import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 
 public class CometDTest {
@@ -36,6 +37,10 @@ public class CometDTest {
         //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
+        
+        final Model model = TestUtils.getModel();
+        StaticSettings.setModel(model);
+        model.setServerPrefix("/testingtesting");
         startJetty(TestUtils.getJettyLauncher(), port);
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
@@ -47,8 +52,8 @@ public class CometDTest {
         final ClientTransport transport =
             LongPollingTransport.create(options, httpClient);
 
-        final ClientSession session =
-            new BayeuxClient("http://127.0.0.1:"+port+"/cometd", transport);
+        final String url = StaticSettings.getLocalEndpoint()+"/cometd";
+                final ClientSession session = new BayeuxClient(url, transport);
 
         final AtomicBoolean handshake = new AtomicBoolean(false);
         session.getChannel(Channel.META_HANDSHAKE).addListener(
@@ -122,7 +127,7 @@ public class CometDTest {
     private void waitForBoolean(final AtomicBoolean bool)
         throws InterruptedException {
         int tries = 0;
-        while (tries < 200) {
+        while (tries < 40) {
             if (bool.get()) {
                 break;
             }
@@ -146,25 +151,6 @@ public class CometDTest {
         final Thread jetty = new Thread(runner, "Jetty-Test-Thread");
         jetty.setDaemon(true);
         jetty.start();
-        //Thread.sleep(5000);
-        waitForServer(port);
+        LanternUtils.waitForServer(port, 6000);
     }
-
-    private void waitForServer(final int port) throws Exception {
-        int attempts = 0;
-        boolean connected = false;
-        while (attempts < 200 && connected == false) {
-            final Socket sock = new Socket();
-            try {
-                sock.connect(new InetSocketAddress("127.0.0.1", port), 1000);
-                connected = true;
-                System.err.println("Got connected!!");
-            } catch (final IOException e) {
-                //e.printStackTrace();
-            }
-            Thread.sleep(100);
-            attempts++;
-        }
-    }
-
 }
