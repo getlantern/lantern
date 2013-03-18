@@ -589,7 +589,8 @@ the backend maintains on the frontend through comet publications:
   </tr>
   <tr>
     <td><strong>ninvites</strong><br><em>int</em></td>
-    <td>The number of Lantern invites the user has remaining.</td>
+    <td>The number of Lantern invites the user has remaining. A value of -1
+        indicates the number of remaining invites is unknown.</td>
   </tr>
   <tr>
     <td><strong>nproxiedSitesMax</strong><br><em>int</em></td>

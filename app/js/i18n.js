@@ -127,6 +127,7 @@ angular.module('app.i18n', [])
       NO_EMAIL: '(email unavailable)',
       NO_FRIENDS: 'You currently have no Lantern friends.',
       NO_INVITES: 'You currently have no invites.',
+      RETRIEVING_NINVITES: 'Retrieving number of invites...',
       MORE_INVITES: 'You will receive more invites as you continue to run Lantern.',
       INVITE_FRIENDS_PROMPT: 'Invite friends:',
       SEARCHING_ELLIPSIS: 'Searching...',

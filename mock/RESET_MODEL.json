@@ -13,6 +13,7 @@
   "modal":"welcome",
   "notifications":{},
   "showVis": false,
+  "ninvites": -1,
   "connectivity":{
     "gtalkOauthUrl":"/mock/googleOauth.html",
     "pacUrl":"http://127.0.0.1:12345/proxy_on.lantern.pac",

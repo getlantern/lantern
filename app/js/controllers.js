@@ -72,6 +72,10 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
     $scope.gtalkConnected = gtalk === CONNECTIVITY.connected;
   }, true);
 
+  $scope.$watch('model.ninvites', function(ninvites) {
+    $scope.ninvitesUnknown = ninvites === -1;
+  }, true);
+
   function reload() {
     location.reload(true); // true to bypass cache and force request to server
   }

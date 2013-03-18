@@ -365,7 +365,7 @@
       <hr>
     </div>
 
-    <form class="inviteForm" name="inviteForm" ng-show="model.ninvites"
+    <form class="inviteForm" name="inviteForm" ng-show="!ninvitesUnknown && model.ninvites"
           ng-class="{invalid: !valid()}">
       <h4>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</h4>
       <input type="hidden" ng-model="invitees"
@@ -374,8 +374,9 @@
       <div>{{ 'INVITES_REMAINING' | i18n:model.ninvites }}</div>
     </form>
     <div class="centered">
-      <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
-      <div class="smaller">{{ 'MORE_INVITES' | i18n }}</div>
+      <div ng-hide="ninvitesUnknown || model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
+      <div ng-hide="ninvitesUnknown" class="smaller">{{ 'MORE_INVITES' | i18n }}</div>
+      <div ng-show="ninvitesUnknown" class="small">{{ 'RETRIEVING_NINVITES' | i18n }}</div>
     </div>
   </div>
   <div class="modal-footer">
