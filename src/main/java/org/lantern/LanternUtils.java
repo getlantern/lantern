@@ -479,7 +479,7 @@ public class LanternUtils {
                 sc = new Scanner(System.in, "UTF-8");
                 return sc.nextLine().toCharArray();
             } finally {
-                IOUtils.closeQuietly(sc);
+                org.apache.commons.io.IOUtils.closeQuietly(sc);
             }
         }
         try {
