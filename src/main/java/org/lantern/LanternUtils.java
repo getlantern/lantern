@@ -4,7 +4,6 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.IOError;
@@ -475,14 +474,10 @@ public class LanternUtils {
         Console console = System.console();
         if (console == null) {
             LOG.debug("No console -- using System.in...");
-            BufferedInputStream bis = null;
-            try {
-                bis = new BufferedInputStream(System.in);
-                Scanner sc = new Scanner(bis, "UTF-8");
-                return sc.nextLine().toCharArray();
-            } finally {
-                IOUtils.closeQuietly(bis);
-            }
+            final Scanner sc = new Scanner(System.in, "UTF-8");
+            final char[] line = sc.nextLine().toCharArray();
+            sc.close();
+            return line;
         }
         try {
             return console.readPassword();
@@ -508,7 +503,9 @@ public class LanternUtils {
         final Scanner sc = new Scanner(System.in, "UTF-8");
         //sc.useDelimiter("\n");
         //return sc.next();
-        return sc.nextLine();
+        final String line = sc.nextLine();
+        sc.close();
+        return line;
     }
 
     /**
