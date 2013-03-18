@@ -429,7 +429,7 @@
     <button type="button" class="btn" tabindex="{{ show && 3 || '' }}"
             ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
     <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
-            ng-disabled="contactForm.contactMsg.$invalid || contactForm.contactMsg.$pristine"
+            ng-disabled="contactForm.contactMsg.$invalid"
             ng-click="interaction(INTERACTION.continue, {message: message})">{{ 'SEND' | i18n }}</button>
   </div>
 </div>
