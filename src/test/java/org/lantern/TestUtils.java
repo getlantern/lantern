@@ -155,11 +155,9 @@ public class TestUtils {
         
         final Settings set = model.getSettings();
         LOG.debug("setting oauth token values...");
-        LOG.debug("    -- TRAVIS_SECURE_ENV_VARS: {}", System.getenv("TRAVIS_SECURE_ENV_VARS"));
+        LOG.debug("secure env vars available? {}", System.getenv("TRAVIS_SECURE_ENV_VARS"));
         set.setAccessToken(getAccessToken());
-        LOG.debug("set access token: {}", getAccessToken().substring(0, 4));
         set.setRefreshToken(getRefreshToken());
-        LOG.debug("set refresh token: {}", getRefreshToken().substring(0, 4));
         set.setUseGoogleOAuth2(true);
         start(start);
     }

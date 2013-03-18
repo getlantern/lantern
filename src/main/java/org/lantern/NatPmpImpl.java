@@ -49,6 +49,7 @@ public class NatPmpImpl implements NatPmpService {
             return;
         }
         pmpDevice = new NatPmp();
+        log.debug("NAT-PMP device = {}", pmpDevice);
 
         // We implement the shutdown hook ourselves so we can explicitly
         // remove all the mappings we've created.
@@ -72,6 +73,7 @@ public class NatPmpImpl implements NatPmpService {
     public boolean isNatPmpSupported() {
         // tests to see if NAT-PMP is supported by issuing a getExternalAddress
         // query
+        log.debug("NAT-PMP device = {}"), pmpDevice;
         pmpDevice.sendPublicAddressRequest();
         for (int i = 0; i < 5; ++i) {
             NatPmpResponse response = new NatPmpResponse();
