@@ -9,6 +9,7 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.lantern.state.Peer.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +38,6 @@ public class Connectivity {
     private boolean lanternController;
 
     private String connectingStatus;
-
-    enum Type {
-        pc, cloud, laeproxy
-    }
 
     private Type type;
 
