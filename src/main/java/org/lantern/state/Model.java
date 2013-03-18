@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Country;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
@@ -41,7 +42,10 @@ public class Model {
 
     private boolean showVis = false;
 
-    private int ninvites = 0;
+    private final boolean dev =
+            LanternClientConstants.VERSION.equals("lantern_version_tok");
+
+    private int ninvites = -1;
 
     private Modal modal = Modal.welcome;
 
@@ -77,7 +81,6 @@ public class Model {
 
     private Transfers transfers;
 
-    private String serverPrefix = "";
     private boolean isEverGetMode;
 
     @JsonView({Run.class})
@@ -299,16 +302,6 @@ public class Model {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public String getServerPrefix() {
-        return serverPrefix;
-    }
-
-    public void setServerPrefix(String serverPrefix) {
-        assert serverPrefix != null;
-        assert serverPrefix.startsWith("/");
-        this.serverPrefix = serverPrefix;
     }
 
     public boolean isEverGetMode() {
