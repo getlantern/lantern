@@ -236,6 +236,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     xmppHandler.connect();
                     log.debug("Setting gtalk authorized");
                     model.getConnectivity().setGtalkAuthorized(true);
+                    internalState.setModalCompleted(Modal.authorize);
                     internalState.advanceModal(null);
                 } catch (final CredentialException e) {
                     // Not sure what to do here. This *should* never happen.
