@@ -35,9 +35,9 @@ That script will fetch the required libraries, build, and
 run Lantern. There's also a `quickRun.bash` script that will just run Lantern
 once it's already been built.
 
-Lantern binds its HTTP API to a random port for security. You can pass
-`--api-port=xyz` to override this. This can be helpful for having a stable
-api port during development.
+Lantern binds its HTTP API to a random port and prefix for
+security. The port and prefix are chosen at first run.  It can be
+found in .lantern/serverAddress
 
 Lantern's UI is developed as a separate project and included inside the lantern
 repo as a git submodule. Please see https://github.com/getlantern/lantern-ui
