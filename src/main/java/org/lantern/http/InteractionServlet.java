@@ -1,5 +1,6 @@
 package org.lantern.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
-import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
@@ -36,6 +36,7 @@ import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lantern.LanternFeedback;
+import org.lantern.util.Desktop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -380,6 +381,12 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, model.getModal());
                 break;
             case RESET:
+                try {
+                    File backup = new File(Desktop.getDesktopPath(), "lantern-model-backup");
+                    FileUtils.copyFile(LanternClientConstants.DEFAULT_MODEL_FILE, backup);
+                } catch (final IOException e) {
+                    log.warn("Could not backup model file.");
+                }
                 Events.syncModal(model, Modal.welcome);
                 break;
             default:
