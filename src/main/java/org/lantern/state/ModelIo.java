@@ -49,20 +49,23 @@ public class ModelIo extends Storage<Model> {
      */
     @Override
     public Model read() {
-        Model read = super.read();
-        if (read.getModal() == Modal.settingsLoadFailure) {
-            return read;
-        }
-        if (!LanternUtils.persistCredentials()) {
-            if (read.getModal() != Modal.welcome) {
-                read.setModal(Modal.authorize);
+        try {
+            Model read = super.read();
+            if (!LanternUtils.persistCredentials()) {
+                if (read.getModal() != Modal.welcome) {
+                    read.setModal(Modal.authorize);
+                }
             }
-        }
 
-        // Make sure all peers are considered offline at startup.
-        final Peers peers = read.getPeerCollector();
-        peers.reset();
-        return read;
+            // Make sure all peers are considered offline at startup.
+            final Peers peers = read.getPeerCollector();
+            peers.reset();
+            return read;
+        } catch (ModelReadFailedException e) {
+            Model blank = blank();
+            blank.setModal(Modal.settingsLoadFailure);
+            return blank;
+        }
     }
 
     @Override
@@ -102,8 +105,7 @@ public class ModelIo extends Storage<Model> {
     public void reload() {
         Model newModel = read();
         if (newModel.getModal() == Modal.welcome) {
-            obj.addNotification("Failed to reload settings",
-                    MessageType.error);
+            obj.addNotification("Failed to reload settings", MessageType.error);
             return;
         }
         obj.loadFrom(newModel);
