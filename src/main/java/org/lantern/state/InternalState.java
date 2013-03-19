@@ -19,11 +19,11 @@ public class InternalState {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final Modal[] modalSeqGive = {
-        Modal.lanternFriends, Modal.finished, Modal.none,
+        Modal.authorize, Modal.lanternFriends, Modal.finished, Modal.none,
     };
     
     private final Modal[] modalSeqGet = {
-        Modal.lanternFriends, Modal.proxiedSites, Modal.systemProxy, 
+        Modal.authorize, Modal.lanternFriends, Modal.proxiedSites, Modal.systemProxy, 
         Modal.finished, Modal.none,
     };
     
@@ -49,8 +49,11 @@ public class InternalState {
         final Modal[] seq;
         if (this.model.getSettings().getMode() == Mode.get) {
             seq = modalSeqGet;
-        } else {
+        } else if(this.model.getSettings().getMode() == Mode.give) {
             seq = modalSeqGive;
+        } else {
+            Events.syncModal(this.model, Modal.welcome);
+            return;
         }
         Modal next = null;
         for (final Modal modal : seq) {

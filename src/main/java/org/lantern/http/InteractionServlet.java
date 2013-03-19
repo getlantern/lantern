@@ -153,8 +153,12 @@ public class InteractionServlet extends HttpServlet {
 
         final Modal modal = this.model.getModal();
 
+        log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
+            modal, inter, this.model.getSettings().getMode());
+
         switch (modal) {
         case welcome:
+            this.model.getSettings().setMode(Mode.none);
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");
@@ -165,9 +169,9 @@ public class InteractionServlet extends HttpServlet {
                 handleSetModeWelcome(Mode.give);
                 break;
             default:
-                log.error("Did not handle interaction for modal {} with " +
-                        "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                if (handleModeSwitch(inter)) {
+                    break;
+                }
                 break;
             }
             break;
@@ -180,7 +184,10 @@ public class InteractionServlet extends HttpServlet {
             Events.syncModel(this.model);
             break;
         case authorize:
-            log.error("Processing authorize modal...");
+           log.error("Processing authorize modal...");
+            if (handleModeSwitch(inter)) {
+                break;
+            }
             break;
         case finished:
             switch (inter) {
