@@ -70,12 +70,17 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
             log.error("Error encrypting stream", e);
         }
     }
+
+    static class ModelReadFailedException extends Exception {
+        private static final long serialVersionUID = 6572676909676411690L;
+    }
+
     /**
      * Reads the object from disk.
      *
      * @return The object instance as read from disk.
      */
-    public T read() {
+    public T read() throws ModelReadFailedException {
         if (!file.isFile()) {
             return blank();
         }
@@ -97,8 +102,7 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        final T blank = blank();
-        return blank;
+        throw new ModelReadFailedException();
     }
 
     @Override

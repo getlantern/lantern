@@ -49,7 +49,12 @@ public class TransfersIo extends Storage<Transfers> {
 
     @Override
     public Transfers read() {
-        Transfers read = super.read();
+        Transfers read;
+        try {
+            read = super.read();
+        } catch (org.lantern.state.Storage.ModelReadFailedException e) {
+            read = blank();
+        }
         read.setStatsTracker(tracker);
         return read;
     }
