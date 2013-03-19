@@ -17,6 +17,7 @@ Ubuntu Linux desktop systems.
   * [Java 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
       * On Windows, make sure to use a 32-bit Java, even if you're running
         64-bit Windows.
+      * On Ubuntu, make sure you use **Oracle's JDK and not OpenJDK**.
   * You can install Maven [manually](http://maven.apache.org/download.html) or
     with your package manager: brew install maven, port install maven3, etc.
 
