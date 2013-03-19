@@ -30,7 +30,7 @@ public class NatPmpImpl implements NatPmpService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private NatPmp pmpDevice;
+    private NatPmp pmpDevice = null;
 
     private final Stats stats;
     private final List<MapRequest> requests = new ArrayList<MapRequest>();
@@ -71,9 +71,16 @@ public class NatPmpImpl implements NatPmpService {
     }
 
     public boolean isNatPmpSupported() {
+        if (NetworkUtils.isPublicAddress()) {
+            // If we're already on the public network, there's no NAT.
+            return false;
+        }
         // tests to see if NAT-PMP is supported by issuing a getExternalAddress
         // query
         log.debug("NAT-PMP device = {}", pmpDevice);
+        if (pmpDevice == null) {
+            return false;
+        }
         pmpDevice.sendPublicAddressRequest();
         for (int i = 0; i < 5; ++i) {
             NatPmpResponse response = new NatPmpResponse();
@@ -151,6 +158,11 @@ public class NatPmpImpl implements NatPmpService {
     protected void addMapping(final PortMappingProtocol prot,
             final int localPort, final PortMapListener portMapListener) {
         log.info("Adding NAT-PMP mapping");
+
+        if (pmpDevice == null) {
+            return;
+        }
+
         final int protocol;
         if (prot == PortMappingProtocol.TCP) {
             protocol = 2;

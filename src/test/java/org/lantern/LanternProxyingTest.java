@@ -33,11 +33,17 @@ public class LanternProxyingTest {
     @Test
     public void testWithHttpClient() throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        Launcher.main(false, new String[]{"--disable-ui", "--force-get", 
-            "--refresh-tok", TestUtils.getRefreshToken(), 
-            "--access-tok", TestUtils.getAccessToken(), 
-            "--disable-trusted-peers", "--disable-anon-peers"});
-        //launcher.run();
+        //Launcher.main(false, args);
+        
+        final String[] args = new String[]{"--disable-ui", "--force-get", 
+                "--refresh-tok", TestUtils.getRefreshToken(), 
+                "--access-tok", TestUtils.getAccessToken(), 
+                "--disable-trusted-peers", "--disable-anon-peers"};
+        
+        final Launcher launcher = new Launcher(args);
+        launcher.configureDefaultLogger();
+        launcher.run();
+        launcher.model.setSetupComplete(true);
 
         Thread.sleep(500);
         
