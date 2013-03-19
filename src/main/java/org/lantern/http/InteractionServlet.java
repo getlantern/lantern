@@ -189,6 +189,9 @@ public class InteractionServlet extends HttpServlet {
             if (handleModeSwitch(inter)) {
                 break;
             }
+            this.internalState.setModalCompleted(Modal.authorize);
+            this.internalState.advanceModal(null);
+            Events.syncModel(this.model);
             break;
         case finished:
             switch (inter) {
