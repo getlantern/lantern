@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-
+caller=$1
 #su $USER -c "mkdir -p ~/.lantern/logs &> /dev/null"
 
 #echo "Copying lantern.desktop so ubuntu can find it"
-echo "User is '$USER'"
+echo "User is '$caller'"
 # DRY warning: see
 #  - install/linux/lantern-autostart.desktop
 #  - src/main/java/org/lantern/ChromeRunner.java
@@ -16,8 +16,8 @@ echo "User is '$USER'"
 #  index file to something less likely to cause name clashes.
 #echo 'StartupWMClass=127.0.0.1__org.lantern.index.html' >> /usr/share/applications/lantern.desktop
 cp /opt/lantern/lantern.desktop /usr/share/applications
-chown $USER:$USER /opt/lantern/lantern.desktop
-chown $USER:$USER /usr/share/applications/lantern.desktop
+chown $caller:$caller /opt/lantern/lantern.desktop
+chown $caller:$caller /usr/share/applications/lantern.desktop
 
 
 cp $I4J_INSTALL_LOCATION/java7/* $I4J_INSTALL_LOCATION/jre/lib/security/ || echo "Could not copy policy files!!"
