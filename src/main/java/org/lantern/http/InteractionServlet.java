@@ -610,7 +610,12 @@ public class InteractionServlet extends HttpServlet {
         model.setNodeId(base.getNodeId());
         model.setProfile(base.getProfile());
         model.setNproxiedSitesMax(base.getNproxiedSitesMax());
+        //we need to keep clientID and clientSecret, because they are application-level settings
+        String clientID = model.getSettings().getClientID();
+        String clientSecret = model.getSettings().getClientSecret();
         model.setSettings(base.getSettings());
+        model.getSettings().setClientID(clientID);
+        model.getSettings().setClientSecret(clientSecret);
         model.setSetupComplete(base.isSetupComplete());
         model.setShowVis(base.isShowVis());
         model.clearNotifications();
