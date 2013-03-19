@@ -418,8 +418,10 @@ public class Launcher {
         // Before setup we should just do the default, which is to run on
         // startup. The user can configure this differently at any point
         // hereafter.
-        if (SystemUtils.IS_OS_LINUX &&
-            !LanternClientConstants.GNOME_AUTOSTART.isFile()) {
+        if (!SystemUtils.IS_OS_LINUX) {
+            return;
+        }
+        if (!LanternClientConstants.GNOME_AUTOSTART.isFile()) {
             final File lanternDesktop;
             final File candidate1 =
                 new File(LanternClientConstants.GNOME_AUTOSTART.getName());
@@ -448,6 +450,13 @@ public class Launcher {
                 LOG.error("Could not configure gnome autostart", e);
             }
         }
+        
+        // We also want to make sure our icons are all good...
+        // We might need to modify /opt/lantern/lantern.desktop
+        // and /usr/share/applications/lantern.desktop, adding 
+        // StartupWMClass to 'em.
+        LanternUtils.addStartupWMClass("/opt/lantern/lantern.desktop");
+        LanternUtils.addStartupWMClass("/usr/share/applications/lantern.desktop");
     }
 
     private static final String CIPHER_SUITE_LOW_BIT =

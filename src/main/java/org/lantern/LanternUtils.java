@@ -6,6 +6,8 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.Console;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
@@ -912,6 +914,40 @@ public class LanternUtils {
 
     public static String defaultPhotoUrl() {
         return LanternUtils.photoUrlBase() + "?email=default";
+    }
+
+    public static boolean fileContains(final File file, final String str) {
+        InputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            final String text = IOUtils.toString(fis);
+            return text.contains(str);
+        } catch (final IOException e) {
+            LOG.warn("Could not read file?", e);
+        } finally {
+            IOUtils.closeQuietly(fis);
+        }
+        return false;
+    }
+    
+    public static void addStartupWMClass(final String path) {
+        final File desktopFile = new File(path);
+        if (!desktopFile.isFile()) {
+            LOG.warn("No lantern desktop file at: {}", desktopFile);
+            return;
+        }
+        if (LanternUtils.fileContains(desktopFile, "StartupWMClass")) {
+            LOG.debug("{} already contains StartupWMClass", desktopFile);
+            return;
+        }
+        final Collection<?> lines = 
+            Arrays.asList("StartupWMClass=127.0.0.1__"+
+            StaticSettings.getPrefix()+"/index.html");
+        try {
+            FileUtils.writeLines(desktopFile, "UTF-8", lines, true);
+        } catch (final IOException e) {
+            LOG.warn("Error writing to: "+desktopFile, e);
+        }
     }
 }
 
