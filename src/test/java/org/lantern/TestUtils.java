@@ -17,6 +17,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.http.OauthUtils;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
@@ -135,7 +136,7 @@ public class TestUtils {
         ksm = instance(LanternKeyStoreManager.class);
         lanternXmppUtil = instance(LanternXmppUtil.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        encryptedFileService = instance(EncryptedFileService.class);
+        encryptedFileService = instance(UnencryptedFileService.class);
         model = instance(Model.class);
         jettyLauncher = instance(JettyLauncher.class);
         messageService = instance(MessageService.class);
