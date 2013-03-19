@@ -6372,7 +6372,7 @@ body {
   background: black;
 }
 body.showVis {
-  background: url('../img/bg.png?1361333338');
+  background: url('../img/bg.png?1363371388');
 }
 
 small {
@@ -7149,7 +7149,7 @@ textarea.report {
   top: 0;
   right: 0;
   left: 0;
-  background: url('../img/bg-topbar.png?1361900869') repeat-x;
+  background: url('../img/bg-topbar.png?1363371388') repeat-x;
   padding: 10px;
   color: white;
   text-shadow: 0 1px 1px black, 0 1px 1px 0 black;

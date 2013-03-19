@@ -326,12 +326,12 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
   }
   hoverContentForPeer.tmpl = _.template(
     '<div class="${mode} ${type}">'+
-        '<img class="picture" src="${picture}">'+
-        '<div class="headers">'+
-          '<div class="header">${name}</div>'+
-          '<div class="email">${email}</div>'+
-          '<div class="peerid ip">${peerid} (${ip})</div>'+
-          '<div class="type">${typeDesc}</div>'+
+      '<img class="picture" src="${picture}">'+
+      '<div class="headers">'+
+        '<div class="header">${name}</div>'+
+        '<div class="email">${email}</div>'+
+        '<div class="peerid ip">${peerid} (${ip})</div>'+
+        '<div class="type">${typeDesc}</div>'+
       '</div>'+
       '<div class="stats">'+
         '<div class="bps">${bpsUp} ${bpsDn}</div>'+
