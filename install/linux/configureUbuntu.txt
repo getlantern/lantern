@@ -1,5 +1,7 @@
 
 # Install4J really just appends this to it's sh script, so don't do anything we can't do in sh!
+# This is appended to /var/lib/dpkg/info/lantern.postinst
+
 logf=~/.lantern.installer.log
 echo "Copying lantern.desktop so ubuntu can find it" >> $logf
 echo "Arg 1 is $1"  >> $logf
