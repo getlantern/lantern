@@ -26,6 +26,7 @@ import org.freedesktop.dbus.DBusSignal;
 import org.freedesktop.dbus.Path;
 import org.freedesktop.dbus.Variant;
 import org.freedesktop.dbus.exceptions.DBusException;
+import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +69,8 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             conn = DBusConnection.getConnection(DBusConnection.SESSION);
             final Service secretService = conn.getRemoteObject(
                 BUS_NAME, SERVICE_PATH, Service.class);
-            final Pair<Variant, Path> result = secretService.OpenSession(ALGORITHM_PLAIN, new Variant(""));
+            final Pair<Variant, Path> result = 
+                secretService.OpenSession(ALGORITHM_PLAIN, new Variant(""));
             if (NO_OBJECT.equals(result.b.getPath())) {
                 LOG.info("Failed to negotiate plain session with Secret Service API.");
                 return false;
@@ -78,11 +80,21 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
                     BUS_NAME, result.b.getPath(), Session.class);
                 session.Close();
             }
+            
             LOG.debug("Found Secret Service API.");
             return true;
         } catch (final Exception e) {
             LOG.debug("Could not connect to Secret Service API at:"+SERVICE_PATH, e);
             return false;
+        } catch (final UnsatisfiedLinkError error) {
+            if (LanternUtils.isDevMode()) {
+                LOG.error("Could not load so file? Testing");
+                return false;
+            } else {
+                LOG.error("CAN'T HAVE UNENCRYPTED FILES IN PRODUCTION!!");
+                System.exit(1);
+                return false;
+            }
         } finally {
             closeConnection(conn);
         }
