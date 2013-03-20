@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -27,16 +26,13 @@ import org.freedesktop.dbus.DBusSignal;
 import org.freedesktop.dbus.Path;
 import org.freedesktop.dbus.Variant;
 import org.freedesktop.dbus.exceptions.DBusException;
-import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import cx.ath.matthew.unix.UnixIOException;
 
 /**
  * SecretServiceLocalCipherProvider
  *
- * This is a LocalCipherProvider that uses 
+ * This is a LocalCipherProvider that uses
  * the DBUS "Secret Service" API to store a local key
  * used to encrypt/decrypt local data.
  *
@@ -55,11 +51,8 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
     private static final String LANTERN_KEY_LABEL = "Lantern Local Privacy";
     private static final String SECRET_CONTENT_TYPE = "text/plain; charset=utf8";
 
-    private static final AtomicReference<Boolean> DBUS_INITIALIZED =
-        new AtomicReference<Boolean>();
-
     private static final Logger LOG = LoggerFactory.getLogger(SecretServiceLocalCipherProvider.class);
-    
+
     public SecretServiceLocalCipherProvider() {
         super();
     }
@@ -68,21 +61,10 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
         super(validatorFile, cipherParamsFile);
     }
 
-    private static void initDBUS() throws IOException {
-        synchronized(DBUS_INITIALIZED) {
-            final Boolean initialized = DBUS_INITIALIZED.get();
-            if (initialized == null || initialized.booleanValue() == false) {
-                LanternUtils.loadJarLibrary(UnixIOException.class, "libunix-java.so");
-                DBUS_INITIALIZED.set(Boolean.TRUE);
-            }
-        }
-    }
-
     public static boolean secretServiceAvailable() {
         DBusConnection conn = null;
         try {
             LOG.debug("Checking for Secret Service API availability...");
-            initDBUS();
             conn = DBusConnection.getConnection(DBusConnection.SESSION);
             final Service secretService = conn.getRemoteObject(
                 BUS_NAME, SERVICE_PATH, Service.class);
@@ -109,7 +91,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
     private static void closeConnection(final DBusConnection conn) {
         if (conn != null) {
             try {
-                conn.disconnect(); 
+                conn.disconnect();
             } catch (Exception e) {
                 LOG.error("Error closing DBus connection {}", e);
             }
@@ -122,7 +104,6 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
         byte [] encodedKey = null;
         try {
             LOG.debug("Loading key data from Secret Service API...");
-            initDBUS();
 
             conn = DBusConnection.getConnection(DBusConnection.SESSION);
             final Service secretService = conn.getRemoteObject(
@@ -138,7 +119,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
 
             LOG.debug("Requesting Item....");
             final Map<String, String> secretAttrs = new HashMap<String, String>();
-            secretAttrs.put(SECRET_ATTR_NAME, 
+            secretAttrs.put(SECRET_ATTR_NAME,
                             SECRET_ATTR_VALUE);
             final Pair<List<Path>, List<Path>> items = secretService.SearchItems(secretAttrs);
             LOG.debug("Got {} unlocked / {} locked secret items.", items.a.size(), items.b.size());
@@ -169,9 +150,9 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             }
             final Secret secret = secretItem.GetSecret(sessionPath);
             encodedKey = new byte[secret.value.size()];
-            int i = 0; 
+            int i = 0;
             for (final Byte b : secret.value) {
-                encodedKey[i++] = b; 
+                encodedKey[i++] = b;
             }
             session.Close();
 
@@ -193,11 +174,10 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
     void storeKeyData(final byte[] key) throws IOException, GeneralSecurityException {
         byte [] encodedKey = null;
         List<Byte> secretValue = null;
-         
+
         DBusConnection conn = null;
         try {
             LOG.debug("Storing key data via Secret Service API...");
-            initDBUS();
             conn = DBusConnection.getConnection(DBusConnection.SESSION);
             final Service secretService = conn.getRemoteObject(
                 BUS_NAME, SERVICE_PATH, Service.class);
@@ -206,9 +186,9 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
                 BUS_NAME, COLLECTION_PATH, Collection.class);
 
             // Collection properties do not seem to be implemented...
-            // So instead of checking, just request an unlock in all cases 
+            // So instead of checking, just request an unlock in all cases
             if (!unlockPath(new Path(COLLECTION_PATH), secretService, conn)) {
-                throw new GeneralSecurityException("Unable to unlock secret collection.");   
+                throw new GeneralSecurityException("Unable to unlock secret collection.");
             }
 
             // negotiate a "plain" session (no encryption)
@@ -232,8 +212,8 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             secretProps.put(SECRET_LABEL_PROPERTY,
                             new Variant(LANTERN_KEY_LABEL));
 
-            // these are the "attributes" of the item, not to be confused 
-            // with properties... 
+            // these are the "attributes" of the item, not to be confused
+            // with properties...
             final Map<String, String> secretAttrs = new HashMap<String, String>();
             secretAttrs.put(SECRET_ATTR_NAME, SECRET_ATTR_VALUE);
             secretProps.put(SECRET_ATTRIBUTES_PROPERTY, new Variant(secretAttrs, "a{ss}"));
@@ -243,7 +223,6 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             final Pair<Path, Path> createResult = collection.CreateItem(
                 secretProps, secret, true);
 
-            final Path itemPath = createResult.a;
             final Path promptPath = createResult.b;
 
             // user may need to be prompted... for what is unclear.
@@ -290,13 +269,13 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             LOG.debug("Path unlocked without prompt...");
             return true;
         }
-        // if there is a prompt 
+        // if there is a prompt
         else if (!NO_OBJECT.equals(unlockResult.b.getPath())) {
             LOG.debug("Prompting user to unlock....");
             Prompt.Completed sig = prompt(unlockResult.b, conn);
             LOG.debug("Prompt completed with dismissed={} result={}", sig.dismissed, sig.result);
             final List<Path> unlockedPaths = (List<Path>) sig.result.getValue();
-            Path unlockedPath = null; 
+            Path unlockedPath = null;
             if (unlockedPaths.size() > 0) {
                 unlockedPath = unlockedPaths.get(0);
             }
@@ -313,7 +292,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             return false;
         }
     }
-    
+
     private Prompt.Completed prompt(final Path promptPath, final DBusConnection conn)
         throws InterruptedException, DBusException {
         LOG.debug("Prompt required...");
@@ -333,14 +312,14 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
     }
 
     /**
-     * This is a DBusSigHandler that waits for the 
-     * response to a user prompt by sitting on a 
-     * Condition variable. 
+     * This is a DBusSigHandler that waits for the
+     * response to a user prompt by sitting on a
+     * Condition variable.
      */
     private class PromptHandler implements DBusSigHandler {
 
-        private final Lock lock; 
-        private final Condition gotResult; 
+        private final Lock lock;
+        private final Condition gotResult;
         private DBusSignal sig = null;
 
         public PromptHandler() {
