@@ -98,8 +98,8 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             }
             LOG.debug("Found Secret Service API.");
             return true;
-        } catch (Exception e) {
-            LOG.debug("Could not connect to Secret Service API at {}: {}", SERVICE_PATH, e);
+        } catch (final Exception e) {
+            LOG.debug("Could not connect to Secret Service API at:"+SERVICE_PATH, e);
             return false;
         } finally {
             closeConnection(conn);

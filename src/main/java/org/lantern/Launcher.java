@@ -728,7 +728,7 @@ public class Launcher {
             messageService.showMessage("Architecture Error",
                 "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");
         }
-        else if (!lanternStarted && set.isUiEnabled()) {
+        else if (!lanternStarted && set != null && set.isUiEnabled()) {
             LOG.info("Showing error to user...");
             messageService.showMessage("Startup Error",
                "We're sorry, but there was an error starting Lantern " +
