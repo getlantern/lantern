@@ -7,7 +7,6 @@ import java.awt.Toolkit;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
@@ -569,6 +568,11 @@ public class LanternUtils {
             tempDir = Files.createTempDir();
             final File tempLib = new File(tempDir, fileName);
             is = jarRepresentative.getResourceAsStream("/" + fileName);
+            if (is == null) {
+                final String msg = "No file in jar named: "+fileName;
+                LOG.warn(msg);
+                throw new IOException(msg);
+            }
             FileUtils.copyInputStreamToFile(is, tempLib);
             System.load(tempLib.getAbsolutePath());
         } finally {
