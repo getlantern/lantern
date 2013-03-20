@@ -281,7 +281,6 @@ public class InteractionServlet extends HttpServlet {
             }
             switch (inter) {
             case CONTINUE:
-                applyJson(json);
                 this.internalState.setModalCompleted(Modal.proxiedSites);
                 this.internalState.advanceModal(null);
                 break;
@@ -290,6 +289,15 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.lanternFriends);
                 break;
             case SET:
+                if (!model.getSettings().isSystemProxy()) {
+                    String msg = "Because you are using manual proxy "
+                            + "configuration, you may have to restart your "
+                            + "browser for your updated proxied sites list "
+                            + "to take effect.";
+                    model.addNotification(msg, MessageType.info);
+                    Events.sync(SyncPath.NOTIFICATIONS,
+                            model.getNotifications());
+                }
                 applyJson(json);
                 break;
             case SETTINGS:
