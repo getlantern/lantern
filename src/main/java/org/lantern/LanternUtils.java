@@ -934,6 +934,11 @@ public class LanternUtils {
         return false;
     }
     
+    /**
+     * Modifies .desktop files on Ubuntu with out hack to set our icon.
+     * 
+     * @param path The path to the file.
+     */
     public static void addStartupWMClass(final String path) {
         final File desktopFile = new File(path);
         if (!desktopFile.isFile()) {
@@ -946,7 +951,9 @@ public class LanternUtils {
         }
         final Collection<?> lines = 
             Arrays.asList("StartupWMClass=127.0.0.1__"+
-            StaticSettings.getPrefix()+"/index.html");
+        
+            // We use the substring here to get rid of the leading "/"
+            StaticSettings.getPrefix().substring(1)+"/index.html");
         try {
             FileUtils.writeLines(desktopFile, "UTF-8", lines, true);
         } catch (final IOException e) {
