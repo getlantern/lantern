@@ -16,15 +16,15 @@ release=$4
 
 echo "Release version: $release"
 
-bucket=lantern
-url=http://$bucket.s3.amazonaws.com/$name
-echo "Uploading to http://cdn.getlantern.org/$name..."
-aws -putp $bucket $name
-echo "Uploaded lantern to http://cdn.getlantern.org/$name"
-echo "Also available at $url"
-
 
 if $release ; then
+  bucket=lantern
+  url=http://$bucket.s3.amazonaws.com/$name
+  echo "Uploading to http://cdn.getlantern.org/$name..."
+  aws -putp $bucket $name
+  echo "Uploaded lantern to http://cdn.getlantern.org/$name"
+  echo "Also available at $url"
+
   echo "RELEASING!!!!!"
   pushd install/$dir || die "Could not change directories"
   perl -pi -e "s;url_token;$url;g" $latestName || die "Could not replace URL token"
@@ -43,3 +43,5 @@ if $release ; then
 else
   echo "NOT RELEASING!!!"
 fi
+
+echo "INSTALLER AVAILABLE AT `pwd`/$name"

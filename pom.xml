@@ -595,6 +595,8 @@
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
+                    <!-- The following causes issues when exploding the jar and trying to create a licenses directory instead of file -->
+                    <exclude>META-INF/LICENSE</exclude>
                   </excludes>
                 </filter>
               </filters>
