@@ -2,18 +2,8 @@
 # Install4J really just appends this to it's sh script, so don't do anything we can't do in sh!
 # This is appended to /var/lib/dpkg/info/lantern.postinst
 
-logf=~/.lantern.installer.log
-echo "Copying lantern.desktop so ubuntu can find it" >> $logf
-echo "Arg 1 is $1"  >> $logf
-echo "USER is '$USER'"  >> $logf
-echo "SUDO_USER is '$SUDO_USER'"  >> $logf
-
-# DRY warning: see
-#  - install/linux/lantern-autostart.desktop
-#  - src/main/java/org/lantern/ChromeRunner.java
-#  - src/main/java/org/lantern/http/JettyLauncher.java
-cp /opt/lantern/lantern.desktop /usr/share/applications || echo "Could not copy desktop file!!"  >> $logf
+sed -i s,^Icon=.*png$,Icon=/opt/lantern/128on.png, /opt/lantern/lantern.desktop
 chown $SUDO_USER:$SUDO_USER /opt/lantern/lantern.desktop
-chown $SUDO_USER:$SUDO_USER /usr/share/applications/lantern.desktop
+cp /opt/lantern/lantern.desktop /usr/share/applications || echo "Could not copy desktop file!!"  >> $logf
 
 echo "Finished running post install script..." >> $logf
