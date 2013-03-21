@@ -344,8 +344,8 @@ public class InteractionServlet extends HttpServlet {
                         // need to do more setup to switch to get mode from 
                         // give mode
                         model.setSetupComplete(false);
+                        model.setModal(Modal.proxiedSites);
                         Events.syncModel(this.model);
-                        Events.syncModal(model, Modal.proxiedSites);
                     }
                     this.modelService.setMode(Mode.get);
                 }
