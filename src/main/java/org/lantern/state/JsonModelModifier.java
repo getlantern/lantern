@@ -12,15 +12,17 @@ import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.lantern.state.ModelService;
+
 /**
  * Class that uses reflection to set properties on the state model.
  */
 public class JsonModelModifier {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final Object modelService;
+    private final ModelService modelService;
 
-    public JsonModelModifier(final Object model) {
+    public JsonModelModifier(final ModelService model) {
         this.modelService = model;
     }
 
@@ -38,6 +40,10 @@ public class JsonModelModifier {
 
             final Object val = map.get("value");
             LanternUtils.setFromPath(modelService, path, val);
+
+            if(path.equals("settings/systemProxy")) {
+                modelService.setSystemProxy((Boolean)val);
+            }
 
             //setProperty(modelService, key, val, true);
         } catch (final JsonParseException e) {
