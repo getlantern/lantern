@@ -338,15 +338,24 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");
+                // Only deal with a mode change if the mode has changed!
                 if (modelService.getMode() == Mode.give) {
-                    if (!model.isEverGetMode()) {
+                    // Break this out because it's set in the subsequent 
+                    // setMode call
+                    final boolean everGet = model.isEverGetMode();
+                    this.modelService.setMode(Mode.get);
+                    if (!everGet) {
                         // need to do more setup to switch to get mode from 
                         // give mode
                         model.setSetupComplete(false);
                         model.setModal(Modal.proxiedSites);
                         Events.syncModel(this.model);
+                    } else {
+                        // This primarily just triggers a setup complete event,
+                        // which triggers connecting to proxies, setting up
+                        // the local system proxy, etc.
+                        model.setSetupComplete(true);
                     }
-                    this.modelService.setMode(Mode.get);
                 }
                 break;
             case GIVE:
