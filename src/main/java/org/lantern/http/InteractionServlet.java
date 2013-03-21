@@ -133,6 +133,11 @@ public class InteractionServlet extends HttpServlet {
 
         log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
 
+        if (!"XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
+            HttpUtils.sendClientError(resp, "X-Requested-With header not set");
+            return;
+        }
+
         final int cl = req.getContentLength();
         String json = "";
         if (cl > 0) {
@@ -429,8 +434,17 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case updateAvailable:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
+
+            switch (inter) {
+            case CLOSE:
+                this.internalState.setModalCompleted(Modal.updateAvailable);
+                this.internalState.advanceModal(null);
+                break;
+            default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
+                break;
+            }
             break;
         case authorizeLater:
             log.error("Did not handle interaction for modal {} with " +
