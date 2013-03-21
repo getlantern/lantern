@@ -120,7 +120,8 @@ public class Proxifier implements LanternService {
     
     /**
      * Synchronized setup complete handler because it has to coordinate with
-     * proxy connection events.
+     * proxy connection events. This is designed so either the setup complete
+     * event or the proxy connection event can happen first.
      * 
      * @param event The setup complete event.
      */
@@ -137,7 +138,8 @@ public class Proxifier implements LanternService {
     
     /**
      * Synchronized proxy connection event handler because it has to sync up
-     * with setup complete events (see above).
+     * with setup complete events (see above). This is designed so either 
+     * the setup complete event or the proxy connection event can happen first.
      * 
      * @param pce The proxy connection event.
      */

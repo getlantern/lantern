@@ -73,8 +73,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final Queue<ProxyHolder> laeProxies =
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    //private final PeerProxyManager peerProxyManager;
-
     private final Model model;
 
     private final PeerFactory peerFactory;
