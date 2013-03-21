@@ -27,17 +27,19 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private final int sortKey;
 
+    private final String user;
+
     public LanternRosterEntry(final RosterEntry entry) {
-        String email = entry.getUser();
+        this.user = entry.getUser();
         String name = entry.getName();
         String subscriptionStatus = extractSubscriptionStatus(entry);
         this.available = false;
         this.away = false;
 
-        if (StringUtils.isBlank(email)) {
+        if (StringUtils.isBlank(this.getUser())) {
             this.email = "";
         } else {
-            this.email = XmppUtils.jidToUser(email);
+            this.email = XmppUtils.jidToUser(this.getUser());
         }
         this.name = name == null ? "" : name;
         this.subscriptionStatus = subscriptionStatus == null ? ""
@@ -190,5 +192,9 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         } else {
             return -scores;
         }
+    }
+
+    public String getUser() {
+        return user;
     }
 }
