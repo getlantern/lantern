@@ -21,6 +21,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.StaticSettings;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -74,6 +75,14 @@ public final class PhotoServlet extends HttpServlet {
     protected void doGet(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException,
         IOException {
+
+        final String referrer = req.getHeader("Referer");
+        final String localEndpoint = StaticSettings.getLocalEndpoint();
+        if (!referrer.startsWith(localEndpoint)) {
+            sendError(resp, HttpStatus.SC_BAD_REQUEST, "referer must be localhost");
+            return;
+        }
+
         log.debug("Got photo request: {}", req.getRequestURI());
         final String email = req.getParameter("email");
         final byte[] imageData;
