@@ -416,7 +416,7 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case CONTINUE:
                 log.debug("Processing continue in systemProxy", json);
-
+                applyJson(json);
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
                 break;
