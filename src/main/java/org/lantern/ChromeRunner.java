@@ -129,16 +129,6 @@ public class ChromeRunner {
         commands.add("--user-data-dir="+LanternClientConstants.CONFIG_DIR.getAbsolutePath());
         commands.add("--window-size="+screenWidth+","+screenHeight);
         commands.add("--window-position="+location.x+","+location.y);
-        // DRY warning: this path is also set in:
-        //  - install/linux/configureAndLaunchUbuntu.txt
-        //  - install/linux/lantern-autostart.desktop
-        //  - src/main/java/org/lantern/http/JettyLauncher.java
-        //
-        //  StartupWMClass=127.0.0.1 is needed so the lantern icon will show
-        //  up in the Unity launcher/dock.  But if we specify only that, the
-        //  lantern icon might appear for any other chrome app served from
-        //  localhost.  So we rename the index file to something less likely
-        //  to cause name clashes.
         commands.add("--app="+endpoint+"/index.html");
 
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
