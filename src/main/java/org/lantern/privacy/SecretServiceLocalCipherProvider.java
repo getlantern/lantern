@@ -88,7 +88,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             return false;
         } catch (final UnsatisfiedLinkError error) {
             if (LanternUtils.isDevMode()) {
-                LOG.error("Could not load so file? Testing");
+                LOG.error("Could not load so file? Testing?", error);
                 return false;
             } else {
                 LOG.error("CAN'T HAVE UNENCRYPTED FILES IN PRODUCTION!!");
