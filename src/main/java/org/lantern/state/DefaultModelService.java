@@ -7,19 +7,18 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import javax.security.auth.login.CredentialException;
-
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.LanternUtils;
-import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.ModeChangedEvent;
+import org.lantern.event.SyncEvent;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
@@ -195,76 +194,21 @@ public class DefaultModelService implements ModelService {
 
     @Override
     public void setMode(final Mode mode) {
-        log.debug("Calling set get mode. Get is: "+mode);
-        // When we move to give mode, we want to start advertising our
-        // ID and to start accepting incoming connections.
-
-        // We we move to get mode, we want to stop advertising our ID and to
-        // stop accepting incoming connections.
+        log.debug("Calling set mode. Mode is: {}", mode);
+        // One thing we want to do when we switch to 
         final Settings set = this.model.getSettings();
-        if (mode == set.getMode()) {
-            log.info("Mode is unchanged.");
-            return;
-        }
-
+        
+        // We rely on this to determine whether or not the user needs to
+        // do more configuration when switching modes.
         if (mode == Mode.get) {
             model.setEverGetMode(true);
         }
-
-        // Go ahead and set the setting although it will also be
-        // updated by the api as well. We want to make sure the
-        // state seen by the following calls is consistent with
-        // this flag being aspirational vs. representational
-        set.setMode(mode);
-
-        // We disconnect and reconnect to create a new Jabber ID that will
-        // not advertise us as a connection point.
-        if (!model.isSetupComplete()) {
-            log.debug("Not disconnecting and reconnecting before setup is " +
-                "complete");
-            return;
+        if (set.getMode() != mode) {
+            log.debug("Propagating events for mode change...");
+            set.setMode(mode);
+            Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
+            Events.asyncEventBus().post(new ModeChangedEvent(mode));
         }
-
-        // We dont' want to force the frontend to wait for all of this, so we
-        // thread it.
-        final Runnable runner = new Runnable() {
-
-            @Override
-            public void run() {
-                xmppHandler.disconnect();
-                try {
-                    try {
-                        xmppHandler.connect();
-
-                        // TODO: This isn't quite right. We don't necessarily have
-                        // proxies to connect to at this point, and we shouldn't set
-                        // the OS proxy until we do.
-                        // may need to modify the proxying state
-                        if (modelUtils.shouldProxy()) {
-                            proxifier.startProxying();
-                        } else {
-                            proxifier.stopProxying();
-                        }
-                    } catch (final IOException e) {
-                        log.info("Could not connect to server", e);
-                        // Don't proxy if there's some error connecting.
-                        proxifier.stopProxying();
-                    } catch (final CredentialException e) {
-                        log.info("Credentials are wrong!!");
-                        proxifier.stopProxying();
-                    } catch (final NotInClosedBetaException e) {
-                        log.info("Not in beta!!");
-                        proxifier.stopProxying();
-                    }
-                } catch (final Proxifier.ProxyConfigurationError e) {
-                    log.info("Proxy auto-configuration failed: {}", e);
-                }
-            }
-        };
-
-        final Thread t = new Thread(runner, "Mode-Shift-Thread");
-        t.setDaemon(true);
-        t.start();
     }
 
     @Override

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -21,6 +22,7 @@ import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
+import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
@@ -48,14 +50,13 @@ public class Roster implements RosterListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Map<String, LanternRosterEntry> rosterEntries =
-        new ConcurrentSkipListMap<String, LanternRosterEntry>();
-
     /**
-     * Map of e-mail address of the requester to their full profile.
+     * Wrap this because it get set by multiple threads -- both this one
+     * now and another when we load the real roster.
      */
-    //private final Map<String, Profile> incomingSubscriptionRequests =
-      //  new TreeMap<String, Profile>();
+    private final AtomicReference<Map<String, LanternRosterEntry>> rosterEntries =
+        new AtomicReference<Map<String, LanternRosterEntry>>(
+            new ConcurrentSkipListMap<String, LanternRosterEntry>());
 
     private final RandomRoutingTable kscopeRoutingTable;
     private final Model model;
@@ -69,24 +70,27 @@ public class Roster implements RosterListener {
 
     private XmppHandler xmppHandler;
 
+    private final Censored censored;
+    
     /**
      * Creates a new roster.
      */
     @Inject
     public Roster(final RandomRoutingTable routingTable, 
-            final Model model) {
+            final Model model, final Censored censored) {
         this.kscopeRoutingTable = routingTable;
         this.model = model;
+        this.censored = censored;
         model.setRoster(this);
         Events.register(this);
     }
 
-    public void onRoster(final XmppHandler xmppHandler) {
-        this.xmppHandler = xmppHandler;
+    public void onRoster(final XmppHandler xmpp) {
+        this.xmppHandler = xmpp;
         log.info("Got logged in event");
         // Threaded to avoid this holding up setting the logged-in state in
         // the UI.
-        final XMPPConnection conn = xmppHandler.getP2PClient().getXmppConnection();
+        final XMPPConnection conn = xmpp.getP2PClient().getXmppConnection();
         final org.jivesoftware.smack.Roster ros = conn.getRoster();
         this.smackRoster = ros;
         final Runnable r = new Runnable() {
@@ -97,8 +101,8 @@ public class Roster implements RosterListener {
                 ros.addRosterListener(Roster.this);
                 final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
-
-                rosterEntries = getRosterEntries(unordered);
+                
+                rosterEntries.set(getRosterEntries(unordered));
 
                 for (final RosterEntry entry : unordered) {
                     final Iterator<Presence> presences =
@@ -133,7 +137,7 @@ public class Roster implements RosterListener {
     }
 
     public LanternRosterEntry getRosterEntry(final String key) {
-        return this.rosterEntries.get(key);
+        return this.rosterEntries.get().get(key);
     }
 
     private void processPresence(final Presence presence, final boolean sync,
@@ -145,35 +149,71 @@ public class Roster implements RosterListener {
         } else if (LanternXmppUtils.isLanternJid(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
 
-            // immediately add to kscope routing table and
-            // send kscope ad to new roster entry
-            final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
-            log.debug("Adding {} to routing table.", from);
-            this.kscopeRoutingTable.addNeighbor(id);
-
-
-            // only advertise if we're in GIVE mode
-            if(this.model.getSettings().getMode() == Settings.Mode.give) {
-                sendKscope(presence, id);
+            // only advertise to peers that are available.
+            if (presence.isAvailable()) {
+                sendKscope(from);
+            } else {
+                log.debug("Presence not available, so not sending kscope");
             }
             onPresence(presence, sync, updateIndex);
         } else {
             onPresence(presence, sync, updateIndex);
         }
     }
+    
+    @Subscribe
+    public void onModeChangedEvent(final ModeChangedEvent event) {
+        switch (event.getNewMode()) {
+        case get:
+            log.debug("Nothing to do on roster when switched to get mode");
+            return;
+        case give:
+            log.debug("Switched to give mode");
+            sendKscopeAdToAllPeers();
+            break;
+        case none:
+            break;
+        default:
+            break;
+        
+        };
+    }
 
-    private void sendKscope(final Presence presence, final TrustGraphNodeId id) {
-        //final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-        //        model.getNodeId());
+    private void sendKscopeAdToAllPeers() {
+        final Collection<LanternRosterEntry> entries = getEntries();
+        for (final LanternRosterEntry lre : entries) {
+            if (lre.isAvailable()) {
+                sendKscope(lre.getUser());
+            } else {
+                log.debug("Entry is not available");
+            }
+        }
+    }
 
-        if (!presence.isAvailable()) {
-            log.info("Not sending kscope on unavailable: {}", presence.toXML());
+    private void sendKscope(final String to) {
+        if (!LanternXmppUtils.isLanternJid(to)) {
+            log.debug("Not sending kscope add to non Lantern entry");
             return;
         }
+        if (censored.isCensored()) {
+            log.debug("Not sending kscope advertisement in censored mode");
+            return;
+        }
+        // only advertise if we're in GET mode
+        if(model.getSettings().getMode() != Settings.Mode.give) {
+            log.debug("Not sending kscope advertisement in give mode");
+            return;
+        }
+        
         if (xmppHandler == null) {
             log.warn("Null xmppHandler?");
             return;
         }
+        // immediately add to kscope routing table and
+        // send kscope ad to new roster entry
+        final TrustGraphNodeId id = new BasicTrustGraphNodeId(to);
+        log.debug("Adding {} to routing table.", to);
+        this.kscopeRoutingTable.addNeighbor(id);
         final InetAddress address = 
             new PublicIpAddress().getPublicIpAddress();
 
@@ -204,7 +244,7 @@ public class Roster implements RosterListener {
     private void onPresence(final Presence pres, final boolean sync,
         final boolean updateIndex) {
         final String email = LanternXmppUtils.jidToEmail(pres.getFrom());
-        final LanternRosterEntry entry = this.rosterEntries.get(email);
+        final LanternRosterEntry entry = this.rosterEntries.get().get(email);
         if (entry != null) {
             entry.setAvailable(pres.isAvailable());
             entry.setStatusMessage(pres.getStatus());
@@ -232,17 +272,11 @@ public class Roster implements RosterListener {
         } else {
             log.debug("Not adding entry for {}", entry);
         }
-
         log.debug("Finished adding entry for {}", entry);
-
-        //if (LanternUtils.isLanternJid(pres.getEmail()))
-        //this.kscopeRoutingTable
     }
 
     /**
      * Adds an entry, optionally updating roster indexes.
-     *
-     * NOTE: Public for testing.
      *
      * @param entry The entry to add.
      * @param updateIndex Whether or not to update the index.
@@ -265,7 +299,7 @@ public class Roster implements RosterListener {
         // work here to set the indexes for each entry.
         synchronized(this.rosterEntries) {
             final LanternRosterEntry elem =
-                this.rosterEntries.put(entry.getEmail(), entry);
+                this.rosterEntries.get().put(entry.getEmail(), entry);
 
             // Only update the index if the element was actually added!
             if (elem == null) {
@@ -280,7 +314,7 @@ public class Roster implements RosterListener {
         synchronized(this.rosterEntries) {
             final Set<LanternRosterEntry> sortedEntries =
                     new TreeSet<LanternRosterEntry>();
-            sortedEntries.addAll(rosterEntries.values());
+            sortedEntries.addAll(rosterEntries.get().values());
             int index = 0;
             for (final LanternRosterEntry cur : sortedEntries) {
                 cur.setIndex(index);
@@ -292,13 +326,13 @@ public class Roster implements RosterListener {
     //@JsonUnwrapped
     public Collection<LanternRosterEntry> getEntries() {
         synchronized (this.rosterEntries) {
-            return ImmutableSortedSet.copyOf(this.rosterEntries.values());
+            return ImmutableSortedSet.copyOf(this.rosterEntries.get().values());
         }
     }
 
     public void setEntries(final Map<String, LanternRosterEntry> entries) {
         synchronized (this.rosterEntries) {
-            this.rosterEntries.clear();
+            this.rosterEntries.get().clear();
         }
         synchronized (entries) {
             final Collection<LanternRosterEntry> vals = entries.values();
@@ -354,7 +388,7 @@ public class Roster implements RosterListener {
         for (final String entry : entries) {
             final String email = LanternXmppUtils.jidToEmail(entry);
             synchronized (rosterEntries) {
-                rosterEntries.remove(email);
+                rosterEntries.get().remove(email);
             }
         }
         fullRosterSync();
@@ -384,7 +418,7 @@ public class Roster implements RosterListener {
     public void reset() {
         this.model.getFriends().clear();
         synchronized (rosterEntries) {
-            this.rosterEntries.clear();
+            this.rosterEntries.get().clear();
         }
         this.kscopeRoutingTable.clear();
     }
@@ -398,7 +432,7 @@ public class Roster implements RosterListener {
      * subscription states, otherwise <code>false</code>.
      */
     public boolean isFullyOnRoster(final String email) {
-        final LanternRosterEntry entry = this.rosterEntries.get(email);
+        final LanternRosterEntry entry = this.rosterEntries.get().get(email);
         if (entry == null) {
             return false;
         }
@@ -414,7 +448,7 @@ public class Roster implements RosterListener {
     }
 
     public boolean autoAcceptSubscription(final String from) {
-        final LanternRosterEntry entry = this.rosterEntries.get(from);
+        final LanternRosterEntry entry = this.rosterEntries.get().get(from);
         if (entry == null) {
             log.debug("No matching roster entry!");
             return false;

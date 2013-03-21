@@ -348,11 +348,11 @@ public class InteractionServlet extends HttpServlet {
                     }
                     Events.syncModel(this.model);
                 }
-                handleGiveGet(Mode.get);
+                this.modelService.setMode(Mode.get);
                 break;
             case GIVE:
                 log.debug("Setting give mode");
-                handleGiveGet(Mode.give);
+                this.modelService.setMode(Mode.give);
                 break;
             case CLOSE:
                 log.debug("Processing settings close");
@@ -579,22 +579,15 @@ public class InteractionServlet extends HttpServlet {
     }
 
     private void handleSetModeWelcome(final Mode mode) {
-        //this.model.getSettings().setMode(mode);
-        this.modelService.setMode(mode);
         this.model.setModal(Modal.authorize);
         this.internalState.setModalCompleted(Modal.welcome);
-        Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
+        this.modelService.setMode(mode);
         Events.syncModal(model);
     }
 
     private void applyJson(final String json) {
         final JsonModelModifier mod = new JsonModelModifier(modelService);
         mod.applyJson(json);
-    }
-
-    private void handleGiveGet(final Mode mode) {
-        Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
-        this.modelService.setMode(mode);
     }
 
     private void handleReset() {

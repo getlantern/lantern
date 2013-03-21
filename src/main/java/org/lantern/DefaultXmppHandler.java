@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -46,10 +45,6 @@ import org.jivesoftware.smack.packet.Presence.Type;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.kaleidoscope.BasicTrustGraphAdvertisement;
-import org.kaleidoscope.BasicTrustGraphNodeId;
-import org.kaleidoscope.TrustGraphNode;
-import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
@@ -58,12 +53,10 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -73,7 +66,6 @@ import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -113,18 +105,22 @@ public class DefaultXmppHandler implements XmppHandler {
             // Note the Chat will always be null here. We try to avoid using
             // actual Chat instances due to Smack's strange and inconsistent
             // behavior with message listeners on chats.
-            final String part = msg.getFrom();
-            LOG.info("Got chat participant: {} with message:\n {}", part,
+            final String from = msg.getFrom();
+            LOG.debug("Got chat participant: {} with message:\n {}", from,
                 msg.toXML());
-            if (StringUtils.isNotBlank(part) &&
-                part.startsWith(LanternClientConstants.LANTERN_JID)) {
+            if (msg.getType() == org.jivesoftware.smack.packet.Message.Type.error) {
+                LOG.warn("Received error message!! {}", msg.toXML());
+                return;
+            }
+            if (StringUtils.isNotBlank(from) &&
+                from.startsWith(LanternClientConstants.LANTERN_JID)) {
                 processLanternHubMessage(msg);
             }
 
             final Integer type =
                 (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
             if (type != null) {
-                LOG.info("Not processing typed message");
+                LOG.debug("Processing typed message");
                 processTypedMessage(msg, type);
             }
         }
@@ -170,10 +166,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ProxyTracker proxyTracker;
 
-    private final Censored censored;
-
-    //private final LanternTrustStore trustStore;
-
     private final KscopeAdHandler kscopeAdHandler;
 
     /**
@@ -194,12 +186,9 @@ public class DefaultXmppHandler implements XmppHandler {
         final ModelUtils modelUtils,
         final ModelIo modelIo, final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
-        final Censored censored,
-        final LanternTrustStore trustStore,
         final KscopeAdHandler kscopeAdHandler,
         final SslHttpProxyServer peerProxyServer) {
         this.model = model;
-        //this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.timer = updateTimer;
         this.stats = stats;
         this.keyStoreManager = keyStoreManager;
@@ -209,8 +198,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.modelIo = modelIo;
         this.roster = roster;
         this.proxyTracker = proxyTracker;
-        this.censored = censored;
-        //this.trustStore = trustStore;
         this.kscopeAdHandler = kscopeAdHandler;
         this.peerProxyServer = peerProxyServer;
         this.upnpService = new Upnp(stats);
@@ -539,62 +526,8 @@ public class DefaultXmppHandler implements XmppHandler {
         gTalkSharedStatus();
         updatePresence();
 
-        final boolean inClosedBeta =
-            waitForClosedBetaStatus(credentials.getUsername());
+        waitForClosedBetaStatus(credentials.getUsername());
 
-        // If we're in the closed beta and are an uncensored node, we want to
-        // advertise ourselves through the kaleidoscope trust network.
-        if (inClosedBeta && !censored.isCensored()) {
-            final TimerTask tt = new TimerTask() {
-
-                @Override
-                public void run() {
-                    // only advertise if we're in GET mode
-                    if(model.getSettings().getMode() != Settings.Mode.give) {
-                        return;
-                    }
-
-                    final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-                        model.getNodeId());
-
-                    final InetAddress address =
-                        new PublicIpAddress().getPublicIpAddress();
-
-                    final String user = connection.getUser();
-                    // The payload here is JSON with everything from the
-                    // JID of the user to the public IP address and port
-                    // that should be mapped on the user's router.
-                    final LanternKscopeAdvertisement ad;
-                    if (mappedServer.isPortMapped()) {
-                        ad = new LanternKscopeAdvertisement(user, address,
-                            mappedServer.getMappedPort(),
-                            mappedServer.getHostAddress());
-                    } else {
-                        ad = new LanternKscopeAdvertisement(user,
-                            mappedServer.getHostAddress());
-                    }
-
-                    final TrustGraphNode tgn =
-                        new LanternTrustGraphNode(DefaultXmppHandler.this);
-
-                    // for now, set ttl to max route length
-                    ad.setTtl(tgn.getMaxRouteLength());
-
-                    // Now turn the advertisement into JSON.
-                    final String payload = JsonUtils.jsonify(ad);
-
-                    LOG.info("Sending kscope payload: {}", payload);
-                    final BasicTrustGraphAdvertisement message =
-                        new BasicTrustGraphAdvertisement(tgnid, payload, 0);
-
-                    tgn.advertiseSelf(message);
-                }
-            };
-            // We delay this to make sure we've successfully loaded all roster
-            // updates and presence notifications before sending out our
-            // advertisement.
-            this.timer.schedule(tt, 30000);
-        }
     }
 
     private void useCachedPeerProxies() {
@@ -613,11 +546,11 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent("", GoogleTalkState.LOGIN_FAILED));
     }
 
-    private boolean waitForClosedBetaStatus(final String email)
+    private void waitForClosedBetaStatus(final String email)
         throws NotInClosedBetaException {
         if (this.modelUtils.isInClosedBeta(email)) {
             LOG.debug("Already in closed beta...");
-            return true;
+            return;
         }
 
         // The following is necessary because the call to login needs to either
@@ -638,20 +571,18 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.debug("Not in closed beta...");
                 notInClosedBeta("Not in closed beta");
             } else {
-                LOG.info("Server notified us we're in the closed beta!");
-                return true;
+                LOG.debug("Server notified us we're in the closed beta!");
+                return;
             }
         } else {
             LOG.warn("No closed beta event -- timed out!!");
             notInClosedBeta("No closed beta event!!");
         }
-        return false;
     }
 
     private void notInClosedBeta(final String msg)
         throws NotInClosedBetaException {
         LOG.debug("Not in closed beta!");
-        //connectivityEvent(ConnectivityStatus.DISCONNECTED);
         disconnect();
         throw new NotInClosedBetaException(msg);
     }
@@ -705,7 +636,15 @@ public class DefaultXmppHandler implements XmppHandler {
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
 
+        final Boolean inClosedBeta =
+            (Boolean) json.get(LanternConstants.INVITED);
 
+        if (inClosedBeta != null) {
+            Events.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
+        } else {
+            Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
+        }
+        
         final Long invites =
             (Long) json.get(LanternConstants.INVITES_KEY);
         if (invites != null) {
@@ -716,19 +655,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 this.model.setNinvites(newInvites);
                 Events.syncNInvites(invites.intValue());
             }
-        }
-
-        final Boolean inClosedBeta =
-            (Boolean) json.get(LanternConstants.INVITED);
-
-        if (inClosedBeta != null) {
-            Events.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
-            if (!inClosedBeta) {
-                //return;
-            }
-        } else {
-            Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
-            //return;
         }
 
         final JSONArray servers =
