@@ -63,7 +63,7 @@ public class StatsUpdater extends Thread {
             Map<String, Object> stats = om.readValue(json, Map.class);
             Map<String, Object> global = (Map<String, Object>) stats.get("global");
             if (global == null) {
-                log.warn("Empty global stats");
+                log.info("Empty global stats");
                 return;
             }
             updateModel(model.getGlobal(), global);

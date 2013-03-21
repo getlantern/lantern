@@ -171,7 +171,9 @@
         <classPath>
           <archive location="lantern.jar" failOnError="false" />
         </classPath>
-        <nativeLibraryDirectories />
+        <nativeLibraryDirectories>
+          <directory name="lib" />
+        </nativeLibraryDirectories>
       </java>
       <includedFiles />
       <unextractableFiles />

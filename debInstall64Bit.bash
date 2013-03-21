@@ -11,4 +11,6 @@ then
 fi
 #RELEASE=$2
 
-./debInstall.bash $* 64 579 
+cp lib/linux/x86_64/libunix-java.so install/linux/lib
+./debInstall.bash $* 64 579
+rm install/linux/lib/* 
