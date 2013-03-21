@@ -32,7 +32,7 @@ public class LanternClientConstants {
     public static final File DATA_DIR;
 
     public static final File LOG_DIR;
-    
+
     public static final File CONFIG_DIR =
         new File(System.getProperty("user.home"), ".lantern");
 
@@ -44,15 +44,15 @@ public class LanternClientConstants {
 
     public static final File TEST_PROPS =
             new File(CONFIG_DIR, "test.properties");
-    
+
     public static final File TEST_PROPS2 =
             new File(SystemUtils.USER_DIR, "src/test/resources/test.properties");
-    
+
     public static final long START_TIME = System.currentTimeMillis();
-    
+
 
     public static final int SYNC_INTERVAL_SECONDS = 2;
-    
+
     /**
      * Plist file for launchd on OSX.
      */
@@ -65,11 +65,11 @@ public class LanternClientConstants {
     public static final File GNOME_AUTOSTART =
         new File(System.getProperty("user.home"),
             ".config/autostart/lantern-autostart.desktop");
-    
+
 
     public static final String GET_EXCEPTIONAL_API_KEY =
         ExceptionalUtils.NO_OP_KEY;
-    
+
     static {
         // Only load these if we're not on app engine.
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -105,9 +105,9 @@ public class LanternClientConstants {
             }
         }
     }
-    
+
     public static final File GEOIP = new File(DATA_DIR, "GeoIP.dat");
-    
+
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
     public static final String LOCALHOST = "127.0.0.1";
     public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
@@ -124,6 +124,6 @@ public class LanternClientConstants {
     }
 
     static {
-        setControllerId("lanternctrl");
+        setControllerId("lxslanternctrltest2");
     }
 }
