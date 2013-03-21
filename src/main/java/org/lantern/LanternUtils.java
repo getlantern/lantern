@@ -953,7 +953,7 @@ public class LanternUtils {
             Arrays.asList("StartupWMClass=127.0.0.1__"+
         
             // We use the substring here to get rid of the leading "/"
-            StaticSettings.getPrefix().substring(1)+"/index.html");
+            StaticSettings.getPrefix().substring(1)+"_index.html");
         try {
             FileUtils.writeLines(desktopFile, "UTF-8", lines, true);
         } catch (final IOException e) {
