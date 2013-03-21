@@ -433,8 +433,17 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case updateAvailable:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
+
+            switch (inter) {
+            case CLOSE:
+                this.internalState.setModalCompleted(Modal.updateAvailable);
+                this.internalState.advanceModal(null);
+                break;
+            default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
+                break;
+            }
             break;
         case authorizeLater:
             log.error("Did not handle interaction for modal {} with " +
