@@ -362,8 +362,9 @@ MockBackend._handlerForModal[MODAL.proxiedSites] = function(interaction, res, da
 };
 
 MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
-  if (interaction !== INTERACTION.continue) return res.writeHead(400);
-  this.sync({'/settings/systemProxy': data});
+  var path = '/settings/'+SETTING.systemProxy;
+  if (!(interaction === INTERACTION.continue && data.path === path && _.isBoolean(data.value))) return res.writeHead(400);
+  this.sync([{op: 'add', path: path, value: data.value}]);
   if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
   this._advanceModal();

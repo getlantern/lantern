@@ -160,11 +160,16 @@ function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
 }
 
 function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
-  var log = logFactory('SystemProxyCtrl');
+  var log = logFactory('SystemProxyCtrl'),
+      path = '/settings/'+SETTING.systemProxy;
 
   $scope.systemProxy = true;
   $scope.disableForm = false;
   $scope.submitButtonLabelKey = 'CONTINUE';
+
+  $scope.$watch('model.settings.systemProxy', function(systemProxy) {
+    if (_.isBoolean(systemProxy)) $scope.systemProxy = systemProxy;
+  });
 
   function resetForm() {
     $scope.disableForm = false;
@@ -175,7 +180,7 @@ function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
     $scope.sysproxyError = false;
     $scope.disableForm = true;
     $scope.submitButtonLabelKey = 'CONFIGURING';
-    $scope.interaction(INTERACTION.continue, $scope.systemProxy)
+    $scope.interaction(INTERACTION.continue, {path: path, value: $scope.systemProxy})
       .then(resetForm, resetForm);
   };
 }
