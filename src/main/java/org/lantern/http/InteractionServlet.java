@@ -198,8 +198,6 @@ public class InteractionServlet extends HttpServlet {
             case CONTINUE:
                 log.debug("Processing continue");
                 this.model.setShowVis(true);
-                this.model.setSetupComplete(true);
-
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
                 Events.syncModel(this.model);
@@ -343,9 +341,9 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Setting get mode");
                 if (modelService.getMode() == Mode.give) {
                     //  need to do more setup to switch to get mode from give mode
-                    model.setSetupComplete(false);
                     this.internalState.advanceModal(null);
                     if (!model.isEverGetMode()) {
+                        model.setSetupComplete(false);
                         Events.syncModal(model, Modal.proxiedSites);
                     }
                     Events.syncModel(this.model);
