@@ -20,11 +20,11 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.Censored;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternFeedback;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
-import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
 import org.lantern.state.LocationChangedEvent;
@@ -35,7 +35,6 @@ import org.lantern.state.ModelService;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
-import org.lantern.LanternFeedback;
 import org.lantern.util.Desktop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,14 +169,14 @@ public class InteractionServlet extends HttpServlet {
                 handleSetModeWelcome(Mode.give);
                 break;
             default:
-                if (handleModeSwitch(inter)) {
+                if (handleModalSwitch(inter)) {
                     break;
                 }
                 break;
             }
             break;
         case about:
-            if (handleModeSwitch(inter)) {
+            if (handleModalSwitch(inter)) {
                 break;
             }
             this.internalState.setModalCompleted(Modal.finished);
@@ -186,7 +185,7 @@ public class InteractionServlet extends HttpServlet {
             break;
         case authorize:
            log.error("Processing authorize modal...");
-            if (handleModeSwitch(inter)) {
+            if (handleModalSwitch(inter)) {
                 break;
             }
             this.internalState.setModalCompleted(Modal.authorize);
@@ -220,7 +219,7 @@ public class InteractionServlet extends HttpServlet {
             log.error("Processing gtalk unreachable.");
             break;
         case lanternFriends:
-            if (handleModeSwitch(inter)) {
+            if (handleModalSwitch(inter)) {
                 break;
             }
             switch (inter) {
@@ -258,7 +257,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case none:
-            handleModeSwitch(inter);
+            handleModalSwitch(inter);
             break;
         case notInvited:
             switch (inter) {
@@ -274,7 +273,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case proxiedSites:
-            if (handleModeSwitch(inter)) {
+            if (handleModalSwitch(inter)) {
                 break;
             }
             switch (inter) {
@@ -333,7 +332,7 @@ public class InteractionServlet extends HttpServlet {
             log.debug("Process request sent");
             break;
         case settings:
-            if (handleModeSwitch(inter)) {
+            if (handleModalSwitch(inter)) {
                 break;
             }
             switch (inter) {
@@ -461,7 +460,7 @@ public class InteractionServlet extends HttpServlet {
                     Events.syncModal(this.model, Modal.none);
                     break;
                 default:
-                    if (handleModeSwitch(inter)) {
+                    if (handleModalSwitch(inter)) {
                         break;
                     }
                     this.internalState.setModalCompleted(Modal.finished);
@@ -521,7 +520,17 @@ public class InteractionServlet extends HttpServlet {
         this.xmppHandler.subscribe(email);
     }
 
-    private boolean handleModeSwitch(final Interaction inter) {
+    /**
+     * This handles the case where a user selects a modal that completely 
+     * switches the current modal and any associated flow, such as when the
+     * user selects the about or contact links. Those need to override whatever
+     * modal is currently displayed.
+     * 
+     * @param inter The interaction.
+     * @return <code>true</code> if the interaction results in the modal 
+     * actually switching, otherwise <code>false</code>.
+     */
+    private boolean handleModalSwitch(final Interaction inter) {
         switch (inter) {
         case SETTINGS:
             log.debug("Processing settings in none");
