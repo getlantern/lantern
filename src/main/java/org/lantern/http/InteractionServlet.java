@@ -132,6 +132,11 @@ public class InteractionServlet extends HttpServlet {
 
         log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
 
+        if (!"XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
+            HttpUtils.sendClientError(resp, "X-Requested-With header not set");
+            return;
+        }
+
         final int cl = req.getContentLength();
         String json = "";
         if (cl > 0) {
