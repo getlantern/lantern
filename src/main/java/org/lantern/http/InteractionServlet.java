@@ -162,6 +162,26 @@ public class InteractionServlet extends HttpServlet {
         log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
             modal, inter, this.model.getSettings().getMode());
 
+        if(inter == Interaction.EXCEPTION) {
+            final ObjectMapper om = new ObjectMapper();
+            Map<String, Object> map;
+            StringBuilder logMessage = new StringBuilder();
+            try {
+                map = om.readValue(json, Map.class);
+                for(Map.Entry<String, Object> entry : map.entrySet()) {
+                    logMessage.append(
+                        String.format("\t%s: %s\n", 
+                            entry.getKey(), entry.getValue()
+                        )
+                    );
+                }
+                log.error("UI Exception:\n {}", logMessage.toString());
+            } catch(Exception e) {
+                log.error(e.toString());
+            }
+            return;
+        }
+
         switch (modal) {
         case welcome:
             this.model.getSettings().setMode(Mode.none);
