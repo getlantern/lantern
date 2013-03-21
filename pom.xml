@@ -399,6 +399,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.13</version>
+	<configuration>
+	  <argLine>-Djava.library.path=${java.library.path}</argLine>
+	</configuration>
       </plugin>
 
       <plugin>
@@ -592,6 +595,8 @@
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
+                    <!-- The following causes issues when exploding the jar and trying to create a licenses directory instead of file -->
+                    <exclude>META-INF/LICENSE</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -624,6 +629,7 @@
         <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
+	<java.library.path></java.library.path>
       </properties>
     </profile>
     <profile>
@@ -638,7 +644,7 @@
         <unix.artifactId>unix-java-x86</unix.artifactId> 
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
-
+	<java.library.path></java.library.path>
         <arch.artifactId>x86</arch.artifactId>
      </properties>
     </profile>
@@ -654,6 +660,7 @@
         <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-linux</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
+	<java.library.path>lib/linux/x86_64</java.library.path>
       </properties>
     </profile>
    <!-- 

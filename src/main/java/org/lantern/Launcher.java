@@ -26,8 +26,16 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -37,6 +45,7 @@ import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
+import org.lantern.exceptional4j.HttpStrategy;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
@@ -53,7 +62,7 @@ import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.lantern.state.SyncService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
@@ -91,11 +100,10 @@ public class Launcher {
     private Censored censored;
 
     private InternalState internalState;
-    private LanternHttpClient httpClient;
-
 
     private final String[] commandLineArgs;
     private SyncService syncService;
+    private HttpClientFactory httpClientFactory;
 
     public Launcher(final String... args) {
         //System.setProperty("javax.net.debug", "ssl");
@@ -221,7 +229,7 @@ public class Launcher {
 
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
-        httpClient = instance(LanternHttpClient.class);
+        httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
         final ProxyTracker proxyTracker = instance(ProxyTracker.class);
@@ -702,10 +710,44 @@ public class Launcher {
                         return true;
                     }
             };
+            
+            // We need to do the following because httpClientFactory is still
+            // null here. We basically do something reasonable while it's still
+            // null.
+            final HttpStrategy strategy = new HttpStrategy() {
+                private final ProtocolVersion ver = 
+                    new ProtocolVersion("HTTP", 1, 1);
+                private HttpClient client = null;
+                @Override
+                public HttpResponse execute(final HttpPost request)
+                        throws ClientProtocolException, IOException {
+                    if (httpClientFactory == null) {
+                        return new DefaultHttpResponseFactory().newHttpResponse(
+                                ver, 200, null);
+                    }
+                    if (client == null) {
+                        client = httpClientFactory.newClient();
+                    }
+                    return client.execute(request);
+                }
+                
+                @Override
+                public HttpResponse execute(final HttpGet request)
+                        throws ClientProtocolException, IOException {
+                    if (httpClientFactory == null) {
+                        return new DefaultHttpResponseFactory().newHttpResponse(
+                                ver, 200, null);
+                    }
+                    if (client == null) {
+                        client = httpClientFactory.newClient();
+                    }
+                    return client.execute(request);
+                }
+            };
             final Appender bugAppender = new ExceptionalAppender(
-                    LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback,
-               httpClient);
-
+                LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback, true, 
+                Level.WARN, strategy);
+            
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
