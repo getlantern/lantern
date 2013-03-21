@@ -8,10 +8,6 @@ echo "Arg 1 is $1"  >> $logf
 echo "USER is '$USER'"  >> $logf
 echo "SUDO_USER is '$SUDO_USER'"  >> $logf
 
-# DRY warning: see
-#  - install/linux/lantern-autostart.desktop
-#  - src/main/java/org/lantern/ChromeRunner.java
-#  - src/main/java/org/lantern/http/JettyLauncher.java
 cp /opt/lantern/lantern.desktop /usr/share/applications || echo "Could not copy desktop file!!"  >> $logf
 chown $SUDO_USER:$SUDO_USER /opt/lantern/lantern.desktop
 chown $SUDO_USER:$SUDO_USER /usr/share/applications/lantern.desktop
