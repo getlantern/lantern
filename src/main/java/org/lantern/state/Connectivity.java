@@ -44,6 +44,8 @@ public class Connectivity {
 
     private long lastConnectedLong;
 
+    private String pacUrl;
+
     public Connectivity() {
         Events.register(this);
     }
@@ -81,8 +83,6 @@ public class Connectivity {
         }
     }
     */
-
-    private String pacUrl;
 
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
@@ -149,7 +149,11 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public String getPacUrl() {
-        return StaticSettings.getLocalEndpoint() + "/proxy_on.pac";
+        return pacUrl;
+    }
+
+    public void setPacUrl(final String url) {
+        this.pacUrl = url;
     }
 
     public String getConnectingStatus() {

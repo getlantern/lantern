@@ -65,7 +65,8 @@ public class InteractionServlet extends HttpServlet {
         CONTACT,
         ABOUT,
         ACCEPT,
-        DECLINE
+        DECLINE,
+        EXCEPTION
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());

@@ -248,7 +248,10 @@ public class Proxifier implements LanternService {
         }
         
         if (!modelUtils.shouldProxy()) {
-            LOG.debug("Not proxying in current mode...");
+            LOG.debug("Not proxying in current mode...{}", pacFile);
+            final String url = getPacFileUrl(pacFile);
+            this.model.getConnectivity().setPacUrl(url);
+            Events.syncModel(this.model);
             return;
         }
 
@@ -440,6 +443,10 @@ public class Proxifier implements LanternService {
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
                     "mode", "'none'");
             LOG.debug("Result of Ubuntu gsettings mode call: {}", result1);
+            final String result2 = 
+                mpm.runScript("gsettings", "reset", "org.gnome.system.proxy", 
+                    "autoconfig-url");
+            LOG.debug("Result of Ubuntu gsettings pac file call: {}", result2);
         } catch (final IOException e) {
             LOG.warn("Error calling Ubuntu proxy script!", e);
             throw new ProxyConfigurationError();
@@ -453,11 +460,17 @@ public class Proxifier implements LanternService {
         configureOsxProxyViaScript(false, getAndSetPacFileUrl(PROXY_OFF));
     }
     
-    private String getAndSetPacFileUrl(final File pacFile) {
+    private String getPacFileUrl(final File pacFile) {
         final String url = 
             StaticSettings.getLocalEndpoint()+"/"+
-                pacFile.getName()+"-"+RandomUtils.nextInt();
-        //this.model.getConnectivity().setPacUrl(url);
+            pacFile.getName()+"-"+RandomUtils.nextInt();
+        return url;
+
+    }
+
+    private String getAndSetPacFileUrl(final File pacFile) {
+        final String url = getPacFileUrl(pacFile);
+        this.model.getConnectivity().setPacUrl(url);
         return url;
     }
 
