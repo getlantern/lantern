@@ -81,8 +81,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final Timer timer;
 
-    private boolean populatedProxies = false;
-
     private final Collection<Netty3LanternTrafficCounterHandler> netty3TrafficShapers =
             new ArrayList<Netty3LanternTrafficCounterHandler>();
 
@@ -119,7 +117,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (this.model.isSetupComplete()) {
             addFallbackProxy();
             prepopulateProxies();
-            populatedProxies = true;
         } else {
             log.debug("Not starting when setup is not complete...");
         }
@@ -456,10 +453,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Subscribe
     public void onSetupComplete(final SetupCompleteEvent event) {
         log.debug("Got setup complete!");
-        if (this.populatedProxies) {
-            log.info("Already populated proxies?");
-            return;
-        }
         start();
     }
 
