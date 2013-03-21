@@ -340,15 +340,15 @@ public class InteractionServlet extends HttpServlet {
             case GET:
                 log.debug("Setting get mode");
                 if (modelService.getMode() == Mode.give) {
-                    //  need to do more setup to switch to get mode from give mode
-                    this.internalState.advanceModal(null);
                     if (!model.isEverGetMode()) {
+                        // need to do more setup to switch to get mode from 
+                        // give mode
                         model.setSetupComplete(false);
+                        Events.syncModel(this.model);
                         Events.syncModal(model, Modal.proxiedSites);
                     }
-                    Events.syncModel(this.model);
+                    this.modelService.setMode(Mode.get);
                 }
-                this.modelService.setMode(Mode.get);
                 break;
             case GIVE:
                 log.debug("Setting give mode");
