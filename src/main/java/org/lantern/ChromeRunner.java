@@ -139,7 +139,7 @@ public class ChromeRunner {
         //  lantern icon might appear for any other chrome app served from
         //  localhost.  So we rename the index file to something less likely
         //  to cause name clashes.
-        commands.add("--app="+endpoint+"/org.lantern.index.html");
+        commands.add("--app="+endpoint+"/index.html");
 
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
         
