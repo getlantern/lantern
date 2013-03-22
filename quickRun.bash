@@ -20,7 +20,7 @@ jar=target/lantern*SNAPSHOT.jar
 # We need to copy the bouncycastle jar in separately because it's signed.
 # The shaded jar includes it in the classpath in its manifest.
 test -f target/bcprov-jdk16-1.46.jar || cp install/common/bcprov-jdk16-1.46.jar target/
-javaArgs="-Djna.nosys=true -jar $jar $*"
+javaArgs="-XX:+HeapDumpOnOutOfMemoryError -Djna.nosys=true -jar $jar $*"
 
 if [ "$RUN_LANTERN_DEBUG_PORT" ]
 then
