@@ -41,7 +41,6 @@ public class Netty4LanternTrafficCounterHandler extends GlobalTrafficShapingHand
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         try {
             this.connectedChannels.incrementAndGet();
-            this.lastConnected = System.currentTimeMillis();
         } finally {
             // The message is then just passed to the next handler
             super.channelActive(ctx);
@@ -59,6 +58,9 @@ public class Netty4LanternTrafficCounterHandler extends GlobalTrafficShapingHand
         ctx.fireChannelInactive();
         try {
             this.connectedChannels.decrementAndGet();
+            if (this.connectedChannels.get() == 0) {
+                this.lastConnected = System.currentTimeMillis();
+            }
         } finally {
             // The message is then just passed to the next handler
             super.channelInactive(ctx);
