@@ -91,7 +91,7 @@ public class CometDTest {
 
         final Map<String,Object> updateJson =
             new LinkedHashMap<String,Object>();
-        updateJson.put(LanternConstants.UPDATE_VERSION_KEY, 0.20);
+        updateJson.put(LanternConstants.UPDATE_VERSION_KEY, "0.20");
         updateJson.put(LanternConstants.UPDATE_RELEASED_KEY,
             "2012-10-31T11:15:00Z");
         updateJson.put(LanternConstants.UPDATE_URL_KEY,
