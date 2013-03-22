@@ -11,6 +11,7 @@ import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.state.Peer.Type;
+import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,6 +150,9 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public String getPacUrl() {
+        if(pacUrl == null || pacUrl.equals("")) {
+            return StaticSettings.getLocalEndpoint()+"/proxy_on.pac";
+        }
         return pacUrl;
     }
 
