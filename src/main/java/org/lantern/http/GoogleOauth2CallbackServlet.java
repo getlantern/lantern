@@ -27,8 +27,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.LanternConstants;
 import org.lantern.NotInClosedBetaException;
-import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
+import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.state.InternalState;
@@ -64,7 +64,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final ModelIo modelIo;
 
-    private final Proxifier proxifier;
+    private final ProxyService proxifier;
 
     private final HttpClientFactory httpClientFactory;
 
@@ -74,7 +74,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
-        final Proxifier proxifier, final HttpClientFactory httpClientFactory,
+        final ProxyService proxifier, final HttpClientFactory httpClientFactory,
         final ModelUtils modelUtils) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;

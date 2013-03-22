@@ -12,8 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.LanternUtils;
-import org.lantern.Proxifier;
+//import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
+import org.lantern.ProxyService;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
@@ -48,7 +49,7 @@ public class DefaultModelService implements ModelService {
 
     private final Model model;
 
-    private final Proxifier proxifier;
+    private final ProxyService proxifier;
 
     private final ModelUtils modelUtils;
 
@@ -58,15 +59,16 @@ public class DefaultModelService implements ModelService {
 
     @Inject
     public DefaultModelService(final Model model,
-        final Proxifier proxifier, final ModelUtils modelUtils,
+        final ProxyService proxifier, final ModelUtils modelUtils,
         final XmppHandler xmppHandler, Roster roster) {
-        this(LanternClientConstants.LAUNCHD_PLIST, LanternClientConstants.GNOME_AUTOSTART,
+        this(LanternClientConstants.LAUNCHD_PLIST, 
+                LanternClientConstants.GNOME_AUTOSTART,
                 model, proxifier, modelUtils, xmppHandler, roster);
     }
 
     public DefaultModelService(final File launchdPlist,
         final File gnomeAutostart, final Model model,
-        final Proxifier proxifier, final ModelUtils modelUtils,
+        final ProxyService proxifier, final ModelUtils modelUtils,
         final XmppHandler xmppHandler, Roster roster) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
@@ -179,7 +181,7 @@ public class DefaultModelService implements ModelService {
                     } else {
                         proxifier.stopProxying();
                     }
-                } catch (final Proxifier.ProxyConfigurationError e) {
+                } catch (final ProxyConfigurationError e) {
                     log.error("Proxy reconfiguration failed: {}", e);
                 }
             }

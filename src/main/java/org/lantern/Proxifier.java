@@ -11,6 +11,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
+import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
@@ -31,7 +32,7 @@ import com.google.inject.Singleton;
  * Class that handles turning proxying on and off for all platforms.
  */
 @Singleton
-public class Proxifier implements LanternService {
+public class Proxifier implements ProxyService, LanternService {
     
     public class ProxyConfigurationError extends Exception {}
     public class ProxyConfigurationCancelled extends ProxyConfigurationError {};
@@ -218,6 +219,7 @@ public class Proxifier implements LanternService {
      * @throws ProxyConfigurationError If there's an error configuring the 
      * proxy.
      */
+    @Override
     public void proxyAllSites(final boolean proxyAll) 
         throws ProxyConfigurationError {
         if (proxyAll) {
@@ -230,6 +232,7 @@ public class Proxifier implements LanternService {
         }
     }
 
+    @Override
     public void startProxying() throws ProxyConfigurationError {
         if (this.model.getSettings().isProxyAllSites()) {
             // If we were previously configured to proxy all sites, then we
@@ -240,6 +243,7 @@ public class Proxifier implements LanternService {
         }
     }
     
+    @Override
     public void startProxying(final boolean force, final File pacFile) 
         throws ProxyConfigurationError {
         if (isProxying() && !force) {
@@ -331,6 +335,7 @@ public class Proxifier implements LanternService {
         }
     }
 
+    @Override
     public void stopProxying() throws ProxyConfigurationError {
         if (!isProxying()) {
             LOG.debug("Ignoring call since we're not proxying");
@@ -537,6 +542,7 @@ public class Proxifier implements LanternService {
      * This will refresh the proxy entries for things like new additions to
      * the whitelist.
      */
+    @Override
     public void refresh() {
         if (isProxying()) {
             if (model.getSettings().isProxyAllSites()) {
@@ -577,5 +583,27 @@ public class Proxifier implements LanternService {
         } catch (final ProxyConfigurationError e) {
             LOG.warn("Could not stop proxying", e);
         }
+    }
+    
+    @Subscribe
+    public void onModeChangedEvent(final ModeChangedEvent event) {
+        switch (event.getNewMode()) {
+        case get:
+            LOG.debug("Nothing to do on roster when switched to get mode");
+            return;
+        case give:
+            LOG.debug("Switched to give mode");
+            try {
+                stopProxying();
+            } catch (final ProxyConfigurationError e) {
+                LOG.debug("Error stopping proxying!", e);
+            }
+            break;
+        case none:
+            break;
+        default:
+            break;
+        
+        };
     }
 }
