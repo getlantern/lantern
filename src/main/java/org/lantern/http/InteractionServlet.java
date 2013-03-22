@@ -21,7 +21,6 @@ import org.lantern.Censored;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
-import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
@@ -91,15 +90,12 @@ public class InteractionServlet extends HttpServlet {
 
     private final LanternFeedback lanternFeedback;
 
-    private final ProxyService proxyService;
-
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, final XmppHandler xmppHandler,
-        final Censored censored, final LanternFeedback lanternFeedback,
-        final ProxyService proxyService) {
+        final Censored censored, final LanternFeedback lanternFeedback) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -107,7 +103,6 @@ public class InteractionServlet extends HttpServlet {
         this.xmppHandler = xmppHandler;
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
-        this.proxyService = proxyService;
         Events.register(this);
     }
 
