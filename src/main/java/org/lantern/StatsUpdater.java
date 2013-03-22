@@ -13,7 +13,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.event.Events;
 import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.lantern.util.LanternHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +105,8 @@ public class StatsUpdater extends Thread {
                     PropertyUtils.setSimpleProperty(dest, key, value);
                 }
             }
+            Events.sync(SyncPath.GLOBAL, model.getGlobal());
+            Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (NoSuchMethodException e) {
             // do nothing; lantern-controller collects more stats than lantern
             // uses

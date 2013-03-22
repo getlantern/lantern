@@ -1,7 +1,22 @@
 package org.lantern.state;
 
-
 public class NPeers {
-    public PeerCount online = new PeerCount();
-    public PeerCount ever = new PeerCount();
+    private PeerCount online = new PeerCount();
+    private PeerCount ever = new PeerCount();
+
+    public PeerCount getOnline() {
+        return online;
+    }
+
+    public void setOnline(PeerCount online) {
+        this.online = online;
+    }
+
+    public PeerCount getEver() {
+        return ever;
+    }
+
+    public void setEver(PeerCount ever) {
+        this.ever = ever;
+    }
 }
