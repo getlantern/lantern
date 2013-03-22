@@ -26,6 +26,8 @@ public enum SyncPath {
     SUBSCRIPTION_REQUESTS("friends/pending"),
     LOCATION("location"),
     TRANSFERS("transfers"),
+    GLOBAL("global"),
+    COUNTRIES("countries"),
     NOTIFICATIONS("notifications");
 
     private final String path;

@@ -17,8 +17,8 @@ public class PeerCountDeserializer extends JsonDeserializer<PeerCount> {
         ObjectCodec oc = jsonParser.getCodec();
         JsonNode node = oc.readTree(jsonParser);
         PeerCount count = new PeerCount();
-        count.get = node.get("get").getLongValue();
-        count.give = node.get("give").getLongValue();
+        count.setGet(node.get("get").getLongValue());
+        count.setGive(node.get("give").getLongValue());
         return count;
 
     }

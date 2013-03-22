@@ -14,9 +14,9 @@ public class PeerCountSerializer extends JsonSerializer<PeerCount> {
             SerializerProvider provider) throws IOException,
             JsonProcessingException {
         jgen.writeStartObject();
-        jgen.writeObjectField("get", obj.get);
-        jgen.writeObjectField("give", obj.give);
-        jgen.writeObjectField("giveGet", obj.give + obj.get);
+        jgen.writeObjectField("get", obj.getGet());
+        jgen.writeObjectField("give", obj.getGive());
+        jgen.writeObjectField("giveGet", obj.getGive() + obj.getGet());
         jgen.writeEndObject();
     }
 
