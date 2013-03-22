@@ -1,8 +1,5 @@
 package org.lantern.state;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternUtils;
@@ -67,11 +64,7 @@ public class Profile {
     
     @JsonView({Run.class, Persistent.class})
     public String getPicture() {
-        try {
-            return StringUtils.isBlank(picture) ? LanternUtils.defaultPhotoUrl() : URLEncoder.encode(this.picture, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return StringUtils.isBlank(picture) ? LanternUtils.defaultPhotoUrl() : this.picture;
     }
     public void setPicture(String picture) {
         this.picture = picture;
