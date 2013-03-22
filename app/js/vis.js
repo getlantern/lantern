@@ -260,7 +260,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     connectionPaths.exit().remove();
   }, true);
 
-  var maxGiveGet = 0,
+  var maxGiveGet = -1,
       countryOpacityScale = d3.scale.linear().clamp(true)
         .range([CONFIG.style.countryOpacityMin, CONFIG.style.countryOpacityMax]),
       countryActivityScale = d3.scale.linear().clamp(true),
