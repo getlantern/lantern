@@ -91,7 +91,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
                 LOG.error("Could not load so file? Testing?", error);
                 return false;
             } else {
-                LOG.error("CAN'T HAVE UNENCRYPTED FILES IN PRODUCTION!!");
+                LOG.error("CAN'T HAVE UNENCRYPTED FILES IN PRODUCTION!!", error);
                 System.exit(1);
                 return false;
             }
