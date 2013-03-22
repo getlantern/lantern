@@ -33,7 +33,6 @@ public class Netty3LanternTrafficCounterHandler extends GlobalTrafficShapingHand
         final ChannelStateEvent e) throws Exception {
         try {
             this.connectedChannels.incrementAndGet();
-            this.lastConnected = System.currentTimeMillis();
         } finally {
             // The message is then just passed to the next handler
             super.channelConnected(ctx, e);
@@ -45,6 +44,9 @@ public class Netty3LanternTrafficCounterHandler extends GlobalTrafficShapingHand
         final ChannelStateEvent e) throws Exception {
         try {
             this.connectedChannels.decrementAndGet();
+            if (this.connectedChannels.get() == 0) {
+                this.lastConnected = System.currentTimeMillis();
+            }
         } finally {
             // The message is then just passed to the next handler
             super.channelClosed(ctx, e);
