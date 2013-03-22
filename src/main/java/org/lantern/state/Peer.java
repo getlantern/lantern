@@ -13,7 +13,6 @@ import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.util.LanternTrafficCounter;
-import org.lantern.util.Netty3LanternTrafficCounterHandler;
 
 /**
  * Class containing data for an individual peer, including active connections,
@@ -83,7 +82,7 @@ public class Peer {
         this.mode = mode;
         this.incoming = incoming;
         this.type = type.toString();
-        this.country = countryCode.toLowerCase(Locale.US);
+        this.country = countryCode.toUpperCase(Locale.US);
         this.trafficCounter = trafficCounter;
         
         // Peers are online when constructed this way (because we presumably 

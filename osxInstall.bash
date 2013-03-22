@@ -5,17 +5,12 @@ function die() {
   exit 1
 }
 
-if [ $# -lt "1" ]
+if [ $# -lt "2" ]
 then
-    die "$0: Received $# args... version required"
+    die "$0: Received $# args... version and release (true or false) required"
 fi
 
-if [ $# -gt "1" ]
-then
-    RELEASE=$2;
-else
-    RELEASE=true;
-fi
+RELEASE=$2;
 
 VERSION=$1
 #INSTALL4J_MAC_PASS=$2
@@ -30,5 +25,5 @@ install4jc --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION ./in
 
 name=lantern-$VERSION.dmg
 mv install/Lantern.dmg $name
-#./installMetaRefresh.bash osx $name latest.dmg || die "ERROR: Could not build meta-refresh redirect file"
+./installMetaRefresh.bash osx $name latest.dmg $RELEASE || die "ERROR: Could not build meta-refresh redirect file"
 
