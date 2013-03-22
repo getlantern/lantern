@@ -169,7 +169,12 @@ angular.module('app.services', [])
         // disconnect from the backend
         applyPatch(model, patch);
       }
-      $rootScope.$apply();
+      try {
+        $rootScope.$apply();
+      } catch (e) {
+        // observed when Angular throws "10 $digest() iterations reached" error
+        log.debug('exception during $rootScope.$apply:', e);
+      }
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
