@@ -67,6 +67,8 @@ public class InteractionServlet extends HttpServlet {
         ABOUT,
         ACCEPT,
         DECLINE,
+        UNEXPECTEDSTATERESET,
+        UNEXPECTEDSTATEREFRESH,
         EXCEPTION
     }
 
@@ -166,25 +168,9 @@ public class InteractionServlet extends HttpServlet {
 
         log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
             modal, inter, this.model.getSettings().getMode());
-
-        if(inter == Interaction.EXCEPTION) {
-            final ObjectMapper om = new ObjectMapper();
-            Map<String, Object> map;
-            StringBuilder logMessage = new StringBuilder();
-            try {
-                map = om.readValue(json, Map.class);
-                for(Map.Entry<String, Object> entry : map.entrySet()) {
-                    logMessage.append(
-                        String.format("\t%s: %s\n", 
-                            entry.getKey(), entry.getValue()
-                        )
-                    );
-                }
-                log.error("UI Exception:\n {}", logMessage.toString());
-            } catch(Exception e) {
-                log.error(e.toString());
-            }
-            return;
+        
+        if(handleSpecialInteractions(modal, inter, json)) {
+            return; 
         }
 
         switch (modal) {
@@ -533,6 +519,73 @@ public class InteractionServlet extends HttpServlet {
         }
         this.modelIo.write();
     }
+    
+    private boolean handleSpecialInteractions(
+            final Modal modal, final Interaction inter, final String json) {
+        boolean handled = false;
+        Map<String, Object> map;
+        Boolean notify;
+        switch(inter) {
+            case EXCEPTION:
+                handleException(json);
+                handled = true;
+                break;
+            case UNEXPECTEDSTATERESET:
+                log.debug("Handling unexpected state reset.");
+                handleReset();
+                Events.syncModel(this.model);
+            case UNEXPECTEDSTATEREFRESH:
+                try {
+                    map = jsonToMap(json);
+                } catch(Exception e) {
+                    log.error("Bad json payload in inter '{}': {}", inter, json);
+                    return true;
+                }
+                notify = (Boolean)map.get("notify");
+                if(notify) {
+                    try {
+                        lanternFeedback.submit((String)map.get("report"),
+                            this.model.getProfile().getEmail());
+                        model.addNotification("Thanks for submitting your report!", MessageType.success);
+                    } catch(Exception e) {
+                        model.addNotification("Sorry! Could not send message.", MessageType.error);
+                        log.error("Could not submit unexpected state report: {}\n {}",
+                            e.getMessage(), (String)map.get("report"));
+                    }
+                }
+                handled = true;
+                break;
+        }
+        return handled;
+    }
+
+    private void handleException(final String json) {
+        StringBuilder logMessage = new StringBuilder();
+        Map<String, Object> map;
+        try {
+            map = jsonToMap(json);
+        } catch(Exception e) {
+            log.error("UI Exception (unable to parse json)");
+            return;
+        }
+        for(Map.Entry<String, Object> entry : map.entrySet()) {
+            logMessage.append(
+                String.format("\t%s: %s\n", 
+                    entry.getKey(), entry.getValue()
+                )
+            );
+        }
+        log.error("UI Exception:\n {}", logMessage.toString());
+    }
+
+    private Map<String, Object> jsonToMap(final String json) 
+            throws JsonParseException, JsonMappingException, IOException {
+        final ObjectMapper om = new ObjectMapper();
+        Map<String, Object> map;
+        map = om.readValue(json, Map.class);
+        return map;
+    }
+
 
     private void handleClose(String json) {
         if (StringUtils.isBlank(json)) {
