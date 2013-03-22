@@ -296,7 +296,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
         bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
         lastConnectedLabel: model.connectivity.lastConnected ? i18n('LAST_CONNECTED') : '',
-        lastConnected: date(model.connectivity.lastConnected, 'medium')
+        lastConnected: model.connectivity.lastConnected ? date(model.connectivity.lastConnected, 'medium') : ''
       }, model.profile);
       return hoverContentForPeer.tmpl(ctx);
     } catch(e) {
