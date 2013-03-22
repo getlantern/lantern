@@ -15,6 +15,8 @@ do
   ls $i/.git > /dev/null || die "Were git submodules initialized? (hint: git submodule update --init)"
 done
 
+ls *.hprof &> /dev/null && echo "don't run now, there's an hprof file:" && ls *.hprof && die
+
 jar=target/lantern*SNAPSHOT.jar
 
 # We need to copy the bouncycastle jar in separately because it's signed.
