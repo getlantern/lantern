@@ -1,6 +1,5 @@
 package org.lantern.state;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,6 +10,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
+import org.lantern.VersionNumber;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
@@ -28,16 +28,26 @@ public class Version {
 
     private Map<String, Object> latest = new TreeMap<String, Object>();
 
+    private boolean updateAvailable = false;
+
     public Version() {
         Events.register(this);
     }
 
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
-        this.latest = updateEvent.getData();
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED,
-            this.latest));
-        this.installed.setUpdateAvailable(true);
+        latest = updateEvent.getData();
+        String versionStr = (String) latest.get(LanternConstants.UPDATE_VERSION_KEY);
+        VersionNumber newVersion = new VersionNumber(versionStr);
+        if (installed.getMajor() < newVersion.getMajor()) {
+            setUpdateAvailable(true);
+        } else if (installed.getMajor() == newVersion.getMajor()) {
+            if (installed.getMinor() < newVersion.getMinor()) {
+                setUpdateAvailable(true);
+            }
+        }
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION,
+            this));
     }
 
     @JsonView({Run.class})
@@ -48,6 +58,14 @@ public class Version {
     @JsonView({Run.class, Persistent.class})
     public Map<String, Object> getLatest() {
         return latest;
+    }
+
+    public boolean isUpdateAvailable() {
+        return updateAvailable;
+    }
+
+    public void setUpdateAvailable(boolean updateAvailable) {
+        this.updateAvailable = updateAvailable;
     }
 
     public class Installed {
@@ -68,13 +86,9 @@ public class Version {
 
         private final Date releaseDate;
 
-        private boolean updateAvailable = false;
-
         private String installerUrl;
 
         private String installerSHA1;
-
-        private final ArrayList<String> changes = new ArrayList<String>();
 
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
@@ -130,16 +144,6 @@ public class Version {
         public SemanticVersion getModelSchema() {
             return modelSchema;
         }
-
-        public boolean isUpdateAvailable() {
-            return updateAvailable;
-        }
-
-
-        public void setUpdateAvailable(boolean updateAvailable) {
-            this.updateAvailable = updateAvailable;
-        }
-
 
         public String getInstallerUrl() {
             return installerUrl;
