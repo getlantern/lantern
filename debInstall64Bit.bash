@@ -11,6 +11,7 @@ then
 fi
 #RELEASE=$2
 
-cp lib/linux/x86_64/libunix-java.so install/linux/lib || die "Could not copy libunix?"
+test -d install/linux/lib || mkdir -p install/linux/lib || die "Could not create install/linux/lib"
+cp lib/linux/x86_64/libunix-java.so install/linux/lib/ || die "Could not copy libunix?"
 ./debInstall.bash $* 64 579
 rm install/linux/lib/* 
