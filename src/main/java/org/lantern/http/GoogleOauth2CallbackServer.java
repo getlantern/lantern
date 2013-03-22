@@ -10,7 +10,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.lantern.LanternUtils;
-import org.lantern.Proxifier;
+import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
@@ -42,7 +42,7 @@ public class GoogleOauth2CallbackServer {
 
     private final ModelIo modelIo;
 
-    private final Proxifier proxifier;
+    private final ProxyService proxifier;
 
     private final HttpClientFactory httpClientFactory;
 
@@ -50,7 +50,7 @@ public class GoogleOauth2CallbackServer {
     
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
         final Model model, final InternalState internalState,
-        final ModelIo modelIo, final Proxifier proxifier,
+        final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
         final ModelUtils modelUtils) {
         this.xmppHandler = xmppHandler;

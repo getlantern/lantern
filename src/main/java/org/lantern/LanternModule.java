@@ -83,7 +83,7 @@ public class LanternModule extends AbstractModule {
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
         
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
-        bind(Proxifier.class);
+        bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
         bind(TransfersIo.class);
