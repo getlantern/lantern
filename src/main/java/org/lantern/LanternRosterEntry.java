@@ -1,5 +1,8 @@
 package org.lantern;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.jivesoftware.smack.RosterEntry;
@@ -66,9 +69,13 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         if (StringUtils.isBlank(this.email)) {
             return LanternUtils.defaultPhotoUrl();
         }
-        return LanternUtils.photoUrlBase() + "?email=" + getEmail();
+        try {
+            return LanternUtils.photoUrlBase() + "?email=" + URLEncoder.encode(getEmail(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
-    
+
     public void setPicture(final String picture) {
         // TODO: Reset all of these at startup since the old path will likely
         // be wrong?
