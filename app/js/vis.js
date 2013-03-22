@@ -372,22 +372,17 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         peersOnline = false,
         el = d3.selectAll('path.'+alpha2);
     peerCount = peerCount || getByPath(country, '/npeers/online');
-    if (peerCount) {
-      peersOnline = peerCount.giveGet > 0;
-      if (censors) {
-        if (peerCount.giveGet !== peerCount.get) {
-          log.warn('npeersOnline.giveGet (', peerCount.giveGet, ') !== npeersOnline.get (', peerCount.get, ') for censoring country', alpha2);
-          apiSrvc.exception({error: 'npeersInvalid', npeersOnline: peerCount, message: 'npeersOnline.giveGet ('+peerCount.giveGet+') !== npeersOnline.get ('+peerCount.get+') for censoring country'+alpha2});
-        }
-        stroke = CONFIG.style.getModeColor;
-      } else {
-        countryActivityScale.domain([-peerCount.giveGet, peerCount.giveGet]);
-        var scaled = countryActivityScale(peerCount.get - peerCount.give);
-        stroke = d3.rgb(giveGetColorInterpolator(scaled));
+    peersOnline = peerCount.giveGet > 0;
+    if (censors) {
+      if (peerCount.giveGet !== peerCount.get) {
+        log.warn('npeersOnline.giveGet (', peerCount.giveGet, ') !== npeersOnline.get (', peerCount.get, ') for censoring country', alpha2);
+        apiSrvc.exception({error: 'npeersInvalid', npeersOnline: peerCount, message: 'npeersOnline.giveGet ('+peerCount.giveGet+') !== npeersOnline.get ('+peerCount.get+') for censoring country'+alpha2});
       }
-    } else {
-      peerCount = {give: 0, get: 0, giveGet: 0};
-      country.npeers = {online: peerCount, ever: peerCount};
+      stroke = CONFIG.style.getModeColor;
+    } else if (peerCount.giveGet) {
+      countryActivityScale.domain([-peerCount.giveGet, peerCount.giveGet]);
+      var scaled = countryActivityScale(peerCount.get - peerCount.give);
+      stroke = d3.rgb(giveGetColorInterpolator(scaled));
     }
     updateElement(el, {'stroke': stroke}, animate);
     el.attr('data-original-title', hoverContentForCountry(alpha2, country));

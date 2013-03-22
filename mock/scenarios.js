@@ -528,9 +528,17 @@ exports.SCENARIOS = {
             initialCountries = ['US', 'CA', 'CN', 'IR', 'SA', 'DE', 'GB', 'SE', 'TH'];
 
         // XXX do this on reset
-        _.each(this.model.countries, function(__, alpha2) {
-          if (/*Math.random() < .1 ||*/ _.contains(initialCountries, alpha2))
+        _.each(this.model.countries, function(country, alpha2) {
+          var path = '/countries/'+alpha2+'/npeers';
+          if (/*Math.random() < .1 ||*/ _.contains(initialCountries, alpha2)) {
+            var ever = {get: _.random(200, 1000)};
+            ever.give = country.censors ? 0 : _.random(500, 1000);
+            ever.giveGet = ever.give + ever.get;
+            update[path] = {online: {}, ever: ever};
             updateCountry(alpha2, update);
+          } else {
+            update[path] = {online: {give: 0, get: 0, giveGet: 0}, ever: {give: 0, get: 0, giveGet: 0}};
+          }
         });
         this_.sync(update);
 
@@ -560,12 +568,10 @@ exports.SCENARIOS = {
           }
           npeersOnlineGive += giveDelta;
           npeersOnlineGet += getDelta;
-          update['/countries/'+country+'/npeers'] = {
-            online: {
-              give: npeersOnlineGive,
-              get: npeersOnlineGet,
-              giveGet: npeersOnlineGive + npeersOnlineGet
-            }
+          update['/countries/'+country+'/npeers/online'] = {
+            give: npeersOnlineGive,
+            get: npeersOnlineGet,
+            giveGet: npeersOnlineGive + npeersOnlineGet
           };
           npeersOnlineGlobal += giveDelta + getDelta;
           this_.sync({'/global/nusers/online': npeersOnlineGlobal});
