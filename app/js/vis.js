@@ -347,7 +347,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       countryName: i18n(alpha2),
       npeersOnlineGet: i18n('NPEERS_ONLINE_GET', country.npeers.online.get),
       npeersOnlineGive: i18n('NPEERS_ONLINE_GIVE', country.npeers.online.give),
-      npeersEver: i18n('NPEERS_EVER', getByPath(country, '/npeers/ever/giveGet')||0),
+      npeersEver: i18n('NUSERS_EVER', getByPath(country, '/nusers/ever')||0),
       bpsUp: prettyBps(getByPath(country, '/bpsUp')||0)+' '+i18n('UP'),
       bpsDn: prettyBps(getByPath(country, '/bpsDn')||0)+' '+i18n('DN'),
       bytesUp: prettyBytes(getByPath(country, '/bytesUp')||0)+' '+i18n('UP_EVER'),
