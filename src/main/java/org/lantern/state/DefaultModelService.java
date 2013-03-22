@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.LanternUtils;
-//import org.lantern.Proxifier;
+import org.lantern.state.StaticSettings;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.Roster;
@@ -169,6 +169,9 @@ public class DefaultModelService implements ModelService {
         // be set again by the api, but that doesn't matter.
         this.model.getSettings().setSystemProxy(isSystemProxy);
         if (!this.model.isSetupComplete()) {
+            this.model.getConnectivity().setPacUrl(
+                StaticSettings.getLocalEndpoint()+"/proxy_on.pac"
+            );
             return;
         }
 

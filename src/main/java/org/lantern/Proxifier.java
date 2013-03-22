@@ -8,7 +8,6 @@ import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
@@ -468,7 +467,7 @@ public class Proxifier implements ProxyService, LanternService {
     private String getPacFileUrl(final File pacFile) {
         final String url = 
             StaticSettings.getLocalEndpoint()+"/"+
-            pacFile.getName()+"-"+RandomUtils.nextInt();
+            pacFile.getName();
         return url;
 
     }
