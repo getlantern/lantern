@@ -13,6 +13,8 @@ then
     die "$0: Received $# args... version required"
 fi
 
+javac -version 2>&1 | grep 1.7 && die "Cannot build with Java 7 due to bugs with generated class files and pac"
+
 which install4jc || die "No install4jc on PATH -- ABORTING"
 printenv | grep INSTALL4J_KEY || die "Must have INSTALL4J_KEY defined with the Install4J license key to use"
 printenv | grep INSTALL4J_MAC_PASS || die "Must have OSX signing key password defined in INSTALL4J_MAC_PASS"
