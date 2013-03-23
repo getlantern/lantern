@@ -43,6 +43,7 @@ import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
+import org.lantern.event.MessageEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.exceptional4j.HttpStrategy;
@@ -69,6 +70,7 @@ import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -91,7 +93,29 @@ public class Launcher {
 
     private LocalCipherProvider localCipherProvider;
 
-    private MessageService messageService;
+    /**
+     * Set a dummy message service while we're not fully wired up.
+     */
+    private MessageService messageService = new MessageService() {
+        
+        @Override
+        public void showMessage(String title, String message) {
+            System.err.println("Title: "+title+"\nMessage: "+message);
+        }
+        
+        @Override
+        @Subscribe
+        public void onMessageEvent(final MessageEvent me) {
+            showMessage(me.getTitle(), me.getMsg());
+        }
+        
+        @Override
+        public int askQuestion(String title, String message, int typeFlag) {
+            showMessage(title, message);
+            return 0;
+        }
+    };
+    
     private Injector injector;
     private SystemTray systemTray;
     Model model;
