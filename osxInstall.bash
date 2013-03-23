@@ -19,7 +19,7 @@ VERSION=$1
 
 #install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
 
-install4jc --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION ./install/lantern.install4j || die "Could not build installer?"
+install4jc -v --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION ./install/lantern.install4j || die "Could not build installer?"
 
 #/Applications/install4j\ 5/bin/install4jc -m macos -r $VERSION ./install/lantern.install4j
 
