@@ -102,7 +102,7 @@ public class CometDTest {
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
 
         waitForBoolean(hasMessage);
-        assertEquals("/version/latest", messagePath.get());
+        assertEquals("/version", messagePath.get());
         hasMessage.set(false);
         messagePath.set("none");
     }
