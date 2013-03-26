@@ -180,7 +180,7 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides  @Singleton
-    public static LocalCipherProvider provideLocalCipher() {
+    public LocalCipherProvider provideLocalCipher() {
         final LocalCipherProvider lcp; 
         
         /*

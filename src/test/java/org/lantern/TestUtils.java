@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.OauthUtils;
+import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.UnencryptedFileService;
@@ -34,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
 public class TestUtils {
 
@@ -129,7 +132,14 @@ public class TestUtils {
             return;
         }
         loaded = true;
-        injector = Guice.createInjector(new LanternModule());
+        injector = Guice.createInjector(new LanternModule() {
+            
+            // Just don't encrypt on disk for tests.
+            @Override @Provides @Singleton
+            public LocalCipherProvider provideLocalCipher() {
+                return new DefaultLocalCipherProvider();
+            }
+        });
         
         xmppHandler = instance(DefaultXmppHandler.class);
         socketsUtil = instance(LanternSocketsUtil.class);
