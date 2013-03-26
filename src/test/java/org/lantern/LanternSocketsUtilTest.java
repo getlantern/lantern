@@ -39,7 +39,7 @@ public class LanternSocketsUtilTest {
         //final LanternTrustStore trustStore = TestUtils.getTrustStore();
         
         final KeyStoreManager ksm = new LanternKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         //final LanternTrustStore trustStore = TestUtils.buildTrustStore();
         final String testId = "test@gmail.com/somejidresource";
         trustStore.addBase64Cert(testId, ksm.getBase64Cert(testId));

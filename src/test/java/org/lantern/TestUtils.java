@@ -348,7 +348,7 @@ public class TestUtils {
     }
 
     public static LanternTrustStore buildTrustStore() {
-        return new LanternTrustStore(null, new LanternKeyStoreManager());
+        return new LanternTrustStore(new LanternKeyStoreManager());
     }
 
     public static HttpClientFactory getHttpClientFactory() {

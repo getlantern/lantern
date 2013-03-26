@@ -30,7 +30,7 @@ public class SslHttpProxyServerTest {
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         final int port = LanternUtils.randomPort();
-        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         //final PeerFactory peerFactory = new Pee
         //final GlobalLanternServerTrafficShapingHandler trafficHandler =
         //        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory);

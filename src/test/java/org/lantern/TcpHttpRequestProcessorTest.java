@@ -227,7 +227,7 @@ public class TcpHttpRequestProcessorTest {
         // First we need the proxy tracker to 
  
         final ProxyTracker proxyTracker = newProxyTracker(ft);
-        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final String dummyId = "test@gmail.com/-lan-22LJDEE";
         trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
         final TcpHttpRequestProcessor processor =
