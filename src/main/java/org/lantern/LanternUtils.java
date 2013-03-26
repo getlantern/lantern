@@ -946,10 +946,6 @@ public class LanternUtils {
             LOG.warn("No lantern desktop file at: {}", desktopFile);
             return;
         }
-        if (LanternUtils.fileContains(desktopFile, "StartupWMClass")) {
-            LOG.debug("{} already contains StartupWMClass", desktopFile);
-            return;
-        }
         final Collection<?> lines = 
             Arrays.asList("StartupWMClass=127.0.0.1__"+
         
