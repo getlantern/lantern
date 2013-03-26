@@ -505,7 +505,7 @@ public class Launcher {
                     "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
                     "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
                     "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.");
-                System.exit(1);
+                //System.exit(1);
             }
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
                 log("No policy files on non-Vista machine!!");
