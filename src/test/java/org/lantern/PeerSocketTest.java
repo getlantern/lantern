@@ -1,21 +1,18 @@
 package org.lantern;
 
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.StringUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+@Ignore
 public class PeerSocketTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
