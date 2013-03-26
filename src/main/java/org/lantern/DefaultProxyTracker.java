@@ -113,7 +113,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void start() {
         if (this.model.isSetupComplete()) {
-            addFallbackProxy();
             prepopulateProxies();
         } else {
             log.debug("Not starting when setup is not complete...");
@@ -126,6 +125,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("Not loading proxies in give mode");
             return;
         }
+        addFallbackProxy();
         // Add all the stored proxies.
         final Collection<String> saved = this.model.getSettings().getProxies();
         log.debug("Proxy set is: {}", saved);
@@ -134,7 +134,11 @@ public class DefaultProxyTracker implements ProxyTracker {
             if (proxy.contains("appspot")) {
                 addLaeProxy(proxy);
             } else if (!proxy.contains("@")) {
-                addProxy(proxy);
+                // Don't add the fallback server twice, as it could get added
+                // as the wrong type of proxy.
+                if (!proxy.contains(LanternClientConstants.FALLBACK_SERVER_HOST)) {
+                    addProxy(proxy);
+                }
             }
         }
     }
