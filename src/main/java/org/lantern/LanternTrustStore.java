@@ -55,12 +55,8 @@ public class LanternTrustStore {
         new File(LanternClientConstants.CONFIG_DIR,
             String.valueOf(new SecureRandom().nextLong()));
 
-    private final CertTracker certTracker;
-
     @Inject
-    public LanternTrustStore(final CertTracker certTracker,
-            final KeyStoreManager ksm) {
-        this.certTracker = certTracker;
+    public LanternTrustStore(final KeyStoreManager ksm) {
         this.ksm = ksm;
         configureTrustStore();
         System.setProperty("javax.net.ssl.trustStore",

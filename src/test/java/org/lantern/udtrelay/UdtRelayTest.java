@@ -386,7 +386,7 @@ public class UdtRelayTest {
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 
-        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final String dummyId = "test@gmail.com/-lan-22LJDEE";
         trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
         try {

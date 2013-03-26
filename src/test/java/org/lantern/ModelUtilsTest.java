@@ -26,7 +26,7 @@ public class ModelUtilsTest {
         
         //System.setProperty("javax.net.debug", "ssl");
         final KeyStoreManager ksm = new LanternKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);
         final HttpClientFactory httpClient = 
