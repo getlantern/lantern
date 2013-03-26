@@ -8,6 +8,7 @@ import java.io.File;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.lantern.privacy.DefaultEncryptedFileService;
+import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -18,7 +19,7 @@ public class WhitelistTest {
     @Test
     public void testWhitelist() throws Exception {
         final LocalCipherProvider localCipherProvider = 
-            LanternModule.provideLocalCipher();
+            new DefaultLocalCipherProvider();
         final DefaultEncryptedFileService fileService = 
             new DefaultEncryptedFileService(localCipherProvider);
         final File randFile = new File(Integer.toString(RandomUtils.nextInt()));
