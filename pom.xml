@@ -50,7 +50,7 @@
     <dependency>
       <groupId>com.barchart.udt</groupId>
       <artifactId>barchart-udt-bundle</artifactId>
-      <version>2.2.3-SNAPSHOT</version>
+      <version>2.2.5</version>
     </dependency>
 
 <!--
