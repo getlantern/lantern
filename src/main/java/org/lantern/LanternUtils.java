@@ -19,6 +19,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -958,6 +959,16 @@ public class LanternUtils {
             FileUtils.writeLines(desktopFile, "UTF-8", lines, true);
         } catch (final IOException e) {
             LOG.warn("Error writing to: "+desktopFile, e);
+        }
+    }
+
+    public static String photoUrl(final String email) {
+        try {
+            return LanternUtils.photoUrlBase() + "?email=" + 
+                    URLEncoder.encode(email, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            LOG.error("Unsupported encoding?", e);
+            throw new RuntimeException(e);
         }
     }
 }

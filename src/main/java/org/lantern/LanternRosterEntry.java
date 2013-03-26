@@ -1,13 +1,12 @@
 package org.lantern;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
+import org.lantern.state.Model.Run;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,20 +64,12 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         }
     }
 
+    @JsonView({Run.class})
     public String getPicture() {
         if (StringUtils.isBlank(this.email)) {
             return LanternUtils.defaultPhotoUrl();
         }
-        try {
-            return LanternUtils.photoUrlBase() + "?email=" + URLEncoder.encode(getEmail(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void setPicture(final String picture) {
-        // TODO: Reset all of these at startup since the old path will likely
-        // be wrong?
+        return LanternUtils.photoUrl(this.email);
     }
 
     @JsonIgnore

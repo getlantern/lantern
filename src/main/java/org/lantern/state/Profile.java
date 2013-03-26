@@ -64,7 +64,7 @@ public class Profile {
     
     @JsonView({Run.class, Persistent.class})
     public String getPicture() {
-        return StringUtils.isBlank(picture) ? LanternUtils.defaultPhotoUrl() : this.picture;
+        return StringUtils.isBlank(picture) ? LanternUtils.photoUrl(this.email) : this.picture;
     }
     public void setPicture(String picture) {
         this.picture = picture;
