@@ -438,6 +438,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
         // Note we don't consider ourselves connected in get mode until we
         // actually get proxies to work with.
+        modelUtils.syncConnectingStatus("Gathering servers...");
         final XMPPConnection connection = this.client.get().getXmppConnection();
         final Collection<InetSocketAddress> googleStunServers =
                 XmppUtils.googleStunServers(connection);
@@ -447,6 +448,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
         // Make sure all connections between us and the server are stored
         // OTR.
+        modelUtils.syncConnectingStatus("Activing Google Talk pseudo-OTR...");
         LanternUtils.activateOtr(connection);
 
         LOG.debug("Connection ID: {}", connection.getConnectionID());
@@ -527,7 +529,7 @@ public class DefaultXmppHandler implements XmppHandler {
         updatePresence();
 
         waitForClosedBetaStatus(credentials.getUsername());
-
+        modelUtils.syncConnectingStatus("Lantern message received...");
     }
 
     private void useCachedPeerProxies() {
