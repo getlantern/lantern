@@ -259,7 +259,7 @@ public class Model {
         addNotification(new Notification(message, type));
     }
 
-    public void addNotification(Notification notification) {
+    public synchronized void addNotification(Notification notification) {
         if (maxNotificationId == 0) {
             //this happens at startup?
             for (Integer k : notifications.keySet()) {
