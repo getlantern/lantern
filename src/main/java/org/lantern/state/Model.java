@@ -3,8 +3,9 @@ package org.lantern.state;
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -71,9 +72,9 @@ public class Model {
 
     private Peers peerCollector = new Peers();
 
-    private final HashMap<Integer, Notification> notifications = new HashMap<Integer, Notification>();
+    private final ConcurrentHashMap<Integer, Notification> notifications = new ConcurrentHashMap<Integer, Notification>();
 
-    private int maxNotificationId = 0;
+    private final AtomicInteger maxNotificationId = new AtomicInteger(0);
 
     private Roster roster;
 
@@ -249,7 +250,7 @@ public class Model {
         notifications.remove(notification);
     }
 
-    public HashMap<Integer, Notification> getNotifications() {
+    public Map<Integer, Notification> getNotifications() {
         return notifications;
     }
 
@@ -262,15 +263,17 @@ public class Model {
         addNotification(new Notification(message, type));
     }
 
-    public synchronized void addNotification(Notification notification) {
-        if (maxNotificationId == 0) {
+    public void addNotification(Notification notification) {
+        int oldMax = maxNotificationId.get();
+        if (oldMax == 0) {
             //this happens at startup?
             for (Integer k : notifications.keySet()) {
-                if (k > maxNotificationId)
-                    maxNotificationId = k+1;
+                if (k > oldMax)
+                    oldMax = k+1;
             }
+            maxNotificationId.compareAndSet(0, oldMax);
         }
-        int id = maxNotificationId ++;
+        int id = maxNotificationId.getAndIncrement();
         notifications.put(id, notification);
     }
 
