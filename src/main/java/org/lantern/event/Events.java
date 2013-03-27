@@ -82,8 +82,16 @@ public class Events {
         Events.asyncEventBus().post(new SyncEvent(path, value));
     }
 
-
+    /**
+     * Syncs the entire state document with the frontend. This should happen
+     * rarely and typically only when so many parts of the model have changed
+     * that it makes sense to sync the whole thing. The model gets very large,
+     * however, so this is to be avoided.
+     * 
+     * @param model The model to sync.
+     */
     public static void syncModel(final Model model) {
+        LOG.info("SYNCING ENTIRE MODEL. ARE YOU SURE THIS IS NECESSARY?");
         sync(SyncPath.ALL, model);
     }
 

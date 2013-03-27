@@ -15,9 +15,11 @@ import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
+import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
+import org.lantern.state.SyncPath;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,8 +255,9 @@ public class Proxifier implements ProxyService, LanternService {
         if (!modelUtils.shouldProxy()) {
             LOG.debug("Not proxying in current mode...{}", pacFile);
             final String url = getPacFileUrl(pacFile);
-            this.model.getConnectivity().setPacUrl(url);
-            Events.syncModel(this.model);
+            final Connectivity connectivity = this.model.getConnectivity();
+            connectivity.setPacUrl(url);
+            Events.sync(SyncPath.CONNECTIVITY, connectivity);
             return;
         }
 
@@ -350,7 +353,6 @@ public class Proxifier implements ProxyService, LanternService {
         } else if (SystemUtils.IS_OS_LINUX) {
             unproxyLinux();
         }
-        Events.syncModel(this.model);
     }
 
     public boolean isProxying() {
