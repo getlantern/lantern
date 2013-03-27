@@ -73,9 +73,12 @@ public class StatsUpdater extends Thread {
                     .get("countries");
             for (Country country : model.getCountries().values()) {
                 Object countryData = countries.get(country.getCode());
-                if (countryData != null)
+                if (countryData != null) {
                     updateModel(country, (Map<String, Object>) countryData);
+                }
             }
+            Events.sync(SyncPath.GLOBAL, model.getGlobal());
+            Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (final IOException e) {
             log.warn("Could not connect to stats url", e);
         } catch (final URISyntaxException e) {
@@ -105,8 +108,6 @@ public class StatsUpdater extends Thread {
                     PropertyUtils.setSimpleProperty(dest, key, value);
                 }
             }
-            Events.sync(SyncPath.GLOBAL, model.getGlobal());
-            Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (NoSuchMethodException e) {
             // do nothing; lantern-controller collects more stats than lantern
             // uses
