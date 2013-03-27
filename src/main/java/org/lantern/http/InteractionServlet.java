@@ -136,7 +136,14 @@ public class InteractionServlet extends HttpServlet {
         log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
 
         if (!"XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
+            log.debug("No X-Requested-With");
             HttpUtils.sendClientError(resp, "X-Requested-With header not set");
+            return;
+        }
+
+        if (!model.getXsrfToken().equals(req.getHeader("X-XSRF-TOKEN"))) {
+            log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
+            HttpUtils.sendClientError(resp, "X-XSRF-TOKEN header not set correctly");
             return;
         }
 
