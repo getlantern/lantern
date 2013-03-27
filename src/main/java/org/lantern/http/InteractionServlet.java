@@ -752,5 +752,6 @@ public class InteractionServlet extends HttpServlet {
         } else if (newInvites == 0 && e.getOldInvites() > 0) {
             model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.important);
         }
+        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 }
