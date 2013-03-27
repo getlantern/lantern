@@ -1,9 +1,9 @@
 <!-- XXX i18n -->
 <div id="footer">
   <div id="statsGlobal" ng-show="model.showVis">
-    {{ model.global.nusers.online | number }} users online ·
-    {{ model.global.nusers.ever | number }} users total ·
-    {{ model.global.bytesEver | prettyBytes }} transferred globally
+    {{ 'USERS_ONLINE' | i18n:model.global.nusers.online }} ·
+    {{ 'USERS_TOTAL' | i18n:model.global.nusers.ever }} ·
+    {{ model.global.bytesEver | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
   </div>
 
   <div id="appInfo">

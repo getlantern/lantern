@@ -189,6 +189,9 @@ angular.module('app.i18n', [])
       DN_EVER: 'downloaded ever',
       SENT: 'sent',
       RECEIVED: 'received',
+      USERS_ONLINE: {1: '1 user online', other: '{} users online'},
+      USERS_TOTAL: {1: '1 user total', other: '{} users total'},
+      TRANSFERRED_GLOBALLY: 'transferred globally',
       P: 'petabyte',
       T: 'terabyte',
       G: 'gigabyte',
@@ -447,8 +450,9 @@ angular.module('app.i18n', [])
     }
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
-  .filter('i18n', function(langSrvc, DEFAULT_LANG, TRANSLATIONS) {
-    var COUNT = /{}/g;
+  .filter('i18n', function($filter, langSrvc, DEFAULT_LANG, TRANSLATIONS) {
+    var COUNT = /{}/g,
+        numFltr = $filter('number');
     function keyNotFound(key) {
       return '(translation key "'+key+'" not found)';
     }
@@ -465,7 +469,7 @@ angular.module('app.i18n', [])
       if (_.isPlainObject(translation)) {
         if (_.isUndefined(count)) return '';
         translation = translation[count] || translation.other;
-        if (translation) return translation.replace(COUNT, count);
+        if (translation) return translation.replace(COUNT, numFltr(count));
         return pluralNotFound(key, count);
       }
       return translation;
