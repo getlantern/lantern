@@ -353,9 +353,11 @@ public class Launcher {
                 connectivity.setInternet(true);
                 final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
-                loc.setCountry(geo.getCountrycode());
-                loc.setLat(geo.getLatitude());
-                loc.setLon(geo.getLongitude());
+                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
+                    loc.setCountry(geo.getCountrycode());
+                    loc.setLat(geo.getLatitude());
+                    loc.setLon(geo.getLongitude());
+                }
                 Events.sync(SyncPath.LOCATION, loc);
                 Events.sync(SyncPath.CONNECTIVITY_INTERNET, connectivity.isInternet());
                 connectivity.setIp(ip.getHostAddress());
@@ -390,9 +392,11 @@ public class Launcher {
 
                 final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
-                loc.setCountry(geo.getCountrycode());
-                loc.setLat(geo.getLatitude());
-                loc.setLon(geo.getLongitude());
+                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
+                    loc.setCountry(geo.getCountrycode());
+                    loc.setLat(geo.getLatitude());
+                    loc.setLon(geo.getLongitude());
+                }
 
                 // The IP is cached at this point.
                 /*
