@@ -594,11 +594,11 @@ public class InteractionServlet extends HttpServlet {
             model.closeNotification(Integer.parseInt(notification));
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         } catch (JsonParseException e) {
-            e.printStackTrace();
+            log.warn("Exception closing notifications {}", e);
         } catch (JsonMappingException e) {
-            e.printStackTrace();
+            log.warn("Exception closing notifications {}", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Exception closing notifications {}", e);
         }
 
     }
