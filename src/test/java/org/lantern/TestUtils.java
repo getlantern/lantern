@@ -132,14 +132,8 @@ public class TestUtils {
             return;
         }
         loaded = true;
-        injector = Guice.createInjector(new LanternModule() {
-            
-            // Just don't encrypt on disk for tests.
-            @Override @Provides @Singleton
-            public LocalCipherProvider provideLocalCipher() {
-                return new DefaultLocalCipherProvider();
-            }
-        });
+        injector = Guice.createInjector(
+            new LanternModule(new DefaultLocalCipherProvider()));
         
         xmppHandler = instance(DefaultXmppHandler.class);
         socketsUtil = instance(LanternSocketsUtil.class);
