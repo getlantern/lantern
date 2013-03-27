@@ -111,6 +111,7 @@ public class LanternTrustStore {
 
     public void addCert(final String alias, final File cert) {
         LanternUtils.addCert(alias, cert, TRUSTSTORE_FILE, PASS);
+        onTrustStoreChanged();
     }
 
     public void addBase64Cert(final String fullJid, final String base64Cert)
