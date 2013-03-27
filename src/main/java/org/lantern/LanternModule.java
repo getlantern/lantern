@@ -66,6 +66,15 @@ public class LanternModule extends AbstractModule {
     
     private static final Logger log = 
         LoggerFactory.getLogger(LanternModule.class);
+    private final LocalCipherProvider localCipherProvider;
+
+    public LanternModule() {
+        this(null);
+    }
+    
+    public LanternModule(final LocalCipherProvider localCipherProvider) {
+        this.localCipherProvider = localCipherProvider;
+    }
     
     @Override 
     protected void configure() {
@@ -180,6 +189,9 @@ public class LanternModule extends AbstractModule {
     
     @Provides  @Singleton
     public LocalCipherProvider provideLocalCipher() {
+        if (this.localCipherProvider != null) {
+            return this.localCipherProvider;
+        }
         final LocalCipherProvider lcp; 
         
         /*
