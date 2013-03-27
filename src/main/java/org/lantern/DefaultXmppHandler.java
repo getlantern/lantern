@@ -634,7 +634,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final String to = XmppUtils.jidToUser(msg.getTo());
         LOG.debug("Set hub address to: {}", hubAddress);
         final String body = msg.getBody();
-        LOG.debug("Body: {}", body);
+        LOG.debug("Hub message body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
 
