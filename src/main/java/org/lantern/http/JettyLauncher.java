@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -151,6 +152,7 @@ public class JettyLauncher implements LanternService {
                 } else if (uri.startsWith("/proxy_google")) {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                 } else {
+                    resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
                     super.doGet(req, resp);
                 }
             }
