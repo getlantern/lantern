@@ -200,7 +200,6 @@ public class InteractionServlet extends HttpServlet {
             }
             this.internalState.setModalCompleted(Modal.finished);
             this.internalState.advanceModal(null);
-            Events.syncModel(this.model);
             break;
         case authorize:
            log.error("Processing authorize modal...");
@@ -209,16 +208,16 @@ public class InteractionServlet extends HttpServlet {
             }
             this.internalState.setModalCompleted(Modal.authorize);
             this.internalState.advanceModal(null);
-            Events.syncModel(this.model);
             break;
         case finished:
+            this.internalState.setCompletedTo(Modal.finished);
             switch (inter) {
             case CONTINUE:
                 log.debug("Processing continue");
                 this.model.setShowVis(true);
+                Events.sync(SyncPath.SHOWVIS, model.isShowVis());
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
-                Events.syncModel(this.model);
                 break;
             case SET:
                 log.debug("Processing set in finished modal...applying JSON\n{}", json);
@@ -238,6 +237,7 @@ public class InteractionServlet extends HttpServlet {
             log.error("Processing gtalk unreachable.");
             break;
         case lanternFriends:
+            this.internalState.setCompletedTo(Modal.lanternFriends);
             if (handleModalSwitch(inter)) {
                 break;
             }
@@ -251,19 +251,10 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
-            case PROXIEDSITES:
-                log.debug("Processing proxiedSites in lanternFriends");
-                Events.syncModal(model, Modal.proxiedSites);
-                break;
-            case SETTINGS:
-                log.debug("Processing settings in lanternFriends");
-                Events.syncModal(model, Modal.settings);
-                break;
             case ACCEPT:
                 acceptInvite(json);
                 Events.syncModal(model, Modal.lanternFriends);
                 break;
-
             case DECLINE:
                 declineInvite(json);
                 Events.syncModal(model, Modal.lanternFriends);
@@ -292,6 +283,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case proxiedSites:
+            this.internalState.setCompletedTo(Modal.proxiedSites);
             if (handleModalSwitch(inter)) {
                 break;
             }
@@ -368,7 +360,7 @@ public class InteractionServlet extends HttpServlet {
                         // give mode
                         model.setSetupComplete(false);
                         model.setModal(Modal.proxiedSites);
-                        Events.syncModel(this.model);
+                        Events.syncModal(model, model.getModal());
                     } else {
                         // This primarily just triggers a setup complete event,
                         // which triggers connecting to proxies, setting up
@@ -432,10 +424,12 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case systemProxy:
+            this.internalState.setCompletedTo(Modal.systemProxy);
             switch (inter) {
             case CONTINUE:
                 log.debug("Processing continue in systemProxy", json);
                 applyJson(json);
+                Events.sync(SyncPath.SYSTEMPROXY, model.getSettings().isSystemProxy());
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
                 break;
@@ -502,7 +496,6 @@ public class InteractionServlet extends HttpServlet {
                     }
                     this.internalState.setModalCompleted(Modal.finished);
                     this.internalState.advanceModal(null);
-                    Events.syncModel(this.model);
                     break;
 
             }
@@ -513,7 +506,8 @@ public class InteractionServlet extends HttpServlet {
                 model.setSetupComplete(false);
                 this.internalState.advanceModal(null);
                 Events.syncModal(model, Modal.proxiedSites);
-                Events.syncModel(this.model);
+                Events.sync(SyncPath.SETUPCOMPLETE, 
+                    false);
             }
             break;
         default:

@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Arrays;
 
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
@@ -58,11 +59,12 @@ public class InternalState {
         Modal next = null;
         for (final Modal modal : seq) {
             if (!this.modalsCompleted.contains(modal)) {
-                log.info("Got modal!! "+modal);
+                log.info("Got modal!! ({})", modal);
                 next = modal;
                 break;
             }
         }
+        log.debug("next modal: {}", next);
         if (backToIfNone != null && next != null && next == Modal.none) {
             next = backToIfNone;
         }
@@ -70,6 +72,23 @@ public class InternalState {
             this.model.setSetupComplete(true);
         }
         Events.syncModal(this.model, next);
+    }
+
+    public void setCompletedTo(final Modal stopAt) {
+        final Modal[] seq;
+        if (this.model.getSettings().getMode() == Mode.get) {
+            seq = modalSeqGet;
+        } else {
+            seq = modalSeqGive;
+        }
+        if(!Arrays.asList(seq).contains(stopAt)) return;
+        for (final Modal modal : seq) {
+            if(modal == stopAt) break;
+            if (!this.modalsCompleted.contains(modal)) {
+                setModalCompleted(modal);
+            }
+        }
+        return;
     }
 
     public void setModalCompleted(final Modal modal) {
