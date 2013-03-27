@@ -247,9 +247,14 @@ public class Peer {
     }
     
     @JsonView({Run.class})
+    @JsonSerialize(include=Inclusion.NON_NULL)
     public String getLastConnected() {
+        long lastConnected = getLastConnectedLong();
+        if (lastConnected == 0) {
+            return null;
+        }
         return FastDateFormat.getInstance("yyyy-MM-dd' 'HH:mm:ss").format(
-            getLastConnectedLong()); 
+            lastConnected);
     }
     
     @JsonView({Persistent.class})
