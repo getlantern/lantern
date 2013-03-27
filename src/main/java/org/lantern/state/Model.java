@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -79,6 +80,8 @@ public class Model {
     private Transfers transfers;
 
     private boolean isEverGetMode;
+
+    private String xsrfToken;
 
     @JsonView({Run.class})
     private Transfers getTransfers() {
@@ -312,5 +315,18 @@ public class Model {
 
     public void setEverGetMode(boolean b) {
         this.isEverGetMode = b;
+    }
+
+    public String getXsrfToken() {
+        if (xsrfToken == null) {
+            byte[] bytes = new byte[16];
+            new SecureRandom().nextBytes(bytes);
+            xsrfToken = Base64.encodeBase64URLSafeString(bytes);
+        }
+        return xsrfToken;
+    }
+
+    public void setXsrfToken(String token) {
+        xsrfToken = token;
     }
 }
