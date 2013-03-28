@@ -58,8 +58,8 @@ public class RosterTest {
         for (final LanternRosterEntry entry : rost) {
             final Presence pres = new Presence(Type.available);
             pres.setStatus("still-testing-this-baby");
-            pres.setFrom(entry.getEmail());
-            
+            pres.setFrom(entry.getUser());
+
             roster.presenceChanged(pres);
             
             // The presence notification in the sync event (see below) will have
@@ -127,7 +127,7 @@ public class RosterTest {
         final LanternRosterEntry lre =
             new LanternRosterEntry(mockRosterEntry);
 
-        entries.put(lre.getEmail(), lre);
+        entries.put(lre.getUser(), lre);
         sorted.add(lre);
         return lre;
     }
