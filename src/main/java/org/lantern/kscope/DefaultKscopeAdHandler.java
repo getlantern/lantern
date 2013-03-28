@@ -16,7 +16,9 @@ import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
+import org.lantern.event.Events;
 import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +64,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         log.debug("*** got kscope ad from {} for {}", from, ad.getJid());
         if (LanternUtils.isDevMode()) {
             model.addNotification(
-                "Received kaleidoscope advertisement from "+ad.getJid(), 
+                "Received kaleidoscope advertisement:<br>"+JsonUtils.jsonify(ad), 
                 MessageType.info);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
         final LanternKscopeAdvertisement existing = 
             awaitingCerts.put(ad.getJid(), ad);
