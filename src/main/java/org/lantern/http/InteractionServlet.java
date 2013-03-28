@@ -220,13 +220,16 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             case SET:
-                log.debug("Processing set in finished modal...applying JSON\n{}", json);
+                log.debug("Processing set in finished modal...applying JSON\n{}", 
+                        json);
                 applyJson(json);
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                HttpUtils.sendClientError(resp, 
+                        "Interaction not handled for modal: "+modal+
+                        " and interaction: "+inter);
                 break;
             }
             break;
@@ -262,7 +265,9 @@ public class InteractionServlet extends HttpServlet {
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                HttpUtils.sendClientError(resp, 
+                    "Interaction not handled for modal: "+modal+
+                    " and interaction: "+inter);
                 break;
             }
             break;
@@ -401,7 +406,9 @@ public class InteractionServlet extends HttpServlet {
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                HttpUtils.sendClientError(resp, 
+                        "Interaction not handled for modal: "+modal+
+                        " and interaction: "+inter);
                 break;
             }
             break;
@@ -475,7 +482,9 @@ public class InteractionServlet extends HttpServlet {
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                HttpUtils.sendClientError(resp, 
+                        "Interaction not handled for modal: "+modal+
+                        " and interaction: "+inter);
                 break;
             }
             break;
