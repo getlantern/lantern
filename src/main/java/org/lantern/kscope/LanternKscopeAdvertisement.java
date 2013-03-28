@@ -51,9 +51,9 @@ public class LanternKscopeAdvertisement {
     }
     
     public LanternKscopeAdvertisement(final String jid, 
-        final InetSocketAddress local) {
-        this(jid, "", 0, local.getAddress().getHostAddress(), local.getPort(),
-                true);
+        final InetAddress publicAddress, final InetSocketAddress local) {
+        this(jid, publicAddress.getHostAddress(), 0, 
+                local.getAddress().getHostAddress(), local.getPort(), true);
     }
 
     public LanternKscopeAdvertisement(final String jid, final InetAddress addr, 
