@@ -51,7 +51,7 @@ public class LanternClientConstants {
     public static final long START_TIME = System.currentTimeMillis();
     
 
-    public static final int SYNC_INTERVAL_SECONDS = 2;
+    public static final int SYNC_INTERVAL_SECONDS = 6;
     
     /**
      * Plist file for launchd on OSX.
