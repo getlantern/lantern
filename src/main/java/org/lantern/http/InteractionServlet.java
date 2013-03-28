@@ -367,10 +367,14 @@ public class InteractionServlet extends HttpServlet {
                         // the local system proxy, etc.
                         model.setSetupComplete(true);
                     }
+                    xmppHandler.sendMode(Mode.get);
                 }
                 break;
             case GIVE:
                 log.debug("Setting give mode");
+                if (modelService.getMode() != Mode.give) {
+                    xmppHandler.sendMode(Mode.give);
+                }
                 this.modelService.setMode(Mode.give);
                 break;
             case CLOSE:

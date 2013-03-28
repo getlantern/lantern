@@ -57,6 +57,7 @@ import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -1231,5 +1232,33 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void sendPacket(final Packet packet) {
         this.client.get().getXmppConnection().sendPacket(packet);
+    }
+
+    @Override
+    public void sendMode(Mode mode) {
+        LOG.info("Sending mode");
+
+        if (StringUtils.isBlank(this.hubAddress)) {
+            LOG.error("Blank hub address when sending mode?");
+            return;
+        }
+
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+
+        final Presence pres = new Presence(Presence.Type.available);
+        pres.setTo(LanternClientConstants.LANTERN_JID);
+
+        pres.setProperty(LanternConstants.MODE_CHANGE_TOKEN, mode);
+
+        final Runnable runner = new Runnable() {
+
+            @Override
+            public void run() {
+                conn.sendPacket(pres);
+            }
+        };
+        final Thread t = new Thread(runner, "Mode-Set-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 }
