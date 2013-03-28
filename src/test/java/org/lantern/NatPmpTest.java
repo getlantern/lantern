@@ -51,7 +51,12 @@ public class NatPmpTest {
 
         if (!error.get()) {
             final int mapped = ai.get();
-            assertTrue("Expected a mapped port", mapped > 1024);
+            if (mapped == 0) {
+                //we got nothing back from the network, so the network must
+                //not support NatPMP
+            } else {
+                assertTrue("Expected a mapped port", mapped > 1024);
+            }
         } else {
             log.debug("Network does not support NAT-PMP so we're not testing it.");
         }
