@@ -130,7 +130,7 @@ public class Roster implements RosterListener {
             final LanternRosterEntry lre =
                 new LanternRosterEntry(entry);
             if (LanternUtils.isNotJid(lre.getEmail())) {
-                entries.put(lre.getEmail(), lre);
+                entries.put(lre.getUser(), lre);
             }
         }
         return entries;
@@ -299,7 +299,7 @@ public class Roster implements RosterListener {
         // work here to set the indexes for each entry.
         synchronized(this.rosterEntries) {
             final LanternRosterEntry elem =
-                this.rosterEntries.get().put(entry.getEmail(), entry);
+                this.rosterEntries.get().put(entry.getUser(), entry);
 
             // Only update the index if the element was actually added!
             if (elem == null) {
