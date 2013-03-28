@@ -53,14 +53,17 @@ public class Netty3LanternTrafficCounterHandler extends GlobalTrafficShapingHand
         }
     }
     
+    @Override
     public boolean isConnected() {
         return connectedChannels.get() > 0;
     }
 
+    @Override
     public int getNumSockets() {
         return connectedChannels.get();
     }
 
+    @Override
     public long getLastConnected() {
         return this.lastConnected;
     }
