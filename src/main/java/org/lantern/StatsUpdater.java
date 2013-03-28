@@ -10,13 +10,14 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,16 +28,16 @@ public class StatsUpdater extends Thread {
 
     private final Model model;
 
-    private final LanternHttpClient client;
+    private final HttpClient client;
 
     private static final long SLEEP_INTERVAL = 60 * 1000;
 
     @Inject
-    public StatsUpdater(Model model, LanternHttpClient client) {
+    public StatsUpdater(Model model, HttpClientFactory httpClientFactory) {
         super();
         setDaemon(true);
         this.model = model;
-        this.client = client;
+        this.client = httpClientFactory.newClient();
     }
 
     @Override
