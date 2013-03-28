@@ -192,6 +192,10 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         }
     }
 
+    /**
+     * Returns the roster entry's JID
+     * @return
+     */
     public String getUser() {
         return user;
     }
