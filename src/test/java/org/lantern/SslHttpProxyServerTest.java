@@ -30,7 +30,9 @@ public class SslHttpProxyServerTest {
             new org.jboss.netty.util.HashedWheelTimer();
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
-        final HandshakeHandlerFactory hhf = new CertTrackingSslHandlerFactory(ksm);
+        final LanternTrustStore ts = new LanternTrustStore(ksm);
+        final HandshakeHandlerFactory hhf = 
+            new CertTrackingSslHandlerFactory(ksm, ts);
         final int port = LanternUtils.randomPort();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         //final PeerFactory peerFactory = new Pee
