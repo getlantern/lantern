@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
@@ -31,6 +32,9 @@ import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
+import org.lantern.state.Peer.Type;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
+import org.lantern.util.LanternTrafficCounter;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpFilter;
@@ -56,12 +60,28 @@ public class TcpHttpRequestProcessorTest {
         Launcher.configureCipherSuites();
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
-        final HandshakeHandlerFactory hhf = new CertTrackingSslHandlerFactory(ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final HandshakeHandlerFactory hhf = 
+            new CertTrackingSslHandlerFactory(ksm, trustStore);
+        final PeerFactory peerFactory = new PeerFactory() {
+            
+            @Override
+            public void addOutgoingPeer(String fullJid, InetSocketAddress isa,
+                    Type type, LanternTrafficCounter trafficCounter) {
+                log.debug("OUTGOING PEER");
+            }
+            
+            @Override
+            public void addIncomingPeer(InetAddress address,
+                    LanternTrafficCounter trafficCounter) {
+                log.debug("INCOMING PEER");
+            }
+        };
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
         //final int relayPort = LanternUtils.randomPort();
-        startProxyServer(proxyPort, hhf, true);
+        startProxyServer(proxyPort, hhf, true, peerFactory);
         final InetSocketAddress localProxyAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, proxyPort);
         
@@ -106,7 +126,8 @@ public class TcpHttpRequestProcessorTest {
     }
     
     private void startProxyServer(final int port, 
-        final HandshakeHandlerFactory ksm, final boolean ssl) throws Exception {
+        final HandshakeHandlerFactory hhf, final boolean ssl,
+        final PeerFactory peerFactory) throws Exception {
         // We configure the proxy server to always return a cache hit with 
         // the same generic response.
         final Thread t = new Thread(new Runnable() {
@@ -124,8 +145,8 @@ public class TcpHttpRequestProcessorTest {
                             }
                         }, null, null,
                         provideClientSocketChannelFactory(), timer,
-                        provideServerSocketChannelFactory(), ksm, null,
-                        null);
+                        provideServerSocketChannelFactory(), hhf, null,
+                        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory));
                     try {
                         server.start();
                     } catch (final Exception e) {
