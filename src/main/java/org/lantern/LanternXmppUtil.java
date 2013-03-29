@@ -13,6 +13,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
+import org.littleshoot.commom.xmpp.XmppConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class LanternXmppUtil {
     @Inject
     public LanternXmppUtil(final LanternTrustStore trustStore) {
         this.trustStore = trustStore;
+        XmppConfig.setRetyStrategyFactory(new LanternXmppRetryStrategyFactory());
     }
     
     public ConnectionConfiguration xmppConfig() {
