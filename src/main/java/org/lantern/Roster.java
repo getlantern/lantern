@@ -182,11 +182,10 @@ public class Roster implements RosterListener {
     private void sendKscopeAdToAllPeers() {
         final Collection<LanternRosterEntry> entries = getEntries();
         for (final LanternRosterEntry lre : entries) {
-            if (lre.isAvailable()) {
-                sendKscope(lre.getUser());
-            } else {
-                log.debug("Entry is not available");
+            if (!lre.isAvailable()) {
+                log.debug("Entry not listed as available {}", lre.getUser());
             }
+            sendKscope(lre.getUser());
         }
     }
 
