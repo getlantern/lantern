@@ -151,11 +151,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
   //}
   //d3.timer(rotateWest);
 
-  queue()
-    .defer(d3.json, CONFIG.source.world)
-    .await(dataFetched);
-
-  function dataFetched(error, world) {
+  d3.json(CONFIG.source.world, function dataFetched(error, world) {
     var countryGeometries = topojson.object(world, world.objects.countries).geometries;
     countryPaths = $$countries.selectAll('path')
       .data(countryGeometries).enter().append('path')
@@ -163,7 +159,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         .attr('d', pathForData);
     _.each(model.countries, function(__, alpha2) { updateCountry(alpha2); });
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
-  }
+  });
 
   function handleResize() {
     dim.width = $map.width();
