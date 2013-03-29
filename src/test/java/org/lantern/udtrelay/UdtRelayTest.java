@@ -58,6 +58,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.junit.Test;
+import org.lantern.CertTrackingSslHandlerFactory;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternKeyStoreManager;
@@ -67,6 +68,7 @@ import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lantern.TestUtils;
 import org.lantern.util.Threads;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
+import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.util.FiveTuple;
@@ -86,11 +88,12 @@ public class UdtRelayTest {
         // relay relays to -- i.e. just like the real world setup.
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
+        final HandshakeHandlerFactory hhf = new CertTrackingSslHandlerFactory(ksm);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
         final int relayPort = LanternUtils.randomPort();
-        startProxyServer(proxyPort, ksm, true);
+        startProxyServer(proxyPort, hhf, true);
         final InetSocketAddress localRelayAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, relayPort);
         
@@ -196,7 +199,7 @@ public class UdtRelayTest {
             "\r\n";
     
     private void startProxyServer(final int port,
-        final LanternKeyStoreManager ksm, final boolean ssl) throws Exception {
+        final HandshakeHandlerFactory ksm, final boolean ssl) throws Exception {
         // We configure the proxy server to always return a cache hit with 
         // the same generic response.
         final Thread t = new Thread(new Runnable() {
