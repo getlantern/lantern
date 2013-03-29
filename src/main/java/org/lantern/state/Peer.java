@@ -159,7 +159,10 @@ public class Peer {
         if (this.trafficCounter == null) {
             return false;
         }
-        return this.trafficCounter.isConnected();
+        if (!this.trafficCounter.isConnected()) {
+            return getBpsUpDn() > 0L;
+        }
+        return true;
     }
 
 
