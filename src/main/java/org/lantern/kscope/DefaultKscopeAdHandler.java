@@ -65,7 +65,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         if (LanternUtils.isDevMode()) {
             model.addNotification(
                 "Received kaleidoscope advertisement:<br>"+JsonUtils.jsonify(ad), 
-                MessageType.info);
+                MessageType.info, 30);
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
         final LanternKscopeAdvertisement existing = 

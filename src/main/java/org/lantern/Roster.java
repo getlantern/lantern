@@ -225,7 +225,7 @@ public class Roster implements RosterListener {
                 ms.getMappedPort(), ms.getHostAddress()
             );
         } else {
-            ad = new LanternKscopeAdvertisement(user, ms.getHostAddress());
+            ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
         }
 
         final TrustGraphNode tgn = new LanternTrustGraphNode(xmppHandler);
