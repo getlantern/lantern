@@ -12,9 +12,8 @@
           components = version.split('.'),
           major = components[0],
           minor = components[1],
-          patch = (components[2] || '').split('-')[0],
-          VER = [major, minor, patch];
-      window.VER = VER;
+          patch = (components[2] || '').split('-')[0];
+      window.LANTERNUI_VER = [major, minor, patch];
     }
   });
 }(this));

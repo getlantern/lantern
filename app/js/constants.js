@@ -147,7 +147,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('CONNECTIVITY', CONNECTIVITY)
     .constant('GTALK_STATUS', GTALK_STATUS)
     // frontend-only
-    .constant('VER', VER) // VER global set in version.js
+    .constant('LANTERNUI_VER', window.LANTERNUI_VER) // set in version.js
     .constant('REQUIRED_API_VER', REQUIRED_API_VER)
     .constant('API_URL_PREFIX', API_URL_PREFIX);
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {

@@ -1,6 +1,6 @@
 'use strict';
 
-function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, VER, $window) {
+function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       i18nFltr = $filter('i18n'),
@@ -10,7 +10,7 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
       CONNECTIVITY = ENUMS.CONNECTIVITY;
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
-  $scope.versionFrontend = VER.join('.');
+  $scope.lanternUiVersion = LANTERNUI_VER.join('.');
   $scope.config = config;
   if (config.dev) {
     $window.model = model; // easier interactive debugging
