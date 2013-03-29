@@ -49,6 +49,7 @@ import org.lantern.state.SyncStrategy;
 import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.SwtMessageService;
+import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.LanternHttpClient;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -112,6 +113,7 @@ public class LanternModule extends AbstractModule {
         bind(KeyStoreManager.class).to(LanternKeyStoreManager.class);
         bind(LanternTrustStore.class);
         bind(LanternHttpClient.class);
+        bind(GlobalLanternServerTrafficShapingHandler.class);
         bind(HandshakeHandlerFactory.class).to(CertTrackingSslHandlerFactory.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTextRelayHttpProxyServer.class);
