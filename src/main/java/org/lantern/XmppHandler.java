@@ -6,7 +6,6 @@ import javax.security.auth.login.CredentialException;
 
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.state.Settings.Mode;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.util.FiveTuple;
@@ -95,6 +94,4 @@ public interface XmppHandler extends LanternService {
     MappedServerSocket getMappedServer();
 
     void sendPacket(Packet packet);
-
-    void sendMode(Mode mode);
 }
