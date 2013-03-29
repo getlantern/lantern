@@ -88,7 +88,9 @@ public class UdtRelayTest {
         // relay relays to -- i.e. just like the real world setup.
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
-        final HandshakeHandlerFactory hhf = new CertTrackingSslHandlerFactory(ksm);
+        final LanternTrustStore ts = new LanternTrustStore(ksm);
+        final HandshakeHandlerFactory hhf = 
+                new CertTrackingSslHandlerFactory(ksm, ts);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();

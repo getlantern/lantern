@@ -14,7 +14,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -33,7 +35,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class LanternTrustStore {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final static Logger log = 
+        LoggerFactory.getLogger(LanternTrustStore.class);
 
     private static final String KEYSIZE = "2048";
 
@@ -116,7 +119,7 @@ public class LanternTrustStore {
 
     public void addBase64Cert(final String fullJid, final String base64Cert)
         throws IOException {
-        log.debug("Adding base 64 cert to store: {}", TRUSTSTORE_FILE);
+        log.debug("Adding base 64 cert for {} to store: {}", fullJid, TRUSTSTORE_FILE);
         /*
         if (this.certTracker != null) {
             this.certTracker.addCert(base64Cert, fullJid);
@@ -157,6 +160,7 @@ public class LanternTrustStore {
          [-providerpath <pathlist>]
          */
 
+        log.debug("Using normalized alias {}", normalizedAlias);
         // Make sure we delete the old one (will fail when it doesn't exist -
         // this is expected).
         deleteCert(normalizedAlias);
@@ -240,12 +244,9 @@ public class LanternTrustStore {
         onTrustStoreChanged();
     }
 
-    public static void listEntries(final File keyStore, final String pass) {
-        InputStream is = null;
+
+    private static void listEntries(final KeyStore ks) {
         try {
-            is = new FileInputStream(keyStore);
-            final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            ks.load(is, pass.toCharArray());
             final Enumeration<String> aliases = ks.aliases();
             while (aliases.hasMoreElements()) {
                 final String alias = aliases.nextElement();
@@ -253,15 +254,37 @@ public class LanternTrustStore {
                 System.err.println(alias);
             }
         } catch (final KeyStoreException e) {
-            e.printStackTrace();
+            log.warn("KeyStore error", e);
+        }
+    }
+    
+    public static void listEntries(final File keyStore, final String pass) {
+        final KeyStore ks = loadKeyStore(keyStore, pass);
+        listEntries(ks);
+    }
+    
+    public static KeyStore loadKeyStore(final File keyStore, final String pass) {
+        InputStream is = null;
+        try {
+            is = new FileInputStream(keyStore);
+            final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            ks.load(is, pass.toCharArray());
+            return ks;
+        } catch (final KeyStoreException e) {
+            log.warn("Could not load keystore?", e);
+            throw new RuntimeException("Could not load keystore", e);
         } catch (final NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            log.warn("Could not load keystore?", e);
+            throw new RuntimeException("Could not load keystore", e);
         } catch (final CertificateException e) {
-            e.printStackTrace();
+            log.warn("Could not load keystore?", e);
+            throw new RuntimeException("Could not load keystore", e);
         } catch (final FileNotFoundException e) {
-            e.printStackTrace();
+            log.warn("Could not load keystore?", e);
+            throw new RuntimeException("Could not load keystore", e);
         } catch (final IOException e) {
-            e.printStackTrace();
+            log.warn("Could not load keystore?", e);
+            throw new RuntimeException("Could not load keystore", e);
         } finally {
             IOUtils.closeQuietly(is);
         }
@@ -269,5 +292,35 @@ public class LanternTrustStore {
 
     public void listEntries() {
         listEntries(TRUSTSTORE_FILE, PASS);
+    }
+    
+    public KeyStore loadKeyStore() {
+        return loadKeyStore(TRUSTSTORE_FILE, PASS);
+    }
+
+    /**
+     * Checks if the trust store contains exactly this certificate. This 
+     * doesn't worry about certificate chaining or anything like that -- 
+     * this trust store must instead contain the actual certificate.
+     * 
+     * @param cert The certificate to check.
+     * @return <code>true</code> if the trust store contains the certificate,
+     * otherwise <code>false</code>.
+     */
+    public boolean containsCertificate(final X509Certificate cert) {
+        log.debug("Loading trust store: {}", TRUSTSTORE_FILE);
+        final KeyStore ks = loadKeyStore();
+        
+        // We could use getCertificateAlias here, but that will iterate through
+        // everything, potentially causing issues when there are a lot of certs.
+        final String alias = 
+            cert.getIssuerDN().getName().substring(3).toLowerCase();
+        try {
+            final Certificate existingCert = ks.getCertificate(alias);
+            return existingCert.equals(cert);
+        } catch (final KeyStoreException e) {
+            log.warn("Exception accessing keystore", e);
+            return false;
+        }
     }
 }
