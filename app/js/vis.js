@@ -314,8 +314,8 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       bpsDn: peer.connected ? prettyBps(peer.bpsDn)+' '+i18n('DN') : '',
       bytesUp: prettyBytes(peer.bytesUp)+' '+i18n('SENT'),
       bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED'),
-      lastConnectedLabel: peer.connected ? '' : i18n('LAST_CONNECTED'),
-      lastConnected: peer.connected ? '' : date(peer.lastConnected, 'medium')
+      lastConnectedLabel: !peer.connected && peer.lastConnected ? i18n('LAST_CONNECTED') : '',
+      lastConnected: !peer.connected && peer.lastConnected ? date(peer.lastConnected, 'medium') : ''
     };
     if (peer.rosterEntry) _.merge(ctx, peer.rosterEntry);
     return hoverContentForPeer.tmpl(ctx);
