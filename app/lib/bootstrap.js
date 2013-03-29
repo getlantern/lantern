@@ -936,8 +936,9 @@
             break
        // XXX http://stackoverflow.com/a/14761335/161642 *********
           case 'mouse':
-            var offset = Math.max(actualWidth - (window.innerWidth - window.mousePos.x), 0);
-            tp = {top: window.mousePos.y, left: window.mousePos.x - offset};
+            var offsetx = Math.max(actualWidth - (window.innerWidth - window.mousePos.x), 0),
+                offsety = Math.max(actualHeight - (window.innerHeight - window.mousePos.y), 0);
+            tp = {top: window.mousePos.y - offsety, left: window.mousePos.x - offsetx};
             break
        // ********************************************************
         }
