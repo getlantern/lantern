@@ -1,6 +1,5 @@
 package org.lantern.state;
 
-import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternUtils;
 import org.lantern.state.Model.Persistent;
@@ -64,12 +63,11 @@ public class Profile {
     
     @JsonView({Run.class, Persistent.class})
     public String getPicture() {
-        return StringUtils.isBlank(picture) ? LanternUtils.photoUrl(this.email) : this.picture;
+        return LanternUtils.photoUrl(this.email);
     }
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-    
+
+    public void setPicture(String picture) {}
+
     @JsonView({Run.class, Persistent.class})
     public String getGender() {
         return gender;
