@@ -4,6 +4,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.util.Timer;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
+import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -19,7 +20,7 @@ public class PlainTextRelayHttpProxyServer extends StatsTrackingDefaultHttpProxy
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory, 
-        final LanternKeyStoreManager ksm,
+        final HandshakeHandlerFactory handshakeHandlerFactory,
         final Stats stats,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         super(LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
@@ -29,6 +30,7 @@ public class PlainTextRelayHttpProxyServer extends StatsTrackingDefaultHttpProxy
                     return null;
                 }
             }, null, requestFilter, clientChannelFactory, timer, 
-            serverChannelFactory, ksm, stats, serverTrafficHandler);
+            serverChannelFactory, handshakeHandlerFactory, stats, 
+            serverTrafficHandler);
     }
 }

@@ -20,11 +20,11 @@ import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.littleshoot.proxy.ChainProxyManager;
 import org.littleshoot.proxy.DefaultProxyAuthorizationManager;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
+import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.HttpServerPipelineFactory;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.NetworkUtils;
 import org.littleshoot.proxy.ProxyAuthorizationHandler;
 import org.littleshoot.proxy.ProxyAuthorizationManager;
@@ -66,8 +66,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final ClientSocketChannelFactory clientChannelFactory;
 
-    private final KeyStoreManager ksm;
-
+    private final HandshakeHandlerFactory handshakeHandlerFactory;
+    
     private final Stats stats;
 
     private final GlobalLanternServerTrafficShapingHandler serverTrafficHandler;
@@ -96,7 +96,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory,
-        final KeyStoreManager ksm,
+        final HandshakeHandlerFactory handshakeHandlerFactory,
         final Stats stats, 
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         this.port = port;
@@ -106,7 +106,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.clientChannelFactory = clientChannelFactory;
         this.timer = timer;
         this.serverChannelFactory = serverChannelFactory;
-        this.ksm = ksm;
+        this.handshakeHandlerFactory = handshakeHandlerFactory;
         this.stats = stats;
         this.serverTrafficHandler = serverTrafficHandler;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -133,7 +133,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 new StatsTrackingDefaultRelayPipelineFactoryFactory(chainProxyManager,
                     this.responseFilters, this.requestFilter,
                     this.allChannels, this.timer), 
-                this.clientChannelFactory, this.timer, this.ksm);
+                this.clientChannelFactory, this.timer, 
+                this.handshakeHandlerFactory);
         serverBootstrap.setPipelineFactory(factory);
 
         // Binding only to localhost can significantly improve the security of
@@ -189,9 +190,9 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             final RelayPipelineFactoryFactory relayPipelineFactoryFactory,
             final ClientSocketChannelFactory clientChannelFactory, 
             final Timer timer,
-            final KeyStoreManager ksm) {
+            final HandshakeHandlerFactory handshakeHandlerFactory) {
             super(authorizationManager, channelGroup, chainProxyManager, 
-                ksm, relayPipelineFactoryFactory, 
+                    handshakeHandlerFactory, relayPipelineFactoryFactory, 
                 timer, clientChannelFactory);
         }
 
