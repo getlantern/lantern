@@ -1,7 +1,6 @@
 package org.lantern.udtrelay;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
 
 import org.lantern.LanternUtils;
 import org.lastbamboo.common.offer.answer.OfferAnswer;
@@ -26,11 +25,6 @@ public class UdtRelayServerFiveTupleListener
     }
 
     @Override
-    public void onTcpSocket(final Socket fiveTuple) {
-        log.warn("Received TCP socket here?");
-    }
-
-    @Override
     public void onUdpSocket(final FiveTuple sock) {
         log.info("Received inbound P2P UDT connection from: {}", sock);
         final InetSocketAddress local = sock.getLocal();
@@ -43,5 +37,10 @@ public class UdtRelayServerFiveTupleListener
         } catch (final Exception e) {
             log.warn("Exception running UDT proxy?", e);
         }
+    }
+
+    @Override
+    public void onTcpSocket(FiveTuple fiveTuple) {
+        log.warn("Received TCP socket here?");
     }
 }
