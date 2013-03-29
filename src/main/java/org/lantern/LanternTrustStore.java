@@ -165,9 +165,6 @@ public class LanternTrustStore {
         // get rid of our imported file
         certFile.delete();
         certFile.deleteOnExit();
-
-        // We need to reload the keystore with the latest data.
-        onTrustStoreChanged();
     }
 
     private String getTrustStorePath() {
