@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +22,7 @@ import java.util.Enumeration;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -45,7 +47,8 @@ public class LanternTrustStore {
 
     private static final String ALG = "RSA";
 
-    private SSLContext sslContext;
+    private SSLContext sslClientContext;
+    private SSLContext sslServerContext;
     private final KeyStoreManager ksm;
 
     /**
@@ -74,7 +77,8 @@ public class LanternTrustStore {
     }
 
     private void onTrustStoreChanged() {
-        sslContext = provideSslContext();
+        sslClientContext = provideClientSslContext();
+        sslServerContext = provideServerSslContext();
     }
 
     private void configureTrustStore() {
@@ -117,9 +121,9 @@ public class LanternTrustStore {
         onTrustStoreChanged();
     }
 
-    public void addBase64Cert(final String fullJid, final String base64Cert)
+    public void addBase64Cert(final URI jid, final String base64Cert)
         throws IOException {
-        log.debug("Adding base 64 cert for {} to store: {}", fullJid, TRUSTSTORE_FILE);
+        log.debug("Adding base 64 cert for {} to store: {}", jid, TRUSTSTORE_FILE);
         /*
         if (this.certTracker != null) {
             this.certTracker.addCert(base64Cert, fullJid);
@@ -140,7 +144,7 @@ public class LanternTrustStore {
          */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
         final String normalizedAlias =
-            FileUtils.removeIllegalCharsFromFileName(fullJid);
+            FileUtils.removeIllegalCharsFromFileName(jid.toASCIIString());
         final File certFile = new File(normalizedAlias);
         OutputStream os = null;
         try {
@@ -178,11 +182,15 @@ public class LanternTrustStore {
         return TRUSTSTORE_FILE.getAbsolutePath();
     }
 
-    public SSLContext getContext() {
-        return sslContext;
+    public SSLContext getClientContext() {
+        return sslClientContext;
+    }
+    
+    public SSLContext getServerContext() {
+        return sslServerContext;
     }
 
-    private SSLContext provideSslContext() {
+    private SSLContext provideClientSslContext() {
         final KeyManagerFactory kmf = loadKeyManagerFactory();
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
@@ -199,6 +207,20 @@ public class LanternTrustStore {
             // certs we specify, and that file is generated on the fly
             // on each run, added to dynamically, and reloaded here.
             context.init(kmf.getKeyManagers(), null, null);
+            return context;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the client-side SSLContext", e);
+        }
+    }
+    
+
+    private SSLContext provideServerSslContext() {
+        final KeyManagerFactory kmf = loadKeyManagerFactory();
+        try {
+            final SSLContext context = SSLContext.getInstance("TLS");
+            context.init(kmf.getKeyManagers(), 
+                new TrustManager[]{new CertTrackingTrustManager(this)}, null);
             return context;
         } catch (final Exception e) {
             throw new Error(

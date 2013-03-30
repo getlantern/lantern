@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounter;
@@ -29,9 +30,11 @@ public interface PeerFactory {
      * @param trafficCounter The counter for keeping track of traffic to and
      * from the peer.
      */
-    void addIncomingPeer(InetAddress address, 
+    void onIncomingPeer(URI fullJid, InetAddress address, 
         LanternTrafficCounter trafficCounter);
     
-    void addOutgoingPeer(String fullJid, InetSocketAddress isa, Type type, 
+    void addOutgoingPeer(URI fullJid, InetSocketAddress isa, Type type, 
             LanternTrafficCounter trafficCounter);
+
+    void addPeer(URI fullJid, Type type);
 }

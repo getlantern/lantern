@@ -17,9 +17,9 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
 
     void addLaeProxy(String cur);
 
-    void addProxy(String hostPort);
+    void addProxy(URI jid, String hostPort);
     
-    void addProxy(InetSocketAddress iae);
+    void addProxy(URI jid, InetSocketAddress iae);
     
     void addJidProxy(URI jid);
     

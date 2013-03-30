@@ -9,7 +9,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -42,7 +41,6 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.event.ClosedBetaEvent;
@@ -420,7 +418,6 @@ public class DefaultXmppHandler implements XmppHandler {
             // Preemptively create our key.
             this.keyStoreManager.getBase64Cert(getJid());
 
-            useCachedPeerProxies();
             LOG.debug("Sending connected event");
             Events.eventBus().post(
                 new GoogleTalkStateEvent(getJid(), GoogleTalkState.connected));
@@ -531,17 +528,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
         waitForClosedBetaStatus(credentials.getUsername());
         modelUtils.syncConnectingStatus("Lantern message received...");
-    }
-
-    private void useCachedPeerProxies() {
-        final Collection<String> saved = this.model.getSettings().getProxies();
-        LOG.debug("Proxy set is: {}", saved);
-        for (final String proxy : saved) {
-            // Don't use peer proxies since we're not connected to XMPP yet.
-            if (proxy.contains("@")) {
-                addProxy(proxy);
-            }
-        }
     }
 
     private void handleConnectionFailure() {
@@ -660,8 +646,6 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
 
-        final JSONArray servers =
-            (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay =
             (Long) json.get(LanternConstants.UPDATE_TIME);
         LOG.debug("Server sent delay of: "+delay);
@@ -681,16 +665,6 @@ public class DefaultXmppHandler implements XmppHandler {
             } else {
                 LOG.debug("Ignoring duplicate info request scheduling- "+
                     "scheduled request {} milliseconds ago.", elapsed);
-            }
-        }
-
-        if (servers == null) {
-            LOG.debug("No servers in message");
-        } else {
-            final Iterator<String> iter = servers.iterator();
-            while (iter.hasNext()) {
-                final String server = iter.next();
-                addProxy(server);
             }
         }
 
@@ -914,8 +888,9 @@ public class DefaultXmppHandler implements XmppHandler {
             final LanternKscopeAdvertisement ad =
                 mapper.readValue(payload, LanternKscopeAdvertisement.class);
 
-            if (this.kscopeAdHandler.handleAd(from, ad)) {
-                sendAndRequestCert(new URI(ad.getJid()));
+            final URI uri = new URI(ad.getJid());
+            if (this.kscopeAdHandler.handleAd(uri, ad)) {
+                sendAndRequestCert(uri);
             } else {
                 LOG.debug("Not requesting cert -- duplicate kscope ad?");
             }
@@ -944,8 +919,10 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void processInfoData(final Message msg) {
         LOG.debug("Processing INFO data from request or response.");
+        // This just makes sure it's a valid URI!!
+        final URI uri;
         try {
-            new URI(msg.getFrom());
+            uri = new URI(msg.getFrom());
         } catch (final URISyntaxException e) {
             LOG.error("Could not create URI from: {}", msg.getFrom());
             return;
@@ -961,53 +938,9 @@ public class DefaultXmppHandler implements XmppHandler {
                 new String(Base64.decodeBase64(base64Cert),
                     LanternConstants.UTF8));
             // Add the peer if we're able to add the cert.
-            this.kscopeAdHandler.onBase64Cert(msg.getFrom(), base64Cert);
+            this.kscopeAdHandler.onBase64Cert(uri, base64Cert);
         } else {
             LOG.error("No cert for peer?");
-        }
-    }
-
-
-    private void addProxy(final String cur) {
-        LOG.debug("Considering proxy: {}", cur);
-        if (cur.contains("appspot")) {
-            this.proxyTracker.addLaeProxy(cur);
-            return;
-        }
-        if (!cur.contains("@")) {
-            this.proxyTracker.addProxy(cur);
-            return;
-        }
-        if (!isLoggedIn()) {
-            LOG.info("Not connected -- ignoring proxy: {}", cur);
-            return;
-        }
-        final String jid = getJid();
-
-        final String emailId = XmppUtils.jidToUser(jid);
-        LOG.debug("We are: {}", jid);
-        LOG.debug("Service name: {}",
-             this.client.get().getXmppConnection().getServiceName());
-        if (jid.equals(cur.trim())) {
-            LOG.info("Not adding ourselves as a proxy!!");
-            return;
-        }
-        if (cur.startsWith(emailId+"/")) {
-            try {
-                // This will get added to the proxy tracker when we get the
-                // cert back.
-                sendAndRequestCert(new URI(cur));
-            } catch (final URISyntaxException e) {
-                LOG.error("Error with proxy URI", e);
-            }
-        } else if (cur.contains("@")) {
-            try {
-                // This will get added to the proxy tracker when we get the
-                // cert back.
-                sendAndRequestCert(new URI(cur));
-            } catch (final URISyntaxException e) {
-                LOG.error("Error with proxy URI", e);
-            }
         }
     }
 

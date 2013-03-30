@@ -109,7 +109,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
         
         // It's necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
-        final SSLEngine engine = trustStore.getContext().createSSLEngine();
+        final SSLEngine engine = trustStore.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
         
         if (trafficHandler != null) {
