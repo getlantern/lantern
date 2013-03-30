@@ -102,15 +102,10 @@ public class Roster implements RosterListener {
                 final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
                 
-                rosterEntries.set(getRosterEntries(unordered));
-
                 for (final RosterEntry entry : unordered) {
-                    final Iterator<Presence> presences =
-                        ros.getPresences(entry.getUser());
-                    while (presences.hasNext()) {
-                        final Presence p = presences.next();
-                        processPresence(p, false, false);
-                    }
+                    final LanternRosterEntry lre = new LanternRosterEntry(entry);
+                    addEntry(lre, false);
+                    processRosterEntryPresences(entry);
                 }
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
@@ -122,20 +117,6 @@ public class Roster implements RosterListener {
         t.start();
     }
 
-    private Map<String, LanternRosterEntry> getRosterEntries(
-        final Collection<RosterEntry> unordered) {
-        final Map<String, LanternRosterEntry> entries =
-            new ConcurrentSkipListMap<String, LanternRosterEntry>();
-        for (final RosterEntry entry : unordered) {
-            final LanternRosterEntry lre =
-                new LanternRosterEntry(entry);
-            if (LanternUtils.isNotJid(lre.getEmail())) {
-                entries.put(lre.getUser(), lre);
-            }
-        }
-        return entries;
-    }
-
     public LanternRosterEntry getRosterEntry(final String key) {
         return this.rosterEntries.get().get(key);
     }
@@ -145,16 +126,10 @@ public class Roster implements RosterListener {
         final String from = presence.getFrom();
         log.debug("Got presence: {}", presence.toXML());
         if (LanternUtils.isLanternHub(from)) {
-            log.info("Got Lantern hub presence");
+            log.debug("Got Lantern hub presence");
         } else if (LanternXmppUtils.isLanternJid(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
-
-            // only advertise to peers that are available.
-            if (presence.isAvailable()) {
-                sendKscope(from);
-            } else {
-                log.debug("Presence not available, so not sending kscope");
-            }
+            sendKscope(from);
             onPresence(presence, sync, updateIndex);
         } else {
             onPresence(presence, sync, updateIndex);
@@ -265,23 +240,7 @@ public class Roster implements RosterListener {
      *
      * @param entry The entry to add.
      */
-    public void addEntry(final LanternRosterEntry entry) {
-        if (LanternUtils.isNotJid(entry.getEmail())) {
-            log.info("Adding entry for {}", entry);
-            putNewElement(entry, true);
-        } else {
-            log.debug("Not adding entry for {}", entry);
-        }
-        log.debug("Finished adding entry for {}", entry);
-    }
-
-    /**
-     * Adds an entry, optionally updating roster indexes.
-     *
-     * @param entry The entry to add.
-     * @param updateIndex Whether or not to update the index.
-     */
-    private void addEntry(final LanternRosterEntry entry,
+    public void addEntry(final LanternRosterEntry entry,
         final boolean updateIndex) {
         if (LanternUtils.isNotJid(entry.getEmail())) {
             log.debug("Adding entry for {}", entry);
@@ -307,6 +266,16 @@ public class Roster implements RosterListener {
                     updateIndex();
                 }
             }
+        }
+    }
+    
+
+    private void processRosterEntryPresences(final RosterEntry entry) {
+        final Iterator<Presence> presences =
+            this.smackRoster.getPresences(entry.getUser());
+        while (presences.hasNext()) {
+            final Presence p = presences.next();
+            processPresence(p, false, false);
         }
     }
 
@@ -337,7 +306,7 @@ public class Roster implements RosterListener {
         synchronized (entries) {
             final Collection<LanternRosterEntry> vals = entries.values();
             for (final LanternRosterEntry entry : vals) {
-                putNewElement(entry, false);
+                addEntry(entry, false);
             }
             updateIndex();
         }
@@ -365,14 +334,14 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> addresses) {
         log.debug("Adding {} entries to roster", addresses.size());
         for (final String address : addresses) {
-            RosterEntry entry = smackRoster.getEntry(address);
+            final RosterEntry entry = smackRoster.getEntry(address);
             if (entry == null) {
-                log.debug("Unexpectedly, an entry that we have added to the" +
+                log.warn("Unexpectedly, an entry that we have added to the" +
                           "roster isn't in Smack's roster.  Skipping it");
                 continue;
             }
-            addEntry(new LanternRosterEntry(entry),
-                false);
+            addEntry(new LanternRosterEntry(entry), false);
+            processRosterEntryPresences(entry);
         }
         fullRosterSync();
     }
