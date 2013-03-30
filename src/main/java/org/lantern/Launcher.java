@@ -388,25 +388,6 @@ public class Launcher {
                     LOG.info("No IP -- possibly no internet connection");
                     return;
                 }
-                model.getConnectivity().setIp(ip.getHostAddress());
-
-                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
-                final Location loc = model.getLocation();
-                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
-                    loc.setCountry(geo.getCountrycode());
-                    loc.setLat(geo.getLatitude());
-                    loc.setLon(geo.getLongitude());
-                }
-
-                // The IP is cached at this point.
-                /*
-                try {
-                    final Country count = censored.country();
-                    model.getLocation().setCountry(count.getCode());
-                } catch (final IOException e) {
-                    LOG.error("Could not get country", e);
-                }
-                */
                 // If the mode isn't set in the model, set the default.
                 if (set.getMode() == null || set.getMode() == Mode.none) {
                     if (censored.isCensored()) {
@@ -415,6 +396,16 @@ public class Launcher {
                         set.setMode(Mode.give);
                     }
                 }
+
+                String hostAddress = ip.getHostAddress();
+                model.getConnectivity().setIp(hostAddress);
+
+                final GeoData geo = modelUtils.getGeoDataWithRetry(hostAddress);
+                final Location loc = model.getLocation();
+                loc.setCountry(geo.getCountrycode());
+                loc.setLat(geo.getLatitude());
+                loc.setLon(geo.getLongitude());
+
             }
 
         }, "Public-IP-Lookup-Thread");

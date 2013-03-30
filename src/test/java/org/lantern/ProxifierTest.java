@@ -72,7 +72,12 @@ public class ProxifierTest {
             @Override
             public void syncConnectingStatus(String msg) {
                 // TODO Auto-generated method stub
-                
+
+            }
+
+            @Override
+            public GeoData getGeoDataWithRetry(String hostAddress) {
+                return null;
             }
         };
     }

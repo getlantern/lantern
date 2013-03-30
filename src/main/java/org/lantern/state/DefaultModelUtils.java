@@ -34,7 +34,6 @@ import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
@@ -322,5 +321,22 @@ public class DefaultModelUtils implements ModelUtils {
     public void syncConnectingStatus(final String msg) {
         this.model.getConnectivity().setConnectingStatus(msg);
         Events.syncConnectingStatus(msg);
+    }
+
+    @Override
+    public GeoData getGeoDataWithRetry(final String ip) {
+        // attempt to get geodata until we succeed
+        while (true) {
+            final GeoData geo = getGeoData(ip);
+            if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
+                return geo;
+            }
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                // nothing to do
+            }
+        }
+
     }
 }
