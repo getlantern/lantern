@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import java.net.URI;
 import java.util.Locale;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -62,22 +63,25 @@ public class Peer {
     private long lastConnectedLong;
 
     private LanternRosterEntry rosterEntry;
+
+    private int port;
     
     public Peer() {
         
     }
     
-    public Peer(final String peerId,final String countryCode,
+    public Peer(final URI peerId,final String countryCode,
         final boolean mapped, final double latitude,
         final double longitude, final Type type,
-        final String ip, final Mode mode, final boolean incoming,
+        final String ip, final int port, final Mode mode, final boolean incoming,
         final LanternTrafficCounter trafficCounter,
         final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;
         this.lat = latitude;
         this.lon = longitude;
+        this.port = port;
         this.rosterEntry = rosterEntry;
-        this.peerid = peerId;
+        this.peerid = peerId.toASCIIString();
         this.ip = ip;
         this.mode = mode;
         this.incoming = incoming;
@@ -307,6 +311,14 @@ public class Peer {
                 + trafficCounter + ", bytesUp=" + bytesUp + ", bytesDn="
                 + bytesDn + ", version=" + version + ", lastConnectedLong="
                 + lastConnectedLong + ", rosterEntry=" + rosterEntry + "]";
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
 }

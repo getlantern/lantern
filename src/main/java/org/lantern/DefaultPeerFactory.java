@@ -2,9 +2,9 @@ package org.lantern;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
-import org.apache.commons.lang3.StringUtils;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -68,13 +68,16 @@ public class DefaultPeerFactory implements PeerFactory {
      * from the peer.
      */
     @Override
-    public void addIncomingPeer(final InetAddress address,
+    public void onIncomingPeer(final URI fullJid, final InetAddress address,
         final LanternTrafficCounter trafficCounter) {
         exec.submit(new Runnable() {
             @Override
             public void run() {
-                final Peer peer = newGetModePeer(address, trafficCounter);
-                peers.addPeer(address, peer);
+                // There should always be an existing peer at this point,
+                // and we should add data to that peer.
+                final Peer peer = 
+                        ewGetModePeer(fullJid, address, trafficCounter);
+                peers.addPeer(fullJid, peer);
             }
         });
         // Note we don't sync peers with the frontend here because the timer
@@ -82,14 +85,30 @@ public class DefaultPeerFactory implements PeerFactory {
     }
 
     @Override
-    public void addOutgoingPeer(final String fullJid,
+    public void addOutgoingPeer(final URI fullJid,
         final InetSocketAddress isa, final Type type,
         final LanternTrafficCounter trafficCounter) {
         addPeer(fullJid, isa.getAddress(), isa.getPort(), type, false,
             trafficCounter);
     }
+    
+    @Override
+    public void addPeer(final URI fullJid, final Type type) {
+        
+        final LanternRosterEntry entry = rosterEntry(fullJid);
 
-    private void addPeer(final String fullJid, final InetAddress address,
+        final Peer existing = peers.getPeer(fullJid);
+        
+        if (existing != null) {
+            log.debug("Peer already exists...");
+        } else {
+            final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type, 
+                    "", 0, Mode.none, false, null, entry);
+            peers.addPeer(fullJid, peer);
+        }
+    }
+
+    private void addPeer(final URI fullJid, final InetAddress address,
         final int port, final Type type, final boolean incoming,
         final LanternTrafficCounter trafficCounter) {
 
@@ -100,19 +119,14 @@ public class DefaultPeerFactory implements PeerFactory {
             @Override
             public void run() {
                 log.debug("Adding peer");
-                final Peer existing;
-                if (StringUtils.isNotBlank(fullJid)) {
-                    existing = peers.getPeer(LanternUtils.newURI(fullJid));
-                } else {
-                    existing = peers.getPeer(address);
+                final Peer existing = peers.getPeer(fullJid);
 
-                }
                 if (existing != null) {
                     log.debug("Peer already exists...");
 
                     // It could have just been deserialized from disk, so we
                     // want to give it a real traffic counter.
-                    final LanternTrafficCounter tc =
+                    final LanternTrafficCounter tc = 
                         existing.getTrafficCounter();
                     if (tc != null) {
                         log.warn("Existing traffic counter?");
@@ -123,7 +137,7 @@ public class DefaultPeerFactory implements PeerFactory {
                 } else {
                     final Peer peer = newGiveModePeer(fullJid, address, port,
                             type, incoming, trafficCounter);
-                    peers.addPeer(address, peer);
+                    peers.addPeer(fullJid, peer);
                 }
             }
             // Note we don't sync peers with the frontend here because the timer
@@ -132,31 +146,29 @@ public class DefaultPeerFactory implements PeerFactory {
     }
 
 
-    private Peer newGetModePeer(final InetAddress address,
+    private Peer newGetModePeer(final URI peerId, final InetAddress address,
             final LanternTrafficCounter trafficCounter) {
         final String hostAddress = address.getHostAddress();
         final GeoData geo = modelUtils.getGeoData(hostAddress);
-        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(),
-            geo.getLongitude(), Type.pc, hostAddress, Mode.get,
+        return new Peer(peerId, geo.getCountrycode(), false, geo.getLatitude(),
+            geo.getLongitude(), Type.pc, hostAddress, 0, Mode.get,
             true, trafficCounter, null);
     }
 
 
-    private Peer newGiveModePeer(final String fullJid, final InetAddress address,
+    private Peer newGiveModePeer(final URI fullJid, final InetAddress address,
         final int port, final Type type, final boolean incoming,
         final LanternTrafficCounter trafficCounter) {
         final LanternRosterEntry entry = rosterEntry(fullJid);
 
+        final boolean mapped = port > 0;
         final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
-        return new Peer(fullJid, geo.getCountrycode(), true, geo.getLatitude(),
-            geo.getLongitude(), type, address.getHostAddress(), Mode.give,
+        return new Peer(fullJid, geo.getCountrycode(), mapped, geo.getLatitude(),
+            geo.getLongitude(), type, address.getHostAddress(), port, Mode.give,
             incoming, trafficCounter, entry);
     }
 
-    private LanternRosterEntry rosterEntry(final String fullJid) {
-        if (StringUtils.isNotBlank(fullJid)) {
-            return this.roster.getRosterEntry(fullJid);
-        }
-        return null;
+    private LanternRosterEntry rosterEntry(final URI fullJid) {
+        return this.roster.getRosterEntry(fullJid.toASCIIString());
     }
 }

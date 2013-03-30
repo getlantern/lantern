@@ -65,7 +65,6 @@ import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
-import org.lantern.TestUtils;
 import org.lantern.util.Threads;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -404,7 +403,7 @@ public class UdtRelayTest {
                             throws Exception {
                         final ChannelPipeline p = ch.pipeline();
                         final SSLEngine engine = 
-                            trustStore.getContext().createSSLEngine();
+                            trustStore.getClientContext().createSSLEngine();
                         
                         //SSLEngine serverEngine = sslc.createSSLEngine();
                         engine.setUseClientMode(true);
