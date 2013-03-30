@@ -135,10 +135,8 @@ public class DefaultPeerFactory implements PeerFactory {
     private Peer newGetModePeer(final InetAddress address,
             final LanternTrafficCounter trafficCounter) {
         final String hostAddress = address.getHostAddress();
-        final GeoData geo = modelUtils.getGeoData(hostAddress);
-        return new Peer("", geo.getCountrycode(), false, geo.getLatitude(),
-            geo.getLongitude(), Type.pc, hostAddress, Mode.get,
-            true, trafficCounter, null);
+        return new Peer("", false, Type.pc, hostAddress, Mode.get,
+            true, trafficCounter, null, modelUtils);
     }
 
 
@@ -147,10 +145,8 @@ public class DefaultPeerFactory implements PeerFactory {
         final LanternTrafficCounter trafficCounter) {
         final LanternRosterEntry entry = rosterEntry(fullJid);
 
-        final GeoData geo = modelUtils.getGeoData(address.getHostAddress());
-        return new Peer(fullJid, geo.getCountrycode(), true, geo.getLatitude(),
-            geo.getLongitude(), type, address.getHostAddress(), Mode.give,
-            incoming, trafficCounter, entry);
+        return new Peer(fullJid, true, type, address.getHostAddress(), Mode.give,
+            incoming, trafficCounter, entry, modelUtils);
     }
 
     private LanternRosterEntry rosterEntry(final String fullJid) {

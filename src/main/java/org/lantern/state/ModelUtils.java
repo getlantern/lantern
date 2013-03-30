@@ -12,6 +12,8 @@ public interface ModelUtils {
 
     GeoData getGeoData(String hostAddress);
 
+    GeoData getGeoDataWithRetry(String hostAddress);
+
     void loadClientSecrets();
 
     boolean isConfigured();
