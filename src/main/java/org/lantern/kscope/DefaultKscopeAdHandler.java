@@ -17,6 +17,7 @@ import org.lantern.LanternUtils;
 import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.KscopeAdEvent;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.lantern.state.Notification.MessageType;
@@ -68,6 +69,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 MessageType.info, 30);
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
+        Events.asyncEventBus().post(new KscopeAdEvent(ad));
         final LanternKscopeAdvertisement existing = 
             awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
 

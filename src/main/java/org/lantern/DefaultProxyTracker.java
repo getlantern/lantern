@@ -287,7 +287,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     final ProxyHolder ph =
                         new ProxyHolder(jid, tuple, netty4TrafficCounter());
 
-                    peerFactory.addOutgoingPeer(peerUri, remote, Type.pc,
+                    peerFactory.onOutgoingConnection(peerUri, remote, Type.pc,
                             ph.getTrafficShapingHandler());
 
                     synchronized (peerProxyMap) {
@@ -339,7 +339,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                             queue.add(ph);
                             log.debug("Added connected TCP proxy. " +
                                 "Queue is now: {}", queue);
-                            peerFactory.addOutgoingPeer(fullJid, remote, type,
+                            peerFactory.onOutgoingConnection(fullJid, remote, type,
                                     ph.getTrafficShapingHandler());
                         }
                     }
