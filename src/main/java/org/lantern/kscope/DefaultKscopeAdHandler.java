@@ -17,6 +17,7 @@ import org.lantern.LanternUtils;
 import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.KscopeAdEvent;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.lantern.state.Notification.MessageType;
@@ -36,8 +37,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
      * Map of kscope advertisements for which we are awaiting corresponding
      * certificates.
      */
-    private final ConcurrentHashMap<String, LanternKscopeAdvertisement> awaitingCerts = 
-        new ConcurrentHashMap<String, LanternKscopeAdvertisement>();
+    private final ConcurrentHashMap<URI, LanternKscopeAdvertisement> awaitingCerts = 
+        new ConcurrentHashMap<URI, LanternKscopeAdvertisement>();
     
     private final Set<LanternKscopeAdvertisement> processedAds =
             new HashSet<LanternKscopeAdvertisement>();
@@ -59,7 +60,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     }
     
     @Override
-    public boolean handleAd(final String from, 
+    public boolean handleAd(final URI from, 
             final LanternKscopeAdvertisement ad) {
         log.debug("*** got kscope ad from {} for {}", from, ad.getJid());
         if (LanternUtils.isDevMode()) {
@@ -68,8 +69,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 MessageType.info, 30);
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
+        Events.asyncEventBus().post(new KscopeAdEvent(ad));
         final LanternKscopeAdvertisement existing = 
-            awaitingCerts.put(ad.getJid(), ad);
+            awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
 
         if (existing != null) {
             if (existing.equals(ad)) {
@@ -108,7 +110,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     }
     
     @Override
-    public void onBase64Cert(final String jid, final String base64Cert) {
+    public void onBase64Cert(final URI jid, final String base64Cert) {
         try {
             this.trustStore.addBase64Cert(jid, base64Cert);
         } catch (final IOException e) {
@@ -119,7 +121,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
         if (ad != null) {
             if (ad.hasMappedEndpoint()) {
-                this.proxyTracker.addProxy(
+                this.proxyTracker.addProxy(jid, 
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
             } else {
                 this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
@@ -127,13 +129,12 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             
             // Also add the local network advertisement in case they're on
             // the local network.
-            this.proxyTracker.addProxy(
+            this.proxyTracker.addProxy(jid, 
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             processedAds.add(ad);
         } else {
-            final URI uri = LanternUtils.newURI(jid);
-            if (processedAds.contains(ad) && this.proxyTracker.hasJidProxy(uri)) {
-                log.debug("Ignoring cert from peer we already have: {}", uri);
+            if (processedAds.contains(ad) && this.proxyTracker.hasJidProxy(jid)) {
+                log.debug("Ignoring cert from peer we already have: {}", jid);
                 return;
             } else {
                 // This could happen if we negotiated certs in some way other 
@@ -141,7 +142,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 // controller or just peers from the roster who we haven't 
                 // exchanged ads with yet.
                 log.debug("No ad for cert?");
-                this.proxyTracker.addJidProxy(uri);
+                this.proxyTracker.addJidProxy(jid);
             }
         }
     }

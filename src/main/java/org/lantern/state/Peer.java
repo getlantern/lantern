@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import java.net.URI;
 import java.util.Locale;
 
 import org.apache.commons.lang3.time.FastDateFormat;
@@ -7,7 +8,6 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.GeoData;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.event.Events;
@@ -63,42 +63,35 @@ public class Peer {
     private long lastConnectedLong;
 
     private LanternRosterEntry rosterEntry;
+
+    private int port;
     
     public Peer() {
         
     }
-
-    public Peer(final String peerId,
-        final boolean mapped, final Type type,
-        final String ip, final Mode mode, final boolean incoming,
+    
+    public Peer(final URI peerId,final String countryCode,
+        final boolean mapped, final double latitude,
+        final double longitude, final Type type,
+        final String ip, final int port, final Mode mode, final boolean incoming,
         final LanternTrafficCounter trafficCounter,
-        final LanternRosterEntry rosterEntry, final ModelUtils modelUtils) {
+        final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;
+        this.lat = latitude;
+        this.lon = longitude;
+        this.port = port;
         this.rosterEntry = rosterEntry;
-        this.peerid = peerId;
+        this.peerid = peerId.toASCIIString();
         this.ip = ip;
         this.mode = mode;
         this.incoming = incoming;
         this.type = type.toString();
+        this.country = countryCode.toUpperCase(Locale.US);
         this.trafficCounter = trafficCounter;
-
-        // Peers are online when constructed this way (because we presumably
+        
+        // Peers are online when constructed this way (because we presumably 
         // just received some type of message from them).
         this.online = true;
-
-        Runnable task = new Runnable () {
-            @Override
-            public void run() {
-                GeoData geo = modelUtils.getGeoDataWithRetry(ip);
-                lat = geo.getLatitude();
-                lon = geo.getLongitude();
-                String countryCode = geo.getCountrycode();
-                country = countryCode.toUpperCase(Locale.US);
-            }
-        };
-        Thread thread = new Thread(task, "Peer-Geoip-Lookup");
-        thread.setDaemon(true);
-        thread.start();
     }
 
     public String getCountry() {
@@ -321,6 +314,14 @@ public class Peer {
                 + trafficCounter + ", bytesUp=" + bytesUp + ", bytesDn="
                 + bytesDn + ", version=" + version + ", lastConnectedLong="
                 + lastConnectedLong + ", rosterEntry=" + rosterEntry + "]";
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
 }

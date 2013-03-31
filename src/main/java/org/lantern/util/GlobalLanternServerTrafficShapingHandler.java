@@ -1,8 +1,5 @@
 package org.lantern.util;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -11,7 +8,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
 import org.lantern.LanternClientConstants;
-import org.lantern.PeerFactory;
 import org.lantern.Shutdownable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +25,9 @@ public class GlobalLanternServerTrafficShapingHandler
     
     private final AtomicInteger totalChannels = new AtomicInteger(0);
 
-    private final ConcurrentHashMap<InetAddress, Netty3LanternTrafficCounterHandler> handlers =
-            new ConcurrentHashMap<InetAddress, Netty3LanternTrafficCounterHandler>();
-
-    private final PeerFactory peerFactory;
-
     @Inject
-    public GlobalLanternServerTrafficShapingHandler(final Timer timer,
-            final PeerFactory peerFactory) {
+    public GlobalLanternServerTrafficShapingHandler(final Timer timer) {
         super(timer, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
-        this.peerFactory = peerFactory;
     }
 
     @Override
@@ -58,28 +47,6 @@ public class GlobalLanternServerTrafficShapingHandler
         try {
             this.connectedChannels.incrementAndGet();
             this.totalChannels.incrementAndGet();
-            
-            // We basically want to add separate traffic handlers per IP, and
-            // we do that here. We have a new incoming socket and check for an
-            // existing handler. If it's there, we use it. Otherwise we add and
-            // use a new one.
-            final InetSocketAddress isa = 
-                (InetSocketAddress) ctx.getChannel().getRemoteAddress();
-            final InetAddress address = isa.getAddress();
-            
-            final Netty3LanternTrafficCounterHandler newHandler = 
-                    new Netty3LanternTrafficCounterHandler(timer, true);
-            final Netty3LanternTrafficCounterHandler existingHandler =
-                    handlers.putIfAbsent(address, newHandler);
-            
-            final Netty3LanternTrafficCounterHandler toUse;
-            if (existingHandler == null) {
-                toUse = newHandler;
-                this.peerFactory.addIncomingPeer(isa.getAddress(), newHandler);
-            } else {
-                toUse = existingHandler;
-            }
-            ctx.getChannel().getPipeline().addFirst("trafficHandler", toUse);
         } finally {
             // The message is then just passed to the next handler
             super.channelConnected(ctx, e);
@@ -105,12 +72,9 @@ public class GlobalLanternServerTrafficShapingHandler
     public int getNumSocketsTotal() {
         return this.totalChannels.get();
     }
-
+    
     @Override
     public void stop() {
-        for (final GlobalTrafficShapingHandler handler : this.handlers.values()) {
-            handler.releaseExternalResources();
-        }
         releaseExternalResources();
     }
 

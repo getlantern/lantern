@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLSocket;
@@ -40,7 +41,7 @@ public class UdtSslTest {
         final LanternKeyStoreManager ksm = TestUtils.getKsm();
         final LanternTrustStore trustStore = TestUtils.getTrustStore();
         final String testId = "test@gmail.com/test";
-        trustStore.addBase64Cert(testId, ksm.getBase64Cert(testId));
+        trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         
         startServer();
         Thread.sleep(800);

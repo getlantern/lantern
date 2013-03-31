@@ -129,7 +129,7 @@ public class LanternSocketsUtil {
     }
 
     protected SSLServerSocketFactory ssf() {
-        return this.trustStore.getContext().getServerSocketFactory();
+        return this.trustStore.getClientContext().getServerSocketFactory();
     }
 
     public SSLSocketFactory newTlsSocketFactoryJavaCipherSuites() {
@@ -221,7 +221,7 @@ public class LanternSocketsUtil {
     }
 
     private SSLSocketFactory sf() {
-        return trustStore.getContext().getSocketFactory();
+        return trustStore.getClientContext().getSocketFactory();
     }
 
     public void startReading(final Socket sock, final Channel channel,

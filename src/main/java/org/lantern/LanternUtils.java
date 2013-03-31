@@ -861,7 +861,7 @@ public class LanternUtils {
         final File trustStore, final String storePass) {
         if (!cert.isFile()) {
             LOG.error("No cert at "+cert);
-            System.exit(1);
+            return;
         }
         LOG.debug("Importing cert");
         

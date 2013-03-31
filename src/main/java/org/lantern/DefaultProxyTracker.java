@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Model;
+import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings.Mode;
 import org.lantern.util.Netty3LanternTrafficCounterHandler;
@@ -127,17 +129,17 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         addFallbackProxy();
         // Add all the stored proxies.
-        final Collection<String> saved = this.model.getSettings().getProxies();
-        log.debug("Proxy set is: {}", saved);
-        for (final String proxy : saved) {
+        //final Collection<String> saved = this.model.getSettings().getProxies();
+        
+        final Collection<Peer> peers = this.model.getPeers();
+        log.debug("Proxy set is: {}", peers);
+        for (final Peer peer : peers) {
             // Don't use peer proxies since we're not connected to XMPP yet.
-            if (proxy.contains("appspot")) {
-                addLaeProxy(proxy);
-            } else if (!proxy.contains("@")) {
-                // Don't add the fallback server twice, as it could get added
-                // as the wrong type of proxy.
-                if (!proxy.contains(LanternClientConstants.FALLBACK_SERVER_HOST)) {
-                    addProxy(proxy);
+            if (peer.isMapped()) {
+                final String id = peer.getPeerid();
+                if (!id.contains(LanternClientConstants.FALLBACK_SERVER_HOST)) {
+                    addProxy(LanternUtils.newURI(peer.getPeerid()), 
+                        new InetSocketAddress(peer.getIp(), peer.getPort()));
                 }
             }
         }
@@ -145,9 +147,14 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxy() {
         if (this.model.getSettings().isTcp()) {
-            addProxy(LanternClientConstants.FALLBACK_SERVER_HOST,
-                Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT),
-                Type.cloud);
+            try {
+                addProxy(new URI("fallback@gentlantern.org"), 
+                    LanternClientConstants.FALLBACK_SERVER_HOST,
+                    Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT),
+                    Type.cloud);
+            } catch (final URISyntaxException e) {
+                throw new RuntimeException("Bad fallback proxy URI!!!", e);
+            }
         }
     }
 
@@ -189,37 +196,40 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void addLaeProxy(final String cur) {
         log.debug("Adding LAE proxy");
+        /*
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
             new ProxyHolder(cur, new InetSocketAddress(cur, 443),
                 netty3TrafficCounter()), cur, Type.laeproxy);
+                */
     }
 
     @Override
-    public void addProxy(final String hostPort) {
+    public void addProxy(final URI fullJid, final String hostPort) {
         log.debug("Adding proxy as string: {}", hostPort);
         final String hostname =
             StringUtils.substringBefore(hostPort, ":");
         final int port =
             Integer.parseInt(StringUtils.substringAfter(hostPort, ":"));
 
-        addProxy(hostname, port, Type.pc);
+        addProxy(fullJid, hostname, port, Type.pc);
     }
 
 
     @Override
-    public void addProxy(final InetSocketAddress isa) {
+    public void addProxy(final URI fullJid, final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
-        addProxy(isa.getHostName(), isa.getPort(), Type.pc);
+        addProxy(fullJid, isa.getHostName(), isa.getPort(), Type.pc);
     }
 
-    private void addProxy(final String host, final int port, final Type type) {
+    private void addProxy(final URI fullJid, final String host, 
+            final int port, final Type type) {
         final InetSocketAddress isa = LanternUtils.isa(host, port);
         if (this.model.getSettings().getMode() == Mode.give) {
             log.debug("Not adding proxy in give mode");
             return;
         }
 
-        addProxyWithChecks(proxySet, proxies,
+        addProxyWithChecks(fullJid, proxySet, proxies,
             new ProxyHolder(host, isa, netty3TrafficCounter()),
                 host+":"+port, type);
     }
@@ -277,7 +287,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     final ProxyHolder ph =
                         new ProxyHolder(jid, tuple, netty4TrafficCounter());
 
-                    peerFactory.addOutgoingPeer(jid, remote, Type.pc,
+                    peerFactory.onOutgoingConnection(peerUri, remote, Type.pc,
                             ph.getTrafficShapingHandler());
 
                     synchronized (peerProxyMap) {
@@ -300,7 +310,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         });
     }
 
-    private void addProxyWithChecks(final Set<ProxyHolder> set,
+    private void addProxyWithChecks(final URI fullJid, 
+        final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
         final String fullProxyString, final Type type) {
         if (!this.model.getSettings().isTcp()) {
@@ -328,7 +339,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                             queue.add(ph);
                             log.debug("Added connected TCP proxy. " +
                                 "Queue is now: {}", queue);
-                            peerFactory.addOutgoingPeer("", remote, type,
+                            peerFactory.onOutgoingConnection(fullJid, remote, type,
                                     ph.getTrafficShapingHandler());
                         }
                     }
@@ -337,9 +348,15 @@ public class DefaultProxyTracker implements ProxyTracker {
                     Events.asyncEventBus().post(
                         new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
-                    log.error("Could not connect to: " + ph, e);
+                    // This can happen if the user has subsequently gone 
+                    // offline, for example.
+                    log.debug("Could not connect to: " + ph, e);
                     onCouldNotConnect(ph);
                     model.getSettings().removeProxy(fullProxyString);
+                    
+                    // Try adding the proxy by it's JID! This can happen, for 
+                    // example, if we get a bogus port mapping.
+                    addJidProxy(fullJid);
                 } finally {
                     IOUtils.closeQuietly(sock);
                 }
@@ -460,7 +477,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private Netty3LanternTrafficCounterHandler netty3TrafficCounter() {
         final Netty3LanternTrafficCounterHandler handler =
-            new Netty3LanternTrafficCounterHandler(this.timer, false);
+            new Netty3LanternTrafficCounterHandler(this.timer);
         netty3TrafficShapers.add(handler);
         return handler;
     }
@@ -468,7 +485,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private Netty4LanternTrafficCounterHandler netty4TrafficCounter() {
         final Netty4LanternTrafficCounterHandler handler =
                 new Netty4LanternTrafficCounterHandler(
-                        netty4TrafficCounterExecutor, false);
+                        netty4TrafficCounterExecutor);
         netty4TrafficShapers.add(handler);
         return handler;
     }

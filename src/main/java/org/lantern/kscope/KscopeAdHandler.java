@@ -1,10 +1,12 @@
 package org.lantern.kscope;
 
+import java.net.URI;
+
 
 public interface KscopeAdHandler {
 
-    boolean handleAd(String from, LanternKscopeAdvertisement ad);
+    boolean handleAd(URI from, LanternKscopeAdvertisement ad);
 
-    void onBase64Cert(String uri, String cert);
+    void onBase64Cert(URI uri, String cert);
 
 }
