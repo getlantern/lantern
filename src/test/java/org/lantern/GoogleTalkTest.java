@@ -3,7 +3,6 @@ package org.lantern;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.HashSet;
 
 import javax.security.auth.login.CredentialException;
 
@@ -23,7 +22,7 @@ public class GoogleTalkTest {
     
     private XmppHandler createHandler() 
         throws CredentialException, IOException, NotInClosedBetaException {
-        TestUtils.getModel().getSettings().setProxies(new HashSet<String>());
+        //TestUtils.getModel().getSettings().setProxies(new HashSet<String>());
         final XmppHandler xmpp = TestUtils.getXmppHandler();
         
         xmpp.connect();

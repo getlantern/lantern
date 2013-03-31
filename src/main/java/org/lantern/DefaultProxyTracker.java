@@ -180,19 +180,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.peerProxyMap.clear();
     }
 
-
-    private void proxyBookkeeping(final String proxy) {
-        log.debug("Adding proxy to settings");
-
-        // We want to keep track of it for future user regardless of whether
-        // or not we can connect now.
-
-        // This is a little odd because the proxy could have
-        // originally come from the settings themselves, but
-        // it'll remove duplicates, so no harm done.
-        model.getSettings().addProxy(proxy);
-    }
-
     @Override
     public void addLaeProxy(final String cur) {
         log.debug("Adding LAE proxy");
@@ -230,8 +217,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
 
         addProxyWithChecks(fullJid, proxySet, proxies,
-            new ProxyHolder(host, isa, netty3TrafficCounter()),
-                host+":"+port, type);
+            new ProxyHolder(host, isa, netty3TrafficCounter()), type);
     }
 
     private ProxyHolder getProxy(final Queue<ProxyHolder> queue) {
@@ -261,7 +247,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
         final String jid = peerUri.toASCIIString();
-        proxyBookkeeping(jid);
 
         // The idea here is to start with the JID and to basically convert it
         // into a NAT/firewall traversed FiveTuple containing a local and
@@ -313,7 +298,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void addProxyWithChecks(final URI fullJid, 
         final Set<ProxyHolder> set,
         final Queue<ProxyHolder> queue, final ProxyHolder ph,
-        final String fullProxyString, final Type type) {
+        final Type type) {
         if (!this.model.getSettings().isTcp()) {
             log.debug("Not checking proxy when not running with TCP");
             return;
@@ -322,7 +307,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("We already know about proxy "+ph+" in {}", set);
             return;
         }
-        proxyBookkeeping(fullProxyString);
 
         proxyCheckThreadPool.submit(new Runnable() {
 
@@ -352,7 +336,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                     // offline, for example.
                     log.debug("Could not connect to: " + ph, e);
                     onCouldNotConnect(ph);
-                    model.getSettings().removeProxy(fullProxyString);
                     
                     // Try adding the proxy by it's JID! This can happen, for 
                     // example, if we get a bogus port mapping.

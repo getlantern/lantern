@@ -2,7 +2,6 @@ package org.lantern.state;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -28,8 +27,6 @@ public class Settings {
 
     private String lang = Locale.getDefault().getLanguage();
 
-    private final boolean autoConnect = true;
-
     private boolean autoReport = true;
 
     private Mode mode = Mode.none;
@@ -51,8 +48,6 @@ public class Settings {
     private Whitelist whitelist = new Whitelist();
 
     private boolean runAtSystemStart = true;
-
-    private Set<String> proxies = new LinkedHashSet<String>();
 
     private boolean useTrustedPeers = true;
 
@@ -222,32 +217,6 @@ public class Settings {
     public void setInClosedBeta(final Set<String> inClosedBeta) {
         this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
     }
-
-    public void setProxies(final Set<String> proxies) {
-        this.proxies = proxies;
-    }
-
-    @JsonView({Persistent.class})
-    public Set<String> getProxies() {
-        return ImmutableSet.copyOf(this.proxies);
-    }
-
-    public void addProxy(final String proxy) {
-        // Don't store peer proxies on disk.
-        if (!proxy.contains("@")) {
-            this.proxies.add(proxy);
-            log.debug("Added proxy. Proxies: {}", this.proxies);
-
-            log.debug("Added proxy. Immutable proxies: {}", getProxies());
-        } else {
-            log.debug("Did not add proxy: {}", proxy);
-        }
-    }
-
-    public void removeProxy(final String proxy) {
-        this.proxies.remove(proxy);
-    }
-
 
     public void setUseTrustedPeers(final boolean useTrustedPeers) {
         this.useTrustedPeers = useTrustedPeers;
