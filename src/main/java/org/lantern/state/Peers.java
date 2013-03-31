@@ -11,14 +11,8 @@ public class Peers {
     private Map<URI, Peer> peers = new ConcurrentHashMap<URI, Peer>();
     
     public Peers() {
-        
+        // Required for de-serializing from disk.
     }
-
-    /*
-    public void addPeer(final InetAddress isa, final Peer peer) {
-        this.peers.put(isa.toString(), peer);
-    }
-    */
     
     public void addPeer(final URI jid, final Peer peer) {
         this.peers.put(jid, peer);
@@ -41,22 +35,12 @@ public class Peers {
             }
         }
     }
-
-    /*
-    public Peer getPeer(final InetAddress isa) {
-        return this.peers.get(isa.toString());
-    }
-
-    public boolean hasPeer(final InetAddress isa) {
-        return this.peers.containsKey(isa.toString());
-    }
-    */
     
     public Peer getPeer(final URI userId) {
-        return this.peers.get(userId.toASCIIString());
+        return this.peers.get(userId);
     }
     
     public boolean hasPeer(final URI userId) {
-        return this.peers.containsKey(userId.toASCIIString());
+        return this.peers.containsKey(userId);
     }
 }
