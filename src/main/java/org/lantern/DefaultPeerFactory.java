@@ -91,6 +91,7 @@ public class DefaultPeerFactory implements PeerFactory {
         // It is possible and even likely we already know about this peer
         // through some other means, in which case we have to update the data
         // about that peer as necessary.
+        log.debug("Adding peer through kscop add...");
         final String jid = ad.getJid();
         final URI uri = LanternUtils.newURI(jid);
         final Peer existing = this.peers.getPeer(uri);
@@ -224,6 +225,7 @@ public class DefaultPeerFactory implements PeerFactory {
         if (existing != null) {
             log.debug("Peer already exists...");
         } else {
+            log.debug("Adding peer {}", fullJid);
             final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type, 
                     "", 0, Mode.none, false, null, entry);
             peers.addPeer(fullJid, peer);
@@ -241,7 +243,8 @@ public class DefaultPeerFactory implements PeerFactory {
     public void onCert(final PeerCertEvent event) {
         final Peer peer = this.peers.getPeer(event.getJid());
         if (peer == null) {
-            log.error("Got a cert for peer we don't know about?");
+            log.error("Got a cert for peer we don't know about? " +
+                "{} not found in {}", event.getJid(), this.peers.getPeers().keySet());
         } else {
             certsToPeers.put(event.getBase64Cert(), peer);
         }
