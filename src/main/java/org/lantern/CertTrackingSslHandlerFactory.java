@@ -82,9 +82,7 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         final SSLEngine engine = getServerContext(certTracker).createSSLEngine();
         engine.setUseClientMode(false);
         engine.setNeedClientAuth(true);
-        final SslHandlerInterceptor handler = 
-            new SslHandlerInterceptor(engine, certTracker);
-        
+        final SslHandlerInterceptor handler = new SslHandlerInterceptor(engine);
         certTracker.setSslHandler(handler);
         return new SslHandshakeHandler("ssl", handler);
     }
@@ -122,18 +120,19 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         @Override
         public void checkClientTrusted(final X509Certificate[] chain, String arg1)
                 throws CertificateException {
+            log.debug("Checking client trusted...");
             final X509Certificate cert = chain[0];
             if (!trustStore.containsCertificate(cert)) {
                 throw new CertificateException("not trusted");
             }
             
             log.debug("Certificate trusted");
+            
+            Events.asyncEventBus().post(
+                    new IncomingPeerEvent(handler.channel, handler.trafficCounter, cert));
             // We should already know about the peer at this point, and it's just
             // a matter of correlating that peer with this certificate and 
             // connection.
-            
-            Events.asyncEventBus().post(
-                new IncomingPeerEvent(this.handler.channel, this.handler.trafficCounter, cert));
             
         }
 
@@ -156,46 +155,42 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         private Channel channel;
         private Netty3LanternTrafficCounterHandler trafficCounter;
 
-        public SslHandlerInterceptor(final SSLEngine engine, 
-            final CertTrackingTrustManager certTracker) {
+        public SslHandlerInterceptor(final SSLEngine engine) {
             super(engine);
-            certTracker.setSslHandler(this);
-        }
-        
-        @Override
-        public void channelOpen(final ChannelHandlerContext ctx, 
-            final ChannelStateEvent e) throws Exception {
-            // Just record the channel
-            this.channel = ctx.getChannel();
-            super.channelOpen(ctx, e);
         }
         
         @Override
         public void channelConnected(final ChannelHandlerContext ctx, 
             final ChannelStateEvent e) throws Exception {
             
+            log.debug("Got channel connected...");
             try {
                 
-                // We basically want to add separate traffic handlers per IP, and
-                // we do that here. We have a new incoming socket and check for an
-                // existing handler. If it's there, we use it. Otherwise we add and
-                // use a new one.
+                // We basically want to add separate traffic handlers per IP, 
+                // and we do that here. We have a new incoming socket and 
+                // check for an existing handler. If it's there, we use it. 
+                // Otherwise we add and use a new one.
                 final InetSocketAddress isa = 
                     (InetSocketAddress) ctx.getChannel().getRemoteAddress();
                 final InetAddress address = isa.getAddress();
                 
                 final Netty3LanternTrafficCounterHandler newHandler = 
-                        new Netty3LanternTrafficCounterHandler(timer, true);
+                        new Netty3LanternTrafficCounterHandler(timer);
                 final Netty3LanternTrafficCounterHandler existingHandler =
                         handlers.putIfAbsent(address, newHandler);
                 
+                final Netty3LanternTrafficCounterHandler toUse;
                 if (existingHandler == null) {
-                    this.trafficCounter = newHandler;
+                    toUse = newHandler;
                 } else {
-                    this.trafficCounter = existingHandler;
+                    log.debug("Using existing traffic counter...");
+                    toUse = existingHandler;
                 }
-                ctx.getChannel().getPipeline().addFirst(PIPELINE_ID, 
-                    this.trafficCounter);
+                toUse.incrementSockets();
+                final Channel channel = ctx.getChannel();
+                this.channel = channel;
+                this.trafficCounter = toUse;
+                channel.getPipeline().addFirst(PIPELINE_ID, toUse);
             } finally {
                 // The message is then just passed to the next handler
                 super.channelConnected(ctx, e);

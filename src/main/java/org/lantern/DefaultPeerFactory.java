@@ -190,7 +190,10 @@ public class DefaultPeerFactory implements PeerFactory {
         // We can get multiple notifications for the same peer, in which case
         // they'll already have a counter.
         if (peer.getTrafficCounter() == null) {
+            log.debug("Setting traffic counter...");
             peer.setTrafficCounter(trafficCounter);
+        } else {
+            log.debug("Peer already has traffic counter...");
         }
         final String address = isa.getAddress().getHostAddress();
         if (StringUtils.isBlank(peer.getIp())) {
@@ -198,6 +201,11 @@ public class DefaultPeerFactory implements PeerFactory {
         }
         if (peer.getPort() == 0) {
             peer.setPort(isa.getPort());
+        }
+        if (peer.getRosterEntry() == null) {
+            log.debug("Setting roster entry");
+            final URI uri = LanternUtils.newURI(peer.getPeerid());
+            peer.setRosterEntry(rosterEntry(uri));
         }
         peer.setType(type.toString());
         updateGeoData(peer, isa.getAddress());
@@ -266,6 +274,8 @@ public class DefaultPeerFactory implements PeerFactory {
                     certsToPeers);
                 return;
             }
+            log.debug("Found peer by certificate!!!");
+            peer.setMode(Mode.get);
             updatePeer(peer, (InetSocketAddress)channel.getRemoteAddress(), 
                 Type.pc, counter);
         } catch (final CertificateEncodingException e) {

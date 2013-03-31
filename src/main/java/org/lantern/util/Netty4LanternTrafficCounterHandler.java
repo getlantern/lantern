@@ -18,19 +18,18 @@ public class Netty4LanternTrafficCounterHandler extends GlobalTrafficShapingHand
     private long lastConnected = 0L;
 
     public Netty4LanternTrafficCounterHandler(
-        final ScheduledExecutorService executor, final boolean connected) {
+        final ScheduledExecutorService executor) {
         super(executor, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
-        
-        // This means we're starting out connected, so make sure to increment
-        // the channels and such. This will happen for incoming sockets
-        // where this class is added dynamically after the initial connection.
-        if (connected) {
-            this.connectedChannels.incrementAndGet();
-            this.lastConnected = System.currentTimeMillis();
-        }
     }
 
-
+    @Override
+    public void incrementSockets() {
+        // This is often necessary because this handler will be added
+        // dynamically in connection events themselves, so otherwise it would
+        // miss connections.
+        this.connectedChannels.incrementAndGet();
+    }
+    
     /**
      * Calls {@link ChannelHandlerContext#fireChannelActive()} to forward
      * to the next {@link ChannelStateHandler} in the {@link ChannelPipeline}.
