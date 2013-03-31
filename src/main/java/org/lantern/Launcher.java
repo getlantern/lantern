@@ -477,13 +477,11 @@ public class Launcher {
                 LOG.error("Could not configure gnome autostart", e);
             }
         }
-        
-        // We also want to make sure our icons are all good...
-        // We might need to modify /opt/lantern/lantern.desktop
-        // and /usr/share/applications/lantern.desktop, adding 
-        // StartupWMClass to 'em.
-        LanternUtils.addStartupWMClass("/opt/lantern/lantern.desktop");
-        LanternUtils.addStartupWMClass("/usr/share/applications/lantern.desktop");
+
+        // Make sure our launcher entry has the Lantern icon, as opposed to
+        // the stock Chrome one.
+        LanternUtils.addStartupWMClass(
+                "/usr/share/applications/lantern.desktop");
     }
 
     private static final String CIPHER_SUITE_LOW_BIT =
