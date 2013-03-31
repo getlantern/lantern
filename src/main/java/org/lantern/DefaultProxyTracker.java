@@ -477,7 +477,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private Netty3LanternTrafficCounterHandler netty3TrafficCounter() {
         final Netty3LanternTrafficCounterHandler handler =
-            new Netty3LanternTrafficCounterHandler(this.timer, false);
+            new Netty3LanternTrafficCounterHandler(this.timer);
         netty3TrafficShapers.add(handler);
         return handler;
     }
@@ -485,7 +485,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private Netty4LanternTrafficCounterHandler netty4TrafficCounter() {
         final Netty4LanternTrafficCounterHandler handler =
                 new Netty4LanternTrafficCounterHandler(
-                        netty4TrafficCounterExecutor, false);
+                        netty4TrafficCounterExecutor);
         netty4TrafficShapers.add(handler);
         return handler;
     }
