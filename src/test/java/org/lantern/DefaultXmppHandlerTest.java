@@ -2,8 +2,6 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashSet;
-
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
@@ -43,7 +41,7 @@ public class DefaultXmppHandlerTest {
         TestUtils.load(true);
         final Model model = TestUtils.getModel();
         final org.lantern.state.Settings settings = model.getSettings();
-        settings.setProxies(new HashSet<String>());
+        //settings.setProxies(new HashSet<String>());
         
         settings.setMode(Mode.get);
         this.closedBetaEvent = null;
