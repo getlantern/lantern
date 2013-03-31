@@ -18,8 +18,7 @@ echo "RELEASE flag is $RELEASE"
 #INSTALL4J_PASS=$2
 ./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Pwindows" $RELEASE || die "Could not build?"
 
-install4jc --win-keystore-password="#@$|bg77q" -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
-#install4jc --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
+install4jc --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
 #install4jc -L $INSTALL4J_KEY --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
 #/Applications/install4j\ 5/bin/install4jc -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
 
