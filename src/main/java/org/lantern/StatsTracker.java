@@ -75,7 +75,7 @@ public class StatsTracker implements Stats {
     /**
      * Peer count tracking, just tracks current for now. 
      */
-    private final PeerCounter peersPerSecond;
+    //private final PeerCounter peersPerSecond;
     
     private boolean upnp;
     
@@ -90,7 +90,7 @@ public class StatsTracker implements Stats {
         final Censored censored) {
         this.lookupService = lookupService;
         this.censored = censored;
-        this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
+        //this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
         Events.register(this);
     }
     
@@ -119,20 +119,10 @@ public class StatsTracker implements Stats {
         downBytesPerSecondForPeers.reset();
         upBytesPerSecondToPeers.reset();
         downBytesPerSecondFromPeers.reset();
-        peersPerSecond.reset();
+        //peersPerSecond.reset();
         // others?
     }
-    
-    @Override
-    public long getPeerCount() {
-        return peersPerSecond.latestValue();
-    }
-    
-    @Override
-    public long getPeerCountThisRun() {
-        return peersPerSecond.lifetimeTotal();
-    }
-    
+
     @Override
     public long getUpBytesThisRun() {
         return getUpBytesThisRunForPeers() + // requests uploaded to internet for peers

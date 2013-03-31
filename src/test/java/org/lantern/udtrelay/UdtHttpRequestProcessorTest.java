@@ -26,6 +26,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
 import org.lantern.CertTrackingSslHandlerFactory;
 import org.lantern.HttpProxyServer;
@@ -66,7 +67,11 @@ public class UdtHttpRequestProcessorTest {
         Launcher.configureCipherSuites();
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
-        final HandshakeHandlerFactory hhf = new CertTrackingSslHandlerFactory(ksm);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final String dummyId = "test@gmail.com/-lan-22LJDEE";
+        trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
+        final HandshakeHandlerFactory hhf = 
+                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
@@ -99,7 +104,7 @@ public class UdtHttpRequestProcessorTest {
             request.addHeader("Host", "lantern.s3.amazonaws.com");
             request.addHeader("Proxy-Connection", "Keep-Alive");
             testRequestProcessing(createDummyChannel(), request, 
-                new FiveTuple(null, localRelayAddress, Protocol.TCP), ksm);
+                new FiveTuple(null, localRelayAddress, Protocol.TCP), trustStore);
         }
        
         /*
@@ -220,13 +225,11 @@ public class UdtHttpRequestProcessorTest {
     
     private void testRequestProcessing(
         final DummyChannel browserToProxyChannel, final HttpRequest request,
-        final FiveTuple ft, final LanternKeyStoreManager ksm) throws Exception {
+        final FiveTuple ft, final LanternTrustStore trustStore) throws Exception {
         // First we need the proxy tracker to 
  
         final ProxyTracker proxyTracker = newProxyTracker(ft);
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final String dummyId = "test@gmail.com/-lan-22LJDEE";
-        trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
+
         final UdtHttpRequestProcessor processor =
                 new UdtHttpRequestProcessor(proxyTracker, null, null, 
                     trustStore);
@@ -280,91 +283,46 @@ public class UdtHttpRequestProcessorTest {
         }
     }
 
-
     private ProxyTracker newProxyTracker(final FiveTuple ft) {
         return new ProxyTracker() {
-            
             @Override
             public void stop() {}
-            
             @Override
             public void start() throws Exception {}
-            
             @Override
-            public boolean hasProxy() {
-                return false;
-            }
-            
+            public boolean hasProxy() {return false;}
             @Override
-            public ProxyHolder getProxy() {
-                return null;
-            }
-            
+            public ProxyHolder getProxy() {return null;}
             @Override
-            public ProxyHolder getLaeProxy() {
-                return null;
-            }
-            
+            public ProxyHolder getLaeProxy() {return null;}
             @Override
-            public ProxyHolder getJidProxy() {
-                return new ProxyHolder("", ft, null);
-            }
-            
+            public ProxyHolder getJidProxy() {return new ProxyHolder("", ft, null);}
             @Override
-            public void onError(URI peerUri) {
-            }
-            
+            public void onError(URI peerUri) {}
             @Override
-            public void onCouldNotConnectToPeer(URI peerUri) {
-            }
-            
+            public void onCouldNotConnectToPeer(URI peerUri) {}
             @Override
-            public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {
-            }
-            
+            public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {}
             @Override
-            public void onCouldNotConnect(ProxyHolder proxyAddress) {
-            }
-            
+            public void onCouldNotConnect(ProxyHolder proxyAddress) {}
             @Override
-            public void removePeer(URI uri) {
-            }
-            
+            public void removePeer(URI uri) {}
             @Override
-            public boolean isEmpty() {
-                return false;
-            }
-            
+            public boolean isEmpty() {return false;}
             @Override
-            public boolean hasJidProxy(URI uri) {
-                return false;
-            }
-            
+            public boolean hasJidProxy(URI uri) {return false;}
             @Override
-            public void clearPeerProxySet() {
-            }
-            
+            public void clearPeerProxySet() {}
             @Override
-            public void clear() {
-                
-            }
-            
+            public void clear() {}
             @Override
-            public void addProxy(InetSocketAddress iae) {
-                
-            }
-            
+            public void addLaeProxy(String cur) {}
             @Override
-            public void addProxy(String hostPort) {
-            }
-            
+            public void addJidProxy(URI jid) {}
             @Override
-            public void addLaeProxy(String cur) {
-            }
-            
+            public void addProxy(URI jid, String hostPort) {}
             @Override
-            public void addJidProxy(URI jid) {
-            }
+            public void addProxy(URI jid, InetSocketAddress iae) {}
         };
     }
 }

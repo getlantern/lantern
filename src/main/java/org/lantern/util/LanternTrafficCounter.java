@@ -16,4 +16,6 @@ public interface LanternTrafficCounter {
 
     long getCurrentWrittenBytes();
 
+    void incrementSockets();
+
 }

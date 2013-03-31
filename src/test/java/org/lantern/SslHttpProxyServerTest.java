@@ -2,6 +2,8 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -13,6 +15,7 @@ import org.apache.http.util.EntityUtils;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
 import org.lantern.util.HttpClientFactory;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -30,9 +33,12 @@ public class SslHttpProxyServerTest {
             new org.jboss.netty.util.HashedWheelTimer();
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
-        final HandshakeHandlerFactory hhf = new CertTrackingSslHandlerFactory(ksm);
+        final LanternTrustStore ts = new LanternTrustStore(ksm);
+        final String testId = "127.0.0.1";//"test@gmail.com/somejidresource";
+        ts.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
+        final HandshakeHandlerFactory hhf = 
+            new CertTrackingSslHandlerFactory(new HashedWheelTimer(), ts);
         final int port = LanternUtils.randomPort();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         //final PeerFactory peerFactory = new Pee
         //final GlobalLanternServerTrafficShapingHandler trafficHandler =
         //        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory);
@@ -50,11 +56,9 @@ public class SslHttpProxyServerTest {
         
         LanternUtils.waitForServer(server.getPort());
         
-        final String testId = "127.0.0.1";//"test@gmail.com/somejidresource";
-        trustStore.addBase64Cert(testId, ksm.getBase64Cert(testId));
         
         final LanternSocketsUtil socketsUtil = 
-                new LanternSocketsUtil(null, trustStore);
+                new LanternSocketsUtil(null, ts);
         final HttpClientFactory httpFactory =
                 new HttpClientFactory(socketsUtil, null);
                 //TestUtils.getHttpClientFactory();

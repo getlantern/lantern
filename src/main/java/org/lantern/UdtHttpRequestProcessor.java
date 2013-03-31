@@ -159,7 +159,7 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                     }
                     
                     final SSLEngine engine = 
-                        trustStore.getContext().createSSLEngine();
+                        trustStore.getClientContext().createSSLEngine();
                     engine.setUseClientMode(true);
                     p.addLast("ssl", new SslHandler(engine));
                     p.addLast(

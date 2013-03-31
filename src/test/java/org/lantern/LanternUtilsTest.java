@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
@@ -114,7 +115,7 @@ public class LanternUtilsTest {
         // own key to the *trust store* from the key store.
         
         final LanternTrustStore ts = TestUtils.getTrustStore();
-        ts.addBase64Cert(xmpp.getJid(), ksm.getBase64Cert(xmpp.getJid()));
+        ts.addBase64Cert(new URI(xmpp.getJid()), ksm.getBase64Cert(xmpp.getJid()));
 
 
         final SocketFactory clientFactory =
