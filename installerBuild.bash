@@ -13,6 +13,9 @@ then
     die "$0: Received $# args... version required"
 fi
 
+test -f ../secure/bns-osx-cert-developer-id-application.p12 || die "Need OSX signing certificate at ../secure/bns-osx-cert-developer-id-application.p12"
+test -f ../secure/bns_cert.p12 || die "Need windows signing certificate at ../secure/bns_cert.p12"
+
 javac -version 2>&1 | grep 1.7 && die "Cannot build with Java 7 due to bugs with generated class files and pac"
 
 which install4jc || die "No install4jc on PATH -- ABORTING"
