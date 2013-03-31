@@ -26,6 +26,9 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.lantern.event.Events;
+import org.lantern.event.PeerCertEvent;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
@@ -48,8 +51,9 @@ public class LanternTrustStore {
     private static final String ALG = "RSA";
 
     private SSLContext sslClientContext;
-    private SSLContext sslServerContext;
     private final KeyStoreManager ksm;
+
+    private KeyManagerFactory keyManagerFactory;
 
     /**
      * We re-create a random trust store on each run. This requires that
@@ -77,8 +81,8 @@ public class LanternTrustStore {
     }
 
     private void onTrustStoreChanged() {
+        this.keyManagerFactory = loadKeyManagerFactory();
         sslClientContext = provideClientSslContext();
-        sslServerContext = provideServerSslContext();
     }
 
     private void configureTrustStore() {
@@ -124,11 +128,7 @@ public class LanternTrustStore {
     public void addBase64Cert(final URI jid, final String base64Cert)
         throws IOException {
         log.debug("Adding base 64 cert for {} to store: {}", jid, TRUSTSTORE_FILE);
-        /*
-        if (this.certTracker != null) {
-            this.certTracker.addCert(base64Cert, fullJid);
-        }
-        */
+        Events.asyncEventBus().post(new PeerCertEvent(jid, base64Cert));
         // Alright, we need to decode the certificate from base 64, write it
         // to a file, and then use keytool to import it.
 
@@ -182,16 +182,26 @@ public class LanternTrustStore {
         return TRUSTSTORE_FILE.getAbsolutePath();
     }
 
+    /**
+     * Accessor for the client SSL context. This is regenerated whenever
+     * we receive new certificates. This also differs from the server SSL
+     * context in that it is initialized with null array of trust managers,
+     * which signals the use of the default trust managers specified in
+     * the javax.net.ssl.trustStore property. That overrides java's default
+     * trusted certificates. The same strategy can't be used on the server
+     * side, however, because java explicitly requires a TrustManager for 
+     * verifying trusted *clients* with mutual authentication turned on --
+     * passing null trust managers doesn't trigger the use of the default
+     * trust store for client authentication like it does for server 
+     * authentication.
+     * 
+     * @return The client SSL context.
+     */
     public SSLContext getClientContext() {
         return sslClientContext;
     }
-    
-    public SSLContext getServerContext() {
-        return sslServerContext;
-    }
 
     private SSLContext provideClientSslContext() {
-        final KeyManagerFactory kmf = loadKeyManagerFactory();
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
 
@@ -206,7 +216,7 @@ public class LanternTrustStore {
             // all the JVM's default trusted certs and only trust the few
             // certs we specify, and that file is generated on the fly
             // on each run, added to dynamically, and reloaded here.
-            context.init(kmf.getKeyManagers(), null, null);
+            context.init(this.keyManagerFactory.getKeyManagers(), null, null);
             return context;
         } catch (final Exception e) {
             throw new Error(
@@ -214,19 +224,6 @@ public class LanternTrustStore {
         }
     }
     
-
-    private SSLContext provideServerSslContext() {
-        final KeyManagerFactory kmf = loadKeyManagerFactory();
-        try {
-            final SSLContext context = SSLContext.getInstance("TLS");
-            context.init(kmf.getKeyManagers(), 
-                new TrustManager[]{new CertTrackingTrustManager(this)}, null);
-            return context;
-        } catch (final Exception e) {
-            throw new Error(
-                    "Failed to initialize the client-side SSLContext", e);
-        }
-    }
 
     private KeyManagerFactory loadKeyManagerFactory() {
         String algorithm =
@@ -344,5 +341,9 @@ public class LanternTrustStore {
             log.warn("Exception accessing keystore", e);
             return false;
         }
+    }
+
+    public KeyManagerFactory getKeyManagerFactory() {
+        return keyManagerFactory;
     }
 }

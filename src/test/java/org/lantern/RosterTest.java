@@ -75,7 +75,7 @@ public class RosterTest {
         RosterEntry rosterEntry = makeMockRosterEntry("totally different email key");
         final LanternRosterEntry lre =
             new LanternRosterEntry(rosterEntry);
-        roster.addEntry(lre);
+        roster.addEntry(lre, true);
         
         
         path.set("reset");

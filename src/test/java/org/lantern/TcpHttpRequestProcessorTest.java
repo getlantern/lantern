@@ -6,7 +6,6 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
@@ -31,6 +30,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
@@ -61,21 +61,26 @@ public class TcpHttpRequestProcessorTest {
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+
+        final String dummyId = "test@gmail.com/-lan-22LJDEE";
+        trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
+        
         final HandshakeHandlerFactory hhf = 
-            new CertTrackingSslHandlerFactory(ksm, trustStore);
+            new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore);
         final PeerFactory peerFactory = new PeerFactory() {
-            
+
             @Override
-            public void addOutgoingPeer(String fullJid, InetSocketAddress isa,
-                    Type type, LanternTrafficCounter trafficCounter) {
-                log.debug("OUTGOING PEER");
-            }
-            
-            @Override
-            public void addIncomingPeer(InetAddress address,
+            public void onOutgoingConnection(URI fullJid,
+                    InetSocketAddress isa, Type type,
                     LanternTrafficCounter trafficCounter) {
-                log.debug("INCOMING PEER");
+                log.debug("GOT OUTGOING CONNECTION EVENT!!");
             }
+
+            @Override
+            public void addPeer(URI fullJid, Type type) {
+                log.debug("Adding peer!!");
+            }
+
         };
         
         // Note that an internet connection is required to run this test.
@@ -105,7 +110,7 @@ public class TcpHttpRequestProcessorTest {
             request.addHeader("Host", "lantern.s3.amazonaws.com");
             request.addHeader("Proxy-Connection", "Keep-Alive");
             testRequestProcessing(createDummyChannel(), request, 
-                new FiveTuple(null, localProxyAddress, Protocol.TCP), ksm);
+                new FiveTuple(null, localProxyAddress, Protocol.TCP), trustStore);
         }
        
         /*
@@ -135,9 +140,10 @@ public class TcpHttpRequestProcessorTest {
             @Override
             public void run() {
                 if (ssl) {
-                    org.jboss.netty.util.Timer timer = 
+                    final org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
-                    final HttpProxyServer server = new StatsTrackingDefaultHttpProxyServer(port,
+                    final HttpProxyServer server = 
+                        new StatsTrackingDefaultHttpProxyServer(port,
                         new HttpResponseFilters() {
                             @Override
                             public HttpFilter getFilter(String arg0) {
@@ -146,9 +152,10 @@ public class TcpHttpRequestProcessorTest {
                         }, null, null,
                         provideClientSocketChannelFactory(), timer,
                         provideServerSocketChannelFactory(), hhf, null,
-                        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory));
+                        new GlobalLanternServerTrafficShapingHandler(timer));
                     try {
                         server.start();
+                        log.debug("SSL proxy server started");
                     } catch (final Exception e) {
                         log.error("Error starting server!!", e);
                     }
@@ -157,6 +164,7 @@ public class TcpHttpRequestProcessorTest {
                             new DefaultHttpProxyServer(port);
                     try {
                         server.start();
+                        log.debug("Proxy server started");
                     } catch (final Exception e) {
                         log.error("Error starting server!!", e);
                     }
@@ -246,13 +254,11 @@ public class TcpHttpRequestProcessorTest {
     
     private void testRequestProcessing(
         final DummyChannel browserToProxyChannel, final HttpRequest request,
-        final FiveTuple ft, final LanternKeyStoreManager ksm) throws Exception {
+        final FiveTuple ft, final LanternTrustStore trustStore) throws Exception {
         // First we need the proxy tracker to 
  
         final ProxyTracker proxyTracker = newProxyTracker(ft);
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final String dummyId = "test@gmail.com/-lan-22LJDEE";
-        trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
+
         final TcpHttpRequestProcessor processor =
             new TcpHttpRequestProcessor(proxyTracker,
                 new NioClientSocketChannelFactory(),
@@ -278,91 +284,46 @@ public class TcpHttpRequestProcessorTest {
         final File test = new File("src/test/resources/testFile.txt");
         assertEquals(IOUtils.toString(new FileInputStream(test)), body);
     }
-
     private ProxyTracker newProxyTracker(final FiveTuple ft) {
         return new ProxyTracker() {
-            
             @Override
             public void stop() {}
-            
             @Override
             public void start() throws Exception {}
-            
             @Override
-            public boolean hasProxy() {
-                return true;
-            }
-            
+            public boolean hasProxy() {return true;}
             @Override
-            public ProxyHolder getProxy() {
-                return new ProxyHolder("", ft, null);
-            }
-            
+            public ProxyHolder getProxy() {return new ProxyHolder("", ft, null);}
             @Override
-            public ProxyHolder getLaeProxy() {
-                return null;
-            }
-            
+            public ProxyHolder getLaeProxy() {return null;}
             @Override
-            public ProxyHolder getJidProxy() {
-                return new ProxyHolder("", ft, null);
-            }
-            
+            public ProxyHolder getJidProxy() {return new ProxyHolder("", ft, null);}
             @Override
-            public void onError(URI peerUri) {
-            }
-            
+            public void onError(URI peerUri) {}
             @Override
-            public void onCouldNotConnectToPeer(URI peerUri) {
-            }
-            
+            public void onCouldNotConnectToPeer(URI peerUri) {}
             @Override
-            public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {
-            }
-            
+            public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {}
             @Override
-            public void onCouldNotConnect(ProxyHolder proxyAddress) {
-            }
-            
+            public void onCouldNotConnect(ProxyHolder proxyAddress) {}
             @Override
-            public void removePeer(URI uri) {
-            }
-            
+            public void removePeer(URI uri) {}
             @Override
-            public boolean isEmpty() {
-                return false;
-            }
-            
+            public boolean isEmpty() {return false;}
             @Override
-            public boolean hasJidProxy(URI uri) {
-                return false;
-            }
-            
+            public boolean hasJidProxy(URI uri) {return false;}
             @Override
-            public void clearPeerProxySet() {
-            }
-            
+            public void clearPeerProxySet() {}
             @Override
-            public void clear() {
-                
-            }
-            
+            public void clear() {}
             @Override
-            public void addProxy(InetSocketAddress iae) {
-                
-            }
-            
+            public void addLaeProxy(String cur) {}
             @Override
-            public void addProxy(String hostPort) {
-            }
-            
+            public void addJidProxy(URI jid) {}
             @Override
-            public void addLaeProxy(String cur) {
-            }
-            
+            public void addProxy(URI jid, String hostPort) {}
             @Override
-            public void addJidProxy(URI jid) {
-            }
+            public void addProxy(URI jid, InetSocketAddress iae) {}
         };
     }
 }

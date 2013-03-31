@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -42,7 +43,7 @@ public class LanternSocketsUtilTest {
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         //final LanternTrustStore trustStore = TestUtils.buildTrustStore();
         final String testId = "test@gmail.com/somejidresource";
-        trustStore.addBase64Cert(testId, ksm.getBase64Cert(testId));
+        trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         
         final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
         //final LanternSocketsUtil util = TestUtils.getSocketsUtil();

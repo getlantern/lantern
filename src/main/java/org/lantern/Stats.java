@@ -6,10 +6,6 @@ public interface Stats {
 
     long getUptime();
 
-    long getPeerCount();
-
-    long getPeerCountThisRun();
-
     long getUpBytesThisRun();
 
     long getDownBytesThisRun();

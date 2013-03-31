@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.URI;
 import java.util.concurrent.ThreadFactory;
 
 import javax.net.ssl.SSLEngine;
@@ -57,6 +58,7 @@ import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
 import org.lantern.CertTrackingSslHandlerFactory;
 import org.lantern.LanternClientConstants;
@@ -89,7 +91,7 @@ public class UdtRelayTest {
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore ts = new LanternTrustStore(ksm);
         final HandshakeHandlerFactory hhf = 
-                new CertTrackingSslHandlerFactory(ksm, ts);
+                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), ts);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
@@ -392,7 +394,7 @@ public class UdtRelayTest {
 
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final String dummyId = "test@gmail.com/-lan-22LJDEE";
-        trustStore.addBase64Cert(dummyId, ksm.getBase64Cert(dummyId));
+        trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         try {
             boot.group(connectGroup)
                 .channelFactory(NioUdtProvider.BYTE_CONNECTOR)

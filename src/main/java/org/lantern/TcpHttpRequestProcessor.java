@@ -149,7 +149,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
         log.debug("Connecting to relay proxy {} for {}", proxyAddress, 
             request.getUri());
         final ChannelFuture connectFuture = cb.connect(proxyAddress);
-        log.debug("Got an outbound channel on: {}", hashCode());
+        log.debug("Created outbound channel for processor: {}", hashCode());
         
         final ChannelPipeline browserPipeline = 
             browserToProxyChannel.getPipeline();
