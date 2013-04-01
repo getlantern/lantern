@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
 import org.lantern.event.Events;
+import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
@@ -147,14 +147,13 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxy() {
         if (this.model.getSettings().isTcp()) {
-            try {
-                addProxy(new URI("fallback@gentlantern.org"), 
-                    LanternClientConstants.FALLBACK_SERVER_HOST,
-                    Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT),
-                    Type.cloud);
-            } catch (final URISyntaxException e) {
-                throw new RuntimeException("Bad fallback proxy URI!!!", e);
-            }
+            final URI uri = LanternUtils.newURI("fallback@gentlantern.org");
+            final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
+            cloud.setMode(org.lantern.state.Mode.give);
+            addProxy(uri, 
+                LanternClientConstants.FALLBACK_SERVER_HOST,
+                Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT),
+                Type.cloud);
         }
     }
 
@@ -455,6 +454,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Subscribe
     public void onSetupComplete(final SetupCompleteEvent event) {
         log.debug("Got setup complete!");
+        start();
+    }
+    
+    @Subscribe
+    public void onModeChanged(final ModeChangedEvent event) {
         start();
     }
 

@@ -189,7 +189,7 @@ public class DefaultPeerFactory implements PeerFactory {
     }
     
     @Override
-    public void addPeer(final URI fullJid, final Type type) {
+    public Peer addPeer(final URI fullJid, final Type type) {
         
         // This is a peer we know very little about at this point, as we 
         // haven't made any network connections with them.
@@ -199,11 +199,13 @@ public class DefaultPeerFactory implements PeerFactory {
         
         if (existing != null) {
             log.debug("Peer already exists...");
+            return existing;
         } else {
             log.debug("Adding peer {}", fullJid);
             final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type, 
                     "", 0, Mode.none, false, null, entry);
             peers.addPeer(fullJid, peer);
+            return peer;
         }
     }
     
