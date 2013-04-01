@@ -326,13 +326,17 @@ public class DefaultModelUtils implements ModelUtils {
     @Override
     public GeoData getGeoDataWithRetry(final String ip) {
         // attempt to get geodata until we succeed
+        long time = 5000;
         while (true) {
+            if (time < 100000) {
+                time *= 2;
+            }
             final GeoData geo = getGeoData(ip);
             if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
                 return geo;
             }
             try {
-                Thread.sleep(5);
+                Thread.sleep(time);
             } catch (InterruptedException e) {
                 // nothing to do
             }
