@@ -2,14 +2,17 @@
 
 var fs = require('fs'),
     url = require('url'),
+    path = require('path'),
     sleep = require('./node_modules/sleep'),
     faye = require('./node_modules/faye'),
-    _ = require('../app/lib/lodash.js')._,
+    lodash = require('../app/lib/lodash.js'),
+      _ = lodash._,
     helpers = require('../app/js/helpers.js'),
       makeLogger = helpers.makeLogger,
         log = makeLogger('api'),
       applyPatch = helpers.applyPatch,
       getByPath = helpers.getByPath,
+    RESET_MODEL = require(path.join(__dirname, 'RESET_MODEL.json')),
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
@@ -29,7 +32,6 @@ var fs = require('fs'),
 
 var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--skip-setup',
     VERSION = {major: 0, minor: 0, patch: 1},
-    RESET_MODEL = JSON.parse(fs.readFileSync(__dirname+'/RESET_MODEL.json')),
     RESET_INTERNAL_STATE = {
       lastModal: MODAL.none,
       modalsCompleted: {
