@@ -3,6 +3,7 @@ package org.lantern;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
+import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounter;
 
@@ -20,6 +21,5 @@ public interface PeerFactory {
     void onOutgoingConnection(URI fullJid, InetSocketAddress isa, Type type, 
             LanternTrafficCounter trafficCounter);
 
-            
-    void addPeer(URI fullJid, Type type);
+    Peer addPeer(URI fullJid, Type type);
 }
