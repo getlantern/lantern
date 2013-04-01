@@ -177,7 +177,7 @@ public class InteractionServlet extends HttpServlet {
 
         switch (modal) {
         case welcome:
-            this.model.getSettings().setMode(Mode.none);
+            this.model.getSettings().setMode(Mode.unknown);
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");

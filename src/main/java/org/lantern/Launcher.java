@@ -389,7 +389,7 @@ public class Launcher {
                     return;
                 }
                 // If the mode isn't set in the model, set the default.
-                if (set.getMode() == null || set.getMode() == Mode.none) {
+                if (set.getMode() == null || set.getMode() == Mode.unknown) {
                     if (censored.isCensored()) {
                         set.setMode(Mode.get);
                     } else {

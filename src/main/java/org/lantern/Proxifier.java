@@ -600,7 +600,7 @@ public class Proxifier implements ProxyService, LanternService {
                 LOG.debug("Error stopping proxying!", e);
             }
             break;
-        case none:
+        case unknown:
             break;
         default:
             break;
