@@ -451,7 +451,7 @@ the backend maintains on the frontend through comet publications:
             <td>time the user last connected to this peer</td></tr>
         <tr><td><strong>version</strong><br><em>string</em></td>
             <td>(last known) version of client software the peer is running</td></tr>
-        <tr><td><strong>mode</strong><br>"give" | "get"</td>
+        <tr><td><strong>mode</strong><br>"give" | "get" | "unknown"</td>
             <td>(last known) mode this peer is running in</td></tr>
         <tr><td><strong>ip</strong><br><em>string</em></td>
             <td>(last known) ip address of peer</td></tr>

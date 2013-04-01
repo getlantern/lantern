@@ -181,6 +181,7 @@ angular.module('app.i18n', [])
       LAST_CONNECTED: 'Last connected:',
       PCGIVE: 'Give Mode Lantern PC',
       PCGET: 'Get Mode Lantern PC',
+      PCUNKNOWN: 'Lantern PC (awaiting connection)',
       CLOUDGIVE: 'Lantern Cloud Proxy',
       LAEPROXYGIVE: 'Lantern App Engine Proxy',
       UP: 'up',

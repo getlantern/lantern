@@ -7266,6 +7266,10 @@ textarea.report {
   fill: #aad092;
 }
 
+.peer.unknown {
+  fill: #eeeeee;
+}
+
 .peer.cloud, .peer.laeproxy {
   fill: green !important;
 }
@@ -7305,6 +7309,9 @@ g.transferring .connection {
 }
 .tooltip.vis .tooltip-inner .give .header, .tooltip.vis .tooltip-inner .give .type {
   color: #aad092;
+}
+.tooltip.vis .tooltip-inner .unknown .header, .tooltip.vis .tooltip-inner .unknown .type {
+  color: #eeeeee;
 }
 .tooltip.vis .tooltip-inner .cloud .header, .tooltip.vis .tooltip-inner .laeproxy .header, .tooltip.vis .tooltip-inner .cloud .type, .tooltip.vis .tooltip-inner .laeproxy .type {
   color: green !important;

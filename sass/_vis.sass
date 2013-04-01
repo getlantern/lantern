@@ -1,4 +1,5 @@
 $giveModeColorMap: #aad092
+$unknownModeColor: #eee
 $cloudPeerColor: #008000
 
 #projectionButtons
@@ -42,6 +43,9 @@ $waterColor: rgba(6, 21, 50, .1)
 .peer.give, #self.give
   fill: $giveModeColorMap
 
+.peer.unknown
+  fill: $unknownModeColor
+
 .peer.cloud, .peer.laeproxy
   fill: $cloudPeerColor !important
 
@@ -72,6 +76,8 @@ g.transferring .connection
     +get-colored
   .give .header, .give .type
     color: $giveModeColorMap
+  .unknown .header, .unknown .type
+    color: $unknownModeColor
   .cloud .header, .laeproxy .header, .cloud .type, .laeproxy .type
     color: $cloudPeerColor !important
   .type

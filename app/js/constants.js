@@ -46,7 +46,7 @@ var DEFAULT_LANG = 'en',
       httpsEverywhere: 'https://www.eff.org/https-everywhere'
     },
     // enums
-    MODE = makeEnum(['give', 'get']),
+    MODE = makeEnum(['give', 'get', 'unknown']),
     OS = makeEnum(['windows', 'linux', 'osx']),
     MODAL = makeEnum([
       'settingsLoadFailure',
