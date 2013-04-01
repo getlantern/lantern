@@ -29,7 +29,7 @@ public class Settings {
 
     private boolean autoReport = true;
 
-    private Mode mode = Mode.none;
+    private Mode mode = Mode.unknown;
 
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
 
@@ -87,7 +87,7 @@ public class Settings {
     public enum Mode {
         give,
         get,
-        none
+        unknown
     }
 
     @JsonView(Run.class)

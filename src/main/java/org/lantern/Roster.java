@@ -146,7 +146,7 @@ public class Roster implements RosterListener {
             log.debug("Switched to give mode");
             sendKscopeAdToAllPeers();
             break;
-        case none:
+        case unknown:
             break;
         default:
             break;
