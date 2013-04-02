@@ -280,7 +280,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.5</version>
     </dependency>
 
     <dependency>
