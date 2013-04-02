@@ -118,7 +118,7 @@ public class Roster implements RosterListener {
     }
 
     public LanternRosterEntry getRosterEntry(final String key) {
-        return this.rosterEntries.get().get(key);
+        return this.rosterEntries.get().get(LanternXmppUtils.jidToEmail(key));
     }
 
     private void processPresence(final Presence presence, final boolean sync,
@@ -217,8 +217,8 @@ public class Roster implements RosterListener {
 
     private void onPresence(final Presence pres, final boolean sync,
         final boolean updateIndex) {
-        final String email = LanternXmppUtils.jidToEmail(pres.getFrom());
-        final LanternRosterEntry entry = this.rosterEntries.get().get(email);
+        //final String email = LanternXmppUtils.jidToEmail(pres.getFrom());
+        final LanternRosterEntry entry = getRosterEntry(pres.getFrom());
         if (entry != null) {
             entry.setAvailable(pres.isAvailable());
             entry.setStatusMessage(pres.getStatus());
@@ -257,7 +257,7 @@ public class Roster implements RosterListener {
         // work here to set the indexes for each entry.
         synchronized(this.rosterEntries) {
             final LanternRosterEntry elem =
-                this.rosterEntries.get().put(entry.getUser(), entry);
+                this.rosterEntries.get().put(entry.getEmail(), entry);
 
             // Only update the index if the element was actually added!
             if (elem == null) {
@@ -391,32 +391,8 @@ public class Roster implements RosterListener {
         this.kscopeRoutingTable.clear();
     }
 
-    /**
-     * Returns whether or not the given peer is on the roster with no pending
-     * subscription states.
-     *
-     * @param email The email of the peer.
-     * @return <code>true</code> if the peer is on the roster with no pending
-     * subscription states, otherwise <code>false</code>.
-     */
-    public boolean isFullyOnRoster(final String email) {
-        final LanternRosterEntry entry = this.rosterEntries.get().get(email);
-        if (entry == null) {
-            return false;
-        }
-        final String subscriptionStatus = entry.getSubscriptionStatus();
-
-        // If we're not still trying to subscribe or unsubscribe to this node,
-        // then it is a legitimate entry.
-        if (StringUtils.isBlank(subscriptionStatus)) {
-            return true;
-        }
-
-        return false;
-    }
-
     public boolean autoAcceptSubscription(final String from) {
-        final LanternRosterEntry entry = this.rosterEntries.get().get(from);
+        final LanternRosterEntry entry = getRosterEntry(from);
         if (entry == null) {
             log.debug("No matching roster entry!");
             return false;

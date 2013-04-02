@@ -91,7 +91,7 @@ public class DefaultPeerFactory implements PeerFactory {
         // It is possible and even likely we already know about this peer
         // through some other means, in which case we have to update the data
         // about that peer as necessary.
-        log.debug("Adding peer through kscop add...");
+        log.debug("Adding peer through kscope ad...");
         final String jid = ad.getJid();
         final URI uri = LanternUtils.newURI(jid);
         final Peer existing = this.peers.getPeer(uri);
@@ -194,7 +194,8 @@ public class DefaultPeerFactory implements PeerFactory {
         // This is a peer we know very little about at this point, as we 
         // haven't made any network connections with them.
         final LanternRosterEntry entry = rosterEntry(fullJid);
-
+        log.debug("Got roster entry: {}", entry);
+        
         final Peer existing = peers.getPeer(fullJid);
         
         if (existing != null) {
