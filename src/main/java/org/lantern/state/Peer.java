@@ -36,9 +36,9 @@ public class Peer {
 
     //private final String base64Cert;
 
-    private double lat;
+    private double lat = 0.0;
 
-    private double lon;
+    private double lon = 0.0;
     
     private String type;
     
@@ -103,6 +103,9 @@ public class Peer {
     }
 
     public double getLat() {
+        if (lat == 0.0) {
+            return Double.MAX_VALUE;
+        }
         return lat;
     }
 
@@ -111,6 +114,9 @@ public class Peer {
     }
 
     public double getLon() {
+        if (lon == 0.0) {
+            return Double.MAX_VALUE;
+        }
         return lon;
     }
 
