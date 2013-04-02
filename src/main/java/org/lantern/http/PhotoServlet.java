@@ -76,10 +76,12 @@ public final class PhotoServlet extends HttpServlet {
         final HttpServletResponse resp) throws ServletException,
         IOException {
 
-        final String referrer = req.getHeader("Referer");
+        final String referer = req.getHeader(HttpHeaders.Names.REFERER);
+        log.debug("Referer is: {}", referer);
         final String localEndpoint = StaticSettings.getLocalEndpoint();
-        if (!referrer.startsWith(localEndpoint)) {
-            sendError(resp, HttpStatus.SC_BAD_REQUEST, "referer must be localhost");
+        if (!referer.startsWith(localEndpoint)) {
+            sendError(resp, HttpStatus.SC_BAD_REQUEST, 
+                "referer must be localhost");
             return;
         }
 
