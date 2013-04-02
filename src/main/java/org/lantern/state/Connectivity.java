@@ -117,7 +117,7 @@ public class Connectivity {
     }
 
     @JsonView({Run.class})
-    public String getPeerId() {
+    public String getPeerid() {
         return peerId;
     }
 
