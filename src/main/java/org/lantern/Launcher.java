@@ -279,7 +279,7 @@ public class Launcher {
         processCommandLineOptions(cmd);
         LOG.debug("Processed command line options...");
 
-        threadPublicIpLookup();
+        model.getConnectivity().setInternet(false);
         threadPeriodicConnectivityUpdate();
 
         if (set.isUiEnabled()) {
@@ -317,25 +317,7 @@ public class Launcher {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
-        if (LanternUtils.hasNetworkConnection()) {
-            LOG.info("Got internet...");
-            launchWithOrWithoutUi();
-        } else {
-            // If we're running on startup, it's quite likely we just haven't
-            // connected to the internet yet. Let's wait for an internet
-            // connection and then start Lantern.
-            if (model.isLaunchd() || !set.isUiEnabled()) {
-                LOG.info("Waiting for internet connection...");
-                LanternUtils.waitForInternet();
-                launchWithOrWithoutUi();
-            }
-            // If setup is complete and we're not running on startup, open
-            // the dashboard.
-            else {
-                launchWithOrWithoutUi();
-            }
-        }
-
+        launchWithOrWithoutUi();
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
@@ -362,19 +344,45 @@ public class Launcher {
                     return;
                 }
                 if (ip.getHostAddress().equals(connectivity.getIp())) {
+                    final Location loc = model.getLocation();
+                    if (loc.getLat() == 0.0 && loc.getLon() == 0.0) {
+                        final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
+                        if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
+                            loc.setCountry(geo.getCountrycode());
+                            loc.setLat(geo.getLatitude());
+                            loc.setLon(geo.getLongitude());
+                            Events.sync(SyncPath.LOCATION, loc);
+                        }
+                    }
                     return; //no change to IP address, so nothing to do
                 }
+
                 connectivity.setInternet(true);
+                connectivity.setIp(ip.getHostAddress());
+                Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+
+                if (set.getMode() == null || set.getMode() == Mode.unknown) {
+                    if (censored.isCensored()) {
+                        set.setMode(Mode.get);
+                    } else {
+                        set.setMode(Mode.give);
+                    }
+                } else if (set.getMode() == Mode.give && censored.isCensored()) {
+                    //want to set the mode to get now so that we don't mistakenly
+                    //proxy any more than necessary
+                    set.setMode(Mode.get);
+                    LOG.info("Disconnected; setting giveModeForbidden");
+                    Events.syncModal(model, Modal.giveModeForbidden);
+                }
+
                 final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
                 if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
                     loc.setCountry(geo.getCountrycode());
                     loc.setLat(geo.getLatitude());
                     loc.setLon(geo.getLongitude());
+                    Events.sync(SyncPath.LOCATION, loc);
                 }
-                Events.sync(SyncPath.LOCATION, loc);
-                Events.sync(SyncPath.CONNECTIVITY_INTERNET, connectivity.isInternet());
-                connectivity.setIp(ip.getHostAddress());
             }
         }, 0, LanternClientConstants.CONNECTIVITY_UPDATE_INTERVAL);
     }
@@ -386,40 +394,69 @@ public class Launcher {
      */
     private void threadPublicIpLookup() {
         if (LanternConstants.ON_APP_ENGINE) {
+            model.getConnectivity().setInternet(true);
             return;
         }
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                // This performs the public IP lookup so by the time we set
-                // GET versus GIVE mode we already know the IP and don't have
-                // to wait.
+                while (true) {
+                    // This performs the public IP lookup so by the time we set
+                    // GET versus GIVE mode we already know the IP and don't
+                    // have to wait.
 
-                // We get the address here to set it in Connectivity.
-                final InetAddress ip =
-                    new PublicIpAddress().getPublicIpAddress();
-                if (ip == null) {
-                    LOG.info("No IP -- possibly no internet connection");
-                    return;
-                }
-                // If the mode isn't set in the model, set the default.
-                if (set.getMode() == null || set.getMode() == Mode.unknown) {
-                    if (censored.isCensored()) {
+                    // We get the address here to set it in Connectivity.
+                    final InetAddress ip = new PublicIpAddress().getPublicIpAddress();
+                    LOG.info("Got address " + ip);
+                    if (ip == null) {
+                        LOG.info("No IP -- possibly no internet connection");
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            // ok to fail
+                        }
+                        model.getConnectivity().setInternet(false);
+                        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+                        continue;
+                    }
+                    model.getConnectivity().setInternet(true);
+                    // If the mode isn't set in the model, set the default.
+
+                    if (set.getMode() == null || set.getMode() == Mode.unknown) {
+                        if (censored.isCensored()) {
+                            set.setMode(Mode.get);
+                        } else {
+                            set.setMode(Mode.give);
+                        }
+                    } else if (set.getMode() == Mode.give && censored.isCensored()) {
+                        //want to set the mode to get now so that we don't mistakenly
+                        //proxy any more than necessary
                         set.setMode(Mode.get);
-                    } else {
-                        set.setMode(Mode.give);
+                        Events.syncModal(model, Modal.giveModeForbidden);
+                    }
+
+                    String hostAddress = ip.getHostAddress();
+                    model.getConnectivity().setIp(hostAddress);
+
+                    LOG.info("Syncing settings/connectivity");
+                    Events.sync(SyncPath.SETTINGS, model.getSettings());
+                    Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+
+                    final GeoData geo = modelUtils
+                            .getGeoDataWithRetry(hostAddress);
+                    final Location loc = model.getLocation();
+                    loc.setCountry(geo.getCountrycode());
+                    loc.setLat(geo.getLatitude());
+                    loc.setLon(geo.getLongitude());
+
+                    Events.sync(SyncPath.LOCATION, model.getLocation());
+                    try {
+                        //sleep for one minute on successful ip lookup
+                        Thread.sleep(60 * 1000);
+                    } catch (InterruptedException e) {
+                        // ok to fail
                     }
                 }
-
-                String hostAddress = ip.getHostAddress();
-                model.getConnectivity().setIp(hostAddress);
-
-                final GeoData geo = modelUtils.getGeoDataWithRetry(hostAddress);
-                final Location loc = model.getLocation();
-                loc.setCountry(geo.getCountrycode());
-                loc.setLat(geo.getLatitude());
-                loc.setLon(geo.getLongitude());
-
             }
 
         }, "Public-IP-Lookup-Thread");
@@ -627,8 +664,6 @@ public class Launcher {
         LOG.debug("Is launchd: {}", model.isLaunchd());
         launchLantern();
 
-        model.getConnectivity().setInternet(
-            LanternUtils.hasNetworkConnection());
     }
 
     public void launchLantern() {
