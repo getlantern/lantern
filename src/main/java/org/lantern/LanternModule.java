@@ -68,16 +68,10 @@ public class LanternModule extends AbstractModule {
     
     private static final Logger log = 
         LoggerFactory.getLogger(LanternModule.class);
-    private final LocalCipherProvider localCipherProvider;
+    private LocalCipherProvider localCipherProvider;
+    
+    private EncryptedFileService encryptedFileService;
 
-    public LanternModule() {
-        this(null);
-    }
-    
-    public LanternModule(final LocalCipherProvider localCipherProvider) {
-        this.localCipherProvider = localCipherProvider;
-    }
-    
     @Override 
     protected void configure() {
         // Tweak Netty naming...
@@ -166,8 +160,11 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    public static EncryptedFileService provideEncryptedService(
+    public EncryptedFileService provideEncryptedService(
         final LocalCipherProvider lcp) {
+        if (this.encryptedFileService != null) {
+            return this.encryptedFileService;
+        }
         return new DefaultEncryptedFileService(lcp);
     }
     
@@ -289,5 +286,13 @@ public class LanternModule extends AbstractModule {
         } else {
             return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         }
+    }
+
+    public void setEncryptedFileService(EncryptedFileService encryptedFileService) {
+        this.encryptedFileService = encryptedFileService;
+    }
+
+    public void setLocalCipherProvider(LocalCipherProvider localCipherProvider) {
+        this.localCipherProvider = localCipherProvider;
     }
 }

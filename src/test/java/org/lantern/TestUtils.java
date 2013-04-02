@@ -35,8 +35,6 @@ import org.slf4j.LoggerFactory;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 
 public class TestUtils {
 
@@ -132,15 +130,17 @@ public class TestUtils {
             return;
         }
         loaded = true;
-        injector = Guice.createInjector(
-            new LanternModule(new DefaultLocalCipherProvider()));
+        final LanternModule lm = new LanternModule();
+        lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
+        lm.setEncryptedFileService(new UnencryptedFileService());
+        injector = Guice.createInjector(lm);
         
         xmppHandler = instance(DefaultXmppHandler.class);
         socketsUtil = instance(LanternSocketsUtil.class);
         ksm = instance(LanternKeyStoreManager.class);
         lanternXmppUtil = instance(LanternXmppUtil.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        encryptedFileService = instance(UnencryptedFileService.class);
+        encryptedFileService = instance(EncryptedFileService.class);
         model = instance(Model.class);
         jettyLauncher = instance(JettyLauncher.class);
         messageService = instance(MessageService.class);
