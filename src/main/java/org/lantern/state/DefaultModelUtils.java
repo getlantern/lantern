@@ -32,7 +32,6 @@ import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
-import org.lantern.state.Settings.Mode;
 import org.lantern.util.HttpClientFactory;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.util.NetworkUtils;

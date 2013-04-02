@@ -32,6 +32,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
+import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.LanternTrafficCounter;
@@ -77,9 +78,11 @@ public class TcpHttpRequestProcessorTest {
             }
 
             @Override
-            public void addPeer(URI fullJid, Type type) {
+            public Peer addPeer(URI fullJid, Type type) {
                 log.debug("Adding peer!!");
+                return null;
             }
+
 
         };
         
