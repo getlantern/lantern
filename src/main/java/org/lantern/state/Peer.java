@@ -297,6 +297,7 @@ public class Peer {
     }
 
     @JsonSerialize(include=Inclusion.NON_NULL)
+    @JsonView({Run.class})
     public LanternRosterEntry getRosterEntry() {
         return rosterEntry;
     }
