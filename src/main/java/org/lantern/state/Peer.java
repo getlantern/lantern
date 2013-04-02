@@ -103,7 +103,7 @@ public class Peer {
     }
 
     public double getLat() {
-        if (lat == 0.0) {
+        if (!hasGeoData()) {
             return Double.MAX_VALUE;
         }
         return lat;
@@ -114,7 +114,7 @@ public class Peer {
     }
 
     public double getLon() {
-        if (lon == 0.0) {
+        if (!hasGeoData()) {
             return Double.MAX_VALUE;
         }
         return lon;
@@ -122,6 +122,11 @@ public class Peer {
 
     public void setLon(double longitude) {
         this.lon = longitude;
+    }
+    
+    @JsonIgnore
+    public boolean hasGeoData() {
+        return lat != 0.0 && lon != 0.0;
     }
 
     public String getType() {

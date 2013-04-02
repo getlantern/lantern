@@ -2,8 +2,6 @@ package org.lantern.state;
 
 import java.util.List;
 
-import org.lantern.state.Settings.Mode;
-
 /**
  * Interface for settings that are mutable. This allows helper classes to
  * implement the same interface as data beans.
@@ -39,8 +37,6 @@ public interface ModelService {
     Mode getMode();
 
     void invite(List<String> emails);
-
-    void setProxiedSites(List<String> proxiedSites);
 
     void resetProxiedSites();
 

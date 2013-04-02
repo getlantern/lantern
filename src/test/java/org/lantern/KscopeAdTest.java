@@ -2,19 +2,14 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+
+import org.apache.commons.io.FileUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
-import org.lantern.state.Model;
-import org.lantern.state.Settings.Mode;
+import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-
-import java.io.File;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Test for kaleidoscope advertisement read/write/mapping

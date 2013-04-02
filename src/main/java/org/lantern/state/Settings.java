@@ -84,12 +84,6 @@ public class Settings {
 
     private boolean useCloudProxies = true;
     
-    public enum Mode {
-        give,
-        get,
-        unknown
-    }
-
     @JsonView(Run.class)
     public String getLang() {
         return lang;

@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.LanternUtils;
-import org.lantern.state.StaticSettings;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.Roster;
@@ -21,7 +20,6 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Notification.MessageType;
-import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,12 +133,6 @@ public class DefaultModelService implements ModelService {
     public void resetProxiedSites() {
         Settings settings = model.getSettings();
         settings.getWhitelist().reset();
-        proxifier.refresh();
-    }
-
-    @Override
-    public void setProxiedSites(List<String> proxiedSites) {
-        model.getSettings().setProxiedSites(proxiedSites.toArray(new String[0]));
         proxifier.refresh();
     }
 

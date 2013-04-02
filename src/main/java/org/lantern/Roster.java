@@ -27,6 +27,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Settings;
@@ -174,7 +175,7 @@ public class Roster implements RosterListener {
             return;
         }
         // only advertise if we're in GET mode
-        if(model.getSettings().getMode() != Settings.Mode.give) {
+        if(model.getSettings().getMode() != Mode.give) {
             log.debug("Not sending kscope advertisement in give mode");
             return;
         }

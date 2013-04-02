@@ -5,8 +5,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

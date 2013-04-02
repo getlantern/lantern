@@ -124,7 +124,7 @@ public class DefaultPeerFactory implements PeerFactory {
     }
     
     private void updateGeoData(final Peer peer, final String address) {
-        if (StringUtils.isNotBlank(peer.getCountry())) {
+        if (peer.hasGeoData()) {
             log.debug("Peer already had geo data: {}", peer);
             return;
         }
@@ -204,7 +204,7 @@ public class DefaultPeerFactory implements PeerFactory {
         } else {
             log.debug("Adding peer {}", fullJid);
             final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type, 
-                    "", 0, Mode.none, false, null, entry);
+                    "", 0, Mode.unknown, false, null, entry);
             peers.addPeer(fullJid, peer);
             return peer;
         }

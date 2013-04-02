@@ -1,6 +1,6 @@
 package org.lantern.event;
 
-import org.lantern.state.Settings.Mode;
+import org.lantern.state.Mode;
 
 public class ModeChangedEvent {
 
