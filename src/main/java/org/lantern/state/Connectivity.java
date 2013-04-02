@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.LanternConstants;
@@ -35,7 +36,6 @@ public class Connectivity {
     private boolean invited = false;
 
     private String peerId = "";
-    //private PeerProxyManager peerProxyManager;
 
     private boolean lanternController;
 
@@ -56,42 +56,15 @@ public class Connectivity {
         return gtalk;
     }
 
-    /*
-    public Collection<Peer> getPeersCurrent() {
-        //return peers(LanternHub.trustedPeerProxyManager());
-        return Collections.emptyList();
-    }
-
-    @JsonView({Run.class, Persistent.class})
-    public Collection<Peer> getPeersLifetime() {
-        //return peers(LanternHub.trustedPeerProxyManager());
-        return Collections.emptyList();
-    }
-
-    public Collection<Peer> getAnonymousPeers() {
-        return Collections.emptyList();
-    }
-
-    private Collection<Peer> peers(final PeerProxyManager ppm) {
-        return ppm.getPeers().values();
-    }
-
-
-    @Subscribe
-    public void onConnectedPeers(final ConnectedPeersEvent cpe) {
-        if (this.peerProxyManager == null) {
-            this.peerProxyManager = cpe.getPeerProxyManager();
-        }
-    }
-    */
-
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
         this.gtalk = ase.getState();
-        Events.asyncEventBus().post(
-            new SyncEvent(SyncPath.CONNECTIVITY_GTALK, gtalk));
-        this.peerId = ase.getJid();
-        //Events.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
+        log.debug("Setting peer ID to: '{}'", ase.getJid());
+        final String id = ase.getJid();
+        if (StringUtils.isNotBlank(id)) {
+            this.peerId = id;
+        }
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.CONNECTIVITY, this));
     }
 
     @JsonView({Run.class})
