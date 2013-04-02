@@ -234,7 +234,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid);
     peerPaths.enter().append('path')
     peerPaths
-      .attr('class', function(d) { return 'peer '+d.mode+' '+d.type; })
+      .attr('class', function(d) { return 'peer '+d.mode+' '+d.type+(d.lat === 0 && d.lon === 0 ? ' hidden' : ''); })
       .attr('id', function(d) { return d.peerid; })
       .attr('data-original-title', function(d) { return hoverContentForPeer(d); })
       .attr('d', pathPeer);
