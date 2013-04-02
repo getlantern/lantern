@@ -39,5 +39,7 @@ public interface ModelService {
     void invite(List<String> emails);
 
     void resetProxiedSites();
+    
+    void setProxiedSites(List<String> proxiedSites);
 
 }

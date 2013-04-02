@@ -137,6 +137,12 @@ public class DefaultModelService implements ModelService {
     }
 
     @Override
+    public void setProxiedSites(List<String> proxiedSites) {
+        model.getSettings().setProxiedSites(proxiedSites.toArray(new String[0]));
+        proxifier.refresh();
+    }
+    
+    @Override
     public void setProxyAllSites(final boolean proxyAll) {
         this.model.getSettings().setProxyAllSites(proxyAll);
         Events.sync(SyncPath.PROXY_ALL_SITES, proxyAll);
