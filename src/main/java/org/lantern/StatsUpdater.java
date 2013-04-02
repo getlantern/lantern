@@ -81,7 +81,7 @@ public class StatsUpdater extends Thread {
             Events.sync(SyncPath.GLOBAL, model.getGlobal());
             Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (final IOException e) {
-            log.warn("Could not connect to stats url", e);
+            log.info("Could not connect to stats url", e);
         } catch (final URISyntaxException e) {
             log.error("URI error", e);
         } catch (IllegalAccessException e) {
