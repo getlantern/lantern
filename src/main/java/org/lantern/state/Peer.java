@@ -103,9 +103,6 @@ public class Peer {
     }
 
     public double getLat() {
-        if (!hasGeoData()) {
-            return Double.MAX_VALUE;
-        }
         return lat;
     }
 
@@ -114,9 +111,6 @@ public class Peer {
     }
 
     public double getLon() {
-        if (!hasGeoData()) {
-            return Double.MAX_VALUE;
-        }
         return lon;
     }
 
