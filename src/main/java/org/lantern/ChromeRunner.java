@@ -129,6 +129,14 @@ public class ChromeRunner {
         commands.add("--user-data-dir="+LanternClientConstants.CONFIG_DIR.getAbsolutePath());
         commands.add("--window-size="+screenWidth+","+screenHeight);
         commands.add("--window-position="+location.x+","+location.y);
+        commands.add("--disable-translate");
+        commands.add("--disable-sync");
+        commands.add("--no-default-browser-check");
+        commands.add("--disable-metrics");
+        commands.add("--disable-metrics-reporting");
+        commands.add("--temp-profile");
+        commands.add("--disable-plugins");
+        commands.add("--disable-java");
         commands.add("--app="+endpoint+"/index.html");
 
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
