@@ -120,7 +120,7 @@ public class Peer {
     
     @JsonIgnore
     public boolean hasGeoData() {
-        return lat != 0.0 && lon != 0.0;
+        return lat != 0.0 || lon != 0.0;
     }
 
     public String getType() {
