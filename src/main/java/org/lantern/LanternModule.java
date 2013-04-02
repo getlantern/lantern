@@ -51,6 +51,8 @@ import org.lantern.state.TransfersIo;
 import org.lantern.ui.SwtMessageService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.LanternHttpClient;
+import org.lastbamboo.common.portmapping.NatPmpService;
+import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -71,6 +73,10 @@ public class LanternModule extends AbstractModule {
     private LocalCipherProvider localCipherProvider;
     
     private EncryptedFileService encryptedFileService;
+    
+    private NatPmpService natPmpService;
+    
+    private UpnpService upnpService;
 
     @Override 
     protected void configure() {
@@ -132,7 +138,32 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    public static LookupService provideLookupService() {
+    public UpnpService provideUpnpService(final Stats stats) {
+        // Testing.
+        if (this.upnpService != null) {
+            return this.upnpService;
+        }
+        return new Upnp(stats);
+    }
+    
+    @Provides @Singleton
+    public NatPmpService provideNatPmpService(final Stats stats) {
+        // Testing.
+        if (this.natPmpService != null) {
+            return this.natPmpService;
+        }
+        final NatPmpImpl temp = new NatPmpImpl(stats);
+        if (temp.isNatPmpSupported()) {
+            return temp;
+        } else {
+            log.info("NAT-PMP not supported");
+            // We just use a dummy one in this case.
+            return new DummyNatPmpService();
+        }
+    }
+    
+    @Provides @Singleton
+    public LookupService provideLookupService() {
         final File unzipped = 
                 new File(LanternClientConstants.DATA_DIR, "GeoIP.dat");
         if (!unzipped.isFile())  {
@@ -294,5 +325,11 @@ public class LanternModule extends AbstractModule {
 
     public void setLocalCipherProvider(LocalCipherProvider localCipherProvider) {
         this.localCipherProvider = localCipherProvider;
+    }
+    public void setNatPmpService(NatPmpService natPmpService) {
+        this.natPmpService = natPmpService;
+    }
+    public void setUpnpService(UpnpService upnpService) {
+        this.upnpService = upnpService;
     }
 }
