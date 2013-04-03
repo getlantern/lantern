@@ -497,7 +497,8 @@ public class Launcher {
                 System.err.println("PLEASE INSTALL UNLIMITED STRENGTH POLICY FILES WITH ONE OF THE FOLLOWING:\n" +
                     "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
                     "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
-                    "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.");
+                    "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
+                    "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
                 //System.exit(1);
             }
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {

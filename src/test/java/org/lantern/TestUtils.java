@@ -27,6 +27,10 @@ import org.lantern.state.Settings;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.LanternHttpClient;
+import org.lastbamboo.common.portmapping.NatPmpService;
+import org.lastbamboo.common.portmapping.PortMapListener;
+import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -35,8 +39,6 @@ import org.slf4j.LoggerFactory;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 
 public class TestUtils {
 
@@ -132,15 +134,45 @@ public class TestUtils {
             return;
         }
         loaded = true;
-        injector = Guice.createInjector(
-            new LanternModule(new DefaultLocalCipherProvider()));
+        final LanternModule lm = new LanternModule();
+        lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
+        lm.setEncryptedFileService(new UnencryptedFileService());
+        lm.setUpnpService(new UpnpService() {
+            @Override
+            public void shutdown() {}
+            
+            @Override
+            public void removeUpnpMapping(int mappingIndex) {}
+            
+            @Override
+            public int addUpnpMapping(PortMappingProtocol protocol, int localPort,
+                    int externalPortRequested, PortMapListener portMapListener) {
+                return 0;
+            }
+        });
+        lm.setNatPmpService(new NatPmpService() {
+            
+            @Override
+            public void shutdown() {}
+            
+            @Override
+            public void removeNatPmpMapping(int mappingIndex) {}
+            
+            @Override
+            public int addNatPmpMapping(PortMappingProtocol protocol, int localPort,
+                    int externalPortRequested, PortMapListener portMapListener) {
+                return 0;
+            }
+        });
+        
+        injector = Guice.createInjector(lm);
         
         xmppHandler = instance(DefaultXmppHandler.class);
         socketsUtil = instance(LanternSocketsUtil.class);
         ksm = instance(LanternKeyStoreManager.class);
         lanternXmppUtil = instance(LanternXmppUtil.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        encryptedFileService = instance(UnencryptedFileService.class);
+        encryptedFileService = instance(EncryptedFileService.class);
         model = instance(Model.class);
         jettyLauncher = instance(JettyLauncher.class);
         messageService = instance(MessageService.class);

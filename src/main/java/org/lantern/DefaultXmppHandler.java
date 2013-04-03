@@ -130,7 +130,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private GoogleTalkState state;
 
-    private NatPmpService natPmpService;
+    private final NatPmpService natPmpService;
 
     private final UpnpService upnpService;
 
@@ -185,7 +185,9 @@ public class DefaultXmppHandler implements XmppHandler {
         final ModelIo modelIo, final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
-        final SslHttpProxyServer peerProxyServer) {
+        final SslHttpProxyServer peerProxyServer,
+        final NatPmpService natPmpService,
+        final UpnpService upnpService) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -198,7 +200,8 @@ public class DefaultXmppHandler implements XmppHandler {
         this.proxyTracker = proxyTracker;
         this.kscopeAdHandler = kscopeAdHandler;
         this.peerProxyServer = peerProxyServer;
-        this.upnpService = new Upnp(stats);
+        this.natPmpService = natPmpService;
+        this.upnpService = upnpService;
         new GiveModeConnectivityHandler();
         Events.register(this);
         //setupJmx();
@@ -212,18 +215,6 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void start() {
         this.modelUtils.loadClientSecrets();
-
-        // This just links connectivity with Google Talk login status when
-        // running in give mode.
-        NatPmpImpl temp = new NatPmpImpl(stats);
-        if (temp.isNatPmpSupported()) {
-            natPmpService = temp;
-        } else {
-            LOG.info("NAT-PMP not supported");
-            // We just use a dummy one in this case.
-            natPmpService = new DummyNatPmpService();
-        }
-        natPmpService = new NatPmpImpl(stats);
 
         XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
