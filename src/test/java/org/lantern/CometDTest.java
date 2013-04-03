@@ -29,12 +29,12 @@ public class CometDTest {
 
     @Test
     public void test() throws Exception {
-        final int port = LanternUtils.randomPort();
+        //final int port = LanternUtils.randomPort();
         //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
 
-        startJetty(TestUtils.getJettyLauncher(), port);
+        startJetty(TestUtils.getJettyLauncher());
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
         // httpClient.setMaxConnectionsPerAddress(2);
@@ -130,7 +130,7 @@ public class CometDTest {
         assertTrue("Expected variable to be true", bool.get());
     }
 
-    private void startJetty(final JettyLauncher jl, final int port) throws Exception {
+    private void startJetty(final JettyLauncher jl) throws Exception {
         // The order of getting things from the injector matters unfortunately,
         // so we have to do the below.
         //injector.getInstance(DefaultXmppHandler.class);
@@ -144,6 +144,13 @@ public class CometDTest {
         final Thread jetty = new Thread(runner, "Jetty-Test-Thread");
         jetty.setDaemon(true);
         jetty.start();
-        LanternUtils.waitForServer(port, 6000);
+        if (LanternUtils.waitForServer(StaticSettings.getApiPort(), 6000)) {
+            fail("Could not start Jetty?");
+        }
+    }
+
+    private void fail(String string) {
+        // TODO Auto-generated method stub
+        
     }
 }
