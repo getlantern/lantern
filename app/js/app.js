@@ -14,7 +14,7 @@ var app = angular.module('app', [
   ])
   // app config
   .constant('config', {
-    dev: true
+    dev: false
   })
   // angular ui bootstrap config
   .config(function($dialogProvider) {
