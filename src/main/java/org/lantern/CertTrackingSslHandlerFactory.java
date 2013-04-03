@@ -78,7 +78,7 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         log.debug("Creating new handshake handler...");
         
         final CertTrackingTrustManager certTracker = 
-            new CertTrackingTrustManager(trustStore);
+            new CertTrackingTrustManager();
         final SSLEngine engine = getServerContext(certTracker).createSSLEngine();
         engine.setUseClientMode(false);
         engine.setNeedClientAuth(true);
@@ -101,35 +101,28 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
     
     private class CertTrackingTrustManager implements X509TrustManager {
 
-        private final Logger log = LoggerFactory.getLogger(getClass());
+        private final Logger loggger = LoggerFactory.getLogger(getClass());
         
-        private final LanternTrustStore trustStore;
-
         private SslHandlerInterceptor handler;
 
-        private CertTrackingTrustManager(
-            final LanternTrustStore trustStore) {
-            this.trustStore = trustStore;
-        }
-        
         public void setSslHandler(final SslHandlerInterceptor handler) {
             this.handler = handler;
-            
         }
 
         @Override
         public void checkClientTrusted(final X509Certificate[] chain, String arg1)
                 throws CertificateException {
-            log.debug("Checking client trusted...");
+            loggger.debug("Checking client trusted...");
             final X509Certificate cert = chain[0];
             if (!trustStore.containsCertificate(cert)) {
+                loggger.warn("Certificate is not trusted!!");
                 throw new CertificateException("not trusted");
             }
             
-            log.debug("Certificate trusted");
+            loggger.debug("Certificate trusted");
             
             Events.asyncEventBus().post(
-                    new IncomingPeerEvent(handler.channel, handler.trafficCounter, cert));
+                new IncomingPeerEvent(handler.channel, handler.trafficCounter, cert));
             // We should already know about the peer at this point, and it's just
             // a matter of correlating that peer with this certificate and 
             // connection.
@@ -187,10 +180,9 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
                     toUse = existingHandler;
                 }
                 toUse.incrementSockets();
-                final Channel channel = ctx.getChannel();
-                this.channel = channel;
+                this.channel = ctx.getChannel();
                 this.trafficCounter = toUse;
-                channel.getPipeline().addFirst(PIPELINE_ID, toUse);
+                this.channel.getPipeline().addFirst(PIPELINE_ID, toUse);
             } finally {
                 // The message is then just passed to the next handler
                 super.channelConnected(ctx, e);
