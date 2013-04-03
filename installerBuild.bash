@@ -22,12 +22,13 @@ which install4jc || die "No install4jc on PATH -- ABORTING"
 printenv | grep INSTALL4J_KEY || die "Must have INSTALL4J_KEY defined with the Install4J license key to use"
 printenv | grep INSTALL4J_MAC_PASS || die "Must have OSX signing key password defined in INSTALL4J_MAC_PASS"
 printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key password defined in INSTALL4J_WIN_PASS"
+test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
 
 VERSION=$1
 INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
-perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE || die "Could not change the version to $INTERNAL_VERSION"
+perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE || die "Could not change the version to $INTERNAL_VERSION...file is: `cat $CONSTANTS_FILE`"
 if [ $# -gt "2" ]
 then
     RELEASE=$3;
