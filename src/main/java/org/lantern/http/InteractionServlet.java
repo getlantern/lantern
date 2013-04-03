@@ -416,12 +416,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, model.getModal());
                 break;
             case RESET:
-                try {
-                    File backup = new File(Desktop.getDesktopPath(), "lantern-model-backup");
-                    FileUtils.copyFile(LanternClientConstants.DEFAULT_MODEL_FILE, backup);
-                } catch (final IOException e) {
-                    log.warn("Could not backup model file.");
-                }
+                backupSettings();
                 Events.syncModal(model, Modal.welcome);
                 break;
             default:
@@ -524,7 +519,16 @@ public class InteractionServlet extends HttpServlet {
         }
         this.modelIo.write();
     }
-    
+
+    private void backupSettings() {
+        try {
+            File backup = new File(Desktop.getDesktopPath(), "lantern-model-backup");
+            FileUtils.copyFile(LanternClientConstants.DEFAULT_MODEL_FILE, backup);
+        } catch (final IOException e) {
+            log.warn("Could not backup model file.");
+        }
+    }
+
     private boolean handleSpecialInteractions(
             final Modal modal, final Interaction inter, final String json) {
         boolean handled = false;
@@ -537,6 +541,7 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case UNEXPECTEDSTATERESET:
                 log.debug("Handling unexpected state reset.");
+                backupSettings();
                 handleReset();
                 Events.syncModel(this.model);
             case UNEXPECTEDSTATEREFRESH:
