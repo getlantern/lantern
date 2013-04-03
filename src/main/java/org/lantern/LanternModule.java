@@ -51,6 +51,8 @@ import org.lantern.state.TransfersIo;
 import org.lantern.ui.SwtMessageService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.LanternHttpClient;
+import org.lastbamboo.common.portmapping.NatPmpService;
+import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -68,16 +70,14 @@ public class LanternModule extends AbstractModule {
     
     private static final Logger log = 
         LoggerFactory.getLogger(LanternModule.class);
-    private final LocalCipherProvider localCipherProvider;
+    private LocalCipherProvider localCipherProvider;
+    
+    private EncryptedFileService encryptedFileService;
+    
+    private NatPmpService natPmpService;
+    
+    private UpnpService upnpService;
 
-    public LanternModule() {
-        this(null);
-    }
-    
-    public LanternModule(final LocalCipherProvider localCipherProvider) {
-        this.localCipherProvider = localCipherProvider;
-    }
-    
     @Override 
     protected void configure() {
         // Tweak Netty naming...
@@ -138,7 +138,32 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    public static LookupService provideLookupService() {
+    public UpnpService provideUpnpService(final Stats stats) {
+        // Testing.
+        if (this.upnpService != null) {
+            return this.upnpService;
+        }
+        return new Upnp(stats);
+    }
+    
+    @Provides @Singleton
+    public NatPmpService provideNatPmpService(final Stats stats) {
+        // Testing.
+        if (this.natPmpService != null) {
+            return this.natPmpService;
+        }
+        final NatPmpImpl temp = new NatPmpImpl(stats);
+        if (temp.isNatPmpSupported()) {
+            return temp;
+        } else {
+            log.info("NAT-PMP not supported");
+            // We just use a dummy one in this case.
+            return new DummyNatPmpService();
+        }
+    }
+    
+    @Provides @Singleton
+    public LookupService provideLookupService() {
         final File unzipped = 
                 new File(LanternClientConstants.DATA_DIR, "GeoIP.dat");
         if (!unzipped.isFile())  {
@@ -166,8 +191,11 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    public static EncryptedFileService provideEncryptedService(
+    public EncryptedFileService provideEncryptedService(
         final LocalCipherProvider lcp) {
+        if (this.encryptedFileService != null) {
+            return this.encryptedFileService;
+        }
         return new DefaultEncryptedFileService(lcp);
     }
     
@@ -289,5 +317,19 @@ public class LanternModule extends AbstractModule {
         } else {
             return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         }
+    }
+
+    public void setEncryptedFileService(EncryptedFileService encryptedFileService) {
+        this.encryptedFileService = encryptedFileService;
+    }
+
+    public void setLocalCipherProvider(LocalCipherProvider localCipherProvider) {
+        this.localCipherProvider = localCipherProvider;
+    }
+    public void setNatPmpService(NatPmpService natPmpService) {
+        this.natPmpService = natPmpService;
+    }
+    public void setUpnpService(UpnpService upnpService) {
+        this.upnpService = upnpService;
     }
 }
