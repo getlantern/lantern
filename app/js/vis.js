@@ -29,6 +29,8 @@ angular.module('app.vis', [])
 function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc, CONFIG) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
+      PI = Math.PI,
+      TWO_PI = 2 * PI,
       abs = Math.abs,
       min = Math.min,
       max = Math.max,
@@ -55,7 +57,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       //φ = d3.scale.linear().range([-90, 90]).clamp(true),
       //zoom = d3.behavior.zoom().on('zoom', handleZoom),
       path = d3.geo.path().projection(projection),
-      greatArc = d3.geo.greatArc(),
       globePath = d3.select('#globe'),
       countryPaths, peerPaths, connectionPaths,
       //dragging = false, lastX, lastY,
@@ -84,7 +85,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       log.error('invalid projection:', key);
       return;
     }
-    // XXX check this:
+    /* XXX check this:
     switch (key) {
       case 'mercator':
         φ.range([-90, 90]);
@@ -95,6 +96,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       default:
         throw new Error('Unexpected key '+key);
     }
+    */
     $scope.projectionKey = key;
     projection = projections[key];
     path.projection(projection);
@@ -173,7 +175,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         projection.translate([dim.width >> 1, dim.height >> 1]);
         break;
       case 'mercator':
-        projection.scale(max(dim.width, dim.height));
+        projection.scale(max(dim.width, dim.height) / TWO_PI);
         projection.translate([dim.width >> 1, round(0.56*dim.height)]);
     }
     //zoom.scale(projection.scale());
@@ -197,7 +199,13 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
    function pathConnection(peer) {
     switch ($scope.projectionKey) {
       case 'orthographic':
-        return path(greatArc({source: [model.location.lon, model.location.lat], target: [peer.lon, peer.lat]}));
+        /* https://github.com/mbostock/d3/wiki/Geo-Paths#shape-generators
+         * "Note: to generate a great arc in D3, simply pass a LineString-type
+         * geometry object to d3.geo.path. D3’s projections use great-arc
+         * interpolation for intermediate points (with adaptive resampling), so
+         * there’s no need to use a shape generator to create great arcs."
+         */ 
+        return path({type: 'LineString', coordinates: [[model.location.lon, model.location.lat], [peer.lon, peer.lat]]});
       case 'mercator':
         var pSelf = projection([model.location.lon, model.location.lat]),
             pPeer = projection([peer.lon, peer.lat]),
