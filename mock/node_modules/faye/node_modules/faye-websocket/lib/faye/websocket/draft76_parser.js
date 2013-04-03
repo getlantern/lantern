@@ -25,17 +25,17 @@ var bigEndian = function(number) {
 Draft76Parser.prototype.getVersion = function() {
   return 'hixie-76';
 };
-  
+
 Draft76Parser.prototype.handshakeResponse = function(head) {
   var request = this._socket.request, tmp;
-  
+
   var response = new Buffer('HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
                             'Upgrade: WebSocket\r\n' +
                             'Connection: Upgrade\r\n' +
                             'Sec-WebSocket-Origin: ' + request.headers.origin + '\r\n' +
                             'Sec-WebSocket-Location: ' + this._socket.url + '\r\n\r\n',
                             'binary');
-  
+
   var signature = this.handshakeSignature(head);
   if (signature) {
     tmp = new Buffer(response.length + signature.length);
@@ -43,7 +43,7 @@ Draft76Parser.prototype.handshakeResponse = function(head) {
     signature.copy(tmp, response.length);
     response = tmp;
   }
-  
+
   return response;
 };
 
@@ -53,21 +53,21 @@ Draft76Parser.prototype.isOpen = function() {
 
 Draft76Parser.prototype.handshakeSignature = function(head) {
   if (head.length === 0) return null;
-  
+
   var request = this._socket.request,
-      
+
       key1    = request.headers['sec-websocket-key1'],
       value1  = numberFromKey(key1) / spacesInKey(key1),
-      
+
       key2    = request.headers['sec-websocket-key2'],
       value2  = numberFromKey(key2) / spacesInKey(key2),
-      
+
       MD5     = crypto.createHash('md5');
-  
+
   MD5.update(bigEndian(value1));
   MD5.update(bigEndian(value2));
   MD5.update(head.toString('binary'));
-  
+
   this._handshakeComplete = true;
   return new Buffer(MD5.digest('binary'), 'binary');
 };
@@ -75,14 +75,14 @@ Draft76Parser.prototype.handshakeSignature = function(head) {
 Draft76Parser.prototype.parse = function(data) {
   if (this._handshakeComplete)
     return Draft75Parser.prototype.parse.call(this, data);
-  
+
   return this.handshakeSignature(data);
 };
 
 Draft76Parser.prototype._parseLeadingByte = function(data) {
   if (data !== 0xFF)
     return Draft75Parser.prototype._parseLeadingByte.call(this, data);
-  
+
   this._closing = true;
   this._length = 0;
   this._stage = 1;

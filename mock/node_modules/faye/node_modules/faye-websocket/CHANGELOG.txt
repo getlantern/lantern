@@ -1,3 +1,8 @@
+=== 0.4.4 / 2013-02-14
+
+* Emit the 'close' event if TCP is closed before CLOSE frame is acked
+
+
 === 0.4.3 / 2012-07-09
 
 * Add 'Connection: close' to EventSource response

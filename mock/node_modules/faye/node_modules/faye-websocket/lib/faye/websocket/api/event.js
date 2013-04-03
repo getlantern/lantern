@@ -3,7 +3,7 @@ var Event = function(eventType, options) {
   for (var key in options)
     this[key] = options[key];
 };
-    
+
 Event.prototype.initEvent = function(eventType, canBubble, cancelable) {
   this.type       = eventType;
   this.bubbles    = canBubble;
@@ -12,7 +12,7 @@ Event.prototype.initEvent = function(eventType, canBubble, cancelable) {
 
 Event.prototype.stopPropagation = function() {};
 Event.prototype.preventDefault  = function() {};
-    
+
 Event.CAPTURING_PHASE = 1;
 Event.AT_TARGET       = 2;
 Event.BUBBLING_PHASE  = 3;

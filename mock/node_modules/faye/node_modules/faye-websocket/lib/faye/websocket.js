@@ -36,38 +36,38 @@ var WebSocket = function(request, socket, head, supportedProtos, options) {
   this._stream = request.socket;
   this._ping   = options && options.ping;
   this._pingId = 0;
-  
+
   var scheme = isSecureConnection(request) ? 'wss:' : 'ws:';
   this.url = scheme + '//' + request.headers.host + request.url;
   this.readyState = API.CONNECTING;
   this.bufferedAmount = 0;
-  
+
   var Parser = getParser(request);
   this._parser = new Parser(this, {protocols: supportedProtos});
-  
+
   var self = this;
   this._sendBuffer = [];
   process.nextTick(function() { self._open() });
-  
+
   var handshake = this._parser.handshakeResponse(head);
   if (this._parser.isOpen()) this.readyState = API.OPEN;
-  
+
   if (this._ping)
     this._pingLoop = setInterval(function() {
       self._pingId += 1;
       self.ping(self._pingId.toString());
     }, this._ping * 1000);
-  
+
   this.protocol = this._parser.protocol || '';
   this.version = this._parser.getVersion();
-  
+
   if (!this._stream || !this._stream.writable) return;
-  
+
   this._stream.setTimeout(0);
   this._stream.setNoDelay(true);
-  
+
   try { this._stream.write(handshake, 'binary') } catch (e) {}
-  
+
   this._stream.addListener('data', function(data) {
     var response = self._parser.parse(data);
     if (!response) return;

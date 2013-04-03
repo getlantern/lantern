@@ -9,11 +9,11 @@ var port   = process.argv[2] || 7000,
 var upgradeHandler = function(request, socket, head) {
   var ws = new WebSocket(request, socket, head, ['irc', 'xmpp'], {ping: 5});
   console.log('open', ws.url, ws.version, ws.protocol);
-  
+
   ws.onmessage = function(event) {
     ws.send(event.data);
   };
-  
+
   ws.onclose = function(event) {
     console.log('close', event.code, event.reason);
     ws = null;
@@ -23,12 +23,12 @@ var upgradeHandler = function(request, socket, head) {
 var requestHandler = function(request, response) {
   if (!WebSocket.EventSource.isEventSource(request))
     return staticHandler(request, response);
-  
+
   var es   = new WebSocket.EventSource(request, response),
       time = parseInt(es.lastEventId, 10) || 0;
-  
+
   console.log('open', es.url, es.lastEventId);
-  
+
   var loop = setInterval(function() {
     time += 1;
     es.send('Time: ' + time);
@@ -36,9 +36,9 @@ var requestHandler = function(request, response) {
       if (es) es.send('Update!!', {event: 'update', id: time});
     }, 1000);
   }, 2000);
-  
+
   es.send('Welcome!\n\nThis is an EventSource server.');
-  
+
   es.onclose = function() {
     clearInterval(loop);
     console.log('close', es.url);
@@ -48,7 +48,7 @@ var requestHandler = function(request, response) {
 
 var staticHandler = function(request, response) {
   var path = request.url;
-  
+
   fs.readFile(__dirname + path, function(err, content) {
     var status = err ? 404 : 200;
     response.writeHead(status, {'Content-Type': 'text/html'});

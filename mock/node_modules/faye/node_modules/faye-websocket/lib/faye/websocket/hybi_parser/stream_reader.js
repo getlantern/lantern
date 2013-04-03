@@ -20,9 +20,9 @@ StreamReader.prototype._readBuffer = function(length) {
       n      = queue.length,
       i      = 0,
       chunk, offset, size;
-  
+
   if (remain === 0) return buffer;
-  
+
   while (remain > 0 && i < n) {
     chunk = queue[i];
     offset = (i === 0) ? this._cursor : 0;
@@ -31,12 +31,12 @@ StreamReader.prototype._readBuffer = function(length) {
     remain -= size;
     i += 1;
   }
-  
+
   if (remain > 0) return null;
-  
+
   queue.splice(0, i-1);
   this._cursor = (i === 1 ? this._cursor : 0) + size;
-  
+
   return buffer;
 };
 

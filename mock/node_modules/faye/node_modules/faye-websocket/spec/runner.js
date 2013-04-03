@@ -14,7 +14,7 @@ EchoServer.prototype.listen = function(port, ssl) {
                  cert: fs.readFileSync(__dirname + '/server.crt')
                })
              : http.createServer()
-  
+
   server.addListener('upgrade', function(request, socket, head) {
     var ws = new WebSocket(request, socket, head, ["echo"])
     ws.onmessage = function(event) {
@@ -44,7 +44,7 @@ JS.require('JS.Test', function() {
     while (n--) ary[n] = buffer[n];
     this.assertEqual(array, ary);
   })
-  
+
   JS.require( 'ClientSpec',
               'Draft75ParserSpec',
               'Draft76ParserSpec',

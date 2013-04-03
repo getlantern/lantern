@@ -7,7 +7,7 @@ var instance = {
   getVersion: function() {
     return 'hixie-75';
   },
-  
+
   handshakeResponse: function() {
     return new Buffer('HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
                       'Upgrade: WebSocket\r\n' +
@@ -16,25 +16,25 @@ var instance = {
                       'WebSocket-Location: ' + this._socket.url + '\r\n\r\n',
                       'utf8');
   },
-  
+
   isOpen: function() {
     return true;
   },
-  
+
   parse: function(buffer) {
     var data, message, value;
     for (var i = 0, n = buffer.length; i < n; i++) {
       data = buffer[i];
-      
+
       switch (this._stage) {
         case 0:
           this._parseLeadingByte(data);
           break;
-          
+
         case 1:
           value = (data & 0x7F);
           this._length = value + 128 * this._length;
-          
+
           if (this._closing && this._length === 0) {
             this._socket.close(null, null, false);
           }
@@ -49,7 +49,7 @@ var instance = {
             }
           }
           break;
-          
+
         case 2:
           if (data === 0xFF) {
             message = new Buffer(this._buffer);
@@ -65,7 +65,7 @@ var instance = {
       }
     }
   },
-  
+
   _parseLeadingByte: function(data) {
     if ((0x80 & data) === 0x80) {
       this._length = 0;
@@ -76,17 +76,17 @@ var instance = {
       this._stage = 2;
     }
   },
-  
+
   frame: function(data) {
     if (Buffer.isBuffer(data)) return data;
-    
+
     var buffer = new Buffer(data, 'utf8'),
         frame  = new Buffer(buffer.length + 2);
-    
+
     frame[0] = 0x00;
     frame[buffer.length + 1] = 0xFF;
     buffer.copy(frame, 1);
-    
+
     return frame;
   }
 };
