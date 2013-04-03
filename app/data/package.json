@@ -1,6 +1,6 @@
 {
   "name": "lantern-ui",
-  "version": "0.0.2-0",
+  "version": "0.0.3-0",
   "author": "_pants <_pants@getlantern.org>",
   "description": "Web-based frontend, specifications, and mock backend for the Lantern user interface",
   "contributors": [
