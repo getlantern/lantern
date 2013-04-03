@@ -60,9 +60,10 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       globePath = d3.select('#globe'),
       countryPaths, peerPaths, connectionPaths,
       //dragging = false, lastX, lastY,
-      redrawThrottled = _.throttle(redraw, 500);
+      handleResizeThrottled = _.throttle(handleResize, 500);
 
   // disable adaptive resampling to allow projection transitions (http://bl.ocks.org/mbostock/3711652)
+  // warning: this also disables great-arc interpolation (see "Note" below)
   //_.each(projections, function(p) { p.precision(0); });
 
   $scope.projectionKey = 'mercator';
@@ -116,9 +117,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   function redraw() {
     globePath.attr('d', pathGlobe());
+    if (connectionPaths) connectionPaths.attr('d', pathConnection);
     if (model.location) drawSelf();
     if (peerPaths) peerPaths.attr('d', pathPeer);
-    if (connectionPaths) connectionPaths.attr('d', pathConnection);
     if (countryPaths) countryPaths.attr('d', pathForData);
   }
 
@@ -142,7 +143,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     }
     lastX = d3.event.x;
     lastY = d3.event.y;
-    redrawThrottled();
+    redraw();
   }).on('mouseup', function() {
     dragging = false;
   });
@@ -179,9 +180,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         projection.translate([dim.width >> 1, round(0.56*dim.height)]);
     }
     //zoom.scale(projection.scale());
-    redrawThrottled();
+    redraw();
   }
-  d3.select($window).on('resize', handleResize);
+  d3.select($window).on('resize', handleResizeThrottled);
 
   /*
   // XXX recenter around cursor
@@ -196,7 +197,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     return path({type: 'Sphere'});
   }
 
-   function pathConnection(peer) {
+  function pathConnection(peer) {
     switch ($scope.projectionKey) {
       case 'orthographic':
         /* https://github.com/mbostock/d3/wiki/Geo-Paths#shape-generators
@@ -205,14 +206,19 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
          * interpolation for intermediate points (with adaptive resampling), so
          * there’s no need to use a shape generator to create great arcs."
          */ 
-        return path({type: 'LineString', coordinates: [[model.location.lon, model.location.lat], [peer.lon, peer.lat]]});
+        return path({type: 'LineString',
+          coordinates: $scope.inGiveMode ?
+            [[model.location.lon, model.location.lat], [peer.lon, peer.lat]] :
+            [[peer.lon, peer.lat], [model.location.lon, model.location.lat]]});
       case 'mercator':
         var pSelf = projection([model.location.lon, model.location.lat]),
             pPeer = projection([peer.lon, peer.lat]),
             xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1],
             controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
             xC = controlPoint[0], yC = controlPoint[1];
-        return 'M'+xS+' '+yS+'Q'+xC+' '+yC+' '+xP+' '+yP;
+        return $scope.inGiveMode ?
+          'M'+xP+','+yP+' Q '+xC+','+yC+' '+xS+','+yS :
+          'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
     }
   }
 
@@ -234,12 +240,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         .range([CONFIG.style.connectionOpacityMin, CONFIG.style.connectionOpacityMax]);
 
   function getPeerid(d) { return d.peerid; }
+  function getTotalLength(d) { return this.getTotalLength(); }
+  function getDashArray(d) { var l = this.getTotalLength(); return l+' '+l; }
 
   $scope.$watch('model.peers', function(peers) {
     if (!peers) return;
 
     path.pointRadius(CONFIG.style.pointRadiusPeer);
-    peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid);
+    peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid)
     peerPaths.enter().append('path')
     peerPaths
       .attr('class', function(d) { return 'peer '+d.mode+' '+d.type+(d.lat === 0 && d.lon === 0 ? ' hidden' : ''); })
@@ -254,12 +262,12 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     connectionPaths = $$peers.selectAll('path.connection').data(connectedPeers, getPeerid);
     connectionPaths.enter().append('path').classed('connection', true)
       .attr('d', pathConnection)
-      .attr('stroke-dashoffset', function(d) { return this.getTotalLength(); })
-      .attr('stroke-dasharray', function(d) {
-        var totalLength = this.getTotalLength();
-        return totalLength + ' ' + totalLength;
-      })
-      .transition().duration(500).attr('stroke-dashoffset', 0);
+      .attr('stroke-dashoffset', getTotalLength)
+      .attr('stroke-dasharray', getDashArray)
+      .transition().duration(500).attr('stroke-dashoffset', 0)
+      .each('end', function() {
+        d3.select(this).attr('stroke-dashoffset', null).attr('stroke-dasharray', null);
+      });
     connectionPaths.style('stroke-opacity', function(d) { return connectionOpacityScale(d.bpsUpDn); });
     connectionPaths.exit().remove();
   }, true);
