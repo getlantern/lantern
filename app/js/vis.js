@@ -247,7 +247,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
     if (!peers) return;
 
     path.pointRadius(CONFIG.style.pointRadiusPeer);
-    peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid)
+    peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid);
     peerPaths.enter().append('path')
     peerPaths
       .attr('class', function(d) { return 'peer '+d.mode+' '+d.type+(d.lat === 0 && d.lon === 0 ? ' hidden' : ''); })
