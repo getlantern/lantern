@@ -338,10 +338,13 @@ public class LanternUtils {
             return -1;
         }
         for (int i = 0; i < 20; i++) {
-            // The +1 on the random int is because
-            // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
-            // by FindBugs.
-            final int randomPort = 1024 + (Math.abs(secureRandom.nextInt() + 1) % 60000);
+            int randomInt = secureRandom.nextInt();
+            if (randomInt == Integer.MIN_VALUE) {
+                // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
+                // by FindBugs.
+                randomInt = 0;
+            }
+            final int randomPort = 1024 + (Math.abs(randomInt) % 60000);
             ServerSocket sock = null;
             try {
                 sock = new ServerSocket();
@@ -371,7 +374,12 @@ public class LanternUtils {
             return port;
         } catch (final IOException e) {
             LOG.info("Still could not bind?");
-            return 1024 + (Math.abs(secureRandom.nextInt() + 1) % 60000);
+            int randomInt = secureRandom.nextInt();
+            if (randomInt == Integer.MIN_VALUE) {
+                // see above
+                randomInt = 0;
+            }
+            return 1024 + (Math.abs(randomInt) % 60000);
         } finally {
             if (sock != null) {
                 try {
