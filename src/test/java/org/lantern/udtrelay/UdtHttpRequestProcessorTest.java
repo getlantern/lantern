@@ -244,8 +244,11 @@ public class UdtHttpRequestProcessorTest {
             count++;
         }
         
-        assertTrue("Unexpected response: "+browserToProxyChannel.message, 
-                browserToProxyChannel.message.startsWith("HTTP/1.1 200 OK"));
+        assertTrue("Unexpected response. Beginning is:\n"+
+                browserToProxyChannel.message.substring(0, 200),
+                // Can apparently get HTTP 1.0 responses in some cases...
+                browserToProxyChannel.message.startsWith("HTTP/1.1 200 OK") ||
+                browserToProxyChannel.message.startsWith("HTTP/1.0 200 OK"));
         
         // Now check the body:
         final String body = 
