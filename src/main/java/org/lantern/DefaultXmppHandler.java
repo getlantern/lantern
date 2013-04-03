@@ -202,7 +202,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.peerProxyServer = peerProxyServer;
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
-        new GiveModeConnectivityHandler();
         Events.register(this);
         //setupJmx();
     }
@@ -772,42 +771,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
         conn.sendPacket(forHub);
     }
-
-    /*
-    private void sendInfoRequest() {
-        // Send an "info" message to gather proxy data.
-        LOG.info("Sending INFO request");
-        final Message msg = new Message();
-        msg.setType(Type.chat);
-        //msg.setType(Type.normal);
-        msg.setTo(LanternConstants.LANTERN_JID);
-        msg.setFrom(this.client.getXmppConnection().getUser());
-        final JSONObject json = new JSONObject();
-        final StatsTracker statsTracker = LanternHub.statsTracker();
-        json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
-        json.put(LanternConstants.BYTES_PROXIED,
-            statsTracker.getTotalBytesProxied());
-        json.put(LanternConstants.DIRECT_BYTES,
-            statsTracker.getDirectBytes());
-        json.put(LanternConstants.REQUESTS_PROXIED,
-            statsTracker.getTotalProxiedRequests());
-        json.put(LanternConstants.DIRECT_REQUESTS,
-            statsTracker.getDirectRequests());
-        json.put(LanternConstants.WHITELIST_ADDITIONS,
-            LanternUtils.toJsonArray(Whitelist.getAdditions()));
-        json.put(LanternConstants.WHITELIST_REMOVALS,
-            LanternUtils.toJsonArray(Whitelist.getRemovals()));
-        json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
-        final String str = json.toJSONString();
-        LOG.info("Reporting data: {}", str);
-        msg.setBody(str);
-
-        this.client.getXmppConnection().sendPacket(msg);
-        Whitelist.whitelistReported();
-        //statsTracker.clear();
-    }
-    */
-
 
     @Subscribe
     public void onUpdatePresenceEvent(final UpdatePresenceEvent upe) {
