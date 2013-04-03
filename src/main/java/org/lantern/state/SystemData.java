@@ -20,6 +20,7 @@ public class SystemData {
     private final String os;
     private long bytesFree;
     private final long memory;
+    private double[] screenSize;
     
     public SystemData() {
         
@@ -77,11 +78,21 @@ public class SystemData {
 
     @JsonView({Run.class})
     public double[] getScreenSize() {
-        final double[] screenSize = new double[2];
-        final Toolkit toolkit =  Toolkit.getDefaultToolkit ();
-        final Dimension screen  = toolkit.getScreenSize();
-        screenSize[0] = screen.getWidth();
-        screenSize[1] = screen.getHeight();
-        return screenSize;
+        if (this.screenSize != null) {
+            return this.screenSize;
+        }
+        final double[] ss = new double[2];
+        try {
+            final Toolkit toolkit =  Toolkit.getDefaultToolkit ();
+            final Dimension screen  = toolkit.getScreenSize();
+            ss[0] = screen.getWidth();
+            ss[1] = screen.getHeight();
+            this.screenSize = ss;
+        } catch (final Exception e) {
+            // We might not be able to get the screen size if we're running
+            // in headless mode, for example.
+            this.screenSize = new double[2];
+        }
+        return this.screenSize;
     }
 }
