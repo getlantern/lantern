@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
@@ -11,6 +12,8 @@ import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
 import org.lantern.linux.Gobject;
 import org.lantern.linux.Gtk;
+import org.lantern.state.Mode;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +64,7 @@ public class AppIndicatorTray implements SystemTray {
             }
         }
     }
-
+    
     @Override
     public boolean isSupported() {
         return (libglib != null && libgtk != null && libappindicator != null);
@@ -94,9 +97,13 @@ public class AppIndicatorTray implements SystemTray {
 
     private final BrowserService browserService;
 
+    private final Model model;
+
     @Inject
-    public AppIndicatorTray(final BrowserService jettyLauncher) {
+    public AppIndicatorTray(final BrowserService jettyLauncher, 
+        final Model model) {
         this.browserService = jettyLauncher;
+        this.model = model;
     }
     
 
@@ -249,6 +256,40 @@ public class AppIndicatorTray implements SystemTray {
     public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
         final ConnectivityStatus cs = csce.getConnectivityStatus();
         LOG.debug("Got connectivity state changed {}", cs);
+        onConnectivityStatus(cs);
+    }
+    
+    @Subscribe
+    public void onGoogleTalkState(final GoogleTalkStateEvent event) {
+        if (model.getSettings().getMode() == Mode.get) {
+            LOG.debug("Not linking Google Talk state to connectivity " +
+                "state in get mode");
+            return;
+        }
+        final GoogleTalkState state = event.getState();
+        final ConnectivityStatus cs;
+        switch (state) {
+            case connected:
+                cs = ConnectivityStatus.CONNECTED;
+                break;
+            case notConnected:
+                cs = ConnectivityStatus.DISCONNECTED;
+                break;
+            case LOGIN_FAILED:
+                cs = ConnectivityStatus.DISCONNECTED;
+                break;
+            case connecting:
+                cs = ConnectivityStatus.CONNECTING;
+                break;
+            default:
+                LOG.error("Should never get here...");
+                cs = ConnectivityStatus.DISCONNECTED;
+                break;
+        }
+        onConnectivityStatus(cs);
+    }
+
+    private void onConnectivityStatus(final ConnectivityStatus cs) {
         switch (cs) {
         case DISCONNECTED: {
             changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
