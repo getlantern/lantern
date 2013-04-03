@@ -12,9 +12,7 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   $scope.cometdSrvc = cometdSrvc;
   $scope.lanternUiVersion = LANTERNUI_VER.join('.');
   $scope.config = config;
-  if (config.dev) {
-    $window.model = model; // easier interactive debugging
-  }
+  $window.model = model; // easier interactive debugging
   $scope.EXTERNAL_URL = EXTERNAL_URL;
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;
