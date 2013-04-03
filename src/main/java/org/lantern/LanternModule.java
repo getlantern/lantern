@@ -203,7 +203,7 @@ public class LanternModule extends AbstractModule {
     SystemTray provideSystemTray(final BrowserService browserService, 
         final Model model) {
         if (SystemUtils.IS_OS_LINUX) {
-            return new AppIndicatorTray(browserService);
+            return new AppIndicatorTray(browserService, model);
         } else {
             return new SystemTrayImpl(browserService, model);
         }
