@@ -29,6 +29,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -103,6 +104,7 @@ public class LanternUtilsTest {
     @Test
     public void testSSL() throws Exception {
         final LanternKeyStoreManager ksm = TestUtils.getKsm();
+        TestUtils.getModel().getSettings().setMode(Mode.get);
         System.setProperty("javax.net.debug", "ssl");
         LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
         Launcher.configureCipherSuites();
