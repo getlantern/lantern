@@ -89,9 +89,14 @@ public class UdtRelayTest {
         // relay relays to -- i.e. just like the real world setup.
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
-        final LanternTrustStore ts = new LanternTrustStore(ksm);
+        
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final String dummyId = "test@gmail.com/-lan-22LJDEE";
+        
+        trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
+        
         final HandshakeHandlerFactory hhf = 
-                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), ts);
+                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
@@ -153,7 +158,7 @@ public class UdtRelayTest {
             request.addHeader("Proxy-Connection", "Keep-Alive");
             //hitRelayUdtNetty(relayPort, "");
             hitRelayUdtNetty(createDummyChannel(), request, 
-                new FiveTuple(null, localRelayAddress, Protocol.TCP), ksm);
+                new FiveTuple(null, localRelayAddress, Protocol.TCP), trustStore);
             //hitRelayUdtNetty(createDummyChannel(), request, ft);
         }
     }
@@ -383,7 +388,7 @@ public class UdtRelayTest {
     
     private void hitRelayUdtNetty(
         final DummyChannel browserToProxyChannel, final HttpRequest request,
-        final FiveTuple ft, final LanternKeyStoreManager ksm) throws Exception {
+        final FiveTuple ft, final LanternTrustStore trustStore) throws Exception {
         browserToProxyChannel.setReadable(false);
         
         final Bootstrap boot = new Bootstrap();
@@ -392,9 +397,6 @@ public class UdtRelayTest {
         final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
                 connectFactory, NioUdtProvider.BYTE_PROVIDER);
 
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final String dummyId = "test@gmail.com/-lan-22LJDEE";
-        trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         try {
             boot.group(connectGroup)
                 .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
@@ -434,16 +436,16 @@ public class UdtRelayTest {
             
             synchronized(browserToProxyChannel) {
                 if (browserToProxyChannel.message.length() == 0) {
-                    browserToProxyChannel.wait(2000);
+                    browserToProxyChannel.wait(4000);
                 }
             }
             
-            Thread.sleep(10000);
+            assertTrue("Unexpected response. Beginning is:\n"+
+                    browserToProxyChannel.message.substring(0, 200),
+                    // Can apparently get HTTP 1.0 responses in some cases...
+                    browserToProxyChannel.message.startsWith("HTTP/1.1 200 OK") ||
+                    browserToProxyChannel.message.startsWith("HTTP/1.0 200 OK"));
             
-            //System.err.println(chan.message);
-            assertTrue("Unexpected response: "+browserToProxyChannel.message, 
-                    browserToProxyChannel.message.startsWith("HTTP/1.1 200 OK"));
-            // Wait until the connection is closed.
             f.channel().close();
             
         } finally {
