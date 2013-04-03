@@ -49,6 +49,8 @@ public class DefaultXmppHandlerTest {
         final XmppHandler handler = TestUtils.getXmppHandler();
         handler.connect();
         
+        assertTrue(handler.isLoggedIn());
+        
         LOG.debug("Checking for proxies in settings: {}", settings);
         int count = 0;
         while (closedBetaEvent == null && count < 200) {
