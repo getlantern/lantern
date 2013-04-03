@@ -27,7 +27,7 @@ VERSION=$1
 INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
-perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE
+perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE || die "Could not change the version to $INTERNAL_VERSION"
 if [ $# -gt "2" ]
 then
     RELEASE=$3;
