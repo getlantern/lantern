@@ -14,7 +14,7 @@ VERSION=$1
 RELEASE=$2;
 
 echo "RELEASE flag is $RELEASE"
-./installerBuild.bash $VERSION "" $RELEASE || die "Could not build!!"
+./installerBuild.bash $VERSION "-Dsun.arch.data.model=64 -Pmac" $RELEASE || die "Could not build!!"
 
 install4jc -v --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION ./install/lantern.install4j || die "Could not build installer?"
 
