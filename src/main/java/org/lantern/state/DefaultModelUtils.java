@@ -177,7 +177,8 @@ public class DefaultModelUtils implements ModelUtils {
     public boolean isConfigured() {
         if (!LanternClientConstants.DEFAULT_MODEL_FILE.isFile()) {
             LOG.debug("No settings file");
-            return false;
+            // It's possible it's configured in some other way, so keep
+            // checking
         }
         final String refresh = this.model.getSettings().getRefreshToken();
         final boolean oauth = this.model.getSettings().isUseGoogleOAuth2();
