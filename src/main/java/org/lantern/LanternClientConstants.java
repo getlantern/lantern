@@ -1,14 +1,21 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.exceptional4j.ExceptionalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Client-side constants.
  */
 public class LanternClientConstants {
+    private static final Logger LOG =
+        LoggerFactory.getLogger(LanternClientConstants.class);
+
     public static final String FALLBACK_SERVER_HOST;
     public static final String FALLBACK_SERVER_PORT;
 
@@ -17,6 +24,16 @@ public class LanternClientConstants {
         final String port = "fallback_server_port_tok";
         FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "75.101.134.244" : host;
         FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "7777" : port;
+        Properties prop = new Properties();
+        try {
+            ClassLoader classLoader = LanternClientConstants.class.getClassLoader();
+            prop.load(classLoader.getResourceAsStream("version.properties"));
+        } catch (IOException e) {
+            LOG.warn("Could not load version properties file : ", e);
+        } finally {
+            VERSION = prop.getProperty("lantern.version") + "-"
+                    + prop.getProperty("git.commit.id");
+        }
     }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
@@ -27,7 +44,7 @@ public class LanternClientConstants {
      * replaced when we push new releases. Don't change this directly; the
      * installer will update it.
      */
-    public static final String VERSION = "lantern_version_tok";
+    public static final String VERSION;
 
     public static final File DATA_DIR;
 
