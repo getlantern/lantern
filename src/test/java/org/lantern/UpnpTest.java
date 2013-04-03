@@ -19,9 +19,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +30,10 @@ public class UpnpTest {
 
     @Test
     public void testUpnp() throws Exception {
+        if (AmazonEc2Utils.onEc2()) {
+            log.debug("Ingoring test on EC2");
+            return;
+        }
         //System.setProperty("java.util.logging.config.file",
         //        "src/test/resources/logging.properties");
         final Upnp up = new Upnp(TestUtils.getStatsTracker());
