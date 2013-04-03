@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ public class UpnpTest {
             log.debug("Ingoring test on EC2");
             return;
         }
+        log.debug("Loca adddress is: {}", NetworkUtils.getLocalHost());
         //System.setProperty("java.util.logging.config.file",
         //        "src/test/resources/logging.properties");
         final Upnp up = new Upnp(TestUtils.getStatsTracker());
