@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.5
+ * @license AngularJS v1.0.6
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -23,6 +23,17 @@
  *
  * The returned resource object has action methods which provide high-level behaviors without
  * the need to interact with the low level {@link ng.$http $http} service.
+ *
+ * # Installation
+ * To use $resource make sure you have included the `angular-resource.js` that comes in Angular 
+ * package. You can also find this file on Google CDN, bower as well as at
+ * {@link http://code.angularjs.org/ code.angularjs.org}.
+ *
+ * Finally load the module in your application:
+ *
+ *        angular.module('app', ['ngResource']);
+ *
+ * and you are ready to get started!
  *
  * @param {string} url A parameterized URL template with parameters prefixed by `:` as in
  *   `/user/:username`. If you are using a URL with a port number (e.g. 
@@ -268,7 +279,7 @@ angular.module('ngResource', ['ng']).
         replace(/%3A/gi, ':').
         replace(/%24/g, '$').
         replace(/%2C/gi, ',').
-        replace((pctEncodeSpaces ? null : /%20/g), '+');
+        replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
     }
 
     function Route(template, defaults) {
@@ -441,5 +452,6 @@ angular.module('ngResource', ['ng']).
 
     return ResourceFactory;
   }]);
+
 
 })(window, window.angular);
