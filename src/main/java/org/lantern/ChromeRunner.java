@@ -137,6 +137,7 @@ public class ChromeRunner {
         commands.add("--temp-profile");
         commands.add("--disable-plugins");
         commands.add("--disable-java");
+        commands.add("--disable-extensions");
         commands.add("--app="+endpoint+"/index.html");
 
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
