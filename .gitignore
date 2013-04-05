@@ -1,11 +1,2 @@
 /app/logs/*
 !.gitkeep
-
-**/.DS_Store
-nbproject
-manifest.mf
-build.xml
-
-.project
-.settings
-.idea/*
