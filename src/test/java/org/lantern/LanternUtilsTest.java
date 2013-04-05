@@ -43,11 +43,6 @@ public class LanternUtilsTest {
 
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
 
-    private final String msg = "oh hi";
-
-    private final AtomicReference<String> readOnServer =
-        new AtomicReference<String>("");
-    
     @BeforeClass
     public static void setup() throws Exception {
         LOG.debug("Setting up LanternUtilsTests...");
@@ -99,93 +94,6 @@ public class LanternUtilsTest {
         //final byte[] photo = vcard.getAvatar();
         //assertTrue(photo != null);
         //assertTrue(!(photo.length == 0));
-    }
-
-    @Test
-    public void testSSL() throws Exception {
-        final LanternKeyStoreManager ksm = TestUtils.getKsm();
-        TestUtils.getModel().getSettings().setMode(Mode.get);
-        System.setProperty("javax.net.debug", "ssl");
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
-        Launcher.configureCipherSuites();
-        final XmppHandler xmpp = TestUtils.getXmppHandler();
-        // We have to actually connect because the ID we use in the keystore
-        // is our XMPP JID.
-        xmpp.connect();
-
-        // Since we're connecting to ourselves for testing, we need to add our
-        // own key to the *trust store* from the key store.
-        
-        final LanternTrustStore ts = TestUtils.getTrustStore();
-        ts.addBase64Cert(new URI(xmpp.getJid()), ksm.getBase64Cert(xmpp.getJid()));
-
-
-        final SocketFactory clientFactory =
-            TestUtils.getSocketsUtil().newTlsSocketFactory();
-        final ServerSocketFactory serverFactory =
-            TestUtils.getSocketsUtil().newTlsServerSocketFactory();
-
-        final SocketAddress endpoint =
-            new InetSocketAddress("127.0.0.1", LanternUtils.randomPort());
-
-        final SSLServerSocket ss =
-            (SSLServerSocket) serverFactory.createServerSocket();
-        
-        LOG.debug("SUPPORTED: "+Arrays.asList(ss.getSupportedCipherSuites()));
-        ss.bind(endpoint);
-
-        acceptIncoming(ss);
-        Thread.sleep(400);
-
-        final SSLSocket client = (SSLSocket) clientFactory.createSocket();
-        client.setSoTimeout(30000);
-        client.connect(endpoint, 2000);
-
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
-        assertTrue(client.isConnected());
-
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
-        synchronized (readOnServer) {
-            final OutputStream os = client.getOutputStream();
-            os.write(msg.getBytes("UTF-8"));
-            os.close();
-            readOnServer.wait(2000);
-        }
-
-        assertEquals(msg, readOnServer.get());
-    }
-
-    private void acceptIncoming(final SSLServerSocket ss) {
-        final Runnable runner = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-
-                    final SSLSocket sock = (SSLSocket) ss.accept();
-
-                    LOG.debug("Incoming cipher list..." +
-                        Arrays.asList(sock.getEnabledCipherSuites()));
-                    final InputStream is = sock.getInputStream();
-                    final int length = msg.getBytes("UTF-8").length;
-                    final byte[] data = new byte[length];
-                    int bytes = 0;
-                    while (bytes < length) {
-                        bytes += is.read(data, bytes, length - bytes);
-                    }
-                    final String read = new String(data, "UTF-8");
-                    synchronized (readOnServer) {
-                        readOnServer.set(read.trim());
-                        readOnServer.notifyAll();
-                    }
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        final Thread t = new Thread(runner, "test-thread");
-        t.setDaemon(true);
-        t.start();
     }
 
     @Test
