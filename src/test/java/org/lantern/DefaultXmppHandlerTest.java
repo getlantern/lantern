@@ -59,6 +59,9 @@ public class DefaultXmppHandlerTest {
         
         
         final XmppHandler handler = TestUtils.getXmppHandler();
+        // The handler could have already been created and connected, so 
+        // make sure we disconnect.
+        handler.disconnect();
         handler.connect();
         
         assertTrue(handler.isLoggedIn());
