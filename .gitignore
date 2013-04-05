@@ -1,3 +1,6 @@
+/app/logs/*
+!.gitkeep
+
 **/.DS_Store
 nbproject
 manifest.mf
