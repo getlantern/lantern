@@ -202,7 +202,7 @@ public class InteractionServlet extends HttpServlet {
             this.internalState.advanceModal(null);
             break;
         case authorize:
-           log.error("Processing authorize modal...");
+           log.debug("Processing authorize modal...");
             if (handleModalSwitch(inter)) {
                 break;
             }
@@ -325,7 +325,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case requestInvite:
-            log.error("Processing request invite");
+            log.info("Processing request invite");
             switch (inter) {
             case CANCEL:
                 this.internalState.setModalCompleted(Modal.requestInvite);
