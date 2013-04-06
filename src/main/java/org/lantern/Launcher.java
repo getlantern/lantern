@@ -128,8 +128,21 @@ public class Launcher {
     private final String[] commandLineArgs;
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
+    private final LanternModule lanternModule;
 
     public Launcher(final String... args) {
+        this(new LanternModule(), args);
+    }
+
+    /**
+     * Separate constructor that allows tests to do things like use mocks for
+     * certain classes but still test Lantern end-to-end from startup.
+     * 
+     * @param lm The {@link LanternModule} to use.
+     * @param args Command line arguments.
+     */
+    public Launcher(final LanternModule lm, final String[] args) {
+        this.lanternModule = lm;
         //System.setProperty("javax.net.debug", "ssl");
         this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
@@ -201,7 +214,7 @@ public class Launcher {
             return;
         }
 
-        injector = Guice.createInjector(new LanternModule());
+        injector = Guice.createInjector(this.lanternModule);
         model = instance(Model.class);
         set = model.getSettings();
 

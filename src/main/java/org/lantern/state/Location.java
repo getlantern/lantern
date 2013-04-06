@@ -35,6 +35,7 @@ public class Location {
 
     @JsonView({Run.class, Persistent.class})
     public double getLat() {
+        //return 35.6833; // Tehran
         return lat;
     }
 
@@ -44,6 +45,7 @@ public class Location {
 
     @JsonView({Run.class, Persistent.class})
     public double getLon() {
+        //return 51.4167; // Tehran
         return lon;
     }
 
