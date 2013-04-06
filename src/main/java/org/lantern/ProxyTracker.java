@@ -18,13 +18,15 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
     void addLaeProxy(String cur);
 
     void addProxy(URI jid, String hostPort);
-    
+
     void addProxy(URI jid, InetSocketAddress iae);
-    
+
     void addJidProxy(URI jid);
-    
+
     void removePeer(URI uri);
 
     boolean hasJidProxy(URI uri);
+
+    void setSuccess(ProxyHolder proxyHolder);
 
 }

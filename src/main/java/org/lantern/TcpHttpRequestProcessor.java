@@ -181,12 +181,12 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
                                 // used the original encoder to properly encode
                                 // the CONNECT request.
                                 pipeline.remove("encoder");
-                                
+
                                 // Begin to accept incoming traffic.
                                 browserToProxyChannel.setReadable(true);
                             }
                     });
-                    
+                    proxyTracker.setSuccess(proxyHolder);
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
