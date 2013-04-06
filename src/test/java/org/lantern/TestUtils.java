@@ -134,36 +134,7 @@ public class TestUtils {
             return;
         }
         loaded = true;
-        final LanternModule lm = new LanternModule();
-        lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
-        lm.setEncryptedFileService(new UnencryptedFileService());
-        lm.setUpnpService(new UpnpService() {
-            @Override
-            public void shutdown() {}
-            
-            @Override
-            public void removeUpnpMapping(int mappingIndex) {}
-            
-            @Override
-            public int addUpnpMapping(PortMappingProtocol protocol, int localPort,
-                    int externalPortRequested, PortMapListener portMapListener) {
-                return 0;
-            }
-        });
-        lm.setNatPmpService(new NatPmpService() {
-            
-            @Override
-            public void shutdown() {}
-            
-            @Override
-            public void removeNatPmpMapping(int mappingIndex) {}
-            
-            @Override
-            public int addNatPmpMapping(PortMappingProtocol protocol, int localPort,
-                    int externalPortRequested, PortMapListener portMapListener) {
-                return 0;
-            }
-        });
+        final LanternModule lm = newTestLanternModule();
         
         injector = Guice.createInjector(lm);
         
@@ -199,6 +170,40 @@ public class TestUtils {
         start(start);
     }
     
+    public static LanternModule newTestLanternModule() {
+        final LanternModule lm = new LanternModule();
+        lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
+        lm.setEncryptedFileService(new UnencryptedFileService());
+        lm.setUpnpService(new UpnpService() {
+            @Override
+            public void shutdown() {}
+            
+            @Override
+            public void removeUpnpMapping(int mappingIndex) {}
+            
+            @Override
+            public int addUpnpMapping(PortMappingProtocol protocol, int localPort,
+                    int externalPortRequested, PortMapListener portMapListener) {
+                return 0;
+            }
+        });
+        lm.setNatPmpService(new NatPmpService() {
+            
+            @Override
+            public void shutdown() {}
+            
+            @Override
+            public void removeNatPmpMapping(int mappingIndex) {}
+            
+            @Override
+            public int addNatPmpMapping(PortMappingProtocol protocol, int localPort,
+                    int externalPortRequested, PortMapListener portMapListener) {
+                return 0;
+            }
+        });
+        return lm;
+    }
+
     private static void start(final boolean start) {
         if (start) {
             started = true;

@@ -40,7 +40,9 @@ public class LanternProxyingTest {
                 "--access-tok", TestUtils.getAccessToken(), 
                 "--disable-trusted-peers", "--disable-anon-peers"};
         
-        final Launcher launcher = new Launcher(args);
+        final LanternModule lm = TestUtils.newTestLanternModule();
+        
+        final Launcher launcher = new Launcher(lm, args);
         launcher.configureDefaultLogger();
         launcher.run();
         launcher.model.setSetupComplete(true);
