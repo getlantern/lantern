@@ -250,7 +250,9 @@ public class InteractionServlet extends HttpServlet {
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 break;
             case CONTINUE:
-                log.debug("Processing continue for friends dialog");
+                /* fall-through */
+            case CLOSE:
+                log.debug("Processing continue/close for friends dialog");
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
