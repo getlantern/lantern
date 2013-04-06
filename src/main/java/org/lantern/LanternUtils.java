@@ -107,7 +107,7 @@ public class LanternUtils {
 
         // Start the connection attempt.
         try {
-            LOG.info("Creating a new socket to {}", uri);
+            LOG.debug("Creating a new socket to {}", uri);
             return p2pClient.newSocket(uri);
 
         } catch (final NoAnswerException nae) {
@@ -118,7 +118,7 @@ public class LanternUtils {
             LOG.info("Did not get answer!! Closing channel from browser", nae);
             final AtomicInteger count = peerFailureCount.get(uri);
             if (count == null) {
-                LOG.info("Incrementing failure count");
+                LOG.debug("Incrementing failure count");
                 peerFailureCount.put(uri, new AtomicInteger(0));
             }
             else if (count.incrementAndGet() > 5) {
@@ -135,7 +135,7 @@ public class LanternUtils {
             throw new IOExceptionWithCause(nae);
         } catch (final IOException ioe) {
             //proxyStatusListener.onCouldNotConnectToPeer(uri);
-            LOG.warn("Could not connect to peer", ioe);
+            LOG.debug("Could not connect to peer", ioe);
             throw ioe;
         }
     }
