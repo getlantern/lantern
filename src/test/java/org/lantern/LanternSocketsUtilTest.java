@@ -9,13 +9,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.net.ServerSocketFactory;
-import javax.net.SocketFactory;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -26,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.lantern.TestCategories.TrustStoreTests;
-import org.lantern.state.Mode;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
@@ -42,113 +37,17 @@ public class LanternSocketsUtilTest {
 
     private final String msg = "testMessage";
     
-    private final AtomicReference<String> readOnServer =
-        new AtomicReference<String>("");
-    
-
     @Test
-    public void testSSL() throws Exception {
-        TestUtils.load(true);
-        final LanternKeyStoreManager ksm = TestUtils.getKsm();
-        TestUtils.getModel().getSettings().setMode(Mode.get);
-        System.setProperty("javax.net.debug", "ssl");
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
-        Launcher.configureCipherSuites();
-        final XmppHandler xmpp = TestUtils.getXmppHandler();
-        // We have to actually connect because the ID we use in the keystore
-        // is our XMPP JID.
-        xmpp.connect();
-
-        // Since we're connecting to ourselves for testing, we need to add our
-        // own key to the *trust store* from the key store.
-        
-        final LanternTrustStore ts = TestUtils.getTrustStore();
-        ts.addBase64Cert(new URI(xmpp.getJid()), ksm.getBase64Cert(xmpp.getJid()));
-
-
-        final SocketFactory clientFactory =
-            TestUtils.getSocketsUtil().newTlsSocketFactory();
-        final ServerSocketFactory serverFactory =
-            TestUtils.getSocketsUtil().newTlsServerSocketFactory();
-
-        final SocketAddress endpoint =
-            new InetSocketAddress("127.0.0.1", LanternUtils.randomPort());
-
-        final SSLServerSocket ss =
-            (SSLServerSocket) serverFactory.createServerSocket();
-        
-        LOG.debug("SUPPORTED: "+Arrays.asList(ss.getSupportedCipherSuites()));
-        ss.bind(endpoint);
-
-        acceptIncoming(ss);
-        Thread.sleep(400);
-
-        final SSLSocket client = (SSLSocket) clientFactory.createSocket();
-        client.setSoTimeout(30000);
-        client.connect(endpoint, 2000);
-
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
-        assertTrue(client.isConnected());
-
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
-        synchronized (readOnServer) {
-            final OutputStream os = client.getOutputStream();
-            os.write(msg.getBytes("UTF-8"));
-            os.close();
-            readOnServer.wait(2000);
-        }
-
-        assertEquals(msg, readOnServer.get());
-    }
-
-    private void acceptIncoming(final SSLServerSocket ss) {
-        final Runnable runner = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-
-                    final SSLSocket sock = (SSLSocket) ss.accept();
-
-                    LOG.debug("Incoming cipher list..." +
-                        Arrays.asList(sock.getEnabledCipherSuites()));
-                    final InputStream is = sock.getInputStream();
-                    final int length = msg.getBytes("UTF-8").length;
-                    final byte[] data = new byte[length];
-                    int bytes = 0;
-                    while (bytes < length) {
-                        bytes += is.read(data, bytes, length - bytes);
-                    }
-                    final String read = new String(data, "UTF-8");
-                    synchronized (readOnServer) {
-                        readOnServer.set(read.trim());
-                        readOnServer.notifyAll();
-                    }
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        final Thread t = new Thread(runner, "test-thread");
-        t.setDaemon(true);
-        t.start();
-    }
-    
-    @Test
-    public void testMutualAuthentication() throws Exception {
+    public void testTrustStoreConnectionAndMutualAuthentication() throws Exception {
         //System.setProperty("javax.net.debug", "all");
         //System.setProperty("javax.net.debug", "ssl");
-        //final LanternKeyStoreManager ksm = TestUtils.getKsm();
-        //final LanternTrustStore trustStore = TestUtils.getTrustStore();
-        
+        LOG.debug("Testing Lantern mutually authenticated sockets");
         final KeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        //final LanternTrustStore trustStore = TestUtils.buildTrustStore();
         final String testId = "test@gmail.com/somejidresource";
         trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         
         final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
-        //final LanternSocketsUtil util = TestUtils.getSocketsUtil();
         
         final AtomicReference<String> data = new AtomicReference<String>();
         accept(util, data);
@@ -174,7 +73,6 @@ public class LanternSocketsUtilTest {
             // exception message, which likely varies across JVMs and platforms.
             assertTrue(e instanceof SSLHandshakeException);
         }
-        //TestUtils.close();
     }
 
     private void testClient(final SSLSocketFactory client, 
