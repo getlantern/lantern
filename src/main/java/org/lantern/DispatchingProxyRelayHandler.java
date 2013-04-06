@@ -99,6 +99,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             processed = newRequestProcessor().processRequest(
                 browserToProxyChannel, ctx, request);
         } catch (final IOException e) {
+            processed = false;
+        }
+        if (!processed) {
             processed = newP2PRequestProcessor().processRequest(
                 browserToProxyChannel, ctx, request);
         }

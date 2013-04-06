@@ -326,6 +326,8 @@ public class UdtHttpRequestProcessorTest {
             public void addProxy(URI jid, String hostPort) {}
             @Override
             public void addProxy(URI jid, InetSocketAddress iae) {}
+            @Override
+            public void setSuccess(ProxyHolder proxyHolder) {}
         };
     }
 }
