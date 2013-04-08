@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -31,7 +32,9 @@ public class UpnpTest {
 
     @Test
     public void testUpnp() throws Exception {
-        if (NetworkUtils.getLocalHost().getHostName().startsWith("domU-") ||
+        final InetAddress lh = NetworkUtils.getLocalHost();
+        final String local = lh.getHostAddress();
+        if (lh.getHostName().startsWith("domU-") || local.startsWith("10.191") || 
                 AmazonEc2Utils.onEc2()) {
             log.debug("Ingoring test on EC2");
             return;
