@@ -1,4 +1,4 @@
-Lantern [![Build Status](https://secure.travis-ci.org/getlantern/lantern.png)](https://secure.travis-ci.org/getlantern/lantern)
+Lantern 
 =======
 
 Lantern allows you to give or get access to the internet through other users
