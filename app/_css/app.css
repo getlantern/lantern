@@ -6639,6 +6639,10 @@ a.disabled:hover {
   color: #ffcc66;
 }
 
+.yellow-colored {
+  color: #fff343;
+}
+
 .ui-hide, .ui-show {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
@@ -6892,8 +6896,8 @@ textarea {
   -webkit-animation-duration: 3s;
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-timing-function: linear;
-  font-weight: 400;
   color: #fff343;
+  font-weight: 400;
   font-size: 14px;
   padding-top: 12px;
 }
@@ -7365,6 +7369,10 @@ body.showVis #footer {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   color: #999999;
   z-index: auto;
+}
+
+#offline {
+  color: #fff343;
 }
 
 #global-nav {
