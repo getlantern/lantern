@@ -19,6 +19,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
@@ -30,7 +31,8 @@ public class UpnpTest {
 
     @Test
     public void testUpnp() throws Exception {
-        if (NetworkUtils.getLocalHost().getHostName().startsWith("domU-")) {
+        if (NetworkUtils.getLocalHost().getHostName().startsWith("domU-") ||
+                AmazonEc2Utils.onEc2()) {
             log.debug("Ingoring test on EC2");
             return;
         }
