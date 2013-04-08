@@ -12,10 +12,13 @@ import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import static org.junit.Assert.*;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.cookie.InMemoryCookieTracker;
 import static org.lantern.TestingUtils.*;
 
+@Ignore
 public class InMemoryCookieTrackerTest {
     
     @Test

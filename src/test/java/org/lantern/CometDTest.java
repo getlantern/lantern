@@ -2,10 +2,12 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Timer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -22,7 +24,10 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
+import org.lantern.state.CometDSyncStrategy;
+import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
+import org.lantern.state.SyncService;
 
 
 public class CometDTest {
@@ -34,7 +39,13 @@ public class CometDTest {
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
 
-        startJetty(TestUtils.getJettyLauncher());
+        
+        final Model model = new Model();
+        final SyncService syncer = 
+            new SyncService(new CometDSyncStrategy(), model, new Timer(), null);
+        final JettyLauncher jl = new JettyLauncher(syncer, null, null, model, null);
+        //startJetty(TestUtils.getJettyLauncher());
+        startJetty(jl, LanternUtils.randomPort());
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
         // httpClient.setMaxConnectionsPerAddress(2);
@@ -130,7 +141,7 @@ public class CometDTest {
         assertTrue("Expected variable to be true", bool.get());
     }
 
-    private void startJetty(final JettyLauncher jl) throws Exception {
+    private void startJetty(final JettyLauncher jl, final int port) throws Exception {
         // The order of getting things from the injector matters unfortunately,
         // so we have to do the below.
         //injector.getInstance(DefaultXmppHandler.class);
@@ -138,19 +149,14 @@ public class CometDTest {
         final Runnable runner = new Runnable() {
             @Override
             public void run() {
-                jl.start();
+                jl.start(port);
             }
         };
         final Thread jetty = new Thread(runner, "Jetty-Test-Thread");
         jetty.setDaemon(true);
         jetty.start();
-        if (LanternUtils.waitForServer(StaticSettings.getApiPort(), 6000)) {
+        if (LanternUtils.waitForServer(port, 6000)) {
             fail("Could not start Jetty?");
         }
-    }
-
-    private void fail(String string) {
-        // TODO Auto-generated method stub
-        
     }
 }
