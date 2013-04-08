@@ -72,6 +72,10 @@ public class JettyLauncher implements LanternService {
     
     @Override
     public void start() {
+        start(StaticSettings.getApiPort());
+    }
+    
+    public void start(final int port) {
         final QueuedThreadPool qtp = new QueuedThreadPool();
         qtp.setMinThreads(5);
         qtp.setMaxThreads(200);
@@ -104,7 +108,7 @@ public class JettyLauncher implements LanternService {
         
         final SelectChannelConnector connector = 
             new SelectChannelConnector();
-        connector.setPort(StaticSettings.getApiPort());
+        connector.setPort(port);
         connector.setMaxIdleTime(60 * 1000);
         connector.setLowResourcesMaxIdleTime(30 * 1000);
         connector.setLowResourcesConnections(2000);
@@ -168,18 +172,24 @@ public class JettyLauncher implements LanternService {
         ds.setInitOrder(3);
         contextHandler.addServlet(ds, "/*");
         
-        final ServletHolder settings = new ServletHolder(redirectServlet);
-        settings.setInitOrder(3);
-        contextHandler.addServlet(settings, "/oauth/");
+        if (this.redirectServlet != null) {
+            final ServletHolder settings = new ServletHolder(redirectServlet);
+            settings.setInitOrder(3);
+            contextHandler.addServlet(settings, "/oauth/");
+        }
         
-        final ServletHolder interactionServletHolder = 
-            new ServletHolder(this.interactionServlet);
-        interactionServletHolder.setInitOrder(2);
-        contextHandler.addServlet(interactionServletHolder, apiPath());
+        if (this.interactionServlet != null) {
+            final ServletHolder interactionServletHolder = 
+                new ServletHolder(this.interactionServlet);
+            interactionServletHolder.setInitOrder(2);
+            contextHandler.addServlet(interactionServletHolder, apiPath());
+        }
         
-        final ServletHolder photo = new ServletHolder(this.photoServlet);
-        photo.setInitOrder(3);
-        contextHandler.addServlet(photo, "/photo/*");
+        if (this.photoServlet != null) {
+            final ServletHolder photo = new ServletHolder(this.photoServlet);
+            photo.setInitOrder(3);
+            contextHandler.addServlet(photo, "/photo/*");
+        }
 
         
         final BayeuxInitializer bi = new BayeuxInitializer(this.syncer);

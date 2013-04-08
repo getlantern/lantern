@@ -65,21 +65,27 @@ public class SyncService implements LanternService {
 
     @Override
     public void start() {
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                //sync();
-                delegateSync(SyncType.ADD, SyncPath.PEERS,
-                    model.getPeers());
-                delegateSync(SyncType.ADD, SyncPath.TRANSFERS,
-                        transfers);
-            }
-        }, 3000, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
+        if (timer != null) {
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    //sync();
+                    delegateSync(SyncType.ADD, SyncPath.PEERS,
+                        model.getPeers());
+                    if (transfers != null) {
+                        delegateSync(SyncType.ADD, SyncPath.TRANSFERS,
+                                transfers);
+                    }
+                }
+            }, 3000, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);
+        }
     }
 
     @Override
     public void stop() {
-        this.timer.cancel();
+        if (this.timer != null) {
+            this.timer.cancel();
+        }
     }
 
     @Configure("/service/sync")
