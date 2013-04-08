@@ -28,13 +28,17 @@ import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class CometDTest {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Test
     public void test() throws Exception {
-        //final int port = LanternUtils.randomPort();
+        final int port = LanternUtils.randomPort();
         //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
@@ -45,7 +49,7 @@ public class CometDTest {
             new SyncService(new CometDSyncStrategy(), model, new Timer(), null);
         final JettyLauncher jl = new JettyLauncher(syncer, null, null, model, null);
         //startJetty(TestUtils.getJettyLauncher());
-        startJetty(jl, LanternUtils.randomPort());
+        startJetty(jl, port);
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
         // httpClient.setMaxConnectionsPerAddress(2);
@@ -56,8 +60,9 @@ public class CometDTest {
         final ClientTransport transport =
             LongPollingTransport.create(options, httpClient);
 
-        final String url = StaticSettings.getLocalEndpoint()+"/cometd";
-                final ClientSession session = new BayeuxClient(url, transport);
+        final String url = 
+            StaticSettings.getLocalEndpoint(port, StaticSettings.getPrefix())+"/cometd";
+        final ClientSession session = new BayeuxClient(url, transport);
 
         final AtomicBoolean handshake = new AtomicBoolean(false);
         session.getChannel(Channel.META_HANDSHAKE).addListener(
@@ -68,9 +73,13 @@ public class CometDTest {
                     if (message.isSuccessful()) {
                         // Here handshake is successful
                         handshake.set(true);
+                    } else {
+                        log.debug("Got unsuccessful message: {}", message);
                     }
                 }
             });
+        
+        Thread.yield();
         session.handshake();
         waitForBoolean(handshake);
         assertTrue("Could not handshake?", handshake.get());
@@ -131,7 +140,7 @@ public class CometDTest {
     private void waitForBoolean(final AtomicBoolean bool)
         throws InterruptedException {
         int tries = 0;
-        while (tries < 40) {
+        while (tries < 80) {
             if (bool.get()) {
                 break;
             }
