@@ -155,7 +155,7 @@ public class CometDTest {
         final Thread jetty = new Thread(runner, "Jetty-Test-Thread");
         jetty.setDaemon(true);
         jetty.start();
-        if (LanternUtils.waitForServer(port, 6000)) {
+        if (!LanternUtils.waitForServer(port, 6000)) {
             fail("Could not start Jetty?");
         }
     }
