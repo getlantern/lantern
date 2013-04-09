@@ -60,10 +60,18 @@ public class ModelIo extends Storage<Model> {
             // Make sure all peers are considered offline at startup.
             final Peers peers = read.getPeerCollector();
             peers.reset();
+            if (read.getModal() == Modal.settingsLoadFailure) {
+                read.setModal(Modal.none);
+            }
             return read;
         } catch (ModelReadFailedException e) {
+            log.info("Failed to read model", e);
             Model blank = blank();
             blank.setModal(Modal.settingsLoadFailure);
+            return blank;
+        } catch (Exception e) {
+            log.info("Failed to read model for some other reason", e);
+            Model blank = blank();
             return blank;
         }
     }
@@ -105,6 +113,7 @@ public class ModelIo extends Storage<Model> {
     public void reload() {
         Model newModel = read();
         if (newModel.getModal() == Modal.welcome) {
+            //if modal is welcome, then we are dealing with fresh settings
             obj.addNotification("Failed to reload settings", MessageType.error);
             return;
         }
