@@ -46,7 +46,7 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
         return this.obj;
     }
 
-    public void write(final T toWrite) {
+    public synchronized void write(final T toWrite) {
         if (LanternConstants.ON_APP_ENGINE) {
             log.debug("Not writing on app engine");
             return;
