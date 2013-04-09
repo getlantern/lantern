@@ -27,7 +27,7 @@ public class LanternClientConstants {
         Properties prop = new Properties();
         try {
             ClassLoader classLoader = LanternClientConstants.class.getClassLoader();
-            prop.load(classLoader.getResourceAsStream("version.properties"));
+            prop.load(classLoader.getResourceAsStream("lantern-version.properties"));
         } catch (IOException e) {
             LOG.warn("Could not load version properties file : ", e);
         } finally {
