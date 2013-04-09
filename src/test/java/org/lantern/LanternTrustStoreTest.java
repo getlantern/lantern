@@ -67,28 +67,29 @@ public class LanternTrustStoreTest {
             LanternClientConstants.FALLBACK_SERVER_HOST+":"+
                     LanternClientConstants.FALLBACK_SERVER_PORT};
 
-        // URIs that should fail (signing certs we don't trust). Note this would
-        // succeed (with the test failing as a result) with the normal root CAs,
-        // which trust more signing certs than ours, such as verisign. We
-        // just try to minimize the attack surface as much aLs possible.
-        final String[] failure = {"chase.com"};
         for (final String uri : success) {
             try {
                 final String body = trySite(client, uri);
-                log.debug("SUCCESS BODY: "+body);
+                log.debug("SUCCESS BODY FOR '{}': {}", uri, body.substring(0,Math.min(50, body.length())));
             } catch (Exception e) {
                 log.error("Stack:\n"+ThreadUtils.dumpStack(e));
                 fail("Unexpected exception on "+uri+"!\n"+ThreadUtils.dumpStack(e)+
                     "\n\nFAILED ON: "+uri);
             }
         }
+        
+        // URIs that should fail (signing certs we don't trust). Note this would
+        // succeed (with the test failing as a result) with the normal root CAs,
+        // which trust more signing certs than ours, such as verisign. We
+        // just try to minimize the attack surface as much aLs possible.
+        final String[] failure = {"chase.com"};
         for (final String uri : failure) {
             try {
                 final String body = trySite(client, uri);
-                log.debug("FAILURE BODY: "+body);
+                log.debug("FAILURE BODY: "+body.substring(0,50));
                 fail("Should not have succeeded on: "+uri);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.debug("Got expected exception "+e.getMessage());
             }
         }
 
@@ -103,7 +104,7 @@ public class LanternTrustStoreTest {
         for (final String uri : noLongerSuccess) {
             try {
                 final String body = trySite(client, uri);
-                log.debug("SUCCESS BODY: "+body);
+                log.debug("SUCCESS BODY: "+body.substring(0, 50));
                 fail("Should not have succeeded on: "+uri);
             } catch (Exception e) {
                 // Expected since we should no longer trust talk.google.com
@@ -127,7 +128,9 @@ public class LanternTrustStoreTest {
         EntityUtils.consume(entity);
 
         if (code < 200 || code > 299) {
-            log.warn("Unexpected response code: "+code+" for "+uri+
+            // We use this method both for calls that should succeed and
+            // calls that should fail, so this is expected.
+            log.debug("Non-200 response code: "+code+" for "+uri+
                 " with body:\n"+body);
         }
         get.reset();
