@@ -147,7 +147,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxy() {
         if (this.model.getSettings().isTcp()) {
-            final URI uri = LanternUtils.newURI("fallback@gentlantern.org");
+            final URI uri = LanternUtils.newURI("fallback@getlantern.org");
             final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
             cloud.setMode(org.lantern.state.Mode.give);
             addProxy(uri, 
