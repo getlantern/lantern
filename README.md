@@ -1,6 +1,8 @@
 Lantern 
 =======
 
+[Build Status](https://getlantern.atlassian.net/builds/browse/LAN-TEST1)
+
 Lantern allows you to give or get access to the internet through other users
 around the world connected by a peer-to-peer network.
 
