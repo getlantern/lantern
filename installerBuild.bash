@@ -25,16 +25,20 @@ printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key passwor
 test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
 
 VERSION=$1
-INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
-perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE || die "Could not change the version to $INTERNAL_VERSION...file is: `cat $CONSTANTS_FILE`"
 if [ $# -gt "2" ]
 then
     RELEASE=$3;
 else
     RELEASE=true;
 fi
+
+curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
+git submodule update
+
+INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 
 BUILD_TIME=`date +%s`
 perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
@@ -59,9 +63,6 @@ fi
 
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
-curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
-git submodule update
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
