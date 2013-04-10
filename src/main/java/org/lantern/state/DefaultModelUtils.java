@@ -86,7 +86,7 @@ public class DefaultModelUtils implements ModelUtils {
                 //    new PublicIpAddress().getPublicIpAddress().getHostAddress());
             }
         } catch (final UnknownHostException e) {
-            LOG.error("Unknown host here?", e);
+            LOG.info("Unknown host here?", e);
         }
 
         final String query = 
@@ -118,7 +118,7 @@ public class DefaultModelUtils implements ModelUtils {
             
             final ObjectMapper om = new ObjectMapper();
             if (!body.contains("latitude")) {
-                LOG.warn("No latitude in response {} for IP", body, ip);
+                LOG.info("No latitude in response {} for IP", body, ip);
                 return new GeoData();
             }
             final String parsed = StringUtils.substringAfterLast(body, "{");
@@ -130,7 +130,7 @@ public class DefaultModelUtils implements ModelUtils {
         } catch (final SSLPeerUnverifiedException ssl) {
             LOG.warn("Peer cert not trusted?", ssl);
         } catch (final IOException e) {
-            LOG.warn("Could not connect to geo ip url?", e);
+            LOG.info("Could not connect to geo ip url?", e);
         } catch (final URISyntaxException e) {
             LOG.error("URI error", e);
         } finally {
