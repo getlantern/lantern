@@ -564,6 +564,7 @@ public class Proxifier implements ProxyService, LanternService {
         }
     }
     
+    @Override
     public void proxyGoogle() {
         PacFileGenerator.generatePacFile(
             Arrays.asList("google.com", "youtube.com"), 
