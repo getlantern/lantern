@@ -39,17 +39,7 @@ public class DefaultXmppHandlerTest {
     @Test 
     public void testControllerMessages() throws Exception {
         this.closedBetaEvent = null;
-        // We delete these because tests run in encrypted mode while normal
-        // runs do not. These will conflict when trying to read, so we reset.
-        if (LanternClientConstants.DEFAULT_MODEL_FILE.isFile()) {
-            assertTrue("Could not delete model file?", 
-                    LanternClientConstants.DEFAULT_MODEL_FILE.delete());
-        }
-        if (LanternClientConstants.DEFAULT_TRANSFERS_FILE.isFile()) {
-            assertTrue("Could not delete model file?", 
-                    LanternClientConstants.DEFAULT_TRANSFERS_FILE.delete());
-        }
-        
+
         TestUtils.load(true);
         final Model model = TestUtils.getModel();
         final org.lantern.state.Settings settings = model.getSettings();
