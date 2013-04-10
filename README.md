@@ -53,14 +53,14 @@ reverse-proxying the backend server(s) and a webserver(s).
 ### Running unit tests
 
 We recommend using [jasmine](http://pivotal.github.com/jasmine/) and
-[Testacular](http://vojtajina.github.com/testacular/) for your unit tests/specs, but you are free
+[karma](http://vojtajina.github.com/karma/) for your unit tests/specs, but you are free
 to use whatever works for you.
 
-Requires [node.js](http://nodejs.org/), Testacular (`sudo npm install -g testacular`) and a local
+Requires [node.js](http://nodejs.org/), karma (`sudo npm install -g karma`) and a local
 or remote browser.
 
 * start `scripts/test.sh` (on windows: `scripts\test.bat`)
-  * a browser will start and connect to the Testacular server (Chrome is default browser, others can be captured by loading the same url as the one in Chrome or by changing the `config/testacular.conf.js` file)
+  * a browser will start and connect to the karma server (Chrome is default browser, others can be captured by loading the same url as the one in Chrome or by changing the `config/karma.conf.js` file)
 * to run or re-run tests just change any of your source or test javascript files
 
 
@@ -79,7 +79,7 @@ info.
 * serve your project directory with your http/backend server or node.js + `scripts/web-server.js`
 * to run do one of:
   * open `http://localhost:port/test/e2e/runner.html` in your browser
-  * run the tests from console with [Testacular](vojtajina.github.com/testacular) via
+  * run the tests from console with [karma](vojtajina.github.com/karma) via
     `scripts/e2e-test.sh` or `script/e2e-test.bat`
 
 ### Continuous Integration
@@ -121,14 +121,14 @@ fetch the changes and merge them into your project with git.
         partial1.html
         partial2.html
 
-    config/testacular.conf.js        --> config file for running unit tests with Testacular
-    config/testacular-e2e.conf.js    --> config file for running e2e tests with Testacular
+    config/karma.conf.js        --> config file for running unit tests with karma
+    config/karma-e2e.conf.js    --> config file for running e2e tests with karma
 
     scripts/            --> handy shell/js/ruby scripts
-      e2e-test.sh       --> runs end-to-end tests with Testacular (*nix)
-      e2e-test.bat      --> runs end-to-end tests with Testacular (windows)
-      test.bat          --> autotests unit tests with Testacular (windows)
-      test.sh           --> autotests unit tests with Testacular (*nix)
+      e2e-test.sh       --> runs end-to-end tests with karma (*nix)
+      e2e-test.bat      --> runs end-to-end tests with karma (windows)
+      test.bat          --> autotests unit tests with karma (windows)
+      test.sh           --> autotests unit tests with karma (*nix)
       web-server.js     --> simple development webserver based on node.js
 
     test/               --> test source files and libraries
