@@ -23,10 +23,10 @@ public class WhitelistTest {
         final DefaultEncryptedFileService fileService = 
             new DefaultEncryptedFileService(localCipherProvider);
         final File randFile = new File(Integer.toString(RandomUtils.nextInt()));
-        
+
+        final ModelIo modelIo = new ModelIo(randFile, fileService, null);
         randFile.delete();
         randFile.deleteOnExit();
-        final ModelIo modelIo = new ModelIo(randFile, fileService, null);
         final Model settings = modelIo.get();
         final Whitelist whitelist = settings.getSettings().getWhitelist();
         
