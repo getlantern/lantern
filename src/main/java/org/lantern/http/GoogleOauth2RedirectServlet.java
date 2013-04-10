@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.lantern.Censored;
+import org.lantern.LanternUtils;
+import org.lantern.Proxifier;
+import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
@@ -86,8 +89,12 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.debug("Params: {}", params);
         log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
         log.debug("Query string: {}", req.getQueryString());
-        if (this.censored.isCensored()) {
-            proxifier.proxyGoogle();
+        if (this.censored.isCensored() || LanternUtils.isDevMode()) {
+            try {
+                proxifier.startProxying(true, Proxifier.PROXY_ALL);
+            } catch (final ProxyConfigurationError e) {
+                log.error("Could not start proxying", e);
+            }
         }
         final String location = newGtalkOauthUrl();
         

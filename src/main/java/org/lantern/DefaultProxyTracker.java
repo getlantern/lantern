@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.IOUtils;
@@ -25,7 +26,6 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
-import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
@@ -100,6 +100,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final XmppHandler xmppHandler;
 
+    private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
+
     @Inject
     public DefaultProxyTracker(final Model model,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
@@ -114,7 +116,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void start() {
-        if (this.model.isSetupComplete()) {
+        if (this.model.getSettings().getMode() == Mode.get) {
             prepopulateProxies();
         } else {
             log.debug("Not starting when setup is not complete...");
@@ -127,6 +129,11 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("Not loading proxies in give mode");
             return;
         }
+        if (this.proxiesPopulated.get()) {
+            log.debug("Proxies already populated!");
+            return;
+        }
+        this.proxiesPopulated.set(true);
         addFallbackProxy();
         // Add all the stored proxies.
         //final Collection<String> saved = this.model.getSettings().getProxies();
@@ -451,12 +458,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    @Subscribe
-    public void onSetupComplete(final SetupCompleteEvent event) {
-        log.debug("Got setup complete!");
-        start();
-    }
-    
     @Subscribe
     public void onModeChanged(final ModeChangedEvent event) {
         start();
