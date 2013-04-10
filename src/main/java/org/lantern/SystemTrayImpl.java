@@ -194,7 +194,7 @@ public class SystemTrayImpl implements SystemTray {
                     
                     @Override
                     public void widgetDefaultSelected(SelectionEvent se) {
-                        log.warn("default selection event unhandled");
+                        log.info("default selection event unhandled");
                     }
                 });
             }
