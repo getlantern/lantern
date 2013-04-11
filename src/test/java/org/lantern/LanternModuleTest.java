@@ -9,7 +9,6 @@ import java.security.GeneralSecurityException;
 import javax.crypto.Cipher;
 
 import org.junit.Test;
-import org.lantern.TestUtils.TestModule;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.UnencryptedFileService;
@@ -21,8 +20,6 @@ import org.lastbamboo.common.portmapping.UpnpService;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
 
 public class LanternModuleTest {
 
@@ -78,11 +75,9 @@ public class LanternModuleTest {
                 return 0;
             }
         });
-
-        Module m = Modules.override(lm).with(new TestModule());
-        final Injector injector = Guice.createInjector(m);
-
-        final LanternService xmpp =
+        final Injector injector = Guice.createInjector(lm);
+        
+        final LanternService xmpp = 
             injector.getInstance(DefaultXmppHandler.class);
         
         final Model model = injector.getInstance(Model.class);

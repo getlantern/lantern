@@ -73,7 +73,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 
 
 /**
@@ -129,7 +128,7 @@ public class Launcher {
     private final String[] commandLineArgs;
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
-    private final Module lanternModule;
+    private final LanternModule lanternModule;
 
     public Launcher(final String... args) {
         this(new LanternModule(), args);
@@ -142,7 +141,7 @@ public class Launcher {
      * @param lm The {@link LanternModule} to use.
      * @param args Command line arguments.
      */
-    public Launcher(final Module lm, final String[] args) {
+    public Launcher(final LanternModule lm, final String[] args) {
         this.lanternModule = lm;
         //System.setProperty("javax.net.debug", "ssl");
         this.commandLineArgs = args;

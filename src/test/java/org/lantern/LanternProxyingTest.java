@@ -22,8 +22,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Module;
-
 /**
  * End-to-end proxying test to make sure we're able to proxy access to
  * different sites.
@@ -41,9 +39,9 @@ public class LanternProxyingTest {
                 "--refresh-tok", TestUtils.getRefreshToken(), 
                 "--access-tok", TestUtils.getAccessToken(), 
                 "--disable-trusted-peers", "--disable-anon-peers"};
-
-        final Module lm = TestUtils.newTestLanternModule();
-
+        
+        final LanternModule lm = TestUtils.newTestLanternModule();
+        
         final Launcher launcher = new Launcher(lm, args);
         launcher.configureDefaultLogger();
         launcher.run();

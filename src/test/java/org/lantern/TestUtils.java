@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
-import java.util.Timer;
 
 import javax.security.auth.login.CredentialException;
 
@@ -25,8 +24,6 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
-import org.lantern.state.Transfers;
-import org.lantern.state.TransfersIo;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.LanternHttpClient;
@@ -40,12 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
-import com.google.inject.Binder;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
 
 public class TestUtils {
 
@@ -102,8 +95,6 @@ public class TestUtils {
 
     private static GlobalLanternServerTrafficShapingHandler globalTraffic;
 
-    private static TransfersIo transfersIo;
-
     static {
         if (LanternClientConstants.TEST_PROPS.isFile()) {
             privatePropsFile = LanternClientConstants.TEST_PROPS;
@@ -143,8 +134,8 @@ public class TestUtils {
             return;
         }
         loaded = true;
-        final Module lm = newTestLanternModule();
-
+        final LanternModule lm = newTestLanternModule();
+        
         injector = Guice.createInjector(lm);
         
         xmppHandler = instance(DefaultXmppHandler.class);
@@ -178,39 +169,8 @@ public class TestUtils {
         set.setUseGoogleOAuth2(true);
         start(start);
     }
-
-    static class TestTransfersIo extends TransfersIo {
-
-        private static File file = new File(LanternClientConstants.DEFAULT_TRANSFERS_FILE + ".test");
-
-        @Inject
-        public TestTransfersIo(Stats tracker,
-                EncryptedFileService encryptedFileService, Timer timer) {
-            super(file, tracker, encryptedFileService, timer);
-        }
-        @Override
-        public void write() {
-            //do not write anything in test mode
-        }
-    }
-
-    static class TestModelIo extends ModelIo {
-
-        private static File file = new File(LanternClientConstants.DEFAULT_MODEL_FILE + ".test");
-
-        @Inject
-        public TestModelIo(EncryptedFileService encryptedFileService,
-                Transfers transfers) {
-            super(file, encryptedFileService, transfers);
-        }
-
-        @Override
-        public void write() {
-            // do not write anything in test mode
-        }
-    }
-
-    public static Module newTestLanternModule() {
+    
+    public static LanternModule newTestLanternModule() {
         final LanternModule lm = new LanternModule();
         lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
         lm.setEncryptedFileService(new UnencryptedFileService());
@@ -228,29 +188,20 @@ public class TestUtils {
             }
         });
         lm.setNatPmpService(new NatPmpService() {
-
+            
             @Override
             public void shutdown() {}
-
+            
             @Override
             public void removeNatPmpMapping(int mappingIndex) {}
-
+            
             @Override
             public int addNatPmpMapping(PortMappingProtocol protocol, int localPort,
                     int externalPortRequested, PortMapListener portMapListener) {
                 return 0;
             }
         });
-        return Modules.override(lm).with(new TestModule());
-    }
-
-    protected static class TestModule implements Module {
-
-        @Override
-        public void configure(Binder binder) {
-            binder.bind(ModelIo.class).to(TestModelIo.class);
-            binder.bind(TransfersIo.class).to(TestTransfersIo.class);
-        }
+        return lm;
     }
 
     private static void start(final boolean start) {
