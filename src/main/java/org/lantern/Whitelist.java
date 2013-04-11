@@ -80,7 +80,7 @@ public class Whitelist {
         "mardomak.org",
         "radiofarda.com",
         "radiozamaneh.com",
-        "Roozonline.com",
+        "roozonline.com",
         "voanews.com",
 
 
@@ -131,7 +131,6 @@ public class Whitelist {
         "libertytimes.com.tw",
         "mingpao.com",
         "molihua.org",
-        //Re-enable pending the fix to https://github.com/getlantern/laeproxy/issues/14
         "www.newcenturynews.com",
         "nextmedia.com",
         "ntdtv.com",
