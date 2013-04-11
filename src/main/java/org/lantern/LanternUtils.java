@@ -203,7 +203,7 @@ public class LanternUtils {
             throw new IOExceptionWithCause(nae);
         } catch (final IOException ioe) {
             //proxyStatusListener.onCouldNotConnectToPeer(uri);
-            LOG.warn("Could not connect to peer", ioe);
+            LOG.info("Could not connect to peer", ioe);
             throw ioe;
         }
     }
