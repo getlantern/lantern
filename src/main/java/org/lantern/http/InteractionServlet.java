@@ -163,7 +163,9 @@ public class InteractionServlet extends HttpServlet {
             Interaction.valueOf(interactionStr.toUpperCase());
 
         if (inter == Interaction.CLOSE) {
-            handleClose(json);
+            if (handleClose(json)) {
+                return;
+            }
         }
 
         final Modal modal = this.model.getModal();
@@ -599,9 +601,9 @@ public class InteractionServlet extends HttpServlet {
     }
 
 
-    private void handleClose(String json) {
+    private boolean handleClose(String json) {
         if (StringUtils.isBlank(json)) {
-            return;
+            return false;
         }
         final ObjectMapper om = new ObjectMapper();
         Map<String, Object> map;
@@ -610,6 +612,7 @@ public class InteractionServlet extends HttpServlet {
             final String notification = (String) map.get("notification");
             model.closeNotification(Integer.parseInt(notification));
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            return true;
         } catch (JsonParseException e) {
             log.warn("Exception closing notifications {}", e);
         } catch (JsonMappingException e) {
@@ -617,7 +620,7 @@ public class InteractionServlet extends HttpServlet {
         } catch (IOException e) {
             log.warn("Exception closing notifications {}", e);
         }
-
+        return false;
     }
 
     private void declineInvite(final String json) {
