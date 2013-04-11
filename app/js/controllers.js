@@ -12,7 +12,10 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   $scope.cometdSrvc = cometdSrvc;
   $scope.lanternUiVersion = LANTERNUI_VER.join('.');
   $scope.config = config;
-  $window.model = model; // easier interactive debugging
+  // XXX for easier inspection in the JavaScript console
+  $window.config = config;
+  $window.model = model;
+  $window.rootScope = $scope;
   $scope.EXTERNAL_URL = EXTERNAL_URL;
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;
@@ -223,8 +226,8 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
       nproxiedSitesMax = 1000,
-      original,
-      normalized;
+      proxiedSites = [],
+      proxiedSitesDirty;
 
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal === MODAL.proxiedSites;
@@ -243,9 +246,9 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
     }
   }
 
-  $scope.$watch('model.settings.proxiedSites', function(proxiedSites) {
+  $scope.$watch('model.settings.proxiedSites', function(proxiedSites_) {
     if (proxiedSites) {
-      original = proxiedSites;
+      proxiedSites = normalizedLines(proxiedSites_);
       $scope.input = proxiedSites.join('\n');
       updateComplete();
       makeValid();
@@ -257,8 +260,12 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       $scope.validate($scope.input);
   }, true);
 
-  function normalize(domainOrIP) {
+  function normalizedLine(domainOrIP) {
     return angular.lowercase(domainOrIP.trim());
+  }
+
+  function normalizedLines(lines) {
+    return _.map(lines, normalizedLine);
   }
 
   $scope.validate = function(value) {
@@ -268,34 +275,34 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       return false;
     }
     if (angular.isString(value)) value = value.split('\n');
-    normalized = [];
+    proxiedSitesDirty = [];
     var uniq = {};
     $scope.errorLabelKey = '';
     $scope.errorCause = '';
     for (var i=0, line=value[i], l=value.length, normline;
          i<l && !$scope.errorLabelKey;
          line=value[++i]) {
-      normline = normalize(line);
+      normline = normalizedLine(line);
       if (!normline) continue;
       if (!(DOMAIN.test(normline) ||
             IPV4.test(normline))) {
         $scope.errorLabelKey = 'ERROR_INVALID_LINE';
         $scope.errorCause = line;
       } else if (!(normline in uniq)) {
-        normalized.push(normline);
+        proxiedSitesDirty.push(normline);
         uniq[normline] = true;
       }
     }
-    if (normalized.length > nproxiedSitesMax) {
+    if (proxiedSitesDirty.length > nproxiedSitesMax) {
       $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
       $scope.errorCause = '';
     }
-    $scope.hasUpdate = !_.isEqual(original, normalized);
+    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty);
     return !$scope.errorLabelKey;
   };
 
   $scope.handleReset = function() {
-    $scope.input = original.join('\n');
+    $scope.input = proxiedSites.join('\n');
     makeValid();
   };
 
@@ -309,9 +316,9 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       return $scope.interaction(INTERACTION.continue);
     }
     log.debug('sending update');
-    $scope.input = normalized.join('\n');
+    $scope.input = proxiedSitesDirty.join('\n');
     $scope.updating = true;
-    $scope.changeSetting(SETTING.proxiedSites, normalized).then(function() {
+    $scope.changeSetting(SETTING.proxiedSites, proxiedSitesDirty).then(function() {
       updateComplete();
       log.debug('update complete, sending continue');
       $scope.interaction(INTERACTION.continue);

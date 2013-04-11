@@ -307,7 +307,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-disabled="updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn" ng-disabled="!hasUpdate || updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | i18n }}</button>
     <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
             ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | i18n }}</button>
