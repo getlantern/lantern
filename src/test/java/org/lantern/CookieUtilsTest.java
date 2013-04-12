@@ -1,20 +1,24 @@
 package org.lantern;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.lantern.TestingUtils.createSetCookie;
+
 import java.net.URI;
-import java.util.Set;
+
 import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest; 
+import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
-import static org.junit.Assert.*;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieUtils;
 import org.lantern.cookie.StoredCookie;
-import static org.lantern.TestingUtils.*;
 
+@Ignore
 public class CookieUtilsTest {
 
     /**
