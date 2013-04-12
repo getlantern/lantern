@@ -37,6 +37,7 @@ import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.Launcher;
 import org.lantern.ProxyHolder;
+import org.lantern.ProxyQueue;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lantern.UdtHttpRequestProcessor;
@@ -329,6 +330,9 @@ public class UdtHttpRequestProcessorTest {
             public void addProxy(URI jid, InetSocketAddress iae) {}
             @Override
             public void setSuccess(ProxyHolder proxyHolder) {}
+            @Override
+            public void addProxyWithChecks(URI jid, ProxyQueue proxyQueue,
+                    ProxyHolder proxy) {}
         };
     }
 }
