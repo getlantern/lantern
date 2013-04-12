@@ -1,2 +1,2 @@
-/app/logs/*
+logs/*
 !.gitkeep
