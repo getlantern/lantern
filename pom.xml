@@ -68,7 +68,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.0.0.Beta3</version>
+      <version>4.0.0.CR1</version>
     </dependency>
     <dependency>
       <groupId>org.getlantern</groupId>
@@ -280,7 +280,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.5.1</version>
     </dependency>
 
     <dependency>
