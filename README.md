@@ -2,7 +2,7 @@
 [![Build
 Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-ci.org/getlantern/lantern-ui)
 
-![screenshot](./screenshot.png)
+![screenshot-welcome](./screenshots/welcome.png)
 
 UI for [Lantern](https://github.com/getlantern/lantern).
 
@@ -61,6 +61,9 @@ To skip the setup process and go straight to an already set up instance, run:
 
     $ scripts/web-server.js --skip-setup
 
+You should then see something like this when you load the app:
+
+![screenshot-vis](./screenshots/vis.png)
 
 ## Running tests
 
