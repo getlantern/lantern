@@ -329,6 +329,9 @@ public class TcpHttpRequestProcessorTest {
             public void addProxy(URI jid, InetSocketAddress iae) {}
             @Override
             public void setSuccess(ProxyHolder proxyHolder) {}
+            @Override
+            public void addProxyWithChecks(URI jid, ProxyQueue proxyQueue,
+                    ProxyHolder proxy) {}
         };
     }
 }

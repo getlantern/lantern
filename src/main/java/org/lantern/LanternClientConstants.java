@@ -135,6 +135,8 @@ public class LanternClientConstants {
     // Not final because it may be set from the command line for debugging.
     public static String STATS_URL;
 
+    private static long recentProxyTimeout = 60 * 1000;
+
     public static void setControllerId(final String id) {
         LANTERN_JID = id + "@appspot.com";
         STATS_URL = "https://" + id + ".appspot.com/stats";
@@ -142,5 +144,13 @@ public class LanternClientConstants {
 
     static {
         setControllerId("lanternctrl");
+    }
+
+    public static long getRecentProxyTimeout() {
+        return recentProxyTimeout;
+    }
+
+    public static void setRecentProxyTimeout(long timeout) {
+        recentProxyTimeout  = timeout;
     }
 }

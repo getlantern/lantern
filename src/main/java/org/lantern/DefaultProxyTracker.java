@@ -41,8 +41,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
 
-    private int recentProxyTimeout = 60 * 1000;
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ExecutorService p2pSocketThreadPool =
@@ -265,7 +263,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         });
     }
 
-    void addProxyWithChecks(final URI fullJid,
+    @Override
+    public void addProxyWithChecks(final URI fullJid,
         final ProxyQueue queue, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
             //even with no tcp, we can still add JID proxies
@@ -419,14 +418,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void setSuccess(ProxyHolder proxyHolder) {
         proxyHolder.resetFailures();
-    }
-
-    public int getRecentProxyTimeout() {
-        return recentProxyTimeout;
-    }
-
-    public void setRecentProxyTimeout(int recentProxyTimeout) {
-        this.recentProxyTimeout = recentProxyTimeout;
     }
 
     class PeerProxyQueue extends ProxyQueue {

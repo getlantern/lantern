@@ -33,9 +33,9 @@ public class ProxyQueue {
 
     private boolean weHaveInternet;
 
-    private final DefaultProxyTracker tracker;
+    private final ProxyTracker tracker;
 
-    ProxyQueue(Model model, DefaultProxyTracker tracker) {
+    ProxyQueue(Model model, ProxyTracker tracker) {
         this.tracker = tracker;
         this.model = model;
     }
@@ -92,7 +92,7 @@ public class ProxyQueue {
                 final ProxyHolder proxy = pausedProxies.peek();
                 if (proxy == null)
                     break;
-                if (now - proxy.getTimeOfDeath() < tracker.getRecentProxyTimeout()) {
+                if (now - proxy.getTimeOfDeath() < LanternClientConstants.getRecentProxyTimeout()) {
                     pausedProxies.remove();
                     log.debug("Attempting to restore" + proxy);
                     proxy.resetFailures();

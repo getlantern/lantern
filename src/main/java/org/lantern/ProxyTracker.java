@@ -29,4 +29,6 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
 
     void setSuccess(ProxyHolder proxyHolder);
 
+    void addProxyWithChecks(URI jid, ProxyQueue proxyQueue, ProxyHolder proxy);
+
 }
