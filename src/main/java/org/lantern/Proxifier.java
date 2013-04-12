@@ -2,11 +2,8 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
@@ -43,15 +40,13 @@ public class Proxifier implements ProxyService, LanternService {
     /**
      * File external processes can use to determine if Lantern is currently
      * proxying traffic. Useful for things like the FireFox extensions.
+     * (XXX necessary? https://github.com/getlantern/lantern/issues/678)
      */
     private final File LANTERN_PROXYING_FILE =
         new File(LanternClientConstants.CONFIG_DIR, "lanternProxying");
     
     private boolean interactiveUnproxyCalled;
 
-    private final MacProxyManager mpm = 
-        new MacProxyManager("testId", 4291);
-    
     public final static File PROXY_ON = 
         new File(LanternClientConstants.CONFIG_DIR, "proxy_on.pac");
     public final static File PROXY_OFF = 
@@ -87,21 +82,6 @@ public class Proxifier implements ProxyService, LanternService {
         copyFromLocal(PROXY_OFF);
         Events.register(this);
         
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            final File Lantern = new File("Lantern");
-            if (!Lantern.isFile()) {
-                LOG.debug("Creating hard link to osascript...");
-                try {
-                    final String result = 
-                        mpm.runScript("ln", "/usr/bin/osascript", "Lantern");
-                    LOG.debug("Result of script is: {}", result);
-                } catch (final IOException e) {
-                    LOG.warn("Error creating hard link!!", e);
-                }
-            } else {
-                LOG.debug("Appears to already be a link to osascript");
-            }
-        }
         LANTERN_PROXYING_FILE.delete();
         LANTERN_PROXYING_FILE.deleteOnExit();
         if (!PROXY_OFF.isFile()) {
@@ -367,11 +347,11 @@ public class Proxifier implements ProxyService, LanternService {
         // URL-encoding of the path make the pac file config fail?
         try {
             final String result1 = 
-                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                LanternUtils.runCommand("gsettings", "set", "org.gnome.system.proxy", 
                     "mode", "'auto'");
             LOG.debug("Result of Ubuntu gsettings mode call: {}", result1);
             final String result2 = 
-                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                LanternUtils.runCommand("gsettings", "set", "org.gnome.system.proxy", 
                     "autoconfig-url", url);
             LOG.debug("Result of Ubuntu gsettings pac file call: {}", result2);
         } catch (final IOException e) {
@@ -394,30 +374,11 @@ public class Proxifier implements ProxyService, LanternService {
             onOrOff = "off";
         }
         
-        // We create a random string for the pac file name to make sure all
-        // browsers reload it.
-        String applescriptCommand = 
-            "do shell script \"./configureNetworkServices "+ onOrOff + " "+url;
-        
-        applescriptCommand +="\" without altering line endings";
-
-        // XXX @myleshorton can we skip this when there's no need to change
-        // system proxy settings, e.g. an unproxy call after a proxy call was
-        // canceled, or vice versa?
         try {
-            final String result = //mpm.runScript("osascript", "-e", applescriptCommand);
-                mpm.runScript("./Lantern", "-e", applescriptCommand);
-            LOG.debug("Result of script is {}", result);
+            final String result = LanternUtils.runCommand("./configureNetworkServices", onOrOff, url);
+            LOG.debug("Result of command is {}", result);
         } catch (final IOException e) {
-            final String msg = e.getMessage();
-            if (!msg.contains("canceled")) {
-                // Could just be another language here...
-                LOG.error("Script failure with unknown message: "+msg, e);
-            } else {
-                LOG.debug("Exception running script", e);
-            }
-            //LanternHub.settings().setSystemProxy(false);
-            this.model.getSettings().setSystemProxy(false);
+            LOG.debug("Exception running script", e);
             throw new ProxyConfigurationCancelled();
         }
     }
@@ -446,11 +407,11 @@ public class Proxifier implements ProxyService, LanternService {
     private void unproxyLinux() throws ProxyConfigurationError {
         try {
             final String result1 = 
-                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                LanternUtils.runCommand("gsettings", "set", "org.gnome.system.proxy", 
                     "mode", "'none'");
             LOG.debug("Result of Ubuntu gsettings mode call: {}", result1);
             final String result2 = 
-                mpm.runScript("gsettings", "reset", "org.gnome.system.proxy", 
+                LanternUtils.runCommand("gsettings", "reset", "org.gnome.system.proxy", 
                     "autoconfig-url");
             LOG.debug("Result of Ubuntu gsettings pac file call: {}", result2);
         } catch (final IOException e) {
@@ -478,65 +439,6 @@ public class Proxifier implements ProxyService, LanternService {
         final String url = getPacFileUrl(pacFile);
         this.model.getConnectivity().setPacUrl(url);
         return url;
-    }
-
-    /**
-     * Calls out to AppleScript to check if the user has the security setting
-     * checked to require an administrator password to unlock preferences.
-     * 
-     * @return <code>true</code> if the user has the setting checked, otherwise
-     * <code>false</code>.
-     * @throws IOException If there was a scripting error reading the 
-     * preferences setting.
-     */
-    public boolean osxPrefPanesLocked() throws IOException {
-        final String script = 
-            "tell application \"System Events\"\n"+
-            "    tell security preferences\n"+
-            "        get require password to unlock\n"+
-            "    end tell\n"+
-            "end tell\n";
-        final Collection<String[]> args = new ArrayList<String[]>();
-        args.add(new String[]{"osascript", "-e", script});
-        args.add(new String[]{"arch", "-i386", "osascript", "-e", script});
-        args.add(new String[]{"arch", "-x86_64", "osascript", "-e", script});
-        final String result = tryAll(args);
-        LOG.debug("Result of script is: {}", result);
-
-        if (StringUtils.isBlank(result)) {
-            LOG.error("No result from AppleScript");
-            return false;
-        }
-        
-        if (LanternUtils.isTrue(result)) {
-            return true;
-        } else if (LanternUtils.isFalse(result)) {
-            return false;
-        } else {
-            final String msg = "Somehow not true or false here? "+result;
-            LOG.error(msg);
-            throw new IOException(msg);
-        }
-    }
-
-    private String tryAll(final Collection<String[]> args) throws IOException {
-        for (final String[] argSet : args) {
-            try {
-                final String result = 
-                    mpm.runScript(argSet[0], 
-                        Arrays.copyOfRange(argSet, 1, argSet.length)).trim();
-                if (LanternUtils.isTrueOrFalse(result)) {
-                    return result;
-                } else {
-                    LOG.warn("Got unexpected result from AppleScript: "+result);
-                }
-            } catch (final IOException e) {
-                LOG.error("Could not run script", e);
-            }
-        }
-        final String msg = "No scripts worked!";
-        LOG.error(msg);
-        throw new IOException(msg);
     }
 
     /**
