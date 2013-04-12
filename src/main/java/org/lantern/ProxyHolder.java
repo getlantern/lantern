@@ -1,9 +1,11 @@
 package org.lantern;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounter;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
@@ -11,24 +13,37 @@ import org.littleshoot.util.FiveTuple.Protocol;
 public final class ProxyHolder implements Comparable<ProxyHolder> {
 
     private final String id;
+
+    private final URI jid;
+
     private final FiveTuple fiveTuple;
     private final LanternTrafficCounter trafficShapingHandler;
 
     private long timeOfDeath = -1;
     private final AtomicInteger failures = new AtomicInteger();
 
-    public ProxyHolder(final String id, final InetSocketAddress isa,
-        final LanternTrafficCounter trafficShapingHandler) {
+    private final Type type;
+
+    public ProxyHolder(final String id, final URI jid,
+            final InetSocketAddress isa,
+            final LanternTrafficCounter trafficShapingHandler,
+            final Type type) {
         this.id = id;
+        this.jid = jid;
         this.fiveTuple = new FiveTuple(null, isa, Protocol.TCP);
         this.trafficShapingHandler = trafficShapingHandler;
+        this.type = type;
     }
 
-    public ProxyHolder(final String id, final FiveTuple tuple,
-        final LanternTrafficCounter trafficShapingHandler) {
+    public ProxyHolder(final String id, final URI jid,
+            final FiveTuple tuple,
+            final LanternTrafficCounter trafficShapingHandler,
+            final Type type) {
         this.id = id;
+        this.jid = jid;
         this.fiveTuple = tuple;
         this.trafficShapingHandler = trafficShapingHandler;
+        this.type = type;
     }
 
     public String getId() {
@@ -127,5 +142,17 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
     public long getRetryTime() {
         //exponential backoff - 5,10,20,40, etc seconds
         return timeOfDeath + 1000 * 5 * (long)(Math.pow(2, failures.get()));
+    }
+
+    public URI getJid() {
+        return jid;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public boolean isConnected() {
+        return timeOfDeath <= 0;
     }
 }

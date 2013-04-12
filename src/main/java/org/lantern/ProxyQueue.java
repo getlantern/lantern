@@ -33,13 +33,22 @@ public class ProxyQueue {
 
     private boolean weHaveInternet;
 
-    ProxyQueue(Model model) {
+    private final DefaultProxyTracker tracker;
+
+    ProxyQueue(Model model, DefaultProxyTracker tracker) {
+        this.tracker = tracker;
         this.model = model;
     }
 
     public synchronized boolean add(ProxyHolder holder) {
-        if (proxySet.contains(holder))
+        if (proxySet.contains(holder)) {
+            if (!holder.isConnected()) {
+                holder.resetFailures();
+                proxies.add(holder);
+                return true;
+            }
             return false;
+        }
         proxySet.add(holder);
         proxies.add(holder);
         return true;
@@ -83,11 +92,12 @@ public class ProxyQueue {
                 final ProxyHolder proxy = pausedProxies.peek();
                 if (proxy == null)
                     break;
-                if (now - proxy.getTimeOfDeath() < 60 * 1000) {
+                if (now - proxy.getTimeOfDeath() < tracker.getRecentProxyTimeout()) {
                     pausedProxies.remove();
-                    log.debug("Restoring " + proxy);
+                    log.debug("Attempting to restore" + proxy);
                     proxy.resetFailures();
-                    reenqueueProxy(proxy);
+                    tracker.addProxyWithChecks(proxy.getJid(), this,
+                            proxy);
                 } else {
                     break;
                 }
@@ -102,8 +112,9 @@ public class ProxyQueue {
             if (proxy == null)
                 break;
             if (now > proxy.getRetryTime()) {
-                log.debug("Restoring timed-in proxy " + proxy);
-                reenqueueProxy(proxy);
+                log.debug("Attempting to restore timed-in proxy " + proxy);
+                tracker.addProxyWithChecks(proxy.getJid(), this,
+                        proxy);
                 pausedProxies.remove();
             } else {
                 break;
@@ -112,6 +123,11 @@ public class ProxyQueue {
     }
 
     public synchronized void proxyFailed(ProxyHolder proxyAddress) {
+        //this actually might be the first time we see a proxy, if
+        //the initial connection fails
+        if (!proxySet.contains(proxyAddress)) {
+            proxySet.add(proxyAddress);
+        }
         if (model.getConnectivity().isInternet()) {
             proxies.remove(proxyAddress);
             proxyAddress.addFailure();
@@ -120,6 +136,12 @@ public class ProxyQueue {
             }
         } else {
             log.info("No internet connection, so don't mark off proxies");
+            //but do re-add it to the paused list, if necessary
+            if (!proxies.contains(proxyAddress)) {
+                if (!pausedProxies.contains(proxyAddress)) {
+                    pausedProxies.add(proxyAddress);
+                }
+            }
         }
     }
 
@@ -143,4 +165,8 @@ public class ProxyQueue {
         return proxySet.contains(ph);
     }
 
+    @Override
+    public String toString() {
+        return proxies.toString();
+    }
 }

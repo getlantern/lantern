@@ -40,6 +40,7 @@ import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lantern.UdtHttpRequestProcessor;
+import org.lantern.state.Peer.Type;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -299,7 +300,7 @@ public class UdtHttpRequestProcessorTest {
             @Override
             public ProxyHolder getLaeProxy() {return null;}
             @Override
-            public ProxyHolder getJidProxy() {return new ProxyHolder("", ft, null);}
+            public ProxyHolder getJidProxy() {return new ProxyHolder("", null, ft, null, Type.pc);}
             @Override
             public void onError(URI peerUri) {}
             @Override

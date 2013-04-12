@@ -41,6 +41,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
 
+    private int recentProxyTimeout = 60 * 1000;
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ExecutorService p2pSocketThreadPool =
@@ -90,9 +92,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     public DefaultProxyTracker(final Model model,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
         final XmppHandler xmppHandler) {
-        proxyQueue = new ProxyQueue(model);
-        laeProxyQueue = new ProxyQueue(model);
-        peerProxyQueue = new PeerProxyQueue(model);
+        proxyQueue = new ProxyQueue(model, this);
+        laeProxyQueue = new ProxyQueue(model, this);
+        peerProxyQueue = new PeerProxyQueue(model, this);
         this.model = model;
         this.peerFactory = peerFactory;
         this.timer = timer;
@@ -209,7 +211,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
 
         addProxyWithChecks(fullJid, proxyQueue,
-            new ProxyHolder(host, isa, netty3TrafficCounter()), type);
+            new ProxyHolder(host, fullJid, isa, netty3TrafficCounter(), type));
     }
 
 
@@ -235,7 +237,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                 // TODO: In the past we created a bunch of connections here -
                 // a socket pool -- to avoid dealing with connection time
                 // delays. We should probably do that again!.
-                boolean gotConnected = false;
                 try {
                     log.debug("Opening outgoing peer...");
                     final FiveTuple tuple = LanternUtils.openOutgoingPeer(
@@ -245,19 +246,18 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     final InetSocketAddress remote = tuple.getRemote();
                     final ProxyHolder ph =
-                        new ProxyHolder(jid, tuple, netty4TrafficCounter());
+                        new ProxyHolder(jid, peerUri, tuple, netty4TrafficCounter(),
+                                Type.pc);
 
                     peerFactory.onOutgoingConnection(peerUri, remote, Type.pc,
                             ph.getTrafficShapingHandler());
 
                     peerProxyQueue.addPeerProxy(peerUri, ph);
 
-                    if (!gotConnected) {
-                        Events.eventBus().post(
+                    Events.eventBus().post(
                             new ProxyConnectionEvent(
-                                ConnectivityStatus.CONNECTED));
-                    }
-                    gotConnected = true;
+                                    ConnectivityStatus.CONNECTED));
+
                 } catch (final IOException e) {
                     log.info("Could not create peer socket", e);
                 }
@@ -265,9 +265,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         });
     }
 
-    private void addProxyWithChecks(final URI fullJid,
-        final ProxyQueue queue, final ProxyHolder ph,
-        final Type type) {
+    void addProxyWithChecks(final URI fullJid,
+        final ProxyQueue queue, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
             //even with no tcp, we can still add JID proxies
             addJidProxy(fullJid);
@@ -276,8 +275,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         if (queue.contains(ph)) {
             log.debug("We already know about proxy "+ph+" in {}", queue);
-            return;
+            //but it might be disconnected
+            if (ph.isConnected()) {
+                return;
+            }
         }
+
+        log.debug("Trying to add proxy {} to queue {}", ph, queue);
 
         proxyCheckThreadPool.submit(new Runnable() {
 
@@ -288,13 +292,11 @@ public class DefaultProxyTracker implements ProxyTracker {
                 try {
                     sock.connect(remote, 60*1000);
 
-                    synchronized (queue) {
-                        if (queue.add(ph)) {
-                            log.debug("Added connected TCP proxy. " +
-                                "Queue is now: {}", queue);
-                            peerFactory.onOutgoingConnection(fullJid, remote, type,
-                                    ph.getTrafficShapingHandler());
-                        }
+                    if (queue.add(ph)) {
+                        log.debug("Added connected TCP proxy. "
+                                + "Queue is now: {}", queue);
+                        peerFactory.onOutgoingConnection(fullJid, remote,
+                                ph.getType(), ph.getTrafficShapingHandler());
                     }
 
                     log.debug("Dispatching CONNECTED event");
@@ -419,6 +421,14 @@ public class DefaultProxyTracker implements ProxyTracker {
         proxyHolder.resetFailures();
     }
 
+    public int getRecentProxyTimeout() {
+        return recentProxyTimeout;
+    }
+
+    public void setRecentProxyTimeout(int recentProxyTimeout) {
+        this.recentProxyTimeout = recentProxyTimeout;
+    }
+
     class PeerProxyQueue extends ProxyQueue {
         //this unfortunately duplicates the values of proxyMap
         //but there doesn't seem to be an elegant way to handle
@@ -426,8 +436,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         private final HashMap<URI, ProxyHolder> peerProxyMap =
                 new HashMap<URI, ProxyHolder>();
 
-        PeerProxyQueue(Model model) {
-            super(model);
+        PeerProxyQueue(Model model, DefaultProxyTracker tracker) {
+            super(model, tracker);
         }
 
         public void proxyFailed(URI peerUri) {
