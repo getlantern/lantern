@@ -66,7 +66,7 @@ To skip the setup process and go straight to an already set up instance, run:
 
 Globally install required Node.js packages (`sudo` as necessary):
 
-    npm install -g testacular
+    npm install -g karma
 
 Check out `.travis.yml` and referenced files for examples of running the
 unit tests and end-to-end tests.

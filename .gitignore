@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .DS_Store
 *.sw[po]
 *.un~
@@ -9,3 +10,5 @@ manifest.mf
 build.xml
 .project
 .settings
+logs/*
+!.gitkeep

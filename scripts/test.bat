@@ -5,7 +5,7 @@ REM You have to run server and capture some browser first
 REM
 REM Requirements:
 REM - NodeJS (http://nodejs.org/)
-REM - Testacular (npm install -g testacular)
+REM - Karma (npm install -g karma)
 
 set BASE_DIR=%~dp0
-testacular start "%BASE_DIR%\..\config\testacular.conf.js" %*
+karma start "%BASE_DIR%\..\config\karma.conf.js" %*
