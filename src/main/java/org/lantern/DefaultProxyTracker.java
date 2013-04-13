@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -86,13 +87,15 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
+    private boolean weHaveInternet = true;
+
     @Inject
     public DefaultProxyTracker(final Model model,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
         final XmppHandler xmppHandler) {
-        proxyQueue = new ProxyQueue(model, this);
-        laeProxyQueue = new ProxyQueue(model, this);
-        peerProxyQueue = new PeerProxyQueue(model, this);
+        proxyQueue = new ProxyQueue(model);
+        laeProxyQueue = new ProxyQueue(model);
+        peerProxyQueue = new PeerProxyQueue(model);
         this.model = model;
         this.peerFactory = peerFactory;
         this.timer = timer;
@@ -263,6 +266,42 @@ public class DefaultProxyTracker implements ProxyTracker {
         });
     }
 
+    private void restoreRecentlyDeceasedProxies(ProxyQueue queue) {
+        synchronized (queue) {
+            long now = new Date().getTime();
+            while (true) {
+                final ProxyHolder proxy = queue.pausedProxies.peek();
+                if (proxy == null)
+                    break;
+                if (now - proxy.getTimeOfDeath() < LanternClientConstants.getRecentProxyTimeout()) {
+                    queue.pausedProxies.remove();
+                    log.debug("Attempting to restore" + proxy);
+                    proxy.resetFailures();
+                    addProxyWithChecks(proxy.getJid(), queue, proxy);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void restoreTimedInProxies(ProxyQueue queue) {
+        synchronized(queue) {
+            long now = new Date().getTime();
+            while (true) {
+                ProxyHolder proxy = queue.pausedProxies.peek();
+                if (proxy == null)
+                    break;
+                if (now > proxy.getRetryTime()) {
+                    log.debug("Attempting to restore timed-in proxy " + proxy);
+                    addProxyWithChecks(proxy.getJid(), queue, proxy);
+                    queue.pausedProxies.remove();
+                } else {
+                    break;
+                }
+            }
+        }
+    }
     @Override
     public void addProxyWithChecks(final URI fullJid,
         final ProxyQueue queue, final ProxyHolder ph) {
@@ -365,16 +404,36 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public ProxyHolder getLaeProxy() {
+        handleConnectivity(laeProxyQueue);
         return laeProxyQueue.getProxy();
     }
 
     @Override
     public ProxyHolder getProxy() {
+        handleConnectivity(proxyQueue);
         return proxyQueue.getProxy();
+    }
+
+    private void handleConnectivity(ProxyQueue queue) {
+        if (model.getConnectivity().isInternet()) {
+            log.debug("Internet connected");
+            weHaveInternet  = true;
+        } else {
+            if (weHaveInternet) {
+                log.debug("First time with no internet connection");
+                // we have just learned that in fact we don't
+                weHaveInternet = false;
+                // restore recently-deceased proxies (since they probably died
+                // of general internet failure
+                restoreRecentlyDeceasedProxies(queue);
+            }
+        }
+        restoreTimedInProxies(queue);
     }
 
     @Override
     public ProxyHolder getJidProxy() {
+        handleConnectivity(peerProxyQueue);
         return peerProxyQueue.getProxy();
     }
 
@@ -427,8 +486,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         private final HashMap<URI, ProxyHolder> peerProxyMap =
                 new HashMap<URI, ProxyHolder>();
 
-        PeerProxyQueue(Model model, DefaultProxyTracker tracker) {
-            super(model, tracker);
+        PeerProxyQueue(Model model) {
+            super(model);
         }
 
         public void proxyFailed(URI peerUri) {
