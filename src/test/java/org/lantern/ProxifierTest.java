@@ -18,7 +18,7 @@ public class ProxifierTest {
         
         ModelUtils stub = newModelUtils();
         // Just make sure we don't get an exception
-        new Proxifier(null, stub, new Model(), null).osxPrefPanesLocked();
+        new Proxifier(null, stub, new Model(), null);
     }
 
     private ModelUtils newModelUtils() {

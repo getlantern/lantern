@@ -217,17 +217,6 @@ public class LanternUtils {
         }
     }
 
-    private static String macMe(final byte[] mac) {
-        // We wrap the MAC in a SHA-1 to avoid distributing actual
-        // MAC addresses.
-        final MessageDigest md = new Sha1();
-        md.update(mac);
-        final byte[] raw = md.digest();
-        MAC_ADDRESS = Base64.encodeBase64URLSafeString(raw);
-        return MAC_ADDRESS;
-    }
-
-
     /**
      * This is the local proxy port data is relayed to on the "server" side
      * of P2P connections.
@@ -975,6 +964,19 @@ public class LanternUtils {
             throw new RuntimeException(e);
         }
     }
+    
+    public static String runCommand(final String cmd, final String... args)
+            throws IOException {
+        LOG.debug("Command: {}\nargs: {}", cmd, Arrays.asList(args));
+        final CommandLine command = new CommandLine(cmd, args);
+        command.execute();
+        final String output = command.getStdOut();
+        if (!command.isSuccessful()) {
+            final String msg = "Command failed!! Args: " + Arrays.asList(args)
+                    + " Result: " + output;
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        return output;
+    }
 }
-
-
