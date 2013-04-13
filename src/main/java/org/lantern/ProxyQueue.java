@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -31,12 +30,7 @@ public class ProxyQueue {
 
     private final Model model;
 
-    private boolean weHaveInternet;
-
-    private final ProxyTracker tracker;
-
-    ProxyQueue(Model model, ProxyTracker tracker) {
-        this.tracker = tracker;
+    ProxyQueue(Model model) {
         this.model = model;
     }
 
@@ -55,21 +49,6 @@ public class ProxyQueue {
     }
 
     public synchronized ProxyHolder getProxy() {
-        if (model.getConnectivity().isInternet()) {
-            log.debug("Internet connected");
-            weHaveInternet = true;
-        } else {
-            if (weHaveInternet) {
-                log.debug("First time with no internet connection");
-                // we have just learned that in fact we don't
-                weHaveInternet = false;
-                // restore recently-deceased proxies (since they probably died
-                // of general internet failure
-                restoreRecentlyDeceasedProxies();
-            }
-        }
-        restoreTimedInProxies();
-
         if (proxies.isEmpty()) {
             log.debug("No proxy addresses -- " + pausedProxies.size()
                     + " paused");
@@ -85,42 +64,6 @@ public class ProxyQueue {
         proxies.add(proxy);
     }
 
-    private void restoreRecentlyDeceasedProxies() {
-        synchronized (pausedProxies) {
-            long now = new Date().getTime();
-            while (true) {
-                final ProxyHolder proxy = pausedProxies.peek();
-                if (proxy == null)
-                    break;
-                if (now - proxy.getTimeOfDeath() < LanternClientConstants.getRecentProxyTimeout()) {
-                    pausedProxies.remove();
-                    log.debug("Attempting to restore" + proxy);
-                    proxy.resetFailures();
-                    tracker.addProxyWithChecks(proxy.getJid(), this,
-                            proxy);
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-
-    private void restoreTimedInProxies() {
-        long now = new Date().getTime();
-        while (true) {
-            ProxyHolder proxy = pausedProxies.peek();
-            if (proxy == null)
-                break;
-            if (now > proxy.getRetryTime()) {
-                log.debug("Attempting to restore timed-in proxy " + proxy);
-                tracker.addProxyWithChecks(proxy.getJid(), this,
-                        proxy);
-                pausedProxies.remove();
-            } else {
-                break;
-            }
-        }
-    }
 
     public synchronized void proxyFailed(ProxyHolder proxyAddress) {
         //this actually might be the first time we see a proxy, if
