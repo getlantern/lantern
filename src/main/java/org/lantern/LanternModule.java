@@ -152,14 +152,8 @@ public class LanternModule extends AbstractModule {
         if (this.natPmpService != null) {
             return this.natPmpService;
         }
-        final NatPmpImpl temp = new NatPmpImpl(stats);
-        if (temp.isNatPmpSupported()) {
-            return temp;
-        } else {
-            log.info("NAT-PMP not supported");
-            // We just use a dummy one in this case.
-            return new DummyNatPmpService();
-        }
+        natPmpService = new NatPmpImpl(stats);
+        return natPmpService;
     }
     
     @Provides @Singleton
