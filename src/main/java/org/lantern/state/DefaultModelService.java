@@ -225,8 +225,11 @@ public class DefaultModelService implements ModelService {
         // XXX i18n
         ArrayList<LanternRosterEntry> entries = new ArrayList<LanternRosterEntry>();
         for (String email : emails) {
-            if (xmppHandler.sendInvite(email)) {
+            if (xmppHandler.sendInvite(email, false)) {
                 entries.add(roster.getRosterEntry(email));
+                //we also need to mark this email as pending, in case
+                //our invite gets lost.
+                model.addPendingInvite(email);
             } else {
                 entries.add(null);
             }

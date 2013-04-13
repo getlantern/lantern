@@ -6,9 +6,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -52,9 +54,11 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Connectivity;
+import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -110,8 +114,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.warn("Received error message!! {}", msg.toXML());
                 return;
             }
-            if (StringUtils.isNotBlank(from) &&
-                from.startsWith(LanternClientConstants.LANTERN_JID)) {
+            if (LanternUtils.isLanternHub(from)) {
                 processLanternHubMessage(msg);
             }
 
@@ -599,6 +602,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Finished disconnecting XMPP...");
     }
 
+    @SuppressWarnings("unchecked")
     private void processLanternHubMessage(final Message msg) {
         Connectivity connectivity = model.getConnectivity();
         if (!connectivity.getLanternController()) {
@@ -666,6 +670,33 @@ public class DefaultXmppHandler implements XmppHandler {
                 new HashMap<String, Object>();
             event.putAll(update);
             Events.asyncEventBus().post(new UpdateEvent(event));
+        }
+
+        //list of invites that the server has processed
+        final List<Object> invited = (List<Object>) json.get(LanternConstants.INVITED_KEY);
+        if (invited != null) {
+            for (Object invite : invited) {
+                model.removePendingInvite((String)invite);
+            }
+        }
+        //list of invites that the server has given up on processing
+        //perhaps because you are out of invites.
+        final List<Object> failedInvites = (List<Object>) json.get(LanternConstants.FAILED_INVITES_KEY);
+        LOG.info("Failed invites: " + failedInvites);
+        if (failedInvites != null) {
+            for (Object inviteObj : failedInvites) {
+                JSONObject invite = (JSONObject) inviteObj;
+                String invitee = (String)invite.get(LanternConstants.INVITED_EMAIL);
+                if (!model.getPendingInvites().contains(invitee)) {
+                    //we already notified about this one
+                    continue;
+                }
+                String reason = (String)invite.get(LanternConstants.INVITE_FAILED_REASON);
+                LOG.info("Failed invite to " + invitee + " because " + reason);
+                model.removePendingInvite(invitee);
+                model.addNotification("Invite to " + invitee + " failed: " + reason, MessageType.error);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            }
         }
     }
 
@@ -753,6 +784,13 @@ public class DefaultXmppHandler implements XmppHandler {
 
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternClientConstants.LANTERN_JID);
+
+        //resend invites
+        ArrayList<String> pendingInvites = new ArrayList<String>(model.getPendingInvites());
+        for (String email : pendingInvites) {
+            LOG.info("Resending pending invite to {}", email);
+            sendInvite(email, true);
+        }
 
         //if (!LanternHub.settings().isGetMode()) {
             forHub.setProperty("mode", model.getSettings().getMode().toString());
@@ -946,20 +984,41 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public boolean sendInvite(final String email) {
+    public boolean sendInvite(final String email, boolean redo) {
         LOG.info("Sending invite");
 
         if (StringUtils.isBlank(this.hubAddress)) {
             LOG.error("Blank hub address when sending invite?");
-            return false;
+            return true;
         }
 
         final Set<String> invited = roster.getInvited();
-        if (invited.contains(email)) {
+        if ((!redo) && invited.contains(email)) {
             LOG.info("Already invited");
             return false;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
+        if (!conn.isConnected()) {
+            try {
+                connect();
+            } catch (IOException e) {
+                // you're probably offline. But we'll return true, because
+                // when we notice that we have not heard back from the
+                // controller about this invitee, we will redo the invite.
+                LOG.info("Offline, invite queued");
+                return true;
+            } catch (CredentialException e) {
+                //this is also pretty unlikely, but could happen
+                //if the user deauthorizes Lantern
+                LOG.error("Could not log in with OAUTH?", e);
+                //FIXME: need modal for this
+                Events.syncModal(model, Modal.gtalkUnreachable);
+            } catch (NotInClosedBetaException e) {
+                //we should never actually get here
+                LOG.error("Not in closed beta!");
+                return false;
+            }
+        }
         final Roster rost = conn.getRoster();
 
         final Presence pres = new Presence(Presence.Type.available);

@@ -57,9 +57,10 @@ public interface XmppHandler extends LanternService {
      * Sends an invite to the specified email address.
      *
      * @param email The email address to send the invite to.
+     * @param redo Whether we are retrying
      * @return
      */
-    boolean sendInvite(String email);
+    boolean sendInvite(String email, boolean redo);
 
     /**
      * Stop subscribing to the presence of another user.
