@@ -52,7 +52,7 @@ for my $file (@js) {
 package otto
 
 import (
-	. "github.com/robertkrimen/terst"
+	. "./terst"
 	"testing"
 )
 

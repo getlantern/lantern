@@ -1,7 +1,7 @@
 package otto
 
 import (
-	. "github.com/robertkrimen/terst"
+	. "./terst"
 	"math"
 	"strings"
 	"testing"

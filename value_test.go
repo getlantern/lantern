@@ -1,9 +1,9 @@
 package otto
 
 import (
+	. "./terst"
 	"encoding/json"
 	"fmt"
-	. "github.com/robertkrimen/terst"
 	"math"
 	"testing"
 )

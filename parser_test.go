@@ -1,8 +1,8 @@
 package otto
 
 import (
+	. "./terst"
 	"fmt"
-	. "github.com/robertkrimen/terst"
 	"regexp"
 	"strings"
 	"testing"

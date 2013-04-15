@@ -1,7 +1,7 @@
 package otto
 
 import (
-	. "github.com/robertkrimen/terst"
+	. "./terst"
 	"testing"
 )
 
@@ -94,4 +94,3 @@ func Test_underscore_chaining_3(t *testing.T) {
   });
     `)
 }
-
