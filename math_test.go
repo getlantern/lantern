@@ -58,7 +58,9 @@ func TestMath_atan(t *testing.T) {
 	test(`Math.atan(Infinity)`, "1.5707963267948966")
 	test(`Math.atan(-Infinity)`, "-1.5707963267948966")
 
-	test(`Math.atan(0.5)`, "0.46364760900080604")
+	// freebsd/386 1.03 => 0.4636476090008061
+	// darwin 1.03 => 0.46364760900080604
+	test(`Math.atan(0.5).toPrecision(10)`, "0.463647609")
 }
 
 func TestMath_atan2(t *testing.T) {
