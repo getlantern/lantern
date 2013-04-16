@@ -265,23 +265,28 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Subscribe
-    public void onSyncEvent(SyncEvent event) throws CredentialException, IOException, NotInClosedBetaException {
+    public void onSyncEvent(SyncEvent event) {
         if (event.getPath().equals(SyncPath.CONNECTIVITY_INTERNET.getPath())
                 || event.getPath().equals((SyncPath.CONNECTIVITY.getPath()))) {
             LOG.info("sync connect event: " + event.getValue());
             if (model.getConnectivity().isInternet()) {
                 LOG.info("connected to internet");
-                final XMPPConnection conn = this.client.get().getXmppConnection();
-                if (!conn.isConnected()) {
+                XmppP2PClient<FiveTuple> client = this.client.get();
+                if (client == null)
+                    return; //this is probably at startup
+
+                final XMPPConnection conn = client
+                        .getXmppConnection();
+                if (conn == null || !conn.isConnected()) {
                     LOG.info("connecting to xmpp because we are disconnected");
-                    connect();
+                    reconnectIfNecessary();
                 }
             }
         }
     }
 
     @Override
-    public void connect() throws IOException, CredentialException,
+    public synchronized void connect() throws IOException, CredentialException,
         NotInClosedBetaException {
         if (!this.started) {
             LOG.warn("Can't connect when not started!!");
@@ -380,7 +385,7 @@ public class DefaultXmppHandler implements XmppHandler {
             public void onSocket(String arg0, Socket arg1) throws IOException {
             }
         };
-        
+
         this.client.set(P2PEndpoints.newXmppP2PHttpClient(
             "shoot", natPmpService,
             this.upnpService, this.mappedServer,
@@ -791,6 +796,12 @@ public class DefaultXmppHandler implements XmppHandler {
 
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
+        if (conn == null || !conn.isConnected()) {
+            if (!reconnectIfNecessary()) {
+                return;
+            }
+        }
+
         LOG.info("Sending presence available");
 
         // OK, this is bizarre. For whatever reason, we **have** to send the
@@ -1015,25 +1026,8 @@ public class DefaultXmppHandler implements XmppHandler {
             return false;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
-        if (!conn.isConnected()) {
-            try {
-                connect();
-            } catch (IOException e) {
-                // you're probably offline. But we'll return true, because
-                // when we notice that we have not heard back from the
-                // controller about this invitee, we will redo the invite.
-                LOG.info("Offline, invite queued");
-                return true;
-            } catch (CredentialException e) {
-                //this is also pretty unlikely, but could happen
-                //if the user deauthorizes Lantern
-                LOG.info("Could not log in with OAUTH?", e);
-                Events.syncModal(model, Modal.authorize);
-            } catch (NotInClosedBetaException e) {
-                //we should never actually get here
-                LOG.error("Not in closed beta!");
-                return false;
-            }
+        if (!reconnectIfNecessary()) {
+            return true;
         }
         final Roster rost = conn.getRoster();
 
@@ -1087,6 +1081,52 @@ public class DefaultXmppHandler implements XmppHandler {
         //LanternHub.settingsIo().write();
 
         addToRoster(email);
+        return true;
+    }
+
+    /**
+     * Try to reconnect to the xmpp server, if we are not already connected.
+     * Returns true if the reconnection seems to have succeeded (or was
+     * unnecessary), and false if it failed.
+     *
+     * @return
+     */
+    private synchronized boolean reconnectIfNecessary() {
+        XmppP2PClient<FiveTuple> myClient = client.get();
+        if (myClient == null) {
+            //initial connection never happened.  If it were in-progress
+            //we would not be here because connect() is synchronized.
+            //If it is about to happen, we might as well run it now.
+            return reconnect();
+        }
+        XMPPConnection conn = myClient.getXmppConnection();
+        if (conn == null || !conn.isConnected()) {
+            return reconnect();
+        }
+        return true; //no need to reconnect
+    }
+
+    /** Try to reconnect to the xmpp server */
+    private boolean reconnect() {
+        try {
+            connect();
+        } catch (IOException e) {
+            // you're probably offline. But we'll return true, because
+            // when we notice that we have not heard back from the
+            // controller about this invitee, we will redo the invite.
+            LOG.info("Can't reconnect; offline?", e);
+            return false;
+        } catch (CredentialException e) {
+            //this is also pretty unlikely, but could happen
+            //if the user deauthorizes Lantern
+            LOG.info("Could not log in with OAUTH?", e);
+            Events.syncModal(model, Modal.authorize);
+            return false;
+        } catch (NotInClosedBetaException e) {
+            //we should never actually get here
+            LOG.error("Not in closed beta!");
+            return false;
+        }
         return true;
     }
 
