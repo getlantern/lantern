@@ -1012,7 +1012,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 //if the user deauthorizes Lantern
                 LOG.error("Could not log in with OAUTH?", e);
                 //FIXME: need modal for this
-                Events.syncModal(model, Modal.gtalkUnreachable);
+                Events.syncModal(model, Modal.authorize);
             } catch (NotInClosedBetaException e) {
                 //we should never actually get here
                 LOG.error("Not in closed beta!");
