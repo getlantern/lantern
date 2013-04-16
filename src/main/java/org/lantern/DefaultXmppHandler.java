@@ -1005,7 +1005,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Sending invite");
 
         if (StringUtils.isBlank(this.hubAddress)) {
-            LOG.error("Blank hub address when sending invite?");
+            LOG.info("Blank hub address when sending invite?");
             return true;
         }
 
@@ -1027,8 +1027,7 @@ public class DefaultXmppHandler implements XmppHandler {
             } catch (CredentialException e) {
                 //this is also pretty unlikely, but could happen
                 //if the user deauthorizes Lantern
-                LOG.error("Could not log in with OAUTH?", e);
-                //FIXME: need modal for this
+                LOG.info("Could not log in with OAUTH?", e);
                 Events.syncModal(model, Modal.authorize);
             } catch (NotInClosedBetaException e) {
                 //we should never actually get here
