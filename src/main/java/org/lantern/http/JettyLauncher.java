@@ -116,7 +116,6 @@ public class JettyLauncher implements LanternService {
         //connector.setThreadPool(new QueuedThreadPool(20));
         
         if (this.model.getSettings().isBindToLocalhost()) {
-            // TODO: Make sure this works on Linux!!
             log.info("Binding to localhost");
             connector.setHost("127.0.0.1");
         } else {
