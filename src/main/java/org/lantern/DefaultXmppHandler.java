@@ -820,20 +820,16 @@ public class DefaultXmppHandler implements XmppHandler {
             sendInvite(email, true);
         }
 
-        //if (!LanternHub.settings().isGetMode()) {
-            forHub.setProperty("mode", model.getSettings().getMode().toString());
-            final String str = JsonUtils.jsonify(stats);
-            LOG.debug("Reporting data: {}", str);
-            if (!this.lastJson.equals(str)) {
-                this.lastJson = str;
-                forHub.setProperty("stats", str);
-                stats.resetCumulativeStats();
-            } else {
-                LOG.info("No new stats to report");
-            }
-        //} else {
-        //    LOG.info("Not reporting any stats in get mode");
-        //}
+        forHub.setProperty("mode", model.getSettings().getMode().toString());
+        final String str = JsonUtils.jsonify(stats);
+        LOG.debug("Reporting data: {}", str);
+        if (!this.lastJson.equals(str)) {
+            this.lastJson = str;
+            forHub.setProperty("stats", str);
+            stats.resetCumulativeStats();
+        } else {
+            LOG.info("No new stats to report");
+        }
 
         conn.sendPacket(forHub);
     }
