@@ -354,6 +354,8 @@ public class Launcher {
                             Events.sync(SyncPath.LOCATION, loc);
                         }
                     }
+                    connectivity.setInternet(true);
+                    Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
                     return; //no change to IP address, so nothing to do
                 }
 
