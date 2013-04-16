@@ -82,19 +82,23 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void stop() {
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
-            @Override
-            public void run () {
-                if (DisplayWrapper.getDisplay().isDisposed()) {
-                    return;
+        try {
+            DisplayWrapper.getDisplay().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    if (DisplayWrapper.getDisplay().isDisposed()) {
+                        return;
+                    }
+                    try {
+                        DisplayWrapper.getDisplay().dispose();
+                    } catch (final Throwable t) {
+                        log.info("Exception disposing display?", t);
+                    }
                 }
-                try {
-                    DisplayWrapper.getDisplay().dispose();
-                } catch (final Throwable t) {
-                    log.info("Exception disposing display?", t);
-                }
-            }
-        });
+            });
+        } catch (final Throwable t) {
+            log.info("Exception disposing display?", t);
+        }
     }
 
     @Override
