@@ -1,6 +1,7 @@
 package org.lantern.http;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -129,9 +130,13 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
             gbc.setApprovalPrompt("auto");
             gbc.setResponseTypes("code");
             final String url = gbc.build();
+            // we actually call google's logout service with a continue param
+            // of this url to clear out the previous login if any
+            final String logoutUrl = "https://www.google.com/accounts/Logout?continue="+
+                URLEncoder.encode(url, "UTF-8");
             
-            log.debug("Sending redirect to URL: {}", url);
-            return url;
+            log.debug("Sending redirect to URL: {}", logoutUrl);
+            return logoutUrl;
         } catch (final IOException e) {
             throw new Error("Could not load oauth URL?", e);
         }
