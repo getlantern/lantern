@@ -49,6 +49,7 @@ import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
@@ -260,6 +261,22 @@ public class DefaultXmppHandler implements XmppHandler {
         case LOGIN_FAILED:
             this.roster.reset();
             break;
+        }
+    }
+
+    @Subscribe
+    public void onSyncEvent(SyncEvent event) throws CredentialException, IOException, NotInClosedBetaException {
+        if (event.getPath().equals(SyncPath.CONNECTIVITY_INTERNET.getPath())
+                || event.getPath().equals((SyncPath.CONNECTIVITY.getPath()))) {
+            LOG.info("sync connect event: " + event.getValue());
+            if (model.getConnectivity().isInternet()) {
+                LOG.info("connected to internet");
+                final XMPPConnection conn = this.client.get().getXmppConnection();
+                if (!conn.isConnected()) {
+                    LOG.info("connecting to xmpp because we are disconnected");
+                    connect();
+                }
+            }
         }
     }
 
