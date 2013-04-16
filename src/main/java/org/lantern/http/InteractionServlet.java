@@ -238,9 +238,6 @@ public class InteractionServlet extends HttpServlet {
         case firstInviteReceived:
             log.error("Processing invite received...");
             break;
-        case gtalkUnreachable:
-            log.error("Processing gtalk unreachable.");
-            break;
         case lanternFriends:
             this.internalState.setCompletedTo(Modal.lanternFriends);
             if (handleModalSwitch(inter)) {
