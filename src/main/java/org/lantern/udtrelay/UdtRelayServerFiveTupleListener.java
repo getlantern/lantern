@@ -42,6 +42,6 @@ public class UdtRelayServerFiveTupleListener
 
     @Override
     public void onTcpSocket(Socket socket) {
-        log.warn("Received TCP socket here?");
+        throw new RuntimeException("Unexpectedly received TCP socket for UDT relay server");
     }
 }
