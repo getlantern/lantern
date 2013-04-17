@@ -22,6 +22,7 @@ func TestDate(t *testing.T) {
 	test(`new Date(1348616313).getTime()`, "1348616313")
 	test(`new Date(1348616313).toUTCString()`, "Fri, 16 Jan 1970 14:36:56 UTC")
 	test(`abc = new Date(1348616313047); abc.toUTCString()`, "Tue, 25 Sep 2012 23:38:33 UTC")
+	check(`abc.getYear()`, time.Year()-1900)
 	check(`abc.getFullYear()`, time.Year())
 	check(`abc.getUTCFullYear()`, 2012)
 	check(`abc.getMonth()`, int(time.Month())-1) // Remember, the JavaScript month is 0-based

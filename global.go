@@ -357,6 +357,15 @@ func newContext() *_runtime {
 		},
 		// getTime, ...
 		"getTime", 0, builtinDate_getTime,
+		"getYear", 0, func(call FunctionCall) Value {
+			// Will throw a TypeError is ThisObject is nil or
+			// does not have Class of "Date"
+			date := dateObjectOf(call.thisObject())
+			if date.isNaN {
+				return NaNValue()
+			}
+			return toValue(date.Time().Local().Year() - 1900)
+		},
 		"getFullYear", 0, func(call FunctionCall) Value {
 			// Will throw a TypeError is ThisObject is nil or
 			// does not have Class of "Date"
