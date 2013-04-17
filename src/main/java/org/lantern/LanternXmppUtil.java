@@ -26,11 +26,11 @@ public class LanternXmppUtil {
 
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
-    private final LanternTrustStore trustStore;
+    private final LanternSocketsUtil socketsUtil;
     
     @Inject
-    public LanternXmppUtil(final LanternTrustStore trustStore) {
-        this.trustStore = trustStore;
+    public LanternXmppUtil(final LanternSocketsUtil socketsUtil) {
+        this.socketsUtil = socketsUtil;
         XmppConfig.setRetyStrategyFactory(new LanternXmppRetryStrategyFactory());
     }
     
@@ -63,7 +63,7 @@ public class LanternXmppUtil {
         } else {
             config = new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com", proxyInfo);
-            config.setSocketFactory(new ProxySocketFactory(proxyInfo));
+            config.setSocketFactory(new ProxySocketFactory(this.socketsUtil, proxyInfo));
         }
         config.setExpiredCertificatesCheckEnabled(true);
         
