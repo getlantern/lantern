@@ -70,3 +70,7 @@ func builtinDate_parse(call FunctionCall) Value {
 	date := toString(call.Argument(0))
 	return toValue(dateParse(date))
 }
+
+func builtinDate_UTC(call FunctionCall) Value {
+	return toValue(newDateTime(call.ArgumentList))
+}

@@ -628,6 +628,7 @@ func newContext() *_runtime {
 	self.Global.Date.write(
 		_propertyMode(0),
 		"parse", builtinDate_parse,
+		"UTC", builtinDate_UTC,
 	)
 
 	self.Global.RegExp = self.newGlobalFunction(

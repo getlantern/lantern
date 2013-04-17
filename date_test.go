@@ -94,3 +94,10 @@ func TestDate_parse(t *testing.T) {
 	test(`Date.parse("1970-01-16T14:36:56.313+00:00")`, "1348616313")
 	test(`Date.parse("1970-01-16T14:36:56.000")`, "1348616000")
 }
+
+func TestDate_UTC(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Date.UTC(2009, 9, 25)`, "1256428800000")
+}
