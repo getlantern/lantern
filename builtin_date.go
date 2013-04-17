@@ -74,3 +74,30 @@ func builtinDate_parse(call FunctionCall) Value {
 func builtinDate_UTC(call FunctionCall) Value {
 	return toValue(newDateTime(call.ArgumentList))
 }
+
+// This is a placeholder
+func builtinDate_toLocaleString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
+	return toValue(date.Time().Local().Format("2006-01-02 15:04:05"))
+}
+
+// This is a placeholder
+func builtinDate_toLocaleDateString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
+	return toValue(date.Time().Local().Format("2006-01-02"))
+}
+
+// This is a placeholder
+func builtinDate_toLocaleTimeString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
+	return toValue(date.Time().Local().Format("15:04:05"))
+}

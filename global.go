@@ -348,6 +348,9 @@ func newContext() *_runtime {
 		self.Global.DatePrototype,
 		"toString", 0, builtinDate_toString,
 		"toUTCString", 0, builtinDate_toUTCString,
+		"toLocaleString", 0, builtinDate_toLocaleString,
+		"toLocaleDateString", 0, builtinDate_toLocaleDateString,
+		"toLocaleTimeString", 0, builtinDate_toLocaleTimeString,
 		"valueOf", 0, func(call FunctionCall) Value {
 			date := dateObjectOf(call.thisObject())
 			if date.isNaN {

@@ -19,6 +19,12 @@ func TestDate(t *testing.T) {
 
 	test(`Date`, "[function]")
 	test(`new Date(0).toUTCString()`, "Thu, 01 Jan 1970 00:00:00 UTC")
+	if false {
+		// TODO
+		test(`new Date(0).toLocaleString()`, "")
+		test(`new Date(0).toLocaleDateString()`, "")
+		test(`new Date(0).toLocaleTimeString()`, "")
+	}
 	test(`new Date(1348616313).getTime()`, "1348616313")
 	test(`new Date(1348616313).toUTCString()`, "Fri, 16 Jan 1970 14:36:56 UTC")
 	test(`abc = new Date(1348616313047); abc.toUTCString()`, "Tue, 25 Sep 2012 23:38:33 UTC")
