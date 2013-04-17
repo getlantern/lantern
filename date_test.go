@@ -2,7 +2,9 @@ package otto
 
 import (
 	. "./terst"
+	"fmt"
 	"testing"
+	Time "time"
 )
 
 func TestDate(t *testing.T) {
@@ -10,29 +12,34 @@ func TestDate(t *testing.T) {
 
 	test := runTest()
 
+	time := Time.Unix(1348616313, 47*1000*1000).Local()
+	check := func(run string, value int) {
+		test(run, fmt.Sprintf("%d", value))
+	}
+
 	test(`Date`, "[function]")
 	test(`new Date(0).toUTCString()`, "Thu, 01 Jan 1970 00:00:00 UTC")
 	test(`new Date(1348616313).getTime()`, "1348616313")
-	// TODO These shold be in local time
 	test(`new Date(1348616313).toUTCString()`, "Fri, 16 Jan 1970 14:36:56 UTC")
 	test(`abc = new Date(1348616313047); abc.toUTCString()`, "Tue, 25 Sep 2012 23:38:33 UTC")
-	test(`abc.getFullYear()`, "2012")
-	test(`abc.getUTCFullYear()`, "2012")
-	test(`abc.getMonth()`, "8") // Remember, the JavaScript month is 0-based
-	test(`abc.getUTCMonth()`, "8")
-	test(`abc.getDate()`, "25")
-	test(`abc.getUTCDate()`, "25")
-	test(`abc.getDay()`, "2")
-	test(`abc.getUTCDay()`, "2")
-	test(`abc.getHours()`, "16")
-	test(`abc.getUTCHours()`, "23")
-	test(`abc.getMinutes()`, "38")
-	test(`abc.getUTCMinutes()`, "38")
-	test(`abc.getSeconds()`, "33")
-	test(`abc.getUTCSeconds()`, "33")
-	test(`abc.getMilliseconds()`, "47") // In honor of the 47%
-	test(`abc.getUTCMilliseconds()`, "47")
-	test(`abc.getTimezoneOffset()`, "420")
+	check(`abc.getFullYear()`, time.Year())
+	check(`abc.getUTCFullYear()`, 2012)
+	check(`abc.getMonth()`, int(time.Month())-1) // Remember, the JavaScript month is 0-based
+	check(`abc.getUTCMonth()`, 8)
+	check(`abc.getDate()`, time.Day())
+	check(`abc.getUTCDate()`, 25)
+	check(`abc.getDay()`, int(time.Weekday()))
+	check(`abc.getUTCDay()`, 2)
+	check(`abc.getHours()`, time.Hour())
+	check(`abc.getUTCHours()`, 23)
+	check(`abc.getMinutes()`, time.Minute())
+	check(`abc.getUTCMinutes()`, 38)
+	check(`abc.getSeconds()`, time.Second())
+	check(`abc.getUTCSeconds()`, 33)
+	check(`abc.getMilliseconds()`, time.Nanosecond()/(1000*1000)) // In honor of the 47%
+	check(`abc.getUTCMilliseconds()`, 47)
+	_, offset := time.Zone()
+	check(`abc.getTimezoneOffset()`, offset/-60)
 	if false {
 		// TODO (When parsing is implemented)
 		test(`new Date("Xyzzy").getTime()`, "NaN")
@@ -43,19 +50,33 @@ func TestDate(t *testing.T) {
 	test(`new Date(2009, 9, 25).toUTCString()`, "Sun, 25 Oct 2009 00:00:00 UTC")
 	test(`+(new Date(2009, 9, 25))`, "1256428800000")
 
-	test(`abc = new Date(12564504e5); abc.setMilliseconds(2001); abc.toUTCString()`, "Sun, 25 Oct 2009 06:00:02 UTC")
+	format := "Mon, 2 Jan 2006 15:04:05 MST"
 
-	test(`abc = new Date(12564504e5); abc.setSeconds("61"); abc.toUTCString()`, "Sun, 25 Oct 2009 06:01:01 UTC")
+	tme := Time.Unix(1256450400, 0)
+	time = Time.Date(tme.Year(), tme.Month(), tme.Day(), tme.Hour(), tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
 
-	test(`abc = new Date(12564504e5); abc.setMinutes("61"); abc.toUTCString()`, "Sun, 25 Oct 2009 07:01:00 UTC")
+	time = Time.Date(tme.Year(), tme.Month(), tme.Day(), tme.Hour(), tme.Minute(), tme.Second(), 2001*1000*1000, tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setMilliseconds(2001); abc.toUTCString()`, time.Format(format))
 
-	test(`abc = new Date(12564504e5); abc.setHours("5"); abc.toUTCString()`, "Sat, 24 Oct 2009 12:00:00 UTC")
+	time = Time.Date(tme.Year(), tme.Month(), tme.Day(), tme.Hour(), tme.Minute(), 61, tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setSeconds("61"); abc.toUTCString()`, time.Format(format))
 
-	test(`abc = new Date(12564504e5); abc.setDate("26"); abc.toUTCString()`, "Tue, 27 Oct 2009 06:00:00 UTC")
+	time = Time.Date(tme.Year(), tme.Month(), tme.Day(), tme.Hour(), 61, tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setMinutes("61"); abc.toUTCString()`, time.Format(format))
 
-	test(`abc = new Date(12564504e5); abc.setMonth(9); abc.toUTCString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
-	test(`abc = new Date(12564504e5); abc.setMonth("09"); abc.toUTCString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
-	test(`abc = new Date(12564504e5); abc.setMonth("10"); abc.toUTCString()`, "Wed, 25 Nov 2009 07:00:00 UTC")
+	time = Time.Date(tme.Year(), tme.Month(), tme.Day(), 5, tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setHours("5"); abc.toUTCString()`, time.Format(format))
 
-	test(`abc = new Date(12564504e5); abc.setFullYear(2010); abc.toUTCString()`, "Mon, 25 Oct 2010 06:00:00 UTC")
+	time = Time.Date(tme.Year(), tme.Month(), 26, tme.Hour(), tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setDate("26"); abc.toUTCString()`, time.Format(format))
+
+	time = Time.Date(tme.Year(), 10, tme.Day(), tme.Hour(), tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setMonth(9); abc.toUTCString()`, time.Format(format))
+	test(`abc = new Date(12564504e5); abc.setMonth("09"); abc.toUTCString()`, time.Format(format))
+
+	time = Time.Date(tme.Year(), 11, tme.Day(), tme.Hour(), tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setMonth("10"); abc.toUTCString()`, time.Format(format))
+
+	time = Time.Date(2010, tme.Month(), tme.Day(), tme.Hour(), tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
+	test(`abc = new Date(12564504e5); abc.setFullYear(2010); abc.toUTCString()`, time.Format(format))
 }
