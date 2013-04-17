@@ -102,3 +102,12 @@ func TestDate_UTC(t *testing.T) {
 	test := runTest()
 	test(`Date.UTC(2009, 9, 25)`, "1256428800000")
 }
+
+func TestDate_setYear(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`new Date(12564504e5).setYear(96)`, "846223200000")
+	test(`new Date(12564504e5).setYear(1996)`, "846223200000")
+	test(`new Date(12564504e5).setYear(2000)`, "972453600000")
+}

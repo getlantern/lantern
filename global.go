@@ -610,6 +610,19 @@ func newContext() *_runtime {
 			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
+		"setYear", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			year := int(toInteger(call.Argument(0)))
+			if 0 <= year && year <= 99 {
+				year += 1900
+			}
+			ecmaTime.year = year
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
 		"setFullYear", 1, func(call FunctionCall) Value {
 			date, ecmaTime := _builtinDate_set(call, 1, true)
 			if ecmaTime == nil {
