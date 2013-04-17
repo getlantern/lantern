@@ -19,6 +19,8 @@ public class LanternClientConstants {
     public static final String FALLBACK_SERVER_HOST;
     public static final String FALLBACK_SERVER_PORT;
 
+    private static boolean isDevMode;
+
     static {
         final String host = "fallback_server_host_tok";
         final String port = "fallback_server_port_tok";
@@ -33,6 +35,7 @@ public class LanternClientConstants {
         } finally {
             VERSION = prop.getProperty("lantern.version") + "-"
                     + prop.getProperty("git.commit.id");
+            isDevMode = "true".equals(prop.getProperty("lantern.devmode"));
         }
     }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
@@ -152,5 +155,9 @@ public class LanternClientConstants {
 
     public static void setRecentProxyTimeout(long timeout) {
         recentProxyTimeout  = timeout;
+    }
+
+    public static boolean isDevMode() {
+        return isDevMode;
     }
 }
