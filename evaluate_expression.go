@@ -91,21 +91,23 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		}
 		return toValue(math.Copysign(value, sign))
 	case "++=": // Prefix ++
-		resultValue := toValue(+1 + targetValue.toFloat())
-		self.PutValue(target.reference(), resultValue)
-		return resultValue
+		newValue := toValue(+1 + targetValue.toFloat())
+		self.PutValue(target.reference(), newValue)
+		return newValue
 	case "--=": // Prefix --
-		resultValue := toValue(-1 + targetValue.toFloat())
-		self.PutValue(target.reference(), resultValue)
-		return resultValue
+		newValue := toValue(-1 + targetValue.toFloat())
+		self.PutValue(target.reference(), newValue)
+		return newValue
 	case "=++": // Postfix ++
-		resultValue := toValue(+1 + targetValue.toFloat())
-		self.PutValue(target.reference(), resultValue)
-		return targetValue
+		oldValue := targetValue.toFloat()
+		newValue := toValue(+1 + oldValue)
+		self.PutValue(target.reference(), newValue)
+		return toValue(oldValue)
 	case "=--": // Postfix --
-		resultValue := toValue(-1 + targetValue.toFloat())
-		self.PutValue(target.reference(), resultValue)
-		return targetValue
+		oldValue := targetValue.toFloat()
+		newValue := toValue(-1 + oldValue)
+		self.PutValue(target.reference(), newValue)
+		return toValue(oldValue)
 	case "void":
 		return UndefinedValue()
 	case "delete":

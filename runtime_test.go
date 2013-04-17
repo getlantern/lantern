@@ -839,16 +839,26 @@ func TestUnaryPrefix(t *testing.T) {
 	test := runTest()
 
 	test(`
-		result = 0
-		++result
-	`)
-	test("result", "1")
+		var result = 0;
+		[++result, result];
+	`, "1,1")
 
 	test(`
-		result = 0
-		--result
-	`)
-	test("result", "-1")
+		result = 0;
+		[--result, result];
+	`, "-1,-1")
+
+	test(`
+        var object = { valueOf: function() { return 1; } };
+        result = ++object;
+        [ result, typeof result ];
+    `, "2,number")
+
+	test(`
+        var object = { valueOf: function() { return 1; } };
+        result = --object;
+        [ result, typeof result ];
+    `, "0,number")
 }
 
 func TestUnaryPostfix(t *testing.T) {
@@ -856,21 +866,29 @@ func TestUnaryPostfix(t *testing.T) {
 
 	test := runTest()
 
-	result := test(`
-		result = 0
-		result++
-		result++
-	`)
-	Is(result, "1")
-	test("result", "2")
+	test(`
+		var result = 0;
+		result++;
+		[ result++, result ];
+	`, "1,2")
 
-	result = test(`
-		result = 0
-		result--
-		result--
-	`)
-	Is(result, "-1")
-	test("result", "-2")
+	test(`
+		result = 0;
+		result--;
+		[ result--, result ];
+	`, "-1,-2")
+
+	test(`
+        var object = { valueOf: function() { return 1; } };
+        result = object++;
+        [ result, typeof result ];
+    `, "1,number")
+
+	test(`
+        var object = { valueOf: function() { return 1; } };
+        result = object--
+        [ result, typeof result ];
+    `, "1,number")
 }
 
 func TestBinaryLogicalOperation(t *testing.T) {
