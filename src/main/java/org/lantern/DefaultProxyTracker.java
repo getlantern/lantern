@@ -276,7 +276,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                 if (now - proxy.getTimeOfDeath() < LanternClientConstants.getRecentProxyTimeout()) {
                     queue.pausedProxies.remove();
                     log.debug("Attempting to restore" + proxy);
-                    proxy.resetFailures();
                     addProxyWithChecks(proxy.getJid(), queue, proxy);
                 } else {
                     break;
