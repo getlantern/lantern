@@ -841,7 +841,6 @@ public class Launcher {
     public static final String OPTION_PASS = "pass";
     public static final String OPTION_GET = "force-get";
     public static final String OPTION_GIVE = "force-give";
-    public static final String OPTION_NO_CACHE = "no-cache";
     public static final String OPTION_VERSION = "version";
     public static final String OPTION_NEW_UI = "new-ui";
     public static final String OPTION_REFRESH_TOK = "refresh-tok";
@@ -884,8 +883,6 @@ public class Launcher {
             "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
         options.addOption(null, OPTION_GET, false, "Force running in get mode");
         options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
-        options.addOption(null, OPTION_NO_CACHE, false,
-            "Don't allow caching of static files in the dashboard");
         options.addOption(null, OPTION_VERSION, false,
             "Print the Lantern version");
         options.addOption(null, OPTION_NEW_UI, false,
@@ -998,11 +995,6 @@ public class Launcher {
             model.getSettings().setMode(Mode.give);
         } else if (cmd.hasOption(OPTION_GET)) {
             model.getSettings().setMode(Mode.get);
-        }
-
-        model.setCache(!LanternUtils.isDevMode());
-        if (cmd.hasOption(OPTION_NO_CACHE)) {
-            model.setCache(false);
         }
     }
 }

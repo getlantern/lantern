@@ -60,8 +60,6 @@ public class Model {
 
     private boolean launchd;
 
-    private boolean cache;
-
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
     private Map<String, Country> countries = Country.allCountries();
@@ -188,15 +186,6 @@ public class Model {
 
     public void setLaunchd(boolean launchd) {
         this.launchd = launchd;
-    }
-
-    @JsonIgnore
-    public boolean isCache() {
-        return cache;
-    }
-
-    public void setCache(boolean cache) {
-        this.cache = cache;
     }
 
     @JsonView({Run.class, Persistent.class})
