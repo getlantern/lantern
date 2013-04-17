@@ -43,8 +43,8 @@ public final class PhotoServlet extends HttpServlet {
     
     private static XMPPConnection conn;
     
-    private static final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24 * 4; 
-    private static final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_SECOND  * 1000;
+    private static final int CACHE_DURATION_IN_S = 60 * 60 * 24; // 1 day
+    private static final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_S * 1000;
     
     /**
      * Generated serial ID.
@@ -128,7 +128,7 @@ public final class PhotoServlet extends HttpServlet {
         
         
         resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
-            "max-age=" + CACHE_DURATION_IN_SECOND);
+            "max-age=" + CACHE_DURATION_IN_S);
         resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
             System.currentTimeMillis() + CACHE_DURATION_IN_MS);
         
