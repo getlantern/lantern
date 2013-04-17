@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
@@ -24,9 +25,12 @@ import org.jivesoftware.smack.util.Base64;
 public class ProxySocketFactory extends SocketFactory {
 
     private final ProxyInfo proxy;
+    private final SSLSocketFactory socketFactory;
 
-    public ProxySocketFactory(final ProxyInfo proxy) {
+    public ProxySocketFactory(final LanternSocketsUtil socketsUtil, 
+            final ProxyInfo proxy) {
         this.proxy = proxy;
+        this.socketFactory = socketsUtil.newTlsSocketFactory();
     }
 
     @Override
@@ -58,7 +62,7 @@ public class ProxySocketFactory extends SocketFactory {
         throws IOException {
         final String proxyHost = proxy.getProxyAddress();
         final int proxyPort = proxy.getProxyPort();
-        final Socket sock = new Socket();
+        final Socket sock = this.socketFactory.createSocket();
         sock.connect(new InetSocketAddress(proxyHost, proxyPort), 50 * 1000);
         final String url = "CONNECT " + host + ":" + port;
         String proxyLine;
@@ -79,7 +83,7 @@ public class ProxySocketFactory extends SocketFactory {
         int nlchars = 0;
 
         while (true) {
-            final int c = in.read();
+            final char c = (char) in.read();
             got.append(c);
             if (got.length() > 4096) {
                 throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Recieved " +
