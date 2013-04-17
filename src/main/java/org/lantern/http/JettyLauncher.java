@@ -161,12 +161,7 @@ public class JettyLauncher implements LanternService {
                 }
             }
         });
-        if (model.isCache()) {
-            ds.setInitParameter("cacheControl", "private, max-age=" +
-                LanternConstants.DASHCACHE_MAXAGE);
-        } else {
-            ds.setInitParameter("cacheControl", "no-cache");
-        }
+        ds.setInitParameter("cacheControl", "no-cache");
         ds.setInitParameter("aliases", "true");
 
         ds.setInitOrder(3);
