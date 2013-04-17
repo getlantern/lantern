@@ -209,6 +209,12 @@ func TestFunction(t *testing.T) {
 		result = cherry()
 	`)
 	test("result", "1")
+
+	test(`
+        function xyz() {
+        };
+        delete xyz;
+    `, "false")
 }
 
 func TestIf(t *testing.T) {
