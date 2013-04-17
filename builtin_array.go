@@ -451,3 +451,8 @@ func builtinArray_sort(call FunctionCall) Value {
 	}
 	return call.This
 }
+
+func builtinArray_isArray(call FunctionCall) Value {
+	object := call.Argument(0)._object()
+	return toValue(object != nil && object.class == "Array")
+}

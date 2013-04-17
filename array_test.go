@@ -266,3 +266,12 @@ func TestArray_sort(t *testing.T) {
 	test("pqr", "-10,0.05,1,100,401,5,72,8")
 	test("stu", "-10,0.05,1,5,8,72,100,401")
 }
+
+func TestArray_isArray(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        [ Array.isArray(), Array.isArray([]), Array.isArray({}) ];
+    `, "false,true,false")
+}

@@ -219,6 +219,11 @@ func newContext() *_runtime {
 		"sort", 0, builtinArray_sort,
 	)
 
+	self.Global.Array.write(
+		_propertyMode(0),
+		"isArray", builtinArray_isArray,
+	)
+
 	self.Global.String = self.newGlobalFunction(
 		1,
 		"String", builtinString,
