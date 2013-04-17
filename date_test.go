@@ -79,4 +79,18 @@ func TestDate(t *testing.T) {
 
 	time = Time.Date(2010, tme.Month(), tme.Day(), tme.Hour(), tme.Minute(), tme.Second(), tme.Nanosecond(), tme.Location()).UTC()
 	test(`abc = new Date(12564504e5); abc.setFullYear(2010); abc.toUTCString()`, time.Format(format))
+
+	test(`new Date("2001-01-01T10:01:02.000").getTime()`, "978343262000")
+}
+
+func TestDate_parse(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Date.parse("2001-01-01T10:01:02.000")`, "978343262000")
+	test(`Date.parse("2006-01-02T15:04:05.000")`, "1136214245000")
+	test(`Date.parse("2006")`, "1136073600000")
+	test(`Date.parse("1970-01-16T14:36:56+00:00")`, "1348616000")
+	test(`Date.parse("1970-01-16T14:36:56.313+00:00")`, "1348616313")
+	test(`Date.parse("1970-01-16T14:36:56.000")`, "1348616000")
 }

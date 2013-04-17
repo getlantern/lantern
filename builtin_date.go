@@ -65,3 +65,8 @@ func _builtinDate_set(call FunctionCall, argumentCap int, dateLocal bool) (*_dat
 	ecmaTime := ecmaTime(baseTime)
 	return date, &ecmaTime
 }
+
+func builtinDate_parse(call FunctionCall) Value {
+	date := toString(call.Argument(0))
+	return toValue(dateParse(date))
+}

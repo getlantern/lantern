@@ -625,6 +625,11 @@ func newContext() *_runtime {
 		// toJSON
 	)
 
+	self.Global.Date.write(
+		_propertyMode(0),
+		"parse", builtinDate_parse,
+	)
+
 	self.Global.RegExp = self.newGlobalFunction(
 		2,
 		"RegExp", builtinRegExp,
