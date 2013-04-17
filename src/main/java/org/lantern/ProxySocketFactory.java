@@ -21,6 +21,8 @@ import org.jivesoftware.smack.util.Base64;
 
 /**
  * {@link SocketFactory} for creating sockets through an HTTP proxy.
+ * 
+ * HTTPProxySocketFactory
  */
 public class ProxySocketFactory extends SocketFactory {
 
@@ -83,8 +85,8 @@ public class ProxySocketFactory extends SocketFactory {
         int nlchars = 0;
 
         while (true) {
-            final char c = (char) in.read();
-            got.append(c);
+            final int c = in.read();
+            got.append((char) c);
             if (got.length() > 4096) {
                 throw new ProxyException(ProxyInfo.ProxyType.HTTP, "Recieved " +
                     "header of "+got.length()+" characters from " + proxyHost +
