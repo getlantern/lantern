@@ -19,6 +19,7 @@ func TestDate(t *testing.T) {
 
 	test(`Date`, "[function]")
 	test(`new Date(0).toUTCString()`, "Thu, 01 Jan 1970 00:00:00 UTC")
+	test(`new Date(0).toGMTString()`, "Thu, 01 Jan 1970 00:00:00 GMT")
 	if false {
 		// TODO
 		test(`new Date(0).toLocaleString()`, "")
