@@ -165,5 +165,8 @@ func (self *_arrayStash) delete(name string) {
 		if index < int64(len(self.valueArray)) {
 			self.valueArray[index] = emptyValue()
 		}
+		return
 	}
+
+	self._stash.delete(name)
 }

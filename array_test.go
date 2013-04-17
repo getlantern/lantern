@@ -24,9 +24,11 @@ func TestArray(t *testing.T) {
 
 	test(`
         abc = [0, 1, 2, 3];
+        abc.xyzzy = "Nothing happens.";
         delete abc[1];
-        abc;
-    `, "0,,2,3")
+        var xyzzy = delete abc.xyzzy;
+        [ abc, xyzzy, abc.xyzzy ];
+    `, "0,,2,3,true,")
 }
 
 func TestArray_toString(t *testing.T) {
