@@ -118,7 +118,7 @@ public class DefaultModelUtils implements ModelUtils {
             
             final ObjectMapper om = new ObjectMapper();
             if (!body.contains("latitude")) {
-                LOG.info("No latitude in response {} for IP", body, ip);
+                LOG.info("No latitude in response {} for IP {}", body, ip);
                 return new GeoData();
             }
             final String parsed = StringUtils.substringAfterLast(body, "{");
