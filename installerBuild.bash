@@ -36,7 +36,7 @@ fi
 
 curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
-git submodule update
+git submodule update || die "git submodule update failed!!!"
 
 INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 
