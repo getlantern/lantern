@@ -64,7 +64,7 @@ fi
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
 mvn clean || die "Could not clean?"
-mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
+mvn $MVN_ARGS -Prelease install -Dmaven.test.skip=true || die "Could not build?"
 
 echo "Reverting version file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"

@@ -18,7 +18,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <cometd.version>2.5.1</cometd.version>
     <github.global.server>github</github.global.server>
-    <!--<cometd.version>2.4.1</cometd.version>-->
+    <lantern.devmode>true</lantern.devmode>
   </properties>
 
   <organization>
@@ -682,6 +682,12 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+      	<lantern.devmode>false</lantern.devmode>
+      </properties>
+    </profile>
     <profile>
       <id>linux</id>
       <activation>
