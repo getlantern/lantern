@@ -2,6 +2,7 @@ package org.lantern.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.Censored;
+import org.lantern.ConnectivityChangedEvent;
+import org.lantern.GeoData;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
@@ -25,15 +28,19 @@ import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.state.Connectivity;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
+import org.lantern.state.Location;
 import org.lantern.state.LocationChangedEvent;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
+import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
+import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Desktop;
 import org.slf4j.Logger;
@@ -90,12 +97,15 @@ public class InteractionServlet extends HttpServlet {
 
     private final LanternFeedback lanternFeedback;
 
+    private final ModelUtils modelUtils;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, final XmppHandler xmppHandler,
-        final Censored censored, final LanternFeedback lanternFeedback) {
+        final Censored censored, final LanternFeedback lanternFeedback,
+        final ModelUtils modelUtils) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -103,6 +113,7 @@ public class InteractionServlet extends HttpServlet {
         this.xmppHandler = xmppHandler;
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
+        this.modelUtils = modelUtils;
         Events.register(this);
     }
 
@@ -769,5 +780,49 @@ public class InteractionServlet extends HttpServlet {
             model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.important);
         }
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+    }
+
+    @Subscribe
+    public void onConnectivityChanged(final ConnectivityChangedEvent e) {
+        boolean ipChanged = e.isIpChanged();
+        Connectivity connectivity = model.getConnectivity();
+        if (!e.isConnected()) {
+            connectivity.setInternet(false);
+            Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
+            return;
+        }
+        if (ipChanged) {
+            InetAddress ip = e.getNewIp();
+            String newIpString = ip.getHostAddress();
+            final Location loc = model.getLocation();
+            if (loc.getLat() == 0.0 && loc.getLon() == 0.0) {
+                final GeoData geo = modelUtils.getGeoData(newIpString);
+                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
+                    loc.setCountry(geo.getCountrycode());
+                    loc.setLat(geo.getLatitude());
+                    loc.setLon(geo.getLongitude());
+                    Events.sync(SyncPath.LOCATION, loc);
+                }
+            }
+            connectivity.setIp(ip.toString());
+        }
+        connectivity.setInternet(true);
+        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+
+        Settings set = model.getSettings();
+
+        if (set.getMode() == null || set.getMode() == Mode.unknown) {
+            if (censored.isCensored()) {
+                set.setMode(Mode.get);
+            } else {
+                set.setMode(Mode.give);
+            }
+        } else if (set.getMode() == Mode.give && censored.isCensored()) {
+            // want to set the mode to get now so that we don't mistakenly
+            // proxy any more than necessary
+            set.setMode(Mode.get);
+            log.info("Disconnected; setting giveModeForbidden");
+            Events.syncModal(model, Modal.giveModeForbidden);
+        }
     }
 }

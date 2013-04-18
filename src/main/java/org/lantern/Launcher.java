@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.Security;
@@ -12,7 +11,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.security.auth.login.CredentialException;
 
@@ -50,9 +48,7 @@ import org.lantern.exceptional4j.HttpStrategy;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.state.Connectivity;
 import org.lantern.state.InternalState;
-import org.lantern.state.Location;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -60,12 +56,10 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
-import org.lantern.state.SyncPath;
 import org.lantern.state.SyncService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.offer.answer.IceConfig;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,7 +274,9 @@ public class Launcher {
         LOG.debug("Processed command line options...");
 
         model.getConnectivity().setInternet(false);
-        threadPeriodicConnectivityUpdate();
+        Timer timer = new Timer();
+        ConnectivityChecker connectivityChecker = instance(ConnectivityChecker.class);
+        timer.schedule(connectivityChecker, 0, 60 * 1000);
 
         if (set.isUiEnabled()) {
             LOG.debug("Starting system tray..");
@@ -326,67 +322,6 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
-    }
-
-
-    private void threadPeriodicConnectivityUpdate() {
-        Timer timer = injector.getInstance(Timer.class);
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                final InetAddress ip =
-                        new PublicIpAddress().getPublicIpAddress();
-                final Connectivity connectivity = model.getConnectivity();
-                if (ip == null) {
-                    LOG.info("No IP -- possibly no internet connection");
-                    connectivity.setInternet(false);
-                    Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
-                    return;
-                }
-                if (ip.getHostAddress().equals(connectivity.getIp())) {
-                    final Location loc = model.getLocation();
-                    if (loc.getLat() == 0.0 && loc.getLon() == 0.0) {
-                        final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
-                        if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
-                            loc.setCountry(geo.getCountrycode());
-                            loc.setLat(geo.getLatitude());
-                            loc.setLon(geo.getLongitude());
-                            Events.sync(SyncPath.LOCATION, loc);
-                        }
-                    }
-                    connectivity.setInternet(true);
-                    Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-                    return; //no change to IP address, so nothing to do
-                }
-
-                connectivity.setInternet(true);
-                connectivity.setIp(ip.getHostAddress());
-                Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-
-                if (set.getMode() == null || set.getMode() == Mode.unknown) {
-                    if (censored.isCensored()) {
-                        set.setMode(Mode.get);
-                    } else {
-                        set.setMode(Mode.give);
-                    }
-                } else if (set.getMode() == Mode.give && censored.isCensored()) {
-                    //want to set the mode to get now so that we don't mistakenly
-                    //proxy any more than necessary
-                    set.setMode(Mode.get);
-                    LOG.info("Disconnected; setting giveModeForbidden");
-                    Events.syncModal(model, Modal.giveModeForbidden);
-                }
-
-                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
-                final Location loc = model.getLocation();
-                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
-                    loc.setCountry(geo.getCountrycode());
-                    loc.setLat(geo.getLatitude());
-                    loc.setLon(geo.getLongitude());
-                    Events.sync(SyncPath.LOCATION, loc);
-                }
-            }
-        }, 0, LanternClientConstants.CONNECTIVITY_UPDATE_INTERVAL);
     }
 
     private <T> void shutdownable(final Class<T> clazz) {
