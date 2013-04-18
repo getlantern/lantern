@@ -95,6 +95,10 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
+    <td><strong>dev</strong><br><em>boolean</em></td>
+    <td>Whether the backend is in development mode.</td>
+  </tr>
+  <tr>
     <td><strong>system</strong><br><em>object</em></td>
     <td>
       <table>
