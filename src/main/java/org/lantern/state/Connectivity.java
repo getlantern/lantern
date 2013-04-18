@@ -41,7 +41,7 @@ public class Connectivity {
 
     private String connectingStatus;
 
-    private Type type = LanternConstants.ON_APP_ENGINE ? Type.laeproxy : Type.pc;
+    private Type type = LanternConstants.ON_APP_ENGINE ? Type.cloud : Type.pc;
 
     private long lastConnectedLong;
 
