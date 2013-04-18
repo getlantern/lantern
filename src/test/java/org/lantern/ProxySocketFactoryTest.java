@@ -24,6 +24,7 @@ public class ProxySocketFactoryTest {
         temp.deleteOnExit();
         final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        assertTrue(trustStore.TRUSTSTORE_FILE.isFile());
         
         final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
         final ProxySocketFactory factory = new ProxySocketFactory(util, info);

@@ -60,8 +60,11 @@ public class LanternTrustStore {
      * we re-negotiate keys with peers on new connections, which will not
      * always be the case if the remote client is longer lived than we are
      * (i.e., the remote client thinks it has our key, but our key has changed).
+     * 
+     * Note this is not static so that tests don't conflict using the same
+     * trust store.
      */
-    public static final File TRUSTSTORE_FILE =
+    public final File TRUSTSTORE_FILE =
         new File(LanternClientConstants.CONFIG_DIR,
             String.valueOf(new SecureRandom().nextLong()));
 

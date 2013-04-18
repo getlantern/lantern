@@ -45,7 +45,7 @@ public class LanternTrustStoreTest {
 
         final LanternTrustStore trustStore = TestUtils.getTrustStore();
         System.setProperty("javax.net.ssl.trustStore",
-                LanternTrustStore.TRUSTSTORE_FILE.getAbsolutePath());
+                trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         trustStore.listEntries();
         final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
