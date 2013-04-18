@@ -15,6 +15,7 @@ public class ProxySocketFactoryTest {
 
     @Test
     public void test() throws Exception {
+        System.setProperty("javax.net.debug", "ssl");
         final ProxyInfo info = new ProxyInfo(ProxyType.HTTP, 
             LanternClientConstants.FALLBACK_SERVER_HOST, 
             Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), "", "");
