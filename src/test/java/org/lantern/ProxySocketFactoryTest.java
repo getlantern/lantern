@@ -2,8 +2,10 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.net.Socket;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.junit.Test;
@@ -17,7 +19,9 @@ public class ProxySocketFactoryTest {
             LanternClientConstants.FALLBACK_SERVER_HOST, 
             Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), "", "");
         // Test creating a socket through our fallback proxy.
-        final KeyStoreManager ksm = new LanternKeyStoreManager();
+        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
+        temp.deleteOnExit();
+        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
@@ -27,6 +31,7 @@ public class ProxySocketFactoryTest {
         final Socket sock = factory.createSocket("talk.google.com", 5222);
         assertTrue(sock.isConnected());
         sock.close();
+        temp.delete();
     }
 
 }
