@@ -62,13 +62,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     @Override
     public boolean handleAd(final URI from, 
             final LanternKscopeAdvertisement ad) {
-        log.debug("*** got kscope ad from {} for {}", from, ad.getJid());
-        if (LanternUtils.isDevMode()) {
-            model.addNotification(
-                "Received kaleidoscope advertisement:<br>"+JsonUtils.jsonify(ad), 
-                MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-        }
+        // output a bell character to call more attention
+        log.debug("\0007*** got kscope ad from {} for {}", from, ad.getJid());
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
         final LanternKscopeAdvertisement existing = 
             awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
