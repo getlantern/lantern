@@ -36,6 +36,7 @@ public class ConnectivityChecker extends TimerTask {
                 ConnectivityChangedEvent event = new ConnectivityChangedEvent(false, false, null);
                 Events.asyncEventBus().post(event);
             }
+            return;
         }
         String oldIp = connectivity.getIp();
         String newIpString = ip.getHostAddress();
