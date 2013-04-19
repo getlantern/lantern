@@ -38,7 +38,9 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.filter.IQTypeFilter;
 import org.jivesoftware.smack.filter.PacketFilter;
+import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
@@ -49,7 +51,6 @@ import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ResetEvent;
-import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
@@ -175,6 +176,17 @@ public class DefaultXmppHandler implements XmppHandler {
      */
     private final SslHttpProxyServer peerProxyServer;
 
+    private TimerTask reconnectIfNoPong;
+
+    /**
+     * The XMPP message id that we are waiting for a pong on
+     */
+    private String waitingForPong;
+
+    private long pingTimeout = 15 * 1000;
+
+    protected XMPPConnection previousConnection;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -265,23 +277,66 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Subscribe
-    public void onSyncEvent(SyncEvent event) {
-        if (event.getPath().equals(SyncPath.CONNECTIVITY_INTERNET.getPath())
-                || event.getPath().equals((SyncPath.CONNECTIVITY.getPath()))) {
-            LOG.info("sync connect event: " + event.getValue());
-            if (model.getConnectivity().isInternet()) {
-                LOG.info("connected to internet");
-                XmppP2PClient<FiveTuple> client = this.client.get();
-                if (client == null)
-                    return; //this is probably at startup
+    public void onConnectivityChanged(ConnectivityChangedEvent e) {
+        if (!e.isConnected()) {
+            //we'll wait and see if it comes back
+            return;
+        }
+        LOG.info("connected to internet");
+        XmppP2PClient<FiveTuple> client = this.client.get();
+        if (client == null)
+            return; //this is probably at startup
 
-                final XMPPConnection conn = client
-                        .getXmppConnection();
-                if (conn == null || !conn.isConnected()) {
-                    LOG.info("connecting to xmpp because we are disconnected");
-                    reconnectIfNecessary();
-                }
+        final XMPPConnection conn = client.getXmppConnection();
+        if (e.isIpChanged()) {
+            //definitely need to reconnect here
+            reconnect();
+        } else {
+            if (conn == null || !conn.isConnected()) {
+                //definitely need to reconnect here
+                reconnect();
+            } else {
+                //send a ping message to determine if we need to reconnect
+                ping();
             }
+        }
+    }
+
+    private void ping() {
+        XmppP2PClient<FiveTuple> client = this.client.get();
+        XMPPConnection connection = client.getXmppConnection();
+        IQ ping = new IQ() {
+            @Override
+            public String getChildElementXML() {
+                return "<ping xmlns='urn:xmpp:ping'/>";
+            }
+
+        };
+        waitingForPong = ping.getPacketID();
+        //set up timer to reconnect if we don't hear a pong
+        reconnectIfNoPong = new Reconnector();
+        timer.schedule(reconnectIfNoPong, getPingTimeout());
+        //and send the ping
+        connection.sendPacket(ping);
+    }
+
+    /**
+     * How long we wait,
+     * @return
+     */
+    public long getPingTimeout() {
+        return pingTimeout;
+    }
+
+    public void setPingTimeout(long pingTimeout) {
+        this.pingTimeout = pingTimeout;
+    }
+
+    //this will be cancelled if a pong is received
+    class Reconnector extends TimerTask {
+        @Override
+        public void run() {
+            reconnect();
         }
     }
 
@@ -371,49 +426,61 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternUtils.isa("127.0.0.1",
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
 
-        final SessionSocketListener sessionListener = new SessionSocketListener() {
+        if (this.client.get() == null) {
+            final SessionSocketListener sessionListener = new SessionSocketListener() {
 
-            @Override
-            public void reconnected() {
-                // We need to send a new presence message each time we
-                // reconnect to the XMPP server, as otherwise peers won't
-                // know we're available and we won't get data from the bot.
-                updatePresence();
-            }
+                @Override
+                public void reconnected() {
+                    // We need to send a new presence message each time we
+                    // reconnect to the XMPP server, as otherwise peers won't
+                    // know we're available and we won't get data from the bot.
+                    updatePresence();
+                }
 
-            @Override
-            public void onSocket(String arg0, Socket arg1) throws IOException {
-            }
-        };
+                @Override
+                public void onSocket(String arg0, Socket arg1) throws IOException {
+                }
+            };
+            this.client.set(P2PEndpoints.newXmppP2PHttpClient(
+                    "shoot", natPmpService,
+                    this.upnpService, this.mappedServer,
+                    this.socketsUtil.newTlsSocketFactory(),
+                    this.socketsUtil.newTlsServerSocketFactory(),
+                    plainTextProxyRelayAddress, sessionListener, false,
+                    new UdtRelayServerFiveTupleListener()));
+            LOG.debug("Set client for xmpp handler: "+hashCode());
 
-        this.client.set(P2PEndpoints.newXmppP2PHttpClient(
-            "shoot", natPmpService,
-            this.upnpService, this.mappedServer,
-            this.socketsUtil.newTlsSocketFactory(),
-            this.socketsUtil.newTlsServerSocketFactory(),
-            plainTextProxyRelayAddress, sessionListener, false,
-            new UdtRelayServerFiveTupleListener()));
-            
+            this.client.get().addConnectionListener(new P2PConnectionListener() {
 
-        /*
-        this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService,
-            upnpService, this.mappedServer,
+                @Override
+                public void onConnectivityEvent(final P2PConnectionEvent event) {
 
-            this.socketsUtil.newTlsSocketFactory(),
-            this.socketsUtil.newTlsServerSocketFactory(),
-            //SocketFactory.getDefault(), ServerSocketFactory.getDefault(),
-            plainTextProxyRelayAddress, sessionListener, false));
-        */
+                    LOG.debug("Got connectivity event: {}", event);
+                    Events.asyncEventBus().post(event);
+                    XMPPConnection connection = client.get().getXmppConnection();
+                    if (connection == previousConnection) {
+                        //only add packet listener once
+                        return;
+                    }
+                    previousConnection = connection;
 
-        LOG.debug("Set client for xmpp handler: "+hashCode());
-        this.client.get().addConnectionListener(new P2PConnectionListener() {
-
-            @Override
-            public void onConnectivityEvent(final P2PConnectionEvent event) {
-                LOG.debug("Got connectivity event: {}", event);
-                Events.asyncEventBus().post(event);
-            }
-        });
+                    //listen to responses for XMPP pings, and if we get any,
+                    //cancel pending reconnects
+                    connection.addPacketListener(new PacketListener() {
+                        @Override
+                        public void processPacket(Packet packet) {
+                            IQ iq = (IQ) packet;
+                            if (iq.getPacketID().equals(waitingForPong)) {
+                                LOG.debug("Got pong, cancelling pending reconnect");
+                                reconnectIfNoPong.cancel();
+                            }
+                        }
+                    }, new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
+                }
+            });
+        } else {
+            LOG.debug("Using existing client for xmpp handler: "+hashCode());
+        }
 
         // This is a global, backup listener added to the client. We might
         // get notifications of messages twice in some cases, but that's
@@ -460,13 +527,13 @@ public class DefaultXmppHandler implements XmppHandler {
 
         // Make sure all connections between us and the server are stored
         // OTR.
-        modelUtils.syncConnectingStatus("Activing Google Talk pseudo-OTR...");
+        modelUtils.syncConnectingStatus("Activating Google Talk pseudo-OTR...");
         LanternUtils.activateOtr(connection);
 
         LOG.debug("Connection ID: {}", connection.getConnectionID());
 
         modelUtils.syncConnectingStatus("Waiting for message from Lantern...");
-        
+
         // Here we handle allowing the server to subscribe to our presence.
         connection.addPacketListener(new PacketListener() {
 
@@ -797,9 +864,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
         if (conn == null || !conn.isConnected()) {
-            if (!reconnectIfNecessary()) {
-                return;
-            }
+            return;
         }
 
         LOG.info("Sending presence available");
@@ -1022,9 +1087,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return false;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
-        if (!reconnectIfNecessary()) {
-            return true;
-        }
+
         final Roster rost = conn.getRoster();
 
         final Presence pres = new Presence(Presence.Type.available);
@@ -1080,30 +1143,9 @@ public class DefaultXmppHandler implements XmppHandler {
         return true;
     }
 
-    /**
-     * Try to reconnect to the xmpp server, if we are not already connected.
-     * Returns true if the reconnection seems to have succeeded (or was
-     * unnecessary), and false if it failed.
-     *
-     * @return
-     */
-    private synchronized boolean reconnectIfNecessary() {
-        XmppP2PClient<FiveTuple> myClient = client.get();
-        if (myClient == null) {
-            //initial connection never happened.  If it were in-progress
-            //we would not be here because connect() is synchronized.
-            //If it is about to happen, we might as well run it now.
-            return reconnect();
-        }
-        XMPPConnection conn = myClient.getXmppConnection();
-        if (conn == null || !conn.isConnected()) {
-            return reconnect();
-        }
-        return true; //no need to reconnect
-    }
-
     /** Try to reconnect to the xmpp server */
     private boolean reconnect() {
+        client.get().stop();
         try {
             connect();
         } catch (IOException e) {
