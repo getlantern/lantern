@@ -125,7 +125,7 @@ public class JettyLauncher implements LanternService {
         
         this.server.setConnectors(new Connector[]{connector});
 
-        final CometdServlet cometdServlet = new CometdServlet();
+        final CometdServlet cometdServlet = new LanternCometdServlet();
 
         final ServletHolder cometd = new ServletHolder(cometdServlet);
         cometd.setInitParameter("jsonContext", 
