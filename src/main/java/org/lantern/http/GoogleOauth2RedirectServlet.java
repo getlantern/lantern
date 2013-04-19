@@ -84,6 +84,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     
     protected void processRequest(final HttpServletRequest req, 
         final HttpServletResponse resp) throws IOException {
+        LanternUtils.addCSPHeader(resp);
         final String uri = req.getRequestURI();
         log.debug("Received URI: {}", uri);
         final Map<String, String> params = HttpUtils.toParamMap(req);

@@ -21,6 +21,7 @@ import org.lantern.Censored;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
+import org.lantern.LanternUtils;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
@@ -122,6 +123,7 @@ public class InteractionServlet extends HttpServlet {
 
     protected void processRequest(final HttpServletRequest req,
         final HttpServletResponse resp) {
+        LanternUtils.addCSPHeader(resp);
         final String uri = req.getRequestURI();
         log.debug("Received URI: {}", uri);
         final Map<String, String> params = HttpUtils.toParamMap(req);

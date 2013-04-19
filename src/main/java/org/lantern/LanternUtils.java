@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.net.ssl.SSLSocket;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
@@ -978,5 +979,9 @@ public class LanternUtils {
             throw new IOException(msg);
         }
         return output;
+    }
+
+    public static void addCSPHeader(HttpServletResponse resp) {
+        resp.addHeader("Content-Security-Policy", "default-src localhost");
     }
 }

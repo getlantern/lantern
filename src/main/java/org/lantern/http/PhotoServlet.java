@@ -20,6 +20,7 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;
+import org.lantern.LanternUtils;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
@@ -75,7 +76,7 @@ public final class PhotoServlet extends HttpServlet {
     protected void doGet(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException,
         IOException {
-
+        LanternUtils.addCSPHeader(resp);
         final String referer = req.getHeader(HttpHeaders.Names.REFERER);
         log.debug("Referer is: {}", referer);
         final String localEndpoint = StaticSettings.getLocalEndpoint();
