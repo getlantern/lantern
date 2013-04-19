@@ -55,7 +55,6 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Connectivity;
-import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
@@ -278,7 +277,12 @@ public class DefaultXmppHandler implements XmppHandler {
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
         if (!e.isConnected()) {
-            //we'll wait and see if it comes back
+            // send a ping message to determine if we need to reconnect; failed
+            // STUN connectivity is not necessarily a death sentence for the
+            // XMPP connection.
+            // If the ping fails, then XmppP2PClient will retry that connection
+            // in a loop.
+            ping();
             return;
         }
         LOG.info("connected to internet");
@@ -295,13 +299,18 @@ public class DefaultXmppHandler implements XmppHandler {
                 //definitely need to reconnect here
                 reconnect();
             } else {
-                //send a ping message to determine if we need to reconnect
                 ping();
             }
         }
     }
 
     private void ping() {
+        //if we are already pinging, cancel the existing ping
+        //and retry
+        if (reconnectIfNoPong != null) {
+            reconnectIfNoPong.cancel();
+        }
+
         XmppP2PClient<FiveTuple> client = this.client.get();
         XMPPConnection connection = client.getXmppConnection();
         IQ ping = new IQ() {
@@ -1125,28 +1134,9 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     /** Try to reconnect to the xmpp server */
-    private boolean reconnect() {
-        client.get().stop();
-        try {
-            connect();
-        } catch (IOException e) {
-            // you're probably offline. But we'll return true, because
-            // when we notice that we have not heard back from the
-            // controller about this invitee, we will redo the invite.
-            LOG.info("Can't reconnect; offline?", e);
-            return false;
-        } catch (CredentialException e) {
-            //this is also pretty unlikely, but could happen
-            //if the user deauthorizes Lantern
-            LOG.info("Could not log in with OAUTH?", e);
-            Events.syncModal(model, Modal.authorize);
-            return false;
-        } catch (NotInClosedBetaException e) {
-            //we should never actually get here
-            LOG.error("Not in closed beta!");
-            return false;
-        }
-        return true;
+    private void reconnect() {
+        //this will trigger XmppP2PClient's internal reconnection logic
+        client.get().getXmppConnection().disconnect();
     }
 
     @Override
