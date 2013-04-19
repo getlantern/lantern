@@ -23,6 +23,7 @@ import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
+import org.lantern.http.GeoIp;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
@@ -132,6 +133,7 @@ public class LanternModule extends AbstractModule {
         bind(StatsUpdater.class);
         bind(ConnectivityChecker.class);
         bind(InviteQueue.class);
+        bind(GeoIp.class);
 
         try {
             copyFireFoxExtension();
