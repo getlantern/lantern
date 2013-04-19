@@ -2,15 +2,12 @@ package org.lantern.state;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
-import org.lantern.LanternRosterEntry;
 import org.lantern.LanternUtils;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
@@ -19,7 +16,6 @@ import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.SyncEvent;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,49 +214,6 @@ public class DefaultModelService implements ModelService {
     public void setAutoReport(final boolean autoReport) {
         this.model.getSettings().setAutoReport(autoReport);
         Events.sync(SyncPath.AUTO_REPORT, autoReport);
-    }
-
-    @Override
-    public void invite(List<String> emails) {
-        // XXX i18n
-        ArrayList<LanternRosterEntry> entries = new ArrayList<LanternRosterEntry>();
-        for (String email : emails) {
-            if (xmppHandler.sendInvite(email, false)) {
-                entries.add(roster.getRosterEntry(email));
-                //we also need to mark this email as pending, in case
-                //our invite gets lost.
-                model.addPendingInvite(email);
-            } else {
-                entries.add(null);
-            }
-        }
-
-        int n = emails.size();
-        String msg = n > 1 ? "Invitations have" : "An invitation has";
-        LanternRosterEntry entry0 = entries.get(0);
-        final String name0;
-        if (entry0 == null) {
-            name0 = emails.get(0);
-        } else {
-            name0 = entry0.getName();
-        }
-        msg += " been queued for <span class=\"titled\" title=\"" + name0 + "\">" + emails.get(0) + "</span>";
-        if (n > 2) {
-          msg += " and <span class=\"titled\" title=\""+StringUtils.join(emails, ", ")+"\">"+(n-1)+" others</span>.";
-        } else if (n == 2) {
-            LanternRosterEntry entry1 = entries.get(1);
-            final String name1;
-            if (entry1 == null) {
-                name1 = emails.get(1);
-            } else {
-                name1 = entry1.getName();
-            }
-          msg += " and <span class=\"titled\" title=\"" + name1 + "\">"+emails.get(1)+"</span>.";
-        } else {
-          msg += ".";
-        }
-        model.addNotification(msg, MessageType.info, 30);
-        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
     //this is necessary for JSON-pointer updating, since we want

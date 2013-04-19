@@ -30,6 +30,7 @@ import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
 import org.lantern.state.InternalState;
+import org.lantern.state.InviteQueue;
 import org.lantern.state.JsonModelModifier;
 import org.lantern.state.Location;
 import org.lantern.state.LocationChangedEvent;
@@ -99,13 +100,15 @@ public class InteractionServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
+    private final InviteQueue inviteQueue;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, final XmppHandler xmppHandler,
         final Censored censored, final LanternFeedback lanternFeedback,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils, final InviteQueue inviteQueue) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -114,6 +117,7 @@ public class InteractionServlet extends HttpServlet {
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
         this.modelUtils = modelUtils;
+        this.inviteQueue = inviteQueue;
         Events.register(this);
     }
 
@@ -706,7 +710,7 @@ public class InteractionServlet extends HttpServlet {
                 return;//nobody to invite
             }
             ArrayList<String> invites = om.readValue(json, ArrayList.class);
-            modelService.invite(invites);
+            inviteQueue.invite(invites);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
