@@ -87,8 +87,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
-    private boolean weHaveInternet = true;
-
     @Inject
     public DefaultProxyTracker(final Model model,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
@@ -403,36 +401,29 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public ProxyHolder getLaeProxy() {
-        handleConnectivity(laeProxyQueue);
+        restoreTimedInProxies(laeProxyQueue);
         return laeProxyQueue.getProxy();
     }
 
     @Override
     public ProxyHolder getProxy() {
-        handleConnectivity(proxyQueue);
+        restoreTimedInProxies(proxyQueue);
         return proxyQueue.getProxy();
     }
 
-    private void handleConnectivity(ProxyQueue queue) {
-        if (model.getConnectivity().isInternet()) {
-            log.debug("Internet connected");
-            weHaveInternet  = true;
-        } else {
-            if (weHaveInternet) {
-                log.debug("First time with no internet connection");
-                // we have just learned that in fact we don't
-                weHaveInternet = false;
-                // restore recently-deceased proxies (since they probably died
-                // of general internet failure
-                restoreRecentlyDeceasedProxies(queue);
-            }
+    @Subscribe
+    public void onConnectivityChanged(ConnectivityChangedEvent e) {
+        if (!e.isConnected()) {
+            log.debug("Restoring recently deceased proxies, since they probably died of 'net failure");
+            restoreRecentlyDeceasedProxies(proxyQueue);
+            restoreRecentlyDeceasedProxies(laeProxyQueue);
+            restoreRecentlyDeceasedProxies(peerProxyQueue);
         }
-        restoreTimedInProxies(queue);
     }
 
     @Override
     public ProxyHolder getJidProxy() {
-        handleConnectivity(peerProxyQueue);
+        restoreTimedInProxies(peerProxyQueue);
         return peerProxyQueue.getProxy();
     }
 
