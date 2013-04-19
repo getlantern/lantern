@@ -14,6 +14,7 @@ import java.net.URISyntaxException;
 
 import org.jboss.netty.util.Timer;
 import org.junit.Test;
+import org.lantern.event.Events;
 import org.lantern.state.Model;
 
 public class DefaultProxyTrackerTest {
@@ -66,13 +67,14 @@ public class DefaultProxyTrackerTest {
 
         //let's turn off internet, which will restore the dead proxy
         model.getConnectivity().setInternet(false);
-        proxy = tracker.getProxy(); //should cause recently-deceased proxy to retry
-        //but we won't see it for a sec
+        Events.eventBus().post(new ConnectivityChangedEvent(false, false, null));
         Thread.sleep(10);
+
         proxy = tracker.getProxy();
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
+        Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
         tracker.getProxy();
         Thread.sleep(10);
 
