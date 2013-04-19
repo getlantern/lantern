@@ -715,7 +715,7 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
         }
-        
+
         final Long invites =
             (Long) json.get(LanternConstants.INVITES_KEY);
         if (invites != null) {
@@ -1115,14 +1115,7 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
 
-        //final Profile prof = this.model.getProfile();
-        //pres.setProperty(LanternConstants.INVITER_NAME, prof.getName());
-
-        //final String json = JsonUtils.jsonify(prof);
-        //pres.setProperty(XmppMessageConstants.PROFILE, json);
-
         invited.add(email);
-        //pres.setProperty(LanternConstants.INVITER_NAME, value);
 
         final Runnable runner = new Runnable() {
 
@@ -1134,10 +1127,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final Thread t = new Thread(runner, "Invite-Thread");
         t.setDaemon(true);
         t.start();
-        this.model.setNinvites(this.model.getNinvites() - 1);
-        this.modelIo.write();
-        //LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
-        //LanternHub.settingsIo().write();
 
         addToRoster(email);
         return true;

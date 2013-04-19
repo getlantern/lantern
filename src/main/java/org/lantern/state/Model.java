@@ -140,6 +140,7 @@ public class Model {
         return ninvites;
     }
 
+    @JsonView({Run.class})
     public void setNinvites(int ninvites) {
         int oldInvites = this.ninvites;
         this.ninvites = ninvites;
