@@ -89,10 +89,9 @@ public class JettyLauncher implements LanternService {
         String prefix = StaticSettings.getPrefix();
 
         final ServletContextHandler contextHandler = newContext(prefix, apiName);
-        //final ServletContextHandler api = newContext(secureBase, apiName);
+
         contexts.addHandler(contextHandler);
 
-        //contextHandler.setResourceBase(this.resourceBaseFile.toString());
         final String resourceBase;
         final String app = "./lantern-ui/app";
         final File appFile = new File(app);
@@ -113,8 +112,8 @@ public class JettyLauncher implements LanternService {
         connector.setLowResourcesMaxIdleTime(30 * 1000);
         connector.setLowResourcesConnections(2000);
         connector.setAcceptQueueSize(5000);
-        //connector.setThreadPool(new QueuedThreadPool(20));
-        
+
+
         if (this.model.getSettings().isBindToLocalhost()) {
             // TODO: Make sure this works on Linux!!
             log.info("Binding to localhost");
@@ -127,13 +126,11 @@ public class JettyLauncher implements LanternService {
         this.server.setConnectors(new Connector[]{connector});
 
         final CometdServlet cometdServlet = new CometdServlet();
-        //final ServletConfig config = new ServletConfig
-        //cometdServlet.init(config);
+
         final ServletHolder cometd = new ServletHolder(cometdServlet);
         cometd.setInitParameter("jsonContext", 
             "org.lantern.SettingsJSONContextServer");
-        //cometd.setInitParameter("transports", 
-        //    "org.cometd.websocket.server.WebSocketTransport");
+
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
@@ -199,20 +196,8 @@ public class JettyLauncher implements LanternService {
             final FilterHolder filterHolder = new FilterHolder(filter);
             //filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
             filterHolder.setInitParameter("allowedOrigins", "*");
-            /*
-            contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
-                FilterMapping.REQUEST);
-            contextHandler.addFilter(filterHolder, secureBase + "/api/*", 
-                    FilterMapping.REQUEST);
-            contextHandler.addFilter(filterHolder, secureBase + "/settings/*", 
-                    FilterMapping.REQUEST);
-            contextHandler.addFilter(filterHolder, secureBase + "/photo/*", 
-                    FilterMapping.REQUEST);
-                    */
         }
-        
-        //new SyncService(new SwtJavaScriptSyncStrategy());
-        
+
         final Thread serve = new Thread(new Runnable() {
 
             @Override
