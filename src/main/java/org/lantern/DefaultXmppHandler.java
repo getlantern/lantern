@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -877,13 +876,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternClientConstants.LANTERN_JID);
-
-        //resend invites
-        ArrayList<String> pendingInvites = new ArrayList<String>(model.getPendingInvites());
-        for (String email : pendingInvites) {
-            LOG.info("Resending pending invite to {}", email);
-            sendInvite(email, true);
-        }
 
         forHub.setProperty("mode", model.getSettings().getMode().toString());
         final String str = JsonUtils.jsonify(stats);

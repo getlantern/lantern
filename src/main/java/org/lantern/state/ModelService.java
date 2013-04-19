@@ -36,10 +36,8 @@ public interface ModelService {
 
     Mode getMode();
 
-    void invite(List<String> emails);
-
     void resetProxiedSites();
-    
+
     void setProxiedSites(List<String> proxiedSites);
 
 }
