@@ -194,9 +194,10 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                     // used the original encoder to properly encode
                     // the CONNECT request.
                     //destinationConnect.remove("encoder");
-                    
+
                     // Begin to accept incoming traffic.
                     browserToProxyChannel.setReadable(true);
+                    proxyTracker.setSuccess(proxyHolder);
                 } else {
                     browserToProxyChannel.close();
                     proxyTracker.onCouldNotConnect(proxyHolder);

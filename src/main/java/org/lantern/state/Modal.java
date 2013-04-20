@@ -5,12 +5,11 @@ package org.lantern.state;
  */
 public enum Modal {
 
-    
+
     settingsLoadFailure,
     welcome,
     authorize,
     connecting,
-    gtalkUnreachable,
     authorizeLater,
     notInvited,
     requestInvite,

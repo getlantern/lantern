@@ -37,9 +37,11 @@ import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.Launcher;
 import org.lantern.ProxyHolder;
+import org.lantern.ProxyQueue;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lantern.UdtHttpRequestProcessor;
+import org.lantern.state.Peer.Type;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -299,7 +301,7 @@ public class UdtHttpRequestProcessorTest {
             @Override
             public ProxyHolder getLaeProxy() {return null;}
             @Override
-            public ProxyHolder getJidProxy() {return new ProxyHolder("", ft, null);}
+            public ProxyHolder getJidProxy() {return new ProxyHolder("", null, ft, null, Type.pc);}
             @Override
             public void onError(URI peerUri) {}
             @Override
@@ -326,6 +328,11 @@ public class UdtHttpRequestProcessorTest {
             public void addProxy(URI jid, String hostPort) {}
             @Override
             public void addProxy(URI jid, InetSocketAddress iae) {}
+            @Override
+            public void setSuccess(ProxyHolder proxyHolder) {}
+            @Override
+            public void addProxyWithChecks(URI jid, ProxyQueue proxyQueue,
+                    ProxyHolder proxy) {}
         };
     }
 }

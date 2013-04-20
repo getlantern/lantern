@@ -239,13 +239,14 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     internalState.setModalCompleted(Modal.authorize);
                     internalState.advanceModal(null);
                 } catch (final CredentialException e) {
-                    // Not sure what to do here. This *should* never happen.
                     log.error("Could not log in with OAUTH?", e);
-                    Events.syncModal(model, Modal.gtalkUnreachable);
+                    Events.syncModal(model, Modal.authorize);
                 } catch (final NotInClosedBetaException e) {
+                    log.info("This user is not invited");
                     Events.syncModal(model, Modal.notInvited);
                 } catch (final IOException e) {
-                    Events.syncModal(model, Modal.gtalkUnreachable);
+                    log.info("We can't connect (internet connection died?).  Retry.");
+                    Events.syncModal(model, Modal.authorize);
                 }
             }
 

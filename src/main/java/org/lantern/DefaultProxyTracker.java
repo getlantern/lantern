@@ -6,13 +6,8 @@ import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,27 +48,17 @@ public class DefaultProxyTracker implements ProxyTracker {
         Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
 
     /**
-     * These are the centralized proxies this Lantern instance is using.
+     * These are the proxies this Lantern instance is using that can be directly
+     * connected to.
+     *
      */
-    private final Set<ProxyHolder> proxySet =
-        new HashSet<ProxyHolder>();
-    private final Queue<ProxyHolder> proxies =
-        new ConcurrentLinkedQueue<ProxyHolder>();
+    ProxyQueue proxyQueue;
 
-    /**
-     * This is the set of the peer proxies we know about only through their
-     * JIDs - i.e. they don't have their ports mapped such that we can
-     * access them directly.
-     */
-    private final Map<URI, ProxyHolder> peerProxyMap =
-            new ConcurrentHashMap<URI, ProxyHolder>();
-    private final Queue<ProxyHolder> peerProxyQueue =
-            new ConcurrentLinkedQueue<ProxyHolder>();
+    /** This is are presently not used */
+    private final ProxyQueue laeProxyQueue;
 
-    private final Set<ProxyHolder> laeProxySet =
-        new HashSet<ProxyHolder>();
-    private final Queue<ProxyHolder> laeProxies =
-        new ConcurrentLinkedQueue<ProxyHolder>();
+    /** Peer proxies that we can't directly connect to */
+    private final PeerProxyQueue peerProxyQueue;
 
     private final Model model;
 
@@ -106,6 +91,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     public DefaultProxyTracker(final Model model,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
         final XmppHandler xmppHandler) {
+        proxyQueue = new ProxyQueue(model);
+        laeProxyQueue = new ProxyQueue(model);
+        peerProxyQueue = new PeerProxyQueue(model);
         this.model = model;
         this.peerFactory = peerFactory;
         this.timer = timer;
@@ -166,16 +154,14 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public boolean isEmpty() {
-        return this.proxies.isEmpty();
+        return proxyQueue.isEmpty();
     }
 
     @Override
     public void clear() {
-        this.proxies.clear();
-        this.proxySet.clear();
-        this.peerProxyMap.clear();
-        this.laeProxySet.clear();
-        this.laeProxies.clear();
+        proxyQueue.clear();
+        peerProxyQueue.clear();
+        laeProxyQueue.clear();
 
         // We need to add the fallback proxy back in.
         addFallbackProxy();
@@ -183,9 +169,10 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void clearPeerProxySet() {
-        this.peerProxyMap.clear();
+        peerProxyQueue.clear();
     }
 
+    /** TODO: this is unused */
     @Override
     public void addLaeProxy(final String cur) {
         log.debug("Adding LAE proxy");
@@ -222,27 +209,14 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
 
-        addProxyWithChecks(fullJid, proxySet, proxies,
-            new ProxyHolder(host, isa, netty3TrafficCounter()), type);
-    }
-
-    private ProxyHolder getProxy(final Queue<ProxyHolder> queue) {
-        synchronized (queue) {
-            if (queue.isEmpty()) {
-                log.debug("No proxy addresses");
-                return null;
-            }
-            final ProxyHolder proxy = queue.remove();
-            queue.add(proxy);
-            log.debug("FIFO queue is now: {}", queue);
-            return proxy;
-        }
+        addProxyWithChecks(fullJid, proxyQueue,
+            new ProxyHolder(host, fullJid, isa, netty3TrafficCounter(), type));
     }
 
 
     @Override
     public boolean hasJidProxy(final URI uri) {
-        return this.peerProxyMap.containsKey(uri);
+        return peerProxyQueue.containsPeer(uri);
     }
 
     @Override
@@ -253,11 +227,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
         final String jid = peerUri.toASCIIString();
-
-        // The idea here is to start with the JID and to basically convert it
-        // into a NAT/firewall traversed FiveTuple containing a local and
-        // remote InetSocketAddress we can use a little more easily.
-        final Map<URI, AtomicInteger> peerFailureCount =
+        final HashMap<URI, AtomicInteger> peerFailureCount =
                 new HashMap<URI, AtomicInteger>();
 
         p2pSocketThreadPool.submit(new Runnable() {
@@ -266,7 +236,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                 // TODO: In the past we created a bunch of connections here -
                 // a socket pool -- to avoid dealing with connection time
                 // delays. We should probably do that again!.
-                boolean gotConnected = false;
                 try {
                     log.debug("Opening outgoing peer...");
                     final FiveTuple tuple = LanternUtils.openOutgoingPeer(
@@ -276,24 +245,18 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     final InetSocketAddress remote = tuple.getRemote();
                     final ProxyHolder ph =
-                        new ProxyHolder(jid, tuple, netty4TrafficCounter());
+                        new ProxyHolder(jid, peerUri, tuple, netty4TrafficCounter(),
+                                Type.pc);
 
                     peerFactory.onOutgoingConnection(peerUri, remote, Type.pc,
                             ph.getTrafficShapingHandler());
 
-                    synchronized (peerProxyMap) {
-                        if (!peerProxyMap.containsKey(peerUri)) {
-                            peerProxyMap.put(peerUri, ph);
-                            peerProxyQueue.add(ph);
-                            log.debug("Queue is now: {}", peerProxyQueue);
-                        }
-                    }
-                    if (!gotConnected) {
-                        Events.eventBus().post(
+                    peerProxyQueue.addPeerProxy(peerUri, ph);
+
+                    Events.eventBus().post(
                             new ProxyConnectionEvent(
-                                ConnectivityStatus.CONNECTED));
-                    }
-                    gotConnected = true;
+                                    ConnectivityStatus.CONNECTED));
+
                 } catch (final IOException e) {
                     log.info("Could not create peer socket", e);
                 }
@@ -301,18 +264,59 @@ public class DefaultProxyTracker implements ProxyTracker {
         });
     }
 
-    private void addProxyWithChecks(final URI fullJid, 
-        final Set<ProxyHolder> set,
-        final Queue<ProxyHolder> queue, final ProxyHolder ph,
-        final Type type) {
+    private void restoreRecentlyDeceasedProxies(ProxyQueue queue) {
+        synchronized (queue) {
+            long now = new Date().getTime();
+            while (true) {
+                final ProxyHolder proxy = queue.pausedProxies.peek();
+                if (proxy == null)
+                    break;
+                if (now - proxy.getTimeOfDeath() < LanternClientConstants.getRecentProxyTimeout()) {
+                    queue.pausedProxies.remove();
+                    log.debug("Attempting to restore" + proxy);
+                    addProxyWithChecks(proxy.getJid(), queue, proxy);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void restoreTimedInProxies(ProxyQueue queue) {
+        synchronized(queue) {
+            long now = new Date().getTime();
+            while (true) {
+                ProxyHolder proxy = queue.pausedProxies.peek();
+                if (proxy == null)
+                    break;
+                if (now > proxy.getRetryTime()) {
+                    log.debug("Attempting to restore timed-in proxy " + proxy);
+                    addProxyWithChecks(proxy.getJid(), queue, proxy);
+                    queue.pausedProxies.remove();
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    @Override
+    public void addProxyWithChecks(final URI fullJid,
+        final ProxyQueue queue, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
+            //even with no tcp, we can still add JID proxies
+            addJidProxy(fullJid);
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
-        if (set.contains(ph)) {
-            log.debug("We already know about proxy "+ph+" in {}", set);
-            return;
+        if (queue.contains(ph)) {
+            log.debug("We already know about proxy "+ph+" in {}", queue);
+            //but it might be disconnected
+            if (ph.isConnected()) {
+                return;
+            }
         }
+
+        log.debug("Trying to add proxy {} to queue {}", ph, queue);
 
         proxyCheckThreadPool.submit(new Runnable() {
 
@@ -323,15 +327,11 @@ public class DefaultProxyTracker implements ProxyTracker {
                 try {
                     sock.connect(remote, 60*1000);
 
-                    synchronized (set) {
-                        if (!set.contains(ph)) {
-                            set.add(ph);
-                            queue.add(ph);
-                            log.debug("Added connected TCP proxy. " +
-                                "Queue is now: {}", queue);
-                            peerFactory.onOutgoingConnection(fullJid, remote, type,
-                                    ph.getTrafficShapingHandler());
-                        }
+                    if (queue.add(ph)) {
+                        log.debug("Added connected TCP proxy. "
+                                + "Queue is now: {}", queue);
+                        peerFactory.onOutgoingConnection(fullJid, remote,
+                                ph.getType(), ph.getTrafficShapingHandler());
                     }
 
                     log.debug("Dispatching CONNECTED event");
@@ -365,7 +365,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}",
             ph.getFiveTuple());
 
-        onCouldNotConnect(ph, this.proxySet, this.proxies);
+        onCouldNotConnect(ph, proxyQueue);
     }
 
     @Override
@@ -374,76 +374,62 @@ public class DefaultProxyTracker implements ProxyTracker {
             ph.getFiveTuple());
 
         // For now we assume this is because we've lost our connection.
-        onCouldNotConnect(ph, this.laeProxySet, this.laeProxies);
+        onCouldNotConnect(ph, laeProxyQueue);
     }
 
     private void onCouldNotConnect(final ProxyHolder proxyAddress,
-        final Set<ProxyHolder> set, final Queue<ProxyHolder> queue){
+        final ProxyQueue queue){
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
-        synchronized (this.proxySet) {
-            set.remove(proxyAddress);
-            queue.remove(proxyAddress);
-        }
+        proxyQueue.proxyFailed(proxyAddress);
     }
 
     @Override
     public void onCouldNotConnectToPeer(final URI peerUri) {
-        removePeer(peerUri);
+        peerProxyQueue.proxyFailed(peerUri);
     }
 
     @Override
     public void onError(final URI peerUri) {
-        removePeer(peerUri);
+        peerProxyQueue.proxyFailed(peerUri);
     }
 
     @Override
     public void removePeer(final URI uri) {
-        log.debug("Removing peer on error or connection failure: {}", uri);
-        synchronized (this.peerProxyMap) {
-            final ProxyHolder ph = this.peerProxyMap.remove(uri);
-            if (ph == null) {
-                // This will typically be the case for give mode peers who
-                // just may not store the peer in the first place.
-                log.debug("Peer not in map?", uri);
-            } else {
-                this.peerProxyQueue.remove(ph);
-            }
-        }
+        log.debug("Removing peer by request: {}", uri);
+        peerProxyQueue.removeProxy(uri);
     }
 
     @Override
     public ProxyHolder getLaeProxy() {
-        return getProxy(this.laeProxies);
+        restoreTimedInProxies(laeProxyQueue);
+        return laeProxyQueue.getProxy();
     }
 
     @Override
     public ProxyHolder getProxy() {
-        return getProxy(this.proxies);
+        restoreTimedInProxies(proxyQueue);
+        return proxyQueue.getProxy();
     }
 
-    @Override
-    public ProxyHolder getJidProxy() {
-        // We handle p2p JIDs a little differently, as we can't make multiple
-        // connections from ephemeral local ports to the same remote endpoint
-        // because NAT traversal is local port-specific (at least in many
-        // cases). So instead of always adding the proxy back to the end of
-        // the queue, we add it using the full FiveTuple creation process
-        // from the beginning.
-        synchronized (this.peerProxyQueue) {
-            if (this.peerProxyQueue.isEmpty()) {
-                log.debug("No proxy addresses");
-                return null;
-            }
-            final ProxyHolder proxy = this.peerProxyQueue.remove();
-            addJidProxy(LanternUtils.newURI(proxy.getId()));
-            log.debug("FIFO queue is now: {}", this.peerProxyQueue);
-            return proxy;
+    @Subscribe
+    public void onConnectivityChanged(ConnectivityChangedEvent e) {
+        if (!e.isConnected()) {
+            log.debug("Restoring recently deceased proxies, since they probably died of 'net failure");
+            restoreRecentlyDeceasedProxies(proxyQueue);
+            restoreRecentlyDeceasedProxies(laeProxyQueue);
+            restoreRecentlyDeceasedProxies(peerProxyQueue);
         }
     }
 
     @Override
+    public ProxyHolder getJidProxy() {
+        restoreTimedInProxies(peerProxyQueue);
+        return peerProxyQueue.getProxy();
+    }
+
+    @Override
     public boolean hasProxy() {
-        return !this.proxies.isEmpty();
+        return proxyQueue.isEmpty();
     }
 
     @Subscribe
@@ -477,5 +463,66 @@ public class DefaultProxyTracker implements ProxyTracker {
         netty4TrafficShapers.add(handler);
         return handler;
     }
+
+    @Override
+    public void setSuccess(ProxyHolder proxyHolder) {
+        proxyHolder.resetFailures();
+    }
+
+    class PeerProxyQueue extends ProxyQueue {
+        //this unfortunately duplicates the values of proxyMap
+        //but there doesn't seem to be an elegant way to handle
+        //this
+        private final HashMap<URI, ProxyHolder> peerProxyMap =
+                new HashMap<URI, ProxyHolder>();
+
+        PeerProxyQueue(Model model) {
+            super(model);
+        }
+
+        public void proxyFailed(URI peerUri) {
+            ProxyHolder proxy = peerProxyMap.get(peerUri);
+            if (proxy != null) {
+                proxyFailed(proxy);
+            }
+        }
+
+        public synchronized void removeProxy(URI uri) {
+            if (peerProxyMap.containsKey(uri)) {
+                ProxyHolder proxy = peerProxyMap.remove(uri);
+                proxySet.remove(proxy);
+                proxies.remove(proxy);
+                pausedProxies.remove(proxy);
+            }
+        }
+
+        public synchronized void addPeerProxy(URI peerUri, ProxyHolder ph) {
+            if (!peerProxyMap.containsKey(peerUri)) {
+                peerProxyMap.put(peerUri, ph);
+                add(ph);
+                log.debug("Queue is now: {}", peerProxyQueue);
+            } else {
+                proxies.add(ph);
+            }
+        }
+
+        public boolean containsPeer(URI uri) {
+            return peerProxyMap.containsKey(uri);
+        }
+
+        @Override
+        protected synchronized void reenqueueProxy(ProxyHolder proxy) {
+            // We handle p2p JIDs a little differently, as we can't make multiple
+            // connections from ephemeral local ports to the same remote endpoint
+            // because NAT traversal is local port-specific (at least in many
+            // cases). So instead of always adding the proxy back to the end of
+            // the queue, we add it using the full FiveTuple creation process
+            // from the beginning.
+            addJidProxy(LanternUtils.newURI(proxy.getId()));
+            log.debug("FIFO queue is now: {}", proxies);
+        }
+    }
+
+
 
 }

@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.Security;
@@ -12,7 +11,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.security.auth.login.CredentialException;
 
@@ -50,9 +48,7 @@ import org.lantern.exceptional4j.HttpStrategy;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.state.Connectivity;
 import org.lantern.state.InternalState;
-import org.lantern.state.Location;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -60,12 +56,10 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
-import org.lantern.state.SyncPath;
 import org.lantern.state.SyncService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.offer.answer.IceConfig;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -279,8 +273,10 @@ public class Launcher {
         processCommandLineOptions(cmd);
         LOG.debug("Processed command line options...");
 
-        threadPublicIpLookup();
-        threadPeriodicConnectivityUpdate();
+        model.getConnectivity().setInternet(false);
+        Timer timer = new Timer();
+        ConnectivityChecker connectivityChecker = instance(ConnectivityChecker.class);
+        timer.schedule(connectivityChecker, 0, 60 * 1000);
 
         if (set.isUiEnabled()) {
             LOG.debug("Starting system tray..");
@@ -317,25 +313,7 @@ public class Launcher {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
-        if (LanternUtils.hasNetworkConnection()) {
-            LOG.info("Got internet...");
-            launchWithOrWithoutUi();
-        } else {
-            // If we're running on startup, it's quite likely we just haven't
-            // connected to the internet yet. Let's wait for an internet
-            // connection and then start Lantern.
-            if (model.isLaunchd() || !set.isUiEnabled()) {
-                LOG.info("Waiting for internet connection...");
-                LanternUtils.waitForInternet();
-                launchWithOrWithoutUi();
-            }
-            // If setup is complete and we're not running on startup, open
-            // the dashboard.
-            else {
-                launchWithOrWithoutUi();
-            }
-        }
-
+        launchWithOrWithoutUi();
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
@@ -344,87 +322,6 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
-    }
-
-
-    private void threadPeriodicConnectivityUpdate() {
-        Timer timer = injector.getInstance(Timer.class);
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                final InetAddress ip =
-                        new PublicIpAddress().getPublicIpAddress();
-                final Connectivity connectivity = model.getConnectivity();
-                if (ip == null) {
-                    LOG.info("No IP -- possibly no internet connection");
-                    connectivity.setInternet(false);
-                    Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
-                    return;
-                }
-                if (ip.getHostAddress().equals(connectivity.getIp())) {
-                    return; //no change to IP address, so nothing to do
-                }
-                connectivity.setInternet(true);
-                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
-                final Location loc = model.getLocation();
-                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
-                    loc.setCountry(geo.getCountrycode());
-                    loc.setLat(geo.getLatitude());
-                    loc.setLon(geo.getLongitude());
-                }
-                Events.sync(SyncPath.LOCATION, loc);
-                Events.sync(SyncPath.CONNECTIVITY_INTERNET, connectivity.isInternet());
-                connectivity.setIp(ip.getHostAddress());
-            }
-        }, 0, LanternClientConstants.CONNECTIVITY_UPDATE_INTERVAL);
-    }
-
-    /**
-     * We thread this because otherwise looking up our public IP address
-     * over the network can delay the creation of settings altogether. That's
-     * problematic if the UI is waiting on them, for example.
-     */
-    private void threadPublicIpLookup() {
-        if (LanternConstants.ON_APP_ENGINE) {
-            return;
-        }
-        final Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // This performs the public IP lookup so by the time we set
-                // GET versus GIVE mode we already know the IP and don't have
-                // to wait.
-
-                // We get the address here to set it in Connectivity.
-                final InetAddress ip =
-                    new PublicIpAddress().getPublicIpAddress();
-                if (ip == null) {
-                    LOG.info("No IP -- possibly no internet connection");
-                    return;
-                }
-                // If the mode isn't set in the model, set the default.
-                if (set.getMode() == null || set.getMode() == Mode.unknown) {
-                    if (censored.isCensored()) {
-                        set.setMode(Mode.get);
-                    } else {
-                        set.setMode(Mode.give);
-                    }
-                }
-
-                String hostAddress = ip.getHostAddress();
-                model.getConnectivity().setIp(hostAddress);
-
-                final GeoData geo = modelUtils.getGeoDataWithRetry(hostAddress);
-                final Location loc = model.getLocation();
-                loc.setCountry(geo.getCountrycode());
-                loc.setLat(geo.getLatitude());
-                loc.setLon(geo.getLongitude());
-
-            }
-
-        }, "Public-IP-Lookup-Thread");
-        thread.setDaemon(true);
-        thread.start();
     }
 
     private <T> void shutdownable(final Class<T> clazz) {
@@ -627,8 +524,6 @@ public class Launcher {
         LOG.debug("Is launchd: {}", model.isLaunchd());
         launchLantern();
 
-        model.getConnectivity().setInternet(
-            LanternUtils.hasNetworkConnection());
     }
 
     public void launchLantern() {

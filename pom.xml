@@ -18,7 +18,7 @@
     <slf4j.version>1.7.2</slf4j.version>
     <cometd.version>2.5.1</cometd.version>
     <github.global.server>github</github.global.server>
-    <!--<cometd.version>2.4.1</cometd.version>-->
+    <lantern.devmode>true</lantern.devmode>
   </properties>
 
   <organization>
@@ -613,11 +613,81 @@
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+	<groupId>pl.project13.maven</groupId>
+	<artifactId>git-commit-id-plugin</artifactId>
+	<version>2.0.3</version>
+	<executions>
+	  <execution>
+	    <goals>
+	      <goal>revision</goal>
+	    </goals>
+	  </execution>
+	</executions>
+	<configuration>
+	  <verbose>true</verbose>
+	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+	</configuration>
+      </plugin>
     </plugins>
+    <resources>
+      <resource>
+	<directory>src/main/resources</directory>
+	<filtering>true</filtering>
+      </resource>
+    </resources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <!-- m2eclipse lifecycle mapping configuration -->
+          <!-- should not affect builds outside IDE -->
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>copy-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>revision</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+      	<lantern.devmode>false</lantern.devmode>
+      </properties>
+    </profile>
     <profile>
       <id>linux</id>
       <activation>
