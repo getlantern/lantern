@@ -49,6 +49,10 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     }
 
     private synchronized void removeUpnpMappings(Collection<UpnpMapping> mappings) {
+        if (mappings.size() == 0) {
+            return;
+        }
+        log.info("Deleting " + mappings.size() + " mappings ");
         int ret;
         UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
