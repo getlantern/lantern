@@ -1,7 +1,5 @@
 package org.lantern;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategy;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.slf4j.Logger;
@@ -15,21 +13,16 @@ public class LanternXmppRetryStrategyFactory implements
 
     static class LanternXmppRetryStrategy implements XmppConnectionRetyStrategy {
 
-        private final AtomicInteger retries = new AtomicInteger(0);
-
         @Override
         public boolean retry() {
-            if (retries.get() < 100) {
-                retries.incrementAndGet();
-            }
             return true;
         }
 
         @Override
         public void sleep() {
             try {
-                // logarithmic retry; from zero seconds to ~two minutes
-                Thread.sleep(50 * 1000 * (long) Math.log(1 + this.retries.get() * 0.1));
+                //fixed retry strategy -- just wait two seconds
+                Thread.sleep(2000);
             } catch (final InterruptedException e) {
                 LOG.info("Interrupted?", e);
             }

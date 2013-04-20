@@ -296,11 +296,11 @@ public class TcpHttpRequestProcessorTest {
             @Override
             public boolean hasProxy() {return true;}
             @Override
-            public ProxyHolder getProxy() {return new ProxyHolder("", ft, null);}
+            public ProxyHolder getProxy() {return new ProxyHolder("", null, ft, null, Type.pc);}
             @Override
             public ProxyHolder getLaeProxy() {return null;}
             @Override
-            public ProxyHolder getJidProxy() {return new ProxyHolder("", ft, null);}
+            public ProxyHolder getJidProxy() {return new ProxyHolder("", null, ft, null, Type.pc);}
             @Override
             public void onError(URI peerUri) {}
             @Override
@@ -327,6 +327,11 @@ public class TcpHttpRequestProcessorTest {
             public void addProxy(URI jid, String hostPort) {}
             @Override
             public void addProxy(URI jid, InetSocketAddress iae) {}
+            @Override
+            public void setSuccess(ProxyHolder proxyHolder) {}
+            @Override
+            public void addProxyWithChecks(URI jid, ProxyQueue proxyQueue,
+                    ProxyHolder proxy) {}
         };
     }
 }

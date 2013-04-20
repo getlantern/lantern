@@ -23,6 +23,7 @@ import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
+import org.lantern.http.GeoIp;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
@@ -40,6 +41,7 @@ import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
+import org.lantern.state.InviteQueue;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
@@ -129,7 +131,10 @@ public class LanternModule extends AbstractModule {
         bind(AppIndicatorTray.class);
         bind(LanternHttpProxyServer.class);
         bind(StatsUpdater.class);
-        
+        bind(ConnectivityChecker.class);
+        bind(InviteQueue.class);
+        bind(GeoIp.class);
+
         try {
             copyFireFoxExtension();
         } catch (final IOException e) {
@@ -152,14 +157,8 @@ public class LanternModule extends AbstractModule {
         if (this.natPmpService != null) {
             return this.natPmpService;
         }
-        final NatPmpImpl temp = new NatPmpImpl(stats);
-        if (temp.isNatPmpSupported()) {
-            return temp;
-        } else {
-            log.info("NAT-PMP not supported");
-            // We just use a dummy one in this case.
-            return new DummyNatPmpService();
-        }
+        natPmpService = new NatPmpImpl(stats);
+        return natPmpService;
     }
     
     @Provides @Singleton

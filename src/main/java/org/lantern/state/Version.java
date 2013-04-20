@@ -96,18 +96,29 @@ public class Version {
             } else {
                 releaseDate = new Date(System.currentTimeMillis());
             }
-            if ("lantern_version_tok".equals(LanternClientConstants.VERSION)) {
-                major = 0;
-                minor = 21;
-                patch = 0;
-                git = "";
-            } else {
-                final String[] parts = LanternClientConstants.VERSION.split("\\.");
-                major = Integer.parseInt(parts[0]);
+            String version = LanternClientConstants.VERSION;
+            String number = StringUtils.substringBefore(version, "-");
+            String suffix = StringUtils.substringAfter(version, "-");
+            final String[] parts = number.split("\\.");
+            major = Integer.parseInt(parts[0]);
+            if (parts.length > 1) {
                 minor = Integer.parseInt(parts[1]);
-                patch = Integer.parseInt(StringUtils.substringBefore(parts[2], "-"));
-                git = StringUtils.substringAfter(parts[2], "-");
+                if (parts.length > 2) {
+                    patch = Integer.parseInt(parts[2]);
+                } else {
+                    patch = 0;
+                }
+            } else {
+                minor = patch = 0;
             }
+
+            if (suffix.startsWith("SNAPSHOT-")) {
+                // handle case of 1.0-SNAPSHOT-abcd...
+                git = StringUtils.substringAfter(suffix, "SNAPSHOT-");
+            } else {
+                git = suffix;
+            }
+
         }
 
 
