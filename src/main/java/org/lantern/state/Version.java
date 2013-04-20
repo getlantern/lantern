@@ -184,7 +184,7 @@ public class Version {
 
         private final int patch;
 
-        private final boolean mock = true;
+        private final boolean mock = false;
 
         public SemanticVersion(final int major, final int minor, final int patch) {
             this.major = major;
