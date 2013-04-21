@@ -1,11 +1,13 @@
 package otto
 
 func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
-	tryValue, throw, throwValue, other := self.tryEvaluate(func() Value {
+	resultValue, throw, throwValue, other := self.tryCatchEvaluate(func() Value {
 		return self.evaluate(node.Try)
 	})
 
 	if throw != false && node.Catch != nil {
+		// Reset the throw status, so we can tell if catch { ... }
+		// throws anything
 		throw = false
 
 		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment(self)
@@ -15,7 +17,8 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 		// TODO If necessary, convert TypeError<runtime> => TypeError
 		// That, is, such errors can be thrown despite not being JavaScript "native"
 		self.localSet(node.Catch.Identifier, throwValue)
-		tryValue, throw, throwValue, other = self.tryEvaluate(func() Value {
+		// We ignore the resultValue of the catch { ... }
+		_, throw, throwValue, other = self.tryCatchEvaluate(func() Value {
 			return self.evaluate(node.Catch.Body)
 		})
 	}
@@ -27,16 +30,17 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 		}
 	}
 
-	if other != nil {
-		panic(*other) // Re-throw continue, break, return, etc.
-	}
-
-	// Catch threw something
+	// It does not matter which order we evaluate these, as
+	// they're mutually exclusive
 	if throw {
+		// Catch threw something
 		self.Throw(throwValue)
+	} else if other != nil {
+		// Re-throw continue, break, return, etc.
+		panic(*other)
 	}
 
-	return tryValue
+	return resultValue
 }
 
 func (self *_runtime) evaluateVariableDeclarationList(node *_variableDeclarationListNode) Value {

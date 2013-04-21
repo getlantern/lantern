@@ -186,7 +186,12 @@ func (self *_runtime) Call(function *_object, this Value, argumentList []Value, 
 	return
 }
 
-func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw bool, throwValue Value, other *_result) {
+func (self *_runtime) tryCatchEvaluate(inner func() Value) (resultValue Value, throw bool, throwValue Value, other *_result) {
+	// resultValue = The value of the block (e.g. the last statement)
+	// throw = Something was thrown
+	// throwValue = The value of what was thrown
+	// other = Something that changes flow (return, break, continue) that is not a throw
+	// Otherwise, some sort of unknown panic happened, we'll just propagate it
 	defer func() {
 		if caught := recover(); caught != nil {
 			switch caught := caught.(type) {
@@ -215,7 +220,7 @@ func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw boo
 		}
 	}()
 
-	tryValue = inner()
+	resultValue = inner()
 	return
 }
 
