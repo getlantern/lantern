@@ -378,6 +378,7 @@ var lessThanTable [4](map[_lessThanResult]bool) = [4](map[_lessThanResult]bool){
 
 func (self *_runtime) calculateComparison(comparator string, left Value, right Value) bool {
 
+	// TODO This might be redundant now (with regards to evaluateComparison)
 	x := self.GetValue(left)
 	y := self.GetValue(right)
 
@@ -463,8 +464,8 @@ ERROR:
 
 func (self *_runtime) evaluateComparison(node *_comparisonNode) Value {
 
-	left := self.evaluate(node.Left)
-	right := self.evaluate(node.Right)
+	left := self.GetValue(self.evaluate(node.Left))
+	right := self.GetValue(self.evaluate(node.Right))
 
 	return toValue(self.calculateComparison(node.Comparator, left, right))
 }

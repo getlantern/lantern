@@ -1156,6 +1156,16 @@ func Test_toString(t *testing.T) {
 
 	test := runTest()
 	test(`
-    [undefined+""]
+        [undefined+""]
     `, "undefined")
+}
+
+func TestEvaluationOrder(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = 0;
+        abc < (abc = 1) === true;
+    `, "true")
 }
