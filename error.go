@@ -113,7 +113,7 @@ func catchPanic(function func()) (err error) {
 					err = errors.New(toString(caught.Value))
 				} else {
 					// TODO Report this better
-					err = errors.New("Here be dragons!")
+					err = fmt.Errorf("Uncaught, unknown panic: %v", caught)
 				}
 				return
 			}
