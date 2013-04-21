@@ -1,9 +1,13 @@
 package otto
 
 func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
-	tryValue, throw, throwValue, other := self.tryEvaluate(func() Value { return self.evaluate(node.Try) })
+	tryValue, throw, throwValue, other := self.tryEvaluate(func() Value {
+		return self.evaluate(node.Try)
+	})
 
 	if throw != false && node.Catch != nil {
+		throw = false
+
 		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment(self)
 		defer func() {
 			self._executionContext(0).LexicalEnvironment = lexicalEnvironment
@@ -11,7 +15,9 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 		// TODO If necessary, convert TypeError<runtime> => TypeError
 		// That, is, such errors can be thrown despite not being JavaScript "native"
 		self.localSet(node.Catch.Identifier, throwValue)
-		self.evaluate(node.Catch.Body)
+		tryValue, throw, throwValue, other = self.tryEvaluate(func() Value {
+			return self.evaluate(node.Catch.Body)
+		})
 	}
 
 	if node.Finally != nil {
@@ -23,6 +29,11 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 
 	if other != nil {
 		panic(*other) // Re-throw continue, break, return, etc.
+	}
+
+	// Catch threw something
+	if throw {
+		self.Throw(throwValue)
 	}
 
 	return tryValue

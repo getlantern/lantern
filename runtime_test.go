@@ -481,8 +481,7 @@ func TestTryFinally(t *testing.T) {
 		}
 		while(!abc && def < 10)
 		ghi;
-	`, "0")
-	// TODO 11
+	`, "11")
 }
 
 func TestTryCatch(t *testing.T) {
