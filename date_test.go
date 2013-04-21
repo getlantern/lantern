@@ -89,6 +89,9 @@ func TestDate(t *testing.T) {
 	test(`abc = new Date(12564504e5); abc.setFullYear(2010); abc.toUTCString()`, time.Format(format))
 
 	test(`new Date("2001-01-01T10:01:02.000").getTime()`, "978343262000")
+
+	// Date()
+	test(`typeof Date()`, "string")
 }
 
 func TestDate_parse(t *testing.T) {
