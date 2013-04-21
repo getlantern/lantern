@@ -92,6 +92,7 @@ func TestDate(t *testing.T) {
 
 	// Date()
 	test(`typeof Date()`, "string")
+	test(`typeof Date(2006, 1, 2)`, "string")
 }
 
 func TestDate_parse(t *testing.T) {

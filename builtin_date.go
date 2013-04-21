@@ -7,13 +7,14 @@ import (
 // Date
 
 func builtinDate(call FunctionCall) Value {
+	date := &_dateObject{}
 	if len(call.ArgumentList) == 0 {
-		// Should make this prettier
-		date := &_dateObject{}
+		// TODO Should make this prettier
 		date.Set(newDateTime([]Value{}))
 		return toValue(date.Time().Format(time_.RFC1123))
 	}
-	return toValue(call.runtime.newDate(newDateTime(call.ArgumentList)))
+	date.Set(newDateTime(call.ArgumentList))
+	return toValue(date.Time().Local().Format(time_.RFC1123))
 }
 
 func builtinNewDate(self *_object, _ Value, argumentList []Value) Value {
