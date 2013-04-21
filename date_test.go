@@ -122,3 +122,13 @@ func TestDate_setYear(t *testing.T) {
 	test(`new Date(12564504e5).setYear(1996)`, "846223200000")
 	test(`new Date(12564504e5).setYear(2000)`, "972453600000")
 }
+
+func TestDateDefaultValue(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var date = new Date();
+        date + 0 === date.toString() + "0";
+    `, "true")
+}

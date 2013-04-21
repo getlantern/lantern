@@ -161,7 +161,12 @@ const (
 // 8.12.8
 func (self *_object) DefaultValue(hint _defaultValueHint) Value {
 	if hint == defaultValueNoHint {
-		hint = defaultValueHintNumber
+		if self._Date != nil {
+			// Date exception
+			hint = defaultValueHintString
+		} else {
+			hint = defaultValueHintNumber
+		}
 	}
 	methodSequence := []string{"valueOf", "toString"}
 	if hint == defaultValueHintString {
