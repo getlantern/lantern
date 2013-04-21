@@ -86,11 +86,16 @@ func (self *_object) HasInstance(of Value) bool {
 	if !prototype.IsObject() {
 		panic(newTypeError())
 	}
-	ofPrototype := of._object().prototype
-	if ofPrototype == nil {
-		return false
+	prototypeObject := prototype._object()
+
+	value := of._object().prototype
+	for value != nil {
+		if value == prototypeObject {
+			return true
+		}
+		value = value.prototype
 	}
-	return ofPrototype == prototype._object()
+	return false
 }
 
 type _functionSignature string
