@@ -79,6 +79,10 @@ func (self *_object) CallSet(name string, value Value) {
 
 // 15.3.5.3
 func (self *_object) HasInstance(of Value) bool {
+	if self._Function == nil {
+		// We should not have a HasInstance method
+		panic(newTypeError())
+	}
 	if !of.IsObject() {
 		return false
 	}

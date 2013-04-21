@@ -1007,6 +1007,10 @@ func Test_instanceof(t *testing.T) {
 	test(`raise:
 		abc = {} instanceof "abc";
     `, "TypeError: Expecting a function in instanceof check, but got: abc")
+
+	test(`raise:
+        "xyzzy" instanceof Math;
+    `, "TypeError")
 }
 
 func TestIn(t *testing.T) {
