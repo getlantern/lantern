@@ -19,7 +19,14 @@ public class LanternClientConstants {
     public static final String FALLBACK_SERVER_HOST;
     public static final String FALLBACK_SERVER_PORT;
 
-    private static boolean isDevMode;
+    private static final boolean isDevMode;
+
+    /**
+     * This is the version of Lantern we're running. This is automatically
+     * replaced when we push new releases. Don't change this directly; the
+     * installer will update it.
+     */
+    public static final String VERSION;
 
     static {
         final String host = "fallback_server_host_tok";
@@ -35,19 +42,11 @@ public class LanternClientConstants {
         } finally {
             VERSION = prop.getProperty("lantern.version") + "-"
                     + prop.getProperty("git.commit.id");
-            isDevMode = "true".equals(prop.getProperty("lantern.devmode"));
+            isDevMode = VERSION.endsWith("SNAPSHOT");
         }
     }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
-
-
-    /**
-     * This is the version of Lantern we're running. This is automatically
-     * replaced when we push new releases. Don't change this directly; the
-     * installer will update it.
-     */
-    public static final String VERSION;
 
     public static final File DATA_DIR;
 
