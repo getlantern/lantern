@@ -39,9 +39,11 @@ git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
 git submodule update || die "git submodule update failed!!!"
 
 INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
+#perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE || die "Could not change the version to $INTERNAL_VERSION...file is: `cat $CONSTANTS_FILE`"
+perl -pi -e "s/0.22.1-SNAPSHOT/$VERSION/g" pom.xml || die "Could not change the version to $VERSION...file is: `cat pom.xml`"
 
-BUILD_TIME=`date +%s`
-perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
+#BUILD_TIME=`date +%s`
+#perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
@@ -69,7 +71,7 @@ mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 echo "Reverting version file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
-cp target/lantern*SNAPSHOT.jar install/common/lantern.jar || die "Could not copy jar?"
+cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 if $RELEASE ; then
