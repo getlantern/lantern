@@ -191,6 +191,9 @@ public class InteractionServlet extends HttpServlet {
         switch (modal) {
         case welcome:
             this.model.getSettings().setMode(Mode.unknown);
+            if (handleModalSwitch(inter)) {
+                break;
+            }
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");
@@ -504,7 +507,9 @@ public class InteractionServlet extends HttpServlet {
                             MessageType.error);
                         log.error("Could not post to contact form: {}", e);
                     }
-                    Events.syncModal(this.model, Modal.none);
+                    Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                    this.internalState.setModalCompleted(Modal.finished);
+                    this.internalState.advanceModal(null);
                     break;
                 default:
                     if (handleModalSwitch(inter)) {
