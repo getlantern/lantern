@@ -312,6 +312,11 @@ public class DefaultXmppHandler implements XmppHandler {
         }
 
         XmppP2PClient<FiveTuple> client = this.client.get();
+        if (client == null) {
+            //no connection yet, so we'll just return; the connection
+            //will be established when we can
+            return;
+        }
         XMPPConnection connection = client.getXmppConnection();
         IQ ping = new IQ() {
             @Override
