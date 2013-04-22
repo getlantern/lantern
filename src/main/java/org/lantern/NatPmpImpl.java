@@ -44,10 +44,6 @@ public class NatPmpImpl implements NatPmpService {
     @Inject
     public NatPmpImpl(final Stats stats) {
         this.stats = stats;
-        if (NetworkUtils.isPublicAddress()) {
-            // If we're already on the public network, there's no NAT.
-            return;
-        }
         pmpDevice = new NatPmp();
         log.debug("NAT-PMP device = {}", pmpDevice);
 
