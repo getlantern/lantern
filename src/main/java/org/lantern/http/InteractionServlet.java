@@ -38,7 +38,6 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
-import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
@@ -97,8 +96,6 @@ public class InteractionServlet extends HttpServlet {
 
     private final LanternFeedback lanternFeedback;
 
-    private final ModelUtils modelUtils;
-
     private final InviteQueue inviteQueue;
 
     @Inject
@@ -107,7 +104,7 @@ public class InteractionServlet extends HttpServlet {
         final InternalState internalState,
         final ModelIo modelIo, final XmppHandler xmppHandler,
         final Censored censored, final LanternFeedback lanternFeedback,
-        final ModelUtils modelUtils, final InviteQueue inviteQueue) {
+        final InviteQueue inviteQueue) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -115,7 +112,6 @@ public class InteractionServlet extends HttpServlet {
         this.xmppHandler = xmppHandler;
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
-        this.modelUtils = modelUtils;
         this.inviteQueue = inviteQueue;
         Events.register(this);
     }
