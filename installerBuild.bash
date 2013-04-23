@@ -3,8 +3,8 @@
 CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
 function die() {
   echo $*
-  echo "Reverting version file"
-  git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
+  echo "Reverting constants file"
+  git checkout -- $CONSTANTS_FILE || die "Could not revert $CONSTANTS_FILE?"
   exit 1
 }
 
@@ -24,7 +24,12 @@ printenv | grep INSTALL4J_MAC_PASS || die "Must have OSX signing key password de
 printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key password defined in INSTALL4J_WIN_PASS"
 test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
 
-VERSION=$1
+# XXX pull CURRENT_VERSION out of pom.xml
+CURRENT_VERSION="0.21.1-SNAPSHOT"
+fgrep $CURRENT_VERSION pom.xml &>/dev/null || die "CURRENT_VERSION \"$CURRENT_VERSION\" not found in pom.xml"
+
+# XXX calculate NEW_VERSION by stripping off "-SNAPSHOT" from CURRENT_VERSION
+NEW_VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 if [ $# -gt "2" ]
@@ -38,12 +43,14 @@ curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
 git submodule update || die "git submodule update failed!!!"
 
-INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
-#perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE || die "Could not change the version to $INTERNAL_VERSION...file is: `cat $CONSTANTS_FILE`"
-perl -pi -e "s/0.22.1-SNAPSHOT/$VERSION/g" pom.xml || die "Could not change the version to $VERSION...file is: `cat pom.xml`"
+NEW_VERSION_WITH_SHA=$1-`git rev-parse HEAD | cut -c1-10`
+# XXX this relies on no other package's version in pom.xml coinciding with our $CURRENT_VERSION
+perl -pi -e "s/$CURRENT_VERSION/$NEW_VERSION/" pom.xml || die "s/$CURRENT_VERSION/$NEW_VERSION/ in pom.xml failed"
 
-#BUILD_TIME=`date +%s`
-#perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
+# XXX do this automatically
+echo "Replaced $CURRENT_VERSION with $NEW_VERSION in pom.xml."
+echo "If this is a release, you may want to manually bump"
+echo "to the next -SNAPSHOT version in your next commit."
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
@@ -71,12 +78,12 @@ mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 echo "Reverting version file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
-cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
+cp target/lantern-$NEW_VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 if $RELEASE ; then
     echo "Tagging...";
-    git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS";
+    git tag -f -a v$NEW_VERSION -m "Version $NEW_VERSION_WITH_SHA release with MVN_ARGS $MVN_ARGS";
 
     echo "Pushing tags...";
     git push --tags || die "Could not push tags!!";
