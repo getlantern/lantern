@@ -46,7 +46,7 @@ public class LanternClientConstants {
             } else {
                 VERSION = version + "-" + prop.getProperty("git.commit.id");
             }
-            isDevMode = VERSION.endsWith("SNAPSHOT");
+            isDevMode = VERSION.contains("-SNAPSHOT");
         }
     }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
