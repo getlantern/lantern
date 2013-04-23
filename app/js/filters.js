@@ -74,7 +74,7 @@ angular.module('app.filters', [])
           versionStr = components.join('.');
       if (!full) return versionStr;
       if (versionObj.tag) versionStr += '-'+versionObj.tag;
-      if (versionObj.git) versionStr += ' ('+versionObj.git+')';
+      if (versionObj.git) versionStr += ' ('+versionObj.git.substring(0, 7)+')';
       return versionStr;
     };
   });
