@@ -34,9 +34,11 @@ public class UpnpTest {
     public void testUpnp() throws Exception {
         final InetAddress lh = NetworkUtils.getLocalHost();
         final String local = lh.getHostAddress();
-        if (lh.getHostName().startsWith("domU-") || local.startsWith("10.191") || 
+        if (lh.getHostName().startsWith("domU-") || 
+                local.startsWith("10.191") || 
                 local.startsWith("10.84") || local.startsWith("10.112") || 
-                local.startsWith("10.76") || AmazonEc2Utils.onEc2()) {
+                local.startsWith("10.76") || local.startsWith("10.243") || 
+                AmazonEc2Utils.onEc2()) {
             log.debug("Ingoring test on EC2");
             return;
         }
