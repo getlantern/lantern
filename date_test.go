@@ -117,6 +117,13 @@ func TestDate_UTC(t *testing.T) {
 func TestDate_setYear(t *testing.T) {
 	Terst(t)
 
+	// Make sure we do not fail just because we're running
+	// the test in a different time zone
+	local := Time.Local
+	Time.Local = Time.UTC
+	defer func() {
+		Time.Local = local
+	}()
 	test := runTest()
 	test(`new Date(12564504e5).setYear(96)`, "846223200000")
 	test(`new Date(12564504e5).setYear(1996)`, "846223200000")
