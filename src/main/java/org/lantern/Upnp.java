@@ -54,7 +54,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         }
         log.info("Deleting " + mappings.size() + " mappings ");
         int ret;
-        UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
+        UPNPDev devlist = miniupnpc.upnpDiscover(100, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
         if (devlist == null) {
             // no devices, so no way to remove mapping
