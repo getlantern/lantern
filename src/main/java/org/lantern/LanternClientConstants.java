@@ -40,8 +40,12 @@ public class LanternClientConstants {
         } catch (IOException e) {
             LOG.warn("Could not load version properties file : ", e);
         } finally {
-            VERSION = prop.getProperty("lantern.version") + "-"
-                    + prop.getProperty("git.commit.id");
+            final String version = prop.getProperty("lantern.version");
+            if (version.equals("${project.version}")) {
+                VERSION = "0.0.1-SNAPSHOT";
+            } else {
+                VERSION = version + "-" + prop.getProperty("git.commit.id");
+            }
             isDevMode = VERSION.endsWith("SNAPSHOT");
         }
     }
