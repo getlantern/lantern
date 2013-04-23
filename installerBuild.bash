@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
+VERSION_FILE=pom.xml
 function die() {
   echo $*
   echo "Reverting constants file"
@@ -26,7 +27,7 @@ test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
 
 # XXX pull CURRENT_VERSION out of pom.xml
 CURRENT_VERSION="0.21.1-SNAPSHOT"
-fgrep $CURRENT_VERSION pom.xml &>/dev/null || die "CURRENT_VERSION \"$CURRENT_VERSION\" not found in pom.xml"
+fgrep $CURRENT_VERSION $VERSION_FILE &>/dev/null || die "CURRENT_VERSION \"$CURRENT_VERSION\" not found in pom.xml"
 
 # XXX calculate NEW_VERSION by stripping off "-SNAPSHOT" from CURRENT_VERSION
 NEW_VERSION=$1
@@ -45,7 +46,7 @@ git submodule update || die "git submodule update failed!!!"
 
 NEW_VERSION_WITH_SHA=$1-`git rev-parse HEAD | cut -c1-10`
 # XXX this relies on no other package's version in pom.xml coinciding with our $CURRENT_VERSION
-perl -pi -e "s/$CURRENT_VERSION/$NEW_VERSION/" pom.xml || die "s/$CURRENT_VERSION/$NEW_VERSION/ in pom.xml failed"
+perl -pi -e "s/$CURRENT_VERSION/$NEW_VERSION/" $VERSION_FILE || die "s/$CURRENT_VERSION/$NEW_VERSION/ in pom.xml failed"
 
 # XXX do this automatically
 echo "Replaced $CURRENT_VERSION with $NEW_VERSION in pom.xml."
@@ -75,8 +76,11 @@ perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
-echo "Reverting version file"
+echo "Reverting constants file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
+
+echo "Reverting version file"
+git checkout -- $VERSION_FILE || die "Could not revert version file?"
 
 cp target/lantern-$NEW_VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
 
