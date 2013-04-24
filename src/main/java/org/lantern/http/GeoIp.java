@@ -18,6 +18,8 @@ public class GeoIp {
     private final Model model;
     private final ModelUtils modelUtils;
 
+    private boolean connected = false;
+
     @Inject
     GeoIp(final Model model, final ModelUtils modelUtils) {
         this.model = model;
@@ -27,7 +29,8 @@ public class GeoIp {
 
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
-        if (e.isConnected() && e.isIpChanged()) {
+        if (e.isConnected() && (!connected || e.isIpChanged())) {
+            connected = true;
             InetAddress ip = e.getNewIp();
             String newIpString = ip.getHostAddress();
             final Location loc = model.getLocation();
