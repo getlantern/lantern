@@ -45,6 +45,7 @@ import org.lantern.event.MessageEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.exceptional4j.HttpStrategy;
+import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
@@ -124,6 +125,7 @@ public class Launcher {
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
     private final Module lanternModule;
+    private GeoIp geoip;
 
     public Launcher(final String... args) {
         this(new LanternModule(), args);
@@ -272,6 +274,8 @@ public class Launcher {
         LOG.debug("Processing command line options...");
         processCommandLineOptions(cmd);
         LOG.debug("Processed command line options...");
+
+        geoip = instance(GeoIp.class);
 
         model.getConnectivity().setInternet(false);
         Timer timer = new Timer();
