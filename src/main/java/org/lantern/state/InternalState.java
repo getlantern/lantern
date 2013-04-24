@@ -38,14 +38,6 @@ public class InternalState {
     }
  
     public void advanceModal(final Modal backToIfNone) {
-        if (this.model.isSetupComplete()) {
-            // This can happen on Linux, for example, when we send the user
-            // the authorization screen to get new oauth tokens since we don't
-            // persist oauth.
-            log.info("Setup complete -- setting modal to none");
-            Events.syncModal(this.model, Modal.none);
-            return;
-        }
         final Modal[] seq;
         if (this.model.getSettings().getMode() == Mode.get) {
             seq = modalSeqGet;
