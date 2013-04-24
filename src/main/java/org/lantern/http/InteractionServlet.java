@@ -135,9 +135,7 @@ public class InteractionServlet extends HttpServlet {
         LanternUtils.addCSPHeader(resp);
         final String uri = req.getRequestURI();
         log.debug("Received URI: {}", uri);
-        final Map<String, String> params = HttpUtils.toParamMap(req);
-        log.debug("Params: {}", params);
-        final String interactionStr = StringUtils.substringAfterLast(uri, "/");//params.get("interaction");
+        final String interactionStr = StringUtils.substringAfterLast(uri, "/");
         if (StringUtils.isBlank(interactionStr)) {
             log.debug("No interaction!!");
             HttpUtils.sendClientError(resp, "interaction argument required!");
@@ -241,8 +239,7 @@ public class InteractionServlet extends HttpServlet {
                 applyJson(json);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, 
                         "Interaction not handled for modal: "+modal+
                         " and interaction: "+inter);
@@ -278,8 +275,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.lanternFriends);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, 
                     "Interaction not handled for modal: "+modal+
                     " and interaction: "+inter);
@@ -333,8 +329,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.settings);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, "unexpected interaction for proxied sites");
                 break;
             }
@@ -353,8 +348,7 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, "unexpected interaction for request invite");
                 break;
             }
@@ -415,8 +409,7 @@ public class InteractionServlet extends HttpServlet {
                 break;
 
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, 
                         "Interaction not handled for modal: "+modal+
                         " and interaction: "+inter);
@@ -435,8 +428,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.welcome);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 break;
             }
             break;
@@ -451,8 +443,7 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, "error setting system proxy pref");
                 break;
             }
@@ -465,14 +456,12 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 break;
             }
             break;
         case authorizeLater:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
+            log.error("Did not handle interaction {} for modal {}", inter, modal);
             break;
         case confirmReset:
             log.debug("Handling confirm reset interaction");
@@ -486,8 +475,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModel(this.model);
                 break;
             default:
-                log.error("Did not handle interaction {} for modal {} with " +
-                        "params: "+params, inter, modal);
+                log.error("Did not handle interaction {} for modal {}", inter, modal);
                 HttpUtils.sendClientError(resp, 
                         "Interaction not handled for modal: "+modal+
                         " and interaction: "+inter);
