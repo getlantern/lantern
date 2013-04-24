@@ -78,6 +78,7 @@ public class Version {
 
         private final String tag = "";
 
+        private final String gitFull;
         private final String git;
 
         private final SemanticVersion api = new SemanticVersion(0, 0, 1);
@@ -114,11 +115,12 @@ public class Version {
 
             if (suffix.startsWith("SNAPSHOT-")) {
                 // handle case of 1.0-SNAPSHOT-abcd...
-                git = StringUtils.substringAfter(suffix, "SNAPSHOT-");
+                gitFull = StringUtils.substringAfter(suffix, "SNAPSHOT-");
             } else {
-                git = suffix;
+                gitFull = suffix;
             }
-
+            // the first 7 chars are sufficient to uniquely identify a revision
+            git = gitFull.substring(0, 7);
         }
 
 
