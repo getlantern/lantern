@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +78,16 @@ public class InteractionServlet extends HttpServlet {
         EXCEPTION
     }
 
+    // modals the user can switch to from other modals
+    private static final HashSet<Modal> switchModals = new HashSet<Modal>();
+    static {
+        switchModals.add(Modal.about);
+        switchModals.add(Modal.contact);
+        switchModals.add(Modal.settings);
+        switchModals.add(Modal.proxiedSites);
+        switchModals.add(Modal.lanternFriends);
+    }
+    
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
@@ -182,16 +193,28 @@ public class InteractionServlet extends HttpServlet {
         log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
             modal, inter, this.model.getSettings().getMode());
         
-        if(handleSpecialInteractions(modal, inter, json)) {
+        if (handleExceptionalInteractions(modal, inter, json)) {
             return; 
+        }
+
+        Modal switchTo = null;
+        try {
+            // XXX a map would make this more robust
+            switchTo = Modal.valueOf(interactionStr);
+        } catch (IllegalArgumentException e) { }
+        if (switchTo != null && switchModals.contains(switchTo)) {
+            if (!switchTo.equals(modal)) {
+                if (!switchModals.contains(modal)) {
+                    this.internalState.setLastModal(modal);
+                }
+                Events.syncModal(model, switchTo);
+            }
+            return;
         }
 
         switch (modal) {
         case welcome:
             this.model.getSettings().setMode(Mode.unknown);
-            if (handleModalSwitch(inter)) {
-                break;
-            }
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");
@@ -201,25 +224,10 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Setting give mode");
                 handleSetModeWelcome(Mode.give);
                 break;
-            default:
-                if (handleModalSwitch(inter)) {
-                    break;
-                }
-                break;
             }
-            break;
-        case about:
-            if (handleModalSwitch(inter)) {
-                break;
-            }
-            this.internalState.setModalCompleted(Modal.finished);
-            this.internalState.advanceModal(null);
             break;
         case authorize:
            log.debug("Processing authorize modal...");
-            if (handleModalSwitch(inter)) {
-                break;
-            }
             this.internalState.setModalCompleted(Modal.authorize);
             this.internalState.advanceModal(null);
             break;
@@ -251,9 +259,6 @@ public class InteractionServlet extends HttpServlet {
             break;
         case lanternFriends:
             this.internalState.setCompletedTo(Modal.lanternFriends);
-            if (handleModalSwitch(inter)) {
-                break;
-            }
             switch (inter) {
             case INVITE:
                 invite(json);
@@ -283,7 +288,6 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case none:
-            handleModalSwitch(inter);
             break;
         case notInvited:
             switch (inter) {
@@ -300,9 +304,6 @@ public class InteractionServlet extends HttpServlet {
             break;
         case proxiedSites:
             this.internalState.setCompletedTo(Modal.proxiedSites);
-            if (handleModalSwitch(inter)) {
-                break;
-            }
             switch (inter) {
             case CONTINUE:
                 this.internalState.setModalCompleted(Modal.proxiedSites);
@@ -357,9 +358,6 @@ public class InteractionServlet extends HttpServlet {
             log.debug("Process request sent");
             break;
         case settings:
-            if (handleModalSwitch(inter)) {
-                break;
-            }
             switch (inter) {
             case GET:
                 log.debug("Setting get mode");
@@ -479,37 +477,41 @@ public class InteractionServlet extends HttpServlet {
                 HttpUtils.sendClientError(resp, 
                         "Interaction not handled for modal: "+modal+
                         " and interaction: "+inter);
+            }
+            break;
+        case about:
+            switch (inter) {
+            case CLOSE:
+                Events.syncModal(model, this.internalState.getLastModal());
                 break;
+            default:
+                HttpUtils.sendClientError(resp, "invalid interaction "+inter);
             }
             break;
         case contact:
             switch(inter) {
-                case CONTINUE:
-                    String msg;
-                    MessageType messageType;
-                    try {
-                        lanternFeedback.submit(json,
-                            this.model.getProfile().getEmail());
-                        msg = "Thank you for contacting Lantern.";
-                        messageType = MessageType.info;
-                    } catch(Exception e) {
-                        log.error("Error submitting contact form: {}", e);
-                        msg = "Error sending message. Please check your "+
-                            "connection and try again.";
-                        messageType = MessageType.error;
-                    }
-                    model.addNotification(msg, messageType, 30);
-                    Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-                    this.internalState.setModalCompleted(Modal.finished);
-                    this.internalState.advanceModal(null);
-                    break;
-                default:
-                    if (handleModalSwitch(inter)) {
-                        break;
-                    }
-                    this.internalState.setModalCompleted(Modal.finished);
-                    this.internalState.advanceModal(null);
-                    break;
+            case CONTINUE:
+                String msg;
+                MessageType messageType;
+                try {
+                    lanternFeedback.submit(json,
+                        this.model.getProfile().getEmail());
+                    msg = "Thank you for contacting Lantern.";
+                    messageType = MessageType.info;
+                } catch(Exception e) {
+                    log.error("Error submitting contact form: {}", e);
+                    msg = "Error sending message. Please check your "+
+                        "connection and try again.";
+                    messageType = MessageType.error;
+                }
+                model.addNotification(msg, messageType, 30);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            // fall through because this should be done in both cases:
+            case CANCEL:
+                Events.syncModal(model, this.internalState.getLastModal());
+                break;
+            default:
+                HttpUtils.sendClientError(resp, "invalid interaction "+inter);
 
             }
             break;
@@ -538,7 +540,7 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
-    private boolean handleSpecialInteractions(
+    private boolean handleExceptionalInteractions(
             final Modal modal, final Interaction inter, final String json) {
         boolean handled = false;
         Map<String, Object> map;
@@ -639,47 +641,6 @@ public class InteractionServlet extends HttpServlet {
         // We also automatically subscribe to them in turn so we know about
         // their presence.
         this.xmppHandler.subscribe(email);
-    }
-
-    /**
-     * This handles the case where a user selects a modal that completely 
-     * switches the current modal and any associated flow, such as when the
-     * user selects the about or contact links. Those need to override whatever
-     * modal is currently displayed.
-     * 
-     * @param inter The interaction.
-     * @return <code>true</code> if the interaction results in the modal 
-     * actually switching, otherwise <code>false</code>.
-     */
-    private boolean handleModalSwitch(final Interaction inter) {
-        switch (inter) {
-        case SETTINGS:
-            log.debug("Processing settings in none");
-            Events.syncModal(model, Modal.settings);
-            return true;
-        case PROXIEDSITES:
-            log.debug("Processing proxied sites in none");
-            Events.syncModal(model, Modal.proxiedSites);
-            return true;
-        case LANTERNFRIENDS:
-            log.debug("Processing friends in none");
-            Events.syncModal(model, Modal.lanternFriends);
-            return true;
-        case ABOUT:
-            log.debug("Processing about in none");
-            Events.syncModal(model, Modal.about);
-            return true;
-        case CONTACT:
-            log.debug("Processing contact in none");
-            Events.syncModal(model, Modal.contact);
-            return true;
-        case RESET:
-            //reset is handled differently in various modals
-            log.error("Reset from front-end in unknown state.");
-            return false;
-        default:
-            return false;
-        }
     }
 
     static class Invite {

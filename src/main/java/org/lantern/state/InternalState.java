@@ -18,6 +18,8 @@ public class InternalState {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    private Modal lastModal;
+
     private final Modal[] modalSeqGive = {
         Modal.authorize, Modal.lanternFriends, Modal.finished, Modal.none,
     };
@@ -30,6 +32,14 @@ public class InternalState {
     private Collection<Modal> modalsCompleted = new HashSet<Modal>();
 
     private final Model model;
+
+    public Modal getLastModal() {
+        return this.lastModal;
+    }
+
+    public void setLastModal(final Modal lastModal) {
+        this.lastModal = lastModal;
+    }
 
     @Inject
     public InternalState(final Model model) {
