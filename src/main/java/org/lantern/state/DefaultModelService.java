@@ -153,7 +153,7 @@ public class DefaultModelService implements ModelService {
     public void setSystemProxy(final boolean isSystemProxy) {
         if (isSystemProxy == this.model.getSettings().isSystemProxy()) {
             log.info("System proxy setting is unchanged.");
-            return;
+            //return;
         }
         this.model.getSettings().setSystemProxy(isSystemProxy);
 
@@ -166,7 +166,7 @@ public class DefaultModelService implements ModelService {
             this.model.getConnectivity().setPacUrl(
                 StaticSettings.getLocalEndpoint()+"/proxy_on.pac"
             );
-            return;
+            //return;
         }
 
         final Runnable proxyRunner = new Runnable() {
