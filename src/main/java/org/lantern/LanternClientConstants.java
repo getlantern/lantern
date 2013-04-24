@@ -41,12 +41,14 @@ public class LanternClientConstants {
             LOG.warn("Could not load version properties file : ", e);
         } finally {
             final String version = prop.getProperty("lantern.version");
-            if (version.equals("${project.version}")) {
-                VERSION = "0.0.1-SNAPSHOT";
+            if (version.equals("${project.version}")) { // XXX what causes this?
+                VERSION = "0.0.1-SNAPSHOT"; // XXX if we need to do something like this, can this change to X.Y.Z-SNAPSHOT to make it clear this isn't a real version?
+                isDevMode = true;
             } else {
-                VERSION = version + "-" + prop.getProperty("git.commit.id");
+                isDevMode = version.contains("SNAPSHOT");
+                VERSION = version + (isDevMode ? ("-" +
+                    prop.getProperty("git.commit.id").substring(0, 7)) : "");
             }
-            isDevMode = VERSION.contains("-SNAPSHOT");
         }
     }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
