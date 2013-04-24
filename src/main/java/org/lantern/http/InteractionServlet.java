@@ -137,22 +137,22 @@ public class InteractionServlet extends HttpServlet {
         log.debug("Received URI: {}", uri);
         final String interactionStr = StringUtils.substringAfterLast(uri, "/");
         if (StringUtils.isBlank(interactionStr)) {
-            log.debug("No interaction!!");
-            HttpUtils.sendClientError(resp, "interaction argument required!");
+            log.debug("blank interaction");
+            HttpUtils.sendClientError(resp, "blank interaction");
             return;
         }
 
         log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
 
         if (!"XMLHttpRequest".equals(req.getHeader("X-Requested-With"))) {
-            log.debug("No X-Requested-With");
-            HttpUtils.sendClientError(resp, "X-Requested-With header not set");
+            log.debug("invalid X-Requested-With");
+            HttpUtils.sendClientError(resp, "invalid X-Requested-With");
             return;
         }
 
         if (!model.getXsrfToken().equals(req.getHeader("X-XSRF-TOKEN"))) {
             log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
-            HttpUtils.sendClientError(resp, "X-XSRF-TOKEN header not set correctly");
+            HttpUtils.sendClientError(resp, "invalid X-XSRF-TOKEN");
             return;
         }
 
@@ -318,7 +318,7 @@ public class InteractionServlet extends HttpServlet {
                             + "configuration, you may have to restart your "
                             + "browser for your updated proxied sites list "
                             + "to take effect.";
-                    model.addNotification(msg, MessageType.info);
+                    model.addNotification(msg, MessageType.info, 30);
                     Events.sync(SyncPath.NOTIFICATIONS,
                             model.getNotifications());
                 }
@@ -485,16 +485,20 @@ public class InteractionServlet extends HttpServlet {
         case contact:
             switch(inter) {
                 case CONTINUE:
+                    String msg;
+                    MessageType messageType;
                     try {
                         lanternFeedback.submit(json,
                             this.model.getProfile().getEmail());
-                        model.addNotification("Message sent.", MessageType.success);
+                        msg = "Thank you for contacting Lantern.";
+                        messageType = MessageType.info;
                     } catch(Exception e) {
-                        model.addNotification(
-                            "Failed to send message.  Try again later.",
-                            MessageType.error);
-                        log.error("Could not post to contact form: {}", e);
+                        log.error("Error submitting contact form: {}", e);
+                        msg = "Error sending message. Please check your "+
+                            "connection and try again.";
+                        messageType = MessageType.error;
                     }
+                    model.addNotification(msg, messageType, 30);
                     Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                     this.internalState.setModalCompleted(Modal.finished);
                     this.internalState.advanceModal(null);
@@ -549,6 +553,7 @@ public class InteractionServlet extends HttpServlet {
                 backupSettings();
                 handleReset();
                 Events.syncModel(this.model);
+            // fall through because this should be done in both cases:
             case UNEXPECTEDSTATEREFRESH:
                 try {
                     map = jsonToMap(json);
@@ -561,9 +566,7 @@ public class InteractionServlet extends HttpServlet {
                     try {
                         lanternFeedback.submit((String)map.get("report"),
                             this.model.getProfile().getEmail());
-                        model.addNotification("Thanks for submitting your report!", MessageType.success);
                     } catch(Exception e) {
-                        model.addNotification("Sorry! Could not send message.", MessageType.error);
                         log.error("Could not submit unexpected state report: {}\n {}",
                             e.getMessage(), (String)map.get("report"));
                     }
