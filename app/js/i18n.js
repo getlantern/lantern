@@ -130,7 +130,7 @@ angular.module('app.i18n', [])
       NO_INVITES: 'You currently have no invites.',
       RETRIEVING_NINVITES: 'Retrieving number of invites...',
       MORE_INVITES: 'You will receive more invites as you continue to run Lantern.',
-      INVITE_FRIENDS_PROMPT: 'Invite friends:',
+      INVITE_FRIENDS_PROMPT: 'Invite friends by Gmail or Google Apps address:',
       SEARCHING_ELLIPSIS: 'Searching...',
       ENTER_VALID_EMAIL: 'Enter a valid email address',
       NINVITES_REACHED: 'Number of invites reached',
