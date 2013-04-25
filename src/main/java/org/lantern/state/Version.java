@@ -120,7 +120,8 @@ public class Version {
                 gitFull = suffix;
             }
             // the first 7 chars are sufficient to uniquely identify a revision
-            git = StringUtils.substring(gitFull, 0, 7);
+            //git = StringUtils.substring(gitFull, 0, 7); // XXX ends up blank?
+            git = gitFull;
         }
 
 
