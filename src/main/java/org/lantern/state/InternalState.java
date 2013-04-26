@@ -69,6 +69,10 @@ public class InternalState {
         if (backToIfNone != null && next != null && next == Modal.none) {
             next = backToIfNone;
         }
+        if (next == Modal.none) {
+            this.model.setSetupComplete(true);
+            Events.sync(SyncPath.SETUPCOMPLETE, true);
+        }
         Events.syncModal(this.model, next);
     }
 

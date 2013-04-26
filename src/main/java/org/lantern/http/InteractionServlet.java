@@ -236,12 +236,10 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case CONTINUE:
                 log.debug("Processing continue");
-                model.setSetupComplete(true);
-                Events.sync(SyncPath.SETUPCOMPLETE, true);
                 this.model.setShowVis(true);
                 Events.sync(SyncPath.SHOWVIS, true);
                 this.internalState.setModalCompleted(Modal.finished);
-                Events.syncModal(model, Modal.none);
+                this.internalState.advanceModal(null);
                 break;
             case SET:
                 log.debug("Processing set in finished modal...applying JSON\n{}", 
