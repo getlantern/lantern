@@ -107,7 +107,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (this.model.getSettings().getMode() == Mode.get) {
             prepopulateProxies();
         } else {
-            log.debug("Not starting when setup is not complete...");
+            log.debug("Not adding proxies in give mode...");
         }
     }
 
@@ -429,7 +429,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public boolean hasProxy() {
-        return proxyQueue.isEmpty();
+        return !proxyQueue.isEmpty();
     }
 
     @Subscribe
@@ -446,6 +446,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Subscribe
     public void onModeChanged(final ModeChangedEvent event) {
+        log.debug("Received mode changed event: {}", event);
         start();
     }
 
