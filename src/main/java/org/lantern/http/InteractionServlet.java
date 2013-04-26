@@ -741,17 +741,15 @@ public class InteractionServlet extends HttpServlet {
 
     @Subscribe
     public void onConnectivityChanged(final ConnectivityChangedEvent e) {
-        boolean ipChanged = e.isIpChanged();
         Connectivity connectivity = model.getConnectivity();
         if (!e.isConnected()) {
             connectivity.setInternet(false);
             Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
             return;
         }
-        if (ipChanged) {
-            InetAddress ip = e.getNewIp();
-            connectivity.setIp(ip.toString());
-        }
+        InetAddress ip = e.getNewIp();
+        connectivity.setIp(ip.toString());
+
         connectivity.setInternet(true);
         Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
 
