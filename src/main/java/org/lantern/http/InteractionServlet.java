@@ -374,7 +374,7 @@ public class InteractionServlet extends HttpServlet {
                         // give mode
                         model.setSetupComplete(false);
                         model.setModal(Modal.proxiedSites);
-                        Events.syncModal(model, model.getModal());
+                        Events.syncModel(model);
                     } else {
                         // This primarily just triggers a setup complete event,
                         // which triggers connecting to proxies, setting up
