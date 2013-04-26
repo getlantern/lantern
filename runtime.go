@@ -264,7 +264,6 @@ func (self *_runtime) declare(kind string, declarationList []_declaration) {
 		if kind == "function" {
 			value := self.evaluate(_declaration.Definition)
 			if !environment.HasBinding(name) {
-				dbg(name, eval == true)
 				environment.CreateMutableBinding(name, eval == true)
 			}
 			// TODO 10.5.5.e
