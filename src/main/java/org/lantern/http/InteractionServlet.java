@@ -748,7 +748,7 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
         InetAddress ip = e.getNewIp();
-        connectivity.setIp(ip.toString());
+        connectivity.setIp(ip.getHostAddress());
 
         connectivity.setInternet(true);
         Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
