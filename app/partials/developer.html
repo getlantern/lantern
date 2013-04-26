@@ -1,4 +1,4 @@
-<div id="developer" ng-show="config.dev">
+<div id="developer" ng-show="model.dev">
   <div id="dev-label">Developer</div>
   <div id="dev-buttons" class="btn-group">
     <button class="btn btn-mini btn-dev"
@@ -8,7 +8,7 @@
       <i class="icon-reorder"></i>
     </button>
     <button class="btn btn-mini btn-dev dropup"
-            ng-click="config.showModel=!config.showModel"
+            ng-click="state.showModel=!state.showModel"
             tooltip="Model">
       <i class="icon-file"></i>
       <span class="caret"></span>
@@ -16,5 +16,5 @@
   </div>
 </div>
 
-<textarea id="model" ui-if="config.dev" ui-toggle="config.showModel"
+<textarea id="model" ui-if="model.dev" ui-toggle="state.showModel"
   class="noHeightWhenHidden" lang="en" dir="ltr" readonly>{{ model | json }}</textarea>

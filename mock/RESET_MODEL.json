@@ -1,4 +1,5 @@
 {
+  "dev":true,
   "system":{
     "arch":"x86_64",
     "processor":"1.8 GHz Intel Core i7",

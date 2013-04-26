@@ -1,6 +1,6 @@
 'use strict';
 
-function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, $window) {
+function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       i18nFltr = $filter('i18n'),
@@ -11,9 +11,9 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
   $scope.lanternUiVersion = LANTERNUI_VER.join('.');
-  $scope.config = config;
+  $scope.state = state;
   // XXX for easier inspection in the JavaScript console
-  $window.config = config;
+  $window.state = state;
   $window.model = model;
   $window.rootScope = $scope;
   $scope.EXTERNAL_URL = EXTERNAL_URL;
@@ -24,6 +24,10 @@ function RootCtrl(config, $scope, $filter, $timeout, logFactory, modelSrvc, come
   $scope.lang = langSrvc.lang;
   $scope.direction = langSrvc.direction;
   $scope.LANG = LANG;
+
+  $scope.$watch('model.dev', function(dev) {
+    state.dev = dev;
+  });
 
   $scope.$on('cometdConnected', function() {
     log.debug('cometdConnected');

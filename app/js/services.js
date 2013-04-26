@@ -4,7 +4,7 @@ angular.module('app.services', [])
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
-  .factory('logFactory', function($log, config, logWhiteList) {
+  .factory('logFactory', function($log, logWhiteList, state) {
     return function(prefix) {
       var match = prefix ? prefix.match(logWhiteList) : true;
       function extracted(prop) {
@@ -21,7 +21,7 @@ angular.module('app.services', [])
         warn:  extracted('warn'),
         error: extracted('error'),
         // XXX angular now has support for console.debug?
-        debug: function() { if (config.dev) logLogger.apply(logLogger, arguments); }
+        debug: function() { if (state.dev) logLogger.apply(logLogger, arguments); }
       };
     };
   })
@@ -184,6 +184,10 @@ angular.module('app.services', [])
       model: model,
       sane: true
     };
+  })
+  // XXX shared global state object
+  .service('state', function() {
+    return {};
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {
     return {

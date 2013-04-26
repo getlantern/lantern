@@ -12,10 +12,6 @@ var app = angular.module('app', [
   'ui',
   'ui.bootstrap'
   ])
-  // app config
-  .constant('config', {
-    dev: false
-  })
   // angular ui bootstrap config
   .config(function($dialogProvider) {
     $dialogProvider.options({
