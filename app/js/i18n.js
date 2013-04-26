@@ -100,7 +100,7 @@ angular.module('app.i18n', [])
       AUTHORIZE_LATER_PROMPT: 'Lantern will keep trying to reach Google and prompt you to authorize again when it becomes available. You can continue to use Lantern in demonstration mode in the meantime.',
       PROXIED_SITES_TITLE: 'Proxied Sites',
       CONFIGURE_PROXIED_SITES: 'Choose proxied sites:',
-      PROXIED_SITES_PROMPT: 'By default, Lantern only proxies your traffic to certain sites. Accessing sites that you don’t need to proxy directly saves time and resources.',
+      PROXIED_SITES_PROMPT: 'By default, only sites on this list will be accessed (“proxied”) through your Lantern network. All other sites are accessed directly, saving time and resources.',
       PROXYING_ALL_WARNING: 'Lantern is currently set to proxy all traffic.',
       DISABLE_PROXY_ALL: 'Disable proxy all traffic',
       PROXIED_SITES_TIP: 'Content on other sites included in pages on these sites will also be proxied automatically.',
