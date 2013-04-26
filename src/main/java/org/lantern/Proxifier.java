@@ -114,7 +114,8 @@ public class Proxifier implements ProxyService, LanternService {
             LOG.debug("Re-firing last proxy connection event...");
             onProxyConnection(this.lastProxyConnectionEvent);
         } else {
-            LOG.debug("No proxy connection event to refire!");
+            LOG.debug("No proxy connection event to refire or no proxy {}, {}", 
+                this.lastProxyConnectionEvent, this.proxyTracker.hasProxy());
         }
     }
     
@@ -213,8 +214,14 @@ public class Proxifier implements ProxyService, LanternService {
         }
     }
 
-    @Override
-    public void startProxying() throws ProxyConfigurationError {
+    /**
+     * This method is private because it should only be called in response to
+     * proxy connection events and setup complete events.
+     * 
+     * @throws ProxyConfigurationError If there's an error configuring the
+     * proxy.
+     */
+    private void startProxying() throws ProxyConfigurationError {
         if (this.model.getSettings().isProxyAllSites()) {
             // If we were previously configured to proxy all sites, then we
             // need to force the override.

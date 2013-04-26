@@ -9,7 +9,7 @@ import org.lantern.Proxifier.ProxyConfigurationError;
  */
 public interface ProxyService {
 
-    void startProxying() throws ProxyConfigurationError;
+    //void startProxying() throws ProxyConfigurationError;
 
     void startProxying(boolean force, File pacFile)
             throws ProxyConfigurationError;

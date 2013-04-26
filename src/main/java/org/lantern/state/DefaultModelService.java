@@ -3,16 +3,12 @@ package org.lantern.state;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
-import org.lantern.Roster;
-import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.SyncEvent;
@@ -20,7 +16,6 @@ import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -35,42 +30,26 @@ public class DefaultModelService implements ModelService {
 
     private final File launchdPlist;
 
-    private final Executor proxyQueue = Executors.newSingleThreadExecutor(
-        new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
-            "System-Proxy-Thread-%d").build());
-
     private final File gnomeAutostart;
 
     private final Model model;
 
     private final ProxyService proxifier;
 
-    private final ModelUtils modelUtils;
-
-    private final XmppHandler xmppHandler;
-
-    private final Roster roster;
-
     @Inject
     public DefaultModelService(final Model model,
-        final ProxyService proxifier, final ModelUtils modelUtils,
-        final XmppHandler xmppHandler, Roster roster) {
+        final ProxyService proxifier) {
         this(LanternClientConstants.LAUNCHD_PLIST, 
-                LanternClientConstants.GNOME_AUTOSTART,
-                model, proxifier, modelUtils, xmppHandler, roster);
+            LanternClientConstants.GNOME_AUTOSTART,model, proxifier);
     }
 
     public DefaultModelService(final File launchdPlist,
         final File gnomeAutostart, final Model model,
-        final ProxyService proxifier, final ModelUtils modelUtils,
-        final XmppHandler xmppHandler, Roster roster) {
+        final ProxyService proxifier) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
         this.model = model;
         this.proxifier = proxifier;
-        this.modelUtils = modelUtils;
-        this.xmppHandler = xmppHandler;
-        this.roster = roster;
     }
 
     @Override
@@ -87,7 +66,8 @@ public class DefaultModelService implements ModelService {
             log.info("Setting setStartAtLogin for Linux");
             setStartAtLoginLinux(runOnSystemStartup);
         } else {
-            log.warn("setStartAtLogin not yet implemented for {}", SystemUtils.OS_NAME);
+            log.warn("setStartAtLogin not yet implemented for {}", 
+                SystemUtils.OS_NAME);
         }
     }
 
@@ -153,37 +133,10 @@ public class DefaultModelService implements ModelService {
     public void setSystemProxy(final boolean isSystemProxy) {
         if (isSystemProxy == this.model.getSettings().isSystemProxy()) {
             log.info("System proxy setting is unchanged.");
-            //return;
+            return;
         }
-        this.model.getSettings().setSystemProxy(isSystemProxy);
-
         log.info("Setting system proxy");
-
-        // Go ahead and change the setting so that it will affect. It will
-        // be set again by the api, but that doesn't matter.
         this.model.getSettings().setSystemProxy(isSystemProxy);
-        if (!this.model.isSetupComplete()) {
-            this.model.getConnectivity().setPacUrl(
-                StaticSettings.getLocalEndpoint()+"/proxy_on.pac"
-            );
-            //return;
-        }
-
-        final Runnable proxyRunner = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (modelUtils.shouldProxy() ) {
-                        proxifier.startProxying();
-                    } else {
-                        proxifier.stopProxying();
-                    }
-                } catch (final ProxyConfigurationError e) {
-                    log.error("Proxy reconfiguration failed: {}", e);
-                }
-            }
-        };
-        proxyQueue.execute(proxyRunner);
     }
 
     @Override
