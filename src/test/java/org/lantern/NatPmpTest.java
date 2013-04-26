@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,11 @@ public class NatPmpTest {
     
     @Test 
     public void testNatPmp() throws Exception {
+        if (NetworkUtils.isPublicAddress()) {
+            log.debug("Not testing NAT-PMP on public network");
+            return;
+        }
+
         final NatPmpImpl pmp =
             new NatPmpImpl(TestUtils.getStatsTracker());
         final AtomicInteger ai = new AtomicInteger(-1);
