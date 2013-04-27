@@ -2,6 +2,7 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -15,8 +16,10 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.lastbamboo.common.ice.NetSocketUDTWrapper;
+import org.littleshoot.proxy.KeyStoreManager;
 
 import udt.UDTReceiver;
 
@@ -38,12 +41,20 @@ public class UdtSslTest {
     @Test
     public void testSslOverUdt() throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        final LanternKeyStoreManager ksm = TestUtils.getKsm();
-        final LanternTrustStore trustStore = TestUtils.getTrustStore();
+        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
+        temp.deleteOnExit();
+        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        
+        //final LanternKeyStoreManager ksm = TestUtils.getKsm();
+        //final LanternTrustStore trustStore = TestUtils.getTrustStore();
         final String testId = "test@gmail.com/test";
         trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         
-        startServer();
+        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+        
+        startServer(util);
+        ///LanternUtils.waitForServer(SERVER_PORT);
         Thread.sleep(800);
         
         UDTReceiver.connectionExpiryDisabled = true;
@@ -60,7 +71,7 @@ public class UdtSslTest {
         //final Socket sock = new Socket(myHost, SERVER_PORT);
         
         final SSLSocketFactory sslSocketFactory = 
-            TestUtils.getSocketsUtil().newTlsSocketFactory();
+                util.newTlsSocketFactory();
             //(SSLSocketFactory)SSLSocketFactory.getDefault();
         final SSLSocket sslSocket =
             (SSLSocket)sslSocketFactory.createSocket(sock, 
@@ -87,10 +98,12 @@ public class UdtSslTest {
         }
         assertEquals(expected.toString(), readOnServer.get());
         
+        temp.delete();
+        
         // TODO: TEST CERTS BEING ADDED *AFTER* THE FACTORIES ARE SET UP!!
     }
 
-    private void startServer() throws Exception {
+    private void startServer(final LanternSocketsUtil util) throws Exception {
         
         UDTReceiver.connectionExpiryDisabled = true;
         final InetAddress myHost = InetAddress.getByName("127.0.0.1");
@@ -105,7 +118,7 @@ public class UdtSslTest {
             @Override
             public void run() {
                 try {
-                    accept(server);
+                    accept(server, util);
                 } catch (final Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -117,9 +130,10 @@ public class UdtSslTest {
         t.start();
     }
 
-    protected void accept(final ServerSocket server) throws Exception {
+    protected void accept(final ServerSocket server, 
+        final LanternSocketsUtil util) throws Exception {
         final Socket socket = server.accept();
-        final SSLSocketFactory sslSocketFactory = TestUtils.getSocketsUtil().newTlsSocketFactory();
+        final SSLSocketFactory sslSocketFactory = util.newTlsSocketFactory();
         //final ServerSocket server = factory.createServerSocket();
         //server.bind(new InetSocketAddress(SERVER_PORT));
         
