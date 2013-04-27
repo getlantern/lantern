@@ -409,10 +409,11 @@ func (self *_parser) ParseFunction(declare bool) _node {
 	functionNode := newFunctionNode()
 	self.markNode(functionNode)
 
+	identifier := ""
 	if self.Match("identifier") {
-		identifier := self.ConsumeIdentifier()
+		identifier = self.ConsumeIdentifier().Value
 		if declare {
-			self.Scope().AddFunction(identifier.Value, functionNode)
+			self.Scope().AddFunction(identifier, functionNode)
 		}
 	} else if declare {
 		// Trigger a panic, because we really should see
@@ -439,6 +440,9 @@ func (self *_parser) ParseFunction(declare bool) _node {
 
 	{
 		self.EnterScope()
+		if !declare && identifier != "" {
+			self.Scope().AddFunction(identifier, functionNode)
+		}
 		defer self.LeaveScope()
 		self.parseInFunction(func() _node {
 			functionNode.Body = self.ParseBlock().Body

@@ -215,6 +215,20 @@ func TestFunction(t *testing.T) {
         };
         delete xyz;
     `, "false")
+
+	if true {
+		// TODO
+		test(`
+            var abc = function __factorial(def){
+                if (def === 1) {
+                    return def;
+                } else {
+                    return __factorial(def-1)*def;
+                }
+            };
+            abc(3);
+        `, "6")
+	}
 }
 
 func TestIf(t *testing.T) {
