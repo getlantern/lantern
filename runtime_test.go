@@ -265,15 +265,20 @@ func TestDoWhile(t *testing.T) {
 	test := runTest()
 
 	test(`
-		limit = 4
-		result = 0
+		limit = 4;
+		result = 0;
 		do { 
-			result = result + 1
-			limit = limit - 1
-		}
-		while (limit)
-	`)
-	test("result", "4")
+			result = result + 1;
+			limit = limit - 1;
+		} while (limit);
+        result;
+	`, "4")
+
+	test(`
+        console.log("Xyzzy");
+        result = eval("do {abc=1; break; abc=2;} while (0);");
+        [ result, abc ];
+    `, "1,1")
 }
 
 func TestWhile(t *testing.T) {

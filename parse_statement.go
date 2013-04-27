@@ -181,13 +181,18 @@ func (self *_parser) parseInSwitch(parse func() _node) _node {
 	return parse()
 }
 
-func (self *_parser) parseInIteration(parse func() _node) _node {
+func (self *_parser) parseInIteration(parse func() _node) []_node {
 	in := self.Scope().InIteration
 	self.Scope().InIteration = true
 	defer func() {
 		self.Scope().InIteration = in
 	}()
-	return parse()
+	switch node := parse().(type) {
+	case *_blockNode:
+		return node.Body
+	default:
+		return []_node{node}
+	}
 }
 
 func (self *_parser) ParseDoWhile() _node {

@@ -224,11 +224,14 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (resultValue Value, t
 	return
 }
 
-func (self *_runtime) breakEvaluate(_labelSet map[string]bool, inner func() Value) Value {
+func (self *_runtime) breakEvaluate(_labelSet map[string]bool, iterator *_iterator, inner func() Value) (returnValue Value) {
 	defer func() {
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {
 				if result.Kind == resultBreak && _labelSet[result.Target] == true {
+					if iterator != nil {
+						returnValue = iterator.value
+					}
 					return
 				}
 			}
@@ -239,7 +242,7 @@ func (self *_runtime) breakEvaluate(_labelSet map[string]bool, inner func() Valu
 	return inner()
 }
 
-func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (returnResult Value) {
+func (self *_runtime) continueEvaluate(iterator *_iterator, _labelSet map[string]bool) (returnResult Value) {
 	defer func() {
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {
@@ -251,7 +254,12 @@ func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (r
 			panic(caught)
 		}
 	}()
-	return self.evaluate(node)
+	for _, node := range iterator.queue {
+		returnResult = self.evaluate(node)
+		// TODO If not empty
+		iterator.value = returnResult
+	}
+	return
 }
 
 func (self *_runtime) declare(kind string, declarationList []_declaration) {

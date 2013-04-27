@@ -1,8 +1,6 @@
 .PHONY: test assets todo fixme otto run test-all release test-synopsis test-i test262
 .PHONY: underscore
 
-export TERST_BASE=$(PWD)
-
 TEST := -v --run
 TEST := .
 

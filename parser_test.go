@@ -228,26 +228,26 @@ func TestParseSuccess(t *testing.T) {
 	do apple
 	while (1 + 1)
 	---
-	{ @ { <do-while> { + 1 1 } apple } }
+	{ @ { <do-while> { + 1 1 } { apple } } }
 	`)
 
 	test(`
 	while (1 + 1) apple
 	---
-	{ @ { <while> { + 1 1 } apple } }
+	{ @ { <while> { + 1 1 } { apple } } }
 	`)
 
 	test(`
 	do apple; while (1 + 1)
 	banana
 	---
-	{ @ { <do-while> { + 1 1 } apple } banana }
+	{ @ { <do-while> { + 1 1 } { apple } } banana }
 	`)
 
 	test(`
 	do while (1 + 1) banana; while (1 - 1)
 	---
-	{ @ { <do-while> { - 1 1 } { <while> { + 1 1 } banana } } }
+	{ @ { <do-while> { - 1 1 } { { <while> { + 1 1 } { banana } } } } }
 	`)
 
 	test(`

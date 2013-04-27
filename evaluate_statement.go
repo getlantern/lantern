@@ -109,7 +109,7 @@ func (self *_runtime) evaluateBlock(node *_blockNode) Value {
 	body := node.Body
 	_labelSet := node._labelSet
 
-	return self.breakEvaluate(_labelSet, func() Value {
+	return self.breakEvaluate(_labelSet, nil, func() Value {
 		return self.evaluateBody(body)
 	})
 }
@@ -117,13 +117,13 @@ func (self *_runtime) evaluateBlock(node *_blockNode) Value {
 func (self *_runtime) evaluateDoWhile(node *_doWhileNode) Value {
 
 	test := node.Test
-	body := node.Body
+	iterator := node.iterator()
 	_labelSet := node._labelSet
 
-	return self.breakEvaluate(_labelSet, func() Value {
+	return self.breakEvaluate(_labelSet, &iterator, func() Value {
 		result := emptyValue()
 		for {
-			value := self.continueEvaluate(body, _labelSet)
+			value := self.continueEvaluate(&iterator, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
@@ -140,10 +140,10 @@ func (self *_runtime) evaluateDoWhile(node *_doWhileNode) Value {
 func (self *_runtime) evaluateWhile(node *_whileNode) Value {
 
 	test := node.Test
-	body := node.Body
+	iterator := node.iterator()
 	_labelSet := node._labelSet
 
-	return self.breakEvaluate(_labelSet, func() Value {
+	return self.breakEvaluate(_labelSet, &iterator, func() Value {
 		result := emptyValue()
 		for {
 			testResult := self.evaluate(test)
@@ -151,7 +151,7 @@ func (self *_runtime) evaluateWhile(node *_whileNode) Value {
 			if toBoolean(testResultValue) == false {
 				break
 			}
-			value := self.continueEvaluate(body, _labelSet)
+			value := self.continueEvaluate(&iterator, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
@@ -165,7 +165,7 @@ func (self *_runtime) evaluateFor(node *_forNode) Value {
 	initial := node.Initial
 	test := node.Test
 	update := node.Update
-	body := node.Body
+	iterator := node.iterator()
 	_labelSet := node._labelSet
 
 	if initial != nil {
@@ -173,7 +173,7 @@ func (self *_runtime) evaluateFor(node *_forNode) Value {
 		self.GetValue(initialResult) // Side-effect trigger
 	}
 
-	return self.breakEvaluate(_labelSet, func() Value {
+	return self.breakEvaluate(_labelSet, &iterator, func() Value {
 		result := emptyValue()
 		for {
 			if test != nil {
@@ -183,7 +183,7 @@ func (self *_runtime) evaluateFor(node *_forNode) Value {
 					break
 				}
 			}
-			value := self.continueEvaluate(body, _labelSet)
+			value := self.continueEvaluate(&iterator, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
@@ -209,10 +209,10 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 	sourceObject := self.toObject(sourceValue)
 
 	into := node.Into
-	body := node.Body
+	iterator := node.iterator()
 	_labelSet := node._labelSet
 
-	return self.breakEvaluate(_labelSet, func() Value {
+	return self.breakEvaluate(_labelSet, &iterator, func() Value {
 		result := emptyValue()
 		object := sourceObject
 		for object != nil {
@@ -225,7 +225,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 					into = toValue(getIdentifierReference(self.LexicalEnvironment(), identifier, false, node))
 				}
 				self.PutValue(into.reference(), toValue(name))
-				value := self.continueEvaluate(body, _labelSet)
+				value := self.continueEvaluate(&iterator, _labelSet)
 				if !value.isEmpty() {
 					result = value
 				}
@@ -242,7 +242,7 @@ func (self *_runtime) evaluateSwitch(node *_switchNode) Value {
 
 	_labelSet := node._labelSet
 
-	return self.breakEvaluate(_labelSet, func() Value {
+	return self.breakEvaluate(_labelSet, nil, func() Value {
 		target := node.Default
 		for index, clause := range node.CaseList {
 			test := clause.Test
