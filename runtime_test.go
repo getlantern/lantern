@@ -1130,6 +1130,27 @@ func TestNewPrototype(t *testing.T) {
 	`, "Nothing happens.")
 }
 
+func TestBlock(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc=0;
+        var ghi;
+        def: {
+            do {
+                abc++;
+                if (!(abc < 10)) {
+                    break def;
+                    ghi = "ghi";
+                }
+            } while (true);
+        }
+        [ abc,ghi ];
+    `, "10,")
+}
+
 func TestWith(t *testing.T) {
 	Terst(t)
 

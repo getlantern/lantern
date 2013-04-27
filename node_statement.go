@@ -7,12 +7,14 @@ import (
 type _blockNode struct {
 	_nodeType
 	_node_
-	Body []_node
+	Body      []_node
+	_labelSet _labelSet
 }
 
 func newBlockNode() *_blockNode {
 	return &_blockNode{
 		_nodeType: nodeBlock,
+		_labelSet: _labelSet{},
 	}
 }
 

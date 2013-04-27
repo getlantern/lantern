@@ -49,7 +49,7 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateBody(node.Body)
 
 	case *_blockNode:
-		return self.evaluateBody(node.Body)
+		return self.evaluateBlock(node)
 
 	case *_valueNode:
 		return self.evaluateValue(node)

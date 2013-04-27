@@ -58,6 +58,8 @@ func (self *_parser) ParseStatement() _node {
 		{
 			_labelSet = nil
 			switch node := statement.(type) {
+			case *_blockNode:
+				_labelSet = node._labelSet
 			case *_doWhileNode:
 				_labelSet = node._labelSet
 			case *_whileNode:

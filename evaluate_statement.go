@@ -104,6 +104,16 @@ func (self *_runtime) evaluateWith(node *_withNode) Value {
 	return self.evaluate(node.Body)
 }
 
+func (self *_runtime) evaluateBlock(node *_blockNode) Value {
+
+	body := node.Body
+	_labelSet := node._labelSet
+
+	return self.breakEvaluate(_labelSet, func() Value {
+		return self.evaluateBody(body)
+	})
+}
+
 func (self *_runtime) evaluateDoWhile(node *_doWhileNode) Value {
 
 	test := node.Test
