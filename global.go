@@ -724,6 +724,8 @@ func newContext() *_runtime {
 	self.eval = self.GlobalObject.get("eval")._object()
 	// eval.prototype === undefined
 	self.eval.stash.delete("prototype")
+	self.eval._Function.Construct = nil
+
 	self.GlobalObject.prototype = self.Global.ObjectPrototype
 
 	return self

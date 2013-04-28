@@ -50,6 +50,9 @@ func (self *_object) Construct(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
+	if self._Function.Construct == nil {
+		panic(newTypeError("%v is not a constructor", toValue(self)))
+	}
 	return self._Function.Construct(self, this, self.runtime.toValueArray(argumentList...))
 }
 
