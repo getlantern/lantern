@@ -49,18 +49,77 @@ func builtinGlobal_isFinite(call FunctionCall) Value {
 	return toValue(!math.IsNaN(value) && !math.IsInf(value, 0))
 }
 
-func builtinGlobal_parseInt(call FunctionCall) Value {
-	// Caveat emptor: This implementation does NOT match the specification
-	string_ := strings.TrimSpace(toString(call.Argument(0)))
-	radix := call.Argument(1)
-	radixValue := 0
-	if radix.IsDefined() {
-		radixValue = int(toInt32(radix))
+// radix 3 => 2 (ASCII 50) +47
+// radix 11 => A/a (ASCII 65/97) +54/+86
+var parseInt_alphabetTable = func() []string {
+	table := []string{"", "", "01"}
+	for radix := 3; radix <= 36; radix += 1 {
+		alphabet := table[radix-1]
+		if radix <= 10 {
+			alphabet += string(radix + 47)
+		} else {
+			alphabet += string(radix+54) + string(radix+86)
+		}
+		table = append(table, alphabet)
 	}
-	value, err := strconv.ParseInt(string_, radixValue, 64)
+	return table
+}()
+
+func builtinGlobal_parseInt(call FunctionCall) Value {
+	input := strings.TrimSpace(toString(call.Argument(0)))
+	if len(input) == 0 {
+		return NaNValue()
+	}
+
+	radix := int(toInt32(call.Argument(1)))
+
+	sign := int64(1)
+	switch input[0] {
+	case '+':
+		sign = 1
+		input = input[1:]
+	case '-':
+		sign = -1
+		input = input[1:]
+	}
+
+	strip := true
+	if radix == 0 {
+		radix = 10
+	} else {
+		if radix < 2 || radix > 36 {
+			return NaNValue()
+		} else if radix != 16 {
+			strip = false
+		}
+	}
+
+	switch len(input) {
+	case 0:
+		return NaNValue()
+	case 1:
+	default:
+		if strip {
+			if input[0] == '0' && (input[1] == 'x' || input[1] == 'X') {
+				input = input[2:]
+				radix = 16
+			}
+		}
+	}
+
+	alphabet := parseInt_alphabetTable[radix]
+	if index := strings.IndexFunc(input, func(chr rune) bool {
+		return !strings.ContainsRune(alphabet, chr)
+	}); index != -1 {
+		input = input[0:index]
+	}
+
+	value, err := strconv.ParseInt(input, radix, 64)
 	if err != nil {
 		return NaNValue()
 	}
+	value *= sign
+
 	return toValue(value)
 }
 

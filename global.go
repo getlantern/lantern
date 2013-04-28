@@ -701,8 +701,8 @@ func newContext() *_runtime {
 		"undefined", UndefinedValue(),
 		"NaN", NaNValue(),
 		"Infinity", positiveInfinityValue(),
-		"eval", 1, builtinGlobal_eval,
-		"parseInt", builtinGlobal_parseInt,
+		"eval", -1, builtinGlobal_eval,
+		"parseInt", -2, builtinGlobal_parseInt,
 		"parseFloat", builtinGlobal_parseFloat,
 		"isNaN", builtinGlobal_isNaN,
 		"isFinite", builtinGlobal_isFinite,
@@ -722,9 +722,6 @@ func newContext() *_runtime {
 	self._newError["URIError"] = self.defineError("URIError")
 
 	self.eval = self.GlobalObject.get("eval")._object()
-	// eval.prototype === undefined
-	self.eval.stash.delete("prototype")
-	self.eval._Function.Construct = nil
 
 	self.GlobalObject.prototype = self.Global.ObjectPrototype
 
@@ -817,11 +814,21 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 }
 
 func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction, length int, name string) *_object {
+	prototype := true
+	// TODO Do this a better way...
+	if 0 > length {
+		length *= -1
+		prototype = false
+	}
 	self := runtime.newNativeFunctionObject(_nativeFunction, length, name)
 	self.prototype = runtime.Global.FunctionPrototype
-	prototype := runtime.newObject()
-	self.stash.set("prototype", toValue(prototype), _propertyMode(0100))
-	prototype.stash.set("constructor", toValue(self), _propertyMode(0101))
+	if prototype {
+		prototype := runtime.newObject()
+		self.stash.set("prototype", toValue(prototype), _propertyMode(0100))
+		prototype.stash.set("constructor", toValue(self), _propertyMode(0101))
+	} else {
+		self._Function.Construct = nil
+	}
 	return self
 }
 

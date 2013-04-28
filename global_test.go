@@ -119,13 +119,15 @@ func Test_parseInt(t *testing.T) {
 	test(`parseInt(" 11\n")`, "11")
 	test(`parseInt(" 11\n", 16)`, "17")
 	test(`parseInt("Xyzzy")`, "NaN")
-	test(`parseInt("0x0a")`, "10")
+	test(`parseInt(" 0x11\n", 16)`, "17")
+	test(`parseInt("0x0aXyzzy", 16)`, "10")
+	test(`parseInt("0x1", 0)`, "1")
 	if false {
-		test(`parseInt(" 0x11\n", 16)`, "17")
-		// TODO parseInt should return 10 in this scenario
-		test(`parseInt("0x0aXyzzy")`, "10")
+		// TODO
+		test(`parseInt("0x10000000000000000000", 16)`, "75557863725914323419136")
 	}
-	test(`parseInt("0x0a", Infinity)`, "10")
+	test(`parseInt.length === 2`, "true")
+	test(`parseInt.prototype === undefined`, "true")
 }
 
 func Test_parseFloat(t *testing.T) {
