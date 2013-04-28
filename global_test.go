@@ -45,6 +45,7 @@ func TestGlobal(t *testing.T) {
 	test(`this.hasOwnProperty`, "[function]")
 
 	test(`eval.length === 1`, "true")
+	test(`eval.prototype === undefined`, "true")
 }
 
 func TestGlobalLength(t *testing.T) {

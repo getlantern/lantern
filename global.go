@@ -722,6 +722,8 @@ func newContext() *_runtime {
 	self._newError["URIError"] = self.defineError("URIError")
 
 	self.eval = self.GlobalObject.get("eval")._object()
+	// eval.prototype === undefined
+	self.eval.stash.delete("prototype")
 	self.GlobalObject.prototype = self.Global.ObjectPrototype
 
 	return self
