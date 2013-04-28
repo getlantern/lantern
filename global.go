@@ -701,7 +701,7 @@ func newContext() *_runtime {
 		"undefined", UndefinedValue(),
 		"NaN", NaNValue(),
 		"Infinity", positiveInfinityValue(),
-		"eval", builtinGlobal_eval,
+		"eval", 1, builtinGlobal_eval,
 		"parseInt", builtinGlobal_parseInt,
 		"parseFloat", builtinGlobal_parseFloat,
 		"isNaN", builtinGlobal_isNaN,
