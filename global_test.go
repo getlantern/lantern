@@ -41,6 +41,8 @@ func TestGlobal(t *testing.T) {
 	}
 
 	test(`new Number().constructor == Number`, "true")
+
+	test(`this.hasOwnProperty`, "[function]")
 }
 
 func TestGlobalLength(t *testing.T) {

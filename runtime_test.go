@@ -1129,7 +1129,7 @@ func TestNewFunction(t *testing.T) {
 	// TODO Report something sane.
 	test(`raise:
 		new this
-	`, "TypeError:  is not a function")
+	`, "TypeError: [object ] is not a function")
 
 	test(`raise:
 		new {}

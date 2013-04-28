@@ -15,7 +15,7 @@ func (self *_runtime) newGlobalFunction(
 	prototype *_object,
 	definition ...interface{}) *_object {
 
-	// TODO We're overwriting the prototype of newNativeFunction with this one, 
+	// TODO We're overwriting the prototype of newNativeFunction with this one,
 	// what is going on?
 	functionObject := self.newNativeFunction(_nativeFunction(callFunction), length, "native"+name)
 	functionObject._Function.Construct = _constructFunction(constructFunction)
@@ -722,6 +722,7 @@ func newContext() *_runtime {
 	self._newError["URIError"] = self.defineError("URIError")
 
 	self.eval = self.GlobalObject.get("eval")._object()
+	self.GlobalObject.prototype = self.Global.ObjectPrototype
 
 	return self
 }
