@@ -288,4 +288,12 @@ Second line \
 		"number 0",
 	)
 
+	test(`.01`,
+		"number .01",
+	)
+
+	test(`.01e+2`,
+		"number .01e+2",
+	)
+
 }

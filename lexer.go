@@ -396,10 +396,8 @@ func (self *_lexer) scanNumericLiteral() _token {
 
 	isHex, isOctal := false, false
 	{
-		self.accept(".")
-
 		acceptable := "0123456789"
-		if self.accept("0") {
+		if !self.accept(".") && self.accept("0") {
 			if self.accept("xX") {
 				acceptable = "0123456789abcdefABCDEF"
 				isHex = true
