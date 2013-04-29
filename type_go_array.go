@@ -8,7 +8,7 @@ import (
 func (runtime *_runtime) newGoArrayObject(value reflect.Value) *_object {
 	self := runtime.newObject()
 	self.class = "Array" // TODO Should this be something else?
-	self.stash = newGoArrayStash(value, self.stash)
+	self.stash = newGoArrayStash(value, self.stash, runtime)
 	return self
 }
 
@@ -17,9 +17,12 @@ type _goArrayStash struct {
 	writable     bool
 	propertyMode _propertyMode
 	_stash
+	// We pass the runtime to the stash to it can do deep
+	// value promotion
+	runtime *_runtime
 }
 
-func newGoArrayStash(value reflect.Value, stash _stash) *_goArrayStash {
+func newGoArrayStash(value reflect.Value, stash _stash, runtime *_runtime) *_goArrayStash {
 	propertyMode := _propertyMode(0111)
 	writable := true
 	switch value.Kind() {
@@ -37,6 +40,7 @@ func newGoArrayStash(value reflect.Value, stash _stash) *_goArrayStash {
 		writable:     writable,
 		propertyMode: propertyMode,
 		_stash:       stash,
+		runtime:      runtime,
 	}
 	return self
 }
@@ -91,7 +95,7 @@ func (self *_goArrayStash) get(name string) Value {
 		if !exists {
 			return UndefinedValue()
 		}
-		return toValue(value)
+		return self.runtime.toValue(value.Interface())
 	}
 
 	return self._stash.get(name)
@@ -113,7 +117,7 @@ func (self *_goArrayStash) property(name string) *_property {
 		value := UndefinedValue()
 		reflectValue, exists := self.getValue(int(index))
 		if exists {
-			value = toValue(reflectValue)
+			value = self.runtime.toValue(reflectValue.Interface())
 		}
 		return &_property{
 			value: value,

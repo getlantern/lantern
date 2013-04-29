@@ -7,22 +7,26 @@ import (
 func (runtime *_runtime) newGoStructObject(value reflect.Value) *_object {
 	self := runtime.newObject()
 	self.class = "Object" // TODO Should this be something else?
-	self.stash = newGoStructStash(value, self.stash)
+	self.stash = newGoStructStash(value, self.stash, runtime)
 	return self
 }
 
 type _goStructStash struct {
 	value reflect.Value
 	_stash
+	// We pass the runtime to the stash to it can do deep
+	// value promotion
+	runtime *_runtime
 }
 
-func newGoStructStash(value reflect.Value, stash _stash) *_goStructStash {
+func newGoStructStash(value reflect.Value, stash _stash, runtime *_runtime) *_goStructStash {
 	if value.Kind() != reflect.Struct {
 		dbgf("%/panic//%@: %v != reflect.Struct", value.Kind())
 	}
 	self := &_goStructStash{
-		value:  value,
-		_stash: stash,
+		value:   value,
+		_stash:  stash,
+		runtime: runtime,
 	}
 	return self
 }
@@ -62,7 +66,7 @@ func (self *_goStructStash) test(name string) bool {
 func (self *_goStructStash) get(name string) Value {
 	value := self.getValue(name)
 	if value.IsValid() {
-		return toValue(value)
+		return self.runtime.toValue(value.Interface())
 	}
 
 	return self._stash.get(name)
@@ -72,7 +76,7 @@ func (self *_goStructStash) property(name string) *_property {
 	value := self.getValue(name)
 	if value.IsValid() {
 		return &_property{
-			toValue(value),
+			self.runtime.toValue(value.Interface()),
 			0111, // +Write +Enumerate +Configure
 		}
 	}

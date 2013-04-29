@@ -7,7 +7,7 @@ import (
 func (runtime *_runtime) newGoMapObject(value reflect.Value) *_object {
 	self := runtime.newObject()
 	self.class = "Object" // TODO Should this be something else?
-	self.stash = newGoMapStash(value, self.stash)
+	self.stash = newGoMapStash(value, self.stash, runtime)
 	return self
 }
 
@@ -16,9 +16,12 @@ type _goMapStash struct {
 	keyKind   reflect.Kind
 	valueKind reflect.Kind
 	_stash
+	// We pass the runtime to the stash to it can do deep
+	// value promotion
+	runtime *_runtime
 }
 
-func newGoMapStash(value reflect.Value, stash _stash) *_goMapStash {
+func newGoMapStash(value reflect.Value, stash _stash, runtime *_runtime) *_goMapStash {
 	if value.Kind() != reflect.Map {
 		dbgf("%/panic//%@: %v != reflect.Map", value.Kind())
 	}
@@ -27,6 +30,7 @@ func newGoMapStash(value reflect.Value, stash _stash) *_goMapStash {
 		keyKind:   value.Type().Key().Kind(),
 		valueKind: value.Type().Elem().Kind(),
 		_stash:    stash,
+		runtime:   runtime,
 	}
 	return self
 }
@@ -60,7 +64,7 @@ func (self *_goMapStash) test(name string) bool {
 func (self *_goMapStash) get(name string) Value {
 	value := self.value.MapIndex(self.toKey(name))
 	if value.IsValid() {
-		return toValue(value)
+		return self.runtime.toValue(value.Interface())
 	}
 
 	return UndefinedValue()
@@ -70,7 +74,7 @@ func (self *_goMapStash) property(name string) *_property {
 	value := self.value.MapIndex(self.toKey(name))
 	if value.IsValid() {
 		return &_property{
-			toValue(value),
+			self.runtime.toValue(value.Interface()),
 			0111, // +Write +Enumerate +Configure
 		}
 	}
