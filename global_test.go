@@ -93,6 +93,9 @@ func Test_isNaN(t *testing.T) {
 	test(`isNaN()`, "true")
 	test(`isNaN(NaN)`, "true")
 	test(`isNaN(Infinity)`, "false")
+
+	test(`isNaN.length === 1`, "true")
+	test(`isNaN.prototype === undefined`, "true")
 }
 
 func Test_isFinite(t *testing.T) {
@@ -105,6 +108,9 @@ func Test_isFinite(t *testing.T) {
 	test(`isFinite(NaN)`, "false")
 	test(`isFinite(Infinity)`, "false")
 	test(`isFinite(new Number(451));`, "true")
+
+	test(`isFinite.length === 1`, "true")
+	test(`isFinite.prototype === undefined`, "true")
 }
 
 func Test_parseInt(t *testing.T) {
