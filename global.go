@@ -703,7 +703,7 @@ func newContext() *_runtime {
 		"Infinity", positiveInfinityValue(),
 		"eval", -1, builtinGlobal_eval,
 		"parseInt", -2, builtinGlobal_parseInt,
-		"parseFloat", builtinGlobal_parseFloat,
+		"parseFloat", -1, builtinGlobal_parseFloat,
 		"isNaN", builtinGlobal_isNaN,
 		"isFinite", builtinGlobal_isFinite,
 		"decodeURI", builtinGlobal_decodeURI_decodeURIComponent,

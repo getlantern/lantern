@@ -118,7 +118,9 @@ func Test_parseInt(t *testing.T) {
 	test(`parseInt(" 11 ")`, "11")
 	test(`parseInt(" 11\n")`, "11")
 	test(`parseInt(" 11\n", 16)`, "17")
+
 	test(`parseInt("Xyzzy")`, "NaN")
+
 	test(`parseInt(" 0x11\n", 16)`, "17")
 	test(`parseInt("0x0aXyzzy", 16)`, "10")
 	test(`parseInt("0x1", 0)`, "1")
@@ -126,6 +128,7 @@ func Test_parseInt(t *testing.T) {
 		// TODO
 		test(`parseInt("0x10000000000000000000", 16)`, "75557863725914323419136")
 	}
+
 	test(`parseInt.length === 2`, "true")
 	test(`parseInt.prototype === undefined`, "true")
 }
@@ -141,14 +144,21 @@ func Test_parseFloat(t *testing.T) {
 	test(`parseFloat(" 11 ")`, "11")
 	test(`parseFloat(" 11\n")`, "11")
 	test(`parseFloat(" 11\n", 16)`, "11")
-	test(`parseFloat("Xyzzy")`, "NaN")
-	test(`parseFloat("0x0a")`, "NaN")
 	test(`parseFloat("11.1")`, "11.1")
-	if false {
-		test(`parseFloat(" 0x11\n", 16)`, "17")
-		// TODO parseFloat should return 10 in this scenario
-		test(`parseFloat("0x0aXyzzy")`, "10")
-	}
+
+	test(`parseFloat("Xyzzy")`, "NaN")
+
+	test(`parseFloat(" 0x11\n", 16)`, "0")
+	test(`parseFloat("0x0a")`, "0")
+	test(`parseFloat("0x0aXyzzy")`, "0")
+	test(`parseFloat("Infinity")`, "Infinity")
+	test(`parseFloat("infinity")`, "NaN")
+	test(`parseFloat("0x")`, "0")
+	test(`parseFloat("11x")`, "11")
+	test(`parseFloat("Infinity1")`, "Infinity")
+
+	test(`parseFloat.length === 1`, "true")
+	test(`parseFloat.prototype === undefined`, "true")
 }
 
 func Test_encodeURI(t *testing.T) {
