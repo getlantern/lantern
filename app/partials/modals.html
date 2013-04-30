@@ -68,7 +68,10 @@
 
 <div id="welcome" modal="model.modal == MODAL.welcome">
   <div class="modal-body">
-    <img class="logo" src="img/logo.png" alt="{{ 'LANTERN' | i18n }}">
+    <div class="logo">
+      <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
+      <div class="beta">{{ 'BETA' | i18n }}</div>
+    </div>
     <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
     <div ng-show="model.connectivity.internet">
       <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"

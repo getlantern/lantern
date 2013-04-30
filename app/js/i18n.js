@@ -56,6 +56,7 @@ angular.module('app.i18n', [])
       RETRY: 'Retry',
       PASSWORD_CREATE_TITLE: 'Create Password',
       PASSWORD_CREATE_PROMPT: 'Create your Lantern password so your information can be stored securely.',
+      BETA: 'BETA',
       TAG_LINE: 'Internet freedom for everyone.',
       GIVE_ACCESS: 'Give Access',
       GET_ACCESS: 'Get Access',

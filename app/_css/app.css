@@ -6410,7 +6410,7 @@ body {
   background: black;
 }
 body.showVis {
-  background: url('../img/bg.png?1363371388');
+  background: url('../img/bg.png?1360364734');
 }
 
 small {
@@ -6888,6 +6888,13 @@ textarea {
 #welcome .logo {
   margin-bottom: 40px;
 }
+#welcome .beta {
+  font-size: 10.5px;
+  font-weight: bold;
+  position: absolute;
+  right: 40px;
+  margin-top: -20px;
+}
 #welcome .tagLine {
   margin-bottom: 70px;
 }
@@ -7195,7 +7202,7 @@ textarea.report {
   top: 0;
   right: 0;
   left: 0;
-  background: url('../img/bg-topbar.png?1363371388') repeat-x;
+  background: url('../img/bg-topbar.png?1361950952') repeat-x;
   padding: 10px;
   color: white;
   text-shadow: 0 1px 1px black, 0 1px 1px 0 black;
