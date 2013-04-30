@@ -520,25 +520,6 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
   <div class="modal-body">
     <dl class="dl-horizontal">
-      <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
-      <dd ng-hide="inCensoringCountry">
-        <div class="btn-group">
-          <button type="button" class="btn btn-mini btn-give"
-                  ng-class="{active: inGiveMode}"
-                  ng-disabled="inGiveMode"
-                  ng-click="interaction(MODE.give)">
-                  <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-                  {{ 'GIVE_ACCESS' | i18n }}
-          </button>
-          <button type="button" class="btn btn-mini btn-get"
-                  ng-class="{active: inGetMode}"
-                  ng-disabled="inGetMode"
-                  ng-click="interaction(MODE.get)">
-                  {{ 'GET_ACCESS' | i18n }}
-          </button>
-        </div>
-      </dd>
-
       <dt>{{ 'APP' | i18n }}</dt>
       <dd id="app-settings">
         <label class="checkbox">
@@ -561,6 +542,25 @@ You should have received a copy of the GNU General Public License along with thi
         <div id="autoreport-warning" collapse="model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
           {{ 'NO_AUTOREPORT_WARNING' | i18n }}
+        </div>
+      </dd>
+
+      <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
+      <dd ng-hide="inCensoringCountry">
+        <div class="btn-group">
+          <button type="button" class="btn btn-mini btn-give"
+                  ng-class="{active: inGiveMode}"
+                  ng-disabled="inGiveMode"
+                  ng-click="interaction(MODE.give)">
+                  <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
+                  {{ 'GIVE_ACCESS' | i18n }}
+          </button>
+          <button type="button" class="btn btn-mini btn-get"
+                  ng-class="{active: inGetMode}"
+                  ng-disabled="inGetMode"
+                  ng-click="interaction(MODE.get)">
+                  {{ 'GET_ACCESS' | i18n }}
+          </button>
         </div>
       </dd>
 
