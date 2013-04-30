@@ -2,11 +2,11 @@
   <div>
     {{ model.profile.email }}
   </div>
-  <div id="bpsUpDn">
-    <div>
+  <div id="bpsUpDn" class="{{ model.settings.mode }}">
+    <div ng-class="{inactive: !model.transfers.bpsUp}">
       <i class="icon icon-upload-alt"></i> {{ model.transfers.bpsUp | prettyBps:model.transfers.bpsUpDn }}
     </div>
-    <div>
+    <div ng-class="{inactive: !model.transfers.bpsDn}">
       <i class="icon icon-download-alt"></i> {{ model.transfers.bpsDn | prettyBps:model.transfers.bpsUpDn }}
     </div>
   </div>

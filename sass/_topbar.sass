@@ -11,6 +11,14 @@
 #bpsUpDn
   +small
   float: right
-  opacity: .5
-  div
+  & > div
     margin-left: 5px
+    +single-transition(all, 0.25s, ease)
+    opacity: .9
+  &.get > div
+    color: $getModeColor
+  &.give > div
+    color: $giveModeColorMap
+  & > div.inactive
+    color: #eee
+    opacity: .5

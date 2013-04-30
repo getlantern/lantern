@@ -7220,10 +7220,22 @@ textarea.report {
 #bpsUpDn {
   font-size: 11.9px;
   float: right;
-  opacity: 0.5;
 }
-#bpsUpDn div {
+#bpsUpDn > div {
   margin-left: 5px;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  opacity: 0.9;
+}
+#bpsUpDn.get > div {
+  color: #ffcc66;
+}
+#bpsUpDn.give > div {
+  color: #aad092;
+}
+#bpsUpDn > div.inactive {
+  color: #eeeeee;
+  opacity: 0.5;
 }
 
 #projectionButtons {
