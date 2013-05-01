@@ -438,7 +438,7 @@ public class Proxifier implements ProxyService, LanternService {
     private String getPacFileUrl(final File pacFile) {
         final String url = 
             StaticSettings.getLocalEndpoint()+"/"+
-            pacFile.getName() + "-" + RandomUtils.nextInt();
+            pacFile.getName() + "-" + RandomUtils.nextLong();
         return url;
 
     }
