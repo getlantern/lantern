@@ -77,7 +77,9 @@ public class LanternProxyingTest {
             //"www.getlantern.org",
             "github.com",
             "facebook.com", "appledaily.com.tw", "orkut.com", "voanews.com", 
-            "igfw.net", "balatarin.com");
+            "balatarin.com"
+            //"igfw.net" 
+                );
         
         //final SSLSocketFactory socketFactory = 
             //new SSLSocketFactory(
