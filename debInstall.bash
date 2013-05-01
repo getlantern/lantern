@@ -14,7 +14,7 @@ RELEASE=$2
 ARCH=$3
 BUILD_ID=$4
 
-./installerBuild.bash $VERSION "-Dsun.arch.data.model=$ARCH -Plinux" $RELEASE || die "Could not build!!"
+./installerBuild.bash $VERSION "-Dbuildos=linux -Dsun.arch.data.model=$ARCH -Plinux,-mac,-windows" $RELEASE || die "Could not build!!"
 
 #install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 install4jc -b $BUILD_ID -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
