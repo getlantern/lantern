@@ -149,7 +149,7 @@ angular.module('app.i18n', [])
       PROXY_ALL_TRAFFIC: 'Proxy all traffic',
       APP: 'App',
       SAVE_GTALK_PASSWORD: 'Securely save Google Talk password',
-      AUTO_START: 'Run Lantern automatically on startup',
+      AUTO_START: 'Run Lantern automatically on system start',
       SET_AS_SYSTEM_PROXY: 'Set as system proxy',
       NO_AUTOREPORT_WARNING: 'Your usage will not contribute to global totals.',
       ENABLE_AUTOREPORT_SUGGESTION: 'Enable automatic reporting in Settings to have your usage contribute to global totals',
