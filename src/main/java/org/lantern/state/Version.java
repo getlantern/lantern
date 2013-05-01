@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
-import org.lantern.VersionNumber;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
@@ -37,15 +36,7 @@ public class Version {
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
         latest = updateEvent.getData();
-        String versionStr = (String) latest.get(LanternConstants.UPDATE_VERSION_KEY);
-        VersionNumber newVersion = new VersionNumber(versionStr);
-        if (installed.getMajor() < newVersion.getMajor()) {
-            setUpdateAvailable(true);
-        } else if (installed.getMajor() == newVersion.getMajor()) {
-            if (installed.getMinor() < newVersion.getMinor()) {
-                setUpdateAvailable(true);
-            }
-        }
+        updateAvailable = true;
         Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION,
             this));
     }
