@@ -8,7 +8,7 @@
   <version>0.21.1-SNAPSHOT</version>
   <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
   <description>
-    Lantern is a peer-to-peer and trust-network-based tool for circumventing censors and preventing monitoring.
+    Lantern is a peer-to-peer and trust-network-based tool for circumventing censors.
   </description>
   <url>https://github.com/getlantern/lantern</url>
 
