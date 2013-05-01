@@ -25,4 +25,11 @@ public class ConnectivityChangedEvent {
     public boolean isIpChanged() {
         return ipChanged;
     }
+
+    @Override
+    public String toString() {
+        String nowConnectedStr = isConnected ? "now connected" : "disconnected";
+        String ipChangedStr = ipChanged ? "ip changed" : "ip unchanged";
+        return "ConnectivityChanged(" + nowConnectedStr + ", " + ipChangedStr + ", " + newIp + ")";
+    }
 }
