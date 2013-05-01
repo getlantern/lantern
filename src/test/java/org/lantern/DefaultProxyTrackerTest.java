@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -16,6 +17,7 @@ import org.jboss.netty.util.Timer;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.state.Model;
+import org.littleshoot.util.FiveTuple;
 
 public class DefaultProxyTrackerTest {
     @Test
@@ -94,7 +96,9 @@ public class DefaultProxyTrackerTest {
     }
 
     private int getProxyPort(ProxyHolder proxy) {
-        return proxy.getFiveTuple().getRemote().getPort();
+        final FiveTuple ft = proxy.getFiveTuple();
+        final InetSocketAddress remote = ft.getRemote();
+        return remote.getPort();
     }
 
     static class Miniproxy implements Runnable {
