@@ -42,13 +42,13 @@ public class ConnectivityChecker extends TimerTask {
         String newIpString = ip.getHostAddress();
         if (newIpString.equals(oldIp)) {
             if (!connected) {
-                ConnectivityChangedEvent event = new ConnectivityChangedEvent(true, true, ip);
+                ConnectivityChangedEvent event = new ConnectivityChangedEvent(true, false, ip);
                 Events.asyncEventBus().post(event);
                 connected = true;
             }
         } else {
             connected = true;
-            ConnectivityChangedEvent event = new ConnectivityChangedEvent(true, false, ip);
+            ConnectivityChangedEvent event = new ConnectivityChangedEvent(true, true, ip);
             Events.asyncEventBus().post(event);
         }
 
