@@ -94,13 +94,18 @@ func TestRegExp_exec(t *testing.T) {
 
 	test(`
 		var abc = /[abc](\d)?/.exec("a0 b c1 d3");
-        [ abc.length, abc.input, abc.index, abc ]
+        [ abc.length, abc.input, abc.index, abc ];
     `, "2,a0 b c1 d3,0,a0,0")
 
 	test(`raise:
 		var exec = RegExp.prototype.exec;
 		exec("Xyzzy");
 	`, "TypeError: Calling RegExp.exec on a non-RegExp object")
+
+	test(`
+        var abc = /\w{3}\d?/.exec("CE\uFFFFL\uFFDDbox127");
+        [ abc.input.length, abc.length, abc.input, abc.index, abc ];
+    `, "11,1,CE\uFFFFL\uFFDDbox127,5,box1")
 }
 
 func TestRegExp_zaacbbbcac(t *testing.T) {

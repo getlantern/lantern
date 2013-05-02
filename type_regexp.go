@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 type _regExpObject struct {
@@ -106,9 +107,19 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 			valueArray[index] = UndefinedValue()
 		}
 	}
+	matchIndex := result[0]
+	if matchIndex != 0 {
+		matchIndex = 0
+		// Find the rune index in the string, not the byte index
+		for index := 0; index < result[0]; {
+			_, size := utf8.DecodeRuneInString(target[index:])
+			matchIndex += 1
+			index += size
+		}
+	}
 	match := runtime.newArray(valueArray)
 	match.set("input", toValue(target), false)
-	match.set("index", toValue(result[0]), false)
+	match.set("index", toValue(matchIndex), false)
 	return match
 }
 
