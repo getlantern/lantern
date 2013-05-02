@@ -65,6 +65,26 @@ func TestRegExp(t *testing.T) {
 	test(`abc = '\\' + String.fromCharCode('0x0078'); eval('/' + abc + '/').source == "\\\u0078"`, "true")
 }
 
+func TestRegExp_global(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = /(?:ab|cd)\d?/g;
+        var found = [];
+        do {
+            match = abc.exec("ab  cd2  ab34  cd");
+            if (match !== null) {
+                found.push(match[0]);
+
+            } else {
+                break;
+            }
+        } while (true);
+        found;
+    `, "ab,cd2,ab3,cd")
+}
+
 func TestRegExp_exec(t *testing.T) {
 	Terst(t)
 
