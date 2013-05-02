@@ -16,7 +16,16 @@ func builtinObject(call FunctionCall) Value {
 	return toValue(call.runtime.toObject(value))
 }
 
-func builtinNewObject(self *_object, _ Value, _ []Value) Value {
+func builtinNewObject(self *_object, _ Value, argumentList []Value) Value {
+	value := valueOfArrayIndex(argumentList, 0)
+	switch value._valueType {
+	case valueNull, valueUndefined:
+	case valueNumber, valueString, valueBoolean:
+		return toValue(self.runtime.toObject(value))
+	case valueObject:
+		return value
+	default:
+	}
 	return toValue(self.runtime.newObject())
 }
 

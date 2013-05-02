@@ -35,3 +35,12 @@ func TestObject_getPrototypeOf(t *testing.T) {
         [abc,def,ghi,ghi+""];
     `, "[object Object],[object Object],,null")
 }
+
+func TestObject_new(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        [ new Object("abc"), new Object(2+2) ];
+    `, "abc,4")
+}
