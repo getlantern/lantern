@@ -18,7 +18,10 @@ func builtinRegExp(call FunctionCall) Value {
 }
 
 func builtinNewRegExp(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newRegExp(valueOfArrayIndex(argumentList, 0), valueOfArrayIndex(argumentList, 1)))
+	return toValue(self.runtime.newRegExp(
+		valueOfArrayIndex(argumentList, 0),
+		valueOfArrayIndex(argumentList, 1),
+	))
 }
 
 func builtinRegExp_toString(call FunctionCall) Value {

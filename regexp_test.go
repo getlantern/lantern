@@ -131,6 +131,10 @@ func TestRegExpCopying(t *testing.T) {
         abc.indicator = 1;
         [ abc.indicator, def.indicator ];
     `, "1,1")
+
+	test(`raise:
+        RegExp(new RegExp("\d"), "1");
+    `, "TypeError: Cannot supply flags when constructing one RegExp from another")
 }
 
 func TestRegExp_multiline(t *testing.T) {
