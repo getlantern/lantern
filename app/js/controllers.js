@@ -100,6 +100,10 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
     var update = {path: '/settings/'+key, value: val};
     return $scope.interaction(INTERACTION.set, update);
   };
+
+  $scope.openExternal = function(url) {
+    return $scope.interaction(INTERACTION.url, {url: url});
+  };
 }
 
 function UnexpectedStateCtrl($scope, $filter, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {

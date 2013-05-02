@@ -3,6 +3,7 @@
 var fs = require('fs'),
     url = require('url'),
     path = require('path'),
+    spawn = require('child_process').spawn,
     sleep = require('./node_modules/sleep'),
     faye = require('./node_modules/faye'),
     lodash = require('../app/lib/lodash.js'),
@@ -196,6 +197,10 @@ MockBackend._handlerForInteraction[INTERACTION.unexpectedStateReset] = function(
   log('Got unexpectedStateReset', data);
   SKIPSETUP = false;
   this.reset();
+};
+
+MockBackend._handlerForInteraction[INTERACTION.url] = function(res, data) {
+  spawn('open', [data.url]); // XXX probably only works on OS X
 };
 
 MockBackend._handlerForInteraction[INTERACTION.developer] = function(res, data) {

@@ -43,7 +43,10 @@ var DEFAULT_LANG = 'en',
     EXTERNAL_URL = {
       helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
-      httpsEverywhere: 'https://www.eff.org/https-everywhere'
+      homepage: 'https://www.getlantern.org/',
+      userForums: 'https://groups.google.com/group/lantern-users-en', // XXX link to user forum in user's language if available
+      docs: 'https://github.com/getlantern/lantern/wiki',
+      developers: 'https://github.com/getlantern/lantern'
     },
     // enums
     MODE = makeEnum(['give', 'get', 'unknown']),
@@ -89,6 +92,7 @@ var DEFAULT_LANG = 'en',
       'refresh',
       'unexpectedStateReset',
       'unexpectedStateRefresh',
+      'url',
       'developer',
       'scenarios']),
     SETTING = makeEnum([

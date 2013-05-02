@@ -165,10 +165,9 @@ angular.module('app.i18n', [])
       RELEASED: 'released',
       MORE_INFO: 'more info',
       UPDATE_AVAILABLE_PROMPT_RUNNING: 'You are currently running',
-      UPDATE_PROMPT: 'Please update now to ensure you have the latest features and fixes.',
+      UPDATE_PROMPT: 'Please update now to ensure you have the latest features and improvements.',
       DOWNLOAD: 'Download',
       CONTACT_TITLE: 'Contact Lantern Developers',
-      CONTACT_PROMPT: 'The <a href="https://github.com/getlantern/lantern/wiki" target="_blank">Lantern documentation</a> and <a href="https://groups.google.com/group/lantern-users-en" target="_blank">user forums</a> are the best places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.', // XXX don't hardcode urls, link to user forum in user's language if available
       MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nDiagnostic information:\n',
       ERROR_TOO_LONG: {1: '1 character too long', other: '{} characters too long'},
       SEND: 'Send',

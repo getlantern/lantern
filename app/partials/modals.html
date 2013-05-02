@@ -5,7 +5,7 @@
     <li ng-repeat="(langKey, langVal) in LANG" ng-class="{active: lang() == langKey}"><a
         ng-click="lang() != langKey && changeSetting(SETTING.lang, langKey)"
         dir="{{ langVal.dir }}">{{ langVal.name }}</a></li>
-    <li><a target="_blank" href="{{ EXTERNAL_URL.helpTranslate }}">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
+    <li><a ng-click="openExternal(EXTERNAL_URL.helpTranslate)">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
   </ul>
 </div>
 -->
@@ -408,7 +408,7 @@
         <input type="checkbox" ng-model="autoReport"
                ng-change="changeSetting(SETTING.autoReport, autoReport)">
         {{ 'AUTOREPORT_PROMPT' | i18n }}
-        <a href="{{ EXTERNAL_URL.autoReportPrivacy }}" tooltip="{{ 'MORE_INFO' | i18n }}" target="_blank">
+        <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" tooltip="{{ 'MORE_INFO' | i18n }}">
           <i class="icon-external-link"></i>
         </a>
       </label>
@@ -425,7 +425,13 @@
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div class="smaller" ng-bind-html="'CONTACT_PROMPT' | i18n"></div>
+    <div class="smaller">
+      <!-- XXX i18n -->
+      The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation</a>
+      and <a ng-click="openExternal(EXTERNAL_URL.userForums)">user forums</a>
+      are the best places to search, request, and provide information appropriate
+      for public access. Private messages can be submitted securely through this form.
+    </div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
@@ -450,10 +456,10 @@
       Lantern version {{ model.version.installed | version:true }}<br>
       Frontend version {{ lanternUiVersion }}<br>
       <span class="smaller">
-        <a href="https://www.getlantern.org/news" target="_blank">News</a> ·
-        <a href="https://groups.google.com/group/lantern-users-en" target="_blank">Forums</a> ·
-        <a href="https://github.com/getlantern/lantern/wiki" target="_blank">Docs</a> ·
-        <a href="https://github.com/getlantern/lantern" target="_blank">Developers</a>
+        <a ng-click="openExternal(EXTERNAL_URL.homepage)">Homepage</a> ·
+        <a ng-click="openExternal(EXTERNAL_URL.userForums)">Forums</a> ·
+        <a ng-click="openExternal(EXTERNAL_URL.docs)">Docs</a> ·
+        <a ng-click="openExternal(EXTERNAL_URL.developers)">Developers</a>
       </span>
     </div>
     <div>
@@ -492,11 +498,11 @@ You should have received a copy of the GNU General Public License along with thi
         <dt>{{ 'RELEASED' | i18n }}</dt>
         <dd><time>{{ model.version.latest.releaseDate }}</time></dd>
         <dt>{{ 'URL' | i18n }}</dt>
-        <dd><a href="{{ model.version.latest.installerUrl }}" target="_blank">{{ model.version.latest.installerUrl }}</a></dd>
+        <dd><a ng-click="openExternal(model.version.latest.installerUrl)">{{ model.version.latest.installerUrl }}</a></dd>
         <dt>{{ 'SHA1' | i18n }}</dt>
         <dd>{{ model.version.latest.installerSHA1 }}</dd>
         <dt>{{ 'MORE_INFO' | i18n }}</dt>
-        <dd><a href="{{ model.version.latest.infoUrl }}" target="_blank">{{ model.version.latest.infoUrl }}</a></dd>
+        <dd><a ng-click="openExternal(model.version.latest.infoUrl)">{{ model.version.latest.infoUrl }}</a></dd>
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
@@ -510,8 +516,8 @@ You should have received a copy of the GNU General Public License along with thi
             tabindex="{{ model.modal == MODAL.updateAvailable && 2 || '' }}">
       {{ 'CLOSE' | i18n }}
     </button>
-    <a class="btn btn-primary" href="{{ model.version.latest.installerUrl }}"
-       tabindex="{{ model.modal == MODAL.updateAvailable && 1 || '' }}" target="_blank">
+    <a class="btn btn-primary" ng-click="openExternal(model.version.latest.installerUrl)"
+       tabindex="{{ model.modal == MODAL.updateAvailable && 1 || '' }}">
       {{ 'DOWNLOAD' | i18n }}
     </a>
   </div>
@@ -539,7 +545,7 @@ You should have received a copy of the GNU General Public License along with thi
             <input type="checkbox" ng-model="autoReport"
                    ng-click="changeSetting(SETTING.autoReport, autoReport)">
             {{ 'AUTOREPORT_PROMPT' | i18n }}
-            <a href="{{ EXTERNAL_URL.autoReportPrivacy }}" target="_blank" class="small always-underlined">
+            <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="small always-underlined">
               {{ 'MORE_INFO' | i18n }}
             </a>
           </label>
