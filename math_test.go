@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func TestMath_toString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.toString()`, "[object Math]")
+}
+
 func TestMath_abs(t *testing.T) {
 	Terst(t)
 

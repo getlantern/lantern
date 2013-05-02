@@ -37,6 +37,7 @@ func (self *_runtime) newGlobalObject(
 	nameAndValue ...interface{}) *_object {
 
 	target := self.newClassObject(class)
+	target.prototype = self.Global.ObjectPrototype
 	nameAndValue = append(
 		[]interface{}{
 			_functionSignature("builtin"),
