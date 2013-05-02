@@ -670,7 +670,7 @@ func newContext() *_runtime {
 		self.Global.RegExpPrototype,
 		"toString", 0, builtinRegExp_toString,
 		"exec", -1, builtinRegExp_exec,
-		"test", 1, builtinRegExp_test,
+		"test", -1, builtinRegExp_test,
 	)
 
 	self.Global.Error = self.newGlobalFunction(

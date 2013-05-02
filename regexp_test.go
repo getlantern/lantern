@@ -131,6 +131,14 @@ func TestRegExp_exec(t *testing.T) {
 	test(`RegExp.prototype.exec.prototype`, "undefined")
 }
 
+func TestRegExp_test(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`RegExp.prototype.test.length`, "1")
+	test(`RegExp.prototype.test.prototype`, "undefined")
+}
+
 func TestRegExp_zaacbbbcac(t *testing.T) {
 	Terst(t)
 
