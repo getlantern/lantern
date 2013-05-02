@@ -25,8 +25,8 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 	multiline := false
 	re2flags := ""
 
-	for _, rune := range flags {
-		switch rune {
+	for _, chr := range flags {
+		switch chr {
 		case 'g':
 			if global {
 				panic(newError("SyntaxError: newRegExpObject: %s %s", pattern, flags))
@@ -37,6 +37,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 				panic(newError("SyntaxError: newRegExpObject: %s %s", pattern, flags))
 			}
 			multiline = true
+			re2flags += "m"
 		case 'i':
 			if ignoreCase {
 				panic(newError("SyntaxError: newRegExpObject: %s %s", pattern, flags))
