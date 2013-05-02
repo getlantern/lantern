@@ -101,6 +101,20 @@ func TestRegExp_exec(t *testing.T) {
 		var exec = RegExp.prototype.exec;
 		exec("Xyzzy");
 	`, "TypeError: Calling RegExp.exec on a non-RegExp object")
+
+}
+
+func TestRegExp_zaacbbbcac(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	if false {
+		// TODO Just plain different behavior
+		test(`
+            var abc = /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac");
+            [ abc.length, abc.index, abc ];
+        `, "6,0,zaacbbbcac,z,ac,a,,c")
+	}
 }
 
 func TestRegExp_controlCharacter(t *testing.T) {
