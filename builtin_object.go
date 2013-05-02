@@ -41,6 +41,14 @@ func builtinObject_toString(call FunctionCall) Value {
 	return toValue(result)
 }
 
+func builtinObject_toLocaleString(call FunctionCall) Value {
+	toString := call.thisObject().get("toString")
+	if !toString.isCallable() {
+		panic(newTypeError())
+	}
+	return toString.call(call.This)
+}
+
 func builtinObject_getPrototypeOf(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()

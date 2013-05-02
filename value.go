@@ -112,9 +112,9 @@ func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) 
 }
 
 func (value Value) call(this Value, argumentList ...interface{}) Value {
-	switch value := value.value.(type) {
+	switch function := value.value.(type) {
 	case *_object:
-		return value.Call(this, argumentList...)
+		return function.Call(this, argumentList...)
 	}
 	panic(newTypeError())
 }

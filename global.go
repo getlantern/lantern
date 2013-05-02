@@ -138,6 +138,7 @@ func newContext() *_runtime {
 			return toValue(call.thisObject())
 		},
 		"toString", builtinObject_toString,
+		"toLocaleString", builtinObject_toLocaleString,
 		"hasOwnProperty", func(call FunctionCall) Value {
 			propertyName := toString(call.Argument(0))
 			thisObject := call.thisObject()
@@ -679,6 +680,7 @@ func newContext() *_runtime {
 		builtinNewError,
 		self.Global.ErrorPrototype,
 		"name", toValue("Error"),
+		"toString", 0, builtinError_toString,
 		"toString", 0, builtinError_toString,
 	)
 

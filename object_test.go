@@ -44,3 +44,21 @@ func TestObject_new(t *testing.T) {
         [ new Object("abc"), new Object(2+2) ];
     `, "abc,4")
 }
+
+func TestObject_toLocaleString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        ({}).toLocaleString();
+    `, "[object Object]")
+
+	test(`
+        object = {
+            toString: function() {
+                return "Nothing happens.";
+            }
+        };
+        object.toLocaleString();
+    `, "Nothing happens.")
+}
