@@ -160,7 +160,9 @@ func transformRegExp(ecmaRegExp string) (goRegExp string) {
 	}
 	tmp = transformRegExp_escape_c.ReplaceAllFunc(tmp, func(in []byte) []byte {
 		in = bytes.ToUpper(in)
-		return []byte(fmt.Sprintf("\\%o", in[0]-64)) // \cA => \001 (A == 65)
+		// in = [ \, c, A-Z ]
+		in[2] -= 64 // 64 => 01
+		return []byte(fmt.Sprintf("\\0%o", in[2]))
 	})
 	tmp = transformRegExp_unescape_c.ReplaceAll(tmp, []byte(`c`))
 	tmp = transformRegExp_unescapeDollar.ReplaceAll(tmp, []byte(`$1`))

@@ -2,6 +2,7 @@ package otto
 
 import (
 	. "./terst"
+	"fmt"
 	"testing"
 )
 
@@ -95,4 +96,19 @@ func TestRegExp_exec(t *testing.T) {
 		var exec = RegExp.prototype.exec;
 		exec("Xyzzy");
 	`, "TypeError: Calling RegExp.exec on a non-RegExp object")
+}
+
+func TestRegExp_controlCharacter(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	for code := 0x41; code < 0x5a; code++ {
+		string_ := string(code - 64)
+		test(fmt.Sprintf(`
+            var code = 0x%x;
+            var string = String.fromCharCode(code %% 32);
+            var result = (new RegExp("\\c" + String.fromCharCode(code))).exec(string);
+            [ code, string, result ];
+        `, code), fmt.Sprintf("%d,%s,%s", code, string_, string_))
+	}
 }
