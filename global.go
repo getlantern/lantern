@@ -668,7 +668,7 @@ func newContext() *_runtime {
 		"RegExp", builtinRegExp,
 		builtinNewRegExp,
 		self.Global.RegExpPrototype,
-		"toString", 0, builtinRegExp_toString,
+		"toString", -0xff, builtinRegExp_toString,
 		"exec", -1, builtinRegExp_exec,
 		"test", -1, builtinRegExp_test,
 	)
@@ -829,6 +829,10 @@ func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction, leng
 	// TODO Do this a better way...
 	if 0 > length {
 		length *= -1
+		// TODO Achk... hack
+		if length == 0xff {
+			length = 0
+		}
 		prototype = false
 	}
 	self := runtime.newNativeFunctionObject(_nativeFunction, length, name)
