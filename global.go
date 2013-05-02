@@ -669,7 +669,7 @@ func newContext() *_runtime {
 		builtinNewRegExp,
 		self.Global.RegExpPrototype,
 		"toString", 0, builtinRegExp_toString,
-		"exec", 1, builtinRegExp_exec,
+		"exec", -1, builtinRegExp_exec,
 		"test", 1, builtinRegExp_test,
 	)
 

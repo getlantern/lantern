@@ -126,6 +126,9 @@ func TestRegExp_exec(t *testing.T) {
         var abc = /\w{3}\d?/.exec("CE\uFFFFL\uFFDDbox127");
         [ abc.input.length, abc.length, abc.input, abc.index, abc ];
     `, "11,1,CE\uFFFFL\uFFDDbox127,5,box1")
+
+	test(`RegExp.prototype.exec.length`, "1")
+	test(`RegExp.prototype.exec.prototype`, "undefined")
 }
 
 func TestRegExp_zaacbbbcac(t *testing.T) {
