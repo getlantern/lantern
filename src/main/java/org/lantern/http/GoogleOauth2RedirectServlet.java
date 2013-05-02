@@ -130,12 +130,15 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
                     OauthUtils.REDIRECT_URL, scopes);
             gbc.setApprovalPrompt("auto");
             gbc.setResponseTypes("code");
-            final String url = gbc.build();
-            // we actually call google's logout service with a continue param
-            // of this url to clear out the previous login if any
+            final String baseUrl = gbc.build();
+            // request the page in the user's system language
+            // (Google does a geoip lookup to determine the language otherwise)
+            final String langUrl = baseUrl +
+                "&hl=" + this.model.getSystem().getLang();
+            // call google's logout service with a continue param
+            // set to this url to clear out the previous login (if any)
             final String logoutUrl = "https://www.google.com/accounts/Logout?continue="+
-                URLEncoder.encode(url, "UTF-8");
-            
+                URLEncoder.encode(langUrl, "UTF-8");
             log.debug("Sending redirect to URL: {}", logoutUrl);
             return logoutUrl;
         } catch (final IOException e) {
