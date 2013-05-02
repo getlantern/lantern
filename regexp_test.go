@@ -121,6 +121,18 @@ func TestRegExp_zaacbbbcac(t *testing.T) {
 	}
 }
 
+func TestRegExpCopying(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        abc = /xyzzy/i;
+        def = RegExp(abc);
+        abc.indicator = 1;
+        [ abc.indicator, def.indicator ];
+    `, "1,1")
+}
+
 func TestRegExp_multiline(t *testing.T) {
 	Terst(t)
 

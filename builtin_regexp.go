@@ -7,7 +7,14 @@ import (
 // RegExp
 
 func builtinRegExp(call FunctionCall) Value {
-	return toValue(call.runtime.newRegExp(call.Argument(0), call.Argument(1)))
+	pattern := call.Argument(0)
+	flags := call.Argument(1)
+	if object := pattern._object(); object != nil {
+		if object.class == "RegExp" && flags.IsUndefined() {
+			return pattern
+		}
+	}
+	return toValue(call.runtime.newRegExp(pattern, flags))
 }
 
 func builtinNewRegExp(self *_object, _ Value, argumentList []Value) Value {
