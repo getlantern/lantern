@@ -14,3 +14,4 @@ output_style = :expanded
 environment = :production
 relative_assets = true
 preferred_syntax = :sass
+asset_cache_buster :none

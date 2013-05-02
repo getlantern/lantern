@@ -287,14 +287,20 @@
       </a>
     </div>
     <div>
-      <label>
+      <label id="proxiedSitesLabel" for="proxiedSitesInput">
         {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
       </label>
+      <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
+          ng-disabled="model.settings.proxyAllSites"
+          placeholder="{{ 'SEARCH' | i18n }}">
       <form name="proxiedSitesForm">
         <textarea ng-model="input" name="input" placeholder="example.com" required
-          ng-disabled="model.settings.proxyAllSites"
-          ui-validate="validate" ng-disabled="updating"
+          ng-disabled="model.settings.proxyAllSites || updating"
+          ng-hide="!!searchText" ng-readonly="!!searchText"
+          ui-validate="validate" id="proxiedSitesInput"
           dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
+        <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }}"
+          ng-show="!!searchText" readonly dir="ltr"></textarea>
       </form>
     </div>
     <!-- XXX https://github.com/getlantern/lantern/issues/465#issuecomment-14825659

@@ -225,16 +225,21 @@ function SettingsCtrl($scope, $timeout, modelSrvc, logFactory, MODAL) {
   }, true);
 }
 
-function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACTION, INPUT_PAT) {
+function ProxiedSitesCtrl($scope, $timeout, $filter, logFactory, MODAL, SETTING, INTERACTION, INPUT_PAT) {
   var log = logFactory('ProxiedSitesCtrl'),
+      fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
       nproxiedSitesMax = 1000,
       proxiedSites = [],
-      proxiedSitesDirty;
+      proxiedSitesDirty = [];
 
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal === MODAL.proxiedSites;
+  });
+
+  $scope.$watch('searchText', function(searchText) {
+    $scope.inputFiltered = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty).join('\n');
   });
 
   function updateComplete() {
@@ -256,6 +261,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       $scope.input = proxiedSites.join('\n');
       updateComplete();
       makeValid();
+      proxiedSitesDirty = _.cloneDeep(proxiedSites);
     }
   }, true);
   $scope.$watch('model.nproxiedSitesMax', function(nproxiedSitesMax_) {

@@ -6410,7 +6410,7 @@ body {
   background: black;
 }
 body.showVis {
-  background: url('../img/bg.png?1360364734');
+  background: url('../img/bg.png');
 }
 
 small {
@@ -6977,6 +6977,29 @@ textarea {
   white-space: nowrap;
 }
 
+#proxiedSitesLabel {
+  float: left;
+}
+
+#proxiedSitesSearch {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  float: right;
+  width: 130px;
+  height: 27px;
+  margin: -3px 0 10px;
+  -webkit-border-radius: 18px;
+  -moz-border-radius: 18px;
+  border-radius: 18px;
+}
+#proxiedSitesSearch::-webkit-search-decoration {
+  -webkit-appearance: searchfield-decoration;
+}
+#proxiedSitesSearch::-webkit-search-cancel-button {
+  -webkit-appearance: searchfield-cancel-button;
+}
+
 #lanternFriends h4 {
   font-size: 15.4px;
   margin-bottom: 15px;
@@ -7202,7 +7225,7 @@ textarea.report {
   top: 0;
   right: 0;
   left: 0;
-  background: url('../img/bg-topbar.png?1361950952') repeat-x;
+  background: url('../img/bg-topbar.png') repeat-x;
   padding: 10px;
   color: white;
   text-shadow: 0 1px 1px black, 0 1px 1px 0 black;

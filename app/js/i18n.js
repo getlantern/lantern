@@ -102,6 +102,8 @@ angular.module('app.i18n', [])
       PROXIED_SITES_TITLE: 'Proxied Sites',
       CONFIGURE_PROXIED_SITES: 'Enter the sites you’d like to access through Lantern:',
       PROXIED_SITES_PROMPT: 'By default, only sites on this list will be accessed (“proxied”) through your Lantern network. All other sites are accessed directly.',
+      SEARCH: 'Search',
+      NO_MATCHING_SITES: 'No matching sites',
       PROXYING_ALL_WARNING: 'Lantern is currently set to proxy all traffic.',
       DISABLE_PROXY_ALL: 'Disable proxy all traffic',
       PROXIED_SITES_TIP: 'Content on other sites included in pages on these sites will also be proxied automatically.',

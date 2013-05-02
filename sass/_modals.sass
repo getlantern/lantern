@@ -125,6 +125,21 @@
     margin: 0
     +ellipsisPast(200px)
 
+#proxiedSitesLabel
+  float: left
+
+#proxiedSitesSearch // override bootstrap
+  +ctb-box-sizing(border-box)
+  float: right
+  width: 130px
+  height: 1.5 * $baseLineHeight
+  margin: -3px 0 10px
+  +border-radius(18px)
+  &::-webkit-search-decoration
+    -webkit-appearance: searchfield-decoration
+  &::-webkit-search-cancel-button
+    -webkit-appearance: searchfield-cancel-button
+
 #lanternFriends
   h4
     font-size: $baseFontSize * 1.1
