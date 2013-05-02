@@ -367,6 +367,14 @@
   <build>
     <defaultGoal>install</defaultGoal>
 
+    <extensions>
+      <extension>
+        <groupId>org.springframework.build</groupId>
+        <artifactId>aws-maven</artifactId>
+        <version>4.4.0.RELEASE</version>
+      </extension>
+    </extensions>
+
     <plugins>
 <!--
       <plugin>
@@ -782,8 +790,28 @@
       </snapshots>
     </repository>
     <repository>
-      <id>local-repo</id>
-      <url>file://${basedir}/lib/repository</url>
+      <id>aws-release</id>
+      <name>AWS Release Repository</name>
+      <url>s3://lantern-mvn-repo/release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
   </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>aws-release</id>
+      <name>AWS Release Repository</name>
+      <url>s3://lantern-mvn-repo/release</url>
+    </repository>
+    <snapshotRepository>
+      <id>aws-snapshot</id>
+      <name>AWS Snapshot Repository</name>
+      <url>s3://lantern-mvn-repo/snapshot</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
