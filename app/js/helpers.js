@@ -17,7 +17,8 @@ if (typeof jsonpatch != 'object') {
 }
 var JSONPatch = jsonpatch.JSONPatch,
     JSONPointer = jsonpatch.JSONPointer,
-    PatchApplyError = jsonpatch.PatchApplyError;
+    PatchApplyError = jsonpatch.PatchApplyError,
+    InvalidPatch = jsonpatch.InvalidPatch;
 
 function makeLogger(prefix) {
   return function() {

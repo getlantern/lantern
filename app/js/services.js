@@ -147,7 +147,7 @@ angular.module('app.services', [])
       disconnect: disconnect
     };
   })
-  .service('modelSrvc', function($rootScope, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {
+  .service('modelSrvc', function($rootScope, apiSrvc, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {
     var log = logFactory('modelSrvc'),
         model = {},
         syncSubscriptionKey;
@@ -155,26 +155,26 @@ angular.module('app.services', [])
     // XXX use modelValidatorSrvc to validate update before accepting
     function handleSync(msg) {
       var patch = msg.data;
-      if (patch[0].path === '') {
-        // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
-        angular.copy(patch[0].value, model);
-      } else {
-        // workaround https://github.com/getlantern/lantern/issues/587
-        // backend can send updates before model has been populated
-        if (_.isEmpty(model)) {
-          log.debug('ignoring', msg, 'while model has not yet been populated');
-          return;
+      // backend can send updates before model has been populated
+      // https://github.com/getlantern/lantern/issues/587
+      if (patch[0].path !== '' && _.isEmpty(model)) {
+        log.debug('ignoring', msg, 'while model has not yet been populated');
+        return;
+      }
+      $rootScope.$apply(function() {
+        if (patch[0].path === '') {
+          // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
+          angular.copy(patch[0].value, model);
+        } else {
+          try {
+            applyPatch(model, patch);
+          } catch (e) {
+            if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
+            log.error('Error applying patch', patch);
+            apiSrvc.exception({exception: e, patch: patch});
+          }
         }
-        // if this causes an error (e.g. bad patch), we will immediately
-        // disconnect from the backend
-        applyPatch(model, patch);
-      }
-      try {
-        $rootScope.$apply();
-      } catch (e) {
-        // observed when Angular throws "10 $digest() iterations reached" error
-        log.debug('exception during $rootScope.$apply:', e);
-      }
+      });
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
