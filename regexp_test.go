@@ -165,11 +165,12 @@ func TestRegExp_source(t *testing.T) {
 func TestRegExp_newRegExp(t *testing.T) {
 	Terst(t)
 
-	//test := runTest()
-	//test(`
-	//    Math.toString();
-	//    //var abc = new RegExp(Math,eval("\"g\""));
-	//`, "")
+	test := runTest()
+	test(`
+        Math.toString();
+        var abc = new RegExp(Math,eval("\"g\""));
+        [ abc, abc.global ];
+    `, "/[object Math]/g,true")
 }
 
 func TestRegExp_flags(t *testing.T) {
