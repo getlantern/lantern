@@ -177,12 +177,35 @@ func builtinGlobal_encodeURIComponent(call FunctionCall) Value {
 	return _builtinGlobal_encodeURI(call, encodeURIComponent_Regexp)
 }
 
-func builtinGlobal_decodeURI_decodeURIComponent(call FunctionCall) Value {
-	value, err := url.QueryUnescape(toString(call.Argument(0)))
-	if err != nil {
+// 3B/2F/3F/3A/40/26/3D/2B/24/2C/23
+var decodeURI_guard = regexp.MustCompile(`(?i)(?:%)(3B|2F|3F|3A|40|26|3D|2B|24|2C|23)`)
+
+func _decodeURI(input string, reserve bool) (string, bool) {
+	if reserve {
+		input = decodeURI_guard.ReplaceAllString(input, "%25$1")
+	}
+	input = strings.Replace(input, "+", "%2B", -1) // Ugly hack to make QueryUnescape work with our use case
+	output, err := url.QueryUnescape(input)
+	if err != nil || !utf8.ValidString(output) {
+		return "", true
+	}
+	return output, false
+}
+
+func builtinGlobal_decodeURI(call FunctionCall) Value {
+	output, err := _decodeURI(toString(call.Argument(0)), true)
+	if err {
 		panic(newURIError("URI malformed"))
 	}
-	return toValue(value)
+	return toValue(output)
+}
+
+func builtinGlobal_decodeURIComponent(call FunctionCall) Value {
+	output, err := _decodeURI(toString(call.Argument(0)), false)
+	if err {
+		panic(newURIError("URI malformed"))
+	}
+	return toValue(output)
 }
 
 // escape/unescape

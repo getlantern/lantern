@@ -2,6 +2,8 @@ package otto
 
 import (
 	. "./terst"
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -190,6 +192,13 @@ func Test_decodeURI(t *testing.T) {
 	test(`decodeURI(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
 	test(`decodeURI(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
 	test(`raise: decodeURI("http://example.com/ _^#%")`, "URIError: URI malformed")
+	test(`raise: decodeURI("%DF%7F")`, "URIError: URI malformed")
+	for _, check := range strings.Fields("+ %3B %2F %3F %3A %40 %26 %3D %2B %24 %2C %23") {
+		test(fmt.Sprintf(`decodeURI("%s")`, check), check)
+	}
+
+	test(`decodeURI.length === 1`, "true")
+	test(`decodeURI.prototype === undefined`, "true")
 }
 
 func Test_decodeURIComponent(t *testing.T) {
@@ -198,6 +207,9 @@ func Test_decodeURIComponent(t *testing.T) {
 	test := runTest()
 	test(`decodeURIComponent(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
 	test(`decodeURIComponent(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
+
+	test(`decodeURIComponent.length === 1`, "true")
+	test(`decodeURIComponent.prototype === undefined`, "true")
 }
 
 func TestGlobal_skipEnumeration(t *testing.T) {
