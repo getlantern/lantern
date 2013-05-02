@@ -776,18 +776,20 @@ func (runtime *_runtime) newNumber(value Value) *_object {
 func (runtime *_runtime) newRegExp(patternValue Value, flagsValue Value) *_object {
 
 	pattern := ""
+	flags := ""
 	if object := patternValue._object(); object != nil && object.class == "RegExp" {
 		if flagsValue.IsDefined() {
 			panic(newTypeError("Cannot supply flags when constructing one RegExp from another"))
 		}
 		pattern = object._RegExp.Source
+		flags = object._RegExp.Flags
 	} else {
-		pattern = toString(patternValue)
-	}
-
-	flags := ""
-	if flagsValue.IsDefined() {
-		flags = toString(flagsValue)
+		if patternValue.IsDefined() {
+			pattern = toString(patternValue)
+		}
+		if flagsValue.IsDefined() {
+			flags = toString(flagsValue)
+		}
 	}
 
 	return runtime._newRegExp(pattern, flags)

@@ -14,6 +14,7 @@ type _regExpObject struct {
 	IgnoreCase        bool
 	Multiline         bool
 	Source            string
+	Flags             string
 	LastIndex         Value
 }
 
@@ -64,6 +65,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		IgnoreCase:        ignoreCase,
 		Multiline:         multiline,
 		Source:            pattern,
+		Flags:             flags,
 		LastIndex:         toValue(0),
 	}
 	self.stash = newRegExpStash(self._RegExp, self.stash)

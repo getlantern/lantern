@@ -162,6 +162,17 @@ func TestRegExp_source(t *testing.T) {
     `, ".,.,true")
 }
 
+func TestRegExp_flags(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = /./i;
+        var def = new RegExp(abc);
+        [ abc.multiline == def.multiline, abc.global == def.global, abc.ignoreCase == def.ignoreCase ];
+    `, "true,true,true")
+}
+
 func TestRegExp_controlCharacter(t *testing.T) {
 	Terst(t)
 
