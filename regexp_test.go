@@ -147,6 +147,21 @@ func TestRegExp_multiline(t *testing.T) {
     `, "1,4,s")
 }
 
+func TestRegExp_source(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        [ /xyzzy/i.source, /./i.source ];
+    `, "xyzzy,.")
+
+	test(`
+        var abc = /./i;
+        var def = new RegExp(abc);
+        [ abc.source, def.source, abc.source === def.source ];
+    `, ".,.,true")
+}
+
 func TestRegExp_controlCharacter(t *testing.T) {
 	Terst(t)
 
