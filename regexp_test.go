@@ -92,6 +92,11 @@ func TestRegExp_exec(t *testing.T) {
 		[ ghi, lastIndex ];
 	`, "3,7")
 
+	test(`
+		var abc = /[abc](\d)?/.exec("a0 b c1 d3");
+        [ abc.length, abc.input, abc.index, abc ]
+    `, "2,a0 b c1 d3,0,a0,0")
+
 	test(`raise:
 		var exec = RegExp.prototype.exec;
 		exec("Xyzzy");
@@ -111,4 +116,13 @@ func TestRegExp_controlCharacter(t *testing.T) {
             [ code, string, result ];
         `, code), fmt.Sprintf("%d,%s,%s", code, string_, string_))
 	}
+}
+
+func TestRegExp_notNotEmptyCharacterClass(t *testing.T) {
+	Terst(t)
+	test := runTest()
+	test(`
+        var abc = /[\s\S]a/m.exec("a\naba");
+        [ abc.length, abc.input, abc ];
+    `, "1,a\naba,\na")
 }

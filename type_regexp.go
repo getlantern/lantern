@@ -105,7 +105,10 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 			valueArray[index] = UndefinedValue()
 		}
 	}
-	return runtime.newArray(valueArray)
+	match := runtime.newArray(valueArray)
+	match.set("input", toValue(target), false)
+	match.set("index", toValue(result[0]), false)
+	return match
 }
 
 // 0031,0032,0033,0034,0035,0036,0037,0038,0039 // 1 - 9
