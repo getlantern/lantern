@@ -31,7 +31,7 @@ func builtinString_fromCharCode(call FunctionCall) Value {
 	for index, value := range call.ArgumentList {
 		chrList[index] = toUint16(value)
 	}
-	return toValue(string(utf16.Decode(chrList)))
+	return toValue(chrList)
 }
 
 func builtinString_charAt(call FunctionCall) Value {
@@ -425,7 +425,7 @@ func builtinString_substr(call FunctionCall) Value {
 	if start+length >= size {
 		// Cap length to be to the end of the string
 		// start = 3, length = 5, size = 4 [0, 1, 2, 3]
-		// 4 - 3 = 1 
+		// 4 - 3 = 1
 		// target[3:4]
 		length = size - start
 	}

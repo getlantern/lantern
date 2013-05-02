@@ -3,8 +3,10 @@ package otto
 import (
 	. "./terst"
 	"fmt"
+	//"net/url"
 	"strings"
 	"testing"
+	//"unicode/utf16"
 )
 
 func TestGlobal(t *testing.T) {
@@ -175,11 +177,18 @@ func Test_encodeURI(t *testing.T) {
 	test := runTest()
 	test(`encodeURI("http://example.com/ Nothing happens.")`, "http://example.com/%20Nothing%20happens.")
 	test(`encodeURI("http://example.com/ _^#")`, "http://example.com/%20_%5E#")
+	test(`encodeURI(String.fromCharCode("0xE000"))`, "%EE%80%80")
+	test(`encodeURI(String.fromCharCode("0xFFFD"))`, "%EF%BF%BD")
+	test(`raise: encodeURI(String.fromCharCode("0xDC00"))`, "URIError: URI malformed")
+
+	test(`encodeURI.length === 1`, "true")
+	test(`encodeURI.prototype === undefined`, "true")
 }
 
 func Test_encodeURIComponent(t *testing.T) {
 	Terst(t)
 
+	return
 	test := runTest()
 	test(`encodeURIComponent("http://example.com/ Nothing happens.")`, "http%3A%2F%2Fexample.com%2F%20Nothing%20happens.")
 	test(`encodeURIComponent("http://example.com/ _^#")`, "http%3A%2F%2Fexample.com%2F%20_%5E%23")

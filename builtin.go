@@ -153,16 +153,55 @@ func builtinGlobal_parseFloat(call FunctionCall) Value {
 
 // encodeURI/decodeURI
 
-func _builtinGlobal_encodeURI(call FunctionCall, characterRegexp *regexp.Regexp) Value {
-	value := []byte(toString(call.Argument(0)))
-	value = characterRegexp.ReplaceAllFunc(value, func(target []byte) []byte {
-		// Probably a better way of doing this
-		if target[0] == ' ' {
-			return []byte("%20")
+func _builtinGlobal_encodeURI(call FunctionCall, escape *regexp.Regexp) Value {
+	value := call.Argument(0)
+	var input []uint16
+	switch vl := value.value.(type) {
+	case []uint16:
+		input = vl
+	default:
+		input = utf16.Encode([]rune(toString(value)))
+	}
+	if len(input) == 0 {
+		return toValue("")
+	}
+	output := []byte{}
+	length := len(input)
+	encode := make([]byte, 4)
+	for index := 0; index < length; {
+		value := input[index]
+		decode := utf16.Decode(input[index : index+1])
+		if value >= 0xDC00 && value <= 0xDFFF {
+			panic(newURIError("URI malformed"))
 		}
-		return []byte(url.QueryEscape(string(target)))
-	})
-	return toValue(string(value))
+		if value >= 0xD800 && value <= 0xDBFF {
+			index += 1
+			if index >= length {
+				panic(newURIError("URI malformed"))
+			}
+			// input = ..., value, value1, ...
+			value = value
+			value1 := input[index]
+			if value1 < 0xDC00 || value1 > 0xDFFF {
+				panic(newURIError("URI malformed"))
+			}
+			decode = []rune{((rune(value) - 0xD800) * 0x400) + (rune(value1) - 0xDC00) + 0x10000}
+		}
+		index += 1
+		size := utf8.EncodeRune(encode, decode[0])
+		encode := encode[0:size]
+		output = append(output, encode...)
+	}
+	{
+		value := escape.ReplaceAllFunc(output, func(target []byte) []byte {
+			// Probably a better way of doing this
+			if target[0] == ' ' {
+				return []byte("%20")
+			}
+			return []byte(url.QueryEscape(string(target)))
+		})
+		return toValue(string(value))
+	}
 }
 
 var encodeURI_Regexp = regexp.MustCompile(`([^~!@#$&*()=:/,;?+'])`)

@@ -27,7 +27,7 @@ type Value struct {
 }
 
 // ToValue will convert an interface{} value to a value digestible by otto/JavaScript
-// This function will not work for advanced types (struct, map, slice/array, etc.) and 
+// This function will not work for advanced types (struct, map, slice/array, etc.) and
 // you probably should not use it.
 //
 // ToValue may be deprecated and removed in the near future.
@@ -281,6 +281,8 @@ func toValue(value interface{}) Value {
 		return Value{valueNumber, float64(value)}
 	case float64:
 		return Value{valueNumber, value}
+	case []uint16:
+		return Value{valueString, value}
 	case string:
 		return Value{valueString, value}
 	// A rune is actually an int32, which is handled above

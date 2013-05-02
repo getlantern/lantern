@@ -5,6 +5,7 @@ import (
 	"math"
 	"regexp"
 	"strconv"
+	"unicode/utf16"
 )
 
 var matchLeading0Exponent = regexp.MustCompile(`([eE][\+\-])0+([1-9])`)
@@ -43,7 +44,12 @@ func numberToStringRadix(value Value, radix int) string {
 
 func toString(value Value) string {
 	if value._valueType == valueString {
-		return value.value.(string)
+		switch value := value.value.(type) {
+		case string:
+			return value
+		case []uint16:
+			return string(utf16.Decode(value))
+		}
 	}
 	if value.IsUndefined() {
 		return "undefined"
@@ -84,6 +90,8 @@ func toString(value Value) string {
 			return "0" // Take care not to return -0
 		}
 		return floatToString(value, 64)
+	case []uint16:
+		return string(utf16.Decode(value))
 	case string:
 		return value
 	case *_object:

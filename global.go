@@ -708,8 +708,8 @@ func newContext() *_runtime {
 		"isFinite", -1, builtinGlobal_isFinite,
 		"decodeURI", -1, builtinGlobal_decodeURI,
 		"decodeURIComponent", -1, builtinGlobal_decodeURIComponent,
-		"encodeURI", builtinGlobal_encodeURI,
-		"encodeURIComponent", builtinGlobal_encodeURIComponent,
+		"encodeURI", -1, builtinGlobal_encodeURI,
+		"encodeURIComponent", -1, builtinGlobal_encodeURIComponent,
 		"escape", builtinGlobal_escape,
 		"unescape", builtinGlobal_unescape,
 	)
