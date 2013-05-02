@@ -193,6 +193,7 @@ func (self *_parser) parseInIteration(parse func() _node) []_node {
 	default:
 		return []_node{node}
 	}
+	panic("")
 }
 
 func (self *_parser) ParseDoWhile() _node {
