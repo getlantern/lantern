@@ -306,7 +306,7 @@ func (self *_regExpStash) put(name string, value Value) {
 	switch name {
 	case "global", "ignoreCase", "multiline", "source":
 		// TODO Is this good enough? Check DefineOwnProperty
-		panic(newTypeError())
+		return
 	case "lastIndex":
 		self._regExpObject.LastIndex = value
 		return

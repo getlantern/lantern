@@ -199,6 +199,14 @@ func TestRegExp_source(t *testing.T) {
         var def = new RegExp(abc);
         [ abc.source, def.source, abc.source === def.source ];
     `, ".,.,true")
+
+	test(`
+        var abc = /./i;
+        var def = abc.hasOwnProperty("source");
+        var ghi = abc.source;
+        abc.source = "xyzzy";
+        [ def, abc.source ];
+    `, "true,.")
 }
 
 func TestRegExp_newRegExp(t *testing.T) {
