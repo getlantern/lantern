@@ -175,6 +175,8 @@ func newContext() *_runtime {
 		"defineProperty", 3, builtinObject_defineProperty,
 		"defineProperties", 2, builtinObject_defineProperties,
 		"create", 2, builtinObject_create,
+		"isExtensible", -1, builtinObject_isExtensible,
+		"preventExtensions", -1, builtinObject_preventExtensions,
 	)
 
 	self.Global.Function = self.newGlobalFunction(
@@ -669,7 +671,7 @@ func newContext() *_runtime {
 		"RegExp", builtinRegExp,
 		builtinNewRegExp,
 		self.Global.RegExpPrototype,
-		"toString", -0xff, builtinRegExp_toString,
+		"toString", -255, builtinRegExp_toString,
 		"exec", -1, builtinRegExp_exec,
 		"test", -1, builtinRegExp_test,
 	)
@@ -832,7 +834,7 @@ func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction, leng
 	if 0 > length {
 		length *= -1
 		// TODO Achk... hack
-		if length == 0xff {
+		if length == 255 {
 			length = 0
 		}
 		prototype = false

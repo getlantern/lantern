@@ -196,7 +196,7 @@ func (self *_object) defineOwnProperty(name string, descriptor _property, throw 
 	{
 		if !exists {
 			if !self.extensible() {
-				return false
+				goto Reject
 			}
 			self.stash.defineProperty(name, descriptor.value, descriptor.mode)
 			return true
@@ -213,7 +213,7 @@ func (self *_object) defineOwnProperty(name string, descriptor _property, throw 
 		configurable := property.configurable()
 		if !configurable {
 			if descriptor.configurable() {
-				return false
+				goto Reject
 			}
 			// Test that, if enumerable is set on the property descriptor, then it should
 			// be the same as the existing property
@@ -237,22 +237,27 @@ func (self *_object) defineOwnProperty(name string, descriptor _property, throw 
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {
 			if !configurable {
 				if property.writable() != descriptor.writable() {
-					return false
+					goto Reject
 				} else if !sameValue(value, descriptor.value.(Value)) {
-					return false
+					goto Reject
 				}
 			}
 		} else {
 			if !configurable {
 				defineGetSet, _ := descriptor.value.(_propertyGetSet)
 				if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
-					return false
+					goto Reject
 				}
 			}
 		}
 		self.stash.defineProperty(name, descriptor.value, descriptor.mode)
 		return true
 	}
+Reject:
+	if throw {
+		panic(newTypeError())
+	}
+	return false
 }
 
 func (self *_object) hasOwnProperty(name string) bool {

@@ -62,3 +62,49 @@ func TestObject_toLocaleString(t *testing.T) {
         object.toLocaleString();
     `, "Nothing happens.")
 }
+
+func TestObject_isExtensible(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise:
+        Object.isExtensible();
+    `, "TypeError")
+	test(`raise:
+        Object.isExtensible({});
+    `, "true")
+
+	test(`Object.isExtensible.length`, "1")
+	test(`Object.isExtensible.prototype`, "undefined")
+}
+
+func TestObject_preventExtensions(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise:
+        Object.preventExtensions()
+    `, "TypeError")
+
+	test(`raise:
+        var abc = { def: true };
+        var ghi = Object.preventExtensions(abc);
+        [ ghi.def === true, Object.isExtensible(abc), Object.isExtensible(ghi) ];
+    `, "true,false,false")
+
+	test(`
+        var abc = new String();
+        var def = Object.isExtensible(abc);
+        Object.preventExtensions(abc);
+        var ghi = false;
+        try {
+            Object.defineProperty(abc, "0", { value: "~" });
+        } catch (err) {
+            ghi = err instanceof TypeError;
+        }
+        [ def, ghi, abc.hasOwnProperty("0"), typeof abc[0] ];
+    `, "true,true,false,undefined")
+
+	test(`Object.preventExtensions.length`, "1")
+	test(`Object.preventExtensions.prototype`, "undefined")
+}

@@ -126,3 +126,21 @@ func builtinObject_create(call FunctionCall) Value {
 
 	return toValue(object)
 }
+
+func builtinObject_isExtensible(call FunctionCall) Value {
+	object := call.Argument(0)
+	if object := object._object(); object != nil {
+		return toValue(object.stash.extensible())
+	}
+	panic(newTypeError())
+}
+
+func builtinObject_preventExtensions(call FunctionCall) Value {
+	object := call.Argument(0)
+	if object := object._object(); object != nil {
+		object.stash.lock()
+	} else {
+		panic(newTypeError())
+	}
+	return object
+}
