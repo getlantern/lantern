@@ -404,7 +404,7 @@
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div>{{ 'FINISHED_PROMPT' | i18n }}</div>
+    <div>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</div>
     <div id="finished-autoReport">
       <label class="checkbox inline">
         <input type="checkbox" ng-model="autoReport"
