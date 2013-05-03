@@ -307,7 +307,7 @@ public class GeoIpCompressor {
 
         writeCompressedLocations(outStream);
 
-        System.out.println("After writing locations: "
+        LOG.debug("Bytes used after writing locations: "
                 + outStream.getByteCount());
 
         File blocksFile = new File(in, "GeoLiteCity-Blocks.csv");
@@ -370,13 +370,13 @@ public class GeoIpCompressor {
         }
         bitStream.flush();
 
-        System.out.println("After quantized: " + outStream.getByteCount());
+        LOG.debug("Bytes used after quantized: " + outStream.getByteCount());
         outStream.write(BitUtils.toByteArray(countryIdToCountry.size()));
         // write out the list of countries by id
         for (String country : countryIdToCountry) {
             outStream.write(country.getBytes());
         }
-        System.out.println("After country: " + outStream.getByteCount());
+        LOG.debug("Bytes used after country: " + outStream.getByteCount());
 
         // write out the range-coded countries for pixel ids
         RCModel model = new FenwickTreeModel(countryToCountryId.size());
@@ -411,7 +411,7 @@ public class GeoIpCompressor {
         }
         outStream.write(BitUtils.toByteArray(-1));
 
-        System.out.println("After singletons/doubletons: "
+        LOG.debug("Bytes used after singletons/doubletons: "
                 + outStream.getByteCount());
         int number = 1;
         for (int range : ipRangeList) {
@@ -423,7 +423,7 @@ public class GeoIpCompressor {
             }
         }
         outStream.write(BitUtils.toByteArray(-1));
-        System.out.println("After other range sizes: "
+        LOG.debug("Bytes used after other range sizes: "
                 + outStream.getByteCount());
 
         CloseShieldOutputStream shielded = new CloseShieldOutputStream(
@@ -439,7 +439,7 @@ public class GeoIpCompressor {
         }
         compressedStream.close();
 
-        System.out.println("After iprangelist: " + outStream.getByteCount());
+        LOG.debug("Bytes used after iprangelist: " + outStream.getByteCount());
 
         shielded = new CloseShieldOutputStream(outStream);
 
@@ -458,7 +458,7 @@ public class GeoIpCompressor {
         }
         compressedStream.close();
 
-        System.out.println("After pixelidlist: " + outStream.getByteCount());
+        LOG.debug("Bytes used after pixelidlist: " + outStream.getByteCount());
     }
 
     /**
