@@ -23,7 +23,7 @@
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="report noHeightWhenHidden" ui-toggle="notify"
+      <textarea class="report noHeightWhenHidden" ui-toggle="notify" focus-on="show"
         ng-disabled="!notify" tabindex="{{ show && 2 || ''}}" maxlength="500000"
         ng-model="report" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}"></textarea>
     </form>
@@ -37,7 +37,7 @@
   </div>
 </div>
 
-<div id="settingsLoadFailure" modal="model.modal == MODAL.settingsLoadFailure">
+<div id="settingsLoadFailure" ng-controller="SettingsLoadFailureCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
@@ -46,11 +46,11 @@
     <form>
       <p>
         <label class="checkbox inline">
-          <input type="checkbox" ng-model="notify">
+          <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="report noHeightWhenHidden" ui-toggle="notify"
+      <textarea class="report noHeightWhenHidden" ui-toggle="notify" focus-on="show"
         ng-disabled="!notify" tabindex="{{ show && 2 || ''}}" maxlength="500000"
         ng-model="report" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}"></textarea>
     </form>
@@ -60,7 +60,7 @@
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET' | i18n }}
     </button>
-    <button type="button" ng-click="interaction(INTERACTION.retry, {notify: notify, report: report})" class="btn btn-primary">{{ 'RETRY' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.retry, {notify: notify, report: report})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'RETRY' | i18n }}</button>
   </div>
 </div>
 
@@ -296,7 +296,7 @@
       <form name="proxiedSitesForm">
         <textarea ng-model="input" name="input" placeholder="example.com" required
           ng-disabled="model.settings.proxyAllSites || updating"
-          ng-hide="!!searchText" ng-readonly="!!searchText"
+          ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
           ui-validate="validate" id="proxiedSitesInput"
           dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
         <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }}"

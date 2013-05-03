@@ -106,6 +106,13 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
   };
 }
 
+function SettingsLoadFailureCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(modal) {
+    $scope.show = modal === MODAL.settingsLoadFailure;
+  });
+}
+
 function UnexpectedStateCtrl($scope, $filter, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {
   var log = logFactory('UnexpectedStateCtrl');
 

@@ -48,7 +48,7 @@ angular.module('app.i18n', [])
       UNLOCK: 'Unlock',
       UNLOCKED: 'Unlocked',
       SETTINGS_LOAD_FAILURE_TITLE: 'Couldn’t Load Settings',
-      SETTINGS_LOAD_FAILURE_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Retry to try reloading your settings.',
+      SETTINGS_LOAD_FAILURE_PROMPT: 'Your settings could not be loaded. Try again, and if the problem persists, try quitting and restarting. As a last resort, choosing Reset will reset Lantern to its original state. Reporting any additional information about the problem to the Lantern developers can speed its resolution.',
       NOTIFY_LANTERN_DEVS: 'Notify Lantern developers',
       UNEXPECTED_ERROR: 'An unexpected error has occurred.',
       ERROR: 'An error has occurred.',
