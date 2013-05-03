@@ -269,6 +269,7 @@ public class Country {
         "ZM", "ZAMBIA",
         "ZW", "ZIMBABWE",
     };
+    private static HashMap<String, Country> allCountries;
 
 
     public Country() {
@@ -306,7 +307,10 @@ public class Country {
     }
 
     public static Map<String, Country> allCountries() {
-        Map<String,Country> allCountries = new HashMap<String, Country>();
+        if (allCountries != null) {
+            return allCountries;
+        }
+        allCountries = new HashMap<String, Country>();
         DefaultCensored censored = new DefaultCensored();
         for (int i = 0; i < countryTable.length; i += 2) {
             String countryCode = countryTable[i];
@@ -315,6 +319,10 @@ public class Country {
             allCountries.put(countryCode, new Country(countryCode, countryName, isCensored));
         }
         return allCountries;
+    }
+
+    public static Country getCountryByCode(String code) {
+        return allCountries.get(code);
     }
 
     public long getBps() {

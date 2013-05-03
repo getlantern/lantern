@@ -1,17 +1,13 @@
 package org.lantern;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.TreeSet;
-import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.state.Location;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.maxmind.geoip.LookupService;
 
 /**
  * Class that keeps track of which countries are considered censored.
@@ -59,10 +54,10 @@ public class DefaultCensored implements Censored {
             "YE" // Yemen
         ));
 
-    private final LookupService lookupService;
-    
+    private final GeoIpLookupService lookupService;
+
     @Inject
-    public DefaultCensored(final LookupService lookupService) {
+    public DefaultCensored(final GeoIpLookupService lookupService) {
         this.lookupService = lookupService;
     }
 
@@ -70,34 +65,7 @@ public class DefaultCensored implements Censored {
      * This is just used for testing...
      */
     public DefaultCensored() {
-        this(provideLookupService());
-    }
-    
-    private static LookupService provideLookupService() {
-        final File unzipped = 
-                new File(LanternClientConstants.DATA_DIR, "GeoIP.dat");
-        if (!unzipped.isFile())  {
-            final File file = new File("GeoIP.dat.gz");
-            GZIPInputStream is = null;
-            OutputStream os = null;
-            try {
-                is = new GZIPInputStream(new FileInputStream(file));
-                os = new FileOutputStream(unzipped);
-                IOUtils.copy(is, os);
-            } catch (final IOException e) {
-                LOG.error("Error expanding file?", e);
-            } finally {
-                IOUtils.closeQuietly(is);
-                IOUtils.closeQuietly(os);
-            }
-        }
-        try {
-            return new LookupService(unzipped, 
-                    LookupService.GEOIP_MEMORY_CACHE);
-        } catch (final IOException e) {
-            LOG.error("Could not create LOOKUP service?");
-        }
-        return null;
+        this(new GeoIpLookupService());
     }
 
     // These country codes have US export restrictions, and therefore cannot
@@ -128,10 +96,8 @@ public class DefaultCensored implements Censored {
             LOG.warn("Could not get public IP!!");
             return new Country("", "", true);
         }
-        final com.maxmind.geoip.Country country = 
-            lookupService.getCountry(address);
-        return new Country(country.getCode(), country.getName(), 
-            isCountryCodeCensored(country.getCode()));
+        Location location = lookupService.getLocation(address);
+        return Country.getCountryByCode(location.getCountry());
     }
 
     @Override
@@ -190,9 +156,6 @@ public class DefaultCensored implements Censored {
     }
     
     private String countryCode(final InetAddress address) {
-        final com.maxmind.geoip.Country country = 
-            lookupService.getCountry(address);
-        LOG.debug("Country is: {}", country.getName());
-        return country.getCode().trim();
+        return lookupService.getLocation(address).getCountry();
     }
 }

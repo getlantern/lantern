@@ -278,12 +278,6 @@
 
     <dependency>
       <groupId>org.littleshoot</groupId>
-      <artifactId>geoip</artifactId>
-      <version>0.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
       <version>0.5.1</version>
     </dependency>
@@ -650,8 +644,18 @@
     </plugins>
     <resources>
       <resource>
-	<directory>src/main/resources</directory>
-	<filtering>true</filtering>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>**/*.db</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.db</include>
+        </includes>
       </resource>
     </resources>
     <pluginManagement>

@@ -15,13 +15,14 @@ import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
+import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.state.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.maxmind.geoip.LookupService;
 
 /**
  * Class for tracking statistics about Lantern.
@@ -81,12 +82,12 @@ public class StatsTracker implements Stats {
     
     private boolean natpmp;
 
-    private final LookupService lookupService;
+    private final GeoIpLookupService lookupService;
 
     private final Censored censored;
     
     @Inject
-    public StatsTracker(final Timer timer, final LookupService lookupService,
+    public StatsTracker(final Timer timer, final GeoIpLookupService lookupService,
         final Censored censored) {
         this.lookupService = lookupService;
         this.censored = censored;
@@ -378,9 +379,9 @@ public class StatsTracker implements Stats {
         }
         
         final InetAddress addr = isa.getAddress();
-        final com.maxmind.geoip.Country coun = lookupService.getCountry(addr);
-        final Country country = new Country(coun.getCode(), 
-            coun.getName(), censored.isCensored(coun.getCode()));
+        final Location location = lookupService.getLocation(addr);
+        final String countryCode = location.getCountry();
+        final Country country = Country.getCountryByCode(countryCode);
         final CountryData cd;
         final CountryData temp = new CountryData(country);
         final CountryData existing = 

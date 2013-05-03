@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,10 +69,10 @@ public class GeoIpCompressor {
 
     Bag rangeCounts = new HashBag();
 
-    private final List<Integer> ipRangeList = new ArrayList<Integer>();
-    private final List<Integer> pixelIdList = new ArrayList<Integer>();
+    final List<Integer> ipRangeList = new ArrayList<Integer>();
+    final List<Integer> pixelIdList = new ArrayList<Integer>();
 
-    private GeoIpCompressor() {
+    public GeoIpCompressor() {
     }
 
     /**
@@ -129,14 +130,17 @@ public class GeoIpCompressor {
         File blockFile = new File(out, "lantern-blocks.csv");
 
         InputStream inStream = new BufferedInputStream(new FileInputStream(in));
-        readCompressedLocations(inStream);
+        readCompressedData(inStream);
 
         writeDecompressedLocations(locationFile);
-
-        readCompressedBlocks(inStream);
-
         writeDecompressedBlocks(blockFile);
         LOG.debug("Done decompressing");
+    }
+
+    public void readCompressedData(InputStream inStream) throws FileNotFoundException,
+            IOException {
+        readCompressedLocations(inStream);
+        readCompressedBlocks(inStream);
     }
 
     private void writeDecompressedBlocks(File blockFile) throws IOException {
@@ -166,7 +170,7 @@ public class GeoIpCompressor {
         while (true) {
             byte[] b = new byte[4];
             inStream.read(b);
-            int i = bytesToInteger(b);
+            int i = BitUtils.byteArrayToInteger(b);
             if (i == -1)
                 break;
             singletons.add(i);
@@ -178,7 +182,7 @@ public class GeoIpCompressor {
         while (true) {
             byte[] b = new byte[4];
             inStream.read(b);
-            int i = bytesToInteger(b);
+            int i = BitUtils.byteArrayToInteger(b);
             if (i == -1)
                 break;
             rangeSizes.add(i);
@@ -255,7 +259,8 @@ public class GeoIpCompressor {
             throws IOException {
         byte[] b = new byte[4];
         inStream.read(b);
-        int numPixelIds = bytesToInteger(b);
+        int numPixelIds = BitUtils.byteArrayToInteger(b);
+        LOG.debug("nPixelIds = " + numPixelIds);
         BitInputStream bitStream = new BitInputStream(inStream);
 
         for (int i = 0; i < numPixelIds; ++i) {
@@ -265,7 +270,7 @@ public class GeoIpCompressor {
 
         // read in the list of countries ordered by id
         inStream.read(b);
-        int nCountries = bytesToInteger(b);
+        int nCountries = BitUtils.byteArrayToInteger(b);
         LOG.debug("nCountries = " + nCountries);
         for (int i = 0; i < nCountries; ++i) {
             byte[] countryCodeBytes = new byte[2];
@@ -292,11 +297,6 @@ public class GeoIpCompressor {
 
     }
 
-    static int bytesToInteger(byte[] b) {
-        return (b[0] << 24) | ((b[1] & 0xff) << 16) | ((b[2] & 0xff) << 8)
-                | (b[3] & 0xff);
-    }
-
     private void compressInternal(File in, File out) throws IOException {
         File locationFile = new File(in, "GeoLiteCity-Location.csv");
 
@@ -314,6 +314,8 @@ public class GeoIpCompressor {
         readBlocks(blocksFile);
         writeCompressedBlocks(outStream);
         outStream.close();
+
+        LOG.debug("Done writing compressed GeoIp file");
     }
 
     private void readBlocks(File blocksFile) throws IOException {
@@ -363,7 +365,10 @@ public class GeoIpCompressor {
 
     private void writeCompressedLocations(CountingOutputStream outStream)
             throws IOException {
-        outStream.write(BitUtils.toByteArray(pixelIdToQuantizedLatLon.size()));
+
+        int numLocations = pixelIdToQuantizedLatLon.size();
+        LOG.debug(numLocations + " pixel ids");
+        outStream.write(BitUtils.toByteArray(numLocations));
         BitOutputStream bitStream = new BitOutputStream(outStream);
         for (int quantized : pixelIdToQuantizedLatLon) {
             bitStream.write(quantized, 20);
@@ -511,5 +516,4 @@ public class GeoIpCompressor {
         }
         return country;
     }
-
 }

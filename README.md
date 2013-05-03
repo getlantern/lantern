@@ -87,6 +87,11 @@ In addition, install4jc expects the following variables defined in the environme
     INSTALL4J_MAC_PASS
     INSTALL4J_WIN_PASS
 
+
+## Building the compressed GeoIp database
+
+java -cp [path-to-lantern-jar] org.lantern.geoip.GeoIpCompressorRunner compress [path-to-GeoLiteCity-csv] src/main/resources/org/lantern/geoip/geoip.db
+
 Further Reading
 ---------------
 

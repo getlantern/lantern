@@ -17,6 +17,10 @@ public class Location {
 
     private double lon = 0;
 
+    /**
+     * Returns the two-letter country code for the country
+     * @return
+     */
     @JsonView({Run.class})
     public String getCountry() {
         return country;
