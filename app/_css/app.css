@@ -6936,12 +6936,10 @@ textarea {
   margin-left: 30px;
 }
 
-#proxiedSites .prompt, #proxiedSites .warning {
-  margin-bottom: 14px;
-}
 #proxiedSites .warning {
   text-align: center;
   font-size: 15.4px;
+  margin: 28px 0 14px;
 }
 #proxiedSites .warning i, #proxiedSites .warning a {
   color: #c09853;
@@ -6974,6 +6972,10 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+#proxiedSitesLabelAndSearchContainer {
+  margin-top: 28px;
 }
 
 #proxiedSitesLabel {

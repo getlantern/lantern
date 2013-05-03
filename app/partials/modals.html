@@ -254,7 +254,7 @@
         </label>
         <div class="control-extra">
           {{ 'PAC_FILE_LOC' | i18n }}
-          <a href="{{ model.connectivity.pacUrl }}">{{ model.connectivity.pacUrl }}</a>
+          {{ model.connectivity.pacUrl }}
         </div>
       </div>
     </div>
@@ -279,7 +279,7 @@
   </div>
   <div class="modal-body">
     <div class="prompt small">{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
-    <div class="warning" ui-toggle="model.settings.proxyAllSites">
+    <div class="warning noHeightWhenHidden" ui-toggle="model.settings.proxyAllSites">
       <i class="icon icon-warning-sign"></i>
       {{ 'PROXYING_ALL_WARNING' | i18n }}
       <a ng-click="changeSetting(SETTING.proxyAllSites, false)">
@@ -287,12 +287,14 @@
       </a>
     </div>
     <div>
-      <label id="proxiedSitesLabel" for="proxiedSitesInput">
-        {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
-      </label>
-      <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
-          ng-disabled="model.settings.proxyAllSites"
-          placeholder="{{ 'SEARCH' | i18n }}">
+      <div id="proxiedSitesLabelAndSearchContainer">
+        <label id="proxiedSitesLabel" for="proxiedSitesInput">
+          {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
+        </label>
+        <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
+            ng-disabled="model.settings.proxyAllSites"
+            placeholder="{{ 'SEARCH' | i18n }}">
+      </div>
       <form name="proxiedSitesForm">
         <textarea ng-model="input" name="input" placeholder="example.com" required
           ng-disabled="model.settings.proxyAllSites || updating"
@@ -604,7 +606,7 @@ You should have received a copy of the GNU General Public License along with thi
                 <i class="icon-info-sign"></i>
                 {{ 'PAC_FILE_LOC' | i18n }}
                 <div class="pacUrl">
-                  <a href="{{ model.connectivity.pacUrl }}">{{ model.connectivity.pacUrl }}</a>
+                  {{ model.connectivity.pacUrl }}
                 </div>
               </div>
             </div>
