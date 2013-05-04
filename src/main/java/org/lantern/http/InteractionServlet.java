@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -55,6 +56,7 @@ public class InteractionServlet extends HttpServlet {
 
     private final InternalState internalState;
 
+    // XXX DRY: these are also defined in lantern-ui/app/js/constants.js
     private enum Interaction {
         GET,
         GIVE,
@@ -75,6 +77,7 @@ public class InteractionServlet extends HttpServlet {
         DECLINE,
         UNEXPECTEDSTATERESET,
         UNEXPECTEDSTATEREFRESH,
+        URL,
         EXCEPTION
     }
 
@@ -186,6 +189,30 @@ public class InteractionServlet extends HttpServlet {
             if (handleClose(json)) {
                 return;
             }
+        }
+
+        if (inter == Interaction.URL) {
+            final String url = JsonUtils.getValueFromJson("url", json);
+            final String cmd;
+            if (SystemUtils.IS_OS_MAC_OSX) {
+                cmd = "open";
+            } else if (SystemUtils.IS_OS_LINUX) {
+                cmd = "gnome-open";
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                cmd = "start";
+            } else {
+                log.error("unsupported OS");
+                HttpUtils.sendClientError(resp, "unsupported OS");
+                return;
+            }
+            try {
+                LanternUtils.runCommand(cmd, url);
+            } catch (IOException e) {
+                log.error("open url failed");
+                HttpUtils.sendClientError(resp, "open url failed");
+                return;
+            }
+            return;
         }
 
         final Modal modal = this.model.getModal();
