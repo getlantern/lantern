@@ -206,7 +206,18 @@ public class InteractionServlet extends HttpServlet {
                 return;
             }
             try {
-                LanternUtils.runCommand(cmd, url);
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    // On Windows, we have to quote the url to allow for
+                    // e.g. ? and & characters in query string params.
+                    // To quote the url, we supply a dummy first argument,
+                    // since otherwise start treats the first argument as a
+                    // title for the new console window when it's quoted.
+                    LanternUtils.runCommand(cmd, "\"\"", "\""+url+"\"");
+                } else {
+                    // on OS X and Linux, special characters in the url make
+                    // it through this call without our having to quote them.
+                    LanternUtils.runCommand(cmd, url);
+                }
             } catch (IOException e) {
                 log.error("open url failed");
                 HttpUtils.sendClientError(resp, "open url failed");
