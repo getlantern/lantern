@@ -3,6 +3,9 @@ package org.lantern.http;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -112,6 +115,10 @@ public class InteractionServlet extends HttpServlet {
 
     private final InviteQueue inviteQueue;
 
+    /* only open external urls to these hosts: */
+    private static final HashSet<String> allowedDomains = new HashSet<String>(
+        Arrays.asList("google.com", "github.com", "getlantern.org"));
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
@@ -193,6 +200,30 @@ public class InteractionServlet extends HttpServlet {
 
         if (inter == Interaction.URL) {
             final String url = JsonUtils.getValueFromJson("url", json);
+            final URL url_;
+            if (!StringUtils.startsWith(url, "http://") &&
+                !StringUtils.startsWith(url, "https://")) {
+                log.error("http(s) url expected, got {}", url);
+                HttpUtils.sendClientError(resp, "http(s) urls only");
+                return;
+            }
+            try {
+                url_ = new URL(url);
+            } catch (MalformedURLException e) {
+                log.error("invalid url: {}", url);
+                HttpUtils.sendClientError(resp, "invalid url");
+                return;
+            }
+            final String host = url_.getHost();
+            final String[] hostParts = StringUtils.split(host, ".");
+            final String domain = hostParts[hostParts.length-2] + "." +
+                hostParts[hostParts.length-1];
+            if (!allowedDomains.contains(domain)) {
+                log.error("domain not allowed: {}", domain);
+                HttpUtils.sendClientError(resp, "domain not allowed");
+                return;
+            }
+
             final String cmd;
             if (SystemUtils.IS_OS_MAC_OSX) {
                 cmd = "open";
