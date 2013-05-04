@@ -22,7 +22,8 @@ import org.littleshoot.util.FiveTuple;
 public class DefaultProxyTrackerTest {
     @Test
     public void testDefaultProxyTracker() throws URISyntaxException, InterruptedException {
-        Model model = new Model();
+        final CountryService countryService = TestUtils.getCountryService();
+        Model model = new Model(countryService);
 
         //assume that we are connected to the Internet
         model.getConnectivity().setInternet(true);

@@ -84,13 +84,13 @@ public class StatsTracker implements Stats {
 
     private final GeoIpLookupService lookupService;
 
-    private final Censored censored;
-    
+    private final CountryService countryService;
+
     @Inject
     public StatsTracker(final Timer timer, final GeoIpLookupService lookupService,
-        final Censored censored) {
+        CountryService countryService) {
         this.lookupService = lookupService;
-        this.censored = censored;
+        this.countryService = countryService;
         //this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
         Events.register(this);
     }
@@ -381,7 +381,7 @@ public class StatsTracker implements Stats {
         final InetAddress addr = isa.getAddress();
         final Location location = lookupService.getLocation(addr);
         final String countryCode = location.getCountry();
-        final Country country = Country.getCountryByCode(countryCode);
+        final Country country = countryService.getCountryByCode(countryCode);
         final CountryData cd;
         final CountryData temp = new CountryData(country);
         final CountryData existing = 
@@ -395,30 +395,7 @@ public class StatsTracker implements Stats {
         cd.addresses.add(addr);
         return cd;
     }
-    
 
-    public CountryData newCountryData(final String cc, 
-        final String name) {
-        if (countries.containsKey(cc)) {
-            return countries.get(cc);
-        } 
-        final Country co = new Country(cc, name, 
-            censored.isCountryCodeCensored(cc));
-        final CountryData cd = new CountryData(co);
-        countries.put(cc, cd);
-        return cd;
-    }
-
-    @Override
-    public String getCountryCode() {
-        try {
-            return censored.countryCode();
-        } catch (IOException e) {
-            log.warn("Could not report country code", e);
-            return "";
-        }
-    }
-    
     @Override
     public String getVersion() {
         return LanternClientConstants.VERSION;
@@ -432,7 +409,7 @@ public class StatsTracker implements Stats {
         final JSONObject data = new JSONObject();
         
         private CountryData(final Country country) {
-            data.put("censored", censored.isCensored(country));
+            data.put("censored", country.isCensors());
             data.put("name", country.getName());
             data.put("code", country.getCode());
             data.put("lantern", lanternData);

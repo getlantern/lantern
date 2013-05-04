@@ -18,7 +18,8 @@ public class ProxifierTest {
         
         ModelUtils stub = newModelUtils();
         // Just make sure we don't get an exception
-        new Proxifier(null, stub, new Model(), null);
+        final CountryService countryService = TestUtils.getCountryService();
+        new Proxifier(null, stub, new Model(countryService), null);
     }
 
     private ModelUtils newModelUtils() {

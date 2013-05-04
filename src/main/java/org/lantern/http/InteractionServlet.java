@@ -691,7 +691,7 @@ public class InteractionServlet extends HttpServlet {
                 log.warn("Could not delete model file?");
             }
         }
-        final Model base = new Model();
+        final Model base = new Model(model.getCountryService());
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
         model.setNinvites(base.getNinvites());

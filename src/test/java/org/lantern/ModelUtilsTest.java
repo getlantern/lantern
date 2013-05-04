@@ -3,9 +3,6 @@ package org.lantern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.util.Collection;
-
 import org.junit.Test;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.util.HttpClientFactory;
@@ -29,42 +26,8 @@ public class ModelUtilsTest {
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);
-        final HttpClientFactory httpClient = 
-            new HttpClientFactory(socketsUtil, new Censored() {
-            
-            @Override
-            public boolean isExportRestricted(String string) throws IOException {
-                return false;
-            }
-            @Override
-            public boolean isCountryCodeCensored(String cc) {
-                return false;
-            }
-            @Override
-            public boolean isCensored(Country country) {
-                return true;
-            }
-            @Override
-            public boolean isCensored() {
-                return true;
-            }
-            @Override
-            public boolean isCensored(String string) throws IOException {
-                return true;
-            }
-            @Override
-            public Collection<String> getCensored() {
-                return null;
-            }
-            @Override
-            public String countryCode() throws IOException {
-                return null;
-            }
-            @Override
-            public Country country() throws IOException {
-                return null;
-            }
-        });
+        final HttpClientFactory httpClient =
+            new HttpClientFactory(socketsUtil, new TestCensored());
         final DefaultModelUtils modelUtils = new DefaultModelUtils(null, httpClient);
         final GeoData data = modelUtils.getGeoData("86.170.128.133");
         assertTrue(data.getLatitude() > 50.0);

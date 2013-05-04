@@ -7,6 +7,7 @@ import java.io.File;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.CountryService;
 import org.lantern.TestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,9 @@ public class ModelIoTest {
     
     @Test
     public void testModelIo() throws Exception {
-        ModelIo io =
-            new ModelIo(testFile, TestUtils.getEncryptedFileService(), null);
+        CountryService countryService = TestUtils.getCountryService();
+        ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
+                null, countryService);
 
         Model model = io.get();
         
@@ -45,7 +47,8 @@ public class ModelIoTest {
         }
         io.write();
 
-        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null);
+        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null,
+                countryService);
         model = io.get();
         system = model.getSystem();
         connectivity = model.getConnectivity();

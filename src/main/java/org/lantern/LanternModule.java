@@ -74,6 +74,7 @@ public class LanternModule extends AbstractModule {
     private NatPmpService natPmpService;
     
     private UpnpService upnpService;
+    private GeoIpLookupService geoIpLookupService;
 
     @Override 
     protected void configure() {
@@ -129,7 +130,7 @@ public class LanternModule extends AbstractModule {
         bind(ConnectivityChecker.class);
         bind(InviteQueue.class);
         bind(GeoIp.class);
-        bind(GeoIpLookupService.class);
+        bind(CountryService.class);
 
         try {
             copyFireFoxExtension();
@@ -137,7 +138,16 @@ public class LanternModule extends AbstractModule {
             log.error("Could not copy FireFox extension?", e);
         }
     }
-    
+
+    @Provides @Singleton
+    public GeoIpLookupService provideGeoIpLookupService() {
+        // Testing.
+        if (this.geoIpLookupService != null) {
+            return this.geoIpLookupService;
+        }
+        return new GeoIpLookupService();
+    }
+
     @Provides @Singleton
     public UpnpService provideUpnpService(final Stats stats) {
         // Testing.
@@ -298,5 +308,9 @@ public class LanternModule extends AbstractModule {
     }
     public void setUpnpService(UpnpService upnpService) {
         this.upnpService = upnpService;
+    }
+
+    public void setGeoIpLookupService(GeoIpLookupService geoIpLookupService) {
+        this.geoIpLookupService = geoIpLookupService;
     }
 }

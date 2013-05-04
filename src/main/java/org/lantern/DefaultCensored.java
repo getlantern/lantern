@@ -5,9 +5,7 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringUtils;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.state.Location;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,32 +72,6 @@ public class DefaultCensored implements Censored {
         Sets.newHashSet(
             "SY");
 
-    private String countryCode;
-    
-    @Override
-    public String countryCode() throws IOException {
-        if (StringUtils.isNotBlank(countryCode)) {
-            LOG.info("Returning cached country code: {}", countryCode);
-            return countryCode;
-        }
-        
-        LOG.info("Returning country code: {}", countryCode);
-        countryCode = country().getCode().trim();
-        return countryCode;
-    }
-    
-    @Override
-    public Country country() throws IOException {
-        final InetAddress address = new PublicIpAddress().getPublicIpAddress();
-        if (address == null) {
-            // Just return an empty country instead of throwing null pointer.
-            LOG.warn("Could not get public IP!!");
-            return new Country("", "", true);
-        }
-        Location location = lookupService.getLocation(address);
-        return Country.getCountryByCode(location.getCountry());
-    }
-
     @Override
     public boolean isCensored() {
         return isCensored(new PublicIpAddress().getPublicIpAddress());
@@ -111,25 +83,7 @@ public class DefaultCensored implements Censored {
         return CENSORED.contains(cc);
     }
 
-    @Override
-    public Collection<String> getCensored() {
-        return CENSORED;
-    }
-    
-    @Override
-    public boolean isCensored(final String address) throws IOException {
-        return isCensored(InetAddress.getByName(address));
-    }
-    
 
-    @Override
-    public boolean isCountryCodeCensored(final String cc) {
-        if (StringUtils.isBlank(cc)) {
-            return false;
-        }
-        return CENSORED.contains(cc);
-    }
-    
     public boolean isExportRestricted() {
         return isExportRestricted(new PublicIpAddress().getPublicIpAddress());
     }
@@ -157,5 +111,10 @@ public class DefaultCensored implements Censored {
     
     private String countryCode(final InetAddress address) {
         return lookupService.getLocation(address).getCountry();
+    }
+
+    @Override
+    public boolean isCountryCodeCensored(String cc) {
+        return CENSORED.contains(cc);
     }
 }

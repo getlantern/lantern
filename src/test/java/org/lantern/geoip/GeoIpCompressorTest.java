@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.lantern.TestUtils;
 
 import com.csvreader.CsvReader;
 import com.google.common.io.Files;
@@ -50,7 +51,7 @@ public class GeoIpCompressorTest {
 
     @Test
     public void testLookupService() {
-        GeoIpLookupService lookupService = new GeoIpLookupService(false);
+        GeoIpLookupService lookupService = TestUtils.getGeoIpLookupService();
         //check that data loads
         assertEquals("US", lookupService.getLocation("18.1.1.1").getCountry());
     }

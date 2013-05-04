@@ -50,8 +50,6 @@ public interface Stats {
 
     boolean isNatpmp();
 
-    String getCountryCode();
-
     String getVersion();
 
     void setNatpmp(boolean natpmp);

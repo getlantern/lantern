@@ -3,6 +3,8 @@ package org.lantern.geoip;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import org.lantern.state.Location;
@@ -30,11 +32,9 @@ public class GeoIpLookupService {
         this(true);
     }
 
-    public GeoIpLookupService(boolean threadDataLoading) {
-        if (threadDataLoading) {
+    public GeoIpLookupService(boolean loadImmediately) {
+        if (loadImmediately) {
             threadLoadData();
-        } else {
-            loadData();
         }
     }
 
@@ -53,6 +53,9 @@ public class GeoIpLookupService {
 
     private Location getLocation(byte[] bytes) {
         // we might have to wait here until our table is set up.
+        if (table == null) {
+            loadData();
+        }
         while (!dataLoaded) {
             try {
                 synchronized(this) {
@@ -102,20 +105,27 @@ public class GeoIpLookupService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        // convert
-        long startIp = 0;
-        for (int i = 0; i < compressor.ipRangeList.size(); ++i) {
-            int range = compressor.ipRangeList.get(i);
-            int pixelId = compressor.pixelIdList.get(i);
+        // convert to searchable form
+
+        List<Location> locations = new ArrayList<Location>();
+        for (int i = 0; i < compressor.pixelIdToCountry.size(); ++i) {
             Location location = new Location();
-            int countryId = compressor.pixelIdToCountry.get(pixelId);
+            int countryId = compressor.pixelIdToCountry.get(i);
             String countryCode = compressor.countryIdToCountry
                     .get(countryId);
             location.setCountry(countryCode);
             int quantized = compressor.pixelIdToQuantizedLatLon
-                    .get(pixelId);
+                    .get(i);
             location.setLat(compressor.getLatFromQuantized(quantized));
             location.setLon(compressor.getLonFromQuantized(quantized));
+            locations.add(location);
+        }
+
+        long startIp = 0;
+        for (int i = 0; i < compressor.ipRangeList.size(); ++i) {
+            int range = compressor.ipRangeList.get(i);
+            int pixelId = compressor.pixelIdList.get(i);
+            Location location = locations.get(pixelId);
             table.put(startIp, location);
             startIp += range;
         }
