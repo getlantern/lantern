@@ -969,7 +969,19 @@ public class LanternUtils {
     public static String runCommand(final String cmd, final String... args)
             throws IOException {
         LOG.debug("Command: {}\nargs: {}", cmd, Arrays.asList(args));
-        final CommandLine command = new CommandLine(cmd, args);
+        final CommandLine command;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            String[] cmdline = new String[args.length + 3];
+            cmdline[0] = "cmd.exe";
+            cmdline[1] = "/C";
+            cmdline[2] = cmd;
+            for (int i=0; i<args.length; ++i) {
+                cmdline[3+i] = args[i];
+            }
+            command = new CommandLine(cmdline);
+        } else {
+            command = new CommandLine(cmd, args);
+        }
         command.execute();
         final String output = command.getStdOut();
         if (!command.isSuccessful()) {
