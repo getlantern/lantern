@@ -10,6 +10,9 @@ import (
 func TestDate(t *testing.T) {
 	Terst(t)
 
+	// Passing or failing should not be dependent on what time zone we're in
+	defer mockTimeLocal(Time.UTC)()
+
 	test := runTest()
 
 	time := Time.Unix(1348616313, 47*1000*1000).Local()
@@ -48,15 +51,13 @@ func TestDate(t *testing.T) {
 	check(`abc.getUTCMilliseconds()`, 47)
 	_, offset := time.Zone()
 	check(`abc.getTimezoneOffset()`, offset/-60)
-	if false {
-		// TODO (When parsing is implemented)
-		test(`new Date("Xyzzy").getTime()`, "NaN")
-	}
+
+	test(`new Date("Xyzzy").getTime()`, "NaN")
 
 	test(`abc.setFullYear(2011); abc.toUTCString()`, "Sun, 25 Sep 2011 23:38:33 UTC")
 	test(`new Date(12564504e5).toUTCString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
-	test(`new Date(2009, 9, 25).toUTCString()`, "Sun, 25 Oct 2009 07:00:00 UTC")
-	test(`+(new Date(2009, 9, 25))`, "1256454000000")
+	test(`new Date(2009, 9, 25).toUTCString()`, "Sun, 25 Oct 2009 00:00:00 UTC")
+	test(`+(new Date(2009, 9, 25))`, "1256428800000")
 
 	format := "Mon, 2 Jan 2006 15:04:05 MST"
 
@@ -117,17 +118,21 @@ func TestDate_UTC(t *testing.T) {
 func TestDate_setYear(t *testing.T) {
 	Terst(t)
 
-	// Make sure we do not fail just because we're running
-	// the test in a different time zone
-	local := Time.Local
-	Time.Local = Time.UTC
-	defer func() {
-		Time.Local = local
-	}()
+	// Passing or failing should not be dependent on what time zone we're in
+	defer mockTimeLocal(Time.UTC)()
+
 	test := runTest()
 	test(`new Date(12564504e5).setYear(96)`, "846223200000")
 	test(`new Date(12564504e5).setYear(1996)`, "846223200000")
 	test(`new Date(12564504e5).setYear(2000)`, "972453600000")
+}
+
+func mockTimeLocal(location *Time.Location) func() {
+	local := Time.Local
+	Time.Local = location
+	return func() {
+		Time.Local = local
+	}
 }
 
 func TestDateDefaultValue(t *testing.T) {
@@ -143,9 +148,12 @@ func TestDateDefaultValue(t *testing.T) {
 func TestDate_April1978(t *testing.T) {
 	Terst(t)
 
+	// Passing or failing should not be dependent on what time zone we're in
+	defer mockTimeLocal(Time.UTC)()
+
 	test := runTest()
 	test(`
         var abc = new Date(1978,3);
         [ abc.getYear(), abc.getMonth(), abc.valueOf() ];
-    `, "78,3,260265600000")
+    `, "78,3,260236800000")
 }
