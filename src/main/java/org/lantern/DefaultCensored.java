@@ -110,7 +110,7 @@ public class DefaultCensored implements Censored {
     }
     
     private String countryCode(final InetAddress address) {
-        return lookupService.getLocation(address).getCountry();
+        return lookupService.getGeoData(address).getCountrycode();
     }
 
     @Override

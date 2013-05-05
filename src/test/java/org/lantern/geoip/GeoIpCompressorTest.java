@@ -53,8 +53,8 @@ public class GeoIpCompressorTest {
     public void testLookupService() {
         GeoIpLookupService lookupService = TestUtils.getGeoIpLookupService();
         //check that data loads
-        assertEquals("US", lookupService.getLocation("18.1.1.1").getCountry());
-        assertEquals("IN", lookupService.getLocation("223.255.244.1").getCountry());
+        assertEquals("US", lookupService.getGeoData("18.1.1.1").getCountrycode());
+        assertEquals("IN", lookupService.getGeoData("223.255.244.1").getCountrycode());
     }
 
     private static class Location {

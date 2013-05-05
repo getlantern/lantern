@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.lantern.state.Location;
+import org.lantern.GeoData;
 import org.littleshoot.util.BitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class GeoIpLookupService {
     private static final Logger LOG = LoggerFactory
             .getLogger(GeoIpLookupService.class);
 
-    private TreeMap<Long, Location> table;
+    private TreeMap<Long, GeoData> table;
 
     private volatile boolean dataLoaded = false;
 
@@ -51,7 +51,7 @@ public class GeoIpLookupService {
         thread.start();
     }
 
-    private Location getLocation(byte[] bytes) {
+    private GeoData getGeoData(byte[] bytes) {
         // we might have to wait here until our table is set up.
         if (table == null) {
             loadData();
@@ -71,11 +71,11 @@ public class GeoIpLookupService {
         return table.floorEntry(address).getValue();
     }
 
-    public Location getLocation(InetAddress ip) {
-        return getLocation(ip.getAddress());
+    public GeoData getGeoData(InetAddress ip) {
+        return getGeoData(ip.getAddress());
     }
 
-    public Location getLocation(String ip) {
+    public GeoData getGeoData(String ip) {
         byte[] bytes = new byte[4];
         String[] parts = ip.split("\\.");
 
@@ -83,13 +83,13 @@ public class GeoIpLookupService {
             bytes[i] = (byte) Integer.parseInt(parts[i]);
         }
 
-        return getLocation(bytes);
+        return getGeoData(bytes);
     }
 
     private synchronized void loadData() {
         if (table != null)
             return;
-        table = new TreeMap<Long, Location>();
+        table = new TreeMap<Long, GeoData>();
 
         GeoIpCompressor compressor = new GeoIpCompressor();
         InputStream inStream = GeoIpLookupService.class
@@ -107,26 +107,26 @@ public class GeoIpLookupService {
         }
         // convert to searchable form
 
-        List<Location> locations = new ArrayList<Location>();
+        List<GeoData> GeoDatas = new ArrayList<GeoData>();
         for (int i = 0; i < compressor.pixelIdToCountry.size(); ++i) {
-            Location location = new Location();
+            GeoData GeoData = new GeoData();
             int countryId = compressor.pixelIdToCountry.get(i);
             String countryCode = compressor.countryIdToCountry
                     .get(countryId);
-            location.setCountry(countryCode);
+            GeoData.setCountrycode(countryCode);
             int quantized = compressor.pixelIdToQuantizedLatLon
                     .get(i);
-            location.setLat(compressor.getLatFromQuantized(quantized));
-            location.setLon(compressor.getLonFromQuantized(quantized));
-            locations.add(location);
+            GeoData.setLatitude(compressor.getLatFromQuantized(quantized));
+            GeoData.setLongitude(compressor.getLonFromQuantized(quantized));
+            GeoDatas.add(GeoData);
         }
 
         long startIp = 0;
         for (int i = 0; i < compressor.ipRangeList.size(); ++i) {
             int range = compressor.ipRangeList.get(i);
             int pixelId = compressor.pixelIdList.get(i);
-            Location location = locations.get(pixelId);
-            table.put(startIp, location);
+            GeoData GeoData = GeoDatas.get(pixelId);
+            table.put(startIp, GeoData);
             startIp += range;
         }
 

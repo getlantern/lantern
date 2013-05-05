@@ -16,7 +16,6 @@ import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.state.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -379,8 +378,8 @@ public class StatsTracker implements Stats {
         }
         
         final InetAddress addr = isa.getAddress();
-        final Location location = lookupService.getLocation(addr);
-        final String countryCode = location.getCountry();
+        final GeoData location = lookupService.getGeoData(addr);
+        final String countryCode = location.getCountrycode();
         final Country country = countryService.getCountryByCode(countryCode);
         final CountryData cd;
         final CountryData temp = new CountryData(country);
