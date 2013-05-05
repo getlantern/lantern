@@ -152,7 +152,7 @@ func dateFromGoDay(day Time.Weekday) int {
 	return int(day)
 }
 
-func newDateTime(argumentList []Value) (epoch float64) {
+func newDateTime(argumentList []Value, location *Time.Location) (epoch float64) {
 
 	pick := func(index int, default_ float64) (float64, bool) {
 		if index >= len(argumentList) {
@@ -194,7 +194,7 @@ func newDateTime(argumentList []Value) (epoch float64) {
 			year += 1900
 		}
 
-		time := Time.Date(int(year), dateToGoMonth(int(month)), int(day), int(hour), int(minute), int(second), int(millisecond)*1000*1000, Time.UTC)
+		time := Time.Date(int(year), dateToGoMonth(int(month)), int(day), int(hour), int(minute), int(second), int(millisecond)*1000*1000, location)
 		return timeToEpoch(time)
 
 	} else if len(argumentList) == 0 { // 0-argument

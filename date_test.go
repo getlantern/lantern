@@ -55,8 +55,8 @@ func TestDate(t *testing.T) {
 
 	test(`abc.setFullYear(2011); abc.toUTCString()`, "Sun, 25 Sep 2011 23:38:33 UTC")
 	test(`new Date(12564504e5).toUTCString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
-	test(`new Date(2009, 9, 25).toUTCString()`, "Sun, 25 Oct 2009 00:00:00 UTC")
-	test(`+(new Date(2009, 9, 25))`, "1256428800000")
+	test(`new Date(2009, 9, 25).toUTCString()`, "Sun, 25 Oct 2009 07:00:00 UTC")
+	test(`+(new Date(2009, 9, 25))`, "1256454000000")
 
 	format := "Mon, 2 Jan 2006 15:04:05 MST"
 
@@ -138,4 +138,14 @@ func TestDateDefaultValue(t *testing.T) {
         var date = new Date();
         date + 0 === date.toString() + "0";
     `, "true")
+}
+
+func TestDate_April1978(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = new Date(1978,3);
+        [ abc.getYear(), abc.getMonth(), abc.valueOf() ];
+    `, "78,3,260265600000")
 }

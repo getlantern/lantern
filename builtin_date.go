@@ -1,7 +1,7 @@
 package otto
 
 import (
-	time_ "time"
+	Time "time"
 )
 
 // Date
@@ -10,15 +10,15 @@ func builtinDate(call FunctionCall) Value {
 	date := &_dateObject{}
 	if len(call.ArgumentList) == 0 {
 		// TODO Should make this prettier
-		date.Set(newDateTime([]Value{}))
-		return toValue(date.Time().Format(time_.RFC1123))
+		date.Set(newDateTime([]Value{}, Time.Local))
+		return toValue(date.Time().Format(Time.RFC1123))
 	}
-	date.Set(newDateTime(call.ArgumentList))
-	return toValue(date.Time().Local().Format(time_.RFC1123))
+	date.Set(newDateTime(call.ArgumentList, Time.Local))
+	return toValue(date.Time().Local().Format(Time.RFC1123))
 }
 
 func builtinNewDate(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newDate(newDateTime(argumentList)))
+	return toValue(self.runtime.newDate(newDateTime(argumentList, Time.Local)))
 }
 
 func builtinDate_toString(call FunctionCall) Value {
@@ -26,7 +26,7 @@ func builtinDate_toString(call FunctionCall) Value {
 	if date.isNaN {
 		return toValue("Invalid Date")
 	}
-	return toValue(date.Time().Local().Format(time_.RFC1123))
+	return toValue(date.Time().Local().Format(Time.RFC1123))
 }
 
 func builtinDate_toUTCString(call FunctionCall) Value {
@@ -34,7 +34,7 @@ func builtinDate_toUTCString(call FunctionCall) Value {
 	if date.isNaN {
 		return toValue("Invalid Date")
 	}
-	return toValue(date.Time().Format(time_.RFC1123))
+	return toValue(date.Time().Format(Time.RFC1123))
 }
 
 func builtinDate_toGMTString(call FunctionCall) Value {
@@ -87,7 +87,7 @@ func builtinDate_parse(call FunctionCall) Value {
 }
 
 func builtinDate_UTC(call FunctionCall) Value {
-	return toValue(newDateTime(call.ArgumentList))
+	return toValue(newDateTime(call.ArgumentList, Time.UTC))
 }
 
 // This is a placeholder
