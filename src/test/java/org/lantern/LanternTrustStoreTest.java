@@ -63,7 +63,6 @@ public class LanternTrustStoreTest {
 
         final String[] success = {"talk.google.com",
             "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com", //"www.exceptional.io",
-            "query.yahooapis.com",
             LanternClientConstants.FALLBACK_SERVER_HOST+":"+
                     LanternClientConstants.FALLBACK_SERVER_PORT};
 

@@ -4,27 +4,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.net.ssl.SSLPeerUnverifiedException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.GeoData;
@@ -34,7 +22,6 @@ import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.lantern.util.HttpClientFactory;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
-import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,79 +52,6 @@ public class DefaultModelUtils implements ModelUtils {
         this.httpClientFactory = httpClientFactory;
     }
     
-    /**
-     * Fetches the geo data for the specified IP.
-     * 
-     * @param ip The IP address to get the geo data for.
-     * @return The geo data.
-     */
-    @Override
-    public synchronized GeoData getGeoData(final String ip) {
-        if (geoCache.containsKey(ip)) {
-            LOG.debug("Got cache HIT! Returning cached geo data");
-            return geoCache.get(ip);
-        }
-        
-        try {
-            final InetAddress ia = InetAddress.getByName(ip);
-            if (!NetworkUtils.isPublicAddress(ia)) {
-                LOG.debug("Using public address for network local: {}", ia);
-                //return getGeoData(
-                //    new PublicIpAddress().getPublicIpAddress().getHostAddress());
-            }
-        } catch (final UnknownHostException e) {
-            LOG.info("Unknown host here?", e);
-        }
-
-        final String query = 
-            "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
-            "AS ip.location; select CountryCode, Latitude,Longitude from " +
-            "ip.location where ip = '"+ip+"' and key = " +
-            "'a6a2704c6ebf0ee3a0c55d694431686c0b6944afd5b648627650ea1424365abb'";
-
-        final URIBuilder builder = new URIBuilder();
-        builder.setScheme("https").setHost("query.yahooapis.com").setPath(
-            "/v1/public/yql").setParameter("q", query).setParameter(
-                "format", "json");
-        
-        final HttpGet get = new HttpGet();
-        try {
-            final URI uri = builder.build();
-            get.setURI(uri);
-            synchronized (this) {
-                if (this.httpClient == null) {
-                    this.httpClient = this.httpClientFactory.newClient();
-                }
-            }
-            final HttpResponse response = httpClient.execute(get);
-            final HttpEntity entity = response.getEntity();
-            final String body = 
-                IOUtils.toString(entity.getContent()).toLowerCase();
-            EntityUtils.consume(entity);
-            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP TO {}:\n{}", ip, body);
-            
-            final ObjectMapper om = new ObjectMapper();
-            if (!body.contains("latitude")) {
-                LOG.info("No latitude in response {} for IP {}", body, ip);
-                return new GeoData();
-            }
-            final String parsed = StringUtils.substringAfterLast(body, "{");
-            final String full = 
-                "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
-            final GeoData result = om.readValue(full, GeoData.class);
-            geoCache.put(ip, result);
-            return result;
-        } catch (final SSLPeerUnverifiedException ssl) {
-            LOG.warn("Peer cert not trusted?", ssl);
-        } catch (final IOException e) {
-            LOG.info("Could not connect to geo ip url?", e);
-        } catch (final URISyntaxException e) {
-            LOG.error("URI error", e);
-        } finally {
-            get.reset();
-        }
-        return new GeoData();
-    }
     /**
      * This is used for when the user disconnects and reconnects for any reason.
      * We store the users we know to have been in the closed beta so we don't
@@ -321,26 +235,5 @@ public class DefaultModelUtils implements ModelUtils {
     public void syncConnectingStatus(final String msg) {
         this.model.getConnectivity().setConnectingStatus(msg);
         Events.syncConnectingStatus(msg);
-    }
-
-    @Override
-    public GeoData getGeoDataWithRetry(final String ip) {
-        // attempt to get geodata until we succeed
-        long time = 5000;
-        while (true) {
-            if (time < 100000) {
-                time *= 2;
-            }
-            final GeoData geo = getGeoData(ip);
-            if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
-                return geo;
-            }
-            try {
-                Thread.sleep(time);
-            } catch (InterruptedException e) {
-                // nothing to do
-            }
-        }
-
     }
 }

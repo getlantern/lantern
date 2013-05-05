@@ -18,10 +18,10 @@ import org.lantern.event.IncomingPeerEvent;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.event.PeerCertEvent;
 import org.lantern.event.UpdatePresenceEvent;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Peers;
@@ -42,7 +42,7 @@ public class DefaultPeerFactory implements PeerFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ModelUtils modelUtils;
+    private final GeoIpLookupService geoIpLookupService;
     private final Peers peers;
 
     /**
@@ -54,23 +54,23 @@ public class DefaultPeerFactory implements PeerFactory {
     private final Roster roster;
 
     @Inject
-    public DefaultPeerFactory(final ModelUtils modelUtils, final Model model,
+    public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService, final Model model,
             final Roster roster) {
-        this.modelUtils = modelUtils;
+        this.geoIpLookupService = geoIpLookupService;
         this.roster = roster;
         this.peers = model.getPeerCollector();
         Events.register(this);
     }
 
-    
-    /** 
+
+    /**
      * There are two ways we initially learn about new peers. The first is a
      * Lantern peer directly on our roster, which will produce this event. The
      * second is a kaleidoscope advertisement. Those Kaleidoscope
      * advertisements can be from peers on our roster, but they can also be
      * from peers we're not directly connected to. This method captures the
      * first case where peers on our roster are running Lantern.
-     * 
+     *
      * @param event The update presence event.
      */
     @Subscribe
@@ -84,7 +84,7 @@ public class DefaultPeerFactory implements PeerFactory {
             addPeer(LanternUtils.newURI(from), Type.pc);
         }
     }
-    
+
     @Subscribe
     public void onKscopeAd(final KscopeAdEvent event) {
         final LanternKscopeAdvertisement ad = event.getAd();
@@ -98,8 +98,8 @@ public class DefaultPeerFactory implements PeerFactory {
         final LanternRosterEntry entry = this.roster.getRosterEntry(jid);
         if (existing == null) {
             // The following can be null.
-            final Peer peer = new Peer(uri, "", 
-                    ad.hasMappedEndpoint(), 0, 0, Type.pc, ad.getAddress(), 
+            final Peer peer = new Peer(uri, "",
+                    ad.hasMappedEndpoint(), 0, 0, Type.pc, ad.getAddress(),
                     ad.getPort(), Mode.give, false, null, entry);
             this.peers.addPeer(uri, peer);
             updateGeoData(peer, ad.getAddress());
@@ -116,30 +116,23 @@ public class DefaultPeerFactory implements PeerFactory {
             updateGeoData(existing, ad.getAddress());
         }
     }
-    
+
 
 
     private void updateGeoData(final Peer peer, final InetAddress address) {
         updateGeoData(peer, address.getHostAddress());
     }
-    
+
     private void updateGeoData(final Peer peer, final String address) {
         if (peer.hasGeoData()) {
             log.debug("Peer already had geo data: {}", peer);
             return;
         }
-        
-        final Runnable runner = new Runnable() {
 
-            @Override
-            public void run() {
-                final GeoData geo = modelUtils.getGeoData(address);
-                peer.setCountry(geo.getCountrycode());
-                peer.setLat(geo.getLatitude());
-                peer.setLon(geo.getLongitude());
-            }
-        };
-        this.exec.submit(runner);
+        final GeoData geo = geoIpLookupService.getGeoData(address);
+        peer.setCountry(geo.getCountrycode());
+        peer.setLat(geo.getLatitude());
+        peer.setLon(geo.getLongitude());
     }
 
     private void updatePeer(final URI fullJid, final InetSocketAddress isa,
@@ -151,7 +144,7 @@ public class DefaultPeerFactory implements PeerFactory {
         }
         updatePeer(peer, isa, type, trafficCounter);
     }
-    
+
     private void updatePeer(final Peer peer, final InetSocketAddress isa,
             final Type type, final LanternTrafficCounter trafficCounter) {
         // We can get multiple notifications for the same peer, in which case
@@ -187,36 +180,36 @@ public class DefaultPeerFactory implements PeerFactory {
         final LanternTrafficCounter trafficCounter) {
         updatePeer(fullJid, isa, type, trafficCounter);
     }
-    
+
     @Override
     public Peer addPeer(final URI fullJid, final Type type) {
-        
-        // This is a peer we know very little about at this point, as we 
+
+        // This is a peer we know very little about at this point, as we
         // haven't made any network connections with them.
         final LanternRosterEntry entry = rosterEntry(fullJid);
         log.debug("Got roster entry: {}", entry);
-        
+
         final Peer existing = peers.getPeer(fullJid);
-        
+
         if (existing != null) {
             log.debug("Peer already exists...");
             return existing;
         } else {
             log.debug("Adding peer {}", fullJid);
-            final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type, 
+            final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type,
                     "", 0, Mode.unknown, false, null, entry);
             peers.addPeer(fullJid, peer);
             return peer;
         }
     }
-    
+
     private LanternRosterEntry rosterEntry(final URI fullJid) {
         return this.roster.getRosterEntry(fullJid.toASCIIString());
     }
-    
-    private final Map<String, Peer> certsToPeers = 
+
+    private final Map<String, Peer> certsToPeers =
             new ConcurrentHashMap<String, Peer>();
-    
+
     @Subscribe
     public void onCert(final PeerCertEvent event) {
         final Peer peer = this.peers.getPeer(event.getJid());
@@ -236,17 +229,17 @@ public class DefaultPeerFactory implements PeerFactory {
         final Channel channel = event.getChannel();
         final LanternTrafficCounter counter = event.getTrafficCounter();
         try {
-            final String base64Cert = 
+            final String base64Cert =
                     Base64.encodeBase64String(cert.getEncoded());
             final Peer peer = certsToPeers.get(base64Cert);
             if (peer == null) {
-                log.error("No matching peer for cert: {} in {}", base64Cert, 
+                log.error("No matching peer for cert: {} in {}", base64Cert,
                     certsToPeers);
                 return;
             }
             log.debug("Found peer by certificate!!!");
             peer.setMode(Mode.get);
-            updatePeer(peer, (InetSocketAddress)channel.getRemoteAddress(), 
+            updatePeer(peer, (InetSocketAddress)channel.getRemoteAddress(),
                 Type.pc, counter);
         } catch (final CertificateEncodingException e) {
             log.error("Could not encode certificate?", e);

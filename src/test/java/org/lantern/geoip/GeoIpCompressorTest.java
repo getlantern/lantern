@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.lantern.GeoData;
 import org.lantern.TestUtils;
 
 import com.csvreader.CsvReader;
@@ -55,6 +56,16 @@ public class GeoIpCompressorTest {
         //check that data loads
         assertEquals("US", lookupService.getGeoData("18.1.1.1").getCountrycode());
         assertEquals("IN", lookupService.getGeoData("223.255.244.1").getCountrycode());
+
+        final GeoData data = lookupService.getGeoData("86.170.128.133");
+        assertTrue(data.getLatitude() > 50.0);
+        assertTrue(data.getLongitude() < 3.0);
+        assertEquals("GB", data.getCountrycode());
+
+        final GeoData data2 = lookupService.getGeoData("87.170.128.133");
+        assertTrue(data2.getLatitude() > 50.0);
+        assertTrue(data2.getLongitude() > 13.0);
+        assertEquals("DE", data2.getCountrycode());
     }
 
     private static class Location {

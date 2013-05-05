@@ -1,7 +1,6 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -28,7 +27,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
-import org.lantern.state.ModelUtils;
 import org.lantern.util.LanternHttpClient;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -44,7 +42,6 @@ public class LanternHttpClientTest {
      *
      * docs.google.com (feedback form)
      * exceptional.io -- error reporting
-     * query.yahooapis.com (geo data lookup)
      * www.googleapis.com
      * lanternctrl.appspot.com (stats)
      *
@@ -54,12 +51,6 @@ public class LanternHttpClientTest {
     public void testAllInternallyProxiedSites() throws Exception {
         final LanternHttpClient client = TestUtils.getHttpClient();
         client.setForceCensored(true);
-
-        final ModelUtils modelUtils = TestUtils.getModelUtils();
-        final GeoData data = modelUtils.getGeoData("86.170.128.133");
-        assertTrue(data.getLatitude() > 50.0);
-        assertTrue(data.getLongitude() < 3.0);
-        assertEquals("GB", data.getCountrycode());
 
         testExceptional(client);
         testGoogleDocs(client);
