@@ -144,3 +144,39 @@ func builtinObject_preventExtensions(call FunctionCall) Value {
 	}
 	return object
 }
+
+func builtinObject_isSealed(call FunctionCall) Value {
+	object := call.Argument(0)
+	if object := object._object(); object != nil {
+		if object.stash.extensible() {
+			return toValue(false)
+		}
+		result := true
+		object.enumerate(func(name string) {
+			property := object.getProperty(name)
+			if property.configurable() {
+				result = false
+			}
+		})
+		return toValue(result)
+	}
+	panic(newTypeError())
+}
+
+func builtinObject_isFrozen(call FunctionCall) Value {
+	object := call.Argument(0)
+	if object := object._object(); object != nil {
+		if object.stash.extensible() {
+			return toValue(false)
+		}
+		result := true
+		object.enumerate(func(name string) {
+			property := object.getProperty(name)
+			if property.configurable() || property.writable() {
+				result = false
+			}
+		})
+		return toValue(result)
+	}
+	panic(newTypeError())
+}

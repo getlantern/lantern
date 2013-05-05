@@ -177,6 +177,8 @@ func newContext() *_runtime {
 		"create", 2, builtinObject_create,
 		"isExtensible", -1, builtinObject_isExtensible,
 		"preventExtensions", -1, builtinObject_preventExtensions,
+		"isSealed", -1, builtinObject_isSealed,
+		"isFrozen", -1, builtinObject_isFrozen,
 	)
 
 	self.Global.Function = self.newGlobalFunction(

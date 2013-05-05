@@ -108,3 +108,19 @@ func TestObject_preventExtensions(t *testing.T) {
 	test(`Object.preventExtensions.length`, "1")
 	test(`Object.preventExtensions.prototype`, "undefined")
 }
+
+func TestObject_isSealed(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Object.isSealed.length`, "1")
+	test(`Object.isSealed.prototype`, "undefined")
+}
+
+func TestObject_isFrozen(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Object.isFrozen.length`, "1")
+	test(`Object.isFrozen.prototype`, "undefined")
+}
