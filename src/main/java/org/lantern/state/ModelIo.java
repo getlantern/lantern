@@ -55,6 +55,7 @@ public class ModelIo extends Storage<Model> {
     public Model read() {
         try {
             Model read = super.read();
+            read.setCountryService(countryService);
             if (!LanternUtils.persistCredentials()) {
                 if (read.getModal() != Modal.welcome) {
                     read.setModal(Modal.authorize);
@@ -116,6 +117,7 @@ public class ModelIo extends Storage<Model> {
 
     public void reload() {
         Model newModel = read();
+        newModel.setCountryService(countryService);
         if (newModel.getModal() == Modal.welcome) {
             //if modal is welcome, then we are dealing with fresh settings
             obj.addNotification("Failed to reload settings", MessageType.error);

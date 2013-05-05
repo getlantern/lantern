@@ -83,7 +83,11 @@ public class Model {
 
     private String xsrfToken;
 
-    private final CountryService countryService;
+    private CountryService countryService;
+
+    public Model() {
+        //used for JSON loading
+    }
 
     public Model(CountryService countryService) {
         this.countryService = countryService;
@@ -228,6 +232,11 @@ public class Model {
         return countryService.allCountries();
     }
 
+    public void setCountries(Map<String, Country> countries) {
+        //nothing to do here; we want to use the countryService
+        return;
+    }
+
     public Global getGlobal() {
         return global;
     }
@@ -351,5 +360,9 @@ public class Model {
     @JsonIgnore
     public CountryService getCountryService() {
         return countryService;
+    }
+
+    public void setCountryService(CountryService countryService) {
+        this.countryService = countryService;
     }
 }
