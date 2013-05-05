@@ -54,6 +54,7 @@ public class GeoIpCompressorTest {
         GeoIpLookupService lookupService = TestUtils.getGeoIpLookupService();
         //check that data loads
         assertEquals("US", lookupService.getLocation("18.1.1.1").getCountry());
+        assertEquals("IN", lookupService.getLocation("223.255.244.1").getCountry());
     }
 
     private static class Location {

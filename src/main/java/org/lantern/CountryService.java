@@ -266,6 +266,7 @@ public class CountryService {
     @Inject
     CountryService(Censored censored) {
         this.censored = censored;
+        allCountries();
     }
 
     public Map<String, Country> allCountries() {

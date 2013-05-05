@@ -66,7 +66,7 @@ public class GeoIpLookupService {
         }
         long address = BitUtils.byteArrayToInteger(bytes);
         if (address < 0) {
-            address = (1 << 32) - address;
+            address = (1L << 32) + address;
         }
         return table.floorEntry(address).getValue();
     }
