@@ -1,4 +1,4 @@
-.PHONY: test assets todo fixme otto run test-all release test-synopsis test-i test262
+.PHONY: test assets todo fixme otto run test-all release test-synopsis test-i test262 check
 .PHONY: underscore
 
 TEST := -v --run
@@ -29,8 +29,11 @@ run:
 test-all: test-i
 	go test .
 
-release: test-all test-synopsis
+release: check test-all test-synopsis
 	for package in . underscore registry; do (cd $$package && godocdown --signature > README.markdown); done
+
+check:
+	GOROOT= $(HOME)/go/release/bin/go test -a .
 
 test-synopsis: .test test-i otto
 	$(MAKE) -C .test/synopsis
