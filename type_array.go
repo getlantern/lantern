@@ -4,169 +4,79 @@ import (
 	"strconv"
 )
 
-func (runtime *_runtime) newArrayObject(valueArray []Value) *_object {
+func (runtime *_runtime) newArrayObject(length uint32) *_object {
 	self := runtime.newObject()
 	self.class = "Array"
-	self.stash = newArrayStash(valueArray, self.stash)
+	self.defineProperty("length", toValue(length), 0100, false)
+	self.objectClass = _classArray
 	return self
 }
 
-// _arrayStash
-
-type _arrayStash struct {
-	valueArray []Value
-	_stash
+func isArray(object *_object) bool {
+	return object != nil && (object.class == "Array" || object.class == "GoArray")
 }
 
-func newArrayStash(valueArray []Value, stash _stash) *_arrayStash {
-	self := &_arrayStash{
-		valueArray,
-		stash,
+func arrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
+	lengthProperty := self.getOwnProperty("length")
+	lengthValue, valid := lengthProperty.value.(Value)
+	if !valid {
+		return objectDefineOwnProperty(self, name, descriptor, throw)
 	}
-	return self
-}
-
-// read
-
-func (self *_arrayStash) test(name string) bool {
-	// length
+	length := lengthValue.value.(uint32)
 	if name == "length" {
-		return true
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		return index < int64(len(self.valueArray)) && self.valueArray[index]._valueType != valueEmpty
-	}
-
-	return self._stash.test(name)
-}
-
-func (self *_arrayStash) get(name string) Value {
-	// length
-	if name == "length" {
-		return toValue(len(self.valueArray))
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		if index < int64(len(self.valueArray)) {
-			value := self.valueArray[index]
-			if value._valueType != valueEmpty {
-				return value
+		if descriptor.value == nil {
+			return objectDefineOwnProperty(self, name, descriptor, throw)
+		}
+		newLength := toUint32(descriptor.value.(Value))
+		descriptor.value = toValue(newLength)
+		if newLength > length {
+			return objectDefineOwnProperty(self, name, descriptor, throw)
+		}
+		if !lengthProperty.writable() {
+			goto Reject
+		}
+		newWritable := true
+		if descriptor.mode&0700 == 0 {
+			// If writable is off
+			newWritable = false
+			descriptor.mode |= 0100
+		}
+		if !objectDefineOwnProperty(self, name, descriptor, throw) {
+			return false
+		}
+		for newLength < length {
+			length -= 1
+			if !self.delete(strconv.FormatInt(int64(length), 10), false) {
+				descriptor.value = toValue(length + 1)
+				if !newWritable {
+					descriptor.mode &= 0077
+				}
+				objectDefineOwnProperty(self, name, descriptor, false)
+				goto Reject
 			}
 		}
-		return UndefinedValue()
-	}
-
-	return self._stash.get(name)
-}
-
-func (self *_arrayStash) property(name string) *_property {
-	// length
-	if name == "length" {
-		return &_property{
-			value: toValue(len(self.valueArray)),
-			mode:  0100, // +w-ec
+		if !newWritable {
+			descriptor.mode &= 0077
+			objectDefineOwnProperty(self, name, descriptor, false)
+		}
+	} else if index := stringToArrayIndex(name); index >= 0 {
+		index := uint32(index)
+		if index >= length && !lengthProperty.writable() {
+			goto Reject
+		}
+		if !objectDefineOwnProperty(self, name, descriptor, false) {
+			goto Reject
+		}
+		if index >= length {
+			lengthProperty.value = toValue(index + 1)
+			objectDefineOwnProperty(self, "length", *lengthProperty, false)
+			return true
 		}
 	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		value := UndefinedValue()
-		if index < int64(len(self.valueArray)) {
-			value = self.valueArray[index]
-		}
-		return &_property{
-			value: value,
-			mode:  0111, // +wec
-		}
+	return objectDefineOwnProperty(self, name, descriptor, throw)
+Reject:
+	if throw {
+		panic(newTypeError())
 	}
-
-	return self._stash.property(name)
-}
-
-func (self *_arrayStash) enumerate(each func(string)) {
-	// .0, .1, .2, ...
-	for index, _ := range self.valueArray {
-		if self.valueArray[index]._valueType == valueEmpty {
-			continue // A sparse array
-		}
-		name := strconv.FormatInt(int64(index), 10)
-		each(name)
-	}
-	self._stash.enumerate(each)
-}
-
-// write
-
-func (self *_arrayStash) canPut(name string) bool {
-	// length
-	if name == "length" {
-		return true
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		return true
-	}
-
-	return self._stash.canPut(name)
-}
-
-func (self *_arrayStash) put(name string, value Value) {
-	// length
-	if name == "length" {
-		value := uint(toUint32(value))
-		length := uint(len(self.valueArray))
-		if value > length {
-			valueArray := make([]Value, value)
-			copy(valueArray, self.valueArray)
-			self.valueArray = valueArray
-		} else if value < length {
-			self.valueArray = self.valueArray[:value]
-		}
-		return
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		// May be able to do tricky stuff here
-		// with checking cap() after len(), but not
-		// sure if worth it
-		if index < int64(len(self.valueArray)) {
-			self.valueArray[index] = value
-			return
-		}
-		valueArray := make([]Value, index+1)
-		copy(valueArray, self.valueArray)
-		valueArray[index] = value
-		self.valueArray = valueArray
-		return
-	}
-
-	self._stash.put(name, value)
-}
-
-func (self *_arrayStash) delete(name string) {
-	// length
-	if name == "length" {
-		return
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		if index < int64(len(self.valueArray)) {
-			self.valueArray[index] = emptyValue()
-		}
-		return
-	}
-
-	self._stash.delete(name)
+	return false
 }

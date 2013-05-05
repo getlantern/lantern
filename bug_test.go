@@ -80,3 +80,34 @@ func Test_issue13(t *testing.T) {
 	)
 
 }
+
+func Test_issue16(t *testing.T) {
+	Terst(t)
+
+	otto, test := runTestWithOtto()
+	test(`
+        var def = {
+            "abc": ["abc"],
+            "xyz": ["xyz"]
+        };
+        def.abc.concat(def.xyz);
+    `, "abc,xyz")
+
+	otto.Set("ghi", []string{"jkl", "mno"})
+	test(`
+        def.abc.concat(def.xyz).concat(ghi);
+    `, "abc,xyz,jkl,mno")
+
+	test(`
+        ghi.concat(def.abc.concat(def.xyz));
+    `, "jkl,mno,abc,xyz")
+
+	otto.Set("pqr", []interface{}{"jkl", 42, 3.14159, true})
+	test(`
+        pqr.concat(ghi, def.abc, def, def.xyz);
+    `, "jkl,42,3.14159,true,jkl,mno,abc,[object Object],xyz")
+
+	test(`
+        pqr.concat(ghi, def.abc, def, def.xyz).length;
+    `, "9")
+}

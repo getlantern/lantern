@@ -11,6 +11,11 @@ func TestArray(t *testing.T) {
 	test := runTest()
 
 	test(`
+        var abc = [ undefined, "Nothing happens." ];
+        abc.length;
+    `, "2")
+
+	test(`
 		abc = ""+[0, 1, 2, 3];
 		def = [].toString();
 		ghi = [null, 4, "null"].toString();
@@ -29,6 +34,12 @@ func TestArray(t *testing.T) {
         var xyzzy = delete abc.xyzzy;
         [ abc, xyzzy, abc.xyzzy ];
     `, "0,,2,3,true,")
+
+	test(`
+        var abc = [0, 1, 2, 3, 4];
+        abc.length = 2;
+        abc;
+    `, "0,1")
 }
 
 func TestArray_toString(t *testing.T) {
@@ -91,8 +102,8 @@ func TestArray_splice(t *testing.T) {
 	test(`
 		abc = [0, 1, 2]
 		def = abc.splice(1, 2, 3, 4, 5)
-		ghi = [].concat(abc)
-		jkl = ghi.splice(17, 21, 7, 8, 9)
+        ghi = [].concat(abc)
+        jkl = ghi.splice(17, 21, 7, 8, 9)
 	`)
 	test("abc", "0,3,4,5")
 	test("def", "1,2")

@@ -83,7 +83,7 @@ func (value Value) IsNull() bool {
 func (value Value) isCallable() bool {
 	switch value := value.value.(type) {
 	case *_object:
-		return value._Function != nil
+		return value.functionValue() != nil
 	}
 	return false
 }

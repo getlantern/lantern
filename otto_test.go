@@ -5,8 +5,6 @@ import (
 	"math"
 	"strings"
 	"testing"
-	"unicode/utf16"
-	"unicode/utf8"
 )
 
 var (
@@ -207,8 +205,8 @@ func Test_eval(t *testing.T) {
 			}
 		})()
 	`, "true")
-	// TODO Make this a sane result
-	// Lightning bolt, lightning bolt, lightning bolt, ...
+
+	// TODO Should be: ReferenceError: ghi is not defined
 	test(`ghi`, "SyntaxError: Unexpected token ILLEGAL ()")
 
 	test(`
@@ -323,17 +321,11 @@ func TestAPI(t *testing.T) {
 func TestUnicode(t *testing.T) {
 	Terst(t)
 
-	if false {
-		// TODO This test will fail because we handle strings internally the
-		// same way Go does, UTF-8
-		test := runTest()
-		test(`var abc = eval("\"a\uFFFFa\"");`)
-		test(`abc.length`, "3")
-		test(`abc != "aa"`, "true")
-		test("abc[1] === \"\uFFFF\"", "true")
-		dbg(utf8.RuneLen('\u000a'))
-		dbg(len(utf16.Encode([]rune("a\uFFFFa"))))
-	}
+	test := runTest()
+	test(`var abc = eval("\"a\uFFFFa\"");`)
+	test(`abc.length`, "3")
+	test(`abc != "aa"`, "true")
+	test("abc[1] === \"\uFFFF\"", "true")
 }
 
 func TestDotMember(t *testing.T) {

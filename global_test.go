@@ -135,7 +135,7 @@ func Test_parseInt(t *testing.T) {
 	test(`parseInt("0x0aXyzzy", 16)`, "10")
 	test(`parseInt("0x1", 0)`, "1")
 	if false {
-		// TODO
+		// TODO parseInt("0x10000000000000000000", 16)
 		test(`parseInt("0x10000000000000000000", 16)`, "75557863725914323419136")
 	}
 

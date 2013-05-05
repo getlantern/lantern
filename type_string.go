@@ -5,87 +5,63 @@ import (
 	"unicode/utf16"
 )
 
-func (runtime *_runtime) newStringObject(value Value) *_object {
-	self := runtime.newPrimitiveObject("String", toValue(toString(value)))
-	self.stash = newStringStash(toString(value), self.stash)
-	return self
-}
-
-type _stringStash struct {
-	value   string
+type _stringObject struct {
+	value   Value
 	value16 []uint16
-	_stash
 }
 
-func newStringStash(value string, stash _stash) *_stringStash {
-	self := &_stringStash{
+func (runtime *_runtime) newStringObject(value Value) *_object {
+	value = toValue(toString(value))
+	value16 := utf16Of(value.value.(string))
+
+	self := runtime.newClassObject("String")
+	self.defineProperty("length", toValue(len(value16)), 0, false)
+	self.objectClass = _classString
+	self.value = &_stringObject{
 		value:   value,
-		value16: utf16.Encode([]rune(value)),
-		_stash:  stash,
+		value16: value16,
 	}
 	return self
 }
 
-// read
-
-func (self *_stringStash) test(name string) bool {
-	// .length
-	if name == "length" {
-		return true
+func (self *_object) stringValue() (string, *_stringObject) {
+	value, valid := self.value.(*_stringObject)
+	if valid {
+		return value.value.value.(string), value
 	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 && index < int64(len(self.value16)) {
-		return true
-	}
-
-	return self._stash.test(name)
+	return "", nil
 }
 
-func (self *_stringStash) get(name string) Value {
-	// .length
-	if name == "length" {
-		return toValue(len(self.value16))
+func (self *_object) stringValue16() []uint16 {
+	_, value := self.stringValue()
+	if value != nil {
+		return value.value16
 	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 && index < int64(len(self.value16)) {
-		return toValue(string(self.value16[index]))
-	}
-
-	return self._stash.get(name)
+	return nil
 }
 
-func (self *_stringStash) property(name string) *_property {
-	// .length
-	if name == "length" {
-		return &_property{
-			toValue(len(self.value16)),
-			0, // -Write -Enumerate -Configure
+func utf16Of(value string) []uint16 {
+	return utf16.Encode([]rune(value))
+}
+
+func stringEnumerate(self *_object, each func(string)) {
+	length := len(self.stringValue16())
+	for index := 0; index < length; index += 1 {
+		each(strconv.FormatInt(int64(index), 10))
+	}
+	objectEnumerate(self, each)
+}
+
+func stringGetOwnProperty(self *_object, name string) *_property {
+	if property := objectGetOwnProperty(self, name); property != nil {
+		return property
+	}
+	index := stringToArrayIndex(name)
+	if index >= 0 {
+		value16 := self.stringValue16()
+		if int(index) < len(value16) {
+			return &_property{toValue(string(value16[index])), 0}
 		}
 	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 && index < int64(len(self.value16)) {
-		return &_property{
-			toValue(string(self.value16[index])),
-			0, // -Write -Enumerate -Configure
-		}
-	}
-
-	return self._stash.property(name)
+	return nil
 }
-
-func (self *_stringStash) enumerate(each func(string)) {
-	// .0, .1, .2, ...
-	for index, _ := range self.value16 {
-		name := strconv.FormatInt(int64(index), 10)
-		each(name)
-	}
-	self._stash.enumerate(each)
-}
-
-// write

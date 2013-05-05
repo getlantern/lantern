@@ -3,7 +3,7 @@ package otto
 func (runtime *_runtime) newErrorObject(message Value) *_object {
 	self := runtime.newClassObject("Error")
 	if message.IsDefined() {
-		self.set("message", toValue(toString(message)), false)
+		self.defineProperty("message", toValue(toString(message)), 0111, false)
 	}
 	return self
 }

@@ -1,6 +1,7 @@
 package otto
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -15,47 +16,42 @@ func builtinNewArray(self *_object, _ Value, argumentList []Value) Value {
 }
 
 func builtinNewArrayNative(runtime *_runtime, argumentList []Value) *_object {
-	valueArray := argumentList
 	if len(argumentList) == 1 {
-		value := argumentList[0]
-		if value.IsNumber() {
-			numberValue := uint(toUint32(value))
-			if float64(numberValue) == toFloat(value) {
-				valueArray = make([]Value, numberValue)
-			} else {
-				panic(newRangeError())
-			}
-		}
+		return runtime.newArray(toUint32(argumentList[0]))
 	}
-	return runtime.newArray(valueArray)
+	return runtime.newArrayOf(argumentList)
 }
 
 func builtinArray_concat(call FunctionCall) Value {
+	//return toValue(call.runtime.newArray(0))
 	thisObject := call.thisObject()
 	valueArray := []Value{}
-	itemList := append([]Value{toValue(thisObject)}, call.ArgumentList...)
-	for len(itemList) > 0 {
-		item := itemList[0]
-		itemList = itemList[1:]
+	source := append([]Value{toValue(thisObject)}, call.ArgumentList...)
+	for _, item := range source {
 		switch item._valueType {
 		case valueObject:
-			value := item._object()
-			if value.class == "Array" {
-				itemValueArray := value.stash.(*_arrayStash).valueArray
-				for _, item := range itemValueArray {
-					if item._valueType == valueEmpty {
+			object := item._object()
+			if isArray(object) {
+				lengthValue := object.get("length")
+				// FIXME This was causing a panic?
+				//length := lengthValue.value.(uint32)
+				length := toUint32(lengthValue)
+				for index := uint32(0); index < length; index += 1 {
+					name := strconv.FormatInt(int64(index), 10)
+					if !object.hasProperty(name) {
 						continue
 					}
-					valueArray = append(valueArray, item)
+					value := object.get(name)
+					valueArray = append(valueArray, value)
 				}
 				continue
 			}
 			fallthrough
 		default:
-			valueArray = append(valueArray, item)
+			valueArray = append(valueArray, toValue(toString(item)))
 		}
 	}
-	return toValue(call.runtime.newArray(valueArray))
+	return toValue(call.runtime.newArrayOf(valueArray))
 }
 
 func builtinArray_shift(call FunctionCall) Value {
@@ -116,10 +112,6 @@ func builtinArray_join(call FunctionCall) Value {
 		}
 	}
 	thisObject := call.thisObject()
-	if stash, isArray := thisObject.stash.(*_arrayStash); isArray {
-		return toValue(builtinArray_joinNative(stash.valueArray, separator))
-	}
-	// Generic .join
 	length := uint(toUint32(thisObject.get("length")))
 	if length == 0 {
 		return toValue("")
@@ -135,26 +127,7 @@ func builtinArray_join(call FunctionCall) Value {
 		}
 		stringList = append(stringList, stringValue)
 	}
-	return toValue(strings.Join(stringList, ","))
-}
-
-func builtinArray_joinNative(valueArray []Value, separator string) string {
-	length := len(valueArray)
-	if length == 0 {
-		return ""
-	}
-	stringList := make([]string, 0, length)
-	for index := 0; index < length; index++ {
-		value := valueArray[index]
-		stringValue := ""
-		switch value._valueType {
-		case valueEmpty, valueUndefined, valueNull:
-		default:
-			stringValue = toString(value)
-		}
-		stringList = append(stringList, stringValue)
-	}
-	return strings.Join(stringList, separator)
+	return toValue(strings.Join(stringList, separator))
 }
 
 func builtinArray_splice(call FunctionCall) Value {
@@ -231,7 +204,7 @@ func builtinArray_splice(call FunctionCall) Value {
 	}
 	thisObject.put("length", toValue(uint(int64(length)+itemCount-deleteCount)), true)
 
-	return toValue(call.runtime.newArray(valueArray))
+	return toValue(call.runtime.newArrayOf(valueArray))
 }
 
 func builtinArray_slice(call FunctionCall) Value {
@@ -242,24 +215,19 @@ func builtinArray_slice(call FunctionCall) Value {
 
 	if start >= end {
 		// Always an empty array
-		return toValue(call.runtime.newArray([]Value{}))
+		return toValue(call.runtime.newArray(0))
 	}
 	sliceLength := end - start
 	sliceValueArray := make([]Value, sliceLength)
 
-	// Native slicing if a "real" array
-	if _arrayStash, ok := thisObject.stash.(*_arrayStash); ok {
-		copy(sliceValueArray, _arrayStash.valueArray[start:start+sliceLength])
-	} else {
-		for index := int64(0); index < sliceLength; index++ {
-			from := arrayIndexToString(uint(index + start))
-			if thisObject.hasProperty(from) {
-				sliceValueArray[index] = thisObject.get(from)
-			}
+	for index := int64(0); index < sliceLength; index++ {
+		from := arrayIndexToString(uint(index + start))
+		if thisObject.hasProperty(from) {
+			sliceValueArray[index] = thisObject.get(from)
 		}
 	}
 
-	return toValue(call.runtime.newArray(sliceValueArray))
+	return toValue(call.runtime.newArrayOf(sliceValueArray))
 }
 
 func builtinArray_unshift(call FunctionCall) Value {
@@ -453,6 +421,5 @@ func builtinArray_sort(call FunctionCall) Value {
 }
 
 func builtinArray_isArray(call FunctionCall) Value {
-	object := call.Argument(0)._object()
-	return toValue(object != nil && object.class == "Array")
+	return toValue(isArray(call.Argument(0)._object()))
 }

@@ -7,35 +7,30 @@ import (
 func (runtime *_runtime) newGoMapObject(value reflect.Value) *_object {
 	self := runtime.newObject()
 	self.class = "Object" // TODO Should this be something else?
-	self.stash = newGoMapStash(value, self.stash, runtime)
+	self.objectClass = _classGoMap
+	self.value = _newGoMapObject(value)
 	return self
 }
 
-type _goMapStash struct {
+type _goMapObject struct {
 	value     reflect.Value
 	keyKind   reflect.Kind
 	valueKind reflect.Kind
-	_stash
-	// We pass the runtime to the stash to it can do deep
-	// value promotion
-	runtime *_runtime
 }
 
-func newGoMapStash(value reflect.Value, stash _stash, runtime *_runtime) *_goMapStash {
+func _newGoMapObject(value reflect.Value) *_goMapObject {
 	if value.Kind() != reflect.Map {
 		dbgf("%/panic//%@: %v != reflect.Map", value.Kind())
 	}
-	self := &_goMapStash{
+	self := &_goMapObject{
 		value:     value,
 		keyKind:   value.Type().Key().Kind(),
 		valueKind: value.Type().Elem().Kind(),
-		_stash:    stash,
-		runtime:   runtime,
 	}
 	return self
 }
 
-func (self _goMapStash) toKey(name string) reflect.Value {
+func (self _goMapObject) toKey(name string) reflect.Value {
 	reflectValue, err := stringToReflectValue(name, self.keyKind)
 	if err != nil {
 		panic(err)
@@ -43,7 +38,7 @@ func (self _goMapStash) toKey(name string) reflect.Value {
 	return reflectValue
 }
 
-func (self _goMapStash) toValue(value Value) reflect.Value {
+func (self _goMapObject) toValue(value Value) reflect.Value {
 	reflectValue, err := value.toReflectValue(self.valueKind)
 	if err != nil {
 		panic(err)
@@ -51,55 +46,44 @@ func (self _goMapStash) toValue(value Value) reflect.Value {
 	return reflectValue
 }
 
-// read
-
-func (self *_goMapStash) test(name string) bool {
-	value := self.value.MapIndex(self.toKey(name))
+func goMapGetOwnProperty(self *_object, name string) *_property {
+	object := self.value.(*_goMapObject)
+	value := object.value.MapIndex(object.toKey(name))
 	if value.IsValid() {
-		return true
-	}
-	return false
-}
-
-func (self *_goMapStash) get(name string) Value {
-	value := self.value.MapIndex(self.toKey(name))
-	if value.IsValid() {
-		return self.runtime.toValue(value.Interface())
-	}
-
-	return UndefinedValue()
-}
-
-func (self *_goMapStash) property(name string) *_property {
-	value := self.value.MapIndex(self.toKey(name))
-	if value.IsValid() {
-		return &_property{
-			self.runtime.toValue(value.Interface()),
-			0111, // +Write +Enumerate +Configure
-		}
+		return &_property{self.runtime.toValue(value.Interface()), 0111}
 	}
 
 	return nil
 }
 
-func (self *_goMapStash) enumerate(each func(string)) {
-	keys := self.value.MapKeys()
+func goMapEnumerate(self *_object, each func(string)) {
+	object := self.value.(*_goMapObject)
+	keys := object.value.MapKeys()
 	for _, key := range keys {
 		each(key.String())
 	}
 }
 
-// write
+func goMapDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
+	object := self.value.(*_goMapObject)
+	// TODO ...or 0222
+	if descriptor.mode != 0111 {
+		goto Reject
+	}
+	if !descriptor.isDataDescriptor() {
+		goto Reject
+	}
+	object.value.SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
+Reject:
+	if throw {
+		panic(newTypeError())
+	}
+	return false
+}
 
-func (self *_goMapStash) canPut(name string) bool {
+func goMapDelete(self *_object, name string, throw bool) bool {
+	object := self.value.(*_goMapObject)
+	object.value.SetMapIndex(object.toKey(name), reflect.Value{})
+	// FIXME
 	return true
-}
-
-func (self *_goMapStash) put(name string, value Value) {
-	self.value.SetMapIndex(self.toKey(name), self.toValue(value))
-}
-
-func (self *_goMapStash) delete(name string) {
-	// Setting a zero Value will delete the key
-	self.value.SetMapIndex(self.toKey(name), reflect.Value{})
 }

@@ -3,43 +3,48 @@ package otto
 import ()
 
 type _functionObject struct {
-	Call      _callFunction
-	Construct _constructFunction
+	call      _callFunction
+	construct _constructFunction
 }
 
 func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length int, name string) *_object {
 	self := runtime.newClassObject("Function")
-	self._Function = &_functionObject{
-		Call:      newNativeCallFunction(native, name),
-		Construct: defaultConstructFunction,
+	self.value = &_functionObject{
+		call:      newNativeCallFunction(native, name),
+		construct: defaultConstructFunction,
 	}
-	self.stash.set("length", toValue(length), _propertyMode(0))
+	self.defineProperty("length", toValue(length), 0000, false)
 	return self
 }
 
 func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnvironment _environment) *_object {
 	self := runtime.newClassObject("Function")
-	self._Function = &_functionObject{
-		Call:      newNodeCallFunction(node, scopeEnvironment),
-		Construct: defaultConstructFunction,
+	self.value = &_functionObject{
+		call:      newNodeCallFunction(node, scopeEnvironment),
+		construct: defaultConstructFunction,
 	}
-	self.stash.set("length", toValue(len(node.ParameterList)), _propertyMode(0))
+	self.defineProperty("length", toValue(len(node.ParameterList)), 0000, false)
 	return self
 }
 
 func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, argumentList []Value) *_object {
 	self := runtime.newClassObject("Function")
-	self._Function = &_functionObject{
-		Call:      newBoundCallFunction(target, this, argumentList),
-		Construct: defaultConstructFunction,
+	self.value = &_functionObject{
+		call:      newBoundCallFunction(target, this, argumentList),
+		construct: defaultConstructFunction,
 	}
 	// FIXME
-	self.stash.set("length", toValue(0), _propertyMode(0))
+	self.defineProperty("length", toValue(0), 0000, false)
 	return self
 }
 
+func (self *_object) functionValue() *_functionObject {
+	object, _ := self.value.(*_functionObject)
+	return object
+}
+
 func (self *_object) Call(this Value, argumentList ...interface{}) Value {
-	if self._Function == nil {
+	if self.functionValue() == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
 	return self.runtime.Call(self, this, self.runtime.toValueArray(argumentList...), false)
@@ -47,13 +52,14 @@ func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 }
 
 func (self *_object) Construct(this Value, argumentList ...interface{}) Value {
-	if self._Function == nil {
+	function := self.functionValue()
+	if function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
-	if self._Function.Construct == nil {
+	if function.construct == nil {
 		panic(newTypeError("%v is not a constructor", toValue(self)))
 	}
-	return self._Function.Construct(self, this, self.runtime.toValueArray(argumentList...))
+	return function.construct(self, this, self.runtime.toValueArray(argumentList...))
 }
 
 func defaultConstructFunction(self *_object, this Value, argumentList []Value) Value {
@@ -82,7 +88,7 @@ func (self *_object) CallSet(name string, value Value) {
 
 // 15.3.5.3
 func (self *_object) HasInstance(of Value) bool {
-	if self._Function == nil {
+	if self.functionValue() == nil {
 		// We should not have a HasInstance method
 		panic(newTypeError())
 	}

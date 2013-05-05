@@ -130,7 +130,7 @@ func builtinObject_create(call FunctionCall) Value {
 func builtinObject_isExtensible(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		return toValue(object.stash.extensible())
+		return toValue(object.extensible)
 	}
 	panic(newTypeError())
 }
@@ -138,7 +138,7 @@ func builtinObject_isExtensible(call FunctionCall) Value {
 func builtinObject_preventExtensions(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		object.stash.lock()
+		object.extensible = false
 	} else {
 		panic(newTypeError())
 	}
@@ -148,7 +148,7 @@ func builtinObject_preventExtensions(call FunctionCall) Value {
 func builtinObject_isSealed(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		if object.stash.extensible() {
+		if object.extensible {
 			return toValue(false)
 		}
 		result := true
@@ -166,7 +166,7 @@ func builtinObject_isSealed(call FunctionCall) Value {
 func builtinObject_isFrozen(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		if object.stash.extensible() {
+		if object.extensible {
 			return toValue(false)
 		}
 		result := true

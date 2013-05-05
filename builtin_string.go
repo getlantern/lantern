@@ -130,10 +130,10 @@ func builtinString_match(call FunctionCall) Value {
 	}
 
 	{
-		result := matcher._RegExp.RegularExpression.FindAllStringIndex(target, -1)
+		result := matcher.regExpValue().regularExpression.FindAllStringIndex(target, -1)
 		matchCount := len(result)
 		if result == nil {
-			matcher.set("lastIndex", toValue(0), true)
+			matcher.put("lastIndex", toValue(0), true)
 			return UndefinedValue() // !match
 		}
 		matchCount = len(result)
@@ -141,8 +141,8 @@ func builtinString_match(call FunctionCall) Value {
 		for index := 0; index < matchCount; index++ {
 			valueArray[index] = toValue(target[result[index][0]:result[index][1]])
 		}
-		matcher.set("lastIndex", toValue(result[matchCount-1][1]), true)
-		return toValue(call.runtime.newArray(valueArray))
+		matcher.put("lastIndex", toValue(result[matchCount-1][1]), true)
+		return toValue(call.runtime.newArrayOf(valueArray))
 	}
 }
 
@@ -192,9 +192,9 @@ func builtinString_replace(call FunctionCall) Value {
 	global := false
 	find := 1
 	if searchValue.IsObject() && searchObject.class == "RegExp" {
-		search = searchObject._RegExp.RegularExpression
-		global = toBoolean(searchObject.get("global"))
-		if global {
+		regExp := searchObject.regExpValue()
+		search = regExp.regularExpression
+		if regExp.global {
 			find = -1
 		}
 	} else {
@@ -265,7 +265,7 @@ func builtinString_search(call FunctionCall) Value {
 	if !searchValue.IsObject() || search.class != "RegExp" {
 		search = call.runtime.newRegExp(searchValue, UndefinedValue())
 	}
-	result := search._RegExp.RegularExpression.FindStringIndex(target)
+	result := search.regExpValue().regularExpression.FindStringIndex(target)
 	if result == nil {
 		return toValue(-1)
 	}
@@ -295,16 +295,16 @@ func builtinString_split(call FunctionCall) Value {
 	}
 
 	if limit == 0 {
-		return toValue(call.runtime.newArray([]Value{}))
+		return toValue(call.runtime.newArray(0))
 	}
 
 	if separatorValue.IsUndefined() {
-		return toValue(call.runtime.newArray([]Value{toValue(target)}))
+		return toValue(call.runtime.newArrayOf([]Value{toValue(target)}))
 	}
 
 	if separatorValue.isRegExp() {
 		targetLength := len(target)
-		search := separatorValue._object()._RegExp.RegularExpression
+		search := separatorValue._object().regExpValue().regularExpression
 		valueArray := []Value{}
 		result := search.FindAllStringSubmatchIndex(target, -1)
 		lastIndex := 0
@@ -355,7 +355,7 @@ func builtinString_split(call FunctionCall) Value {
 		}
 
 	RETURN:
-		return toValue(call.runtime.newArray(valueArray))
+		return toValue(call.runtime.newArrayOf(valueArray))
 
 	} else {
 		separator := toString(separatorValue)
@@ -378,7 +378,7 @@ func builtinString_split(call FunctionCall) Value {
 			valueArray[index] = toValue(value)
 		}
 
-		return toValue(call.runtime.newArray(valueArray))
+		return toValue(call.runtime.newArrayOf(valueArray))
 	}
 
 	return UndefinedValue()

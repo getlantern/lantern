@@ -279,3 +279,19 @@ func Test_reflectArray(t *testing.T) {
 		Is(abc, []int32{4, 42, 3, 0})
 	}
 }
+
+func Test_reflectArray_concat(t *testing.T) {
+	Terst(t)
+
+	_, test := runTestWithOtto()
+	failSet("ghi", []string{"jkl", "mno"})
+	failSet("pqr", []interface{}{"jkl", 42, 3.14159, true})
+	test(`
+        var def = {
+            "abc": ["abc"],
+            "xyz": ["xyz"]
+        };
+        xyz = pqr.concat(ghi, def.abc, def, def.xyz);
+        [ xyz, xyz.length ];
+    `, "jkl,42,3.14159,true,jkl,mno,abc,[object Object],xyz,9")
+}

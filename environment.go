@@ -31,9 +31,9 @@ type _functionEnvironment struct {
 func (runtime *_runtime) newFunctionEnvironment(outer _environment) *_functionEnvironment {
 	return &_functionEnvironment{
 		_declarativeEnvironment: _declarativeEnvironment{
-			runtime: runtime,
-			outer:   outer,
-			stash:   map[string]*_declarativeProperty{},
+			runtime:  runtime,
+			outer:    outer,
+			property: map[string]*_declarativeProperty{},
 		},
 	}
 }
@@ -86,11 +86,12 @@ func (self *_objectEnvironment) CreateMutableBinding(name string, deletable bool
 	if !deletable {
 		mode = _propertyMode(0110)
 	}
-	self.Object.stash.set(name, UndefinedValue(), mode)
+	// TODO False?
+	self.Object.defineProperty(name, UndefinedValue(), mode, false)
 }
 
 func (self *_objectEnvironment) SetMutableBinding(name string, value Value, strict bool) {
-	self.Object.set(name, value, strict)
+	self.Object.put(name, value, strict)
 }
 
 func (self *_objectEnvironment) SetValue(name string, value Value, throw bool) {
@@ -137,9 +138,9 @@ func (self *_objectEnvironment) newReference(name string, strict bool) _referenc
 
 func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_declarativeEnvironment {
 	return &_declarativeEnvironment{
-		runtime: runtime,
-		outer:   outer,
-		stash:   map[string]*_declarativeProperty{},
+		runtime:  runtime,
+		outer:    outer,
+		property: map[string]*_declarativeProperty{},
 	}
 }
 
@@ -150,22 +151,22 @@ type _declarativeProperty struct {
 }
 
 type _declarativeEnvironment struct {
-	runtime *_runtime
-	outer   _environment
-	stash   map[string]*_declarativeProperty
+	runtime  *_runtime
+	outer    _environment
+	property map[string]*_declarativeProperty
 }
 
 func (self *_declarativeEnvironment) HasBinding(name string) bool {
-	_, exists := self.stash[name]
+	_, exists := self.property[name]
 	return exists
 }
 
 func (self *_declarativeEnvironment) CreateMutableBinding(name string, deletable bool) {
-	_, exists := self.stash[name]
+	_, exists := self.property[name]
 	if exists {
 		panic(hereBeDragons())
 	}
-	self.stash[name] = &_declarativeProperty{
+	self.property[name] = &_declarativeProperty{
 		value:     UndefinedValue(),
 		mutable:   true,
 		deletable: deletable,
@@ -173,7 +174,7 @@ func (self *_declarativeEnvironment) CreateMutableBinding(name string, deletable
 }
 
 func (self *_declarativeEnvironment) SetMutableBinding(name string, value Value, strict bool) {
-	property := self.stash[name]
+	property := self.property[name]
 	if property == nil {
 		panic(hereBeDragons())
 	}
@@ -192,7 +193,7 @@ func (self *_declarativeEnvironment) SetValue(name string, value Value, throw bo
 }
 
 func (self *_declarativeEnvironment) GetBindingValue(name string, strict bool) Value {
-	property := self.stash[name]
+	property := self.property[name]
 	if property == nil {
 		panic(hereBeDragons())
 	}
@@ -207,15 +208,15 @@ func (self *_declarativeEnvironment) GetValue(name string, throw bool) Value {
 }
 
 func (self *_declarativeEnvironment) DeleteBinding(name string) bool {
-	property := self.stash[name]
+	property := self.property[name]
 	if property == nil {
-		delete(self.stash, name)
+		delete(self.property, name)
 		return false
 	}
 	if !property.deletable {
 		return false
 	}
-	delete(self.stash, name)
+	delete(self.property, name)
 	return true
 }
 

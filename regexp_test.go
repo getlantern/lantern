@@ -76,7 +76,6 @@ func TestRegExp_global(t *testing.T) {
             match = abc.exec("ab  cd2  ab34  cd");
             if (match !== null) {
                 found.push(match[0]);
-
             } else {
                 break;
             }
@@ -152,7 +151,7 @@ func TestRegExp_zaacbbbcac(t *testing.T) {
 
 	test := runTest()
 	if false {
-		// TODO Just plain different behavior
+		// TODO /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac")
 		test(`
             var abc = /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac");
             [ abc.length, abc.index, abc ];

@@ -8,6 +8,7 @@ const (
 	propertyMode_write     _propertyMode = 0100
 	propertyMode_enumerate               = 0010
 	propertyMode_configure               = 0001
+	propertyModeDefault                  = propertyMode_write | propertyMode_enumerate | propertyMode_configure
 )
 
 type _propertyGetSet [2]*_object
@@ -136,14 +137,14 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
 	object := self.newObject()
 	if descriptor.isDataDescriptor() {
-		object.stash.set("value", descriptor.value.(Value), 0111)
-		object.stash.set("writable", toValue(descriptor.writable()), 0111)
+		object.defineProperty("value", descriptor.value.(Value), 0111, false)
+		object.defineProperty("writable", toValue(descriptor.writable()), 0111, false)
 	} else if descriptor.isAccessorDescriptor() {
 		getSet := descriptor.value.(_propertyGetSet)
-		object.stash.set("get", toValue(getSet[0]), 0111)
-		object.stash.set("set", toValue(getSet[1]), 0111)
+		object.defineProperty("get", toValue(getSet[0]), 0111, false)
+		object.defineProperty("set", toValue(getSet[1]), 0111, false)
 	}
-	object.stash.set("enumerable", toValue(descriptor.enumerable()), 0111)
-	object.stash.set("configurable", toValue(descriptor.configurable()), 0111)
+	object.defineProperty("enumerable", toValue(descriptor.enumerable()), 0111, false)
+	object.defineProperty("configurable", toValue(descriptor.configurable()), 0111, false)
 	return object
 }

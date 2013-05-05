@@ -122,16 +122,22 @@ func (runtime *_runtime) newDateObject(epoch float64) *_object {
 	self.class = "Date"
 
 	// TODO Fix this, redundant arguments, etc.
-	self._Date = &_dateObject{}
-	self._Date.Set(epoch)
+	date := &_dateObject{}
+	date.Set(epoch)
+	self.value = date
 	return self
+}
+
+func (self *_object) dateValue() *_dateObject {
+	object, _ := self.value.(*_dateObject)
+	return object
 }
 
 func dateObjectOf(_dateObject *_object) *_dateObject {
 	if _dateObject == nil || _dateObject.class != "Date" {
 		panic(newTypeError())
 	}
-	return _dateObject._Date
+	return _dateObject.dateValue()
 }
 
 // JavaScript is 0-based, Go is 1-based (15.9.1.4)
@@ -269,7 +275,6 @@ func dateParse(date string) (epoch float64) {
 		}
 	}
 	if err != nil {
-		dbg(err)
 		return math.NaN()
 	}
 	return float64(time.UnixNano()) / (1000 * 1000) // UnixMilli()

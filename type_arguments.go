@@ -1,19 +1,22 @@
 package otto
 
-import (
-	"strconv"
-)
-
 func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, environment _environment, length int) *_object {
 	self := runtime.newClassObject("Arguments")
+
+	self.objectClass = _classArguments
+	self.value = &_argumentsObject{
+		indexOfParameterName: indexOfParameterName,
+		environment:          environment,
+	}
+
 	self.prototype = runtime.Global.ObjectPrototype
-	self.stash = newArgumentsStash(indexOfParameterName, environment, self.stash)
-	self.stash.set("length", toValue(length), 0101)
+
+	self.defineProperty("length", toValue(length), 0101, false)
 
 	return self
 }
 
-type _argumentsStash struct {
+type _argumentsObject struct {
 	indexOfParameterName []string
 	// function(abc, def, ghi)
 	// indexOfParameterName[0] = "abc"
@@ -21,101 +24,57 @@ type _argumentsStash struct {
 	// indexOfParameterName[2] = "ghi"
 	// ...
 	environment _environment
-	_stash
 }
 
-func newArgumentsStash(indexOfParameterName []string, environment _environment, stash _stash) *_argumentsStash {
-	self := &_argumentsStash{
-		indexOfParameterName: indexOfParameterName,
-		environment:          environment,
-		_stash:               stash,
-	}
-	return self
-}
-
-func (self *_argumentsStash) getArgument(name string) Value {
+func (self *_argumentsObject) get(name string) (Value, bool) {
 	index := stringToArrayIndex(name)
 	if index >= 0 && index < int64(len(self.indexOfParameterName)) {
 		name := self.indexOfParameterName[index]
 		if name == "" {
-			return emptyValue()
+			return Value{}, false
 		}
-		return self.environment.GetBindingValue(name, false)
+		return self.environment.GetBindingValue(name, false), true
 	}
-	return emptyValue()
+	return Value{}, false
 }
 
-// read
-
-func (self *_argumentsStash) test(name string) bool {
-	value := self.getArgument(name)
-	if !value.isEmpty() {
-		return true
-	}
-
-	return self._stash.test(name)
+func (self *_argumentsObject) put(name string, value Value) {
+	index := stringToArrayIndex(name)
+	name = self.indexOfParameterName[index]
+	self.environment.SetMutableBinding(name, value, false)
 }
 
-func (self *_argumentsStash) get(name string) Value {
-	value := self.getArgument(name)
-	if !value.isEmpty() {
+func (self *_argumentsObject) delete(name string) {
+	index := stringToArrayIndex(name)
+	self.indexOfParameterName[index] = ""
+}
+
+func argumentsGet(self *_object, name string) Value {
+	if value, exists := self.value.(*_argumentsObject).get(name); exists {
 		return value
 	}
-
-	return self._stash.get(name)
+	return objectGet(self, name)
 }
 
-func (self *_argumentsStash) property(name string) *_property {
-	value := self.getArgument(name)
-	if !value.isEmpty() {
-		return &_property{
-			value,
-			0111, // +Write +Enumerate +Configure
-		}
+func argumentsGetOwnProperty(self *_object, name string) *_property {
+	if value, exists := self.value.(*_argumentsObject).get(name); exists {
+		return &_property{value, 0111}
 	}
-
-	return self._stash.property(name)
+	return objectGetOwnProperty(self, name)
 }
 
-func (self *_argumentsStash) enumerate(each func(string)) {
-
-	for index, value := range self.indexOfParameterName {
-		if value == "" {
-			continue
-		}
-		name := strconv.FormatInt(int64(index), 10)
-		each(name)
-	}
-
-	self._stash.enumerate(each)
-}
-
-// write
-
-func (self *_argumentsStash) canPut(name string) bool {
-	value := self.getArgument(name)
-	if !value.isEmpty() {
+func argumentsDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
+	if _, exists := self.value.(*_argumentsObject).get(name); exists {
+		self.value.(*_argumentsObject).put(name, descriptor.value.(Value))
 		return true
 	}
-	return self._stash.canPut(name)
+	return objectDefineOwnProperty(self, name, descriptor, throw)
 }
 
-func (self *_argumentsStash) put(name string, value Value) {
-	_value := self.getArgument(name)
-	if !_value.isEmpty() {
-		index := stringToArrayIndex(name)
-		name := self.indexOfParameterName[index]
-		self.environment.SetMutableBinding(name, value, false)
-		return
+func argumentsDelete(self *_object, name string, throw bool) bool {
+	if _, exists := self.value.(*_argumentsObject).get(name); exists {
+		self.value.(*_argumentsObject).delete(name)
+		return true
 	}
-	self._stash.put(name, value)
-}
-
-func (self *_argumentsStash) delete(name string) {
-	value := self.getArgument(name)
-	if !value.isEmpty() {
-		index := stringToArrayIndex(name)
-		self.indexOfParameterName[index] = ""
-	}
-	self._stash.delete(name)
+	return objectDelete(self, name, throw)
 }

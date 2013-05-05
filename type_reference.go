@@ -68,7 +68,7 @@ func (self *_propertyReference) PutValue(value Value) bool {
 	if self.Base == nil {
 		return false
 	}
-	self.Base.set(self.name, value, self.IsStrict())
+	self.Base.put(self.name, value, self.IsStrict())
 	return true
 }
 

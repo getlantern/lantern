@@ -7,23 +7,20 @@ import (
 
 func (runtime *_runtime) newGoArrayObject(value reflect.Value) *_object {
 	self := runtime.newObject()
-	self.class = "Array" // TODO Should this be something else?
-	self.stash = newGoArrayStash(value, self.stash, runtime)
+	self.class = "GoArray"
+	self.objectClass = _classGoArray
+	self.value = _newGoArrayObject(value)
 	return self
 }
 
-type _goArrayStash struct {
+type _goArrayObject struct {
 	value        reflect.Value
 	writable     bool
 	propertyMode _propertyMode
-	_stash
-	// We pass the runtime to the stash to it can do deep
-	// value promotion
-	runtime *_runtime
 }
 
-func newGoArrayStash(value reflect.Value, stash _stash, runtime *_runtime) *_goArrayStash {
-	propertyMode := _propertyMode(0111)
+func _newGoArrayObject(value reflect.Value) *_goArrayObject {
+	propertyMode := _propertyMode(0110)
 	writable := true
 	switch value.Kind() {
 	case reflect.Slice:
@@ -35,24 +32,22 @@ func newGoArrayStash(value reflect.Value, stash _stash, runtime *_runtime) *_goA
 	default:
 		dbgf("%/panic//%@: %v != reflect.Slice", value.Kind())
 	}
-	self := &_goArrayStash{
+	self := &_goArrayObject{
 		value:        value,
 		writable:     writable,
 		propertyMode: propertyMode,
-		_stash:       stash,
-		runtime:      runtime,
 	}
 	return self
 }
 
-func (self _goArrayStash) getValue(index int) (reflect.Value, bool) {
+func (self _goArrayObject) getValue(index int) (reflect.Value, bool) {
 	if index < self.value.Len() {
 		return self.value.Index(index), true
 	}
 	return reflect.Value{}, false
 }
 
-func (self _goArrayStash) setValue(index int, value Value) {
+func (self _goArrayObject) setValue(index int, value Value) {
 	indexValue, exists := self.getValue(index)
 	if !exists {
 		return
@@ -64,50 +59,13 @@ func (self _goArrayStash) setValue(index int, value Value) {
 	indexValue.Set(reflectValue)
 }
 
-// read
-
-func (self *_goArrayStash) test(name string) bool {
-	// length
-	if name == "length" {
-		return true
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		_, exists := self.getValue(int(index))
-		return exists
-	}
-
-	return self._stash.test(name)
-}
-
-func (self *_goArrayStash) get(name string) Value {
-	// length
-	if name == "length" {
-		return toValue(self.value.Len())
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		value, exists := self.getValue(int(index))
-		if !exists {
-			return UndefinedValue()
-		}
-		return self.runtime.toValue(value.Interface())
-	}
-
-	return self._stash.get(name)
-}
-
-func (self *_goArrayStash) property(name string) *_property {
+func goArrayGetOwnProperty(self *_object, name string) *_property {
+	object := self.value.(*_goArrayObject)
 	// length
 	if name == "length" {
 		return &_property{
-			value: toValue(self.value.Len()),
-			mode:  0000, // -Write -Enumerate -Configure
-			// -Write is different from the standard Array
+			value: toValue(object.value.Len()),
+			mode:  0,
 		}
 	}
 
@@ -115,33 +73,47 @@ func (self *_goArrayStash) property(name string) *_property {
 	index := stringToArrayIndex(name)
 	if index >= 0 {
 		value := UndefinedValue()
-		reflectValue, exists := self.getValue(int(index))
+		reflectValue, exists := object.getValue(int(index))
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())
 		}
 		return &_property{
 			value: value,
-			mode:  self.propertyMode, // If addressable or not
+			mode:  object.propertyMode, // If addressable or not
 		}
 	}
 
-	return self._stash.property(name)
+	return objectGetOwnProperty(self, name)
 }
 
-func (self *_goArrayStash) enumerate(each func(string)) {
+func goArrayEnumerate(self *_object, each func(string)) {
+	object := self.value.(*_goArrayObject)
 	// .0, .1, .2, ...
 
-	for index, length := 0, self.value.Len(); index < length; index++ {
+	for index, length := 0, object.value.Len(); index < length; index++ {
 		name := strconv.FormatInt(int64(index), 10)
 		each(name)
 	}
 
-	self._stash.enumerate(each)
+	objectEnumerate(self, each)
 }
 
-// write
+func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
+	if name == "length" {
+		return false
+	} else if index := stringToArrayIndex(name); index >= 0 {
+		object := self.value.(*_goArrayObject)
+		if int(index) >= object.value.Len() {
+			return false
+		}
+		object.setValue(int(index), descriptor.value.(Value))
+		return true
+	}
+	return objectDefineOwnProperty(self, name, descriptor, throw)
+}
 
-func (self *_goArrayStash) canPut(name string) bool {
+func goArrayDelete(self *_object, name string, throw bool) bool {
+	object := self.value.(*_goArrayObject)
 	// length
 	if name == "length" {
 		return false
@@ -150,60 +122,19 @@ func (self *_goArrayStash) canPut(name string) bool {
 	// .0, .1, .2, ...
 	index := int(stringToArrayIndex(name))
 	if index >= 0 {
-		if self.writable {
-			length := self.value.Len()
+		if object.writable {
+			length := object.value.Len()
 			if index < length {
-				return self.writable
-			}
-		}
-		return false
-	}
-
-	return self._stash.canPut(name)
-}
-
-func (self *_goArrayStash) put(name string, value Value) {
-	// length
-	if name == "length" {
-		return
-	}
-
-	// .0, .1, .2, ...
-	index := int(stringToArrayIndex(name))
-	if index >= 0 {
-		if self.writable {
-			length := self.value.Len()
-			if index < length {
-				self.setValue(index, value)
-			}
-		}
-		return
-	}
-
-	self._stash.put(name, value)
-}
-
-func (self *_goArrayStash) delete(name string) {
-	// length
-	if name == "length" {
-		return
-	}
-
-	// .0, .1, .2, ...
-	index := int(stringToArrayIndex(name))
-	if index >= 0 {
-		if self.writable {
-			length := self.value.Len()
-			if index < length {
-				indexValue, exists := self.getValue(index)
+				indexValue, exists := object.getValue(index)
 				if !exists {
-					return
+					return false
 				}
-				indexValue.Set(reflect.Zero(self.value.Type().Elem()))
+				indexValue.Set(reflect.Zero(object.value.Type().Elem()))
+				return true
 			}
 		}
-		return
+		return false
 	}
 
-	self._stash.delete(name)
+	return self.delete(name, throw)
 }

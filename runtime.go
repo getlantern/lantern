@@ -62,7 +62,7 @@ func (self *_runtime) _executionContext(depth int) *_executionContext {
 }
 
 func (self *_runtime) EnterFunctionExecutionContext(function *_object, this Value) *_functionEnvironment {
-	scopeEnvironment := function._Function.Call.ScopeEnvironment()
+	scopeEnvironment := function.functionValue().call.ScopeEnvironment()
 	if scopeEnvironment == nil {
 		scopeEnvironment = self.GlobalEnvironment
 	}
@@ -116,7 +116,7 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 	if !reference.PutValue(value) {
 		// Why? -- If reference.Base == nil
 		strict := false
-		self.GlobalObject.set(reference.GetName(), value, strict)
+		self.GlobalObject.defineProperty(reference.GetName(), value, 0111, strict)
 	}
 }
 
@@ -140,7 +140,7 @@ func (self *_runtime) _callNode(function *_object, environment *_functionEnviron
 
 	if !node.ArgumentsIsParameter {
 		arguments := self.newArgumentsObject(indexOfParameterName, environment, len(argumentList))
-		arguments.stash.set("callee", toValue(function), 0101)
+		arguments.defineProperty("callee", toValue(function), 0101, false)
 		environment.arguments = arguments
 		self.localSet("arguments", toValue(arguments))
 		for index, _ := range argumentList {
@@ -148,7 +148,7 @@ func (self *_runtime) _callNode(function *_object, environment *_functionEnviron
 				continue
 			}
 			indexAsString := strconv.FormatInt(int64(index), 10)
-			arguments.set(indexAsString, argumentList[index], false)
+			arguments.defineProperty(indexAsString, argumentList[index], 0111, false)
 		}
 	}
 
@@ -182,7 +182,7 @@ func (self *_runtime) Call(function *_object, this Value, argumentList []Value, 
 	if evalHint {
 		evalHint = function == self.eval // If evalHint is true, then it IS a direct eval
 	}
-	returnValue = function._Function.Call.Dispatch(function, _functionEnvironment, self, this, argumentList, evalHint)
+	returnValue = function.functionValue().call.Dispatch(function, _functionEnvironment, self, this, argumentList, evalHint)
 	return
 }
 

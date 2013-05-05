@@ -216,19 +216,16 @@ func TestFunction(t *testing.T) {
         delete xyz;
     `, "false")
 
-	if true {
-		// TODO
-		test(`
-            var abc = function __factorial(def){
-                if (def === 1) {
-                    return def;
-                } else {
-                    return __factorial(def-1)*def;
-                }
-            };
-            abc(3);
-        `, "6")
-	}
+	test(`
+        var abc = function __factorial(def){
+            if (def === 1) {
+                return def;
+            } else {
+                return __factorial(def-1)*def;
+            }
+        };
+        abc(3);
+    `, "6")
 }
 
 func TestIf(t *testing.T) {
@@ -1050,18 +1047,20 @@ func TestForIn(t *testing.T) {
 	test := runTest()
 
 	test(`
+        var abc;
 		for (property in { a: 1 }) {
-			abc = property
+			abc = property;
 		}
-	`)
-	test("abc", "a")
+        abc;
+	`, "a")
 
 	test(`
+        var ghi;
 		for (property in new String("xyzzy")) {
-			abc = property
+			ghi = property;
 		}
-	`)
-	test("abc", "4")
+        ghi;
+	`, "4")
 }
 
 func TestAssignment(t *testing.T) {
@@ -1126,7 +1125,7 @@ func TestNewFunction(t *testing.T) {
 		new 1
 	`, "TypeError: 1 is not a function")
 
-	// TODO Report something sane.
+	// TODO Better error reporting: new this
 	test(`raise:
 		new this
 	`, "TypeError: [object ] is not a function")

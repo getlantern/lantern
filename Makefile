@@ -2,6 +2,19 @@
 .PHONY: underscore
 
 TEST := -v --run
+TEST := -v --run TestOperator$$
+TEST := -v .
+TEST := -v --run TestRegExp_global
+TEST := -v --run TestString
+TEST := -v --run TestArguments
+TEST := -v --run TestGlobal_skipEn
+TEST := -v .
+TEST := -v --run TestArray
+TEST := -v --run ForIn
+TEST := -v --run reflectStruct
+TEST := .
+TEST := -v --run reflectMap
+TEST := -v --run reflectArray
 TEST := .
 
 test: test-i
