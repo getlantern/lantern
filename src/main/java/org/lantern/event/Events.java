@@ -46,7 +46,7 @@ public class Events {
         return asyncEventBus;
     }
     
-    public static AsyncEventBus inOderAsyncEventBus() {
+    public static AsyncEventBus inOrderAsyncEventBus() {
         return inOrderAsyncEventBus;
     }
 

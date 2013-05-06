@@ -130,7 +130,7 @@ public class Settings {
     public void setSystemProxy(final boolean systemProxy) {
         log.info("Setting system proxy...");
         this.systemProxy = systemProxy;
-        Events.inOderAsyncEventBus().post(new SystemProxyChangedEvent(systemProxy));
+        Events.inOrderAsyncEventBus().post(new SystemProxyChangedEvent(systemProxy));
     }
 
     @JsonView({Run.class, Persistent.class})
