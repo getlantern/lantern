@@ -13,6 +13,7 @@ import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
+import org.lantern.event.SystemProxyChangedEvent;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -113,13 +114,50 @@ public class Proxifier implements ProxyService, LanternService {
         LOG.debug("Got setup complete!");
         if (this.lastProxyConnectionEvent != null && this.proxyTracker.hasProxy()) {
             LOG.debug("Re-firing last proxy connection event...");
-            onProxyConnection(this.lastProxyConnectionEvent);
+            onProxyConnectionEvent(this.lastProxyConnectionEvent);
         } else {
             LOG.debug("No proxy connection event to refire or no proxy {}, {}", 
                 this.lastProxyConnectionEvent, this.proxyTracker.hasProxy());
         }
     }
     
+    @Subscribe
+    public synchronized void onSystemProxyChanged(
+        final SystemProxyChangedEvent spe) {
+        LOG.debug("Got system proxy changed event {}", spe);
+        if (spe.isSystemProxy()) {
+            proxyWithChecks();
+        } else {
+            try {
+                stopProxying();
+            } catch (final ProxyConfigurationError e) {
+                LOG.warn("Error stopping proxy!", e);
+            }
+        }
+    }
+    
+    private void proxyWithChecks() {
+        if (!this.model.isSetupComplete()) {
+            LOG.debug("Not proxying when setup up not complete");
+            return;
+        }
+        if (!this.proxyTracker.hasProxy()) {
+            LOG.debug("Not proxying when we have no proxies!");
+            return;
+        }
+        if (modelUtils.shouldProxy()) {
+            try {
+                startProxying();
+            } catch (final ProxyConfigurationError e) {
+                LOG.warn("Could not proxy?", e);
+            }
+        } else {
+            LOG.debug("Ignoring proxy call! System proxy? "+
+                    model.getSettings().isSystemProxy()+" get mode? "+
+                    this.model.getSettings().getMode());
+        }
+    }
+
     /**
      * Synchronized proxy connection event handler because it has to sync up
      * with setup complete events (see above). This is designed so either 
@@ -128,27 +166,14 @@ public class Proxifier implements ProxyService, LanternService {
      * @param pce The proxy connection event.
      */
     @Subscribe
-    public synchronized void onProxyConnection(final ProxyConnectionEvent pce) {
+    public synchronized void onProxyConnectionEvent(
+        final ProxyConnectionEvent pce) {
         this.lastProxyConnectionEvent = pce;
-        if (!model.isSetupComplete()) {
-            LOG.debug("Ingoring proxy connection call when setup is not complete");
-            return;
-        }
         final ConnectivityStatus stat = pce.getConnectivityStatus();
         switch (stat) {
         case CONNECTED:
             LOG.debug("Got connected event");
-            if (modelUtils.shouldProxy()) {
-                try {
-                    startProxying();
-                } catch (final ProxyConfigurationError e) {
-                    LOG.warn("Could not proxy?", e);
-                }
-            } else {
-                LOG.debug("Ignoring proxy call! System proxy? "+
-                        model.getSettings().isSystemProxy()+" get mode? "+
-                        this.model.getSettings().getMode());
-            }
+            proxyWithChecks();
             break;
         case CONNECTING:
             LOG.debug("Got connecting event");

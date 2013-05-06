@@ -10,6 +10,8 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Whitelist;
+import org.lantern.event.Events;
+import org.lantern.event.SystemProxyChangedEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
@@ -126,7 +128,9 @@ public class Settings {
     }
 
     public void setSystemProxy(final boolean systemProxy) {
+        log.info("Setting system proxy...");
         this.systemProxy = systemProxy;
+        //Events.inOderAsyncEventBus().post(new SystemProxyChangedEvent(systemProxy));
     }
 
     @JsonView({Run.class, Persistent.class})

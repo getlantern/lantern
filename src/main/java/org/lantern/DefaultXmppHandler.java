@@ -1141,7 +1141,14 @@ public class DefaultXmppHandler implements XmppHandler {
     /** Try to reconnect to the xmpp server */
     private void reconnect() {
         //this will trigger XmppP2PClient's internal reconnection logic
-        client.get().getXmppConnection().disconnect();
+        if (hasConnection()) {
+            client.get().getXmppConnection().disconnect();
+        }
+        // Otherwise the client should already be trying to connect.
+    }
+
+    private boolean hasConnection() {
+        return client.get() != null && client.get().getXmppConnection() != null;
     }
 
     @Override

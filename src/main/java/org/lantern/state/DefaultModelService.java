@@ -131,6 +131,7 @@ public class DefaultModelService implements ModelService {
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
+        log.debug("Set system proxy called");
         if (isSystemProxy == this.model.getSettings().isSystemProxy()) {
             log.info("System proxy setting is unchanged.");
             return;
