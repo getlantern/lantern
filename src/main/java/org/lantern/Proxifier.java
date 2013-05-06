@@ -135,28 +135,6 @@ public class Proxifier implements ProxyService, LanternService {
             }
         }
     }
-    
-    private void proxyWithChecks() {
-        if (!this.model.isSetupComplete()) {
-            LOG.debug("Not proxying when setup up not complete");
-            return;
-        }
-        if (!this.proxyTracker.hasProxy()) {
-            LOG.debug("Not proxying when we have no proxies!");
-            return;
-        }
-        if (modelUtils.shouldProxy()) {
-            try {
-                startProxying();
-            } catch (final ProxyConfigurationError e) {
-                LOG.warn("Could not proxy?", e);
-            }
-        } else {
-            LOG.debug("Ignoring proxy call! System proxy? "+
-                    model.getSettings().isSystemProxy()+" get mode? "+
-                    this.model.getSettings().getMode());
-        }
-    }
 
     /**
      * Synchronized proxy connection event handler because it has to sync up
@@ -191,6 +169,33 @@ public class Proxifier implements ProxyService, LanternService {
         
         }
     }
+    
+    /**
+     * Starts proxying, but does a few checks of the overall state first and
+     * only proxies if everything's good to go.
+     */
+    private void proxyWithChecks() {
+        if (!this.model.isSetupComplete()) {
+            LOG.debug("Not proxying when setup up not complete");
+            return;
+        }
+        if (!this.proxyTracker.hasProxy()) {
+            LOG.debug("Not proxying when we have no proxies!");
+            return;
+        }
+        if (modelUtils.shouldProxy()) {
+            try {
+                startProxying();
+            } catch (final ProxyConfigurationError e) {
+                LOG.warn("Could not proxy?", e);
+            }
+        } else {
+            LOG.debug("Ignoring proxy call! System proxy? "+
+                    model.getSettings().isSystemProxy()+" get mode? "+
+                    this.model.getSettings().getMode());
+        }
+    }
+
 
     @Override
     public void start() throws Exception {
