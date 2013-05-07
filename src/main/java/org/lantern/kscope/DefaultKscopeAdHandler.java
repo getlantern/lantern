@@ -84,8 +84,10 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         }
         TrustGraphNodeId nid = new BasicTrustGraphNodeId(ad.getJid());
         TrustGraphNodeId nextNid = routingTable.getNextHop(nid);
-        if(nextNid == null) {
-            log.error("Could not relay ad: Node ID not in routing table");
+        if (nextNid == null) {
+            // This will happen when we're not connected to any other peers,
+            // for example.
+            log.debug("Could not relay ad: Node ID not in routing table");
             return false;
         }
         LanternKscopeAdvertisement relayAd = 
