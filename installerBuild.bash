@@ -26,7 +26,7 @@ printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key passwor
 test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
 
 # XXX pull CURRENT_VERSION out of pom.xml
-CURRENT_VERSION="0.21.1-SNAPSHOT"
+CURRENT_VERSION="0.21.2-SNAPSHOT"
 fgrep $CURRENT_VERSION $VERSION_FILE &>/dev/null || die "CURRENT_VERSION \"$CURRENT_VERSION\" not found in pom.xml"
 
 # XXX calculate NEW_VERSION by stripping off "-SNAPSHOT" from CURRENT_VERSION
