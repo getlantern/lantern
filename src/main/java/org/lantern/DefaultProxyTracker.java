@@ -19,7 +19,6 @@ import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.Timer;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
-import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -46,7 +45,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final ExecutorService p2pSocketThreadPool =
         Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
-
+    
     /**
      * These are the proxies this Lantern instance is using that can be directly
      * connected to.
@@ -87,6 +86,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
+    private final ProxyConnectivitySyncer proxyConnectivitySyncer;
+
     @Inject
     public DefaultProxyTracker(final Model model,
         final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
@@ -94,6 +95,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         proxyQueue = new ProxyQueue(model);
         laeProxyQueue = new ProxyQueue(model);
         peerProxyQueue = new PeerProxyQueue(model);
+        
+        this.proxyConnectivitySyncer = 
+            new ProxyConnectivitySyncer(proxyQueue, laeProxyQueue, peerProxyQueue);
         this.model = model;
         this.peerFactory = peerFactory;
         this.timer = timer;
@@ -253,10 +257,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     peerProxyQueue.addPeerProxy(peerUri, ph);
 
-                    Events.eventBus().post(
-                            new ProxyConnectionEvent(
-                                    ConnectivityStatus.CONNECTED));
-
+                    proxyConnectivitySyncer.syncConnectivity();
                 } catch (final IOException e) {
                     log.info("Could not create peer socket", e);
                 }
@@ -303,8 +304,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void addProxyWithChecks(final URI fullJid,
         final ProxyQueue queue, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
-            //even with no tcp, we can still add JID proxies
-            addJidProxy(fullJid);
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
@@ -332,11 +331,10 @@ public class DefaultProxyTracker implements ProxyTracker {
                                 + "Queue is now: {}", queue);
                         peerFactory.onOutgoingConnection(fullJid, remote,
                                 ph.getType(), ph.getTrafficShapingHandler());
+                        log.debug("Dispatching CONNECTED event");
+                        proxyConnectivitySyncer.syncConnectivity();
                     }
 
-                    log.debug("Dispatching CONNECTED event");
-                    Events.asyncEventBus().post(
-                        new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
                     // This can happen if the user has subsequently gone 
                     // offline, for example.
@@ -381,13 +379,15 @@ public class DefaultProxyTracker implements ProxyTracker {
         final ProxyQueue queue){
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
         proxyQueue.proxyFailed(proxyAddress);
+        proxyConnectivitySyncer.syncConnectivity();
     }
 
     @Override
     public void onCouldNotConnectToPeer(final URI peerUri) {
         peerProxyQueue.proxyFailed(peerUri);
+        proxyConnectivitySyncer.syncConnectivity();
     }
-
+    
     @Override
     public void onError(final URI peerUri) {
         peerProxyQueue.proxyFailed(peerUri);
