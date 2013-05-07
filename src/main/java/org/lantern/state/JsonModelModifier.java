@@ -41,10 +41,6 @@ public class JsonModelModifier {
             final Object val = map.get("value");
             LanternUtils.setFromPath(modelService, path, val);
 
-            if(path.equals("settings/systemProxy")) {
-                modelService.setSystemProxy((Boolean)val);
-            }
-
             //setProperty(modelService, key, val, true);
         } catch (final JsonParseException e) {
             log.error("Problem handling JSON:"+json, e);
