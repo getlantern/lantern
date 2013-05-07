@@ -87,7 +87,7 @@ public class ModelIo extends Storage<Model> {
      * Serializes the specified model -- useful for testing.
      */
     @Override
-    public void write(final Model toWrite) {
+    public synchronized void write(final Model toWrite) {
         final Settings set = toWrite.getSettings();
         final String refresh = set.getRefreshToken();
         final String access = set.getAccessToken();
