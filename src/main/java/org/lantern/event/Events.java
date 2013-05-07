@@ -23,11 +23,18 @@ public class Events {
     private static final AsyncEventBus asyncEventBus =
         new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool(
             new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
-                "Async-Event-Thread-%d").build()));
+                "Lantern-Async-Event-Thread-%d").build()));
+    
+    private static final AsyncEventBus inOrderAsyncEventBus =
+            new AsyncEventBus("In-Order-Async-Event-Bus", 
+                Executors.newSingleThreadExecutor(
+                new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
+                    "Lantern-In-Order-Async-Event-Thread-%d").build()));
 
     public static void register(final Object toRegister) {
         asyncEventBus.register(toRegister);
         eventBus.register(toRegister);
+        inOrderAsyncEventBus.register(toRegister);
     }
 
 
@@ -37,6 +44,10 @@ public class Events {
 
     public static AsyncEventBus asyncEventBus() {
         return asyncEventBus;
+    }
+    
+    public static AsyncEventBus inOrderAsyncEventBus() {
+        return inOrderAsyncEventBus;
     }
 
     /**
