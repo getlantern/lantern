@@ -161,20 +161,30 @@ angular.module('app.services', [])
         log.debug('ignoring', msg, 'while model has not yet been populated');
         return;
       }
-      $rootScope.$apply(function() {
-        if (patch[0].path === '') {
-          // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
-          angular.copy(patch[0].value, model);
-        } else {
-          try {
-            applyPatch(model, patch);
-          } catch (e) {
-            if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
-            log.error('Error applying patch', patch);
-            apiSrvc.exception({exception: e, patch: patch});
+      try {
+        $rootScope.$apply(function() {
+          if (patch[0].path === '') {
+            // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
+            angular.copy(patch[0].value, model);
+          } else {
+            try {
+              applyPatch(model, patch);
+            } catch (e) {
+              if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
+              log.error('Error applying patch', patch);
+              apiSrvc.exception({exception: e, patch: patch});
+            }
           }
+        });
+      } catch (e) {
+        // XXX https://github.com/angular/angular.js/issues/2602
+        // XXX https://github.com/angular-ui/bootstrap/issues/407
+        if (/scrollHeight/.test(e.message)) {
+          log.debug('Swallowing "<TTL> $digest() iterations reached" error caused by https://github.com/angular-ui/bootstrap/issues/407');
+        } else {
+          throw e;
         }
-      });
+      }
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
