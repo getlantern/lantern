@@ -587,6 +587,7 @@ public class InteractionServlet extends HttpServlet {
         case giveModeForbidden:
             if (inter == Interaction.CONTINUE) {
                 //  need to do more setup to switch to get mode from give mode
+                model.getSettings().setMode(Mode.get);
                 model.setSetupComplete(false);
                 this.internalState.advanceModal(null);
                 Events.syncModal(model, Modal.proxiedSites);

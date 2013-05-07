@@ -33,14 +33,12 @@ public class GeoIp {
             connected = true;
             InetAddress ip = e.getNewIp();
             final Location loc = model.getLocation();
-            if (loc.getLat() == 0.0 && loc.getLon() == 0.0) {
+            if (e.isIpChanged() || (loc.getLat() == 0.0 && loc.getLon() == 0.0)) {
                 final GeoData geo = geoIpLookupService.getGeoData(ip);
-                if (geo.getLatitude() != 0.0 || geo.getLongitude() != 0.0) {
-                    loc.setCountry(geo.getCountrycode());
-                    loc.setLat(geo.getLatitude());
-                    loc.setLon(geo.getLongitude());
-                    Events.sync(SyncPath.LOCATION, loc);
-                }
+                loc.setCountry(geo.getCountrycode());
+                loc.setLat(geo.getLatitude());
+                loc.setLon(geo.getLongitude());
+                Events.sync(SyncPath.LOCATION, loc);
             }
         }
     }
