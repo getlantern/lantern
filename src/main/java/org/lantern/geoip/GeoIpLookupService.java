@@ -52,16 +52,15 @@ public class GeoIpLookupService {
     }
 
     private GeoData getGeoData(byte[] bytes) {
-        // we might have to wait here until our table is set up.
-        if (table == null) {
-            loadData();
-        }
-        while (!dataLoaded) {
-            try {
-                synchronized(this) {
-                    wait(100);
+        loadData();
+
+        synchronized (this) {
+            while (!dataLoaded) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    //fall through
                 }
-            } catch (InterruptedException e) {
             }
         }
         long address = BitUtils.byteArrayToInteger(bytes);
@@ -132,7 +131,7 @@ public class GeoIpLookupService {
 
         dataLoaded = true;
         synchronized(this) {
-            this.notify();
+            this.notifyAll();
         }
     }
 
