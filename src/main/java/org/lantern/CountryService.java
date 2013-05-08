@@ -260,20 +260,16 @@ public class CountryService {
         "ZM", "ZAMBIA",
         "ZW", "ZIMBABWE",
     };
-    private HashMap<String, Country> allCountries;
+    private final Map<String, Country> allCountries = new HashMap<String, Country>();
     private final Censored censored;
 
     @Inject
     CountryService(Censored censored) {
         this.censored = censored;
-        allCountries();
+        initCountries();
     }
 
-    public Map<String, Country> allCountries() {
-        if (allCountries != null) {
-            return allCountries;
-        }
-        allCountries = new HashMap<String, Country>();
+    private void initCountries() {
         for (int i = 0; i < countryTable.length; i += 2) {
             String countryCode = countryTable[i];
             String countryName = countryTable[i + 1];
@@ -281,6 +277,9 @@ public class CountryService {
             allCountries.put(countryCode, new Country(countryCode, countryName,
                     isCensored));
         }
+    }
+
+    public Map<String, Country> allCountries() {
         return allCountries;
     }
 
