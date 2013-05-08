@@ -28,15 +28,22 @@ public class HttpClientFactory {
         this.censored = censored;
         
     }
-    
+
+    public HttpClient newProxiedClient() {
+        return newClient(newProxy(), true);
+    }
+
     public HttpClient newClient() {
-        final HttpHost host = new HttpHost(
+        return newClient(newProxy());
+    }
+
+    private HttpHost newProxy() {
+        return new HttpHost(
             LanternClientConstants.FALLBACK_SERVER_HOST, 
             Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
                 "https");
-        return newClient(host);
     }
-    
+
     public HttpClient newClient(final HttpHost proxy) {
         return newClient(proxy, this.censored.isCensored());
     }

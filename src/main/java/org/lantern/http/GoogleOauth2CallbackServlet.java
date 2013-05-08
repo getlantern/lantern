@@ -107,7 +107,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final Map<String, String> params = HttpUtils.toParamMap(req);
         log.debug("Params: {}", params);
 
-        // We before redirecting to Google, we set up the proxy to proxy
+        // Before redirecting to Google, we set up the proxy to proxy
         // access to accounts.google.com for the oauth exchange. That's just
         // temporary, though, and we now cancel it.
         try {
@@ -144,7 +144,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
 
-        final HttpClient client = this.httpClientFactory.newClient();
+        final HttpClient client = this.httpClientFactory.newProxiedClient();
 
         final Map<String, String> allToks;
         try {
