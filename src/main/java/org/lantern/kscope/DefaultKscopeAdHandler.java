@@ -18,9 +18,6 @@ import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
-import org.lantern.state.Model;
-import org.lantern.state.SyncPath;
-import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,18 +42,16 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
-    private final Model model;
     
     @Inject
     public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
         final LanternTrustStore trustStore,
         final RandomRoutingTable routingTable,
-        final XmppHandler xmppHandler, final Model model) {
+        final XmppHandler xmppHandler) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.xmppHandler = xmppHandler;
-        this.model = model;
     }
     
     @Override
@@ -80,7 +75,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             log.debug("End of the line for kscope ad for {} from {}.", 
                 ad.getJid(), from
             );
-            return false;
+            return true;
         }
         TrustGraphNodeId nid = new BasicTrustGraphNodeId(ad.getJid());
         TrustGraphNodeId nextNid = routingTable.getNextHop(nid);
@@ -88,7 +83,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             // This will happen when we're not connected to any other peers,
             // for example.
             log.debug("Could not relay ad: Node ID not in routing table");
-            return false;
+            return true;
         }
         LanternKscopeAdvertisement relayAd = 
             LanternKscopeAdvertisement.makeRelayAd(ad);

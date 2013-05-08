@@ -924,10 +924,12 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         if (p.isAvailable()) {
             LOG.info("Processing available peer");
+            // Only exchange certs with peers based on kscope ads.
+            
             // OK, we just request a certificate every time we get a present
             // peer. If we get a response, this peer will be added to active
             // peer URIs.
-            sendAndRequestCert(uri);
+            //sendAndRequestCert(uri);
         }
         else {
             LOG.info("Removing JID for peer '"+from);
