@@ -1,4 +1,4 @@
-package org.lantern.geoip;
+package org.lantern.util;
 
 import java.io.IOException;
 import java.io.InputStream;

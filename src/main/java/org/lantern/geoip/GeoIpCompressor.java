@@ -20,6 +20,8 @@ import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.lang3.tuple.Pair;
+import org.lantern.util.BitInputStream;
+import org.lantern.util.BitOutputStream;
 import org.littleshoot.util.BitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

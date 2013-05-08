@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.lantern.util.BitInputStream;
 
 public class TestBitInputStream {
     @Test

@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.lantern.util.BitOutputStream;
 
 public class TestBitOutputStream {
     @Test
