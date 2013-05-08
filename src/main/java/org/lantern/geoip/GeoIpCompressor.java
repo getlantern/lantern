@@ -169,7 +169,11 @@ public class GeoIpCompressor {
         // the range sizes which only appear once
         List<Integer> singletons = new ArrayList<Integer>();
 
+        int count = 0;
         while (true) {
+            if (count++ > 500000) {
+                throw new RuntimeException("Unexpectedly large number of singleton locations (probably a corrupt geoip.db)");
+            }
             byte[] b = new byte[4];
             inStream.read(b);
             int i = BitUtils.byteArrayToInteger(b);
