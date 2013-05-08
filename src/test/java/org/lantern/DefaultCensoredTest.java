@@ -3,11 +3,14 @@ package org.lantern;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.lantern.geoip.GeoIpLookupService;
 
 
 public class DefaultCensoredTest {
+
+    private GeoIpLookupService lookupService;
 
     /*
     @Test
@@ -25,10 +28,14 @@ public class DefaultCensoredTest {
     }
     */
 
+    @Before
+    public void setup() {
+        lookupService = new GeoIpLookupService();
+    }
+
     @Test
     public void testExportRestricted() throws Exception {
-        GeoIpLookupService geoIpLookupService = TestUtils.getGeoIpLookupService();
-        final Censored cen = new DefaultCensored(geoIpLookupService);
+        final Censored cen = new DefaultCensored(lookupService);
 
         assertTrue(cen.isExportRestricted("78.110.96.7")); // Syria
     }
@@ -58,7 +65,7 @@ public class DefaultCensoredTest {
     }
 
     private boolean isCensored(String ip) {
-        GeoIpLookupService lookupService = TestUtils.getGeoIpLookupService();
+
         GeoData location = lookupService.getGeoData(ip);
         CountryService countryService = TestUtils.getCountryService();
         Country country = countryService.getCountryByCode(location.getCountrycode());
