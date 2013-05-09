@@ -33,6 +33,9 @@ import com.sachingarg.DecompressedInputStream;
 import com.sachingarg.FenwickTreeModel;
 import com.sachingarg.RCModel;
 
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+
 //current status:
 //this is waiting on me researching compression libraries
 //to find one which will do my range coding (and maybe
@@ -55,8 +58,8 @@ public class GeoIpCompressor {
     public static final int SCREEN_HEIGHT = 625;
 
     // the quantized lat/lon is stored as lon + lat * SCREEN_WIDTH
-    List<Integer> pixelIdToQuantizedLatLon = new ArrayList<Integer>();
-    List<Integer> pixelIdToCountry = new ArrayList<Integer>();
+    IntList pixelIdToQuantizedLatLon = new IntArrayList();
+    IntList pixelIdToCountry = new IntArrayList();
 
     Map<String, Integer> countryToCountryId = new HashMap<String, Integer>();
     List<String> countryIdToCountry = new ArrayList<String>();
@@ -71,8 +74,8 @@ public class GeoIpCompressor {
 
     Bag rangeCounts = new HashBag();
 
-    final List<Integer> ipRangeList = new ArrayList<Integer>();
-    final List<Integer> pixelIdList = new ArrayList<Integer>();
+    final IntList ipRangeList = new IntArrayList();
+    final IntList pixelIdList = new IntArrayList();
 
     public GeoIpCompressor() {
     }
@@ -167,7 +170,7 @@ public class GeoIpCompressor {
     private void readCompressedBlocks(InputStream inStream) throws IOException {
 
         // the range sizes which only appear once
-        List<Integer> singletons = new ArrayList<Integer>();
+        IntList singletons = new IntArrayList();
 
         int count = 0;
         while (true) {
@@ -182,7 +185,7 @@ public class GeoIpCompressor {
             singletons.add(i);
         }
 
-        List<Integer> rangeSizes = new ArrayList<Integer>();
+        IntList rangeSizes = new IntArrayList();
 
         rangeSizes.add(0); // special case for singletons
         while (true) {
