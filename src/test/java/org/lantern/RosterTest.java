@@ -35,9 +35,9 @@ public class RosterTest {
         TestUtils.load(true);
         RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         Model model = TestUtils.getModel();
-        final Roster roster = 
-            new Roster(routingTable, model, new DefaultCensored());
-        
+        final Roster roster =
+            new Roster(routingTable, model, new TestCensored());
+
         final String url = "http://127.0.0.1:2174/photo/";
         final Map<String, LanternRosterEntry> entries = 
             new ConcurrentSkipListMap<String, LanternRosterEntry>();

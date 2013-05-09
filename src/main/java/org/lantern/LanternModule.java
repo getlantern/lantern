@@ -1,16 +1,11 @@
 package org.lantern;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Timer;
 import java.util.concurrent.Executors;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -23,6 +18,7 @@ import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.GeoIp;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
@@ -66,7 +62,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.maxmind.geoip.LookupService;
 
 public class LanternModule extends AbstractModule { 
     
@@ -79,6 +74,7 @@ public class LanternModule extends AbstractModule {
     private NatPmpService natPmpService;
     
     private UpnpService upnpService;
+    private GeoIpLookupService geoIpLookupService;
 
     @Override 
     protected void configure() {
@@ -134,6 +130,7 @@ public class LanternModule extends AbstractModule {
         bind(ConnectivityChecker.class);
         bind(InviteQueue.class);
         bind(GeoIp.class);
+        bind(CountryService.class);
 
         try {
             copyFireFoxExtension();
@@ -141,7 +138,16 @@ public class LanternModule extends AbstractModule {
             log.error("Could not copy FireFox extension?", e);
         }
     }
-    
+
+    @Provides @Singleton
+    public GeoIpLookupService provideGeoIpLookupService() {
+        // Testing.
+        if (this.geoIpLookupService != null) {
+            return this.geoIpLookupService;
+        }
+        return new GeoIpLookupService();
+    }
+
     @Provides @Singleton
     public UpnpService provideUpnpService(final Stats stats) {
         // Testing.
@@ -160,35 +166,7 @@ public class LanternModule extends AbstractModule {
         natPmpService = new NatPmpImpl(stats);
         return natPmpService;
     }
-    
-    @Provides @Singleton
-    public LookupService provideLookupService() {
-        final File unzipped = 
-                new File(LanternClientConstants.DATA_DIR, "GeoIP.dat");
-        if (!unzipped.isFile())  {
-            final File file = new File("GeoIP.dat.gz");
-            GZIPInputStream is = null;
-            OutputStream os = null;
-            try {
-                is = new GZIPInputStream(new FileInputStream(file));
-                os = new FileOutputStream(unzipped);
-                IOUtils.copy(is, os);
-            } catch (final IOException e) {
-                log.error("Error expanding file?", e);
-            } finally {
-                IOUtils.closeQuietly(is);
-                IOUtils.closeQuietly(os);
-            }
-        }
-        try {
-            return new LookupService(unzipped, 
-                    LookupService.GEOIP_MEMORY_CACHE);
-        } catch (final IOException e) {
-            log.error("Could not create LOOKUP service?");
-        }
-        return null;
-    }
-    
+
     @Provides @Singleton
     public EncryptedFileService provideEncryptedService(
         final LocalCipherProvider lcp) {
@@ -330,5 +308,9 @@ public class LanternModule extends AbstractModule {
     }
     public void setUpnpService(UpnpService upnpService) {
         this.upnpService = upnpService;
+    }
+
+    public void setGeoIpLookupService(GeoIpLookupService geoIpLookupService) {
+        this.geoIpLookupService = geoIpLookupService;
     }
 }

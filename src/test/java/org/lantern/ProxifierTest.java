@@ -18,7 +18,8 @@ public class ProxifierTest {
         
         ModelUtils stub = newModelUtils();
         // Just make sure we don't get an exception
-        new Proxifier(null, stub, new Model(), null);
+        final CountryService countryService = TestUtils.getCountryService();
+        new Proxifier(null, stub, new Model(countryService), null);
     }
 
     private ModelUtils newModelUtils() {
@@ -54,11 +55,6 @@ public class ProxifierTest {
             }
             
             @Override
-            public GeoData getGeoData(String hostAddress) {
-                return null;
-            }
-            
-            @Override
             public void addToClosedBeta(String to) {}
 
             @Override
@@ -73,11 +69,6 @@ public class ProxifierTest {
             public void syncConnectingStatus(String msg) {
                 // TODO Auto-generated method stub
 
-            }
-
-            @Override
-            public GeoData getGeoDataWithRetry(String hostAddress) {
-                return null;
             }
         };
     }

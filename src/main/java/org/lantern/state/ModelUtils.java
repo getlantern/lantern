@@ -1,6 +1,5 @@
 package org.lantern.state;
 
-import org.lantern.GeoData;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 
 /**
@@ -9,10 +8,6 @@ import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 public interface ModelUtils {
 
     boolean shouldProxy();
-
-    GeoData getGeoData(String hostAddress);
-
-    GeoData getGeoDataWithRetry(String hostAddress);
 
     void loadClientSecrets();
 

@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Country;
+import org.lantern.CountryService;
 import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
@@ -64,8 +65,6 @@ public class Model {
 
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
-    private Map<String, Country> countries = Country.allCountries();
-
     private final Global global = new Global();
 
     private Friends friends = new Friends();
@@ -83,6 +82,16 @@ public class Model {
     private boolean isEverGetMode;
 
     private String xsrfToken;
+
+    private CountryService countryService;
+
+    public Model() {
+        //used for JSON loading
+    }
+
+    public Model(CountryService countryService) {
+        this.countryService = countryService;
+    }
 
     /**
      * invites sent to the server but not acknowledged
@@ -220,11 +229,12 @@ public class Model {
     }
 
     public Map<String, Country> getCountries() {
-        return countries;
+        return countryService.allCountries();
     }
 
     public void setCountries(Map<String, Country> countries) {
-        this.countries = countries;
+        //nothing to do here; we want to use the countryService
+        return;
     }
 
     public Global getGlobal() {
@@ -345,5 +355,14 @@ public class Model {
 
     public void removePendingInvite(String email) {
         pendingInvites.remove(email);
+    }
+
+    @JsonIgnore
+    public CountryService getCountryService() {
+        return countryService;
+    }
+
+    public void setCountryService(CountryService countryService) {
+        this.countryService = countryService;
     }
 }

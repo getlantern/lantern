@@ -14,6 +14,7 @@ import javax.security.auth.login.CredentialException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.XMPPConnection;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.OauthUtils;
 import org.lantern.privacy.DefaultLocalCipherProvider;
@@ -104,6 +105,10 @@ public class TestUtils {
 
     private static TransfersIo transfersIo;
 
+    private static CountryService countryService;
+
+    private static GeoIpLookupService geoIpLookupService;
+
     static {
         if (LanternClientConstants.TEST_PROPS.isFile()) {
             privatePropsFile = LanternClientConstants.TEST_PROPS;
@@ -169,7 +174,10 @@ public class TestUtils {
         httpClientFactory = instance(HttpClientFactory.class);
         sslHttpProxyServer = instance(SslHttpProxyServer.class);
         globalTraffic = instance(GlobalLanternServerTrafficShapingHandler.class);
-        
+
+        geoIpLookupService = instance(GeoIpLookupService.class);
+        countryService = instance(CountryService.class);
+
         final Settings set = model.getSettings();
         LOG.debug("setting oauth token values...");
         LOG.debug("secure env vars available? {}", System.getenv("TRAVIS_SECURE_ENV_VARS"));
@@ -200,8 +208,8 @@ public class TestUtils {
 
         @Inject
         public TestModelIo(EncryptedFileService encryptedFileService,
-                Transfers transfers) {
-            super(file, encryptedFileService, transfers);
+                Transfers transfers, CountryService countryService) {
+            super(file, encryptedFileService, transfers, countryService);
         }
 
         @Override
@@ -214,6 +222,7 @@ public class TestUtils {
         final LanternModule lm = new LanternModule();
         lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
         lm.setEncryptedFileService(new UnencryptedFileService());
+        lm.setGeoIpLookupService(new GeoIpLookupService(false));
         lm.setUpnpService(new UpnpService() {
             @Override
             public void shutdown() {}
@@ -440,10 +449,20 @@ public class TestUtils {
         if (!loaded) load();
         return sslHttpProxyServer;
     }
-    
+
     public static GlobalLanternServerTrafficShapingHandler getGlobalTraffic() {
         if (!loaded) load();
         return globalTraffic;
+    }
+
+    public static CountryService getCountryService() {
+        if (!loaded) load();
+        return countryService;
+    }
+
+    public static GeoIpLookupService getGeoIpLookupService() {
+        if (!loaded) load();
+        return geoIpLookupService;
     }
 
 

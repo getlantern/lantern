@@ -15,13 +15,13 @@ import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
+import org.lantern.geoip.GeoIpLookupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.maxmind.geoip.LookupService;
 
 /**
  * Class for tracking statistics about Lantern.
@@ -81,15 +81,15 @@ public class StatsTracker implements Stats {
     
     private boolean natpmp;
 
-    private final LookupService lookupService;
+    private final GeoIpLookupService lookupService;
 
-    private final Censored censored;
-    
+    private final CountryService countryService;
+
     @Inject
-    public StatsTracker(final Timer timer, final LookupService lookupService,
-        final Censored censored) {
+    public StatsTracker(final Timer timer, final GeoIpLookupService lookupService,
+        CountryService countryService) {
         this.lookupService = lookupService;
-        this.censored = censored;
+        this.countryService = countryService;
         //this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
         Events.register(this);
     }
@@ -378,9 +378,9 @@ public class StatsTracker implements Stats {
         }
         
         final InetAddress addr = isa.getAddress();
-        final com.maxmind.geoip.Country coun = lookupService.getCountry(addr);
-        final Country country = new Country(coun.getCode(), 
-            coun.getName(), censored.isCensored(coun.getCode()));
+        final GeoData location = lookupService.getGeoData(addr);
+        final String countryCode = location.getCountrycode();
+        final Country country = countryService.getCountryByCode(countryCode);
         final CountryData cd;
         final CountryData temp = new CountryData(country);
         final CountryData existing = 
@@ -394,30 +394,7 @@ public class StatsTracker implements Stats {
         cd.addresses.add(addr);
         return cd;
     }
-    
 
-    public CountryData newCountryData(final String cc, 
-        final String name) {
-        if (countries.containsKey(cc)) {
-            return countries.get(cc);
-        } 
-        final Country co = new Country(cc, name, 
-            censored.isCountryCodeCensored(cc));
-        final CountryData cd = new CountryData(co);
-        countries.put(cc, cd);
-        return cd;
-    }
-
-    @Override
-    public String getCountryCode() {
-        try {
-            return censored.countryCode();
-        } catch (IOException e) {
-            log.warn("Could not report country code", e);
-            return "";
-        }
-    }
-    
     @Override
     public String getVersion() {
         return LanternClientConstants.VERSION;
@@ -431,7 +408,7 @@ public class StatsTracker implements Stats {
         final JSONObject data = new JSONObject();
         
         private CountryData(final Country country) {
-            data.put("censored", censored.isCensored(country));
+            data.put("censored", country.isCensors());
             data.put("name", country.getName());
             data.put("code", country.getCode());
             data.put("lantern", lanternData);

@@ -30,7 +30,6 @@ import com.google.inject.Singleton;
  * 
  * docs.google.com (feedback form)
  * exceptional.io -- error reporting
- * query.yahooapis.com (geo data lookup)
  * www.googleapis.com
  * lanternctrl.appspot.com (stats)
  */

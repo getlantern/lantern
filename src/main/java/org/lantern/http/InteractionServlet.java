@@ -592,6 +592,7 @@ public class InteractionServlet extends HttpServlet {
         case giveModeForbidden:
             if (inter == Interaction.CONTINUE) {
                 //  need to do more setup to switch to get mode from give mode
+                model.getSettings().setMode(Mode.get);
                 model.setSetupComplete(false);
                 this.internalState.advanceModal(null);
                 Events.syncModal(model, Modal.proxiedSites);
@@ -765,7 +766,7 @@ public class InteractionServlet extends HttpServlet {
                 log.warn("Could not delete model file?");
             }
         }
-        final Model base = new Model();
+        final Model base = new Model(model.getCountryService());
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
         model.setNinvites(base.getNinvites());

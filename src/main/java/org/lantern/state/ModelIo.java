@@ -2,6 +2,8 @@ package org.lantern.state;
 
 import java.io.File;
 
+import org.lantern.Country;
+import org.lantern.CountryService;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.privacy.EncryptedFileService;
@@ -16,15 +18,16 @@ import com.google.inject.Singleton;
 public class ModelIo extends Storage<Model> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final CountryService countryService;
 
     /**
      * Creates a new instance with all the default operations.
      */
     @Inject
     public ModelIo(final EncryptedFileService encryptedFileService,
-            Transfers transfers) {
+            Transfers transfers, final CountryService countryService) {
         this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService,
-                transfers);
+                transfers, countryService);
     }
 
     /**
@@ -35,8 +38,10 @@ public class ModelIo extends Storage<Model> {
      *            The file where settings are stored.
      */
     public ModelIo(final File modelFile,
-            final EncryptedFileService encryptedFileService, Transfers transfers) {
+            final EncryptedFileService encryptedFileService, Transfers transfers,
+            final CountryService countryService) {
         super(encryptedFileService, modelFile, Model.class);
+        this.countryService = countryService;
         obj = read();
         obj.setTransfers(transfers);
         log.info("Loaded module");
@@ -51,6 +56,7 @@ public class ModelIo extends Storage<Model> {
     public Model read() {
         try {
             Model read = super.read();
+            read.setCountryService(countryService);
             if (!LanternUtils.persistCredentials()) {
                 if (read.getModal() != Modal.welcome) {
                     read.setModal(Modal.authorize);
@@ -61,6 +67,17 @@ public class ModelIo extends Storage<Model> {
             final Peers peers = read.getPeerCollector();
             peers.reset();
             if (read.getModal() == Modal.settingsLoadFailure) {
+                read.setModal(Modal.none);
+            }
+            boolean isCensored = false;
+            String countryCode = read.getLocation().getCountry();
+            if (countryCode != null) {
+                Country country = countryService.getCountryByCode(countryCode);
+                if (country != null) {
+                    isCensored = country.isCensors();
+                }
+            }
+            if (!isCensored && read.getModal() == Modal.giveModeForbidden) {
                 read.setModal(Modal.none);
             }
             return read;
@@ -79,7 +96,7 @@ public class ModelIo extends Storage<Model> {
     @Override
     protected Model blank() {
         log.info("Loading empty model!!");
-        Model mod = new Model();
+        Model mod = new Model(countryService);
         return mod;
     }
 
@@ -112,6 +129,7 @@ public class ModelIo extends Storage<Model> {
 
     public void reload() {
         Model newModel = read();
+        newModel.setCountryService(countryService);
         if (newModel.getModal() == Modal.welcome) {
             //if modal is welcome, then we are dealing with fresh settings
             obj.addNotification("Failed to reload settings", MessageType.error);
