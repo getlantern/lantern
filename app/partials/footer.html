@@ -1,8 +1,8 @@
 <!-- XXX i18n -->
 <div id="footer">
   <div ng-show="model.showVis && model.connectivity.internet">
-    {{ 'USERS_ONLINE' | i18n:model.global.nusers.online }} ·
-    {{ 'USERS_TOTAL' | i18n:model.global.nusers.ever }} ·
+    {{ 'NUSERS_ONLINE' | i18n:model.global.nusers.online }} ·
+    {{ 'NUSERS_EVER' | i18n:model.global.nusers.ever }} ·
     {{ model.global.bytesEver | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
   </div>
   <div id="offline" ng-show="model.showVis && !model.connectivity.internet">
