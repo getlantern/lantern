@@ -334,7 +334,7 @@
   </div>
   <div class="modal-body">
     <div>
-      <p>{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
+      <p id="lanternFriendsIntro">{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
       <!-- <p class="small">{{ 'ROSTER_PROMPT' | i18n }}</p> -->
     </div>
 
@@ -386,7 +386,6 @@
     </form>
     <div class="centered">
       <div ng-hide="ninvitesUnknown || model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
-      <div ng-hide="ninvitesUnknown" class="smaller">{{ 'MORE_INVITES' | i18n }}</div>
       <div ng-show="ninvitesUnknown" class="small">{{ 'RETRIEVING_NINVITES' | i18n }}</div>
     </div>
   </div>
@@ -404,7 +403,7 @@
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</div>
+    <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</p>
     <div id="finished-autoReport">
       <label class="checkbox inline">
         <input type="checkbox" ng-model="autoReport"

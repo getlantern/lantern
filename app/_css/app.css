@@ -6407,9 +6407,6 @@ html, body {
 }
 
 body {
-  background: black;
-}
-body.showVis {
   background: url('../img/bg.png');
 }
 
@@ -6877,25 +6874,22 @@ textarea {
 
 #welcome {
   text-align: center;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.3);
   color: white;
 }
 #welcome .modal-body {
   font-size: 17.5px;
   font-weight: 200;
 }
-#welcome .logo {
-  margin-bottom: 40px;
-}
 #welcome .beta {
   font-size: 10.5px;
   font-weight: bold;
   position: absolute;
   right: 40px;
-  margin-top: -20px;
+  margin-top: -95px;
 }
 #welcome .tagLine {
-  margin-bottom: 70px;
+  margin: -20px 0 70px;
 }
 #welcome .internetRequired {
   -webkit-animation-name: defaultPulse;
@@ -7006,6 +7000,10 @@ textarea {
   margin-bottom: 15px;
 }
 
+#lanternFriendsIntro {
+  margin-bottom: 20px;
+}
+
 #currentFriends {
   display: none;
 }
@@ -7111,11 +7109,8 @@ textarea {
   margin-top: 10px;
 }
 
-#finished .modal-header, #finished .modal-body {
-  text-align: center;
-}
-
 #finished-autoReport {
+  text-align: center;
   margin-top: 25px;
 }
 #finished-autoReport * {
@@ -7401,17 +7396,14 @@ g.transferring .connection {
   transition: opacity 0.5s ease;
   background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75));
   line-height: 21px;
-}
-#footer:hover {
-  opacity: 1;
-}
-
-body.showVis #footer {
   padding: 12px 0;
   outline: 1px solid rgba(0, 0, 0, 0.5);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   color: #999999;
   z-index: auto;
+}
+#footer:hover {
+  opacity: 1;
 }
 
 #offline {

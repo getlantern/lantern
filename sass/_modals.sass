@@ -53,20 +53,18 @@
 
 #welcome
   +centered
-  background: transparent
+  background: rgba(0, 0, 0, .3)
   color: #fff
   .modal-body
     font-size: $baseFontSize * 1.25
     font-weight: 200
-  .logo
-    margin-bottom: 40px
   .beta
     +smaller
     +bold
     +position(false, 40px)
-    margin-top: -20px
+    margin-top: -95px
   .tagLine
-    margin-bottom: 70px
+    margin: -20px 0 70px
   .internetRequired
     +pulsing
     +yellow-colored
@@ -147,6 +145,9 @@
     font-size: $baseFontSize * 1.1
     margin-bottom: 15px
 
+#lanternFriendsIntro
+  margin-bottom: 20px
+
 #currentFriends
   display: none // XXX pending https://github.com/getlantern/lantern/issues/539
 
@@ -213,11 +214,8 @@
   .controls
     margin-top: 10px
 
-#finished
-  .modal-header, .modal-body
-    +centered
-
 #finished-autoReport
+  +centered
   margin-top: 25px
   *
     +smaller
