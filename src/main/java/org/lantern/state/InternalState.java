@@ -4,8 +4,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.commons.lang.SystemUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
+import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +74,22 @@ public class InternalState {
         if (next == Modal.none) {
             this.model.setSetupComplete(true);
             Events.sync(SyncPath.SETUPCOMPLETE, true);
+
+            final String iconLoc;
+            if (SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_LINUX) {
+                iconLoc = "menu bar at the top of the screen";
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                iconLoc = "system tray at the bottom right of your screen";
+            } else {
+                log.warn("unsupported OS");
+                iconLoc = "(unsupported OS: Lantern icon may not be visible)";
+            }
+            final String msg = "Now that you’re all set up, take a minute to "+
+                "explore the Lantern global network map, or just get back to "+
+                "whatever you’d like to do next. You can always get back here "+
+                "through the Lantern icon in your "+iconLoc+".";
+            model.addNotification(msg, MessageType.info, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
         Events.syncModal(this.model, next);
     }
