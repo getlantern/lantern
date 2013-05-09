@@ -6,6 +6,7 @@ import java.io.File;
 import java.net.URI;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.lantern.TestCategories.TrustStoreTests;
 import org.lantern.util.LanternHostNameVerifier;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +44,18 @@ public class LanternTrustStoreTest {
         //final SSLSocketFactory socketFactory =
             //new SSLSocketFactory(socketsUtil.newTlsSocketFactory(),
               //  new LanternHostNameVerifier());
-
-        final LanternTrustStore trustStore = TestUtils.getTrustStore();
+        
+        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
+        temp.deleteOnExit();
+        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final LanternSocketsUtil socketsUtil = 
+            new LanternSocketsUtil(null, trustStore);
+        
         System.setProperty("javax.net.ssl.trustStore",
                 trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         trustStore.listEntries();
-        final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
         final SSLSocketFactory socketFactory =
             new SSLSocketFactory(socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 new LanternHostNameVerifier());
@@ -63,12 +70,11 @@ public class LanternTrustStoreTest {
 
         final String[] success = {"talk.google.com",
             "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com", //"www.exceptional.io",
-            "query.yahooapis.com",
-            LanternClientConstants.FALLBACK_SERVER_HOST+":"+
-                    LanternClientConstants.FALLBACK_SERVER_PORT};
+            "query.yahooapis.com"};
 
         for (final String uri : success) {
             try {
+                log.debug("Trying site: {}", uri);
                 final String body = trySite(client, uri);
                 log.debug("SUCCESS BODY FOR '{}': {}", uri, body.substring(0,Math.min(50, body.length())));
             } catch (Exception e) {
@@ -112,13 +118,15 @@ public class LanternTrustStoreTest {
         }
         // We need to add this back as otherwise it can affect other tests!
         trustStore.addCert("equifaxsecureca", new File("certs/equifaxsecureca.cer"));
-        //TestUtils.close();
+        temp.delete();
     }
 
     private String trySite(final HttpClient client, final String uri)
         throws Exception {
         final HttpGet get = new HttpGet();
-        get.setURI(new URI("https://"+uri));
+        final String fullUri = "https://"+uri;
+        log.info("Hitting URI: {}", fullUri);
+        get.setURI(new URI(fullUri));
 
         final HttpResponse response = client.execute(get);
         final int code = response.getStatusLine().getStatusCode();
