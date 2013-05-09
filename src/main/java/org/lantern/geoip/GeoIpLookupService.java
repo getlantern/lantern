@@ -1,11 +1,14 @@
 package org.lantern.geoip;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.TreeMap;
 
 import org.lantern.GeoData;
 import org.littleshoot.util.BitUtils;
@@ -24,7 +27,9 @@ public class GeoIpLookupService {
     private static final Logger LOG = LoggerFactory
             .getLogger(GeoIpLookupService.class);
 
-    private TreeMap<Long, GeoData> table;
+    private IntList lowerRanges;
+    private IntList upperRanges;
+    private List<GeoData> geoDataByIpRange;
 
     private volatile boolean dataLoaded = false;
 
@@ -63,11 +68,23 @@ public class GeoIpLookupService {
                 }
             }
         }
-        long address = BitUtils.byteArrayToInteger(bytes);
-        if (address < 0) {
-            address = (1L << 32) + address;
+        int address = BitUtils.byteArrayToInteger(bytes);
+        GeoData data;
+        if (address > 0) {
+            int insertionPoint = Collections.binarySearch(lowerRanges, address);
+            if (insertionPoint < 0) {
+                insertionPoint = -insertionPoint - 2;
+            }
+            data = geoDataByIpRange.get(insertionPoint);
+        } else {
+            address = (1 << 31) + address;
+            int insertionPoint = Collections.binarySearch(upperRanges, address);
+            if (insertionPoint < 0) {
+                insertionPoint = -insertionPoint-2;
+            }
+            data = geoDataByIpRange.get(insertionPoint + lowerRanges.size());
         }
-        return table.floorEntry(address).getValue();
+        return data;
     }
 
     public GeoData getGeoData(InetAddress ip) {
@@ -86,9 +103,12 @@ public class GeoIpLookupService {
     }
 
     private synchronized void loadData() {
-        if (table != null)
+        if (lowerRanges != null)
             return;
-        table = new TreeMap<Long, GeoData>();
+
+        lowerRanges = new IntArrayList();
+        upperRanges = new IntArrayList();
+        geoDataByIpRange = new ArrayList<GeoData>();
 
         GeoIpCompressor compressor = new GeoIpCompressor();
         InputStream inStream = GeoIpLookupService.class
@@ -106,7 +126,7 @@ public class GeoIpLookupService {
         }
         // convert to searchable form
 
-        List<GeoData> geoDataList = new ArrayList<GeoData>();
+        List<GeoData> geoDataByPixelId = new ArrayList<GeoData>();
         for (int i = 0; i < compressor.pixelIdToCountry.size(); ++i) {
             GeoData GeoData = new GeoData();
             int countryId = compressor.pixelIdToCountry.get(i);
@@ -117,15 +137,24 @@ public class GeoIpLookupService {
                     .get(i);
             GeoData.setLatitude(compressor.getLatFromQuantized(quantized));
             GeoData.setLongitude(compressor.getLonFromQuantized(quantized));
-            geoDataList.add(GeoData);
+            geoDataByPixelId.add(GeoData);
         }
+
+        // we're done with this data, so let's allow it to be garbage-collected
+        compressor.pixelIdToCountry = null;
+        compressor.pixelIdToQuantizedLatLon = null;
 
         long startIp = 0;
         for (int i = 0; i < compressor.ipRangeList.size(); ++i) {
             int range = compressor.ipRangeList.get(i);
             int pixelId = compressor.pixelIdList.get(i);
-            GeoData GeoData = geoDataList.get(pixelId);
-            table.put(startIp, GeoData);
+            GeoData GeoData = geoDataByPixelId.get(pixelId);
+            if (startIp < (1L<<31)) {
+                lowerRanges.add((int)startIp);
+            } else {
+                upperRanges.add((int)(startIp - (1L<<31)));
+            }
+            geoDataByIpRange.add(GeoData);
             startIp += range;
         }
 
