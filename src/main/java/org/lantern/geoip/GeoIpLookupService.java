@@ -110,6 +110,16 @@ public class GeoIpLookupService {
         upperRanges = new IntArrayList();
         geoDataByIpRange = new ArrayList<GeoData>();
 
+        try {
+            loadDataInternal();
+        } finally {
+            synchronized(this) {
+                this.notifyAll();
+            }
+        }
+    }
+
+    private void loadDataInternal() {
         GeoIpCompressor compressor = new GeoIpCompressor();
         InputStream inStream = GeoIpLookupService.class
                 .getResourceAsStream("geoip.db");
@@ -159,9 +169,7 @@ public class GeoIpLookupService {
         }
 
         dataLoaded = true;
-        synchronized(this) {
-            this.notifyAll();
-        }
+
     }
 
 }
