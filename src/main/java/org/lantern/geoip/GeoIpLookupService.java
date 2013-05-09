@@ -106,7 +106,7 @@ public class GeoIpLookupService {
         }
         // convert to searchable form
 
-        List<GeoData> GeoDatas = new ArrayList<GeoData>();
+        List<GeoData> geoDataList = new ArrayList<GeoData>();
         for (int i = 0; i < compressor.pixelIdToCountry.size(); ++i) {
             GeoData GeoData = new GeoData();
             int countryId = compressor.pixelIdToCountry.get(i);
@@ -117,14 +117,14 @@ public class GeoIpLookupService {
                     .get(i);
             GeoData.setLatitude(compressor.getLatFromQuantized(quantized));
             GeoData.setLongitude(compressor.getLonFromQuantized(quantized));
-            GeoDatas.add(GeoData);
+            geoDataList.add(GeoData);
         }
 
         long startIp = 0;
         for (int i = 0; i < compressor.ipRangeList.size(); ++i) {
             int range = compressor.ipRangeList.get(i);
             int pixelId = compressor.pixelIdList.get(i);
-            GeoData GeoData = GeoDatas.get(pixelId);
+            GeoData GeoData = geoDataList.get(pixelId);
             table.put(startIp, GeoData);
             startIp += range;
         }
