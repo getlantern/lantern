@@ -3,6 +3,7 @@ package org.lantern.geoip;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -120,7 +121,7 @@ public class GeoIpLookupService {
     }
 
     private void loadDataInternal() {
-        GeoIpCompressor compressor = new GeoIpCompressor();
+        final GeoIpCompressor compressor = new GeoIpCompressor();
         InputStream inStream = GeoIpLookupService.class
                 .getResourceAsStream("geoip.db");
 
@@ -129,8 +130,12 @@ public class GeoIpLookupService {
             dataLoaded = true;
             return;
         }
+
+        inStream = new BufferedInputStream(inStream);
+
         try {
             compressor.readCompressedData(inStream);
+            inStream.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
