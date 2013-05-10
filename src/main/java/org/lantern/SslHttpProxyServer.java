@@ -10,6 +10,7 @@ import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -35,6 +36,7 @@ public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
             clientChannelFactory, timer, serverChannelFactory, 
             handshakeHandlerFactory, stats,
             serverTrafficHandler);
+        Preconditions.checkNotNull(model, "Model cannot be null");
         this.model = model;
     }
 

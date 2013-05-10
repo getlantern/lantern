@@ -17,6 +17,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
+import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -39,6 +40,8 @@ public class SslHttpProxyServerTest {
         final HandshakeHandlerFactory hhf = 
             new CertTrackingSslHandlerFactory(new HashedWheelTimer(), ts);
         final int port = LanternUtils.randomPort();
+        final Model model = new Model();
+        model.getSettings().setServerPort(port);
         //final PeerFactory peerFactory = new Pee
         //final GlobalLanternServerTrafficShapingHandler trafficHandler =
         //        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory);
@@ -51,7 +54,7 @@ public class SslHttpProxyServerTest {
             }, 
             new NioClientSocketChannelFactory(), timer,
             new NioServerSocketChannelFactory(), hhf, null,
-            null, null);
+            model, null);
         
         thread(server);
         
