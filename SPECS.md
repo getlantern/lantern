@@ -368,10 +368,6 @@ the backend maintains on the frontend through comet publications:
     <td>Whether the user has completed Lantern setup</td>
   </tr>
   <tr>
-    <td><strong>showVis</strong><br><em>boolean</em></td>
-    <td>Whether to show the visualization</td>
-  </tr>
-  <tr>
     <td><strong>connectivity</strong><br><em>object</em></td>
     <td>
       <table>
