@@ -135,10 +135,16 @@ public class GeoIpLookupService {
 
         try {
             compressor.readCompressedData(inStream);
-            inStream.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            try {
+                inStream.close();
+            } catch (IOException e) {
+                LOG.info("Failed to close stream", e);
+            }
         }
+
         // convert to searchable form
 
         List<GeoData> geoDataByPixelId = new ArrayList<GeoData>();
