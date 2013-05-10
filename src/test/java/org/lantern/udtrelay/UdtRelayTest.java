@@ -208,6 +208,7 @@ public class UdtRelayTest {
     
     private void startProxyServer(final int port,
         final HandshakeHandlerFactory ksm, final boolean ssl) throws Exception {
+        
         // We configure the proxy server to always return a cache hit with 
         // the same generic response.
         final Thread t = new Thread(new Runnable() {
@@ -218,7 +219,7 @@ public class UdtRelayTest {
                     org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
                     final org.lantern.HttpProxyServer server = 
-                        new StatsTrackingDefaultHttpProxyServer(port,
+                        new StatsTrackingDefaultHttpProxyServer(
                         new HttpResponseFilters() {
                             @Override
                             public HttpFilter getFilter(String arg0) {
@@ -227,7 +228,12 @@ public class UdtRelayTest {
                         }, null, null,
                         new NioClientSocketChannelFactory(), timer,
                         new NioServerSocketChannelFactory(), ksm, null,
-                        null);
+                        null) {
+                            @Override
+                            public int getPort() {
+                                return port;
+                            }
+                    };
                     try {
                         server.start();
                     } catch (final Exception e) {

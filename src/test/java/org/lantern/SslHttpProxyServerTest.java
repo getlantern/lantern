@@ -42,15 +42,16 @@ public class SslHttpProxyServerTest {
         //final PeerFactory peerFactory = new Pee
         //final GlobalLanternServerTrafficShapingHandler trafficHandler =
         //        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory);
+        
         final SslHttpProxyServer server = 
-            new SslHttpProxyServer(port,
+            new SslHttpProxyServer(
             new HttpRequestFilter() {
                 @Override
                 public void filter(HttpRequest httpRequest) {}
             }, 
             new NioClientSocketChannelFactory(), timer,
             new NioServerSocketChannelFactory(), hhf, null,
-            null);
+            null, null);
         
         thread(server);
         

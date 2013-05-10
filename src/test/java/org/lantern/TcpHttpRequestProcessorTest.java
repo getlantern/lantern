@@ -146,7 +146,7 @@ public class TcpHttpRequestProcessorTest {
                     final org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
                     final HttpProxyServer server = 
-                        new StatsTrackingDefaultHttpProxyServer(port,
+                        new StatsTrackingDefaultHttpProxyServer(
                         new HttpResponseFilters() {
                             @Override
                             public HttpFilter getFilter(String arg0) {
@@ -155,7 +155,14 @@ public class TcpHttpRequestProcessorTest {
                         }, null, null,
                         provideClientSocketChannelFactory(), timer,
                         provideServerSocketChannelFactory(), hhf, null,
-                        new GlobalLanternServerTrafficShapingHandler(timer));
+                        new GlobalLanternServerTrafficShapingHandler(timer)) {
+
+                            @Override
+                            public int getPort() {
+                                return port;
+                            }
+                        
+                    };
                     try {
                         server.start();
                         log.debug("SSL proxy server started");

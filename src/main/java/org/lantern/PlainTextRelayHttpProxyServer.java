@@ -13,7 +13,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class PlainTextRelayHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
+public class PlainTextRelayHttpProxyServer
+    extends StatsTrackingDefaultHttpProxyServer {
 
     @Inject
     public PlainTextRelayHttpProxyServer(final HttpRequestFilter requestFilter,
@@ -23,8 +24,7 @@ public class PlainTextRelayHttpProxyServer extends StatsTrackingDefaultHttpProxy
         final HandshakeHandlerFactory handshakeHandlerFactory,
         final Stats stats,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
-        super(LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
-            new HttpResponseFilters() {
+        super(new HttpResponseFilters() {
                 @Override
                 public HttpFilter getFilter(String arg0) {
                     return null;
@@ -32,5 +32,10 @@ public class PlainTextRelayHttpProxyServer extends StatsTrackingDefaultHttpProxy
             }, null, requestFilter, clientChannelFactory, timer, 
             serverChannelFactory, handshakeHandlerFactory, stats, 
             serverTrafficHandler);
+    }
+
+    @Override
+    public int getPort() {
+        return LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT;
     }
 }

@@ -138,7 +138,7 @@ public class UdtHttpRequestProcessorTest {
                     org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
                     final HttpProxyServer server = 
-                        new StatsTrackingDefaultHttpProxyServer(port,
+                        new StatsTrackingDefaultHttpProxyServer(
                         new HttpResponseFilters() {
                             @Override
                             public HttpFilter getFilter(String arg0) {
@@ -147,7 +147,14 @@ public class UdtHttpRequestProcessorTest {
                         }, null, null,
                         new NioClientSocketChannelFactory(), timer,
                         new NioServerSocketChannelFactory(), ksm, null,
-                        null);
+                        null) {
+
+                            @Override
+                            public int getPort() {
+                                return port;
+                            }
+                        
+                    };
                     try {
                         server.start();
                     } catch (final Exception e) {

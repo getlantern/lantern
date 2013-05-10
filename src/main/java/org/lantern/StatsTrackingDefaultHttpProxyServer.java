@@ -40,14 +40,12 @@ import org.slf4j.LoggerFactory;
  * DefaultHttpProxyServer is severely unfriendly to subclassing
  * so it is cargo culted in full with specific additions.
  */
-public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
+public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ChannelGroup allChannels =
         new DefaultChannelGroup("HTTP-Proxy-Server");
-
-    private final int port;
 
     private final ProxyAuthorizationManager authenticationManager =
         new DefaultProxyAuthorizationManager();
@@ -89,7 +87,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
      * @param timer The idle timeout timer. 
      * @param serverChannelFactory The factory for creating listening channels.
      */
-    public StatsTrackingDefaultHttpProxyServer(final int port,
+    public StatsTrackingDefaultHttpProxyServer(
         final HttpResponseFilters responseFilters,
         final ChainProxyManager chainProxyManager,
         final HttpRequestFilter requestFilter, 
@@ -99,7 +97,6 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final HandshakeHandlerFactory handshakeHandlerFactory,
         final Stats stats, 
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
-        this.port = port;
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;
         this.chainProxyManager = chainProxyManager;
@@ -126,7 +123,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     @Override
     public void start(final boolean localOnly, final boolean anyAddress) {
-        log.debug("Starting proxy on port: "+this.port);
+        final int port = getPort();
+        log.debug("Starting proxy on port: "+port);
         final HttpServerPipelineFactory factory =
             new StatsTrackingHttpServerPipelineFactory(authenticationManager,
                 this.allChannels, this.chainProxyManager, 
@@ -272,11 +270,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             };
         }
     }
-
-    @Override
-    public int getPort() {
-        return this.port;
-    }
+    
+    public abstract int getPort();
 }
 
 

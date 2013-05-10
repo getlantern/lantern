@@ -199,11 +199,4 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         clientChannelFactory.releaseExternalResources();
         log.info("Done shutting down proxy");
     }
-
-
-    @Override
-    public int getPort() {
-        return this.httpLocalPort;
-    }
-
 }

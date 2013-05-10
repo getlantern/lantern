@@ -16,6 +16,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
 
+    private final Model model;
+
     @Inject
     public SslHttpProxyServer(final HttpRequestFilter requestFilter,
         final ClientSocketChannelFactory clientChannelFactory, 
@@ -24,29 +26,20 @@ public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
         final HandshakeHandlerFactory handshakeHandlerFactory,
         final Stats stats, final Model model,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
-        this(model.getSettings().getServerPort(),requestFilter,
-                clientChannelFactory, timer, serverChannelFactory, 
-                handshakeHandlerFactory, stats,
-                serverTrafficHandler);
+        super(new HttpResponseFilters() {
+            @Override
+            public HttpFilter getFilter(String arg0) {
+                return null;
+            }
+        }, null, requestFilter,
+            clientChannelFactory, timer, serverChannelFactory, 
+            handshakeHandlerFactory, stats,
+            serverTrafficHandler);
+        this.model = model;
     }
-    
-    public SslHttpProxyServer(final int port, 
-        final HttpRequestFilter requestFilter,
-        final ClientSocketChannelFactory clientChannelFactory, 
-        final Timer timer,
-        final ServerSocketChannelFactory serverChannelFactory, 
-        final HandshakeHandlerFactory handshakeHandlerFactory,
-        final Stats stats, 
-        final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
-        super(port,             
-            new HttpResponseFilters() {
-                @Override
-                public HttpFilter getFilter(String arg0) {
-                    return null;
-                }
-            }, null, requestFilter,
-                clientChannelFactory, timer, serverChannelFactory, 
-                handshakeHandlerFactory, stats,
-                serverTrafficHandler);
+
+    @Override
+    public int getPort() {
+        return model.getSettings().getServerPort();
     }
 }
