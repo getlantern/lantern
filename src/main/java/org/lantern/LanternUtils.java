@@ -22,7 +22,6 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -40,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOExceptionWithCause;
@@ -65,7 +63,6 @@ import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.util.ByteBufferUtils;
 import org.littleshoot.util.FiveTuple;
-import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -382,15 +379,23 @@ public class LanternUtils {
 
     /**
      * Execute keytool, returning the output.
+     * 
+     * @throws IOException If the executable cannot be found.
      */
     public static String runKeytool(final String... args) {
-        final CommandLine command = new CommandLine(findKeytoolPath(), args);
-        command.execute();
-        final String output = command.getStdOut();
-        if (!command.isSuccessful()) {
-            LOG.info("Command failed!! -- {}", args);
+        
+        try {
+            final CommandLine command = new CommandLine(findKeytoolPath(), args);
+            command.execute();
+            final String output = command.getStdOut();
+            if (!command.isSuccessful()) {
+                LOG.info("Command failed!! -- {}", Arrays.asList(args));
+            }
+            return output;
+        } catch (IOException e) {
+            LOG.warn("Could not run key tool?", e);
         }
-        return output;
+        return "";
     }
 
     private static String findKeytoolPath() {

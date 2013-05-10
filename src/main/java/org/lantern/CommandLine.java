@@ -48,9 +48,13 @@ public class CommandLine {
   private Map<String, String> env = new ConcurrentHashMap<String, String>();
   private Thread cleanup;
 
-  public CommandLine(String executable, String... args) {
+  public CommandLine(String executable, String... args) throws IOException {
     commandAndArgs = new String[args.length + 1];
-    commandAndArgs[0] = findExecutable(executable);
+    final String exe = findExecutable(executable);
+    commandAndArgs[0] = exe;
+    if (exe == null) {
+        throw new IOException("Could not find executable: "+executable);
+    }
     int index = 1;
     for (String arg : args) {
       commandAndArgs[index++] = arg;
