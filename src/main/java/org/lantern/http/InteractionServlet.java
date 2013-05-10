@@ -216,6 +216,11 @@ public class InteractionServlet extends HttpServlet {
             }
             final String host = url_.getHost();
             final String[] hostParts = StringUtils.split(host, ".");
+            if (hostParts.length < 2) {
+                log.error("host not allowed: {}", host);
+                HttpUtils.sendClientError(resp, "host not allowed");
+                return;
+            }
             final String domain = hostParts[hostParts.length-2] + "." +
                 hostParts[hostParts.length-1];
             if (!allowedDomains.contains(domain)) {
