@@ -24,7 +24,9 @@ public class WhitelistTest {
             new DefaultEncryptedFileService(localCipherProvider);
         final File randFile = new File(Integer.toString(RandomUtils.nextInt()));
 
-        final ModelIo modelIo = new ModelIo(randFile, fileService, null);
+        final CountryService countryService = TestUtils.getCountryService();
+        final ModelIo modelIo = new ModelIo(randFile, fileService, null,
+                countryService);
         randFile.delete();
         randFile.deleteOnExit();
         final Model settings = modelIo.get();

@@ -44,14 +44,14 @@ public class LanternTrustStoreTest {
         //final SSLSocketFactory socketFactory =
             //new SSLSocketFactory(socketsUtil.newTlsSocketFactory(),
               //  new LanternHostNameVerifier());
-        
+
         final File temp = new File(String.valueOf(RandomUtils.nextInt()));
         temp.deleteOnExit();
         final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final LanternSocketsUtil socketsUtil = 
+        final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
-        
+
         System.setProperty("javax.net.ssl.trustStore",
                 trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
@@ -69,8 +69,8 @@ public class LanternTrustStoreTest {
         client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 
         final String[] success = {"talk.google.com",
-            "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com", //"www.exceptional.io",
-            "query.yahooapis.com"};
+            "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com"}; //"www.exceptional.io",
+
 
         for (final String uri : success) {
             try {
@@ -83,7 +83,7 @@ public class LanternTrustStoreTest {
                     "\n\nFAILED ON: "+uri);
             }
         }
-        
+
         // URIs that should fail (signing certs we don't trust). Note this would
         // succeed (with the test failing as a result) with the normal root CAs,
         // which trust more signing certs than ours, such as verisign. We

@@ -43,9 +43,9 @@ public class CometDTest {
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
 
-        
-        final Model model = new Model();
-        final SyncService syncer = 
+        CountryService countryService = TestUtils.getCountryService();
+        final Model model = new Model(countryService);
+        final SyncService syncer =
             new SyncService(new CometDSyncStrategy(), model, new Timer(), null);
         final JettyLauncher jl = new JettyLauncher(syncer, null, null, model, null);
         //startJetty(TestUtils.getJettyLauncher());
