@@ -376,23 +376,19 @@
       <hr>
     </div>
 
-    <form class="inviteForm" name="inviteForm" ng-show="!ninvitesUnknown && model.ninvites"
-          ng-class="{invalid: !valid()}">
-      <h4>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</h4>
+    <form class="inviteForm" name="inviteForm" ng-class="{invalid: !valid()}">
+      <h4>{{ 'ADD_FRIENDS_PROMPT' | i18n }}</h4>
       <input type="hidden" ng-model="invitees"
              ui-select2="selectInvitees" class="selectContacts"
              data-placeholder="email@example.com, email@example.com, ...">
-      <div>{{ 'INVITES_REMAINING' | i18n:model.ninvites }}</div>
+      <div>{{ ninvitesUnknown && 'RETRIEVING_NINVITES' || 'INVITES_REMAINING' | i18n:model.ninvites }}</div>
+      <div class="smaller">{{ 'EXPLAIN_INVITES' | i18n }}</div>
     </form>
-    <div class="centered">
-      <div ng-hide="ninvitesUnknown || model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
-      <div ng-show="ninvitesUnknown" class="small">{{ 'RETRIEVING_NINVITES' | i18n }}</div>
-    </div>
   </div>
   <div class="modal-footer">
     <button id="inviteButton" class="btn btn-success"
       ng-show="invitees.length" ng-disabled="!valid()"
-      ng-click="invite()">{{ 'SEND_INVITES' | i18n:invitees.length }}</button>
+      ng-click="invite()">{{ 'ADD_FRIEND' | i18n:invitees.length }}</button>
     <button type="button" class="btn btn-primary" ng-hide="invitees.length"
       ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>

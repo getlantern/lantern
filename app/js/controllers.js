@@ -408,17 +408,11 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     tokenSeparators: [','],
     multiple: true,
   //selectOnBlur: true, // requires select2 3.3
-    maximumSelectionSize: function() {
-      return model.ninvites || 0;
-    },
     formatSelection: function(item) {
       return item.id;
     },
     formatSearching: function() {
       return $filter('i18n')('SEARCHING_ELLIPSIS');
-    },
-    formatSelectionTooBig: function(max) {
-      return $filter('i18n')('NINVITES_REACHED', max);
     },
     formatNoMatches: function() {
       return $filter('i18n')('ENTER_VALID_EMAIL');
@@ -439,7 +433,6 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     var invitees = $scope.invitees;
     if (!invitees) return true;
     if (!('length' in invitees)) return false;
-    if (invitees.length > model.ninvites) return false;
     for (var i=0, ii=invitees[i]; ii; ii=invitees[++i]) {
       if (!EMAIL.test(ii.id)) return false;
     }

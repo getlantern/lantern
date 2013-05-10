@@ -390,8 +390,8 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
           return res.writeHead(400);
         }
       }
-      var n = data.length, msg = n > 1 ? 'Invitations' : 'An invitation';
-      msg += ' will be sent to <span class="titled" title="(name here if available)">'+data[0]+'</span>';
+      var n = data.length, msg = n > 1 ? 'Friend requests' : 'Friend request';
+      msg += ' queued for <span class="titled" title="name here if available">'+data[0]+'</span>';
       if (n > 2) {
         data.splice(0, 1);
         msg += ' and <span class="titled" title="'+data.join(', ')+'">'+(n-1)+' others</span>.'
