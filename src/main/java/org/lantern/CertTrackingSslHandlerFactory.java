@@ -114,7 +114,8 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
                 throws CertificateException {
             loggger.debug("Checking client trusted...");
             final X509Certificate cert = chain[0];
-            if (!trustStore.containsCertificate(cert)) {
+            if (!LanternUtils.isFallbackProxy() && 
+                !trustStore.containsCertificate(cert)) {
                 loggger.warn("Certificate is not trusted!!");
                 throw new CertificateException("not trusted");
             }

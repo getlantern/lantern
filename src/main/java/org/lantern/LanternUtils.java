@@ -1001,4 +1001,14 @@ public class LanternUtils {
     public static void addCSPHeader(HttpServletResponse resp) {
         resp.addHeader("Content-Security-Policy", "default-src localhost");
     }
+
+    /**
+     * Returns whether or not this Lantern is running as a fallback proxy.
+     * 
+     * @return <code>true</code> if it's a fallback proxy, otherwise
+     * <code>false</code>.
+     */
+    public static boolean isFallbackProxy() {
+        return false;
+    }
 }
