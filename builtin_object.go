@@ -180,3 +180,28 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 	}
 	panic(newTypeError())
 }
+
+func builtinObject_freeze(call FunctionCall) Value {
+	object := call.Argument(0)
+	if object := object._object(); object != nil {
+		object.enumerate(func(name string) {
+			if property, update := object.getOwnProperty(name), false; nil != property {
+				if property.isDataDescriptor() && property.writable() {
+					property.mode &= ^propertyMode_write
+					update = true
+				}
+				if property.configurable() {
+					property.mode &= ^propertyMode_configure
+					update = true
+				}
+				if update {
+					object.defineOwnProperty(name, *property, true)
+				}
+			}
+		})
+		object.extensible = false
+	} else {
+		panic(newTypeError())
+	}
+	return object
+}

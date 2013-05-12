@@ -180,6 +180,7 @@ func newContext() *_runtime {
 		"preventExtensions", -1, builtinObject_preventExtensions,
 		"isSealed", -1, builtinObject_isSealed,
 		"isFrozen", -1, builtinObject_isFrozen,
+		"freeze", -1, builtinObject_freeze,
 	)
 
 	self.Global.Function = self.newGlobalFunction(

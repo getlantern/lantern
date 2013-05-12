@@ -121,6 +121,41 @@ func TestObject_isFrozen(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+	test(`raise: Object.isFrozen()`, "TypeError")
+	test(`Object.isFrozen(Object.preventExtensions({a:1}))`, "false")
+	test(`Object.isFrozen({})`, "false")
+
 	test(`Object.isFrozen.length`, "1")
 	test(`Object.isFrozen.prototype`, "undefined")
+}
+
+func TestObject_freeze(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise: Object.freeze()`, "TypeError")
+	test(`
+            var abc = {a:1,b:2,c:3};
+            var frozen = Object.isFrozen(abc);
+            Object.freeze(abc);
+            abc.b = 5;
+            [frozen, Object.isFrozen(abc), abc.b];
+        `, "false,true,2")
+
+	test(`
+            var abc = {a:1,b:2,c:3};
+            var frozen = Object.isFrozen(abc);
+            var caught = false;
+            Object.freeze(abc);
+            abc.b = 5;
+            try {
+                Object.defineProperty(abc, "a", {value:4});
+            } catch (e) {
+                caught = e instanceof TypeError;
+            }
+            [frozen, Object.isFrozen(abc), caught, abc.a, abc.b];
+        `, "false,true,true,1,2")
+
+	test(`Object.freeze.length`, "1")
+	test(`Object.freeze.prototype`, "undefined")
 }
