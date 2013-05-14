@@ -1,0 +1,42 @@
+#!/usr/bin/expect -f
+if {[llength $argv] != 3} {
+ 
+# We give a message so the user know our syntax:
+puts "usage: /release.exp gpg-password gituser gitpass"
+ 
+#We exit with return code = 1
+exit 1
+}
+
+set timeout 100 
+set newpass [lindex $argv 0]
+set gituser [lindex $argv 1]
+set gitpass [lindex $argv 2]
+
+spawn mvn release:prepare
+expect -re "What is the release version for (.*): :"
+send "\r"
+expect -re "What is SCM release tag or label for (.*): :"
+send "\r"
+expect -re "What is the new development version for (.*): :"
+send "\r"
+
+expect "GPG Passphrase: *"
+send "$newpass\r"
+
+expect -re "Username for (.*): "
+send "$gituser\r"
+expect -re "Password for (.*): "
+send "$gitpass\r"
+
+expect -re "Username for (.*): "
+send "$gituser\r"
+expect -re "Password for (.*): "
+send "$gitpass\r"
+
+expect -re "Username for (.*): "
+send "$gituser\r"
+expect -re "Password for (.*): "
+send "$gitpass\r"
+
+expect eof
