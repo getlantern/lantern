@@ -33,10 +33,7 @@ public class SplashScreen {
     int progress = 0;
     private Label label;
 
-    private Thread swtThread;
-
     public void init(final Display display) {
-        swtThread = Thread.currentThread();
         this.display = display;
         final File installed = new File("lantern-ui/img/splash.png");
         final String splashImage;
@@ -72,10 +69,15 @@ public class SplashScreen {
         int y = (displayRect.height - splashRect.height) / 2;
         splash.setLocation(x, y);
         splash.open();
+        splash.forceActive();
+        display.update();
+        while(display.readAndDispatch())
+                //do nothing
+                ;
     }
 
     public void advanceBar() {
-        if (Thread.currentThread() != swtThread) {
+        if (display == null || Thread.currentThread() != display.getThread()) {
             log.warn("Calling advanceBar outside of SWT thread is forbidden");
             return;
         }
@@ -94,6 +96,9 @@ public class SplashScreen {
                     image.getBounds().height - 50);
             gc.dispose();
             label.setImage(image);
+            while(display.readAndDispatch())
+                //do nothing
+                ;
         }
     }
 
