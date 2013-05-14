@@ -87,6 +87,9 @@ In addition, install4jc expects the following variables defined in the environme
     INSTALL4J_MAC_PASS
     INSTALL4J_WIN_PASS
 
+If you're building installers on Ubuntu, don't use the system's JRE as
+installed via apt; it has a bunch of symlinks which get broken.  Use
+a stand-alone JRE package
 
 ## Building the compressed GeoIp database
 
