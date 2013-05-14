@@ -131,6 +131,7 @@ public class LanternModule extends AbstractModule {
         bind(InviteQueue.class);
         bind(GeoIp.class);
         bind(CountryService.class);
+        bind(SplashScreen.class);
 
         try {
             copyFireFoxExtension();

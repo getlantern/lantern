@@ -126,6 +126,7 @@ public class Launcher {
     private HttpClientFactory httpClientFactory;
     private final Module lanternModule;
     private GeoIp geoip;
+    private SplashScreen splashScreen;
 
     public Launcher(final String... args) {
         this(new LanternModule(), args);
@@ -185,7 +186,6 @@ public class Launcher {
 
     private void launch(final String... args) {
         LOG.info("Starting Lantern...");
-        configureCipherSuites();
 
         // first apply any command line settings
         final Options options = buildOptions();
@@ -212,23 +212,22 @@ public class Launcher {
         }
 
         injector = Guice.createInjector(this.lanternModule);
-        model = instance(Model.class);
-        set = model.getSettings();
+
+        boolean uiEnabled = true;
 
         // We parse this one separately because we need this value right away.
         if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
-            set.setUiEnabled(false);
+            uiEnabled = false;
         }
         else {
-            set.setUiEnabled(true);
+            uiEnabled = true;
         }
-
-        censored = instance(Censored.class);
 
         LOG.debug("Creating display...");
         final Display display;
-        if (set.isUiEnabled()) {
+        splashScreen = instance(SplashScreen.class);
+        if (uiEnabled) {
             // We initialize this super early in case there are any errors
             // during startup we have to display to the user.
             Display.setAppName("Lantern");
@@ -236,11 +235,19 @@ public class Launcher {
             display = DisplayWrapper.getDisplay();
             // Also, We need the system tray to listen for events early on.
             //LanternHub.systemTray().createTray();
-
+            splashScreen.init(display);
         }
         else {
             display = null;
         }
+
+        model = instance(Model.class);
+        set = model.getSettings();
+        set.setUiEnabled(uiEnabled);
+
+        configureCipherSuites();
+
+        censored = instance(Censored.class);
 
         messageService = instance(MessageService.class);
         instance(Proxifier.class);
@@ -248,7 +255,6 @@ public class Launcher {
             browserService = instance(BrowserService.class);
             systemTray = instance(SystemTray.class);
         }
-
         // We need to make sure the trust store is initialized before we
         // do our public IP lookup as well as modelUtils.
         instance(LanternTrustStore.class);
@@ -340,6 +346,9 @@ public class Launcher {
         if (inst == null) {
             LOG.error("Could not load instance of "+clazz);
             throw new NullPointerException("Could not load instance of "+clazz);
+        }
+        if (splashScreen != null) {
+            splashScreen.advanceBar();
         }
         return inst;
     }

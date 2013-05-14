@@ -29,6 +29,7 @@ import org.lantern.BayeuxInitializer;
 import org.lantern.LanternConstants;
 import org.lantern.LanternService;
 import org.lantern.Proxifier;
+import org.lantern.SplashScreen;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
@@ -58,16 +59,20 @@ public class JettyLauncher implements LanternService {
 
     private final PhotoServlet photoServlet;
 
+    private final SplashScreen splashScreen;
+
     @Inject
     public JettyLauncher(final SyncService syncer,
         final GoogleOauth2RedirectServlet redirectServlet,
         final InteractionServlet interactionServlet,
-        final Model model, final PhotoServlet photoServlet) {
+        final Model model, final PhotoServlet photoServlet,
+        final SplashScreen splashScreen) {
         this.syncer = syncer;
         this.redirectServlet = redirectServlet;
         this.interactionServlet = interactionServlet;
         this.model = model;
         this.photoServlet = photoServlet;
+        this.splashScreen = splashScreen;
     }
     
     @Override
@@ -143,6 +148,7 @@ public class JettyLauncher implements LanternService {
                 IOException {
                 final String uri = req.getPathInfo();
                 log.debug("Processing get request for static file: "+uri);
+                splashScreen.close();
                 if (uri.startsWith("/proxy_on")) {
                     writeFileToResponse(resp, Proxifier.PROXY_ON);
                 } else if (uri.startsWith("/proxy_off")) {
