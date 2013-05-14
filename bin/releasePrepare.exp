@@ -1,10 +1,6 @@
 #!/usr/bin/expect -f
 if {[llength $argv] != 3} {
- 
-# We give a message so the user know our syntax:
 puts "usage: /release.exp gpg-password gituser gitpass"
- 
-#We exit with return code = 1
 exit 1
 }
 
