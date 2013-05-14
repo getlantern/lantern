@@ -83,19 +83,6 @@ public class SplashScreen {
         }
         if (bar != null) {
             bar.setSelection(++progress);
-            GC gc = new GC(image);
-            String dots = "";
-            for (int dot = 0; dot < progress; ++dot) {
-                dots += ".";
-            }
-            Color white = new Color(display, 255, 255, 255);
-            gc.setForeground(white);
-            Color black = new Color(display, 0, 0, 0);
-            gc.setBackground(black);
-            gc.drawText("Loading " + dots, 10,
-                    image.getBounds().height - 50);
-            gc.dispose();
-            label.setImage(image);
             while(display.readAndDispatch())
                 //do nothing
                 ;
