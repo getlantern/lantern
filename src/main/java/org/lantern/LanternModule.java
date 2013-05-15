@@ -97,7 +97,7 @@ public class LanternModule extends AbstractModule {
         bind(SyncService.class);
         bind(TransfersIo.class);
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
-        bind(BrowserService.class).to(ChromeBrowserService.class);
+        bind(BrowserService.class).to(Dashboard.class);
         bind(Transfers.class).toProvider(TransfersIo.class).in(Singleton.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         
