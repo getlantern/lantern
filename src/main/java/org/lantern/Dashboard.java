@@ -8,16 +8,18 @@ import java.util.LinkedHashSet;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.lantern.event.Events;
+import org.lantern.event.QuitEvent;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.win.Registry;
@@ -38,12 +40,10 @@ public class Dashboard implements BrowserService {
     private Browser browser;
     private boolean completed;
 
-    private final SystemTray systemTray;
     private final Model model;
     
     @Inject
-    public Dashboard(final SystemTray systemTray, final Model model) {
-        this.systemTray = systemTray;
+    public Dashboard(final Model model) {
         this.model = model;
         Events.register(this);
     }
@@ -91,8 +91,10 @@ public class Dashboard implements BrowserService {
             this.shell.forceActive();
             return;
         }
+ 
+        final Display display = DisplayWrapper.getDisplay();
 
-        this.shell = new Shell(DisplayWrapper.getDisplay());
+        this.shell = new Shell(display);
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("128on.png");
@@ -125,73 +127,37 @@ public class Dashboard implements BrowserService {
             browserType = SWT.NONE;
         }
         this.browser = new Browser(shell, browserType);
-        this.browser.addProgressListener(new ProgressListener() {
-            
-            @Override
-            public void completed(final ProgressEvent pe) {
-                if (completed) {
-                    log.debug("Ignoring multiple completed calls");
-                    return;
-                }
-                completed = true;
-                
-                // We need to sync the settings before the roster to correctly
-                // set everything in the state document.
-                //settingsSync();
-                //rosterSync();
-                /*
-                log.debug("Pending calls: {}", pendingCalls);
-                for (final String call : pendingCalls) {
-                    evaluate(call);
-                }
-                */
-            }
-            
-            @Override
-            public void changed(final ProgressEvent pe) {
-                
-            }
-        });
+
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl(StaticSettings.getLocalEndpoint());
 
-        shell.addListener (SWT.Close, new Listener () {
+        display.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
+                event.doit = false;
+                final int style = SWT.APPLICATION_MODAL
+                        | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                final MessageBox messageBox = new MessageBox(shell, style);
+                messageBox.setText("Quit Lantern?");
+                final String msg;
                 if (model.isSetupComplete()) {
-                    if (systemTray.isActive()) {
-                        browser.stop();
-                        browser.setUrl("about:blank");
-                    }
-                    else {
-                        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-                        final MessageBox messageBox = new MessageBox (shell, style);
-                        messageBox.setText ("Quit Lantern?");
-                        final String msg = "Quit Lantern?";
-                        messageBox.setMessage (msg);
-                        event.doit = messageBox.open () == SWT.YES;
-                        if (event.doit) {
-                            DisplayWrapper.getDisplay().dispose();
-                            System.exit(0);
-                        }
-                    }
+                    msg = "Quit Lantern?";
                 } else {
-                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-                    final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText ("Quit Lantern?");
-                    final String msg =
-                        "Lantern setup has not been completed. Quit and set up later?";
-                    messageBox.setMessage (msg);
-                    event.doit = messageBox.open () == SWT.YES;
-                    if (event.doit) {
-                        DisplayWrapper.getDisplay().dispose();
-                        System.exit(0);
-                    }
+                    msg = "Lantern setup has not been completed. Quit and set up later?";
                 }
+                messageBox.setMessage(msg);
+                event.doit = messageBox.open() == SWT.YES;
+                if (event.doit) {
+                    Events.eventBus().post(new QuitEvent());
+                    display.dispose();
+                    System.exit(0);
+                }
+
             }
         });
+
         shell.setLayout(new FillLayout());
         Rectangle minSize = shell.computeTrim(0, 0, minWidth, minHeight); 
         shell.setMinimumSize(minSize.width, minSize.height);
@@ -278,9 +244,6 @@ public class Dashboard implements BrowserService {
 
     @Override
     public void stop() {
-        if (DisplayWrapper.getDisplay() != null) {
-            DisplayWrapper.getDisplay().dispose();
-        }
     }
 
     @Override
