@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+if {[llength $argv] != 1} {
+puts "usage: /releasePerform.exp gpg-password"
+exit 1
+}
+
+set timeout 100 
+set newpass [lindex $argv 0]
+
+spawn mvn release:perform
+
+expect "GPG Passphrase: *"
+send "$newpass\r"
+
+expect eof
