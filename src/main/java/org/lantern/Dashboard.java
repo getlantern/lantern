@@ -198,10 +198,6 @@ public class Dashboard implements BrowserService {
         shell.pack();
         shell.open();
         shell.forceActive();
-        while (!shell.isDisposed()) {
-            if (!DisplayWrapper.getDisplay().readAndDispatch())
-                DisplayWrapper.getDisplay().sleep();
-        }
     }
 
     private void windowsBugWorkaround() {
