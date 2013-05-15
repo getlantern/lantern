@@ -12,6 +12,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -83,19 +84,22 @@ public class SystemTrayImpl implements SystemTray {
     @Override
     public void stop() {
         try {
-            DisplayWrapper.getDisplay().asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                    if (DisplayWrapper.getDisplay().isDisposed()) {
-                        return;
+            final Display display = DisplayWrapper.getDisplay();
+            if (!display.isDisposed()) {
+                display.asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (display.isDisposed()) {
+                            return;
+                        }
+                        try {
+                            display.dispose();
+                        } catch (final Throwable t) {
+                            log.info("Exception disposing display?", t);
+                        }
                     }
-                    try {
-                        DisplayWrapper.getDisplay().dispose();
-                    } catch (final Throwable t) {
-                        log.info("Exception disposing display?", t);
-                    }
-                }
-            });
+                });
+            }
         } catch (final Throwable t) {
             log.info("Exception disposing display?", t);
         }

@@ -2,29 +2,24 @@ package org.lantern;
 
 import java.awt.Point;
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.LocationEvent;
-import org.eclipse.swt.browser.LocationListener;
-import org.eclipse.swt.browser.OpenWindowListener;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
-import org.eclipse.swt.browser.WindowEvent;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.lantern.event.Events;
-import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.event.QuitEvent;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.win.Registry;
@@ -45,16 +40,11 @@ public class Dashboard implements BrowserService {
     private Browser browser;
     private boolean completed;
 
-    private final SystemTray systemTray;
     private final Model model;
-    private final LocalCipherProvider localCipherProvider;
     
     @Inject
-    public Dashboard(final SystemTray systemTray, final Model model,
-        final LocalCipherProvider localCipherProvider) {
-        this.systemTray = systemTray;
+    public Dashboard(final Model model) {
         this.model = model;
-        this.localCipherProvider = localCipherProvider;
         Events.register(this);
     }
     
@@ -94,35 +84,17 @@ public class Dashboard implements BrowserService {
     protected void buildBrowser() {
         log.debug("Creating shell...");
         
-        // This gets around a bug in XP/SWT/IE where SWT loads IE 7 even when
-        // IE 8 is on the user's system.
-        if (SystemUtils.IS_OS_WINDOWS_XP) {
-            System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
-            
-            // Make extra sure all these values are set.
-            final String key = 
-                "Software\\Microsoft\\Internet Explorer\\Main\\" +
-                "FeatureControl\\FEATURE_BROWSER_EMULATION";
+        windowsBugWorkaround();
 
-            Registry.write(key, "java.exe", 8000);
-            Registry.write(key, "javaw.exe", 8000);
-            Registry.write(key, "eclipse.exe", 8000);
-            Registry.write(key, "lantern.exe", 8000);
-            
-            // We still sleep quickly here just in case there's anything
-            // asynchronous under the hood.
-            try {
-                log.debug("Sleeping for browser...");
-                Thread.sleep(600);
-                log.debug("Waking");
-            } catch (final InterruptedException e1) {
-            }
-        }
         if (this.shell != null && !this.shell.isDisposed()) {
+            //browser already running
             this.shell.forceActive();
             return;
         }
-        this.shell = new Shell(DisplayWrapper.getDisplay());
+ 
+        final Display display = DisplayWrapper.getDisplay();
+
+        this.shell = new Shell(display);
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("128on.png");
@@ -155,137 +127,70 @@ public class Dashboard implements BrowserService {
             browserType = SWT.NONE;
         }
         this.browser = new Browser(shell, browserType);
-        this.browser.addProgressListener(new ProgressListener() {
-            
-            @Override
-            public void completed(final ProgressEvent pe) {
-                if (completed) {
-                    log.debug("Ignoring multiple completed calls");
-                    return;
-                }
-                completed = true;
-                
-                // We need to sync the settings before the roster to correctly
-                // set everything in the state document.
-                //settingsSync();
-                //rosterSync();
-                /*
-                log.debug("Pending calls: {}", pendingCalls);
-                for (final String call : pendingCalls) {
-                    evaluate(call);
-                }
-                */
-            }
-            
-            @Override
-            public void changed(final ProgressEvent pe) {
-                
-            }
-        });
+
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl(StaticSettings.getLocalEndpoint());
 
-        browser.addLocationListener(new LocationListener() {
-            @Override
-            public void changing(LocationEvent event) {
-                try {
-                    final URI url = new URI(event.location);
-                    final String localAuthority = 
-                        StaticSettings.getLocalEndpoint();
-                    if (openExternal(url, localAuthority)) {
-                        log.info("opening external browser to {}", event.location);
-                        event.doit = false;
-                        LanternUtils.browseUrl(event.location);
-                    }
-                } catch (final URISyntaxException e) {
-                    log.warn("Bad URI?", e);
-                    event.doit = false;
-                }
-            }
-
-            @Override
-            public void changed(LocationEvent event) {}
-        });
-
-        // create a hidden browser to intercept external
-        // location references that should be opened
-        // in the system's native browser.
-        Shell hiddenShell = new Shell(DisplayWrapper.getDisplay());
-        final Browser externalBrowser = new Browser(hiddenShell, SWT.NONE);
-
-        externalBrowser.addLocationListener(new LocationListener() {
-            @Override
-            public void changing(LocationEvent event) {
-                // launch external browser with link,
-                // but don't actually go there.
-                event.doit = false;
-                LanternUtils.browseUrl(event.location);
-            }
-
-            @Override
-            public void changed(LocationEvent event) {}
-        });
-
-        browser.addOpenWindowListener(new OpenWindowListener() {
-            @Override
-            public void open(WindowEvent e) {
-                e.browser = externalBrowser;
-            }
-        });
-
-        shell.addListener (SWT.Close, new Listener () {
+        display.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
+                event.doit = false;
+                final int style = SWT.APPLICATION_MODAL
+                        | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                final MessageBox messageBox = new MessageBox(shell, style);
+                messageBox.setText("Quit Lantern?");
+                final String msg;
                 if (model.isSetupComplete()) {
-                    if (systemTray.isActive()) {
-                        browser.stop();
-                        browser.setUrl("about:blank");
-                    }
-                    else {
-                        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-                        final MessageBox messageBox = new MessageBox (shell, style);
-                        messageBox.setText ("Quit Lantern?");
-                        final String msg = "Quit Lantern?";
-                        messageBox.setMessage (msg);
-                        event.doit = messageBox.open () == SWT.YES;
-                        if (event.doit) {
-                            DisplayWrapper.getDisplay().dispose();
-                            System.exit(0);
-                        }
-                    }
+                    msg = "Quit Lantern?";
                 } else {
-                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-                    final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText ("Quit Lantern?");
-                    final String msg =
-                        "Lantern setup has not been completed. Quit and set up later?";
-                    messageBox.setMessage (msg);
-                    event.doit = messageBox.open () == SWT.YES;
-                    if (event.doit) {
-                        DisplayWrapper.getDisplay().dispose();
-                        System.exit(0);
-                    }
+                    msg = "Lantern setup has not been completed. Quit and set up later?";
                 }
+                messageBox.setMessage(msg);
+                event.doit = messageBox.open() == SWT.YES;
+                if (event.doit) {
+                    Events.eventBus().post(new QuitEvent());
+                    display.dispose();
+                    System.exit(0);
+                }
+
             }
         });
+
         shell.setLayout(new FillLayout());
         Rectangle minSize = shell.computeTrim(0, 0, minWidth, minHeight); 
         shell.setMinimumSize(minSize.width, minSize.height);
         shell.pack();
         shell.open();
         shell.forceActive();
-        while (!shell.isDisposed()) {
-            if (!DisplayWrapper.getDisplay().readAndDispatch())
-                DisplayWrapper.getDisplay().sleep();
-        }
-        hiddenShell.dispose();
     }
 
-    private boolean openExternal(final URI url, final String localAuthority) {
-        return !url.toASCIIString().startsWith("https://accounts.google.com") && 
-           !url.getAuthority().equals(localAuthority);
+    private void windowsBugWorkaround() {
+        // This gets around a bug in XP/SWT/IE where SWT loads IE 7 even when
+        // IE 8 is on the user's system.
+        if (SystemUtils.IS_OS_WINDOWS_XP) {
+            System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
+            
+            // Make extra sure all these values are set.
+            final String key = 
+                "Software\\Microsoft\\Internet Explorer\\Main\\" +
+                "FeatureControl\\FEATURE_BROWSER_EMULATION";
+
+            Registry.write(key, "java.exe", 8000);
+            Registry.write(key, "javaw.exe", 8000);
+            Registry.write(key, "eclipse.exe", 8000);
+            Registry.write(key, "lantern.exe", 8000);
+            
+            // We still sleep quickly here just in case there's anything
+            // asynchronous under the hood.
+            try {
+                log.debug("Sleeping for browser...");
+                Thread.sleep(600);
+                log.debug("Waking");
+            } catch (final InterruptedException e1) {
+            }
+        }
     }
 
     private Image newImage(final String path) {
@@ -339,14 +244,10 @@ public class Dashboard implements BrowserService {
 
     @Override
     public void stop() {
-        if (DisplayWrapper.getDisplay() != null) {
-            DisplayWrapper.getDisplay().dispose();
-        }
     }
 
     @Override
     public void openBrowser(int port, String prefix) {
-        // TODO Auto-generated method stub
-
+        buildBrowser();
     }
 }
