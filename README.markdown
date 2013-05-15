@@ -394,8 +394,21 @@ The return value will (generally) be one of:
 #### func (Value) Export
 
 ```go
-func (value Value) Export() (interface{}, error)
+func (self Value) Export() interface{}
 ```
+Export will attempt to convert the value to a Go representation and return it
+via an interface{} kind.
+
+If a reasonable conversion is not possible, then the original result is
+returned.
+
+    undefined   -> otto.Value (UndefinedValue())
+    null        -> interface{}(nil)
+    boolean     -> bool
+    number      -> A number type (int, float32, uint64, ...)
+    string      -> string
+    Array       -> []interface{}
+    Object      -> map[string]interface{}
 
 #### func (Value) IsBoolean
 

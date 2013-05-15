@@ -5,6 +5,7 @@ import (
 	"math"
 	"reflect"
 	"strconv"
+	"unicode/utf16"
 )
 
 type _valueType int
@@ -558,69 +559,70 @@ func sameValue(x Value, y Value) bool {
 	return result
 }
 
-// Export will convert the value to its closest go representation
+// Export will attempt to convert the value to a Go representation
+// and return it via an interface{} kind.
 //
-//      undefined -> nil, error undefined
-//      null    -> nil, nil
-//      boolean -> bool, nil
-//      number  -> float64, nil
-//      string  -> string, nil
-//      Array   -> []interface{}, nil
-//      Object  -> map[string]interface{}, nil
+// If a reasonable conversion is not possible, then the original
+// result is returned.
+//
+//      undefined   -> otto.Value (UndefinedValue())
+//      null        -> interface{}(nil)
+//      boolean     -> bool
+//      number      -> A number type (int, float32, uint64, ...)
+//      string      -> string
+//      Array       -> []interface{}
+//      Object      -> map[string]interface{}
+//
+func (self Value) Export() interface{} {
 
-func (value Value) Export() (interface{}, error) {
-
-	switch value._valueType {
+	switch self._valueType {
 	case valueUndefined:
-		return nil, fmt.Errorf("undefined")
+		return self
 	case valueNull:
-		return nil, nil
-	case valueNumber:
-		return value.toFloat(), nil
+		return nil
+	case valueNumber, valueBoolean:
+		return self.value
 	case valueString:
-		return value.toString(), nil
-	case valueBoolean:
-		return value.toBoolean(), nil
-	case valueObject:
-
-		// get the names of things inside
-		propNames := make([]string, 0)
-		value.value.(*_object).enumerate(func(name string) {
-			propNames = append(propNames, name)
-		})
-
-		if value.value.(*_object).class == "Array" {
-
-			// format non-undefined inner values in array
-			result := make([]interface{}, 0)
-			for _, v := range propNames {
-				inner_value := value.value.(*_object).get(v)
-				export_value, export_error := inner_value.Export()
-				if export_error == nil {
-					result = append(result, export_value)
-				}
-			}
-
-			return result, nil
-		} else {
-			// format non-undefined inner values in object
-			result := make(map[string]interface{})
-			for _, v := range propNames {
-				inner_value := value.value.(*_object).get(v)
-				export_value, export_error := inner_value.Export()
-				if export_error == nil {
-					result[v] = export_value
-				}
-			}
-
-			return result, nil
+		switch value := self.value.(type) {
+		case string:
+			return value
+		case []uint16:
+			return string(utf16.Decode(value))
 		}
-
-	default:
-		panic(hereBeDragons())
+	case valueObject:
+		object := self._object()
+		switch value := object.value.(type) {
+		case *_goStructObject:
+			return value.value.Interface()
+		case *_goMapObject:
+			return value.value.Interface()
+		case *_goArrayObject:
+			return value.value.Interface()
+		}
+		if object.class == "Array" {
+			result := make([]interface{}, 0)
+			lengthValue := object.get("length")
+			// FIXME This was causing a panic?
+			//length := lengthValue.value.(uint32)
+			length := toUint32(lengthValue)
+			for index := uint32(0); index < length; index += 1 {
+				name := strconv.FormatInt(int64(index), 10)
+				if !object.hasProperty(name) {
+					continue
+				}
+				result = append(result, object.get(name).Export())
+			}
+			return result
+		} else {
+			result := make(map[string]interface{})
+			object.enumerate(func(name string) {
+				result[name] = object.get(name).Export()
+			})
+			return result
+		}
 	}
 
-	return nil, nil
+	return self
 }
 
 func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
