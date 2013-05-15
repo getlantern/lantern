@@ -131,13 +131,13 @@
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
-      <version>1.13.2-beta</version>
+      <version>1.14.1-beta</version>
     </dependency>
 
     <dependency>
       <groupId>com.google.oauth-client</groupId>
       <artifactId>google-oauth-client-java6</artifactId>
-      <version>1.13.1-beta</version>
+      <version>1.14.1-beta</version>
     </dependency>
 
     <dependency>
@@ -261,19 +261,19 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>smack-xmpp-3-2-2</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0.3</version>
     </dependency>
 
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>amazon-ec2</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0.3</version>
     </dependency>
 
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleshoot-downloader</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0.3</version>
     </dependency>
 
     <dependency>
@@ -285,7 +285,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>p2p</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0.3</version>
     </dependency>
 
     <dependency>
