@@ -777,6 +777,7 @@ public class InteractionServlet extends HttpServlet {
             }
         }
         final Model base = new Model(model.getCountryService());
+        model.setEverGetMode(false);
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
         model.setNinvites(base.getNinvites());
