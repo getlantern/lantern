@@ -11,18 +11,31 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.jboss.netty.util.Timer;
 import org.junit.Test;
 import org.lantern.event.Events;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.state.Model;
 import org.littleshoot.util.FiveTuple;
 
+import com.google.common.eventbus.Subscribe;
+
 public class DefaultProxyTrackerTest {
+    
+    @Subscribe
+    public void onProxyConnectionEvent(final ProxyConnectionEvent pce) {
+        synchronized (this) {
+            this.notifyAll();
+        }
+    }
+    
     @Test
-    public void testDefaultProxyTracker() throws URISyntaxException, InterruptedException {
-        final CountryService countryService = TestUtils.getCountryService();
+    public void testDefaultProxyTracker() throws Exception {
+        
+        Events.register(this);
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
         Model model = new Model(countryService);
 
         //assume that we are connected to the Internet
@@ -46,8 +59,8 @@ public class DefaultProxyTrackerTest {
 
 
         tracker.addProxy(new URI("proxy1@example.com"), "127.0.0.1:55021");
-        Thread.sleep(10);
-        proxy = tracker.getProxy();
+        proxy = waitForProxy(tracker);
+        
         assertEquals(55021, getProxyPort(proxy));
         assertEquals(0, proxy.getFailures());
 
@@ -85,8 +98,10 @@ public class DefaultProxyTrackerTest {
         // call
         tracker.addProxy(new URI("proxy2@example.com"), "127.0.0.1:55022");
         Thread.sleep(10);
-        ProxyHolder proxy1 = tracker.getProxy();
-        ProxyHolder proxy2 = tracker.getProxy();
+        ProxyHolder proxy1 = waitForProxy(tracker);
+        System.err.println(proxy1);
+        ProxyHolder proxy2 = waitForProxy(tracker);
+        System.err.println(proxy2);
         assertNotNull(proxy1);
         assertNotNull(proxy2);
         assertTrue(proxy1 != proxy2);
@@ -94,6 +109,18 @@ public class DefaultProxyTrackerTest {
         int port2 = getProxyPort(proxy2);
         assertTrue((port1 == 55021 && port2 == 55022) || (port1 == 55022 && port2 == 55021));
 
+    }
+
+    private ProxyHolder waitForProxy(DefaultProxyTracker tracker) 
+        throws Exception {
+        synchronized (this) {
+            final ProxyHolder proxy = tracker.getProxy();
+            if (proxy != null) {
+                return proxy;
+            }
+            this.wait(6000);
+            return tracker.getProxy();
+        }
     }
 
     private int getProxyPort(ProxyHolder proxy) {
