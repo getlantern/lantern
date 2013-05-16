@@ -35,10 +35,12 @@ public class LanternXmppUtil {
     }
     
     public ConnectionConfiguration xmppConfig() {
-        return xmppConfig(null);
+        final ConnectionConfiguration config = xmppConfig(null);
+        config.setFallbackProxy(proxyInfo());
+        return config;
     }
     
-    public ConnectionConfiguration xmppProxyConfig() {
+    private ProxyInfo proxyInfo() {
         final int proxyPort;
         if (NumberUtils.isNumber(LanternClientConstants.FALLBACK_SERVER_PORT)) {
             proxyPort = Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT);
@@ -51,7 +53,12 @@ public class LanternXmppUtil {
                     proxyPort, 
                     LanternClientConstants.FALLBACK_SERVER_USER, 
                     LanternClientConstants.FALLBACK_SERVER_PASS);
-        return xmppConfig(proxyInfo);
+        return proxyInfo;
+    }
+
+    public ConnectionConfiguration xmppProxyConfig() {
+
+        return xmppConfig(proxyInfo());
     }
     
     public ConnectionConfiguration xmppConfig(final ProxyInfo proxyInfo) {
@@ -63,8 +70,11 @@ public class LanternXmppUtil {
         } else {
             config = new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com", proxyInfo);
-            config.setSocketFactory(new ProxySocketFactory(this.socketsUtil, proxyInfo));
+            config.setSocketFactory(
+                new ProxySocketFactory(this.socketsUtil, proxyInfo));
         }
+        config.setSslSocketFactory(this.socketsUtil.newTlsSocketFactoryJavaCipherSuites());
+        config.setFallbackProxy(proxyInfo);
         config.setExpiredCertificatesCheckEnabled(true);
         
         // We don't check for matching domains because Google Talk uses the
