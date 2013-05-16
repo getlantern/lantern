@@ -7,9 +7,8 @@ import java.io.File;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
-import org.lantern.privacy.DefaultEncryptedFileService;
-import org.lantern.privacy.DefaultLocalCipherProvider;
-import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.privacy.EncryptedFileService;
+import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 
@@ -18,17 +17,7 @@ public class WhitelistTest {
     
     @Test
     public void testWhitelist() throws Exception {
-        final LocalCipherProvider localCipherProvider = 
-            new DefaultLocalCipherProvider();
-        final DefaultEncryptedFileService fileService = 
-            new DefaultEncryptedFileService(localCipherProvider);
-        final File randFile = new File(Integer.toString(RandomUtils.nextInt()));
-
-        final CountryService countryService = TestUtils.getCountryService();
-        final ModelIo modelIo = new ModelIo(randFile, fileService, null,
-                countryService);
-        randFile.delete();
-        randFile.deleteOnExit();
+        final ModelIo modelIo = newModelIo();
         final Model settings = modelIo.get();
         final Whitelist whitelist = settings.getSettings().getWhitelist();
         
@@ -64,13 +53,26 @@ public class WhitelistTest {
         assertTrue(readWhitelist.isWhitelisted("notwhitelisted.org"));
         
         //assertTrue(readWhitelist.isWhitelisted("getlantern.org"));
-        
+
+    }
+
+    private ModelIo newModelIo() {
+        final EncryptedFileService fileService = new UnencryptedFileService();
+        final File randFile = new File(Integer.toString(RandomUtils.nextInt()));
+
         randFile.delete();
+        randFile.deleteOnExit();
+        
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
+        final ModelIo modelIo = new ModelIo(randFile, fileService, null,
+                countryService);
+        return modelIo;
     }
 
     @Test
     public void testIPAddressInWhitelist() throws Exception {
-        final ModelIo modelIo = TestUtils.getModelIo();
+        final ModelIo modelIo = newModelIo();
         //final File settingsFile = settingsFile();
         //final SettingsIo io = new SettingsIo(settingsFile, 
         //    new DefaultEncryptedFileService(new DefaultLocalCipherProvider()));
