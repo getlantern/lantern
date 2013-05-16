@@ -394,10 +394,14 @@ The return value will (generally) be one of:
 #### func (Value) Export
 
 ```go
-func (self Value) Export() interface{}
+func (self Value) Export() (interface{}, error)
 ```
 Export will attempt to convert the value to a Go representation and return it
 via an interface{} kind.
+
+WARNING: The interface function will be changing soon to:
+
+    Export() interface{}
 
 If a reasonable conversion is not possible, then the original result is
 returned.

@@ -562,6 +562,10 @@ func sameValue(x Value, y Value) bool {
 // Export will attempt to convert the value to a Go representation
 // and return it via an interface{} kind.
 //
+// WARNING: The interface function will be changing soon to:
+//
+//      Export() interface{}
+//
 // If a reasonable conversion is not possible, then the original
 // result is returned.
 //
@@ -573,7 +577,11 @@ func sameValue(x Value, y Value) bool {
 //      Array       -> []interface{}
 //      Object      -> map[string]interface{}
 //
-func (self Value) Export() interface{} {
+func (self Value) Export() (interface{}, error) {
+	return self.export(), nil
+}
+
+func (self Value) export() interface{} {
 
 	switch self._valueType {
 	case valueUndefined:
@@ -610,13 +618,13 @@ func (self Value) Export() interface{} {
 				if !object.hasProperty(name) {
 					continue
 				}
-				result = append(result, object.get(name).Export())
+				result = append(result, object.get(name).export())
 			}
 			return result
 		} else {
 			result := make(map[string]interface{})
 			object.enumerate(func(name string) {
-				result[name] = object.get(name).Export()
+				result[name] = object.get(name).export()
 			})
 			return result
 		}

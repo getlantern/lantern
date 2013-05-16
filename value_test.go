@@ -158,26 +158,26 @@ func Test_sameValue(t *testing.T) {
 	IsFalse(sameValue(NaNValue(), toValue("Nothing happens.")))
 }
 
-func TestExport(t *testing.T) {
+func Testexport(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
 
-	Is(test(`null;`).Export(), nil)
-	Is(test(`undefined;`).Export(), UndefinedValue())
-	Is(test(`true;`).Export(), true)
-	Is(test(`false;`).Export(), false)
-	Is(test(`0;`).Export(), 0)
-	Is(test(`3.1459`).Export(), 3.1459)
-	Is(test(`"Nothing happens";`).Export(), "Nothing happens")
-	Is(test(`String.fromCharCode(97,98,99,100,101,102)`).Export(), "abcdef")
+	Is(test(`null;`).export(), nil)
+	Is(test(`undefined;`).export(), UndefinedValue())
+	Is(test(`true;`).export(), true)
+	Is(test(`false;`).export(), false)
+	Is(test(`0;`).export(), 0)
+	Is(test(`3.1459`).export(), 3.1459)
+	Is(test(`"Nothing happens";`).export(), "Nothing happens")
+	Is(test(`String.fromCharCode(97,98,99,100,101,102)`).export(), "abcdef")
 	{
-		value := test(`({ abc: 1, def: true });`).Export().(map[string]interface{})
+		value := test(`({ abc: 1, def: true });`).export().(map[string]interface{})
 		Is(value["abc"], 1)
 		Is(value["def"], true)
 	}
 	{
-		value := test(`[ "abc", 1, "def", true, undefined, null ];`).Export().([]interface{})
+		value := test(`[ "abc", 1, "def", true, undefined, null ];`).export().([]interface{})
 		Is(value[0], "abc")
 		Is(value[1], 1)
 		Is(value[2], "def")
@@ -210,7 +210,7 @@ func TestExport(t *testing.T) {
 		input, err := json.Marshal(value)
 		Is(err, nil)
 
-		output, err := json.Marshal(test("(" + string(input) + ");").Export())
+		output, err := json.Marshal(test("(" + string(input) + ");").export())
 		Is(err, nil)
 
 		Is(string(input), string(output))
@@ -225,6 +225,6 @@ func TestExport(t *testing.T) {
 		abc.def = 3
 		abc.xyz = 3.1459
 		failSet("abc", abc)
-		Is(test(`abc;`).Export(), abc)
+		Is(test(`abc;`).export(), abc)
 	}
 }
