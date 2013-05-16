@@ -148,13 +148,14 @@ public class LanternTrustStore {
         final byte[] decoded = Base64.decodeBase64(base64Cert);
         final String normalizedAlias =
             FileUtils.removeIllegalCharsFromFileName(jid.toASCIIString());
-        final File certFile = new File(normalizedAlias);
+        final File certFile = 
+            new File(LanternClientConstants.CONFIG_DIR, normalizedAlias);
         OutputStream os = null;
         try {
             os = new FileOutputStream(certFile);
             IOUtils.copy(new ByteArrayInputStream(decoded), os);
         } catch (final IOException e) {
-            log.error("Could not write to file: " + certFile, e);
+            log.error("Could not write to file: " + certFile.getAbsolutePath(), e);
             throw e;
         } finally {
             IOUtils.closeQuietly(os);
