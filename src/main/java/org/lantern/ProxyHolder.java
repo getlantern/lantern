@@ -3,6 +3,7 @@ package org.lantern;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.lantern.state.Peer.Type;
@@ -23,6 +24,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
     private final AtomicInteger failures = new AtomicInteger();
 
     private final Type type;
+    
+    private final AtomicBoolean lastFailed = new AtomicBoolean(true);
 
     public ProxyHolder(final String id, final URI jid,
             final InetSocketAddress isa,
@@ -126,6 +129,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
     }
 
     public void addFailure() {
+        this.lastFailed.set(true);
         if (failures.get() == 0) {
             long now = new Date().getTime();
             setTimeOfDeath(now);
@@ -154,5 +158,19 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
 
     public boolean isConnected() {
         return timeOfDeath <= 0;
+    }
+    
+    public void addSuccess() {
+        lastFailed.set(false);
+    }
+    
+    /**
+     * Returns whether the last attempt failed or succeeded.
+     * 
+     * @return <code>true</code> if the last connection attempt failed, 
+     * otherwise <code>false</code>.
+     */
+    public boolean lastFailed() {
+        return lastFailed.get();
     }
 }

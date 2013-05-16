@@ -82,8 +82,11 @@ public class ProxyQueue {
             //but do re-add it to the paused list, if necessary
             if (!proxies.contains(proxyAddress)) {
                 if (!pausedProxies.contains(proxyAddress)) {
+                    log.debug("Adding a paused proxy");
                     pausedProxies.add(proxyAddress);
                 }
+            } else {
+                log.debug("Proxy already in {}", proxies);
             }
         }
     }
@@ -110,6 +113,7 @@ public class ProxyQueue {
 
     @Override
     public String toString() {
-        return proxies.toString();
+        return "ProxyQueue [proxySet=" + proxySet + ", proxies=" + proxies
+                + ", pausedProxies=" + pausedProxies + "]";
     }
 }

@@ -124,8 +124,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.proxiesPopulated.set(true);
         addFallbackProxy();
         // Add all the stored proxies.
-        //final Collection<String> saved = this.model.getSettings().getProxies();
-        
         final Collection<Peer> peers = this.model.getPeers();
         log.debug("Proxy set is: {}", peers);
         for (final Peer peer : peers) {
@@ -266,18 +264,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void restoreRecentlyDeceasedProxies(ProxyQueue queue) {
         synchronized (queue) {
-            long now = new Date().getTime();
             while (true) {
-                final ProxyHolder proxy = queue.pausedProxies.peek();
+                final ProxyHolder proxy = queue.pausedProxies.poll();
                 if (proxy == null)
                     break;
-                if (now - proxy.getTimeOfDeath() < LanternClientConstants.getRecentProxyTimeout()) {
-                    queue.pausedProxies.remove();
-                    log.debug("Attempting to restore" + proxy);
-                    addProxyWithChecks(proxy.getJid(), queue, proxy);
-                } else {
-                    break;
-                }
+                log.debug("Attempting to restore" + proxy);
+                addProxyWithChecks(proxy.getJid(), queue, proxy);
             }
         }
     }
@@ -287,7 +279,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             long now = new Date().getTime();
             while (true) {
                 ProxyHolder proxy = queue.pausedProxies.peek();
-                if (proxy == null)
+                if (proxy == null) 
                     break;
                 if (now > proxy.getRetryTime()) {
                     log.debug("Attempting to restore timed-in proxy " + proxy);
@@ -311,7 +303,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (queue.contains(ph)) {
             log.debug("We already know about proxy "+ph+" in {}", queue);
             //but it might be disconnected
-            if (ph.isConnected()) {
+            if (!ph.lastFailed()) {
+                log.debug("Proxy considered connected");
                 return;
             }
         }
@@ -334,6 +327,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                                 ph.getType(), ph.getTrafficShapingHandler());
                     }
 
+                    ph.addSuccess();
                     log.debug("Dispatching CONNECTED event");
                     Events.asyncEventBus().post(
                         new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
@@ -380,7 +374,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void onCouldNotConnect(final ProxyHolder proxyAddress,
         final ProxyQueue queue){
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
-        proxyQueue.proxyFailed(proxyAddress);
+        queue.proxyFailed(proxyAddress);
     }
 
     @Override
@@ -413,8 +407,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
-        if (!e.isConnected()) {
-            log.debug("Restoring recently deceased proxies, since they probably died of 'net failure");
+        log.debug("Got connectivity changed event: {}", e);
+        if (e.isConnected()) {
             restoreRecentlyDeceasedProxies(proxyQueue);
             restoreRecentlyDeceasedProxies(laeProxyQueue);
             restoreRecentlyDeceasedProxies(peerProxyQueue);
