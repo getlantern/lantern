@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -85,7 +86,7 @@ public class InteractionServlet extends HttpServlet {
     }
 
     // modals the user can switch to from other modals
-    private static final HashSet<Modal> switchModals = new HashSet<Modal>();
+    private static final Set<Modal> switchModals = new HashSet<Modal>();
     static {
         switchModals.add(Modal.about);
         switchModals.add(Modal.contact);
@@ -116,7 +117,7 @@ public class InteractionServlet extends HttpServlet {
     private final InviteQueue inviteQueue;
 
     /* only open external urls to these hosts: */
-    private static final HashSet<String> allowedDomains = new HashSet<String>(
+    private static final Set<String> allowedDomains = new HashSet<String>(
         Arrays.asList("google.com", "github.com", "getlantern.org"));
 
     @Inject
@@ -339,11 +340,16 @@ public class InteractionServlet extends HttpServlet {
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 break;
             case CONTINUE:
-                /* fall-through */
+                // This dialog always passes continue as of this writing and
+                // not close.
             case CLOSE:
                 log.debug("Processing continue/close for friends dialog");
-                this.internalState.setModalCompleted(Modal.lanternFriends);
-                this.internalState.advanceModal(null);
+                if (this.model.isSetupComplete()) {
+                    Events.syncModal(model, Modal.none);
+                } else {
+                    this.internalState.setModalCompleted(Modal.lanternFriends);
+                    this.internalState.advanceModal(null);
+                }
                 break;
             case ACCEPT:
                 acceptInvite(json);
@@ -380,8 +386,12 @@ public class InteractionServlet extends HttpServlet {
             this.internalState.setCompletedTo(Modal.proxiedSites);
             switch (inter) {
             case CONTINUE:
-                this.internalState.setModalCompleted(Modal.proxiedSites);
-                this.internalState.advanceModal(null);
+                if (this.model.isSetupComplete()) {
+                    Events.syncModal(model, Modal.none);
+                } else {
+                    this.internalState.setModalCompleted(Modal.proxiedSites);
+                    this.internalState.advanceModal(null);
+                }
                 break;
             case LANTERNFRIENDS:
                 log.debug("Processing lanternFriends from proxiedSites");
