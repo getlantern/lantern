@@ -83,7 +83,7 @@ public class DefaultProxyTrackerTest {
 
         //let's turn off internet, which will restore the dead proxy
         model.getConnectivity().setInternet(false);
-        Events.eventBus().post(new ConnectivityChangedEvent(false, false, null));
+        Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
         Thread.sleep(10);
 
         proxy = tracker.getProxy();
