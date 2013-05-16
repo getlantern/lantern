@@ -266,8 +266,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         synchronized (queue) {
             while (true) {
                 final ProxyHolder proxy = queue.pausedProxies.poll();
-                if (proxy == null)
+                if (proxy == null) {
+                    log.debug("No proxy!");
                     break;
+                }
                 log.debug("Attempting to restore" + proxy);
                 addProxyWithChecks(proxy.getJid(), queue, proxy);
             }
@@ -409,10 +411,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
         log.debug("Got connectivity changed event: {}", e);
         if (e.isConnected()) {
+            log.debug("Restoring proxies: {}", proxyQueue);
             restoreRecentlyDeceasedProxies(proxyQueue);
             restoreRecentlyDeceasedProxies(laeProxyQueue);
             restoreRecentlyDeceasedProxies(peerProxyQueue);
-        }
+        } 
     }
 
     @Override
