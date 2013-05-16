@@ -88,6 +88,7 @@ public class Dashboard implements BrowserService {
 
         if (this.shell != null && !this.shell.isDisposed()) {
             //browser already running
+            this.shell.setVisible(true);
             this.shell.forceActive();
             return;
         }
@@ -133,7 +134,7 @@ public class Dashboard implements BrowserService {
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl(StaticSettings.getLocalEndpoint());
 
-        display.addListener (SWT.Close, new Listener () {
+        Listener closeListener = new Listener () {
             @Override
             public void handleEvent(final Event event) {
                 event.doit = false;
@@ -155,6 +156,15 @@ public class Dashboard implements BrowserService {
                     System.exit(0);
                 }
 
+            }
+        };
+        display.addListener(SWT.Close, closeListener);
+        shell.addListener(SWT.Close, new Listener() {
+
+            @Override
+            public void handleEvent(Event event) {
+                shell.setVisible(false);
+                event.doit = false;
             }
         });
 

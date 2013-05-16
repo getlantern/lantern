@@ -4,8 +4,6 @@ package org.lantern;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
@@ -44,7 +42,7 @@ public class SplashScreen {
         }
 
         image = new Image(display, splashImage);
-        splash = new Shell(SWT.ON_TOP);
+        splash = new Shell(SWT.NO_TRIM);
         bar = new ProgressBar(splash, SWT.NONE);
 
         //The number of modules loaded in Launcher.launch()
