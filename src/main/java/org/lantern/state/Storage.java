@@ -88,7 +88,7 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
         InputStream is = null;
         try {
             is = encryptedFileService.localDecryptInputStream(file);
-            final String json = IOUtils.toString(is);
+            final String json = IOUtils.toString(is, "UTF-8");
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
                 log.info("Can't build object from empty string");
                 return blank();
