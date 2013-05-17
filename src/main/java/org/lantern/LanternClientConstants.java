@@ -46,8 +46,7 @@ public class LanternClientConstants {
                 isDevMode = true;
             } else {
                 isDevMode = version.contains("SNAPSHOT");
-                VERSION = version + (isDevMode ? ("-" +
-                    prop.getProperty("git.commit.id").substring(0, 7)) : "");
+                VERSION = version + "-" + prop.getProperty("git.commit.id").substring(0, 7);
             }
         }
     }
