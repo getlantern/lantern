@@ -36,12 +36,6 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     public Upnp(final Stats stats) {
         this.stats = stats;
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                removeAllMappings();
-            }
-        });
     }
 
     public void removeAllMappings() {
@@ -250,7 +244,8 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     @Override
     public void shutdown() {
-
+        log.debug("Shutting down UPnP");
+        removeAllMappings();
     }
 
     public String getPublicIpAddress() {

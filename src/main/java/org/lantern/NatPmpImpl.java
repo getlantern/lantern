@@ -46,24 +46,6 @@ public class NatPmpImpl implements NatPmpService {
         this.stats = stats;
         pmpDevice = new NatPmp();
         log.debug("NAT-PMP device = {}", pmpDevice);
-
-        // We implement the shutdown hook ourselves so we can explicitly
-        // remove all the mappings we've created.
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                // Remove all the mappings and shutdown.
-                log.info("Shutting down NAT-PMP");
-                final int num = requests.size();
-                for (int i = 0; i < num; i++) {
-                    removeNatPmpMapping(i);
-                }
-                // pmpDevice.shutdown();
-                log.info("Finished shutdown for NAT-PMP");
-            }
-
-        }, "NAT-PMP-Shutdown-Thread"));
     }
 
     public boolean isNatPmpSupported() {
@@ -202,7 +184,14 @@ public class NatPmpImpl implements NatPmpService {
 
     @Override
     public void shutdown() {
-        // nothing to do here
+        // Remove all the mappings and shutdown.
+        log.info("Shutting down NAT-PMP");
+        final int num = requests.size();
+        for (int i = 0; i < num; i++) {
+            removeNatPmpMapping(i);
+        }
+        // pmpDevice.shutdown();
+        log.info("Finished shutdown for NAT-PMP");
     }
 
 }
