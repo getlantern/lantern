@@ -118,7 +118,7 @@ public class DefaultProxyTrackerTest {
             if (proxy != null) {
                 return proxy;
             }
-            this.wait(6000);
+            this.wait(12000);
             return tracker.getProxy();
         }
     }
