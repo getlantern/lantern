@@ -32,6 +32,10 @@ public class HttpClientFactory {
     public HttpClient newProxiedClient() {
         return newClient(newProxy(), true);
     }
+    
+    public HttpClient newDirectClient() {
+        return newClient(null, false);
+    }
 
     public HttpClient newClient() {
         return newClient(newProxy());

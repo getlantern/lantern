@@ -13,6 +13,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
+import org.lantern.util.HttpClientFactory;
 import org.littleshoot.commom.xmpp.XmppConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -27,16 +28,21 @@ public class LanternXmppUtil {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
     private final LanternSocketsUtil socketsUtil;
+    private final HttpClientFactory httpClientFactory;
     
     @Inject
-    public LanternXmppUtil(final LanternSocketsUtil socketsUtil) {
+    public LanternXmppUtil(final LanternSocketsUtil socketsUtil,
+            final HttpClientFactory httpClientFactory) {
         this.socketsUtil = socketsUtil;
+        this.httpClientFactory = httpClientFactory;
         XmppConfig.setRetyStrategyFactory(new LanternXmppRetryStrategyFactory());
     }
     
     public ConnectionConfiguration xmppConfig() {
         final ConnectionConfiguration config = xmppConfig(null);
         config.setFallbackProxy(proxyInfo());
+        config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
+        config.setDirectHttpClient(this.httpClientFactory.newClient());
         return config;
     }
     
