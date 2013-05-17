@@ -40,7 +40,6 @@ public class LanternXmppUtil {
     
     public ConnectionConfiguration xmppConfig() {
         final ConnectionConfiguration config = xmppConfig(null);
-        config.setFallbackProxy(proxyInfo());
         config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
         config.setDirectHttpClient(this.httpClientFactory.newClient());
         return config;
