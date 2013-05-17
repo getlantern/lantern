@@ -97,7 +97,8 @@ log "Loading launchd plist file"
 logFile $LAUNCHD_PLIST
 
 log "Changing owner on configureNetworkServices"
-osascript -e "do shell script \"chown root:admin $APP_PATH/Contents/Resources/app/configureNetworkServices\" with administrator privileges" || die "Could not change owner"
+ln /usr/bin/osascript ./Lantern
+./Lantern -e "do shell script \"chown root:admin $APP_PATH/Contents/Resources/app/configureNetworkServices\" with administrator privileges" || die "Could not change owner"
 
 log "Finished configuring Lantern!"
 exit 0
