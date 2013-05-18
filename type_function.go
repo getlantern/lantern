@@ -257,3 +257,13 @@ func (self *FunctionCall) thisClassObject(class string) *_object {
 func (self FunctionCall) toObject(value Value) *_object {
 	return self.runtime.toObject(value)
 }
+
+// Run will run the given source (parsing it first), returning the resulting value and error (if any)
+//
+// If the runtime is unable to parse the source, then this function will return undefined and the parse error (nothing
+// will be evaluated in this case).
+//
+// This is a convenience function to easily run JavaScript from within a call.
+func (self *FunctionCall) Run(source string) (Value, error) {
+	return self.runtime.runSafe(source)
+}

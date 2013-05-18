@@ -128,6 +128,19 @@ Argument will return the value of the argument at the given index.
 
 If no such argument exists, undefined is returned.
 
+#### func (*FunctionCall) Run
+
+```go
+func (self *FunctionCall) Run(source string) (Value, error)
+```
+Run will run the given source (parsing it first), returning the resulting value
+and error (if any)
+
+If the runtime is unable to parse the source, then this function will return
+undefined and the parse error (nothing will be evaluated in this case).
+
+This is a convenience function to easily run JavaScript from within a call.
+
 #### type Object
 
 ```go
