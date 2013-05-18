@@ -396,8 +396,8 @@ func TestObject_defineOwnProperty(t *testing.T) {
         delete object.property;
         var def = object.hasOwnProperty("property");
 
-		abc == true && def == false;
-	`, "true")
+		[ abc, def ];
+	`, "true,false")
 }
 
 func Test_assignmentEvaluationOrder(t *testing.T) {

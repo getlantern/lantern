@@ -247,7 +247,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 			}
 			// Test that, if enumerable is set on the property descriptor, then it should
 			// be the same as the existing property
-			if descriptor.mode&0020 == 0 && descriptor.enumerable() != property.enumerable() {
+			if descriptor.enumerateSet() && descriptor.enumerable() != property.enumerable() {
 				return false
 			}
 		}
@@ -258,10 +258,10 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 		} else if isDataDescriptor != descriptor.isDataDescriptor() {
 			var interface_ interface{}
 			if isDataDescriptor {
-				property.mode = property.mode & ^propertyMode_write
+				property.writeOff()
 				property.value = interface_
 			} else {
-				property.mode |= propertyMode_write
+				property.writeOn()
 				property.value = interface_
 			}
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {

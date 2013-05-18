@@ -5,10 +5,12 @@ package otto
 type _propertyMode int
 
 const (
-	propertyMode_write     _propertyMode = 0100
-	propertyMode_enumerate               = 0010
-	propertyMode_configure               = 0001
-	propertyModeDefault                  = propertyMode_write | propertyMode_enumerate | propertyMode_configure
+	modeWriteMask     _propertyMode = 0700
+	modeEnumerateMask               = 0070
+	modeConfigureMask               = 0007
+	modeOnMask                      = 0111
+	modeOffMask                     = 0000
+	modeSetMask                     = 0222 // If value is 2, then mode is neither "On" nor "Off"
 )
 
 type _propertyGetSet [2]*_object
@@ -19,15 +21,51 @@ type _property struct {
 }
 
 func (self _property) writable() bool {
-	return self.mode&0700 == 0100
+	return self.mode&modeWriteMask == modeWriteMask&modeOnMask
+}
+
+func (self *_property) writeOn() {
+	self.mode = (self.mode & ^modeWriteMask) | (modeWriteMask & modeOnMask)
+}
+
+func (self *_property) writeOff() {
+	self.mode &= ^modeWriteMask
+}
+
+func (self _property) writeSet() bool {
+	return 0 == self.mode&modeWriteMask&modeSetMask
 }
 
 func (self _property) enumerable() bool {
-	return self.mode&0070 == 0010
+	return self.mode&modeEnumerateMask == modeEnumerateMask&modeOnMask
+}
+
+func (self *_property) enumerateOn() {
+	self.mode = (self.mode & ^modeEnumerateMask) | (modeEnumerateMask & modeOnMask)
+}
+
+func (self *_property) enumerateOff() {
+	self.mode &= ^modeEnumerateMask
+}
+
+func (self _property) enumerateSet() bool {
+	return 0 == self.mode&modeEnumerateMask&modeSetMask
 }
 
 func (self _property) configurable() bool {
-	return self.mode&0007 == 0001
+	return self.mode&modeConfigureMask == modeConfigureMask&modeOnMask
+}
+
+func (self *_property) configureOn() {
+	self.mode = (self.mode & ^modeConfigureMask) | (modeConfigureMask & modeOnMask)
+}
+
+func (self *_property) configureOff() {
+	self.mode &= ^modeConfigureMask
+}
+
+func (self _property) configureSet() bool {
+	return 0 == self.mode&modeConfigureMask&modeSetMask
 }
 
 func (self _property) copy() *_property {
@@ -41,8 +79,11 @@ func (self _property) isAccessorDescriptor() bool {
 }
 
 func (self _property) isDataDescriptor() bool {
-	value, test := self.value.(Value)
-	return self.mode&0700 != 0200 || (test && !value.isEmpty())
+	if self.writeSet() { // Either "On" or "Off"
+		return true
+	}
+	value, valid := self.value.(Value)
+	return valid && !value.isEmpty()
 }
 
 func (self _property) isGenericDescriptor() bool {
@@ -63,32 +104,31 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	}
 
 	{
-		mode := _propertyMode(0)
+		descriptor.mode = modeSetMask // Initially nothing is set
 		if objectDescriptor.hasProperty("enumerable") {
 			if objectDescriptor.get("enumerable").toBoolean() {
-				mode |= 0010
+				descriptor.enumerateOn()
+			} else {
+				descriptor.enumerateOff()
 			}
-		} else {
-			mode |= 0020
 		}
 
 		if objectDescriptor.hasProperty("configurable") {
 			if objectDescriptor.get("configurable").toBoolean() {
-				mode |= 0001
+				descriptor.configureOn()
+			} else {
+				descriptor.configureOff()
 			}
-		} else {
-			mode |= 0002
 		}
 
 		if objectDescriptor.hasProperty("writable") {
 			descriptor.value = UndefinedValue() // FIXME Is this the right place for this?
 			if objectDescriptor.get("writable").toBoolean() {
-				mode |= 0100
+				descriptor.writeOn()
+			} else {
+				descriptor.writeOff()
 			}
-		} else {
-			mode |= 0200
 		}
-		descriptor.mode = mode
 	}
 
 	var getter, setter *_object
@@ -117,8 +157,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	}
 
 	if getterSetter {
-		// If writable is set on the descriptor, ...
-		if descriptor.mode&0200 != 0 {
+		if descriptor.writeSet() {
 			panic(newTypeError())
 		}
 		descriptor.value = _propertyGetSet{getter, setter}

@@ -187,11 +187,11 @@ func builtinObject_freeze(call FunctionCall) Value {
 		object.enumerate(func(name string) {
 			if property, update := object.getOwnProperty(name), false; nil != property {
 				if property.isDataDescriptor() && property.writable() {
-					property.mode &= ^propertyMode_write
+					property.writeOff()
 					update = true
 				}
 				if property.configurable() {
-					property.mode &= ^propertyMode_configure
+					property.configureOff()
 					update = true
 				}
 				if update {
