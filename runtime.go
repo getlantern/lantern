@@ -377,3 +377,19 @@ func (self *_runtime) toValue(value interface{}) Value {
 	}
 	return toValue(value)
 }
+
+func (self *_runtime) run(source string) Value {
+	return self.evaluate(mustParse(source))
+}
+
+func (self *_runtime) runSafe(source string) (Value, error) {
+	result := UndefinedValue()
+	err := catchPanic(func() {
+		result = self.run(source)
+	})
+	switch result._valueType {
+	case valueReference:
+		result = self.GetValue(result)
+	}
+	return result, err
+}

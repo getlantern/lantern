@@ -50,7 +50,7 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 				source = source[6:]
 				source = strings.TrimLeft(source, " ")
 			}
-			value = Otto.run(source)
+			value = Otto.runtime.run(source)
 		}
 		value = Otto.runtime.GetValue(value)
 		if len(expect) > 0 {
