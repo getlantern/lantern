@@ -179,6 +179,7 @@ func newContext() *_runtime {
 		"isExtensible", -1, builtinObject_isExtensible,
 		"preventExtensions", -1, builtinObject_preventExtensions,
 		"isSealed", -1, builtinObject_isSealed,
+		"seal", -1, builtinObject_seal,
 		"isFrozen", -1, builtinObject_isFrozen,
 		"freeze", -1, builtinObject_freeze,
 	)

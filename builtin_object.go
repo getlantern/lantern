@@ -163,6 +163,22 @@ func builtinObject_isSealed(call FunctionCall) Value {
 	panic(newTypeError())
 }
 
+func builtinObject_seal(call FunctionCall) Value {
+	object := call.Argument(0)
+	if object := object._object(); object != nil {
+		object.enumerate(func(name string) {
+			if property := object.getOwnProperty(name); nil != property && property.configurable() {
+				property.configureOff()
+				object.defineOwnProperty(name, *property, true)
+			}
+		})
+		object.extensible = false
+	} else {
+		panic(newTypeError())
+	}
+	return object
+}
+
 func builtinObject_isFrozen(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
