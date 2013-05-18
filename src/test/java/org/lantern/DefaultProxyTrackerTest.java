@@ -53,9 +53,11 @@ public class DefaultProxyTrackerTest {
 
         Miniproxy miniproxy1 = new Miniproxy(55021);
         new Thread(miniproxy1).start();
+        LanternUtils.waitForServer(miniproxy1.port, 4000);
 
         Miniproxy miniproxy2 = new Miniproxy(55022);
         new Thread(miniproxy2).start();
+        LanternUtils.waitForServer(miniproxy2.port, 4000);
 
 
         tracker.addProxy(new URI("proxy1@example.com"), "127.0.0.1:55021");
@@ -118,7 +120,7 @@ public class DefaultProxyTrackerTest {
             if (proxy != null) {
                 return proxy;
             }
-            this.wait(12000);
+            this.wait(6000);
             return tracker.getProxy();
         }
     }
