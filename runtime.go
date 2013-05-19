@@ -202,23 +202,23 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (resultValue Value, t
 				case resultThrow:
 					throw = true
 					throwValue = caught.Value
-					return
 				case resultReturn, resultBreak, resultContinue:
 					fallthrough
 				default:
 					other = &caught
-					return
 				}
 			case _error:
 				throw = true
 				throwValue = toValue(self.newError(caught.Name, caught.MessageValue()))
-				return
 			case *_syntaxError:
 				throw = true
 				throwValue = toValue(self.newError("SyntaxError", toValue(caught.Message)))
-				return
+			case Value:
+				throw = true
+				throwValue = caught
+			default:
+				panic(caught)
 			}
-			panic(caught)
 		}
 	}()
 
