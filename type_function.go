@@ -155,10 +155,12 @@ func newNativeCallFunction(native _nativeFunction, name string) *_nativeCallFunc
 
 func (self _nativeCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, evalHint bool) Value {
 	return self.Native(FunctionCall{
-		runtime:      runtime,
+		runtime:  runtime,
+		evalHint: evalHint,
+
 		This:         this,
 		ArgumentList: argumentList,
-		evalHint:     evalHint,
+		Otto:         runtime.Otto,
 	})
 }
 
@@ -217,11 +219,13 @@ func (self _boundCallFunction) Source() string {
 
 // FunctionCall is an enscapulation of a JavaScript function call.
 type FunctionCall struct {
-	runtime      *_runtime
+	runtime     *_runtime
+	_thisObject *_object
+	evalHint    bool
+
 	This         Value
-	_thisObject  *_object
 	ArgumentList []Value
-	evalHint     bool
+	Otto         *Otto
 }
 
 // Argument will return the value of the argument at the given index.

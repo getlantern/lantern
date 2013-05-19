@@ -37,6 +37,8 @@ type _runtime struct {
 
 	_newError map[string]func(Value) *_object
 	eval      *_object // The builtin eval, for determine indirect versus direct invocation
+
+	Otto *Otto
 }
 
 func (self *_runtime) EnterGlobalExecutionContext() {

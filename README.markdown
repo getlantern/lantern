@@ -111,9 +111,9 @@ JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace cl
 
 ```go
 type FunctionCall struct {
-	This Value
-
+	This         Value
 	ArgumentList []Value
+	Otto         *Otto
 }
 ```
 

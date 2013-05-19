@@ -120,6 +120,7 @@ func New() *Otto {
 	self := &Otto{
 		runtime: newContext(),
 	}
+	self.runtime.Otto = self
 	self.Set("console", self.runtime.newConsole())
 
 	registry.Apply(func(entry registry.Entry) {
