@@ -145,7 +145,8 @@ func (self Object) Call(name string, argumentList ...interface{}) (Value, error)
 Call the method specified by the given name, using self as the this value. It is
 essentially equivalent to:
 
-    return self.Get(name).Call(self, argumentList)
+    var method, _ := self.Get(name)
+    method.Call(self, argumentList...)
 
 An undefined value and an error will result if:
 
@@ -230,8 +231,8 @@ Call the given JavaScript with a given this and arguments.
 WARNING: 2013-05-19: This function is rough, and is in beta.
 
 If this is nil, then some special handling takes place to determine the proper
-this value, falling back to a "standard" invocation if necessary (calling the
-function which is the result of evaluating the source with a this of undefined).
+this value, falling back to a "standard" invocation if necessary (where this is
+undefined).
 
 If source begins with "new " (A lowercase new followed by a space), then Call
 will invoke the function constructor rather than performing a function call. In
@@ -252,7 +253,7 @@ func (self Otto) Get(name string) (Value, error)
 ```
 Get the value of the top-level binding of the given name.
 
-If there is an error (like the binding not existing), then the value will be
+If there is an error (like the binding does not exist), then the value will be
 undefined.
 
 #### func (Otto) Object
@@ -286,7 +287,7 @@ func (self Otto) Run(source string) (Value, error)
 Run will run the given source (parsing it first), returning the resulting value
 and error (if any)
 
-If the runtime is unable to parse the source, then this function will return
+If the runtime is unable to parse source, then this function will return
 undefined and the parse error (nothing will be evaluated in this case).
 
 #### func (Otto) Set
@@ -299,8 +300,8 @@ Set the top-level binding of the given name to the given value.
 Set will automatically apply ToValue to the given value in order to convert it
 to a JavaScript value (type Value).
 
-If there is an error (like the binding being read-only, or the ToValue
-conversion failing), then an error is returned.
+If there is an error (like the binding is read-only, or the ToValue conversion
+fails), then an error is returned.
 
 If the top-level binding does not exist, it will be created.
 
