@@ -251,7 +251,6 @@ func toValue_reflectValuePanic(value interface{}, kind reflect.Kind) {
 	}
 }
 
-// TODO toValue(nil)?
 func toValue(value interface{}) Value {
 	switch value := value.(type) {
 	case Value:
@@ -295,6 +294,9 @@ func toValue(value interface{}) Value {
 		return Value{valueObject, value.object}
 	case _reference: // reference is an interface (already a pointer)
 		return Value{valueReference, value}
+	case nil:
+		// TODO Ugh.
+		return UndefinedValue()
 	case reflect.Value:
 		value = reflect.Indirect(value)
 		switch value.Kind() {

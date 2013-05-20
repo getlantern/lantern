@@ -33,7 +33,13 @@ func TestObject(t *testing.T) {
 
 func TestToValue(t *testing.T) {
 	Terst(t)
+
 	//Is(toValue(newObjectValue()), "[object]")
+
+	otto, _ := runTestWithOtto()
+
+	value, _ := otto.ToValue(nil)
+	Is(value, "undefined")
 }
 
 func TestToBoolean(t *testing.T) {
