@@ -28,6 +28,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.lantern.BayeuxInitializer;
 import org.lantern.LanternConstants;
 import org.lantern.LanternService;
+import org.lantern.LanternUtils;
 import org.lantern.Proxifier;
 import org.lantern.SplashScreen;
 import org.lantern.state.Model;
@@ -159,6 +160,7 @@ public class JettyLauncher implements LanternService {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                 } else {
                     resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
+                    LanternUtils.addCSPHeader(resp);
                     super.doGet(req, resp);
                 }
             }
