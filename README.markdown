@@ -220,6 +220,31 @@ func Run(source string) (*Otto, Value, error)
 Run will allocate a new JavaScript runtime, run the given source on the
 allocated runtime, and return the runtime, resulting value, and error (if any).
 
+#### func (Otto) Call
+
+```go
+func (self Otto) Call(source string, this interface{}, argumentList ...interface{}) (Value, error)
+```
+Call the given JavaScript with a given this and arguments.
+
+WARNING: 2013-05-19: This function is rough, and is in beta.
+
+If this is nil, then some special handling takes place to determine the proper
+this value, falling back to a "standard" invocation if necessary (calling the
+function which is the result of evaluating the source with a this of undefined).
+
+If source begins with "new " (A lowercase new followed by a space), then Call
+will invoke the function constructor rather than performing a function call. In
+this case, the this argument has no effect.
+
+    // value is a String object
+    value, _ := Otto.Call("Object", nil, "Hello, World.")
+    // Likewise...
+    value, _ := Otto.Call("new Object", nil, "Hello, World.")
+    // This will perform a concat on the given array and return the result
+    // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
+    value, _ := Otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
+
 #### func (Otto) Get
 
 ```go

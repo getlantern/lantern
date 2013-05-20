@@ -108,6 +108,7 @@ package otto
 import (
 	"fmt"
 	"github.com/robertkrimen/otto/registry"
+	"strings"
 )
 
 // Otto is the representation of the JavaScript runtime. Each instance of Otto has a self-contained namespace.
@@ -187,6 +188,107 @@ func (self Otto) Set(name string, value interface{}) error {
 
 func (self Otto) setValue(name string, value Value) {
 	self.runtime.GlobalEnvironment.SetValue(name, value, false)
+}
+
+// Call the given JavaScript with a given this and arguments.
+//
+// WARNING: 2013-05-19: This function is rough, and is in beta.
+//
+// If this is nil, then some special handling takes place to determine the proper
+// this value, falling back to a "standard" invocation if necessary (calling the
+// function which is the result of evaluating the source with a this of undefined).
+//
+// If source begins with "new " (A lowercase new followed by a space), then
+// Call will invoke the function constructor rather than performing a function call.
+// In this case, the this argument has no effect.
+//
+//      // value is a String object
+//      value, _ := Otto.Call("Object", nil, "Hello, World.")
+//
+//      // Likewise...
+//      value, _ := Otto.Call("new Object", nil, "Hello, World.")
+//
+//      // This will perform a concat on the given array and return the result
+//      // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
+//      value, _ := Otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
+//
+func (self Otto) Call(source string, this interface{}, argumentList ...interface{}) (Value, error) {
+
+	thisValue := UndefinedValue()
+
+	new_, throw := false, false
+	switch {
+	case strings.HasPrefix(source, "throw new "):
+		source = source[10:]
+		throw = true
+		new_ = true
+	case strings.HasPrefix(source, "new "):
+		source = source[4:]
+		new_ = true
+	case strings.HasPrefix(source, "throw "):
+		source = source[6:]
+		throw = true
+	}
+
+	if !new_ && this == nil {
+		value := UndefinedValue()
+		fallback := false
+		err := catchPanic(func() {
+			programNode := mustParse(source + "()")
+			if callNode, valid := programNode.Body[0].(*_callNode); valid {
+				value = self.runtime.evaluateCall(callNode, argumentList)
+			} else {
+				fallback = true
+			}
+		})
+		if !fallback && err == nil {
+			if throw {
+				panic(value)
+			}
+			return value, nil
+		}
+	} else {
+		value, err := self.ToValue(this)
+		if err != nil {
+			if throw {
+				panic(UndefinedValue())
+			}
+			return UndefinedValue(), err
+		}
+		thisValue = value
+	}
+
+	fnValue, err := self.Run(source)
+	if err != nil {
+		if throw {
+			panic(UndefinedValue())
+		}
+		return UndefinedValue(), err
+	}
+
+	value := UndefinedValue()
+	if new_ {
+		value, err = fnValue.constructSafe(thisValue, argumentList...)
+		if err != nil {
+			if throw {
+				panic(UndefinedValue())
+			}
+			return UndefinedValue(), err
+		}
+	} else {
+		value, err = fnValue.Call(thisValue, argumentList...)
+		if err != nil {
+			if throw {
+				panic(UndefinedValue())
+			}
+			return UndefinedValue(), err
+		}
+	}
+
+	if throw {
+		panic(value)
+	}
+	return value, nil
 }
 
 // Object will run the given source and return the result as an object.

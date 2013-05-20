@@ -414,3 +414,97 @@ func Test_assignmentEvaluationOrder(t *testing.T) {
         (abc & (abc = 1));
     `, "0")
 }
+
+func TestOttoCall(t *testing.T) {
+	Terst(t)
+
+	otto, _ := runTestWithOtto()
+	_, err := otto.Run(`
+        var abc = {
+            ghi: 1,
+            def: function(def){
+                var ghi = 0;
+                if (this.ghi) {
+                    ghi = this.ghi;
+                }
+                return "def: " + (def + 3.14159 + ghi);
+            }
+        };
+    `)
+	Is(err, nil)
+
+	value, err := otto.Call(`abc.def`, nil, 2)
+	Is(err, nil)
+	Is(value, "def: 6.14159")
+
+	value, err = otto.Call(`abc.def`, "", 2)
+	Is(err, nil)
+	Is(value, "def: 5.14159")
+
+	// Do not attempt to do a ToValue on a this of nil
+	value, err = otto.Call(`jkl.def`, nil, 1, 2, 3)
+	IsNot(err, nil)
+	Is(value, "undefined")
+
+	value, err = otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
+	Is(err, nil)
+	Is(value, "1,2,3,,4,5,6,7,abc")
+}
+
+func TestOttoCall_throw(t *testing.T) {
+	Terst(t)
+
+	_, test := runTestWithOtto()
+
+	failSet("abc", func(call FunctionCall) Value {
+		if false {
+			call.Otto.Call(`throw eval`, nil, "({ def: 3.14159 })")
+		}
+		call.Otto.Call(`throw Error`, nil, "abcdef")
+		return UndefinedValue()
+	})
+	// TODO try { abc(); } catch (err) { error = err }
+	// Possible unrelated error case:
+	// If error is not declared beforehand, is later referencing it a ReferenceError?
+	// Should the catch { } declare error in the outer scope?
+	test(`
+        var error;
+        try {
+            abc();
+        }
+        catch (err) {
+            error = err;
+        }
+        [ error instanceof Error, error.message, error.def ];
+    `, "true,abcdef,")
+
+	failSet("def", func(call FunctionCall) Value {
+		call.Otto.Call(`throw new Object`, nil, 3.14159)
+		return UndefinedValue()
+	})
+	test(`
+        try {
+            def();
+        }
+        catch (err) {
+            error = err;
+        }
+        [ error instanceof Error, error.message, error.def, typeof error, error, error instanceof Number ];
+    `, "false,,,object,3.14159,true")
+}
+
+func TestOttoCall_new(t *testing.T) {
+	Terst(t)
+
+	_, test := runTestWithOtto()
+
+	failSet("abc", func(call FunctionCall) Value {
+		value, err := call.Otto.Call(`new Object`, nil, "Nothing happens.")
+		Is(err, nil)
+		return value
+	})
+	test(`
+        def = abc();
+        [ def, def instanceof String ];
+    `, "Nothing happens.,true")
+}

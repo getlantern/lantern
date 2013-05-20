@@ -164,7 +164,7 @@ func Test_sameValue(t *testing.T) {
 	IsFalse(sameValue(NaNValue(), toValue("Nothing happens.")))
 }
 
-func Testexport(t *testing.T) {
+func TestExport(t *testing.T) {
 	Terst(t)
 
 	test := runTest()

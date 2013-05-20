@@ -34,3 +34,22 @@ func TestPanicValue(t *testing.T) {
         [ error instanceof Error, error.message, error.def ];
     `, "false,,3.14159")
 }
+
+func Test_catchPanic(t *testing.T) {
+	Terst(t)
+
+	// TODO This is here because ToValue(nil) was failing
+	return
+
+	otto, _ := runTestWithOtto()
+	_, err := otto.Run(`
+        A syntax error that
+        does not define
+        var;
+            abc;
+    `)
+	IsNot(err, nil)
+
+	_, err = otto.Call(`abc.def`, nil)
+	IsNot(err, nil)
+}

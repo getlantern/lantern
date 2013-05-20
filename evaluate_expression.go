@@ -494,12 +494,16 @@ func (self *_runtime) evaluateBinaryOperation(node *_binaryOperationNode) Value 
 	return self.calculateBinaryOperation(node.Operator, leftValue, self.evaluate(node.Right))
 }
 
-func (self *_runtime) evaluateCall(node *_callNode) Value {
+func (self *_runtime) evaluateCall(node *_callNode, withArgumentList []interface{}) Value {
 	callee := self.evaluate(node.Callee)
 	calleeValue := self.GetValue(callee)
 	argumentList := []Value{}
-	for _, argumentNode := range node.ArgumentList {
-		argumentList = append(argumentList, self.GetValue(self.evaluate(argumentNode)))
+	if withArgumentList != nil {
+		argumentList = self.toValueArray(withArgumentList...)
+	} else {
+		for _, argumentNode := range node.ArgumentList {
+			argumentList = append(argumentList, self.GetValue(self.evaluate(argumentNode)))
+		}
 	}
 	this := UndefinedValue()
 	calleeReference := callee.reference()

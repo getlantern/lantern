@@ -85,7 +85,7 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateWhile(node)
 
 	case *_callNode:
-		return self.evaluateCall(node)
+		return self.evaluateCall(node, nil)
 
 	case *_continueNode:
 		self.Continue(node.Target)

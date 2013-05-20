@@ -120,6 +120,22 @@ func (value Value) call(this Value, argumentList ...interface{}) Value {
 	panic(newTypeError())
 }
 
+func (value Value) constructSafe(this Value, argumentList ...interface{}) (Value, error) {
+	result := UndefinedValue()
+	err := catchPanic(func() {
+		result = value.construct(this, argumentList...)
+	})
+	return result, err
+}
+
+func (value Value) construct(this Value, argumentList ...interface{}) Value {
+	switch function := value.value.(type) {
+	case *_object:
+		return function.Construct(this, argumentList...)
+	}
+	panic(newTypeError())
+}
+
 // IsPrimitive will return true if value is a primitive (any kind of primitive).
 func (value Value) IsPrimitive() bool {
 	return !value.IsObject()
