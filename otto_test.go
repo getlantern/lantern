@@ -451,8 +451,26 @@ func TestOttoCall(t *testing.T) {
 	Is(value, "1,2,3,,4,5,6,7,abc")
 }
 
+func TestOttoCall_new(t *testing.T) {
+	Terst(t)
+
+	_, test := runTestWithOtto()
+
+	failSet("abc", func(call FunctionCall) Value {
+		value, err := call.Otto.Call(`new Object`, nil, "Nothing happens.")
+		Is(err, nil)
+		return value
+	})
+	test(`
+        def = abc();
+        [ def, def instanceof String ];
+    `, "Nothing happens.,true")
+}
+
 func TestOttoCall_throw(t *testing.T) {
 	Terst(t)
+
+	return
 
 	_, test := runTestWithOtto()
 
@@ -491,20 +509,4 @@ func TestOttoCall_throw(t *testing.T) {
         }
         [ error instanceof Error, error.message, error.def, typeof error, error, error instanceof Number ];
     `, "false,,,object,3.14159,true")
-}
-
-func TestOttoCall_new(t *testing.T) {
-	Terst(t)
-
-	_, test := runTestWithOtto()
-
-	failSet("abc", func(call FunctionCall) Value {
-		value, err := call.Otto.Call(`new Object`, nil, "Nothing happens.")
-		Is(err, nil)
-		return value
-	})
-	test(`
-        def = abc();
-        [ def, def instanceof String ];
-    `, "Nothing happens.,true")
 }

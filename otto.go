@@ -216,18 +216,11 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 
 	thisValue := UndefinedValue()
 
-	new_, throw := false, false
+	new_ := false
 	switch {
-	case strings.HasPrefix(source, "throw new "):
-		source = source[10:]
-		throw = true
-		new_ = true
 	case strings.HasPrefix(source, "new "):
 		source = source[4:]
 		new_ = true
-	case strings.HasPrefix(source, "throw "):
-		source = source[6:]
-		throw = true
 	}
 
 	if !new_ && this == nil {
@@ -242,17 +235,11 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 			}
 		})
 		if !fallback && err == nil {
-			if throw {
-				panic(value)
-			}
 			return value, nil
 		}
 	} else {
 		value, err := self.ToValue(this)
 		if err != nil {
-			if throw {
-				panic(UndefinedValue())
-			}
 			return UndefinedValue(), err
 		}
 		thisValue = value
@@ -260,9 +247,6 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 
 	fnValue, err := self.Run(source)
 	if err != nil {
-		if throw {
-			panic(UndefinedValue())
-		}
 		return UndefinedValue(), err
 	}
 
@@ -270,24 +254,15 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 	if new_ {
 		value, err = fnValue.constructSafe(thisValue, argumentList...)
 		if err != nil {
-			if throw {
-				panic(UndefinedValue())
-			}
 			return UndefinedValue(), err
 		}
 	} else {
 		value, err = fnValue.Call(thisValue, argumentList...)
 		if err != nil {
-			if throw {
-				panic(UndefinedValue())
-			}
 			return UndefinedValue(), err
 		}
 	}
 
-	if throw {
-		panic(value)
-	}
 	return value, nil
 }
 
