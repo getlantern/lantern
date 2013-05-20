@@ -62,30 +62,13 @@ public class InviteQueue {
             }
         }
 
-        int n = emails.size();
-        String msg = n > 1 ? "Invitations have" : "An invitation has";
-        LanternRosterEntry entry0 = entries.get(0);
-        final String name0;
-        if (entry0 == null) {
-            name0 = emails.get(0);
-        } else {
-            name0 = entry0.getName();
-        }
-        msg += " been queued for <span class=\"titled\" title=\"" + name0 + "\">" + emails.get(0) + "</span>";
-        if (n > 2) {
-          msg += " and <span class=\"titled\" title=\""+StringUtils.join(emails, ", ")+"\">"+(n-1)+" others</span>.";
-        } else if (n == 2) {
-            LanternRosterEntry entry1 = entries.get(1);
-            final String name1;
-            if (entry1 == null) {
-                name1 = emails.get(1);
-            } else {
-                name1 = entry1.getName();
-            }
-          msg += " and <span class=\"titled\" title=\"" + name1 + "\">"+emails.get(1)+"</span>.";
-        } else {
-          msg += ".";
-        }
+        final String msg = "Request processing. After accepting your request, "+
+            "new Lantern Friends appear on your map once you connect to "+
+            "them successfully.";
+        // XXX not entirely true until we fix
+        //     https://github.com/getlantern/lantern/issues/647
+        // XXX change message to say "look out for a notification" once we fix
+        //     https://github.com/getlantern/lantern/issues/782
         model.addNotification(msg, MessageType.info, 30);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
