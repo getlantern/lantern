@@ -61,6 +61,7 @@ perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_P
 # Just make sure the launchd Info.plist is using the correct path to our app bundle...
 perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FULL || die "Could not fix Info.plist"
 
+# this is done from within install4j
 #log "About to sign code...output is"
 #codesign -f -s - $APP_PATH >> $LOG_FILE
 #log "Signed code..."
