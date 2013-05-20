@@ -1,17 +1,18 @@
 package org.lantern;
 
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 import fr.free.miniupnp.IGDdatas;
 import fr.free.miniupnp.MiniupnpcLibrary;
@@ -30,43 +31,44 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     private String publicIp;
 
-    private int maxMappingIndex = 1;
-
-    HashMap<Integer, UpnpMapping> mappings = new HashMap<Integer, UpnpMapping>();
+    private final Set<UpnpMapping> mappings = new HashSet<UpnpMapping>();
 
     public Upnp(final Stats stats) {
         this.stats = stats;
     }
 
     public void removeAllMappings() {
-        removeUpnpMappings(mappings.values());
+        removeUpnpMappings(Sets.newHashSet(mappings));
     }
 
-    private synchronized void removeUpnpMappings(Collection<UpnpMapping> mappings) {
-        if (mappings.size() == 0) {
+    private synchronized void removeUpnpMappings(
+        final Collection<UpnpMapping> toRemove) {
+        if (toRemove.size() == 0) {
             return;
         }
-        log.info("Deleting " + mappings.size() + " mappings ");
-        int ret;
-        UPNPDev devlist = miniupnpc.upnpDiscover(100, (String) null,
+        log.info("Deleting mappings {}", toRemove);
+        UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
         if (devlist == null) {
+            log.debug("No devices?");
             // no devices, so no way to remove mapping
             return;
         }
+        
         final UPNPUrls urls = new UPNPUrls();
         final IGDdatas data = new IGDdatas();
 
         ByteBuffer lanaddr = ByteBuffer.allocate(16);
-        ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
+        int ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
         if (ret == 0) {
+            log.debug("No valid IGD?");
             devlist.setAutoRead(false);
             miniupnpc.freeUPNPDevlist(devlist);
             return;
         }
         try {
             logIGDResponse(ret, urls);
-            for (UpnpMapping mapping : mappings) {
+            for (UpnpMapping mapping : toRemove) {
                 ret = miniupnpc.UPNP_DeletePortMapping(
                         urls.controlURL.getString(0),
                         zeroTerminatedString(data.first.servicetype), ""
@@ -84,24 +86,17 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     @Override
     public synchronized void removeUpnpMapping(final int mappingIndex) {
-        removeUpnpMappings(Arrays.asList(mappings.get(mappingIndex)));
-        mappings.remove(mappingIndex);
+        // We don't actually store mappings by index, so this is a no-op.
     }
 
     @Override
     public synchronized int addUpnpMapping(final PortMappingProtocol prot,
-            final int localPort, final int externalPortRequested,
-            final PortMapListener portMapListener) {
+        final int localPort, final int externalPortRequested,
+        final PortMapListener portMapListener) {
 
         if (NetworkUtils.isPublicAddress()) {
+            // Return value is not used.
             return 1;
-        }
-        final String localhost;
-        try {
-            localhost = NetworkUtils.getLocalHost().getHostAddress();
-        } catch (final UnknownHostException e) {
-            log.error("Could not find host?", e);
-            return -1;
         }
 
         // This call will block unless we thread it here.
@@ -109,31 +104,31 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             @Override
             public void run() {
                 addMapping(prot, externalPortRequested, localPort,
-                        portMapListener, localhost);
+                        portMapListener);
             }
         };
         final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
         mapper.setDaemon(true);
         mapper.start();
-
-        int index = maxMappingIndex++;
-        UpnpMapping mapping = new UpnpMapping();
-        mapping.prot = prot;
-        mapping.internalPort = localPort;
-        mapping.externalPort = externalPortRequested;
-        mappings.put(index, mapping);
-        return index;
+        
+        // Return value is not used.
+        return 1;
     }
 
     static class UpnpMapping {
         public PortMappingProtocol prot;
         public int internalPort;
         public int externalPort;
+        @Override
+        public String toString() {
+            return "UpnpMapping [prot=" + prot + ", internalPort="
+                    + internalPort + ", externalPort=" + externalPort + "]";
+        }
     }
 
     protected synchronized void addMapping(final PortMappingProtocol prot,
             final int externalPortRequested, int localPort,
-            final PortMapListener portMapListener, final String lh) {
+            final PortMapListener portMapListener) {
 
         ByteBuffer lanaddr = ByteBuffer.allocate(16);
         ByteBuffer intClient = ByteBuffer.allocate(16);
@@ -203,6 +198,13 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
                     + zeroTerminatedString(desc.array()) + ")");
 
             stats.setUpnp(true);
+            
+            final UpnpMapping mapping = new UpnpMapping();
+            mapping.prot = prot;
+            mapping.internalPort = localPort;
+            mapping.externalPort = externalPortRequested;
+            mappings.add(mapping);
+            log.debug("Added mapping. Mappings now: {}", mappings);
         } finally {
             miniupnpc.FreeUPNPUrls(urls);
             devlist.setAutoRead(false);
