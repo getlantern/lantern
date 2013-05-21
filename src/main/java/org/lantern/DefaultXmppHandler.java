@@ -275,7 +275,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Subscribe
-    public void onConnectivityChanged(ConnectivityChangedEvent e) {
+    public void onConnectivityChanged(final ConnectivityChangedEvent e) {
         if (!e.isConnected()) {
             // send a ping message to determine if we need to reconnect; failed
             // STUN connectivity is not necessarily a death sentence for the
@@ -285,10 +285,13 @@ public class DefaultXmppHandler implements XmppHandler {
             ping();
             return;
         }
-        LOG.info("connected to internet");
+        LOG.info("Connected to internet: {}", e);
+        LOG.info("Logged in? {}", this.isLoggedIn());
         XmppP2PClient<FiveTuple> client = this.client.get();
-        if (client == null)
+        if (client == null) {
+            LOG.debug("No client?");
             return; //this is probably at startup
+        }
 
         final XMPPConnection conn = client.getXmppConnection();
         if (e.isIpChanged()) {
