@@ -130,7 +130,9 @@ public class Roster implements RosterListener {
             log.debug("Got Lantern hub presence");
         } else if (LanternXmppUtils.isLanternJid(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
-            sendKscope(from);
+            if (presence.isAvailable()) {
+                sendKscope(from);
+            }
             onPresence(presence, sync, updateIndex);
         } else {
             onPresence(presence, sync, updateIndex);
