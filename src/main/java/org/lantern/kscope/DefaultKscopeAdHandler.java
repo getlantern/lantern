@@ -18,6 +18,8 @@ import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
+import org.lantern.state.Mode;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,16 +44,18 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
+    private final Model model;
     
     @Inject
     public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
         final LanternTrustStore trustStore,
         final RandomRoutingTable routingTable,
-        final XmppHandler xmppHandler) {
+        final XmppHandler xmppHandler, final Model model) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.xmppHandler = xmppHandler;
+        this.model = model;
     }
     
     @Override
@@ -112,6 +116,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         
         final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
         if (ad != null) {
+            log.debug("Adding proxy...");
             if (ad.hasMappedEndpoint()) {
                 this.proxyTracker.addProxy(jid, 
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
@@ -125,7 +130,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             processedAds.add(ad);
         } else {
-            if (processedAds.contains(ad) && this.proxyTracker.hasJidProxy(jid)) {
+            if (this.proxyTracker.hasJidProxy(jid)) {
                 log.debug("Ignoring cert from peer we already have: {}", jid);
                 return;
             } else {
@@ -133,7 +138,11 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 // than in response to a kscope ad, such as for peers from the 
                 // controller or just peers from the roster who we haven't 
                 // exchanged ads with yet.
-                log.debug("No ad for cert?");
+                if (this.model.getSettings().getMode() == Mode.get) {
+                    log.error("No associated ad for certificate!!");
+                } else {
+                    log.debug("No kscope ad for cert in give mode, as expected");
+                }
                 this.proxyTracker.addJidProxy(jid);
             }
         }

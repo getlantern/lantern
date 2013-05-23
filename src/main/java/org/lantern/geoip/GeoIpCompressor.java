@@ -1,5 +1,8 @@
 package org.lantern.geoip;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -14,8 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.Bag;
-import org.apache.commons.collections.bag.HashBag;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.CountingOutputStream;
@@ -28,13 +29,12 @@ import org.slf4j.LoggerFactory;
 
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.sachingarg.CompressedOutputStream;
 import com.sachingarg.DecompressedInputStream;
 import com.sachingarg.FenwickTreeModel;
 import com.sachingarg.RCModel;
-
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 //current status:
 //this is waiting on me researching compression libraries
@@ -72,7 +72,7 @@ public class GeoIpCompressor {
     // maps from the database's location id to our pixel id
     Map<Integer, Integer> locIdToPixelId = new HashMap<Integer, Integer>();
 
-    Bag rangeCounts = new HashBag();
+    Multiset<Integer> rangeCounts = HashMultiset.create();
 
     final IntList ipRangeList = new IntArrayList();
     final IntList pixelIdList = new IntArrayList();
@@ -416,7 +416,7 @@ public class GeoIpCompressor {
 
         final HashMap<Integer, Integer> rangeNumbering = new HashMap<Integer, Integer>();
         for (int range : ipRangeList) {
-            if (rangeCounts.getCount(range) <= 2) {
+            if (rangeCounts.count(range) <= 2) {
                 outStream.write(BitUtils.toByteArray(range));
                 // all singletons are zeroes;
                 // treat doubletons as singletons
@@ -429,7 +429,7 @@ public class GeoIpCompressor {
                 + outStream.getByteCount());
         int number = 1;
         for (int range : ipRangeList) {
-            if (rangeCounts.getCount(range) > 2) {
+            if (rangeCounts.count(range) > 2) {
                 if (!rangeNumbering.containsKey(range)) {
                     rangeNumbering.put(range, number++);
                     outStream.write(BitUtils.toByteArray(range));
