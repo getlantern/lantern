@@ -1,0 +1,479 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		08770762174C1B42005FA9BB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08770761174C1B42005FA9BB /* Cocoa.framework */; };
+		0877076C174C1B42005FA9BB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0877076A174C1B42005FA9BB /* InfoPlist.strings */; };
+		0877076E174C1B42005FA9BB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0877076D174C1B42005FA9BB /* main.m */; };
+		08770772174C1B42005FA9BB /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 08770770174C1B42005FA9BB /* Credits.rtf */; };
+		08770775174C1B42005FA9BB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 08770774174C1B42005FA9BB /* AppDelegate.m */; };
+		08770778174C1B42005FA9BB /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 08770776174C1B42005FA9BB /* MainMenu.xib */; };
+		08770780174C1B42005FA9BB /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0877077F174C1B42005FA9BB /* SenTestingKit.framework */; };
+		08770781174C1B42005FA9BB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08770761174C1B42005FA9BB /* Cocoa.framework */; };
+		08770789174C1B42005FA9BB /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 08770787174C1B42005FA9BB /* InfoPlist.strings */; };
+		0877078C174C1B43005FA9BB /* LanternBrowserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 0877078B174C1B42005FA9BB /* LanternBrowserTests.m */; };
+		08770796174C1E1F005FA9BB /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08770795174C1E1F005FA9BB /* WebKit.framework */; };
+		08C13E94174C9C750027B544 /* LanternBrowser.iconset in Resources */ = {isa = PBXBuildFile; fileRef = 08C13E93174C9C750027B544 /* LanternBrowser.iconset */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		08770782174C1B42005FA9BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08770756174C1B42005FA9BB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0877075D174C1B42005FA9BB;
+			remoteInfo = LanternBrowser;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0877075E174C1B42005FA9BB /* LanternBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LanternBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		08770761174C1B42005FA9BB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		08770764174C1B42005FA9BB /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		08770765174C1B42005FA9BB /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		08770766174C1B42005FA9BB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		08770769174C1B42005FA9BB /* LanternBrowser-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LanternBrowser-Info.plist"; sourceTree = "<group>"; };
+		0877076B174C1B42005FA9BB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		0877076D174C1B42005FA9BB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0877076F174C1B42005FA9BB /* LanternBrowser-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LanternBrowser-Prefix.pch"; sourceTree = "<group>"; };
+		08770771174C1B42005FA9BB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		08770773174C1B42005FA9BB /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		08770774174C1B42005FA9BB /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		08770777174C1B42005FA9BB /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		0877077E174C1B42005FA9BB /* LanternBrowserTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LanternBrowserTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0877077F174C1B42005FA9BB /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		08770786174C1B42005FA9BB /* LanternBrowserTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LanternBrowserTests-Info.plist"; sourceTree = "<group>"; };
+		08770788174C1B42005FA9BB /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		0877078A174C1B42005FA9BB /* LanternBrowserTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LanternBrowserTests.h; sourceTree = "<group>"; };
+		0877078B174C1B42005FA9BB /* LanternBrowserTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LanternBrowserTests.m; sourceTree = "<group>"; };
+		08770795174C1E1F005FA9BB /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		08C13E93174C9C750027B544 /* LanternBrowser.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder.iconset; path = LanternBrowser.iconset; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0877075B174C1B42005FA9BB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08770796174C1E1F005FA9BB /* WebKit.framework in Frameworks */,
+				08770762174C1B42005FA9BB /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0877077A174C1B42005FA9BB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08770780174C1B42005FA9BB /* SenTestingKit.framework in Frameworks */,
+				08770781174C1B42005FA9BB /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08770755174C1B42005FA9BB = {
+			isa = PBXGroup;
+			children = (
+				08C13E93174C9C750027B544 /* LanternBrowser.iconset */,
+				08770795174C1E1F005FA9BB /* WebKit.framework */,
+				08770767174C1B42005FA9BB /* LanternBrowser */,
+				08770784174C1B42005FA9BB /* LanternBrowserTests */,
+				08770760174C1B42005FA9BB /* Frameworks */,
+				0877075F174C1B42005FA9BB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0877075F174C1B42005FA9BB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0877075E174C1B42005FA9BB /* LanternBrowser.app */,
+				0877077E174C1B42005FA9BB /* LanternBrowserTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		08770760174C1B42005FA9BB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				08770761174C1B42005FA9BB /* Cocoa.framework */,
+				0877077F174C1B42005FA9BB /* SenTestingKit.framework */,
+				08770763174C1B42005FA9BB /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		08770763174C1B42005FA9BB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				08770764174C1B42005FA9BB /* AppKit.framework */,
+				08770765174C1B42005FA9BB /* CoreData.framework */,
+				08770766174C1B42005FA9BB /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		08770767174C1B42005FA9BB /* LanternBrowser */ = {
+			isa = PBXGroup;
+			children = (
+				08770773174C1B42005FA9BB /* AppDelegate.h */,
+				08770774174C1B42005FA9BB /* AppDelegate.m */,
+				08770776174C1B42005FA9BB /* MainMenu.xib */,
+				08770768174C1B42005FA9BB /* Supporting Files */,
+			);
+			path = LanternBrowser;
+			sourceTree = "<group>";
+		};
+		08770768174C1B42005FA9BB /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				08770769174C1B42005FA9BB /* LanternBrowser-Info.plist */,
+				0877076A174C1B42005FA9BB /* InfoPlist.strings */,
+				0877076D174C1B42005FA9BB /* main.m */,
+				0877076F174C1B42005FA9BB /* LanternBrowser-Prefix.pch */,
+				08770770174C1B42005FA9BB /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		08770784174C1B42005FA9BB /* LanternBrowserTests */ = {
+			isa = PBXGroup;
+			children = (
+				0877078A174C1B42005FA9BB /* LanternBrowserTests.h */,
+				0877078B174C1B42005FA9BB /* LanternBrowserTests.m */,
+				08770785174C1B42005FA9BB /* Supporting Files */,
+			);
+			path = LanternBrowserTests;
+			sourceTree = "<group>";
+		};
+		08770785174C1B42005FA9BB /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				08770786174C1B42005FA9BB /* LanternBrowserTests-Info.plist */,
+				08770787174C1B42005FA9BB /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0877075D174C1B42005FA9BB /* Lantern */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0877078F174C1B43005FA9BB /* Build configuration list for PBXNativeTarget "Lantern" */;
+			buildPhases = (
+				0877075A174C1B42005FA9BB /* Sources */,
+				0877075B174C1B42005FA9BB /* Frameworks */,
+				0877075C174C1B42005FA9BB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Lantern;
+			productName = LanternBrowser;
+			productReference = 0877075E174C1B42005FA9BB /* LanternBrowser.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0877077D174C1B42005FA9BB /* LanternBrowserTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 08770792174C1B43005FA9BB /* Build configuration list for PBXNativeTarget "LanternBrowserTests" */;
+			buildPhases = (
+				08770779174C1B42005FA9BB /* Sources */,
+				0877077A174C1B42005FA9BB /* Frameworks */,
+				0877077B174C1B42005FA9BB /* Resources */,
+				0877077C174C1B42005FA9BB /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				08770783174C1B42005FA9BB /* PBXTargetDependency */,
+			);
+			name = LanternBrowserTests;
+			productName = LanternBrowserTests;
+			productReference = 0877077E174C1B42005FA9BB /* LanternBrowserTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08770756174C1B42005FA9BB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Brave New Software";
+			};
+			buildConfigurationList = 08770759174C1B42005FA9BB /* Build configuration list for PBXProject "Lantern" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 08770755174C1B42005FA9BB;
+			productRefGroup = 0877075F174C1B42005FA9BB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0877075D174C1B42005FA9BB /* Lantern */,
+				0877077D174C1B42005FA9BB /* LanternBrowserTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0877075C174C1B42005FA9BB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0877076C174C1B42005FA9BB /* InfoPlist.strings in Resources */,
+				08770772174C1B42005FA9BB /* Credits.rtf in Resources */,
+				08770778174C1B42005FA9BB /* MainMenu.xib in Resources */,
+				08C13E94174C9C750027B544 /* LanternBrowser.iconset in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0877077B174C1B42005FA9BB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08770789174C1B42005FA9BB /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0877077C174C1B42005FA9BB /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0877075A174C1B42005FA9BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0877076E174C1B42005FA9BB /* main.m in Sources */,
+				08770775174C1B42005FA9BB /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		08770779174C1B42005FA9BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0877078C174C1B43005FA9BB /* LanternBrowserTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		08770783174C1B42005FA9BB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0877075D174C1B42005FA9BB /* Lantern */;
+			targetProxy = 08770782174C1B42005FA9BB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		0877076A174C1B42005FA9BB /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0877076B174C1B42005FA9BB /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		08770770174C1B42005FA9BB /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				08770771174C1B42005FA9BB /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		08770776174C1B42005FA9BB /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				08770777174C1B42005FA9BB /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		08770787174C1B42005FA9BB /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				08770788174C1B42005FA9BB /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		0877078D174C1B43005FA9BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0877078E174C1B43005FA9BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		08770790174C1B43005FA9BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "LanternBrowser/LanternBrowser-Prefix.pch";
+				INFOPLIST_FILE = "LanternBrowser/LanternBrowser-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		08770791174C1B43005FA9BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "LanternBrowser/LanternBrowser-Prefix.pch";
+				INFOPLIST_FILE = "LanternBrowser/LanternBrowser-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		08770793174C1B43005FA9BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/LanternBrowser.app/Contents/MacOS/LanternBrowser";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "LanternBrowser/LanternBrowser-Prefix.pch";
+				INFOPLIST_FILE = "LanternBrowserTests/LanternBrowserTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		08770794174C1B43005FA9BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/LanternBrowser.app/Contents/MacOS/LanternBrowser";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "LanternBrowser/LanternBrowser-Prefix.pch";
+				INFOPLIST_FILE = "LanternBrowserTests/LanternBrowserTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		08770759174C1B42005FA9BB /* Build configuration list for PBXProject "Lantern" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0877078D174C1B43005FA9BB /* Debug */,
+				0877078E174C1B43005FA9BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0877078F174C1B43005FA9BB /* Build configuration list for PBXNativeTarget "Lantern" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				08770790174C1B43005FA9BB /* Debug */,
+				08770791174C1B43005FA9BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		08770792174C1B43005FA9BB /* Build configuration list for PBXNativeTarget "LanternBrowserTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				08770793174C1B43005FA9BB /* Debug */,
+				08770794174C1B43005FA9BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08770756174C1B42005FA9BB /* Project object */;
+}

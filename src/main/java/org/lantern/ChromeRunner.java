@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +54,13 @@ public class ChromeRunner {
 
     private String determineExecutablePath() {
         if (SystemUtils.IS_OS_MAC_OSX) {
-            return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+            final File path1 = new File("install/osx/Lantern.app/Contents/MacOS/Lantern");
+            if (path1.isFile() && path1.canExecute()) return path1.getAbsolutePath();
+            final File path2 = new File("Lantern.app/Contents/MacOS/Lantern");
+            if (path2.isFile() && path2.canExecute()) return path2.getAbsolutePath();
+            throw new RuntimeException("Could not find LanternBrowser");
+            //chrome is broken on os x -- see #622
+            //return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
         } else if (SystemUtils.IS_OS_LINUX) {
             final String path1 = "/usr/bin/google-chrome";
             final File opt1 = new File(path1);
@@ -126,22 +131,27 @@ public class ChromeRunner {
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
         commands.add(executable);
-        commands.add("--user-data-dir="+LanternClientConstants.CONFIG_DIR.getAbsolutePath());
-        commands.add("--window-size="+screenWidth+","+screenHeight);
-        commands.add("--window-position="+location.x+","+location.y);
-        commands.add("--disable-translate");
-        commands.add("--disable-sync");
-        commands.add("--no-default-browser-check");
-        commands.add("--disable-metrics");
-        commands.add("--disable-metrics-reporting");
-        commands.add("--temp-profile");
-        commands.add("--disable-plugins");
-        commands.add("--disable-java");
-        commands.add("--disable-extensions");
-        commands.add("--app="+endpoint+"/index.html");
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            commands.add(endpoint + "/index.html");
+        } else {
+            commands.add("--user-data-dir="
+                    + LanternClientConstants.CONFIG_DIR.getAbsolutePath());
+            commands.add("--window-size=" + screenWidth + "," + screenHeight);
+            commands.add("--window-position=" + location.x + "," + location.y);
+            commands.add("--disable-translate");
+            commands.add("--disable-sync");
+            commands.add("--no-default-browser-check");
+            commands.add("--disable-metrics");
+            commands.add("--disable-metrics-reporting");
+            commands.add("--temp-profile");
+            commands.add("--disable-plugins");
+            commands.add("--disable-java");
+            commands.add("--disable-extensions");
+            commands.add("--app=" + endpoint + "/index.html");
+        }
 
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
-        
+
         // Note we don't call waitFor on the process to avoid blocking the
         // calling thread and because we don't care too much about the return
         // value.
