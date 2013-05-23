@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.management.InstanceAlreadyExistsException;
@@ -61,6 +63,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
+import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -184,6 +187,9 @@ public class DefaultXmppHandler implements XmppHandler {
     private long pingTimeout = 15 * 1000;
 
     protected XMPPConnection previousConnection;
+    
+    private final ExecutorService xmppProcessors = 
+        Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
     /**
      * Creates a new XMPP handler.
@@ -555,57 +561,66 @@ public class DefaultXmppHandler implements XmppHandler {
 
             @Override
             public void processPacket(final Packet pack) {
-                final Presence pres = (Presence) pack;
-                LOG.debug("Processing packet!! {}", pres.toXML());
-                final String from = pres.getFrom();
-                LOG.debug("Responding to presence from {} and to {}",
-                    from, pack.getTo());
+                final Runnable runner = new Runnable() {
 
-                final Type type = pres.getType();
-                // Allow subscription requests from the lantern bot.
-                if (LanternUtils.isLanternHub(from)) {
-                    if (type == Type.subscribe) {
-                        final Presence packet =
-                            new Presence(Presence.Type.subscribed);
-                        packet.setTo(from);
-                        packet.setFrom(pack.getTo());
-                        connection.sendPacket(packet);
-                    } else {
-                        LOG.debug("Non-subscribe packet from hub? {}",
-                            pres.toXML());
-                    }
-                } else {
-                    switch (type) {
-                    case available:
-                        return;
-                    case error:
-                        LOG.warn("Got error packet!! {}", pack.toXML());
-                        return;
-                    case subscribe:
-                        LOG.debug("Adding subscription request from: {}", from);
+                    @Override
+                    public void run() {
+                        final Presence pres = (Presence) pack;
+                        LOG.debug("Processing packet!! {}", pres.toXML());
+                        final String from = pres.getFrom();
+                        LOG.debug("Responding to presence from '{}' and to '{}'",
+                            from, pack.getTo());
 
-                        // Did we originally invite them and they're
-                        // subscribing back? Auto-allow if so.
-                        if (roster.autoAcceptSubscription(from)) {
-                            subscribed(from);
+                        final Type type = pres.getType();
+                        // Allow subscription requests from the lantern bot.
+                        if (LanternUtils.isLanternHub(from)) {
+                            if (type == Type.subscribe) {
+                                final Presence packet =
+                                    new Presence(Presence.Type.subscribed);
+                                packet.setTo(from);
+                                packet.setFrom(pack.getTo());
+                                connection.sendPacket(packet);
+                            } else {
+                                LOG.debug("Non-subscribe packet from hub? {}",
+                                    pres.toXML());
+                            }
                         } else {
-                            LOG.debug("We didn't invite them");
-                        }
-                        roster.addIncomingSubscriptionRequest(pres);
+                            switch (type) {
+                            case available:
+                                return;
+                            case error:
+                                LOG.warn("Got error packet!! {}", pack.toXML());
+                                return;
+                            case subscribe:
+                                LOG.debug("Adding subscription request from: {}", from);
 
-                        break;
-                    case subscribed:
-                        break;
-                    case unavailable:
-                        return;
-                    case unsubscribe:
-                        LOG.info("Removing subscription request from: {}",from);
-                        roster.removeIncomingSubscriptionRequest(from);
-                        return;
-                    case unsubscribed:
-                        break;
+                                // Did we originally invite them and they're
+                                // subscribing back? Auto-allow if so.
+                                if (roster.autoAcceptSubscription(from)) {
+                                    subscribed(from);
+                                } else {
+                                    LOG.debug("We didn't invite them");
+                                }
+                                roster.addIncomingSubscriptionRequest(pres);
+
+                                break;
+                            case subscribed:
+                                break;
+                            case unavailable:
+                                // TODO: We should remove the peer from our proxy 
+                                // lists!!
+                                return;
+                            case unsubscribe:
+                                LOG.info("Removing subscription request from: {}",from);
+                                roster.removeIncomingSubscriptionRequest(from);
+                                return;
+                            case unsubscribed:
+                                break;
+                            }
+                        }
                     }
-                }
+                };
+                xmppProcessors.execute(runner);
             }
         }, new PacketFilter() {
 
