@@ -11,8 +11,6 @@ import io.netty.channel.udt.UdtChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
 import io.netty.handler.ssl.SslHandler;
 
-import java.util.concurrent.ThreadFactory;
-
 import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.channel.Channel;
@@ -23,7 +21,6 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.util.LanternTrafficCounter;
 import org.lantern.util.Netty3ToNetty4HttpConnectRelayingHandler;
-import org.lantern.util.Netty4LanternTrafficCounterHandler;
 import org.lantern.util.NettyUtils;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
@@ -54,7 +51,8 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private ProxyHolder proxyHolder;
 
-    private final Bootstrap clientBootstrap = new Bootstrap();
+    private final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
+            Threads.newNonDaemonThreadFactory("connect"), NioUdtProvider.BYTE_PROVIDER);
 
     public UdtHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
@@ -106,7 +104,8 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
             return;
         }
         NettyUtils.closeOnFlush(cf.channel());
-        this.clientBootstrap.shutdown();
+        this.connectGroup.shutdownGracefully();
+        //this.clientBootstrap.shutdown();
     }
     
     private void remove(final ChannelPipeline cp, final String name) {
@@ -132,14 +131,11 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
      */
     private ChannelFuture openOutgoingChannel(
         final Channel browserToProxyChannel, final HttpRequest request) {
+        log.debug("Opening outgoing channel to peer...");
         browserToProxyChannel.setReadable(false);
         
-        final ThreadFactory connectFactory = 
-            Threads.newNonDaemonThreadFactory("connect");
-        final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
-                connectFactory, NioUdtProvider.BYTE_PROVIDER);
-
-        this.clientBootstrap.group(connectGroup)
+        final Bootstrap boot = new Bootstrap();
+        boot.group(connectGroup)
             .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
             .option(ChannelOption.SO_REUSEADDR, true)
             .handler(new ChannelInitializer<UdtChannel>() {
@@ -148,6 +144,12 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                         throws Exception {
                     final io.netty.channel.ChannelPipeline p = ch.pipeline();
                     
+                    final SSLEngine engine = 
+                        trustStore.getClientContext().createSSLEngine();
+                    engine.setUseClientMode(true);
+                    p.addLast("ssl", new SslHandler(engine));
+                    
+                    /*
                     if (trafficHandler != null) {
                         if (trafficHandler instanceof Netty4LanternTrafficCounterHandler) {
                             p.addLast("trafficHandler", 
@@ -157,11 +159,7 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                                     trafficHandler.getClass());
                         }
                     }
-                    
-                    final SSLEngine engine = 
-                        trustStore.getClientContext().createSSLEngine();
-                    engine.setUseClientMode(true);
-                    p.addLast("ssl", new SslHandler(engine));
+                    */
                     p.addLast(
                         //new LoggingHandler(LogLevel.INFO),
                         new HttpResponseClientHandler(browserToProxyChannel));
@@ -169,7 +167,7 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
             });
         // Start the client.
         final ChannelFuture connectFuture = 
-            this.clientBootstrap.connect(this.fiveTuple.getRemote(), 
+            boot.connect(this.fiveTuple.getRemote(), 
                 this.fiveTuple.getLocal());
         
         final ChannelPipeline browserPipeline = 
@@ -187,6 +185,7 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
             @Override
             public void operationComplete(final ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
+                    log.debug("Connected, encoding request...");
                     future.channel().write(NettyUtils.encoder.encode(request));
                     // we're using HTTP connect here, so we need
                     // to remove the encoder and start reading
@@ -199,6 +198,7 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                     browserToProxyChannel.setReadable(true);
                     proxyTracker.setSuccess(proxyHolder);
                 } else {
+                    log.debug("Could not connect!!");
                     browserToProxyChannel.close();
                     proxyTracker.onCouldNotConnect(proxyHolder);
                 }
