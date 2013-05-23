@@ -24,6 +24,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -999,7 +1000,17 @@ public class LanternUtils {
     }
 
     public static void addCSPHeader(HttpServletResponse resp) {
-        resp.addHeader("Content-Security-Policy", "default-src localhost");
+        String[] paths = {"ws://127.0.0.1",
+                "http://127.0.0.1",
+                "ws://localhost",
+                "http://localhost"
+                };
+
+        List<String> policies = new ArrayList<String>();
+        for (String path : paths) {
+            policies.add(path + ":" + StaticSettings.getApiPort());
+        }
+        resp.addHeader("Content-Security-Policy", "default-src " + StringUtils.join(policies, " ") + " 'unsafe-inline' 'unsafe-eval'");
     }
 
     /**
