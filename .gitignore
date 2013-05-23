@@ -20,6 +20,8 @@ install/output.txt
 install/updates.xml
 install/Lantern.dmg
 install/Lantern.exe
+install/common/lantern.jar
+install/jres
 logs
 tags
 src//tags
