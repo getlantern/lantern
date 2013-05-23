@@ -767,7 +767,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <array class="java.io.File" length="1">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>LanternBrowser.app/Contents/MacOS/LanternBrowser</string>
+                              <string>Lantern.app/Contents/MacOS/Lantern</string>
                             </object>
                           </void>
                         </array>
