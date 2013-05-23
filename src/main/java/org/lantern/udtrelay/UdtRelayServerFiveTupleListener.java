@@ -1,15 +1,12 @@
 package org.lantern.udtrelay;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import org.apache.commons.io.IOUtils;
 import org.lantern.LanternUtils;
 import org.lastbamboo.common.offer.answer.OfferAnswer;
 import org.lastbamboo.common.offer.answer.OfferAnswerListener;
 import org.littleshoot.util.FiveTuple;
-import org.littleshoot.util.RelayingSocketHandler;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,20 +43,9 @@ public class UdtRelayServerFiveTupleListener
 
     @Override
     public void onTcpSocket(final Socket socket) {
-        log.warn("Received TCP socket on server", ThreadUtils.dumpStack());
         final String msg = 
-            "Unexpectedly received TCP socket for UDT relay server";
-        log.error(msg);
-        final InetSocketAddress local = 
-            new InetSocketAddress("127.0.0.1", 
-                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
-        final RelayingSocketHandler sh = new RelayingSocketHandler(local);
-        try {
-            sh.onSocket("not-used", socket);
-        } catch (final IOException e) {
-            // Should already be closed at this point, but just make sure.
-            IOUtils.closeQuietly(socket);
-        }
-        //throw new RuntimeException(msg);
+            "Unexpectedly received TCP socket for UDT relay server: {}";
+        log.error(msg, ThreadUtils.dumpStack());
+        throw new Error(msg);
     }
 }
