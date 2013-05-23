@@ -10,6 +10,7 @@ import org.lastbamboo.common.offer.answer.OfferAnswer;
 import org.lastbamboo.common.offer.answer.OfferAnswerListener;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.RelayingSocketHandler;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public class UdtRelayServerFiveTupleListener
 
     @Override
     public void onTcpSocket(final Socket socket) {
+        log.warn("Received TCP socket on server", ThreadUtils.dumpStack());
         final String msg = 
             "Unexpectedly received TCP socket for UDT relay server";
         log.error(msg);
