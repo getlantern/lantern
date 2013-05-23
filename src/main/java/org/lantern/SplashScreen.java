@@ -1,6 +1,9 @@
 package org.lantern;
 
 
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
@@ -62,9 +65,16 @@ public class SplashScreen {
         bar.setLayoutData(progressData);
         splash.pack();
         Rectangle splashRect = splash.getBounds();
-        Rectangle displayRect = display.getBounds();
-        int x = (displayRect.width - splashRect.width) / 2;
-        int y = (displayRect.height - splashRect.height) / 2;
+
+
+        GraphicsDevice defaultDevice = GraphicsEnvironment
+            .getLocalGraphicsEnvironment()
+            .getDefaultScreenDevice();
+
+        DisplayMode displayMode = defaultDevice.getDisplayMode();
+
+        int x = (displayMode.getWidth() - splashRect.width) / 2;
+        int y = (displayMode.getHeight() - splashRect.height) / 2;
         splash.setLocation(x, y);
         splash.open();
         splash.forceActive();
