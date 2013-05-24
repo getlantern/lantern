@@ -46,6 +46,7 @@ public class SplashScreen implements Shutdownable {
 
         image = new Image(display, splashImage);
         splash = new Shell(SWT.NO_TRIM);
+        splash.setText("Lantern");
         bar = new ProgressBar(splash, SWT.NONE);
 
         //The number of modules loaded in Launcher.launch()
