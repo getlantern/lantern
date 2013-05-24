@@ -64,7 +64,7 @@ public class Connectivity {
         if (StringUtils.isNotBlank(id)) {
             this.peerId = id;
         }
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.CONNECTIVITY, this));
+        Events.sync(SyncPath.CONNECTIVITY_GTALK, this.gtalk);
     }
 
     @JsonView({Run.class})
