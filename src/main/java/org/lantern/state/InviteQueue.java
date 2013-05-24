@@ -72,7 +72,7 @@ public class InviteQueue {
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
 
         int newInvites = model.getNinvites() - emails.size();
-        if (newInvites == 0) {
+        if (newInvites <= 0) {
             // setting Ninvites to 0 triggers a notification, but we're not
             // really sure that all of these invitations will actually be
             // charged to the user (this depends on lantern-controller),

@@ -813,12 +813,17 @@ public class InteractionServlet extends HttpServlet {
     @Subscribe
     public void onInvitesChanged(final InvitesChangedEvent e) {
         int newInvites = e.getNewInvites();
-        if (e.getOldInvites() == 0) {
-            String invitation = newInvites == 1 ? "invitation" : "invitations";
-            String text = "You now have " + newInvites + " " + invitation;
-            model.addNotification(text, MessageType.info);
-        } else if (newInvites == 0 && e.getOldInvites() > 0) {
-            model.addNotification("You have no more invitations. You will be notified when you receive more.", MessageType.important);
+        if (e.getNewInvites() < 0) {
+            if (e.getOldInvites() == 0) {
+                String invitation = newInvites == 1 ? "invitation"
+                        : "invitations";
+                String text = "You now have " + newInvites + " " + invitation;
+                model.addNotification(text, MessageType.info);
+            } else if (newInvites == 0 && e.getOldInvites() > 0) {
+                model.addNotification(
+                        "You have no more invitations. You will be notified when you receive more.",
+                        MessageType.important);
+            }
         }
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
