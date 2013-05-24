@@ -47,4 +47,10 @@ public class Notification {
         this.autoClose = autoClose;
     }
 
+    @Override
+    public String toString() {
+        return "Notification [type=" + type + ", message=" + message
+                + ", autoClose=" + autoClose + "]";
+    }
+
 }

@@ -264,7 +264,7 @@ public class CountryService {
     private final Censored censored;
 
     @Inject
-    CountryService(Censored censored) {
+    public CountryService(Censored censored) {
         this.censored = censored;
         initCountries();
     }
