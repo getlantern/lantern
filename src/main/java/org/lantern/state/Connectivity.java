@@ -12,7 +12,6 @@ import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.state.Peer.Type;
-import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,5 +162,10 @@ public class Connectivity {
         if (peer.getLastConnectedLong() > lastConnectedLong) {
             lastConnectedLong = peer.getLastConnectedLong();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Connectivity(" + ip + ", " + internet + ")";
     }
 }
