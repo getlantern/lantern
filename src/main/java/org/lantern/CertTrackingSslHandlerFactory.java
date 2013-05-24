@@ -84,23 +84,23 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         
         final CertTrackingTrustManager certTracker = 
             new CertTrackingTrustManager();
-        final SSLEngine engine = getServerContext(certTracker).createSSLEngine();
-        engine.setUseClientMode(false);
-        engine.setNeedClientAuth(true);
+        final SSLEngine engine = newSslEngine(certTracker);
+
         final SslHandlerInterceptor handler = new SslHandlerInterceptor(engine);
         certTracker.setSslHandler(handler);
         return new SslHandshakeHandler("ssl", handler);
     }
     
-    public SSLContext getServerContext(final TrustManager trustManager) {
+    public SSLEngine newSslEngine(final TrustManager trustManager) {
         if (LanternUtils.isFallbackProxy()) {
-            return fallbackProxySslContext();
+            return fallbackProxySslEngine();
         } else {
-            return standardSslContext(trustManager);
+            return standardSslEngine(trustManager);
         }
     }
     
-    private SSLContext fallbackProxySslContext() {
+    private SSLEngine fallbackProxySslEngine() {
+        log.debug("Using fallback proxy context");
         final String PASS = "Be Your Own Lantern";
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
@@ -119,19 +119,25 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
             
             // NO CLIENT AUTH!!
             serverContext.init(kmf.getKeyManagers(), null, null);
-            return serverContext;
+            final SSLEngine engine = serverContext.createSSLEngine();
+            engine.setUseClientMode(false);
+            return engine;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the server-side SSLContext", e);
         }
     }
 
-    private SSLContext standardSslContext(final TrustManager trustManager) {
+    private SSLEngine standardSslEngine(final TrustManager trustManager) {
+        log.debug("Using standard SSL context");
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
             context.init(trustStore.getKeyManagerFactory().getKeyManagers(), 
                 new TrustManager[]{trustManager}, null);
-            return context;
+            final SSLEngine engine = context.createSSLEngine();
+            engine.setUseClientMode(false);
+            engine.setNeedClientAuth(true);
+            return engine;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);

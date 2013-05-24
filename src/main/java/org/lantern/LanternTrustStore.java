@@ -71,9 +71,10 @@ public class LanternTrustStore {
     @Inject
     public LanternTrustStore(final KeyStoreManager ksm) {
         this.ksm = ksm;
-        configureTrustStore();
         System.setProperty("javax.net.ssl.trustStore",
-            TRUSTSTORE_FILE.getAbsolutePath());
+                TRUSTSTORE_FILE.getAbsolutePath());
+        configureTrustStore();
+
         onTrustStoreChanged();
         Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
             @Override
