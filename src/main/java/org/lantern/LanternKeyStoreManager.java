@@ -28,7 +28,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     public final File KEYSTORE_FILE;
     
-    
     private final File CERT_FILE;
     
     private static final String PASS = 
@@ -103,12 +102,15 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private void generateLocalCert(final String jid) {
         final String normalizedAlias = 
                 FileUtils.removeIllegalCharsFromFileName(jid);
-        final String genKeyResult = 
-            LanternUtils.runKeytool("-genkey", "-alias", 
-                normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", 
-                "-keyalg", ALG, 
-                "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
-                PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        final String genKeyResult = LanternUtils.runKeytool("-genkey", 
+            "-alias", normalizedAlias, 
+            "-keysize", KEYSIZE, 
+            "-validity", "365", 
+            "-keyalg", ALG, 
+            "-dname", "CN="+normalizedAlias,
+            "-keypass", PASS,
+            "-storepass", PASS,
+            "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
         
