@@ -1,9 +1,17 @@
 package org.lantern;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
+import java.net.UnknownHostException;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -12,7 +20,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
@@ -30,6 +37,44 @@ public class LanternTrustStoreTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Test
+    public void testFallback() throws UnknownHostException, IOException {//throws Exception {
+        //System.setProperty("javax.net.debug", "ssl");
+        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
+        temp.deleteOnExit();
+        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final LanternSocketsUtil socketsUtil =
+            new LanternSocketsUtil(null, trustStore);
+
+        System.setProperty("javax.net.ssl.trustStore",
+                trustStore.TRUSTSTORE_FILE.getAbsolutePath());
+
+        // TODO: Doesn't work with higher bit cipher suites. Why?
+        //Launcher.configureCipherSuites();
+        trustStore.listEntries();
+        final SSLSocketFactory socketFactory = socketsUtil.newTlsSocketFactory();
+        
+        //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("54.251.192.164", 11225);
+        final SSLSocket sock = (SSLSocket) socketFactory.createSocket("75.101.134.244", 7777);
+        //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("192.168.0.2", 7777);
+        sock.isConnected();
+        
+        final OutputStream os = sock.getOutputStream();
+        os.write("GET http://www.google.com HTTP/1.1\r\n\r\n".getBytes());
+        os.flush();
+        
+        final InputStream is = sock.getInputStream();
+        final byte[] bytes = new byte[30];
+        is.read(bytes);
+        
+        final String response = new String(bytes);
+        assertTrue(response.startsWith("HTTP/1.1 200 OK"));
+        System.out.println(new String(bytes));
+        os.close();
+        is.close();
+    }
+    
     @Test
     public void testSites() {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
@@ -56,8 +101,9 @@ public class LanternTrustStoreTest {
                 trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         trustStore.listEntries();
-        final SSLSocketFactory socketFactory =
-            new SSLSocketFactory(socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
+        final org.apache.http.conn.ssl.SSLSocketFactory socketFactory =
+            new org.apache.http.conn.ssl.SSLSocketFactory(
+                socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 new LanternHostNameVerifier());
         log.debug("CONFIGURED TRUSTSTORE: "+System.getProperty("javax.net.ssl.trustStore"));
         //final SSLSocketFactory socketFactory = LanternSocketsUtil.

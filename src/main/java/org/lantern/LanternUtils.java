@@ -82,6 +82,10 @@ public class LanternUtils {
 
     private static String MAC_ADDRESS;
 
+    private static boolean amFallbackProxy = false;
+
+    private static String keystorePath = "<UNSET>";
+
     public static boolean isDevMode() {
         return LanternClientConstants.isDevMode();
     }
@@ -1020,6 +1024,21 @@ public class LanternUtils {
      * <code>false</code>.
      */
     public static boolean isFallbackProxy() {
-        return false;
+        return amFallbackProxy;
+    }
+
+    public static void setFallbackProxy() {
+        // To check whether this is set in time for it to be picked up.
+        LOG.info("I am a fallback proxy");
+        amFallbackProxy = true;
+    }
+
+    public static String getKeystorePath() {
+        return keystorePath;
+    }
+
+    public static void setKeystorePath(final String path) {
+        LOG.info("Setting keystorePath to '" + path + "'");
+        keystorePath = path;
     }
 }

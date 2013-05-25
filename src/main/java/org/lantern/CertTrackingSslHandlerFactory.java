@@ -1,11 +1,16 @@
 package org.lantern;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
@@ -79,26 +84,66 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         
         final CertTrackingTrustManager certTracker = 
             new CertTrackingTrustManager();
-        final SSLEngine engine = getServerContext(certTracker).createSSLEngine();
-        engine.setUseClientMode(false);
-        engine.setNeedClientAuth(true);
+        final SSLEngine engine = newSslEngine(certTracker);
+
         final SslHandlerInterceptor handler = new SslHandlerInterceptor(engine);
         certTracker.setSslHandler(handler);
         return new SslHandshakeHandler("ssl", handler);
     }
     
-    public SSLContext getServerContext(final TrustManager trustManager) {
+    public SSLEngine newSslEngine(final TrustManager trustManager) {
+        if (LanternUtils.isFallbackProxy()) {
+            return fallbackProxySslEngine();
+        } else {
+            return standardSslEngine(trustManager);
+        }
+    }
+    
+    private SSLEngine fallbackProxySslEngine() {
+        log.debug("Using fallback proxy context");
+        final String PASS = "Be Your Own Lantern";
+        try {
+            final KeyStore ks = KeyStore.getInstance("JKS");
+
+            final File keystore = new File(LanternUtils.getKeystorePath());
+            final InputStream is = new FileInputStream(keystore);
+            ks.load(is, PASS.toCharArray());
+
+            // Set up key manager factory to use our key store
+            final KeyManagerFactory kmf = 
+                KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, PASS.toCharArray());
+
+            // Initialize the SSLContext to work with our key managers.
+            final SSLContext serverContext = SSLContext.getInstance("TLS");
+            
+            // NO CLIENT AUTH!!
+            serverContext.init(kmf.getKeyManagers(), null, null);
+            final SSLEngine engine = serverContext.createSSLEngine();
+            engine.setUseClientMode(false);
+            return engine;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the server-side SSLContext", e);
+        }
+    }
+
+    private SSLEngine standardSslEngine(final TrustManager trustManager) {
+        log.debug("Using standard SSL context");
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
             context.init(trustStore.getKeyManagerFactory().getKeyManagers(), 
                 new TrustManager[]{trustManager}, null);
-            return context;
+            final SSLEngine engine = context.createSSLEngine();
+            engine.setUseClientMode(false);
+            engine.setNeedClientAuth(true);
+            return engine;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
         }
     }
-    
+
     private class CertTrackingTrustManager implements X509TrustManager {
 
         private final Logger loggger = LoggerFactory.getLogger(getClass());
