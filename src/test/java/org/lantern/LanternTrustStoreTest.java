@@ -50,7 +50,7 @@ public class LanternTrustStoreTest {
         System.setProperty("javax.net.ssl.trustStore",
                 trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
-        // TODO: Doesn't work with higher bit cipher suites. Why?
+        // Higher bit cipher suites aren't enabled on littleproxy.
         //Launcher.configureCipherSuites();
         trustStore.listEntries();
         final SSLSocketFactory socketFactory = socketsUtil.newTlsSocketFactory();
@@ -61,7 +61,7 @@ public class LanternTrustStoreTest {
         sock.isConnected();
         
         final OutputStream os = sock.getOutputStream();
-        os.write("GET http://www.google.com HTTP/1.1\r\n\r\n".getBytes());
+        os.write("GET http://www.google.com HTTP/1.1\r\nHost: www.google.com\r\n\r\n".getBytes());
         os.flush();
         
         final InputStream is = sock.getInputStream();
