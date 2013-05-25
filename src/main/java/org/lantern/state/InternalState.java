@@ -27,7 +27,7 @@ public class InternalState {
     };
     
     private final Modal[] modalSeqGet = {
-        Modal.authorize, Modal.lanternFriends, Modal.proxiedSites, Modal.systemProxy, 
+        Modal.authorize, Modal.lanternFriends, Modal.proxiedSites,
         Modal.finished, Modal.none,
     };
     
