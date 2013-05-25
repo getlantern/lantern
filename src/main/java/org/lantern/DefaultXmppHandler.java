@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -58,7 +57,6 @@ import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
-import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.SyncPath;
@@ -164,8 +162,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ModelUtils modelUtils;
 
-    private final ModelIo modelIo;
-
     private final org.lantern.Roster roster;
 
     private final ProxyTracker proxyTracker;
@@ -187,8 +183,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private long pingTimeout = 15 * 1000;
 
     protected XMPPConnection previousConnection;
-    
-    private final ExecutorService xmppProcessors = 
+
+    private final ExecutorService xmppProcessors =
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
     /**
@@ -202,7 +198,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final ModelIo modelIo, final org.lantern.Roster roster,
+        final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final SslHttpProxyServer peerProxyServer,
@@ -215,7 +211,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.socketsUtil = socketsUtil;
         this.xmppUtil = xmppUtil;
         this.modelUtils = modelUtils;
-        this.modelIo = modelIo;
         this.roster = roster;
         this.proxyTracker = proxyTracker;
         this.kscopeAdHandler = kscopeAdHandler;
@@ -354,8 +349,13 @@ public class DefaultXmppHandler implements XmppHandler {
         this.pingTimeout = pingTimeout;
     }
 
-    //this will be cancelled if a pong is received
-    class Reconnector extends TimerTask {
+    /**
+     * This will be cancelled if a pong is received,
+     * indicating that we have already successfully
+     * reconnected
+     */
+
+    private class Reconnector extends TimerTask {
         @Override
         public void run() {
             reconnect();
@@ -381,10 +381,8 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.debug("Connecting to XMPP servers...");
         if (this.modelUtils.isOauthConfigured()) {
-        //if (this.model.getSettings().isUseGoogleOAuth2()) {
             connectViaOAuth2();
         } else {
-            //connectWithEmailAndPass();
             throw new Error("Oauth not configured properly?");
         }
     }
@@ -398,38 +396,6 @@ public class DefaultXmppHandler implements XmppHandler {
         connect(credentials);
     }
 
-    /*
-    private void connectWithEmailAndPass() throws IOException,
-            CredentialException, NotInClosedBetaException {
-        String email = LanternHub.settings().getEmail();
-        String pwd = LanternHub.settings().getPassword();
-        if (StringUtils.isBlank(email)) {
-            if (!LanternHub.settings().isUiEnabled()) {
-                email = askForEmail();
-                pwd = askForPassword();
-                LanternHub.settings().setEmail(email);
-                LanternHub.settings().setPassword(pwd);
-            } else {
-                LOG.error("No user name");
-                throw new IllegalStateException("No user name");
-            }
-            LanternHub.settingsIo().write();
-        }
-
-        if (StringUtils.isBlank(pwd)) {
-            if (!LanternHub.settings().isUiEnabled()) {
-                pwd = askForPassword();
-                LanternHub.settings().setPassword(pwd);
-            } else {
-                LOG.error("No password.");
-                throw new IllegalStateException("No password");
-            }
-            LanternHub.settingsIo().write();
-        }
-        connect(email, pwd);
-    }
-    */
-
     @Override
     public void connect(final String email, final String pass)
         throws IOException, CredentialException, NotInClosedBetaException {
@@ -440,66 +406,52 @@ public class DefaultXmppHandler implements XmppHandler {
         return LanternConstants.UNCENSORED_ID;
     }
 
+    /** listen to responses for XMPP pings, and if we get any,
+    cancel pending reconnects
+    */
+    private class PingListener implements PacketListener {
+        @Override
+        public void processPacket(Packet packet) {
+            IQ iq = (IQ) packet;
+            if (iq.getPacketID().equals(waitingForPong)) {
+                LOG.debug("Got pong, cancelling pending reconnect");
+                reconnectIfNoPong.cancel();
+            }
+        }
+    }
+
+    private class DefaultP2PConnectionListener implements P2PConnectionListener {
+
+        @Override
+        public void onConnectivityEvent(final P2PConnectionEvent event) {
+
+            LOG.debug("Got connectivity event: {}", event);
+            Events.asyncEventBus().post(event);
+            XMPPConnection connection = client.get().getXmppConnection();
+            if (connection == previousConnection) {
+                //only add packet listener once
+                return;
+            }
+            previousConnection = connection;
+
+            connection.addPacketListener(new PingListener(),
+                    new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
+        }
+    }
+
+    /**
+     * Connect to Google Talk's XMPP servers using the supplied XmppCredentials
+     */
     public void connect(final XmppCredentials credentials)
         throws IOException, CredentialException, NotInClosedBetaException {
-        LOG.debug("Connecting to XMPP servers with user name and password...");
+        LOG.debug("Connecting to XMPP servers with credentials...");
         this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress =
             LanternUtils.isa("127.0.0.1",
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
 
         if (this.client.get() == null) {
-            final SessionSocketListener sessionListener = new SessionSocketListener() {
-
-                @Override
-                public void reconnected() {
-                    // We need to send a new presence message each time we
-                    // reconnect to the XMPP server, as otherwise peers won't
-                    // know we're available and we won't get data from the bot.
-                    updatePresence();
-                }
-
-                @Override
-                public void onSocket(String arg0, Socket arg1) throws IOException {
-                }
-            };
-            this.client.set(P2PEndpoints.newXmppP2PHttpClient(
-                    "shoot", natPmpService,
-                    this.upnpService, this.mappedServer,
-                    this.socketsUtil.newTlsSocketFactory(),
-                    this.socketsUtil.newTlsServerSocketFactory(),
-                    plainTextProxyRelayAddress, sessionListener, false,
-                    new UdtRelayServerFiveTupleListener()));
-            LOG.debug("Set client for xmpp handler: "+hashCode());
-
-            this.client.get().addConnectionListener(new P2PConnectionListener() {
-
-                @Override
-                public void onConnectivityEvent(final P2PConnectionEvent event) {
-
-                    LOG.debug("Got connectivity event: {}", event);
-                    Events.asyncEventBus().post(event);
-                    XMPPConnection connection = client.get().getXmppConnection();
-                    if (connection == previousConnection) {
-                        //only add packet listener once
-                        return;
-                    }
-                    previousConnection = connection;
-
-                    //listen to responses for XMPP pings, and if we get any,
-                    //cancel pending reconnects
-                    connection.addPacketListener(new PacketListener() {
-                        @Override
-                        public void processPacket(Packet packet) {
-                            IQ iq = (IQ) packet;
-                            if (iq.getPacketID().equals(waitingForPong)) {
-                                LOG.debug("Got pong, cancelling pending reconnect");
-                                reconnectIfNoPong.cancel();
-                            }
-                        }
-                    }, new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
-                }
-            });
+            makeClient(plainTextProxyRelayAddress);
         } else {
             LOG.debug("Using existing client for xmpp handler: "+hashCode());
         }
@@ -514,6 +466,67 @@ public class DefaultXmppHandler implements XmppHandler {
         Events.eventBus().post(
             new GoogleTalkStateEvent("", GoogleTalkState.connecting));
 
+        login(credentials);
+
+        // Note we don't consider ourselves connected in get mode until we
+        // actually get proxies to work with.
+        final XMPPConnection connection = this.client.get().getXmppConnection();
+        getStunServers(connection);
+
+        // Make sure all connections between us and the server are stored
+        // OTR.
+        modelUtils.syncConnectingStatus("Activating Google Talk pseudo-OTR...");
+        LanternUtils.activateOtr(connection);
+
+        LOG.debug("Connection ID: {}", connection.getConnectionID());
+
+        modelUtils.syncConnectingStatus("Waiting for message from Lantern...");
+
+        DefaultPacketListener listener = new DefaultPacketListener();
+        connection.addPacketListener(listener, listener);
+
+        gTalkSharedStatus();
+        updatePresence();
+
+        waitForClosedBetaStatus(credentials.getUsername());
+        modelUtils.syncConnectingStatus("Lantern message received...");
+    }
+
+    private void makeClient(final InetSocketAddress plainTextProxyRelayAddress)
+            throws IOException {
+        final SessionSocketListener sessionListener = new SessionSocketListener() {
+
+            @Override
+            public void reconnected() {
+                // We need to send a new presence message each time we
+                // reconnect to the XMPP server, as otherwise peers won't
+                // know we're available and we won't get data from the bot.
+                updatePresence();
+            }
+
+            @Override
+            public void onSocket(String arg0, Socket arg1) throws IOException {
+            }
+        };
+
+        client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
+                sessionListener));
+        LOG.debug("Set client for xmpp handler: "+hashCode());
+
+        client.get().addConnectionListener(new DefaultP2PConnectionListener());
+    }
+
+    private void getStunServers(final XMPPConnection connection) {
+        modelUtils.syncConnectingStatus("Gathering servers...");
+        final Collection<InetSocketAddress> googleStunServers =
+                XmppUtils.googleStunServers(connection);
+        StunServerRepository.setStunServers(googleStunServers);
+        this.model.getSettings().setStunServers(
+                new HashSet<String>(toStringServers(googleStunServers)));
+    }
+
+    private void login(final XmppCredentials credentials) throws IOException,
+            CredentialException {
         try {
             this.client.get().login(credentials);
 
@@ -536,110 +549,18 @@ public class DefaultXmppHandler implements XmppHandler {
             handleConnectionFailure();
             throw e;
         }
+    }
 
-        // Note we don't consider ourselves connected in get mode until we
-        // actually get proxies to work with.
-        modelUtils.syncConnectingStatus("Gathering servers...");
-        final XMPPConnection connection = this.client.get().getXmppConnection();
-        final Collection<InetSocketAddress> googleStunServers =
-                XmppUtils.googleStunServers(connection);
-        StunServerRepository.setStunServers(googleStunServers);
-        this.model.getSettings().setStunServers(
-                new HashSet<String>(toStringServers(googleStunServers)));
-
-        // Make sure all connections between us and the server are stored
-        // OTR.
-        modelUtils.syncConnectingStatus("Activating Google Talk pseudo-OTR...");
-        LanternUtils.activateOtr(connection);
-
-        LOG.debug("Connection ID: {}", connection.getConnectionID());
-
-        modelUtils.syncConnectingStatus("Waiting for message from Lantern...");
-
-        // Here we handle allowing the server to subscribe to our presence.
-        connection.addPacketListener(new PacketListener() {
-
-            @Override
-            public void processPacket(final Packet pack) {
-                final Runnable runner = new Runnable() {
-
-                    @Override
-                    public void run() {
-                        final Presence pres = (Presence) pack;
-                        LOG.debug("Processing packet!! {}", pres.toXML());
-                        final String from = pres.getFrom();
-                        LOG.debug("Responding to presence from '{}' and to '{}'",
-                            from, pack.getTo());
-
-                        final Type type = pres.getType();
-                        // Allow subscription requests from the lantern bot.
-                        if (LanternUtils.isLanternHub(from)) {
-                            if (type == Type.subscribe) {
-                                final Presence packet =
-                                    new Presence(Presence.Type.subscribed);
-                                packet.setTo(from);
-                                packet.setFrom(pack.getTo());
-                                connection.sendPacket(packet);
-                            } else {
-                                LOG.debug("Non-subscribe packet from hub? {}",
-                                    pres.toXML());
-                            }
-                        } else {
-                            switch (type) {
-                            case available:
-                                return;
-                            case error:
-                                LOG.warn("Got error packet!! {}", pack.toXML());
-                                return;
-                            case subscribe:
-                                LOG.debug("Adding subscription request from: {}", from);
-
-                                // Did we originally invite them and they're
-                                // subscribing back? Auto-allow if so.
-                                if (roster.autoAcceptSubscription(from)) {
-                                    subscribed(from);
-                                } else {
-                                    LOG.debug("We didn't invite them");
-                                }
-                                roster.addIncomingSubscriptionRequest(pres);
-
-                                break;
-                            case subscribed:
-                                break;
-                            case unavailable:
-                                // TODO: We should remove the peer from our proxy 
-                                // lists!!
-                                return;
-                            case unsubscribe:
-                                LOG.info("Removing subscription request from: {}",from);
-                                roster.removeIncomingSubscriptionRequest(from);
-                                return;
-                            case unsubscribed:
-                                break;
-                            }
-                        }
-                    }
-                };
-                xmppProcessors.execute(runner);
-            }
-        }, new PacketFilter() {
-
-            @Override
-            public boolean accept(final Packet packet) {
-                if(packet instanceof Presence) {
-                    return true;
-                } else {
-                    LOG.debug("Not a presence packet: {}", packet.toXML());
-                }
-                return false;
-            }
-        });
-
-        gTalkSharedStatus();
-        updatePresence();
-
-        waitForClosedBetaStatus(credentials.getUsername());
-        modelUtils.syncConnectingStatus("Lantern message received...");
+    private XmppP2PClient<FiveTuple> makeXmppP2PHttpClient(
+            final InetSocketAddress plainTextProxyRelayAddress,
+            final SessionSocketListener sessionListener) throws IOException {
+        return P2PEndpoints.newXmppP2PHttpClient(
+                "shoot", natPmpService,
+                this.upnpService, this.mappedServer,
+                this.socketsUtil.newTlsSocketFactory(),
+                this.socketsUtil.newTlsServerSocketFactory(),
+                plainTextProxyRelayAddress, sessionListener, false,
+                new UdtRelayServerFiveTupleListener());
     }
 
     private void handleConnectionFailure() {
@@ -680,6 +601,99 @@ public class DefaultXmppHandler implements XmppHandler {
             notInClosedBeta("No closed beta event!!");
         }
     }
+
+    /** The default packet listener automatically
+     *
+     *
+     */
+    private class DefaultPacketListener implements PacketListener, PacketFilter {
+        @Override
+        public void processPacket(final Packet pack) {
+            final Runnable runner = new Runnable() {
+
+                @Override
+                public void run() {
+                    final Presence pres = (Presence) pack;
+                    LOG.debug("Processing packet!! {}", pres.toXML());
+                    final String from = pres.getFrom();
+                    LOG.debug("Responding to presence from '{}' and to '{}'",
+                        from, pack.getTo());
+
+                    final Type type = pres.getType();
+                    // Allow subscription requests from the lantern bot.
+                    if (LanternUtils.isLanternHub(from)) {
+                        handleHubMessage(pack, pres, from, type);
+                    } else {
+                        handlePeerMessage(pack, pres, from, type);
+                    }
+                }
+            };
+            xmppProcessors.execute(runner);
+        }
+
+        private void handlePeerMessage(final Packet pack,
+                final Presence pres, final String from, final Type type) {
+            switch (type) {
+            case available:
+                return;
+            case error:
+                LOG.warn("Got error packet!! {}", pack.toXML());
+                return;
+            case subscribe:
+                LOG.debug("Adding subscription request from: {}", from);
+
+                // Did we originally invite them and they're
+                // subscribing back? Auto-allow if so.
+                if (roster.autoAcceptSubscription(from)) {
+                    subscribed(from);
+                } else {
+                    LOG.debug("We didn't invite " + from);
+                }
+                roster.addIncomingSubscriptionRequest(pres);
+
+                break;
+            case subscribed:
+                break;
+            case unavailable:
+                // TODO: We should remove the peer from our proxy
+                // lists!!
+                return;
+            case unsubscribe:
+                LOG.info("Removing subscription request from: {}",from);
+                roster.removeIncomingSubscriptionRequest(from);
+                return;
+            case unsubscribed:
+                break;
+            }
+        }
+
+        /** Allow the hub to subscribe to messages from us. */
+        private void handleHubMessage(final Packet pack,
+                final Presence pres, final String from, final Type type) {
+            if (type == Type.subscribe) {
+                final Presence packet =
+                    new Presence(Presence.Type.subscribed);
+                packet.setTo(from);
+                packet.setFrom(pack.getTo());
+                XMPPConnection connection = client.get().getXmppConnection();
+                connection.sendPacket(packet);
+            } else {
+                LOG.debug("Non-subscribe packet from hub? {}",
+                    pres.toXML());
+            }
+        }
+
+        @Override
+        public boolean accept(final Packet packet) {
+            if (packet instanceof Presence) {
+                return true;
+            } else {
+                LOG.debug("Not a presence packet: {}", packet.toXML());
+            }
+            return false;
+        }
+
+    };
 
     private void notInClosedBeta(final String msg)
         throws NotInClosedBetaException {
@@ -854,30 +868,6 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Status:\n{}", status.toXML());
     }
 
-    private String askForEmail() {
-        try {
-            System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
-            return LanternUtils.readLineCLI();
-        } catch (final IOException e) {
-            final String msg = "IO error trying to read your email address!";
-            System.out.println(msg);
-            LOG.error(msg, e);
-            throw new IllegalStateException(msg, e);
-        }
-    }
-
-    private String askForPassword() {
-        try {
-            System.out.print("Please enter your gmail password: ");
-            return new String(LanternUtils.readPasswordCLI());
-        } catch (IOException e) {
-            final String msg = "IO error trying to read your email address!";
-            System.out.println(msg);
-            LOG.error(msg, e);
-            throw new IllegalStateException(msg, e);
-        }
-    }
-
     /**
      * Updates the user's presence. We also include any stats updates in this
      * message. Note that periodic presence updates are also used on the server
@@ -943,7 +933,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (p.isAvailable()) {
             LOG.info("Processing available peer");
             // Only exchange certs with peers based on kscope ads.
-            
+
             // OK, we just request a certificate every time we get a present
             // peer. If we get a response, this peer will be added to active
             // peer URIs.
