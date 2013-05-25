@@ -1,7 +1,9 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -27,32 +29,6 @@ public class LanternClientConstants {
      * installer will update it.
      */
     public static final String VERSION;
-
-    static {
-        final String host = "fallback_server_host_tok";
-        final String port = "fallback_server_port_tok";
-        FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "75.101.134.244" : host;
-        FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "7777" : port;
-        Properties prop = new Properties();
-        try {
-            ClassLoader classLoader = LanternClientConstants.class.getClassLoader();
-            prop.load(classLoader.getResourceAsStream("lantern-version.properties"));
-        } catch (IOException e) {
-            LOG.warn("Could not load version properties file : ", e);
-        } finally {
-            final String version = prop.getProperty("lantern.version");
-            if (version.equals("${project.version}")) { // XXX what causes this?
-                VERSION = "0.0.1-SNAPSHOT"; // XXX if we need to do something like this, can this change to X.Y.Z-SNAPSHOT to make it clear this isn't a real version?
-                isDevMode = true;
-            } else {
-                isDevMode = version.contains("SNAPSHOT");
-                VERSION = version + "-" + prop.getProperty("git.commit.id").substring(0, 7);
-            }
-        }
-    }
-    public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
-    public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
-
     public static final File DATA_DIR;
 
     public static final File LOG_DIR;
@@ -71,28 +47,6 @@ public class LanternClientConstants {
 
     public static final File TEST_PROPS2 =
             new File(SystemUtils.USER_DIR, "src/test/resources/test.properties");
-
-    public static final long START_TIME = System.currentTimeMillis();
-
-
-    public static final int SYNC_INTERVAL_SECONDS = 6;
-
-    /**
-     * Plist file for launchd on OSX.
-     */
-    public static final File LAUNCHD_PLIST =
-        new File(System.getProperty("user.home"), "Library/LaunchAgents/org.lantern.plist");
-
-    /**
-     * Configuration file for starting at login on Gnome.
-     */
-    public static final File GNOME_AUTOSTART =
-        new File(System.getProperty("user.home"),
-            ".config/autostart/lantern-autostart.desktop");
-
-
-    public static final String GET_EXCEPTIONAL_API_KEY =
-        ExceptionalUtils.NO_OP_KEY;
 
     static {
         // Only load these if we're not on app engine.
@@ -129,6 +83,75 @@ public class LanternClientConstants {
             }
         }
     }
+
+    static {
+        Properties fallbackServerProperties = new Properties();
+        String host = null;
+        String port = null;
+        try {
+            InputStream inStream = new FileInputStream(new File(DATA_DIR, "fallback.properties"));
+            fallbackServerProperties.load(inStream);
+            host = fallbackServerProperties.getProperty("fallback_server_host");
+            port = fallbackServerProperties.getProperty("fallback_server_port");
+        } catch (IOException e) {
+            //no fallback servers, use defaults
+            LOG.info("Cannot load fallback server");
+        }
+
+        // this EC2 fallback server is for development purposes
+        if (host == null)
+            host = "75.101.134.244";
+
+        if (port == null)
+            port = "7777";
+
+        FALLBACK_SERVER_HOST = host;
+        FALLBACK_SERVER_PORT = port;
+
+        Properties prop = new Properties();
+        try {
+            ClassLoader classLoader = LanternClientConstants.class.getClassLoader();
+            prop.load(classLoader.getResourceAsStream("lantern-version.properties"));
+        } catch (IOException e) {
+            LOG.warn("Could not load version properties file : ", e);
+        } finally {
+            final String version = prop.getProperty("lantern.version");
+            if (version.equals("${project.version}")) { // XXX what causes this?
+                VERSION = "0.0.1-SNAPSHOT"; // XXX if we need to do something like this, can this change to X.Y.Z-SNAPSHOT to make it clear this isn't a real version?
+                isDevMode = true;
+            } else {
+                isDevMode = version.contains("SNAPSHOT");
+                VERSION = version + "-" + prop.getProperty("git.commit.id").substring(0, 7);
+            }
+        }
+    }
+    public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
+    public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
+
+
+
+    public static final long START_TIME = System.currentTimeMillis();
+
+
+    public static final int SYNC_INTERVAL_SECONDS = 6;
+
+    /**
+     * Plist file for launchd on OSX.
+     */
+    public static final File LAUNCHD_PLIST =
+        new File(System.getProperty("user.home"), "Library/LaunchAgents/org.lantern.plist");
+
+    /**
+     * Configuration file for starting at login on Gnome.
+     */
+    public static final File GNOME_AUTOSTART =
+        new File(System.getProperty("user.home"),
+            ".config/autostart/lantern-autostart.desktop");
+
+
+    public static final String GET_EXCEPTIONAL_API_KEY =
+        ExceptionalUtils.NO_OP_KEY;
+
 
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
     public static final String LOCALHOST = "127.0.0.1";
