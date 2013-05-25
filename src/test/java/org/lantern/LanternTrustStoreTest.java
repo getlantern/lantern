@@ -51,12 +51,12 @@ public class LanternTrustStoreTest {
                 trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         // Higher bit cipher suites aren't enabled on littleproxy.
-        //Launcher.configureCipherSuites();
+        Launcher.configureCipherSuites();
         trustStore.listEntries();
         final SSLSocketFactory socketFactory = socketsUtil.newTlsSocketFactory();
         
-        //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("54.251.192.164", 11225);
-        final SSLSocket sock = (SSLSocket) socketFactory.createSocket("75.101.134.244", 7777);
+        final SSLSocket sock = (SSLSocket) socketFactory.createSocket("54.251.192.164", 11225);
+        //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("75.101.134.244", 7777);
         //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("192.168.0.2", 7777);
         sock.isConnected();
         
