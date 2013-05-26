@@ -254,6 +254,27 @@
             <preActivation />
             <postActivation />
             <actions>
+              <action name="" id="1260" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>boolean sixtyFourBits = System.getProperty("sun.arch.data.model").equals("64");
+if (!sixtyFourBits) {
+    Util.showErrorMessage("Unfortunately, Lantern requires a 64-bit Mac");
+}
+
+return sixtyFourBits;</string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isMacOS();</condition>
+              </action>
               <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not obtain administrator privileges. Would you like to quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
