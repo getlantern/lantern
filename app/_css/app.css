@@ -7524,6 +7524,9 @@ body.giveMode #npending {
 #dev-buttons button:hover {
   color: black;
 }
+#dev-buttons button:disabled {
+  color: #333333;
+}
 
 #model {
   position: absolute;
