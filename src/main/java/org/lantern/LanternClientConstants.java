@@ -27,27 +27,33 @@ public class LanternClientConstants {
      * installer will update it.
      */
     public static final String VERSION;
+    
+    public static final String GIT_VERSION;
 
     static {
         final String host = "fallback_server_host_tok";
         final String port = "fallback_server_port_tok";
         FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "75.101.134.244" : host;
         FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "7777" : port;
-        Properties prop = new Properties();
+        final Properties prop = new Properties();
         try {
-            ClassLoader classLoader = LanternClientConstants.class.getClassLoader();
-            prop.load(classLoader.getResourceAsStream("lantern-version.properties"));
-        } catch (IOException e) {
-            LOG.warn("Could not load version properties file : ", e);
-        } finally {
+            final ClassLoader cl = 
+                LanternClientConstants.class.getClassLoader();
+            prop.load(cl.getResourceAsStream("lantern-version.properties"));
+            GIT_VERSION = prop.getProperty("git.commit.id").substring(0, 7);
             final String version = prop.getProperty("lantern.version");
-            if (version.equals("${project.version}")) { // XXX what causes this?
-                VERSION = "0.0.1-SNAPSHOT"; // XXX if we need to do something like this, can this change to X.Y.Z-SNAPSHOT to make it clear this isn't a real version?
+            
+            // Project version not always substituted in tests.
+            if (version.equals("${project.version}")) {
+                VERSION = "0.0.1-SNAPSHOT";
                 isDevMode = true;
             } else {
                 isDevMode = version.contains("SNAPSHOT");
-                VERSION = version + "-" + prop.getProperty("git.commit.id").substring(0, 7);
+                VERSION = version + "-" + GIT_VERSION;
             }
+        } catch (final IOException e) {
+            LOG.warn("Could not load version properties file : ", e);
+            throw new Error("Could not load version props?", e);
         }
     }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";

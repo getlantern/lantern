@@ -5,7 +5,7 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>0.21.2-SNAPSHOT</version>
+  <version>0.21.3-1-SNAPSHOT</version>
   <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
   <description>
     Lantern is a peer-to-peer and trust-network-based tool for circumventing censors.
@@ -385,6 +385,17 @@
     </extensions>
 
     <plugins>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.4.4</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>sonatype-nexus-staging</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+        </configuration>
+      </plugin>
+
 <!--
       <plugin>
         <groupId>com.github.github</groupId>
@@ -544,7 +555,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.1</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -821,6 +832,7 @@
     </repository>
   </repositories>
 
+<!--
   <distributionManagement>
     <repository>
       <id>aws-release</id>
@@ -833,4 +845,6 @@
       <url>s3://lantern-mvn-repo/snapshot</url>
     </snapshotRepository>
   </distributionManagement>
+-->
+
 </project>
