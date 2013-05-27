@@ -32,11 +32,10 @@
   </issueManagement>
 
   <scm>
-    <url>https://github.com/getlantern/lantern</url>
-    <connection>scm:git://github.com/getlantern/lantern.git</connection>
-    <developerConnection>scm:git@github.com:getlantern/lantern.git</developerConnection>
+    <connection>scm:git:https://getlantern@github.com/getlantern/lantern.git</connection>
+    <developerConnection>scm:git:https://getlantern@github.com/getlantern/lantern.git</developerConnection>
+    <url>https://getlantern@github.com/getlantern/lantern.git</url>
   </scm>
-
 
   <dependencies>
     <dependency>
