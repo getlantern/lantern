@@ -813,7 +813,7 @@ public class InteractionServlet extends HttpServlet {
     @Subscribe
     public void onInvitesChanged(final InvitesChangedEvent e) {
         int newInvites = e.getNewInvites();
-        if (e.getNewInvites() < 0) {
+        if (e.getNewInvites() >= 0) {
             if (e.getOldInvites() == 0) {
                 String invitation = newInvites == 1 ? "invitation"
                         : "invitations";
