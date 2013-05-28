@@ -48,7 +48,6 @@ import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.SwtMessageService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
-import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -110,7 +109,6 @@ public class LanternModule extends AbstractModule {
         bind(InteractionServlet.class);
         bind(KeyStoreManager.class).to(LanternKeyStoreManager.class);
         bind(LanternTrustStore.class);
-        bind(LanternHttpClient.class);
         bind(GlobalLanternServerTrafficShapingHandler.class);
         bind(HandshakeHandlerFactory.class).to(CertTrackingSslHandlerFactory.class);
         bind(SslHttpProxyServer.class);
