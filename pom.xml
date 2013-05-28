@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
@@ -570,7 +568,7 @@
           <fork>true</fork>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
-          <compilerArguments><Xlint/></compilerArguments>
+          <compilerArguments><Xlint /></compilerArguments>
         </configuration>
       </plugin>
 <!--
@@ -750,7 +748,7 @@
         <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
-	<java.library.path></java.library.path>
+	<java.library.path />
       </properties>
     </profile>
     <profile>
@@ -765,7 +763,7 @@
         <unix.artifactId>unix-java-x86</unix.artifactId> 
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
-	<java.library.path></java.library.path>
+	<java.library.path />
         <arch.artifactId>x86</arch.artifactId>
       </properties>
     </profile>
