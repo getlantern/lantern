@@ -395,8 +395,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
         <configuration>
-          <argLine>-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError</argLine>
+          <argLine>-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError -Djava.library.path=${java.library.path}</argLine>
         </configuration>
       </plugin>
 
@@ -426,15 +427,7 @@
         <version>2.0</version>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.13</version>
-	<configuration>
-	  <argLine>-Djava.library.path=${java.library.path}</argLine>
-	</configuration>
-      </plugin>
-
+<!--
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
@@ -451,6 +444,8 @@
           </execution>
         </executions>
       </plugin>
+-->
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
@@ -596,7 +591,6 @@
           </execution>
         </executions>
       </plugin>
--->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -609,11 +603,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-<!--
-              <finalName>${project.artifactId}-${project.version}-shaded</finalName>
--->
               <artifactSet>
-                <!-- we have to exclude bouncycastle b/c  it is signed -->
                 <excludes>
                   <exclude>org.bouncycastle:*</exclude>
                 </excludes>
@@ -626,7 +616,6 @@
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
-                    <!-- The following causes issues when exploding the jar and trying to create a licenses directory instead of file -->
                     <exclude>META-INF/LICENSE</exclude>
                   </excludes>
                 </filter>
@@ -644,6 +633,8 @@
           </execution>
         </executions>
       </plugin>
+-->
+
       <plugin>
 	<groupId>pl.project13.maven</groupId>
 	<artifactId>git-commit-id-plugin</artifactId>
