@@ -222,9 +222,6 @@
                   </object>
                 </void>
               </void>
-              <void property="executionMode">
-                <object class="com.install4j.runtime.beans.applications.ExecutionMode" field="UNATTENDED_WITH_PROGRESS" />
-              </void>
               <void property="frameHeight">
                 <int>160</int>
               </void>
@@ -263,7 +260,13 @@
                           <void property="value">
                             <string>boolean sixtyFourBits = System.getProperty("sun.arch.data.model").equals("64");
 if (!sixtyFourBits) {
-    Util.showErrorMessage("Unfortunately, Lantern requires a 64-bit Mac");
+
+    String command = "tell application \"Finder\"\n" + 
+        "activate\n" +
+        "display dialog \"Unfortunately, Lantern requires a 64-bit Mac\"\n" + 
+    "end";
+    Runtime runtime = Runtime.getRuntime();
+    runtime.exec(new String[] {"/usr/bin/osascript", "-e", command});
 }
 
 return sixtyFourBits;</string>
@@ -1355,7 +1358,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" signLaunchers="true" launcherId="27">
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" signLaunchers="false" launcherId="27">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
