@@ -23,8 +23,8 @@ public class NatPmpTest {
             return;
         }
 
-        final NatPmpImpl pmp =
-            new NatPmpImpl(TestUtils.getStatsTracker());
+        final Stats statsTracker = new StatsTrackerStub();
+        final NatPmpImpl pmp = new NatPmpImpl(statsTracker);
         final AtomicInteger ai = new AtomicInteger(-1);
         final AtomicBoolean error = new AtomicBoolean();
         final PortMapListener portMapListener = new PortMapListener() {

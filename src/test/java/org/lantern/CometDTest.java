@@ -43,7 +43,8 @@ public class CometDTest {
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
 
-        CountryService countryService = TestUtils.getCountryService();
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
         final Model model = new Model(countryService);
         final SyncService syncer =
             new SyncService(new CometDSyncStrategy(), model, new Timer(), null);

@@ -78,18 +78,8 @@ public class LanternTrustStoreTest {
     @Test
     public void testSites() {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        log.debug("CONFIGURED TRUSTSTORE: "+System.getProperty("javax.net.ssl.trustStore"));
-        //System.setProperty("javax.net.debug", "ssl");
-        //final KeyStoreManager ksm = new LanternKeyStoreManager();
-        //final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
-        //final LanternSocketsUtil socketsUtil =
-            //new LanternSocketsUtil(null, trustStore);
-        //final LanternTrustStore trustStore = TestUtils.getTrustStore();
-        //final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
-        //final SSLSocketFactory socketFactory =
-            //new SSLSocketFactory(socketsUtil.newTlsSocketFactory(),
-              //  new LanternHostNameVerifier());
-
+        log.debug("CONFIGURED TRUSTSTORE: "+
+                System.getProperty("javax.net.ssl.trustStore"));
         final File temp = new File(String.valueOf(RandomUtils.nextInt()));
         temp.deleteOnExit();
         final KeyStoreManager ksm = new LanternKeyStoreManager(temp);

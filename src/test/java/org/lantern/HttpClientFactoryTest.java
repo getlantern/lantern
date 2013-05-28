@@ -59,8 +59,6 @@ public class HttpClientFactoryTest {
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
         
-        //final LanternHttpClient client = TestUtils.getHttpClient();
-        //client.setForceCensored(true);
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
                 new HttpClientFactory(socketsUtil, censored);
