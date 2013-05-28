@@ -48,7 +48,8 @@ public class UpnpTest {
         log.debug("Local host name is: {}", NetworkUtils.getLocalHost().getHostName());
         //System.setProperty("java.util.logging.config.file",
         //        "src/test/resources/logging.properties");
-        final Upnp up = new Upnp(TestUtils.getStatsTracker());
+        final Stats statsTracker = new StatsTrackerStub();
+        final Upnp up = new Upnp(statsTracker);
         final AtomicBoolean mapped = new AtomicBoolean(false);
         final AtomicBoolean error = new AtomicBoolean(false);
 
