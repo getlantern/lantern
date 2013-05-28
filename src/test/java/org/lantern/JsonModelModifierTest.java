@@ -4,19 +4,25 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.lantern.state.DefaultModelService;
 import org.lantern.state.JsonModelModifier;
 import org.lantern.state.Model;
 import org.lantern.state.ModelService;
 import org.lantern.state.Settings;
 
+import static org.mockito.Mockito.mock;
+
 public class JsonModelModifierTest {
 
     @Test
     public void test() {
-        final ModelService mm = TestUtils.getModelService();
+        
+        final Model model = TestingUtils.newModel();
+        
+        final ProxyService proxifier = mock(ProxyService.class);
+        
+        final ModelService mm = new DefaultModelService(model, proxifier);
         final JsonModelModifier mod = new JsonModelModifier(mm);
-
-        final Model model = TestUtils.getModel();
 
         assertFalse(model.isLaunchd());
         //String json = "{\"path\":\"launchd\",\"value\":true}";

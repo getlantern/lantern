@@ -2,18 +2,25 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLEngine;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferFactory;
@@ -53,16 +60,162 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
+import org.kaleidoscope.BasicRandomRoutingTable;
+import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.StoredCookie;
+import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.kscope.DefaultKscopeAdHandler;
+import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.state.DefaultModelUtils;
+import org.lantern.state.Model;
+import org.lantern.state.ModelUtils;
+import org.lantern.state.Settings;
+import org.lantern.util.HttpClientFactory;
+import org.lastbamboo.common.portmapping.NatPmpService;
+import org.lastbamboo.common.portmapping.PortMapListener;
+import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyCacheManager;
 import org.littleshoot.proxy.ProxyHttpResponseEncoder;
 import org.littleshoot.proxy.SslContextFactory;
 
 
-class TestingUtils {
+public class TestingUtils {
 
+    private static final File privatePropsFile;
+
+    private static final Properties privateProps = new Properties();
+    
+    static {
+        if (LanternClientConstants.TEST_PROPS.isFile()) {
+            privatePropsFile = LanternClientConstants.TEST_PROPS;
+        } else {
+            privatePropsFile = LanternClientConstants.TEST_PROPS2;
+        }
+        if (privatePropsFile.isFile()) {
+            InputStream is = null;
+            try {
+                is = new FileInputStream(privatePropsFile);
+                privateProps.load(is);
+            } catch (final IOException e) {
+                System.err.println("NO PRIVATE PROPS FILE AT "+
+                    privatePropsFile.getAbsolutePath());
+                e.printStackTrace();
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+            
+            if (StringUtils.isBlank(getRefreshToken()) ||
+                StringUtils.isBlank(getAccessToken())) {
+                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
+                throw new Error("Tokens not in "+privatePropsFile);
+            }
+        } else {
+            throw new Error("Could not load!!");
+        }
+    }
+
+    public static Model newModel() {
+        return new Model(newCountryService());
+    }
+    
+    public static CountryService newCountryService() {
+        final Censored censored = new DefaultCensored();
+        return new CountryService(censored);
+    }
+
+    public static XmppHandler newXmppHandler() {
+        final Censored censored = new DefaultCensored();
+        final Model mod = new Model(new CountryService(censored));
+        final Settings set = mod.getSettings();
+        set.setAccessToken(getAccessToken());
+        set.setRefreshToken(getRefreshToken());
+        set.setUseGoogleOAuth2(true);
+        return newXmppHandler(censored, mod);
+    }
+
+    public static XmppHandler newXmppHandler(final Censored censored, final Model model) {
+        
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        //final String testId = "test@gmail.com/somejidresource";
+        //trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
+        
+        final LanternSocketsUtil socketsUtil = 
+            new LanternSocketsUtil(null, trustStore);
+        
+        final Stats stats = new StatsTrackerStub();
+        final java.util.Timer updateTimer = new java.util.Timer();
+
+        final HttpClientFactory clientFactory =
+                new HttpClientFactory(socketsUtil, censored);
+        final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, clientFactory);
+        
+        final ModelUtils modelUtils = new DefaultModelUtils(model, clientFactory);
+        final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
+        final Roster roster = new Roster(routingTable, model, censored);
+        
+        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
+        
+        final PeerFactory peerFactory = 
+            new DefaultPeerFactory(geoIpLookupService, model, roster);
+        final Timer timer = new HashedWheelTimer();
+        final ProxyTracker proxyTracker = 
+            new DefaultProxyTracker(model, peerFactory, timer, null);
+        final KscopeAdHandler kscopeAdHandler = 
+            new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
+                null, model);
+        final NatPmpService natPmpService = new NatPmpService() {
+            @Override
+            public void shutdown() {}
+            @Override
+            public void removeNatPmpMapping(int mappingIndex) {}
+            @Override
+            public int addNatPmpMapping(PortMappingProtocol protocol, int localPort,
+                    int externalPortRequested, PortMapListener portMapListener) {
+                return 0;
+            }
+        };
+        final UpnpService upnpService = new UpnpService() {
+            @Override
+            public void shutdown() {}
+            @Override
+            public void removeUpnpMapping(int mappingIndex) {}
+            @Override
+            public int addUpnpMapping(PortMappingProtocol protocol, int localPort,
+                    int externalPortRequested, PortMapListener portMapListener) {
+                return 0;
+            }
+        };
+        final XmppHandler xmppHandler = new DefaultXmppHandler(model, 
+            updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils, 
+            roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService);
+        return xmppHandler;
+    }
+    
+    public static String getRefreshToken() {
+        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("refresh_token");
+        }
+        return oauth;
+     }
+
+    public static String getAccessToken() {
+        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("access_token");
+        }
+        return oauth;
+    }
+
+    private static LanternSocketsUtil newLanternSocketsUtil(
+        final LanternTrustStore trustStore) {
+        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+        return util;
+    }
 
     public static MessageEvent createDummyMessageEvent(final Object message) {
         return new MessageEvent() {
@@ -340,6 +493,4 @@ class TestingUtils {
         }
         return false;
     }
-
-
 }

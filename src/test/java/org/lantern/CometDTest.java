@@ -39,9 +39,6 @@ public class CometDTest {
     @Test
     public void test() throws Exception {
         final int port = LanternUtils.randomPort();
-        //RuntimeSettings.setApiPort(port);
-        //LanternHub.settings().setApiPort(LanternUtils.randomPort());
-        //final int port = LanternHub.settings().getApiPort();
 
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);

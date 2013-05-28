@@ -455,6 +455,4 @@ public class TestUtils {
         if (!loaded) load();
         return geoIpLookupService;
     }
-
-
 }
