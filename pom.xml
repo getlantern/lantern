@@ -270,7 +270,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>0.5.1</version>
+      <version>0.5.3</version>
     </dependency>
 
     <dependency>
@@ -591,6 +591,7 @@
           </execution>
         </executions>
       </plugin>
+-->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -633,7 +634,6 @@
           </execution>
         </executions>
       </plugin>
--->
 
       <plugin>
 	<groupId>pl.project13.maven</groupId>
