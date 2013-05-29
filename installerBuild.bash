@@ -37,15 +37,16 @@ fi
 VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
-if [ $# -gt "2" ]
-then
-    RELEASE=$3;
-else
-    RELEASE=true;
-fi
 
 git pull || die "Could not git pull?"
-git checkout lantern-$VERSION || die "Could not checkout branch at $VERSION"
+if [[ $VERSION == "HEAD" ]]; 
+then 
+    CHECKOUT=HEAD; 
+else 
+    CHECKOUT=lantern-$VERSION; 
+fi
+
+git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
