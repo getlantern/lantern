@@ -18,7 +18,8 @@ echo "RELEASE flag is $RELEASE"
 
 install4jc -v --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION ./install/lantern.install4j || die "Could not build installer?"
 
-name=lantern-$VERSION.dmg
+git=`git rev-parse HEAD | cut -c1-7`
+name=lantern-$VERSION-$git.dmg
 mv install/Lantern.dmg $name || die "Could not move new installer -- failed to create somehow?"
 ./installMetaRefresh.bash osx $name latest.dmg $RELEASE || die "ERROR: Could not build meta-refresh redirect file"
 

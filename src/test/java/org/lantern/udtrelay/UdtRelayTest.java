@@ -1,6 +1,5 @@
 package org.lantern.udtrelay;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import io.netty.bootstrap.Bootstrap;
@@ -18,8 +17,6 @@ import io.netty.channel.udt.nio.NioUdtProvider;
 import io.netty.handler.ssl.SslHandler;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
@@ -30,17 +27,7 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.net.ssl.SSLEngine;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.util.EntityUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.AbstractChannel;
@@ -77,8 +64,6 @@ import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.barchart.udt.net.NetSocketUDT;
-
 public class UdtRelayTest {
 
     private final static Logger log = LoggerFactory.getLogger(UdtRelayTest.class);
@@ -108,44 +93,8 @@ public class UdtRelayTest {
         
         final UdtRelayProxy relay = 
             new UdtRelayProxy(localRelayAddress, proxyPort);
-        startRelay(relay, localRelayAddress.getPort());
+        startRelay(relay);
         
-        
-        // Hit the proxy directly first so we can verify we get the exact
-        // same thing (except a few specific HTTP headers) from the relay.
-        //final String expected = hitProxyDirect(proxyPort);
-        /*
-        IceConfig.setDisableUdpOnLocalNetwork(false);
-        IceConfig.setTcp(false);
-        Launcher.configureCipherSuites();
-        
-        
-        TestUtils.load(true);
-        final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
-        xmpp.connect();
-        XmppP2PClient<FiveTuple> client = xmpp.getP2PClient();
-        int attempts = 0;
-        while (client == null && attempts < 100) {
-            Thread.sleep(100);
-            client = xmpp.getP2PClient();
-            attempts++;
-        }
-        
-        assertTrue("Still no p2p client!!?!?!", client != null);
-        
-        // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
-        final String peer = "lanternftw@gmail.com/-lan-4E2DD9D6";
-        if (StringUtils.isBlank(peer)) {
-            return;
-        }
-        final URI peerUri = new URI(peer);
-
-        final FiveTuple ft = LanternUtils.openOutgoingPeer(peerUri, 
-                xmpp.getP2PClient(), 
-            new HashMap<URI, AtomicInteger>());
-            */
-        
-
         // We do this a few times to make sure there are no issues with 
         // subsequent runs.
         for (int i = 0; i < 1; i++) {
@@ -156,54 +105,16 @@ public class UdtRelayTest {
             
             request.addHeader("Host", "lantern.s3.amazonaws.com");
             request.addHeader("Proxy-Connection", "Keep-Alive");
-            //hitRelayUdtNetty(relayPort, "");
             hitRelayUdtNetty(createDummyChannel(), request, 
                 new FiveTuple(null, localRelayAddress, Protocol.TCP), trustStore);
-            //hitRelayUdtNetty(createDummyChannel(), request, ft);
         }
     }
     
     private static final String REQUEST =
-            /*
-            "GET http://www.google.com HTTP/1.1\r\n"+
-            "Host: www.google.com\r\n"+
-            "Proxy-Connection: Keep-Alive\r\n"+
-            "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
-            "\r\n";
-            */
-    
             "HEAD http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1\r\n"+
             "Host: lantern.s3.amazonaws.com\r\n"+
             "Proxy-Connection: Keep-Alive\r\n"+
             "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
-            "\r\n";
-    /*
-        "GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1\r\n"+
-        "Host: lantern.s3.amazonaws.com\r\n"+
-        "Proxy-Connection: Keep-Alive\r\n"+
-        "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n" +
-        "\r\n";
-        
-        
-    /*
-    GET http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz HTTP/1.1
-        Host: lantern.s3.amazonaws.com
-        Proxy-Connection: Keep-Alive
-        User-Agent: Apache-HttpClient/4.2.2 (java 1.5)
-        */
-    /*
-            "GET http://www.google.com/ HTTP/1.1\r\n"+
-            //"GET / HTTP/1.1\r\n"+
-            "Host: www.google.com\r\n"+
-            "User-Agent: Apache-HttpClient/4.2.2 (java 1.5)\r\n"+
-            "Connection: Keep-Alive\r\n\r\n";
-            */
-    
-    private static final String RESPONSE = 
-            "HTTP/1.1 200 OK\r\n" +
-            "Server: Gnutella\r\n"+
-            "Content-type: application/binary\r\n"+
-            "Content-Length: 0\r\n" +
             "\r\n";
     
     private void startProxyServer(final int port,
@@ -285,58 +196,6 @@ public class UdtRelayTest {
         return response;
 
     }
-    
-    /*
-    private void hitRelayUdtNetty(final int relayPort, final String expected) 
-        throws Exception {
-        
-        // Configure the client.
-        final Bootstrap boot = new Bootstrap();
-        final ThreadFactory connectFactory = Threads.newThreadFactory("connect");
-        final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
-                connectFactory, NioUdtProvider.BYTE_PROVIDER);
-        
-        final AtomicReference<String> responseRef = new AtomicReference<String>("");
-        
-        //final Channel browserToProxyChannel = new AbstractCh
-        final org.jboss.netty.channel.ChannelPipeline pipeline = Channels.pipeline();
-        final DummyChannel chan = createDummyChannel(pipeline); 
-        try {
-            boot.group(connectGroup)
-                .channelFactory(NioUdtProvider.BYTE_CONNECTOR)
-                .handler(new ChannelInitializer<UdtChannel>() {
-                    @Override
-                    public void initChannel(final UdtChannel ch)
-                            throws Exception {
-                        final ChannelPipeline p = ch.pipeline();
-                        p.addLast(
-                            //new LoggingHandler(LogLevel.INFO),
-                            new HttpResponseClientHandler(responseRef, chan));
-                    }
-                });
-            // Start the client.
-            final ChannelFuture f = 
-                boot.connect(LanternClientConstants.LOCALHOST, relayPort).sync();
-            
-            synchronized(chan) {
-                if (chan.message.length() == 0) {
-                    chan.wait(2000);
-                }
-            }
-            
-            //System.err.println(chan.message);
-            assertTrue("Unexpected response "+responseRef.get(), 
-                    chan.message.startsWith("HTTP/1.1 200 OK"));
-            
-            //assertTrue("Unexpected response "+responseRef.get(), 
-            //        responseRef.get().startsWith("HTTP/1.1 200 OK"));
-            f.channel().close();
-        } finally {
-            // Shut down the event loop to terminate all threads.
-            boot.shutdown();
-        }
-    }
-    */
     
     public static class DummyChannel extends AbstractChannel {
         
@@ -460,8 +319,6 @@ public class UdtRelayTest {
         }
     }
     
-    private HttpRequest httpRequest;
-    
     private static final class HttpRequestConverter extends HttpRequestEncoder {
         private Channel basicChannel = new ChannelAdapter();
 
@@ -526,86 +383,7 @@ public class UdtRelayTest {
 
     }
     
-    
-    private void hitRelayUdt(final int relayPort, final String expected) throws Exception {
-        final Socket sock = new NetSocketUDT();
-        sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
-        
-        sock.getOutputStream().write(REQUEST.getBytes());
-        
-        final InputStream is = sock.getInputStream();
-        sock.setSoTimeout(4000);
-        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        final StringBuilder sb = new StringBuilder();
-        String cur = br.readLine();
-        sb.append(cur);
-        while(StringUtils.isNotBlank(cur)) {
-            System.err.println(cur);
-            cur = br.readLine();
-            if (!cur.startsWith("x-amz-") && !cur.startsWith("Date")) {
-                sb.append(cur);
-                sb.append("\n");
-            }
-        }
-        
-        final String response = sb.toString();
-        sock.close();
-        assertTrue("Unexpected response "+response, 
-            response.startsWith("HTTP/1.1 200 OK"));
-        
-        assertEquals("Response differed: Expected\n"+expected+"\nBut was\n"+response, expected, response);
-    }
-
-    private void hitRelayRaw(final int relayPort) throws Exception {
-        final Socket sock = new Socket();
-        sock.connect(new InetSocketAddress("127.0.0.1", relayPort));
-        
-        sock.getOutputStream().write(REQUEST.getBytes());
-        final BufferedReader br = 
-            new BufferedReader(new InputStreamReader(sock.getInputStream()));
-        final StringBuilder sb = new StringBuilder();
-        String cur = br.readLine();
-        sb.append(cur);
-        System.err.println(cur);
-        while(StringUtils.isNotBlank(cur)) {
-            System.err.println(cur);
-            cur = br.readLine();
-            sb.append(cur);
-        }
-        assertTrue("Unexpected response "+sb.toString(), sb.toString().startsWith("HTTP/1.1 200 OK"));
-        //System.out.println("");
-        sock.close();
-    }
-    
-    private void hitRelay(final int relayPort) throws Exception {
-        // We create new clients each time here to ensure that we're always
-        // using a new client-side port.
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
-        final HttpHost proxy = new HttpHost("127.0.0.1", relayPort);
-        
-        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(2,true));
-        httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);
-        httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
-        
-        //final HttpGet get = new HttpGet("http://www.google.com");
-        //final HttpGet get = new HttpGet("https://d3g17h6tzzjzlu.cloudfront.net/windows-x86-jre.tar.gz");
-        final HttpGet get = new HttpGet("http://lantern.s3.amazonaws.com/windows-x86-1.7.0_03.tar.gz");
-        //final HttpGet get = new HttpGet("http://127.0.0.1");
-        final HttpResponse response = httpClient.execute(get);
-        final HttpEntity entity = response.getEntity();
-        final InputStream is = entity.getContent();
-        IOUtils.copy(is, new FileOutputStream(new File("test-windows-x86-jre.tar.gz")));
-        //final String body = 
-        //    IOUtils.toString(entity.getContent()).toLowerCase();
-        EntityUtils.consume(entity);
-        //assertTrue(body.trim().endsWith("</script></body></html>"));
-        
-        get.reset();
-    }
-    
-    private void startRelay(final UdtRelayProxy relay, 
-        final int localRelayPort) throws Exception {
+    private void startRelay(final UdtRelayProxy relay) throws Exception {
         final Thread t = new Thread(new Runnable() {
 
             @Override
@@ -619,7 +397,7 @@ public class UdtRelayTest {
         }, "Relay-Test-Thread");
         t.setDaemon(true);
         t.start();
-        // Just sleep if it's UDT...
+        // Just sleep to wait for it to start for UDT...
         Thread.sleep(400);
     }
 

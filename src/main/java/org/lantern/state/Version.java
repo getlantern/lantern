@@ -90,7 +90,6 @@ public class Version {
             }
             String version = LanternClientConstants.VERSION;
             String number = StringUtils.substringBefore(version, "-");
-            String suffix = StringUtils.substringAfter(version, "-");
             final String[] parts = number.split("\\.");
             major = Integer.parseInt(parts[0]);
             if (parts.length > 1) {
@@ -104,12 +103,7 @@ public class Version {
                 minor = patch = 0;
             }
 
-            if (suffix.startsWith("SNAPSHOT-")) {
-                // handle case of 1.0-SNAPSHOT-abcd...
-                gitFull = StringUtils.substringAfter(suffix, "SNAPSHOT-");
-            } else {
-                gitFull = suffix;
-            }
+            gitFull = LanternClientConstants.GIT_VERSION;
             // the first 7 chars are sufficient to uniquely identify a revision
             //git = StringUtils.substring(gitFull, 0, 7); // XXX ends up blank?
             git = gitFull;

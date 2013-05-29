@@ -17,21 +17,24 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-public class LanternHttpClientTest {
+public class HttpClientFactoryTest {
 
     /**
      * We've seen issues with HttpClient redirects from HTTPS sites to HTTP
@@ -49,15 +52,24 @@ public class LanternHttpClientTest {
      */
     @Test
     public void testAllInternallyProxiedSites() throws Exception {
-        final LanternHttpClient client = TestUtils.getHttpClient();
-        client.setForceCensored(true);
+        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
+        temp.deleteOnExit();
+        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final LanternSocketsUtil socketsUtil =
+            new LanternSocketsUtil(null, trustStore);
+        
+        final Censored censored = new DefaultCensored();
+        final HttpClientFactory factory = 
+                new HttpClientFactory(socketsUtil, censored);
+        final HttpClient client = factory.newProxiedClient();
 
         testExceptional(client);
-        testGoogleDocs(client);
+        testGoogleDocs(factory);
         testStats(client);
     }
 
-    private void testStats(final LanternHttpClient client) throws Exception {
+    private void testStats(final HttpClient client) throws Exception {
         final String uri = "https://lanternctrl.appspot.com/stats";
 
         final HttpGet get = new HttpGet(uri);
@@ -68,9 +80,9 @@ public class LanternHttpClientTest {
         assertEquals(200, code);
     }
 
-    private void testGoogleDocs(final LanternHttpClient client)
+    private void testGoogleDocs(final HttpClientFactory clientFactory) 
         throws Exception {
-        final LanternFeedback feedback = spy(new LanternFeedback(client));
+        final LanternFeedback feedback = spy(new LanternFeedback(clientFactory));
         when(feedback.getHttpPost(anyString())).thenAnswer(new Answer<HttpPost>() {
             @Override
             public HttpPost answer(InvocationOnMock invocation) {
@@ -84,7 +96,7 @@ public class LanternHttpClientTest {
         assertEquals(200, responseCode);
     }
 
-    private void testExceptional(final LanternHttpClient client)
+    private void testExceptional(final HttpClient client)
         throws Exception {
         final String requestBody = "{request: {}}";
         final String url = "https://www.exceptional.io/api/errors?" +

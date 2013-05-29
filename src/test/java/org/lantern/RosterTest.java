@@ -32,9 +32,8 @@ public class RosterTest {
     @Test
     public void testIndexedSync() throws Exception {
         Events.register(this);
-        TestUtils.load(true);
-        RandomRoutingTable routingTable = new BasicRandomRoutingTable();
-        Model model = TestUtils.getModel();
+        final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
+        final Model model = new Model();
         final Roster roster =
             new Roster(routingTable, model, new TestCensored());
 
@@ -143,6 +142,11 @@ public class RosterTest {
 
     @Subscribe
     public void onSync(final SyncEvent sync) {
-        this.path.set(sync.getPath());
+        final String syncPath = sync.getPath();
+        // We could get other random sync events, like for countries -- just
+        // ignore them.
+        if (syncPath.startsWith("roster")) {
+            this.path.set(syncPath);
+        }
     }
 }

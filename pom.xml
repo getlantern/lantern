@@ -1,11 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>0.21.2-SNAPSHOT</version>
+  <version>0.21.3-1-SNAPSHOT</version>
   <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
   <description>
     Lantern is a peer-to-peer and trust-network-based tool for circumventing censors.
@@ -32,11 +30,11 @@
   </issueManagement>
 
   <scm>
-    <url>https://github.com/getlantern/lantern</url>
-    <connection>scm:git://github.com/getlantern/lantern.git</connection>
-    <developerConnection>scm:git@github.com:getlantern/lantern.git</developerConnection>
+    <connection>scm:git:git://github.com/getlantern/lantern.git</connection>
+    <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
+    <url>scm:git:git@github.com:getlantern/lantern.git</url>
+    <tag>0.21.3-1</tag>
   </scm>
-
 
   <dependencies>
     <dependency>
@@ -273,7 +271,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>0.5.1</version>
+      <version>0.5.3</version>
     </dependency>
 
     <dependency>
@@ -385,6 +383,22 @@
     </extensions>
 
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.4.1</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
+        <configuration>
+          <argLine>-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError -Djava.library.path=${java.library.path}</argLine>
+        </configuration>
+      </plugin>
+
 <!--
       <plugin>
         <groupId>com.github.github</groupId>
@@ -411,15 +425,7 @@
         <version>2.0</version>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.13</version>
-	<configuration>
-	  <argLine>-Djava.library.path=${java.library.path}</argLine>
-	</configuration>
-      </plugin>
-
+<!--
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
@@ -436,6 +442,8 @@
           </execution>
         </executions>
       </plugin>
+-->
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
@@ -544,7 +552,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.1</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -553,35 +561,9 @@
           <fork>true</fork>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
-          <compilerArguments><Xlint/></compilerArguments>
+          <compilerArguments><Xlint /></compilerArguments>
         </configuration>
       </plugin>
-<!--
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-5</version>
-        <executions>
-          <execution>
-            <id>latest-build</id>
-            <phase>package</phase>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-
-              <archive>
-                <manifest>
-                  <mainClass>org.lantern.Launcher</mainClass>
-                </manifest>
-              </archive>
-            </configuration>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
--->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -594,11 +576,8 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-<!--
-              <finalName>${project.artifactId}-${project.version}-shaded</finalName>
--->
+              <!-- we have to exclude bouncycastle b/c  it is signed -->
               <artifactSet>
-                <!-- we have to exclude bouncycastle b/c  it is signed -->
                 <excludes>
                   <exclude>org.bouncycastle:*</exclude>
                 </excludes>
@@ -611,7 +590,6 @@
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
-                    <!-- The following causes issues when exploding the jar and trying to create a licenses directory instead of file -->
                     <exclude>META-INF/LICENSE</exclude>
                   </excludes>
                 </filter>
@@ -644,8 +622,9 @@
 	  <verbose>true</verbose>
 	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
 	</configuration>
-      </plugin>
+      </plugin>   
     </plugins>
+
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -662,11 +641,10 @@
         </includes>
       </resource>
     </resources>
+
     <pluginManagement>
       <plugins>
         <plugin>
-          <!-- m2eclipse lifecycle mapping configuration -->
-          <!-- should not affect builds outside IDE -->
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
           <version>1.0.0</version>
@@ -733,7 +711,7 @@
         <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
-	<java.library.path></java.library.path>
+	<java.library.path />
       </properties>
     </profile>
     <profile>
@@ -748,7 +726,7 @@
         <unix.artifactId>unix-java-x86</unix.artifactId> 
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
-	<java.library.path></java.library.path>
+	<java.library.path />
         <arch.artifactId>x86</arch.artifactId>
       </properties>
     </profile>
@@ -833,4 +811,5 @@
       <url>s3://lantern-mvn-repo/snapshot</url>
     </snapshotRepository>
   </distributionManagement>
+
 </project>

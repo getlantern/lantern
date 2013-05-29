@@ -40,15 +40,19 @@ public class DefaultXmppHandlerTest {
     public void testControllerMessages() throws Exception {
         this.closedBetaEvent = null;
 
-        TestUtils.load(true);
-        final Model model = TestUtils.getModel();
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
+        final Model model = new Model(countryService);//.getModel();
         final org.lantern.state.Settings settings = model.getSettings();
-        //settings.setProxies(new HashSet<String>());
         
         settings.setMode(Mode.get);
+        settings.setAccessToken(TestingUtils.getAccessToken());
+        settings.setRefreshToken(TestingUtils.getRefreshToken());
+        settings.setUseGoogleOAuth2(true);
         
         
-        final XmppHandler handler = TestUtils.getXmppHandler();
+        final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);
+        handler.start();
         // The handler could have already been created and connected, so 
         // make sure we disconnect.
         handler.disconnect();
@@ -65,6 +69,7 @@ public class DefaultXmppHandlerTest {
         
         assertTrue("Should have received event from the controller", 
             this.closedBetaEvent != null);
-        //TestUtils.close();
+        
+        handler.stop();
     }
 }

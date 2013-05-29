@@ -30,7 +30,6 @@ import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
-import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -90,8 +89,6 @@ public class TestUtils {
     private static DefaultProxyTracker proxyTracker;
 
     private static LanternTrustStore trustStore;
-
-    private static LanternHttpClient httpClient;
 
     private static Injector injector;
 
@@ -169,7 +166,6 @@ public class TestUtils {
         modelIo = instance(ModelIo.class);
         proxyTracker = instance(DefaultProxyTracker.class);
         trustStore = instance(LanternTrustStore.class);
-        httpClient = instance(LanternHttpClient.class);
         
         httpClientFactory = instance(HttpClientFactory.class);
         sslHttpProxyServer = instance(SslHttpProxyServer.class);
@@ -431,11 +427,6 @@ public class TestUtils {
         return trustStore;
     }
 
-    public static LanternHttpClient getHttpClient() {
-        if (!loaded) load();
-        return httpClient;
-    }
-
     public static LanternTrustStore buildTrustStore() {
         return new LanternTrustStore(new LanternKeyStoreManager());
     }
@@ -464,6 +455,4 @@ public class TestUtils {
         if (!loaded) load();
         return geoIpLookupService;
     }
-
-
 }

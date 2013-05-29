@@ -2,33 +2,38 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
-import javax.security.auth.login.CredentialException;
-
 import org.junit.Test;
 import org.lantern.state.Mode;
+import org.lantern.state.Model;
 
 public class GoogleTalkTest {
     
     @Test
     public void testGoogleTalk() throws Exception {
-        TestUtils.load(true);
-        TestUtils.getModel().getSettings().setMode(Mode.give);
-        TestUtils.getModel().getSettings().setUseAnonymousPeers(false);
-        TestUtils.getModel().getSettings().setUseTrustedPeers(false);
-        //final String email = TestUtils.loadTestEmail();
-        final XmppHandler handler = createHandler();
+        
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
+        final Model model = new Model(countryService);
+        final org.lantern.state.Settings settings = model.getSettings();
+        
+        settings.setMode(Mode.get);
+        settings.setAccessToken(TestingUtils.getAccessToken());
+        settings.setRefreshToken(TestingUtils.getRefreshToken());
+        settings.setUseGoogleOAuth2(true);
+        settings.setMode(Mode.give);
+        settings.setUseAnonymousPeers(false);
+        settings.setUseTrustedPeers(false);
+        
+        
+        final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);
+        handler.start();
+        // The handler could have already been created and connected, so 
+        // make sure we disconnect.
+        handler.disconnect();
+        handler.connect();
+        
         assertTrue("Not logged in to gtalk", handler.isLoggedIn());
     }
     
-    private XmppHandler createHandler() 
-        throws CredentialException, IOException, NotInClosedBetaException {
-        //TestUtils.getModel().getSettings().setProxies(new HashSet<String>());
-        final XmppHandler xmpp = TestUtils.getXmppHandler();
-        
-        xmpp.connect();
-        return xmpp;
-    }
 
 }

@@ -28,8 +28,6 @@ public class SslHttpProxyServerTest {
     public void test() throws Exception {
         //Launcher.configureCipherSuites();
         //System.setProperty("javax.net.debug", "ssl");
-        //TestUtils.getModel().getPeerCollector().setPeers(new ConcurrentHashMap<String, Peer>());
-        //final SslHttpProxyServer server = TestUtils.getSslHttpProxyServer();
         org.jboss.netty.util.Timer timer = 
             new org.jboss.netty.util.HashedWheelTimer();
         
@@ -65,7 +63,6 @@ public class SslHttpProxyServerTest {
                 new LanternSocketsUtil(null, ts);
         final HttpClientFactory httpFactory =
                 new HttpClientFactory(socketsUtil, null);
-                //TestUtils.getHttpClientFactory();
         
         final HttpHost host = new HttpHost(
                 "127.0.0.1", server.getPort(), "https");
@@ -82,35 +79,6 @@ public class SslHttpProxyServerTest {
         assertTrue("No response?", StringUtils.isNotBlank(body));
         EntityUtils.consume(entity);
         get.reset();
-        
-        /*
-        // We have to wait for the peer geo IP lookup, so keep polling for
-        // the peer being added.
-        Collection<Peer> peers = TestUtils.getModel().getPeers();
-        int tries = 0;
-        while (peers.isEmpty() && tries < 60) {
-            Thread.sleep(100);
-            peers = TestUtils.getModel().getPeers();
-            tries++;
-        }
-        
-        assertEquals(1, peers.size());
-        
-        final Peer peer = peers.iterator().next();
-        final LanternTrafficCounter tch = peer.getTrafficCounter();
-        
-        final long readBytes = tch.getCumulativeReadBytes();
-        assertTrue(readBytes > 1000);
-        final GlobalLanternServerTrafficShapingHandler traffic = 
-                TestUtils.getGlobalTraffic();
-        
-        // We should have two total sockets because the "waitForServer" call
-        // above polls for the socket. At the same time, we only have one
-        // total peer because both sockets are from localhost and we 
-        // consolidate Peers by address.
-        assertEquals(2, traffic.getNumSocketsTotal());
-        */
-        
     }
 
     private void thread(final SslHttpProxyServer server) {
@@ -124,7 +92,6 @@ public class SslHttpProxyServerTest {
         final Thread t = new Thread(runner, "test-tread-"+getClass());
         t.setDaemon(true);
         t.start();
-        
     }
 
 }
