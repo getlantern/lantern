@@ -13,6 +13,8 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -20,6 +22,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class DefaultEncryptedFileService implements EncryptedFileService {
     
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final LocalCipherProvider localCipherProvider;
 
     @Inject
@@ -37,8 +40,9 @@ public class DefaultEncryptedFileService implements EncryptedFileService {
     }
     
     @Override
-    public InputStream localDecryptInputStream(File file) 
+    public InputStream localDecryptInputStream(final File file) 
         throws IOException, GeneralSecurityException {
+        checkFile(file);
         return localDecryptInputStream(new FileInputStream(file));
     }
     
@@ -51,11 +55,22 @@ public class DefaultEncryptedFileService implements EncryptedFileService {
     }
     
     @Override
-    public OutputStream localEncryptOutputStream(File file) 
+    public OutputStream localEncryptOutputStream(final File file) 
         throws IOException, GeneralSecurityException {
+        checkFile(file);
         return localEncryptOutputStream(new FileOutputStream(file));
     }
     
+    private void checkFile(final File file) {
+        final File dir = file.getParentFile();
+        if (!dir.isDirectory()) {
+            log.error("No parent directory at: {}", dir);
+            if (!dir.mkdirs()) {
+                log.error("Could not make directory for parent: {}", dir);
+            }
+        }
+    }
+
     /** 
      * output an encrypted copy of the plaintext file given in the 
      * dest file given. 
