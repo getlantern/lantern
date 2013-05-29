@@ -1,6 +1,7 @@
 package org.lantern; 
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -81,7 +82,6 @@ import org.littleshoot.proxy.ProxyCacheManager;
 import org.littleshoot.proxy.ProxyHttpResponseEncoder;
 import org.littleshoot.proxy.SslContextFactory;
 
-
 public class TestingUtils {
 
     private static final File privatePropsFile;
@@ -146,7 +146,7 @@ public class TestingUtils {
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);
         
-        final Stats stats = new StatsTrackerStub();
+        final Stats stats = mock(Stats.class);
         final java.util.Timer updateTimer = new java.util.Timer();
 
         final HttpClientFactory clientFactory =

@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,7 +13,6 @@ import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class NatPmpTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -23,7 +23,7 @@ public class NatPmpTest {
             return;
         }
 
-        final Stats statsTracker = new StatsTrackerStub();
+        final Stats statsTracker = mock(Stats.class);
         final NatPmpImpl pmp = new NatPmpImpl(statsTracker);
         final AtomicInteger ai = new AtomicInteger(-1);
         final AtomicBoolean error = new AtomicBoolean();

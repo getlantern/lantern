@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +49,7 @@ public class UpnpTest {
         log.debug("Local host name is: {}", NetworkUtils.getLocalHost().getHostName());
         //System.setProperty("java.util.logging.config.file",
         //        "src/test/resources/logging.properties");
-        final Stats statsTracker = new StatsTrackerStub();
+        final Stats statsTracker = mock(Stats.class);
         final Upnp up = new Upnp(statsTracker);
         final AtomicBoolean mapped = new AtomicBoolean(false);
         final AtomicBoolean error = new AtomicBoolean(false);
