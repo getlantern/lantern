@@ -382,6 +382,7 @@
     </extensions>
 
     <plugins>
+<!--
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -392,6 +393,7 @@
           <nexusUrl>https://oss.sonatype.org/</nexusUrl>
         </configuration>
       </plugin>
+-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
