@@ -47,7 +47,8 @@ else
     RELEASE=true;
 fi
 
-git checkout $VERSION
+git pull || die "Could not git pull?"
+git checkout $VERSION || die "Could not checkout branch at $VERSION"
 
 #curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
 #git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
