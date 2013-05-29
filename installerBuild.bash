@@ -6,6 +6,9 @@ function die() {
   echo $*
   echo "Reverting constants file"
   git checkout -- $CONSTANTS_FILE || die "Could not revert $CONSTANTS_FILE?"
+
+  # Make sure to move back to master, not tag
+  git checkout master
   exit 1
 }
 
@@ -69,3 +72,6 @@ cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 
 install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
+
+echo "Moving back to master"
+git checkout master 
