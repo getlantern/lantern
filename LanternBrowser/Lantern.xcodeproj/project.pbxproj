@@ -32,7 +32,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0877075E174C1B42005FA9BB /* LanternBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LanternBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0877075E174C1B42005FA9BB /* Lantern.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lantern.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		08770761174C1B42005FA9BB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		08770764174C1B42005FA9BB /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		08770765174C1B42005FA9BB /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -92,7 +92,7 @@
 		0877075F174C1B42005FA9BB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0877075E174C1B42005FA9BB /* LanternBrowser.app */,
+				0877075E174C1B42005FA9BB /* Lantern.app */,
 				0877077E174C1B42005FA9BB /* LanternBrowserTests.octest */,
 			);
 			name = Products;
@@ -177,7 +177,7 @@
 			);
 			name = Lantern;
 			productName = LanternBrowser;
-			productReference = 0877075E174C1B42005FA9BB /* LanternBrowser.app */;
+			productReference = 0877075E174C1B42005FA9BB /* Lantern.app */;
 			productType = "com.apple.product-type.application";
 		};
 		0877077D174C1B42005FA9BB /* LanternBrowserTests */ = {
@@ -394,7 +394,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "LanternBrowser/LanternBrowser-Prefix.pch";
 				INFOPLIST_FILE = "LanternBrowser/LanternBrowser-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -407,7 +407,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "LanternBrowser/LanternBrowser-Prefix.pch";
 				INFOPLIST_FILE = "LanternBrowser/LanternBrowser-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

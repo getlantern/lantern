@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BuildMachineOSBuild</key>
-	<string>12D78</string>
+	<string>11G63b</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -27,19 +27,19 @@
 	<key>DTCompiler</key>
 	<string></string>
 	<key>DTPlatformBuild</key>
-	<string>4H1003</string>
+	<string>4F1003</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
-	<string>12D75</string>
+	<string>12A264</string>
 	<key>DTSDKName</key>
 	<string>macosx10.8</string>
 	<key>DTXcode</key>
-	<string>0462</string>
+	<string>0441</string>
 	<key>DTXcodeBuild</key>
-	<string>4H1003</string>
+	<string>4F1003</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.7</string>
+	<string>10.6</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2013 Brave New Software. All rights reserved.</string>
 	<key>NSMainNibFile</key>
