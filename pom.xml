@@ -390,18 +390,6 @@
         <version>2.4.1</version>
       </plugin>
 
-<!--
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.4.4</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>sonatype-nexus-staging</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-        </configuration>
-      </plugin>
--->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -576,31 +564,6 @@
           <compilerArguments><Xlint /></compilerArguments>
         </configuration>
       </plugin>
-<!--
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-5</version>
-        <executions>
-          <execution>
-            <id>latest-build</id>
-            <phase>package</phase>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-
-              <archive>
-                <manifest>
-                  <mainClass>org.lantern.Launcher</mainClass>
-                </manifest>
-              </archive>
-            </configuration>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -643,9 +606,6 @@
           </execution>
         </executions>
       </plugin>
--->
-
-<!--
       <plugin>
 	<groupId>pl.project13.maven</groupId>
 	<artifactId>git-commit-id-plugin</artifactId>
@@ -662,7 +622,6 @@
 	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
 	</configuration>
       </plugin>   
--->
     </plugins>
 
     <resources>
@@ -681,7 +640,7 @@
         </includes>
       </resource>
     </resources>
-<!--
+
     <pluginManagement>
       <plugins>
         <plugin>
@@ -723,7 +682,6 @@
         </plugin>
       </plugins>
     </pluginManagement>
--->
   </build>
 
   <profiles>
@@ -840,7 +798,6 @@
     </repository>
   </repositories>
 
-<!--
   <distributionManagement>
     <repository>
       <id>aws-release</id>
@@ -853,6 +810,5 @@
       <url>s3://lantern-mvn-repo/snapshot</url>
     </snapshotRepository>
   </distributionManagement>
--->
 
 </project>
