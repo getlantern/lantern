@@ -635,6 +635,7 @@
         </executions>
       </plugin>
 
+<!--
       <plugin>
 	<groupId>pl.project13.maven</groupId>
 	<artifactId>git-commit-id-plugin</artifactId>
@@ -650,8 +651,10 @@
 	  <verbose>true</verbose>
 	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
 	</configuration>
-      </plugin>
+      </plugin>   
+-->
     </plugins>
+
     <resources>
       <resource>
         <directory>src/main/resources</directory>
