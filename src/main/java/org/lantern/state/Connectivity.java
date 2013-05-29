@@ -8,7 +8,6 @@ import org.lantern.GoogleTalkState;
 import org.lantern.LanternConstants;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.state.Peer.Type;

@@ -142,6 +142,11 @@ public class RosterTest {
 
     @Subscribe
     public void onSync(final SyncEvent sync) {
-        this.path.set(sync.getPath());
+        final String syncPath = sync.getPath();
+        // We could get other random sync events, like for countries -- just
+        // ignore them.
+        if (syncPath.startsWith("roster")) {
+            this.path.set(syncPath);
+        }
     }
 }
