@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
-#VERSION_FILE=pom.xml
+
 function die() {
   echo $*
   echo "Reverting constants file"
@@ -44,19 +44,6 @@ fi
 git pull || die "Could not git pull?"
 git checkout $VERSION || die "Could not checkout branch at $VERSION"
 
-#curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-#git pull --no-rebase origin $curBranch || die '"git pull origin" failed?'
-#git submodule update || die "git submodule update failed!!!"
-
-#NEW_VERSION_WITH_SHA=$1-`git rev-parse HEAD | cut -c1-10`
-# XXX this relies on no other package's version in pom.xml coinciding with our $CURRENT_VERSION
-#perl -pi -e "s/$CURRENT_VERSION/$NEW_VERSION/" $VERSION_FILE || die "s/$CURRENT_VERSION/$NEW_VERSION/ in pom.xml failed"
-
-# XXX do this automatically
-#echo "Replaced $CURRENT_VERSION with $NEW_VERSION in pom.xml."
-#echo "If this is a release, you may want to manually bump"
-#echo "to the next -SNAPSHOT version in your next commit."
-
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
     FALLBACK_SERVER_HOST="75.101.134.244";
@@ -77,19 +64,8 @@ mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 echo "Reverting constants file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
-#echo "Reverting version file"
-#git checkout -- $VERSION_FILE || die "Could not revert version file?"
-
 cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
-#if $RELEASE ; then
-#    echo "Tagging...";
-#    git tag -f -a v$NEW_VERSION -m "Version $NEW_VERSION_WITH_SHA release with MVN_ARGS $MVN_ARGS";
-
-#    echo "Pushing tags...";
-#    git push --tags || die "Could not push tags!!";
-#    echo "Finished push...";
-#fi
 
 install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
