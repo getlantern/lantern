@@ -31,12 +31,6 @@ if [ ! -n "$GE_API_KEY" ]
   die "No API key!!" 
 fi
 
-# XXX pull CURRENT_VERSION out of pom.xml
-#CURRENT_VERSION="0.21.2-SNAPSHOT"
-#fgrep $CURRENT_VERSION $VERSION_FILE &>/dev/null || die "CURRENT_VERSION \"$CURRENT_VERSION\" not found in pom.xml"
-
-# XXX calculate NEW_VERSION by stripping off "-SNAPSHOT" from CURRENT_VERSION
-
 VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
