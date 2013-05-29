@@ -68,7 +68,13 @@ mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 echo "Reverting constants file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
-cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
+if [[ $VERSION == "HEAD" ]];
+then
+    cp target/lantern-*.jar install/common/lantern.jar || die "Could not copy jar?"
+else
+    cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
+fi
+
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 
