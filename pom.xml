@@ -30,10 +30,9 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:git:https://getlantern@github.com/getlantern/lantern.git</connection>
-    <developerConnection>scm:git:https://getlantern@github.com/getlantern/lantern.git</developerConnection>
-    <url>https://getlantern@github.com/getlantern/lantern.git</url>
-    <tag>release-test</tag>
+    <connection>scm:git:git://github.com/getlantern/lantern.git</connection>
+    <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
+    <url>scm:git:git@github.com:getlantern/lantern.git</url>
   </scm>
 
   <dependencies>
