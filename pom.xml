@@ -3,7 +3,7 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>0.21.3-1-SNAPSHOT</version>
+  <version>0.21.3-1</version>
   <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
   <description>
     Lantern is a peer-to-peer and trust-network-based tool for circumventing censors.
@@ -33,7 +33,7 @@
     <connection>scm:git:git://github.com/getlantern/lantern.git</connection>
     <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
     <url>scm:git:git@github.com:getlantern/lantern.git</url>
-    <tag>0.21.3-1</tag>
+    <tag>lantern-0.21.3-1</tag>
   </scm>
 
   <dependencies>
