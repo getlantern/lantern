@@ -14,9 +14,9 @@ grep "<version>$1-SNAPSHOT</version>" pom.xml || die "$1 not found in pom.xml"
 
 mvn release:prepare || die "Could not prepare release?"
 
-echo "Creating branch $1"
-git branch $1 lantern-$1 || die "Could not create a branch"
-git push origin $1 || die "Could not push new branch"
+#echo "Creating branch $1"
+#git branch $1 lantern-$1 || die "Could not create a branch"
+#git push origin $1 || die "Could not push new branch"
 
 # We don't care about actually releasing -- just running the tests, tagging, 
 # incrementing the version -- so cleanup

@@ -42,7 +42,7 @@ else
 fi
 
 git pull || die "Could not git pull?"
-git checkout $VERSION || die "Could not checkout branch at $VERSION"
+git checkout lantern-$VERSION || die "Could not checkout branch at $VERSION"
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
