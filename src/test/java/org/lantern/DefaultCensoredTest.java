@@ -12,22 +12,6 @@ public class DefaultCensoredTest {
 
     private GeoIpLookupService lookupService;
 
-    /*
-    @Test
-    public void testCountryOverride() throws Exception {
-        LanternHub.settings().setManuallyOverrideCountry(true);
-        LanternHub.settings().setCountry(new Country("CN", "China"));
-        final Censored cen = LanternHub.settings().censored();
-        assertTrue("Censored?", isCensored());
-
-        LanternHub.settings().setManuallyOverrideCountry(false);
-        assertFalse("Censored?", isCensored());
-
-        assertEquals("United States",
-            LanternHub.settings().getDetectedCountry().getName());
-    }
-    */
-
     @Before
     public void setup() {
         lookupService = new GeoIpLookupService();
@@ -42,7 +26,6 @@ public class DefaultCensoredTest {
 
     @Test
     public void testCensored() throws Exception {
-
         assertTrue(isCensored("78.110.96.7")); // Syria
         assertFalse(isCensored("151.38.39.114")); // Italy
         assertFalse(isCensored("12.25.205.51")); // USA
@@ -65,9 +48,9 @@ public class DefaultCensoredTest {
     }
 
     private boolean isCensored(String ip) {
-
         GeoData location = lookupService.getGeoData(ip);
-        CountryService countryService = TestUtils.getCountryService();
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
         Country country = countryService.getCountryByCode(location.getCountrycode());
         return country.isCensors();
     }

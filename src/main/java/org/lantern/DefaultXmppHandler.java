@@ -168,11 +168,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final KscopeAdHandler kscopeAdHandler;
 
-    /**
-     * HTTP proxy server other peers hit.
-     */
-    private final SslHttpProxyServer peerProxyServer;
-
     private TimerTask reconnectIfNoPong;
 
     /**
@@ -201,7 +196,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
-        final SslHttpProxyServer peerProxyServer,
         final NatPmpService natPmpService,
         final UpnpService upnpService) {
         this.model = model;
@@ -214,7 +208,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.roster = roster;
         this.proxyTracker = proxyTracker;
         this.kscopeAdHandler = kscopeAdHandler;
-        this.peerProxyServer = peerProxyServer;
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
         Events.register(this);
@@ -234,7 +227,7 @@ public class DefaultXmppHandler implements XmppHandler {
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
 
         this.mappedServer = new MappedTcpAnswererServer(natPmpService,
-            upnpService, new InetSocketAddress(this.peerProxyServer.getPort()));
+            upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
         this.started = true;
     }
 

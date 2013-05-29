@@ -18,7 +18,8 @@ public class ProxifierTest {
         
         ModelUtils stub = newModelUtils();
         // Just make sure we don't get an exception
-        final CountryService countryService = TestUtils.getCountryService();
+        final Censored censored = new DefaultCensored();
+        final CountryService countryService = new CountryService(censored);
         new Proxifier(null, stub, new Model(countryService), null);
     }
 

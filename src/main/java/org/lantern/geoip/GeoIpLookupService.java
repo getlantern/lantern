@@ -109,7 +109,6 @@ public class GeoIpLookupService {
 
         lowerRanges = new IntArrayList();
         upperRanges = new IntArrayList();
-        geoDataByIpRange = new ArrayList<GeoData>();
 
         try {
             loadDataInternal();
@@ -166,10 +165,12 @@ public class GeoIpLookupService {
         compressor.pixelIdToQuantizedLatLon = null;
 
         long startIp = 0;
-        for (int i = 0; i < compressor.ipRangeList.size(); ++i) {
+        final int size = compressor.ipRangeList.size();
+        geoDataByIpRange = new ArrayList<GeoData>(size);
+        for (int i = 0; i < size; ++i) {
             int range = compressor.ipRangeList.get(i);
             int pixelId = compressor.pixelIdList.get(i);
-            GeoData GeoData = geoDataByPixelId.get(pixelId);
+            final GeoData GeoData = geoDataByPixelId.get(pixelId);
             if (startIp < (1L<<31)) {
                 lowerRanges.add((int)startIp);
             } else {

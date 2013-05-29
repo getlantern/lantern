@@ -17,8 +17,11 @@ public class VersionTest {
         Installed installed = version.getInstalled();
         assertFalse(StringUtils.isBlank(installed.getGit()));
 
-        // we will never be running the tests from an installer-generated
-        // version
-        assertTrue(LanternClientConstants.isDevMode());
+        // Tests typically run SNAPSHOT versions, except when using mvn release.
+        if (LanternClientConstants.VERSION.contains("SNAPSHOT")) {
+            assertTrue(LanternClientConstants.isDevMode());
+        } else {
+            assertFalse(LanternClientConstants.isDevMode());
+        }
     }
 }

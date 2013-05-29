@@ -30,7 +30,6 @@ import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.stun.client.PublicIpAddress;

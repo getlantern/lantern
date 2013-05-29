@@ -12,11 +12,12 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.lantern.util.LanternHttpClient;
+import org.lantern.util.HttpClientFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -24,11 +25,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class LanternFeedback {
     
-    private final LanternHttpClient httpClient;
+    private final HttpClient httpClient;
 
     @Inject
-    public LanternFeedback(final LanternHttpClient httpClient) {
-        this.httpClient = httpClient;
+    public LanternFeedback(final HttpClientFactory httpClientFactory) {
+        this.httpClient = httpClientFactory.newClient();
     }
 
     public int submit(String message, String replyTo) throws IOException {
