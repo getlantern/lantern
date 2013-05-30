@@ -25,4 +25,4 @@ mvn release:clean
 # Update to the latest commited code
 git pull || die "Could not pull?"
 
-echo "Finished. You can release from the branch $1"
+echo "Finished. You can release from the tag $1"
