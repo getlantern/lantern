@@ -295,3 +295,29 @@ func Test_reflectArray_concat(t *testing.T) {
         [ xyz, xyz.length ];
     `, "jkl,42,3.14159,true,jkl,mno,abc,[object Object],xyz,9")
 }
+
+func Test_reflectMapInterface(t *testing.T) {
+	Terst(t)
+
+	_, test := runTestWithOtto()
+
+	{
+		abc := map[string]interface{}{
+			"Xyzzy": "Nothing happens.",
+			"def":   "1",
+			"jkl":   "jkl",
+		}
+		failSet("abc", abc)
+
+		test(`
+            abc.xyz = "pqr";
+            abc.ghi = {};
+            abc.jkl = 3.14159;
+            [ abc.Xyzzy, abc.def, abc.ghi ];
+        `, "Nothing happens.,1,[object Object]")
+
+		Is(abc["xyz"], "pqr")
+		Is(abc["ghi"], "[object Object]")
+		Equal(abc["jkl"], float64(3.14159))
+	}
+}

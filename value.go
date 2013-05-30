@@ -651,6 +651,27 @@ func (self Value) export() interface{} {
 	return self
 }
 
+func (self Value) exportPrimitive() interface{} {
+
+	switch self._valueType {
+	case valueUndefined:
+		return self
+	case valueNull:
+		return nil
+	case valueNumber, valueBoolean:
+		return self.value
+	case valueString:
+		switch value := self.value.(type) {
+		case string:
+			return value
+		case []uint16:
+			return string(utf16.Decode(value))
+		}
+	}
+
+	return self
+}
+
 func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	switch kind {
 	case reflect.Bool:
@@ -741,6 +762,8 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		return reflect.ValueOf(float64(value)), nil
 	case reflect.String:
 		return reflect.ValueOf(value.toString()), nil
+	case reflect.Interface:
+		return reflect.ValueOf(value.exportPrimitive()), nil
 	}
 
 	dbgf("%/panic//%@: Invalid: (%v) to reflect.Kind: %v", value, kind)
