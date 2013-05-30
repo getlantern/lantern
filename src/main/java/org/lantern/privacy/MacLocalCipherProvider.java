@@ -45,6 +45,7 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
                 keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
             return base64.decode(encodedKey.getBytes(LanternConstants.UTF8));
         } catch (final OSXKeychainException e) {
+            log.error("OSX keychain error?", e);
             throw new GeneralSecurityException("Keychain error?", e);
         }
     }
