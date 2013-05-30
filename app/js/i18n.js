@@ -34,7 +34,7 @@ angular.module('app.i18n', [])
       SHA1: 'SHA-1',
       WAITING_FOR_LANTERN: 'Waiting for Lantern...',
       UNEXPECTED_STATE_TITLE: 'Unexpected State',
-      UNEXPECTED_STATE_PROMPT: 'Lantern is in an unexpected state. Try refreshing, and if the problem persists, try quitting and restarting. As a last resort, choosing Reset will reset Lantern to its original state. Reporting any additional information about the problem to the Lantern developers can speed its resolution.',
+      UNEXPECTED_STATE_PROMPT: 'Lantern is in an unexpected state. Try refreshing, and if the problem persists, try quitting and restarting.  You could also try reinstalling Lantern. As a last resort, choosing Reset will reset Lantern to its original state. Reporting any additional information about the problem to the Lantern developers can speed its resolution.',
       RESET: 'Reset',
       REFRESH: 'Refresh',
       SETTINGS_UNLOCK_TITLE: 'Unlock Settings',
