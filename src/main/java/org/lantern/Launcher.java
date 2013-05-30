@@ -718,6 +718,8 @@ public class Launcher {
         }
         if (exit) {
             LOG.info("Exiting Lantern");
+            // Give the logger a second to report the error.
+            try {Thread.sleep(6000);} catch (final InterruptedException e) {}
             System.exit(1);
         }
     }
