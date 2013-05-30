@@ -46,6 +46,10 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
             return base64.decode(encodedKey.getBytes(LanternConstants.UTF8));
         } catch (final OSXKeychainException e) {
             log.error("OSX keychain error?", e);
+            Events.asyncEventBus().post(new MessageEvent("Keychain error", 
+                "Sorry, but Lantern experienced a problem reading Lantern " +
+                "data from your keychain. Try resetting Lantern, deleting " +
+                "the Lantern entry in your keychain, or even re-installing."));
             throw new GeneralSecurityException("Keychain error?", e);
         }
     }
@@ -69,7 +73,8 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
             log.error("Error adding to keychain?", e);
             Events.asyncEventBus().post(new MessageEvent("Keychain error", 
                 "Sorry, but there was an error writing to your keychain. " +
-                "Try resetting Lantern or deleting the Lantern entry in your keychain."));
+                "Try resetting Lantern, deleting the Lantern entry in your " +
+                "keychain, or even re-installing."));
             throw new GeneralSecurityException("Keychain error?", e);
         } finally {
             zeroFill(encodedKey);

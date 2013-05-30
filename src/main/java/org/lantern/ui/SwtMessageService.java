@@ -7,18 +7,25 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.lantern.DisplayWrapper;
 import org.lantern.MessageService;
+import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Singleton;
 
+@Singleton
 public class SwtMessageService implements MessageService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final int DEFAULT_QUESTION_FLAGS = 
         SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+    
+    public SwtMessageService() {
+        Events.register(this);
+    }
     
     /**
      * Shows a message to the user using a dialog box;
