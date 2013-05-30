@@ -698,7 +698,13 @@ public class Launcher {
 
     private void handleError(final Throwable t, final boolean exit) {
         final String msg = msg(t);
-        LOG.error("Uncaught exception: "+msg, t);
+        LOG.error("Uncaught exception on\n" +
+                "OS_NAME: "+SystemUtils.OS_NAME +
+                "OS_ARCH: "+SystemUtils.OS_ARCH +
+                "OS_VERSION: "+SystemUtils.OS_VERSION +
+                "USER_COUNTRY: "+SystemUtils.USER_COUNTRY +
+                "USER_LANGUAGE: "+SystemUtils.USER_LANGUAGE +
+                "\n\n"+msg, t);
         if (t instanceof SWTError || msg.contains("SWTError")) {
             System.out.println(
                 "To run without a UI, run lantern with the --" +
