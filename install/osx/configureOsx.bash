@@ -56,7 +56,7 @@ launchctl unload -F $LAUNCHD_PLIST
 
 log "Executing perl replace on Info.plist"
 # The following is done to modify the install4j-generated Info.plist to run without a UI
-perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
+#perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
 
 # Just make sure the launchd Info.plist is using the correct path to our app bundle...
 perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FULL || die "Could not fix Info.plist"
