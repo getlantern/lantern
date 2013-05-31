@@ -19,7 +19,7 @@ BUILD_ID=$4
 #install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 install4jc -b $BUILD_ID -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 
-git=`git rev-parse HEAD | cut -c1-7`
+git=`git rev-parse lantern-$VERSION | cut -c1-7`
 name=lantern-$VERSION-$ARCH-bit-$git.deb
 mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
 

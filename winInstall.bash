@@ -18,7 +18,7 @@ echo "RELEASE flag is $RELEASE"
 
 install4jc -v --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
 
-git=`git rev-parse HEAD | cut -c1-7`
+git=`git rev-parse lantern-$VERSION | cut -c1-7`
 name=lantern-$VERSION-$git.exe
 mv install/Lantern.exe $name || die "Could not move new installer -- failed to create somehow?"
 ./installMetaRefresh.bash win $name latest.exe $RELEASE || die "ERROR: Could not build meta-refresh redirect file"
