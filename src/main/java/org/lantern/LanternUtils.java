@@ -688,16 +688,6 @@ public class LanternUtils {
         return isEmail;
     }
 
-    public static boolean isGoogleTalkReachable() {
-        final Socket sock = new Socket();
-        try {
-            sock.connect(new InetSocketAddress("talk.google.com", 5222), 40000);
-            return true;
-        } catch (final IOException e) {
-            return false;
-        }
-    }
-
     public static Point getScreenCenter(final int width, final int height) {
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
         final Dimension screenSize = toolkit.getScreenSize();

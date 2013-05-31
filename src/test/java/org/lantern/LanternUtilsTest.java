@@ -5,20 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.net.ServerSocketFactory;
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,7 +17,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -50,11 +37,6 @@ public class LanternUtilsTest {
         System.setProperty("javax.net.debug", "ssl");
     }
     
-    @Test 
-    public void testGoogleTalkReachable() throws Exception {
-        assertTrue(LanternUtils.isGoogleTalkReachable());
-    }
-
     @Test
     public void testGetTargetForPath() throws Exception {
         final Model model = TestUtils.getModel();
