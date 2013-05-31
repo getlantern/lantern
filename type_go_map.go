@@ -19,13 +19,14 @@ type _goMapObject struct {
 }
 
 func _newGoMapObject(value reflect.Value) *_goMapObject {
-	if value.Kind() != reflect.Map {
+	valueValue := reflect.Indirect(value)
+	if valueValue.Kind() != reflect.Map {
 		dbgf("%/panic//%@: %v != reflect.Map", value.Kind())
 	}
 	self := &_goMapObject{
 		value:     value,
-		keyKind:   value.Type().Key().Kind(),
-		valueKind: value.Type().Elem().Kind(),
+		keyKind:   valueValue.Type().Key().Kind(),
+		valueKind: valueValue.Type().Elem().Kind(),
 	}
 	return self
 }
@@ -48,7 +49,7 @@ func (self _goMapObject) toValue(value Value) reflect.Value {
 
 func goMapGetOwnProperty(self *_object, name string) *_property {
 	object := self.value.(*_goMapObject)
-	value := object.value.MapIndex(object.toKey(name))
+	value := reflect.Indirect(object.value).MapIndex(object.toKey(name))
 	if value.IsValid() {
 		return &_property{self.runtime.toValue(value.Interface()), 0111}
 	}
@@ -58,7 +59,7 @@ func goMapGetOwnProperty(self *_object, name string) *_property {
 
 func goMapEnumerate(self *_object, each func(string)) {
 	object := self.value.(*_goMapObject)
-	keys := object.value.MapKeys()
+	keys := reflect.Indirect(object.value).MapKeys()
 	for _, key := range keys {
 		each(key.String())
 	}
@@ -73,7 +74,7 @@ func goMapDefineOwnProperty(self *_object, name string, descriptor _property, th
 	if !descriptor.isDataDescriptor() {
 		goto Reject
 	}
-	object.value.SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
+	reflect.Indirect(object.value).SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
 Reject:
 	if throw {
 		panic(newTypeError())
@@ -83,7 +84,7 @@ Reject:
 
 func goMapDelete(self *_object, name string, throw bool) bool {
 	object := self.value.(*_goMapObject)
-	object.value.SetMapIndex(object.toKey(name), reflect.Value{})
+	reflect.Indirect(object.value).SetMapIndex(object.toKey(name), reflect.Value{})
 	// FIXME
 	return true
 }

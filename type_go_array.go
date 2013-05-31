@@ -22,7 +22,7 @@ type _goArrayObject struct {
 func _newGoArrayObject(value reflect.Value) *_goArrayObject {
 	propertyMode := _propertyMode(0110)
 	writable := true
-	switch value.Kind() {
+	switch reflect.Indirect(value).Kind() {
 	case reflect.Slice:
 	case reflect.Array:
 		// TODO We need SliceOf to exists (go1.1)
@@ -41,8 +41,9 @@ func _newGoArrayObject(value reflect.Value) *_goArrayObject {
 }
 
 func (self _goArrayObject) getValue(index int) (reflect.Value, bool) {
-	if index < self.value.Len() {
-		return self.value.Index(index), true
+	value := reflect.Indirect(self.value)
+	if index < value.Len() {
+		return value.Index(index), true
 	}
 	return reflect.Value{}, false
 }
@@ -52,7 +53,7 @@ func (self _goArrayObject) setValue(index int, value Value) {
 	if !exists {
 		return
 	}
-	reflectValue, err := value.toReflectValue(self.value.Type().Elem().Kind())
+	reflectValue, err := value.toReflectValue(reflect.Indirect(self.value).Type().Elem().Kind())
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +65,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 	// length
 	if name == "length" {
 		return &_property{
-			value: toValue(object.value.Len()),
+			value: toValue(reflect.Indirect(object.value).Len()),
 			mode:  0,
 		}
 	}
@@ -103,7 +104,7 @@ func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, 
 		return false
 	} else if index := stringToArrayIndex(name); index >= 0 {
 		object := self.value.(*_goArrayObject)
-		if int(index) >= object.value.Len() {
+		if int(index) >= reflect.Indirect(object.value).Len() {
 			return false
 		}
 		object.setValue(int(index), descriptor.value.(Value))
@@ -123,13 +124,14 @@ func goArrayDelete(self *_object, name string, throw bool) bool {
 	index := int(stringToArrayIndex(name))
 	if index >= 0 {
 		if object.writable {
-			length := object.value.Len()
+			objectValue := reflect.Indirect(object.value)
+			length := objectValue.Len()
 			if index < length {
 				indexValue, exists := object.getValue(index)
 				if !exists {
 					return false
 				}
-				indexValue.Set(reflect.Zero(object.value.Type().Elem()))
+				indexValue.Set(reflect.Zero(objectValue.Type().Elem()))
 				return true
 			}
 		}

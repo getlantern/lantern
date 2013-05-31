@@ -171,6 +171,25 @@ func Test_reflectMap(t *testing.T) {
 		_, exists := abc[2]
 		IsFalse(exists)
 	}
+
+	// map[string]string
+	{
+		abc := &map[string]string{
+			"Xyzzy": "Nothing happens.",
+			"def":   "1",
+		}
+		failSet("abc", abc)
+
+		abc = &map[string]string{}
+
+		test(`
+            abc.xyz = "pqr";
+            [ abc.Xyzzy, abc.def, abc.ghi ];
+        `, "Nothing happens.,1,")
+
+		Is((*abc)["xyz"], "")
+	}
+
 }
 
 func Test_reflectSlice(t *testing.T) {
@@ -315,18 +334,16 @@ func Test_reflectMapInterface(t *testing.T) {
             abc.xyz = "pqr";
             abc.ghi = {};
             abc.jkl = 3.14159;
-            // TODO This should work fine here
-            // abc.mno = mno;
+            abc.mno = mno;
             mno.Abc = true;
             mno.Ghi = "Something happens.";
-            abc.mno = mno;
             [ abc.Xyzzy, abc.def, abc.ghi, abc.mno ];
         `, "Nothing happens.,1,[object Object],[object Object]")
 
 		Is(abc["xyz"], "pqr")
 		Is(abc["ghi"], "[object Object]")
 		Equal(abc["jkl"], float64(3.14159))
-		mno, valid := abc["mno"].(testStruct)
+		mno, valid := abc["mno"].(*testStruct)
 		Is(valid, true)
 		Is(mno.Abc, true)
 		Is(mno.Ghi, "Something happens.")

@@ -17,7 +17,7 @@ type _goStructObject struct {
 }
 
 func _newGoStructObject(value reflect.Value) *_goStructObject {
-	if value.Kind() != reflect.Struct {
+	if reflect.Indirect(value).Kind() != reflect.Struct {
 		dbgf("%/panic//%@: %v != reflect.Struct", value.Kind())
 	}
 	self := &_goStructObject{
@@ -27,11 +27,11 @@ func _newGoStructObject(value reflect.Value) *_goStructObject {
 }
 
 func (self _goStructObject) getValue(name string) reflect.Value {
-	return self.value.FieldByName(name)
+	return reflect.Indirect(self.value).FieldByName(name)
 }
 
 func (self _goStructObject) field(name string) (reflect.StructField, bool) {
-	return self.value.Type().FieldByName(name)
+	return reflect.Indirect(self.value).Type().FieldByName(name)
 }
 
 func (self _goStructObject) setValue(name string, value Value) bool {

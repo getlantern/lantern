@@ -364,8 +364,9 @@ func (self *_runtime) toValue(value interface{}) Value {
 		// Nothing happens.
 	default:
 		{
-			value := reflect.Indirect(reflect.ValueOf(value))
-			switch value.Kind() {
+			value := reflect.ValueOf(value)
+			valueValue := reflect.Indirect(value)
+			switch valueValue.Kind() {
 			case reflect.Struct:
 				return toValue(self.newGoStructObject(value))
 			case reflect.Map:
