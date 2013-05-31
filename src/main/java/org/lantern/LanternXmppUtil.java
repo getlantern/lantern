@@ -40,8 +40,6 @@ public class LanternXmppUtil {
     
     public ConnectionConfiguration xmppConfig() {
         final ConnectionConfiguration config = xmppConfig(null);
-        config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
-        config.setDirectHttpClient(this.httpClientFactory.newClient());
         return config;
     }
     
@@ -78,6 +76,10 @@ public class LanternXmppUtil {
             config.setSocketFactory(
                 new ProxySocketFactory(this.socketsUtil, proxyInfo));
         }
+        
+        config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
+        config.setDirectHttpClient(this.httpClientFactory.newClient());
+        
         config.setSslSocketFactory(this.socketsUtil.newTlsSocketFactoryJavaCipherSuites());
         config.setFallbackProxy(proxyInfo);
         config.setExpiredCertificatesCheckEnabled(true);
