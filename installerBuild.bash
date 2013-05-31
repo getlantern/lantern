@@ -50,13 +50,13 @@ git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
-    FALLBACK_SERVER_HOST="75.101.134.244";
+    FALLBACK_SERVER_HOST="54.251.192.164";
 fi
 perl -pi -e "s/fallback_server_host_tok/$FALLBACK_SERVER_HOST/g" $CONSTANTS_FILE || die "Could not set fallback server host"
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_PORT; then
-    FALLBACK_SERVER_PORT="7777";
+    FALLBACK_SERVER_PORT="11225";
 fi
 perl -pi -e "s/fallback_server_port_tok/$FALLBACK_SERVER_PORT/g" $CONSTANTS_FILE || die "Could not set fallback server port";
 
