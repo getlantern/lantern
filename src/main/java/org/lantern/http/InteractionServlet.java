@@ -172,7 +172,8 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
 
-        if (!model.getXsrfToken().equals(req.getHeader("X-XSRF-TOKEN"))) {
+        if (!LanternUtils.constantTimeEquals(model.getXsrfToken(),
+                req.getHeader("X-XSRF-TOKEN"))) {
             log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
             HttpUtils.sendClientError(resp, "invalid X-XSRF-TOKEN");
             return;
