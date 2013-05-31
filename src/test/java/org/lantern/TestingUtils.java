@@ -146,7 +146,9 @@ public class TestingUtils {
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);
         
-        final Stats stats = mock(Stats.class);
+        // Using a mock here creates an OOME and/or stack overflow when trying
+        // to convert to JSON. Use a stub instead.
+        final Stats stats = new StatsStub();
         final java.util.Timer updateTimer = new java.util.Timer();
 
         final HttpClientFactory clientFactory =
