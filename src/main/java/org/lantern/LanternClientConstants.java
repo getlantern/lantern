@@ -33,8 +33,8 @@ public class LanternClientConstants {
     static {
         final String host = "fallback_server_host_tok";
         final String port = "fallback_server_port_tok";
-        FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "75.101.134.244" : host;
-        FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "7777" : port;
+        FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "54.251.192.164" : host;
+        FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "11225" : port;
         final Properties prop = new Properties();
         try {
             final ClassLoader cl = 

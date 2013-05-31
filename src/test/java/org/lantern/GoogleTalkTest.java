@@ -11,6 +11,7 @@ public class GoogleTalkTest {
     @Test
     public void testGoogleTalk() throws Exception {
         
+        Launcher.configureCipherSuites();
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
         final Model model = new Model(countryService);
