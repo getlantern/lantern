@@ -52,7 +52,7 @@ public class GeoIpLookupService {
                 loadData();
             }
         };
-        Thread thread = new Thread(runnable);
+        Thread thread = new Thread(runnable, "Geo-IP-Loading-Thread");
         thread.setDaemon(true);
         thread.start();
     }
