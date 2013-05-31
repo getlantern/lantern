@@ -651,7 +651,7 @@ func (self Value) export() interface{} {
 	return self
 }
 
-func (self Value) exportPrimitive() interface{} {
+func (self Value) exportNative() interface{} {
 
 	switch self._valueType {
 	case valueUndefined:
@@ -666,6 +666,16 @@ func (self Value) exportPrimitive() interface{} {
 			return value
 		case []uint16:
 			return string(utf16.Decode(value))
+		}
+	case valueObject:
+		object := self._object()
+		switch value := object.value.(type) {
+		case *_goStructObject:
+			return value.value.Interface()
+		case *_goMapObject:
+			return value.value.Interface()
+		case *_goArrayObject:
+			return value.value.Interface()
 		}
 	}
 
@@ -763,7 +773,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	case reflect.String:
 		return reflect.ValueOf(value.toString()), nil
 	case reflect.Interface:
-		return reflect.ValueOf(value.exportPrimitive()), nil
+		return reflect.ValueOf(value.exportNative()), nil
 	}
 
 	dbgf("%/panic//%@: Invalid: (%v) to reflect.Kind: %v", value, kind)
