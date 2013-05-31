@@ -12,6 +12,7 @@ fi
 
 grep "<version>$1-SNAPSHOT</version>" pom.xml || die "$1 not found in pom.xml"
 
+mvn release:clean || die "Could not clean release?"
 mvn release:prepare || die "Could not prepare release?"
 
 #echo "Creating branch $1"
