@@ -19,14 +19,13 @@ type _goMapObject struct {
 }
 
 func _newGoMapObject(value reflect.Value) *_goMapObject {
-	valueValue := reflect.Indirect(value)
-	if valueValue.Kind() != reflect.Map {
+	if value.Kind() != reflect.Map {
 		dbgf("%/panic//%@: %v != reflect.Map", value.Kind())
 	}
 	self := &_goMapObject{
 		value:     value,
-		keyKind:   valueValue.Type().Key().Kind(),
-		valueKind: valueValue.Type().Elem().Kind(),
+		keyKind:   value.Type().Key().Kind(),
+		valueKind: value.Type().Elem().Kind(),
 	}
 	return self
 }
@@ -49,7 +48,7 @@ func (self _goMapObject) toValue(value Value) reflect.Value {
 
 func goMapGetOwnProperty(self *_object, name string) *_property {
 	object := self.value.(*_goMapObject)
-	value := reflect.Indirect(object.value).MapIndex(object.toKey(name))
+	value := object.value.MapIndex(object.toKey(name))
 	if value.IsValid() {
 		return &_property{self.runtime.toValue(value.Interface()), 0111}
 	}
@@ -59,7 +58,7 @@ func goMapGetOwnProperty(self *_object, name string) *_property {
 
 func goMapEnumerate(self *_object, each func(string)) {
 	object := self.value.(*_goMapObject)
-	keys := reflect.Indirect(object.value).MapKeys()
+	keys := object.value.MapKeys()
 	for _, key := range keys {
 		each(key.String())
 	}
@@ -69,22 +68,18 @@ func goMapDefineOwnProperty(self *_object, name string, descriptor _property, th
 	object := self.value.(*_goMapObject)
 	// TODO ...or 0222
 	if descriptor.mode != 0111 {
-		goto Reject
+		return typeErrorResult(throw)
 	}
 	if !descriptor.isDataDescriptor() {
-		goto Reject
+		return typeErrorResult(throw)
 	}
-	reflect.Indirect(object.value).SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
-Reject:
-	if throw {
-		panic(newTypeError())
-	}
-	return false
+	object.value.SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
+	return true
 }
 
 func goMapDelete(self *_object, name string, throw bool) bool {
 	object := self.value.(*_goMapObject)
-	reflect.Indirect(object.value).SetMapIndex(object.toKey(name), reflect.Value{})
+	object.value.SetMapIndex(object.toKey(name), reflect.Value{})
 	// FIXME
 	return true
 }

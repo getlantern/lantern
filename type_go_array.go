@@ -20,22 +20,15 @@ type _goArrayObject struct {
 }
 
 func _newGoArrayObject(value reflect.Value) *_goArrayObject {
-	propertyMode := _propertyMode(0110)
-	writable := true
-	switch reflect.Indirect(value).Kind() {
-	case reflect.Slice:
-	case reflect.Array:
-		// TODO We need SliceOf to exists (go1.1)
-		// TODO Mark as unwritable for now
-		propertyMode = 0010
-		writable = false
-	default:
-		dbgf("%/panic//%@: %v != reflect.Slice", value.Kind())
+	writable := value.Kind() == reflect.Ptr // The Array is addressable (like a Slice)
+	mode := _propertyMode(0010)
+	if writable {
+		mode = 0110
 	}
 	self := &_goArrayObject{
 		value:        value,
 		writable:     writable,
-		propertyMode: propertyMode,
+		propertyMode: mode,
 	}
 	return self
 }
@@ -48,24 +41,24 @@ func (self _goArrayObject) getValue(index int) (reflect.Value, bool) {
 	return reflect.Value{}, false
 }
 
-func (self _goArrayObject) setValue(index int, value Value) {
+func (self _goArrayObject) setValue(index int, value Value) bool {
 	indexValue, exists := self.getValue(index)
 	if !exists {
-		return
+		return false
 	}
 	reflectValue, err := value.toReflectValue(reflect.Indirect(self.value).Type().Elem().Kind())
 	if err != nil {
 		panic(err)
 	}
 	indexValue.Set(reflectValue)
+	return true
 }
 
 func goArrayGetOwnProperty(self *_object, name string) *_property {
-	object := self.value.(*_goArrayObject)
 	// length
 	if name == "length" {
 		return &_property{
-			value: toValue(reflect.Indirect(object.value).Len()),
+			value: toValue(reflect.Indirect(self.value.(*_goArrayObject).value).Len()),
 			mode:  0,
 		}
 	}
@@ -73,6 +66,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 	// .0, .1, .2, ...
 	index := stringToArrayIndex(name)
 	if index >= 0 {
+		object := self.value.(*_goArrayObject)
 		value := UndefinedValue()
 		reflectValue, exists := object.getValue(int(index))
 		if exists {
@@ -80,7 +74,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 		}
 		return &_property{
 			value: value,
-			mode:  object.propertyMode, // If addressable or not
+			mode:  object.propertyMode,
 		}
 	}
 
@@ -101,41 +95,37 @@ func goArrayEnumerate(self *_object, each func(string)) {
 
 func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
 	if name == "length" {
-		return false
+		return typeErrorResult(throw)
 	} else if index := stringToArrayIndex(name); index >= 0 {
 		object := self.value.(*_goArrayObject)
-		if int(index) >= reflect.Indirect(object.value).Len() {
-			return false
+		if object.writable {
+			if self.value.(*_goArrayObject).setValue(int(index), descriptor.value.(Value)) {
+				return true
+			}
 		}
-		object.setValue(int(index), descriptor.value.(Value))
-		return true
+		return typeErrorResult(throw)
 	}
 	return objectDefineOwnProperty(self, name, descriptor, throw)
 }
 
 func goArrayDelete(self *_object, name string, throw bool) bool {
-	object := self.value.(*_goArrayObject)
 	// length
 	if name == "length" {
-		return false
+		return typeErrorResult(throw)
 	}
 
 	// .0, .1, .2, ...
 	index := int(stringToArrayIndex(name))
 	if index >= 0 {
+		object := self.value.(*_goArrayObject)
 		if object.writable {
-			objectValue := reflect.Indirect(object.value)
-			length := objectValue.Len()
-			if index < length {
-				indexValue, exists := object.getValue(index)
-				if !exists {
-					return false
-				}
-				indexValue.Set(reflect.Zero(objectValue.Type().Elem()))
+			indexValue, exists := object.getValue(index)
+			if exists {
+				indexValue.Set(reflect.Zero(reflect.Indirect(object.value).Type().Elem()))
 				return true
 			}
 		}
-		return false
+		return typeErrorResult(throw)
 	}
 
 	return self.delete(name, throw)

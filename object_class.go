@@ -29,6 +29,7 @@ var (
 	_classGoStruct,
 	_classGoMap,
 	_classGoArray,
+	_classGoSlice,
 	_ *_objectClass
 )
 
@@ -122,6 +123,19 @@ func init() {
 		goArrayDefineOwnProperty,
 		goArrayDelete,
 		goArrayEnumerate,
+	}
+
+	_classGoSlice = &_objectClass{
+		goSliceGetOwnProperty,
+		objectGetProperty,
+		objectGet,
+		objectCanPut,
+		objectPut,
+		objectHasProperty,
+		objectHasOwnProperty,
+		goSliceDefineOwnProperty,
+		goSliceDelete,
+		goSliceEnumerate,
 	}
 }
 

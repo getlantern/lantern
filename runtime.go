@@ -365,20 +365,38 @@ func (self *_runtime) toValue(value interface{}) Value {
 	default:
 		{
 			value := reflect.ValueOf(value)
-			valueValue := reflect.Indirect(value)
-			switch valueValue.Kind() {
+			switch value.Kind() {
+			case reflect.Ptr:
+				switch reflect.Indirect(value).Kind() {
+				case reflect.Struct:
+					return toValue(self.newGoStructObject(value))
+				case reflect.Array:
+					return toValue(self.newGoArray(value))
+				}
 			case reflect.Struct:
 				return toValue(self.newGoStructObject(value))
 			case reflect.Map:
 				return toValue(self.newGoMapObject(value))
-			case reflect.Slice, reflect.Array:
-				object := self.newGoArrayObject(value)
-				object.prototype = self.Global.ArrayPrototype
-				return toValue(object)
+			case reflect.Slice:
+				return toValue(self.newGoSlice(value))
+			case reflect.Array:
+				return toValue(self.newGoArray(value))
 			}
 		}
 	}
 	return toValue(value)
+}
+
+func (runtime *_runtime) newGoSlice(value reflect.Value) *_object {
+	self := runtime.newGoSliceObject(value)
+	self.prototype = runtime.Global.ArrayPrototype
+	return self
+}
+
+func (runtime *_runtime) newGoArray(value reflect.Value) *_object {
+	self := runtime.newGoArrayObject(value)
+	self.prototype = runtime.Global.ArrayPrototype
+	return self
 }
 
 func (self *_runtime) run(source string) Value {

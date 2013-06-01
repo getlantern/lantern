@@ -36,20 +36,20 @@ func Test_reflectStruct(t *testing.T) {
 		failSet("abc", abc)
 
 		test(`
-            [ abc.Abc, abc.Ghi ]
+            [ abc.Abc, abc.Ghi ];
         `, "false,")
 
 		abc.Abc = true
 		abc.Ghi = "Nothing happens."
 
 		test(`
-            [ abc.Abc, abc.Ghi ]
+            [ abc.Abc, abc.Ghi ];
         `, "true,Nothing happens.")
 
 		*abc = testStruct{}
 
 		test(`
-            [ abc.Abc, abc.Ghi ]
+            [ abc.Abc, abc.Ghi ];
         `, "false,")
 
 		abc.Abc = true
@@ -57,7 +57,7 @@ func Test_reflectStruct(t *testing.T) {
 		failSet("abc", abc)
 
 		test(`
-            [ abc.Abc, abc.Ghi ]
+            [ abc.Abc, abc.Ghi ];
         `, "true,Xyzzy")
 
 		Is(abc.Abc, true)
@@ -172,24 +172,6 @@ func Test_reflectMap(t *testing.T) {
 		IsFalse(exists)
 	}
 
-	// map[string]string
-	{
-		abc := &map[string]string{
-			"Xyzzy": "Nothing happens.",
-			"def":   "1",
-		}
-		failSet("abc", abc)
-
-		abc = &map[string]string{}
-
-		test(`
-            abc.xyz = "pqr";
-            [ abc.Xyzzy, abc.def, abc.ghi ];
-        `, "Nothing happens.,1,")
-
-		Is((*abc)["xyz"], "")
-	}
-
 }
 
 func Test_reflectSlice(t *testing.T) {
@@ -208,16 +190,17 @@ func Test_reflectSlice(t *testing.T) {
 		failSet("abc", abc)
 
 		test(`
-            abc
+            abc;
         `, "false,true,true,false")
 
 		test(`
-            abc[0] = true
-            abc[abc.length-1] = true
-            abc
-        `, "true,true,true,true")
+            abc[0] = true;
+            abc[abc.length-1] = true;
+            delete abc[2];
+            abc;
+        `, "true,true,false,true")
 
-		Is(abc, []bool{true, true, true, true})
+		Is(abc, []bool{true, true, false, true})
 		Is(abc[len(abc)-1], true)
 	}
 
@@ -227,21 +210,21 @@ func Test_reflectSlice(t *testing.T) {
 		failSet("abc", abc)
 
 		test(`
-            abc
+            abc;
         `, "0,0,0,0")
 
 		test(`
-            abc[0] = 4.2
-            abc[1] = "42"
-            abc[2] = 3.14
-            abc
+            abc[0] = 4.2;
+            abc[1] = "42";
+            abc[2] = 3.14;
+            abc;
         `, "4,42,3,0")
 
 		Is(abc, []int32{4, 42, 3, 0})
 
 		test(`
-            delete abc[1]
-            delete abc[2]
+            delete abc[1];
+            delete abc[2];
         `)
 		Is(abc[1], 0)
 		Is(abc[2], 0)
@@ -254,7 +237,7 @@ func Test_reflectArray(t *testing.T) {
 	_, test := runTestWithOtto()
 
 	// []bool
-	{
+	if false {
 		abc := [4]bool{
 			false,
 			true,
@@ -264,14 +247,14 @@ func Test_reflectArray(t *testing.T) {
 		failSet("abc", abc)
 
 		test(`
-            abc
+            abc;
         `, "false,true,true,false")
 		// Unaddressable array
 
 		test(`
-            abc[0] = true
-            abc[abc.length-1] = true
-            abc
+            abc[0] = true;
+            abc[abc.length-1] = true;
+            abc;
         `, "false,true,true,false")
 		// Again, unaddressable array
 
@@ -281,23 +264,49 @@ func Test_reflectArray(t *testing.T) {
 	}
 
 	// []int32
-	{
+	if false {
 		abc := make([]int32, 4)
-		failSet("abc", &abc) // Addressable
+		failSet("abc", abc)
 
 		test(`
-            abc
+            abc;
         `, "0,0,0,0")
 
 		test(`
-            abc[0] = 4.2
-            abc[1] = "42"
-            abc[2] = 3.14
-            abc
+            abc[0] = 4.2;
+            abc[1] = "42";
+            abc[2] = 3.14;
+            abc;
         `, "4,42,3,0")
 
 		Is(abc, []int32{4, 42, 3, 0})
 	}
+
+	// []bool
+	{
+		abc := [4]bool{
+			false,
+			true,
+			true,
+			false,
+		}
+		failSet("abc", &abc)
+
+		test(`
+            abc;
+        `, "false,true,true,false")
+
+		test(`
+            abc[0] = true;
+            abc[abc.length-1] = true;
+            delete abc[2];
+            abc;
+        `, "true,true,false,true")
+
+		Is(abc, [4]bool{true, true, false, true})
+		Is(abc[len(abc)-1], true)
+	}
+
 }
 
 func Test_reflectArray_concat(t *testing.T) {
