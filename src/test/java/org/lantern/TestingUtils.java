@@ -1,7 +1,6 @@
 package org.lantern; 
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -155,7 +154,7 @@ public class TestingUtils {
                 new HttpClientFactory(socketsUtil, censored);
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, clientFactory);
         
-        final ModelUtils modelUtils = new DefaultModelUtils(model, clientFactory);
+        final ModelUtils modelUtils = new DefaultModelUtils(model);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         final Roster roster = new Roster(routingTable, model, censored);
         
