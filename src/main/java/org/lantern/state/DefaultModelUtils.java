@@ -4,23 +4,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.HttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.lantern.GeoData;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
-import org.lantern.util.HttpClientFactory;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,18 +33,9 @@ public class DefaultModelUtils implements ModelUtils {
     
     private final Model model;
 
-    private HttpClient httpClient;
-    
-    private final Map<String, GeoData> geoCache = 
-        new HashMap<String, GeoData>();
-
-    private final HttpClientFactory httpClientFactory;
-    
     @Inject
-    public DefaultModelUtils(final Model model, 
-        final HttpClientFactory httpClientFactory) {
+    public DefaultModelUtils(final Model model) {
         this.model = model;
-        this.httpClientFactory = httpClientFactory;
     }
     
     /**
@@ -235,5 +221,10 @@ public class DefaultModelUtils implements ModelUtils {
     public void syncConnectingStatus(final String msg) {
         this.model.getConnectivity().setConnectingStatus(msg);
         Events.syncConnectingStatus(msg);
+    }
+
+    @Override
+    public boolean isGet() {
+        return this.model.getSettings().getMode() == Mode.get;
     }
 }
