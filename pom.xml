@@ -33,7 +33,6 @@
     <connection>scm:git:git://github.com/getlantern/lantern.git</connection>
     <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
     <url>scm:git:git@github.com:getlantern/lantern.git</url>
-    <tag>0.21.3-1</tag>
   </scm>
 
   <dependencies>
