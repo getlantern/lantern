@@ -65,7 +65,12 @@ func argumentsGetOwnProperty(self *_object, name string) *_property {
 
 func argumentsDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
 	if _, exists := self.value.(*_argumentsObject).get(name); exists {
-		self.value.(*_argumentsObject).put(name, descriptor.value.(Value))
+		if !objectDefineOwnProperty(self, name, descriptor, false) {
+			return typeErrorResult(throw)
+		}
+		if value, valid := descriptor.value.(Value); valid {
+			self.value.(*_argumentsObject).put(name, value)
+		}
 		return true
 	}
 	return objectDefineOwnProperty(self, name, descriptor, throw)

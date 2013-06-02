@@ -189,3 +189,19 @@ func TestObject_freeze(t *testing.T) {
 	test(`Object.freeze.length`, "1")
 	test(`Object.freeze.prototype`, "undefined")
 }
+
+func TestObject_defineProperty(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        (function(abc, def, ghi){
+            Object.defineProperty(arguments, "0", {
+                enumerable: false
+            });
+            return true;
+        })(0, 1, 2);
+        `,
+		"true",
+	)
+}
