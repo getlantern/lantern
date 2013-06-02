@@ -155,6 +155,17 @@ func TestObject_isFrozen(t *testing.T) {
 	test(`Object.isFrozen(Object.preventExtensions({a:1}))`, "false")
 	test(`Object.isFrozen({})`, "false")
 
+	test(`
+        var abc = {};
+        Object.defineProperty(abc, "def", {
+            value: "def",
+            writable: true,
+            configurable: false
+        });
+        Object.preventExtensions(abc);
+        !Object.isFrozen(abc);
+    `, "true")
+
 	test(`Object.isFrozen.length`, "1")
 	test(`Object.isFrozen.prototype`, "undefined")
 }

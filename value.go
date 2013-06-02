@@ -641,7 +641,8 @@ func (self Value) export() interface{} {
 			return result
 		} else {
 			result := make(map[string]interface{})
-			object.enumerate(func(name string) {
+			// TODO Should we export everything? Or just what is enumerable?
+			object.enumerate(false, func(name string) {
 				result[name] = object.get(name).export()
 			})
 			return result

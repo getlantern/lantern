@@ -81,7 +81,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 	return objectGetOwnProperty(self, name)
 }
 
-func goArrayEnumerate(self *_object, each func(string)) {
+func goArrayEnumerate(self *_object, all bool, each func(string)) {
 	object := self.value.(*_goArrayObject)
 	// .0, .1, .2, ...
 
@@ -90,7 +90,7 @@ func goArrayEnumerate(self *_object, each func(string)) {
 		each(name)
 	}
 
-	objectEnumerate(self, each)
+	objectEnumerate(self, all, each)
 }
 
 func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {

@@ -114,8 +114,8 @@ func (self *_object) delete(name string, throw bool) bool {
 	return self.objectClass.delete(self, name, throw)
 }
 
-func (self *_object) enumerate(each func(string)) {
-	self.objectClass.enumerate(self, each)
+func (self *_object) enumerate(all bool, each func(string)) {
+	self.objectClass.enumerate(self, all, each)
 }
 
 func (self *_object) write(definition ...interface{}) {

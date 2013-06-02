@@ -10,12 +10,12 @@ type _objectClass struct {
 	hasOwnProperty    func(*_object, string) bool
 	defineOwnProperty func(*_object, string, _property, bool) bool
 	delete            func(*_object, string, bool) bool
-	enumerate         func(*_object, func(string))
+	enumerate         func(*_object, bool, func(string))
 }
 
-func objectEnumerate(self *_object, each func(string)) {
+func objectEnumerate(self *_object, all bool, each func(string)) {
 	for _, name := range self.propertyOrder {
-		if self.property[name].enumerable() {
+		if all || self.property[name].enumerable() {
 			each(name)
 		}
 	}

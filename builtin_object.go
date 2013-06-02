@@ -98,7 +98,7 @@ func builtinObject_defineProperties(call FunctionCall) Value {
 	}
 
 	properties := call.runtime.toObject(call.Argument(1))
-	properties.enumerate(func(name string) {
+	properties.enumerate(true, func(name string) {
 		descriptor := toPropertyDescriptor(properties.get(name))
 		object.defineOwnProperty(name, descriptor, true)
 	})
@@ -118,7 +118,7 @@ func builtinObject_create(call FunctionCall) Value {
 	propertiesValue := call.Argument(1)
 	if propertiesValue.IsDefined() {
 		properties := call.runtime.toObject(propertiesValue)
-		properties.enumerate(func(name string) {
+		properties.enumerate(true, func(name string) {
 			descriptor := toPropertyDescriptor(properties.get(name))
 			object.defineOwnProperty(name, descriptor, true)
 		})
@@ -152,7 +152,7 @@ func builtinObject_isSealed(call FunctionCall) Value {
 			return toValue(false)
 		}
 		result := true
-		object.enumerate(func(name string) {
+		object.enumerate(true, func(name string) {
 			property := object.getProperty(name)
 			if property.configurable() {
 				result = false
@@ -166,7 +166,7 @@ func builtinObject_isSealed(call FunctionCall) Value {
 func builtinObject_seal(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		object.enumerate(func(name string) {
+		object.enumerate(true, func(name string) {
 			if property := object.getOwnProperty(name); nil != property && property.configurable() {
 				property.configureOff()
 				object.defineOwnProperty(name, *property, true)
@@ -186,7 +186,7 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 			return toValue(false)
 		}
 		result := true
-		object.enumerate(func(name string) {
+		object.enumerate(true, func(name string) {
 			property := object.getProperty(name)
 			if property.configurable() || property.writable() {
 				result = false
@@ -200,7 +200,7 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 func builtinObject_freeze(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		object.enumerate(func(name string) {
+		object.enumerate(true, func(name string) {
 			if property, update := object.getOwnProperty(name), false; nil != property {
 				if property.isDataDescriptor() && property.writable() {
 					property.writeOff()

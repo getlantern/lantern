@@ -44,12 +44,12 @@ func utf16Of(value string) []uint16 {
 	return utf16.Encode([]rune(value))
 }
 
-func stringEnumerate(self *_object, each func(string)) {
+func stringEnumerate(self *_object, all bool, each func(string)) {
 	length := len(self.stringValue16())
 	for index := 0; index < length; index += 1 {
 		each(strconv.FormatInt(int64(index), 10))
 	}
-	objectEnumerate(self, each)
+	objectEnumerate(self, all, each)
 }
 
 func stringGetOwnProperty(self *_object, name string) *_property {

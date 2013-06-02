@@ -70,7 +70,7 @@ func goSliceGetOwnProperty(self *_object, name string) *_property {
 	return objectGetOwnProperty(self, name)
 }
 
-func goSliceEnumerate(self *_object, each func(string)) {
+func goSliceEnumerate(self *_object, all bool, each func(string)) {
 	object := self.value.(*_goSliceObject)
 	// .0, .1, .2, ...
 
@@ -79,7 +79,7 @@ func goSliceEnumerate(self *_object, each func(string)) {
 		each(name)
 	}
 
-	objectEnumerate(self, each)
+	objectEnumerate(self, all, each)
 }
 
 func goSliceDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {

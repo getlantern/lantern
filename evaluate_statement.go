@@ -216,7 +216,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 		result := emptyValue()
 		object := sourceObject
 		for object != nil {
-			object.enumerate(func(name string) {
+			object.enumerate(false, func(name string) {
 				into := self.evaluate(into)
 				// In the case of: for (var abc in def) ...
 				if into.reference() == nil {
