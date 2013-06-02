@@ -83,7 +83,7 @@ func init() {
 		objectHasOwnProperty,
 		argumentsDefineOwnProperty,
 		argumentsDelete,
-		objectEnumerate,
+		argumentsEnumerate,
 	}
 
 	_classGoStruct = &_objectClass{

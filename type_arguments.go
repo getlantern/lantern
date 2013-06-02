@@ -1,5 +1,9 @@
 package otto
 
+import (
+	"strconv"
+)
+
 func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, environment _environment, length int) *_object {
 	self := runtime.newClassObject("Arguments")
 
@@ -82,4 +86,16 @@ func argumentsDelete(self *_object, name string, throw bool) bool {
 		return true
 	}
 	return objectDelete(self, name, throw)
+}
+
+func argumentsEnumerate(self *_object, all bool, each func(string)) {
+	{
+		object := self.value.(*_argumentsObject)
+		for index, value := range object.indexOfParameterName {
+			if value != "" {
+				each(strconv.FormatInt(int64(index), 10))
+			}
+		}
+		objectEnumerate(self, all, each)
+	}
 }
