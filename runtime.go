@@ -124,7 +124,7 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 
 func (self *_runtime) _callNode(function *_object, environment *_functionEnvironment, node *_functionNode, this Value, argumentList []Value) Value {
 
-	indexOfParameterName := make([]string, len(node.ParameterList))
+	indexOfParameterName := make([]string, len(argumentList))
 	// function(abc, def, ghi)
 	// indexOfParameterName[0] = "abc"
 	// indexOfParameterName[1] = "def"
@@ -135,8 +135,8 @@ func (self *_runtime) _callNode(function *_object, environment *_functionEnviron
 		value := UndefinedValue()
 		if index < len(argumentList) {
 			value = argumentList[index]
+			indexOfParameterName[index] = name
 		}
-		indexOfParameterName[index] = name
 		self.localSet(name, value)
 	}
 

@@ -254,11 +254,15 @@ func TestObject_keys(t *testing.T) {
 		Object.keys(ghi);
 	`, "ghi")
 
-	if false {
-		test(`
-            (function(abc, def, ghi){
-                return Object.keys(arguments)
-            })(undefined, undefined);
-        `, "0,1")
-	}
+	test(`
+        (function(abc, def, ghi){
+            return Object.keys(arguments)
+        })(undefined, undefined);
+    `, "0,1")
+
+	test(`
+        (function(abc, def, ghi){
+            return Object.keys(arguments)
+        })(undefined, undefined, undefined, undefined);
+    `, "0,1,2,3")
 }
