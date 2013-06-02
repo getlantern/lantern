@@ -682,7 +682,7 @@ func newContext() *_runtime {
 		builtinNewError,
 		self.Global.ErrorPrototype,
 		"name", toValue("Error"),
-		"toString", 0, builtinError_toString,
+		"message", toValue(""),
 		"toString", 0, builtinError_toString,
 	)
 

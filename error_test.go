@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func TestError(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        [ Error.prototype.name, Error.prototype.message, Error.prototype.hasOwnProperty("message") ];
+    `, "Error,,true")
+}
+
 func TestError_instanceof(t *testing.T) {
 	Terst(t)
 

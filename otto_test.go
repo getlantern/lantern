@@ -242,7 +242,7 @@ func Test_evalDirectIndirect(t *testing.T) {
     `, "true")
 }
 
-func TestError(t *testing.T) {
+func TestError_URIError(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
