@@ -221,3 +221,13 @@ func builtinObject_freeze(call FunctionCall) Value {
 	}
 	return object
 }
+
+func builtinObject_keys(call FunctionCall) Value {
+	if object, keys := call.Argument(0)._object(), []Value{}; nil != object {
+		object.enumerate(false, func(name string) {
+			keys = append(keys, toValue(name))
+		})
+		return toValue(call.runtime.newArrayOf(keys))
+	}
+	panic(newTypeError())
+}

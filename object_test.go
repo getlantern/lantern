@@ -216,3 +216,49 @@ func TestObject_defineProperty(t *testing.T) {
 		"true",
 	)
 }
+
+func TestObject_keys(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`Object.keys({ abc:undefined, def:undefined })`, "abc,def")
+
+	test(`
+		function abc() {
+            this.abc = undefined;
+            this.def = undefined;
+        }
+		Object.keys(new abc())
+	`, "abc,def")
+
+	test(`
+		function def() {
+            this.ghi = undefined;
+        }
+		def.prototype = new abc();
+		Object.keys(new def());
+	`, "ghi")
+
+	test(`
+		var ghi = Object.create(
+            {
+                abc: undefined,
+                def: undefined
+            },
+            {
+                ghi: { value: undefined, enumerable: true },
+                jkl: { value: undefined, enumerable: false }
+		    }
+        );
+		Object.keys(ghi);
+	`, "ghi")
+
+	if false {
+		test(`
+            (function(abc, def, ghi){
+                return Object.keys(arguments)
+            })(undefined, undefined);
+        `, "0,1")
+	}
+}
