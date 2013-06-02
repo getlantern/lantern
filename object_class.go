@@ -217,6 +217,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		typeErrorResult(throw)
 		return
 	}
+	// TODO This is not exacting to the specification
 	// TODO Shortcut?
 	property := self.getOwnProperty(name)
 	if property == nil {

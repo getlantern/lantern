@@ -40,6 +40,16 @@ func TestArray(t *testing.T) {
         abc.length = 2;
         abc;
     `, "0,1")
+
+	test(`
+        Object.defineProperty(Array.prototype, "0", {
+            value: 100,
+            writable: false,
+            configurable: true
+        });
+        abc = [101];
+        abc.hasOwnProperty("0") && abc[0] === 101;
+    `, "true")
 }
 
 func TestArray_toString(t *testing.T) {

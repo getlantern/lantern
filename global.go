@@ -781,7 +781,7 @@ func (runtime *_runtime) newArray(length uint32) *_object {
 func (runtime *_runtime) newArrayOf(valueArray []Value) *_object {
 	self := runtime.newArray(uint32(len(valueArray)))
 	for index, value := range valueArray {
-		self.put(strconv.FormatInt(int64(index), 10), value, false)
+		self.defineProperty(strconv.FormatInt(int64(index), 10), value, 0111, false)
 	}
 	return self
 }
