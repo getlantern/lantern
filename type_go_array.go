@@ -33,15 +33,15 @@ func _newGoArrayObject(value reflect.Value) *_goArrayObject {
 	return self
 }
 
-func (self _goArrayObject) getValue(index int) (reflect.Value, bool) {
+func (self _goArrayObject) getValue(index int64) (reflect.Value, bool) {
 	value := reflect.Indirect(self.value)
-	if index < value.Len() {
-		return value.Index(index), true
+	if index < int64(value.Len()) {
+		return value.Index(int(index)), true
 	}
 	return reflect.Value{}, false
 }
 
-func (self _goArrayObject) setValue(index int, value Value) bool {
+func (self _goArrayObject) setValue(index int64, value Value) bool {
 	indexValue, exists := self.getValue(index)
 	if !exists {
 		return false
@@ -68,7 +68,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 	if index >= 0 {
 		object := self.value.(*_goArrayObject)
 		value := UndefinedValue()
-		reflectValue, exists := object.getValue(int(index))
+		reflectValue, exists := object.getValue(index)
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())
 		}
@@ -99,7 +99,7 @@ func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, 
 	} else if index := stringToArrayIndex(name); index >= 0 {
 		object := self.value.(*_goArrayObject)
 		if object.writable {
-			if self.value.(*_goArrayObject).setValue(int(index), descriptor.value.(Value)) {
+			if self.value.(*_goArrayObject).setValue(index, descriptor.value.(Value)) {
 				return true
 			}
 		}
@@ -115,7 +115,7 @@ func goArrayDelete(self *_object, name string, throw bool) bool {
 	}
 
 	// .0, .1, .2, ...
-	index := int(stringToArrayIndex(name))
+	index := stringToArrayIndex(name)
 	if index >= 0 {
 		object := self.value.(*_goArrayObject)
 		if object.writable {

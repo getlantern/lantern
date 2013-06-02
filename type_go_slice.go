@@ -24,14 +24,14 @@ func _newGoSliceObject(value reflect.Value) *_goSliceObject {
 	return self
 }
 
-func (self _goSliceObject) getValue(index int) (reflect.Value, bool) {
-	if index < self.value.Len() {
-		return self.value.Index(index), true
+func (self _goSliceObject) getValue(index int64) (reflect.Value, bool) {
+	if index < int64(self.value.Len()) {
+		return self.value.Index(int(index)), true
 	}
 	return reflect.Value{}, false
 }
 
-func (self _goSliceObject) setValue(index int, value Value) bool {
+func (self _goSliceObject) setValue(index int64, value Value) bool {
 	indexValue, exists := self.getValue(index)
 	if !exists {
 		return false
@@ -57,7 +57,7 @@ func goSliceGetOwnProperty(self *_object, name string) *_property {
 	index := stringToArrayIndex(name)
 	if index >= 0 {
 		value := UndefinedValue()
-		reflectValue, exists := self.value.(*_goSliceObject).getValue(int(index))
+		reflectValue, exists := self.value.(*_goSliceObject).getValue(index)
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())
 		}
@@ -86,7 +86,7 @@ func goSliceDefineOwnProperty(self *_object, name string, descriptor _property, 
 	if name == "length" {
 		return typeErrorResult(throw)
 	} else if index := stringToArrayIndex(name); index >= 0 {
-		if self.value.(*_goSliceObject).setValue(int(index), descriptor.value.(Value)) {
+		if self.value.(*_goSliceObject).setValue(index, descriptor.value.(Value)) {
 			return true
 		}
 		return typeErrorResult(throw)
@@ -101,7 +101,7 @@ func goSliceDelete(self *_object, name string, throw bool) bool {
 	}
 
 	// .0, .1, .2, ...
-	index := int(stringToArrayIndex(name))
+	index := stringToArrayIndex(name)
 	if index >= 0 {
 		object := self.value.(*_goSliceObject)
 		indexValue, exists := object.getValue(index)

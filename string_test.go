@@ -11,9 +11,9 @@ func TestString(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = (new String("xyzzy")).length
-		def = new String().length
-		ghi = new String("Nothing happens.").length
+		abc = (new String("xyzzy")).length;
+		def = new String().length;
+		ghi = new String("Nothing happens.").length;
 	`)
 	test("abc", "5")
 	test("def", "0")
@@ -23,6 +23,7 @@ func TestString(t *testing.T) {
 	test(`String(+0)`, "0")
 	test(`String(-0)`, "0")
 	test(`""+-0`, "0")
+	test(`(new String("abc")[Math.pow(2, 32)])`, "undefined")
 }
 
 func TestString_charAt(t *testing.T) {

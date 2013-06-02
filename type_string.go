@@ -59,7 +59,7 @@ func stringGetOwnProperty(self *_object, name string) *_property {
 	index := stringToArrayIndex(name)
 	if index >= 0 {
 		value16 := self.stringValue16()
-		if int(index) < len(value16) {
+		if index < int64(len(value16)) {
 			return &_property{toValue(string(value16[index])), 0}
 		}
 	}
