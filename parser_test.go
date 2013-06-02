@@ -671,13 +671,13 @@ func TestParseSuccess(t *testing.T) {
 	test(`
 	[,]
 	---
-	{ @ [ undefined ] }
+	{ @ [ ; ] }
 	`)
 
 	test(`
 	[,,]
 	---
-	{ @ [ undefined undefined ] }
+	{ @ [ ; ; ] }
 	`)
 
 	test(`

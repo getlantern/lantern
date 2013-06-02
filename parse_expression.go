@@ -120,7 +120,7 @@ func (self *_parser) ParseArrayLiteral() *_arrayNode {
 	nodeList := []_node{}
 	for !self.Match("]") {
 		if self.Accept(",") {
-			nodeList = append(nodeList, newUndefinedNode())
+			nodeList = append(nodeList, newEmptyNode())
 			continue
 		}
 		nodeList = append(nodeList, self.ParseArrayValue())

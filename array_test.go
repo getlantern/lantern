@@ -50,6 +50,11 @@ func TestArray(t *testing.T) {
         abc = [101];
         abc.hasOwnProperty("0") && abc[0] === 101;
     `, "true")
+
+	test(`
+        abc = [,,undefined];
+        [ abc.hasOwnProperty(0), abc.hasOwnProperty(1), abc.hasOwnProperty(2) ];
+    `, "false,false,true")
 }
 
 func TestArray_toString(t *testing.T) {
