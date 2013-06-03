@@ -2,10 +2,12 @@ package org.lantern;
 
 import java.io.IOException;
 
+import org.eclipse.swt.SWT;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -19,6 +21,14 @@ public class ChromeBrowserService implements BrowserService {
     
     private final ChromeRunner chrome = 
             new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+
+    private final MessageService messageService;
+    
+    @Inject
+    public ChromeBrowserService(final MessageService messageService) {
+        this.messageService = messageService;
+    }
     
     /**
      * Opens the browser.
@@ -59,6 +69,13 @@ public class ChromeBrowserService implements BrowserService {
             this.chrome.open(port, prefix);
         } catch (final IOException e) {
             log.error("Could not open chrome?", e);
+        } catch (final UnsupportedOperationException e) {
+            this.messageService.showMessage("Chrome Required", 
+                "We're sorry, but Lantern requires you to have Google Chrome " +
+                "to run successfully. You can download Google Chrome from " +
+                "https://www.google.com/chrome/. Once Chrome is installed, " +
+                "please restart Lantern.");
+            System.exit(0);
         }
     }
     
