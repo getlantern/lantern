@@ -662,7 +662,7 @@ func newContext() *_runtime {
 	)
 
 	self.Global.Date.write(
-		_propertyMode(0),
+		_propertyMode(0101),
 		"parse", builtinDate_parse,
 		"UTC", builtinDate_UTC,
 	)
