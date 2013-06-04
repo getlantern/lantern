@@ -7,6 +7,7 @@ import org.lantern.LanternRosterEntry;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.slf4j.Logger;
@@ -37,11 +38,13 @@ public class InviteQueue {
     public void onP2PConnectionEvent(P2PConnectionEvent e) {
         if (e.isConnected()) {
             // resend invites
+            Friends friends = model.getFriends();
             ArrayList<String> pendingInvites = new ArrayList<String>(
                     model.getPendingInvites());
             for (String email : pendingInvites) {
                 LOG.info("Resending pending invite to {}", email);
-                xmppHandler.sendInvite(email, true);
+                Friend friend = friends.get(email);
+                xmppHandler.sendInvite(friend, true);
             }
         }
 
@@ -51,15 +54,23 @@ public class InviteQueue {
         // XXX i18n
         ArrayList<LanternRosterEntry> entries = new ArrayList<LanternRosterEntry>();
         for (String email : emails) {
-            if (xmppHandler.sendInvite(email, false)) {
+            //also, newly-invited users become friends
+            Friend friend = new Friend(email);
+            friend.setStatus(Status.friend);
+            model.getFriends().add(friend);
+
+            if (xmppHandler.sendInvite(friend, false)) {
                 entries.add(roster.getRosterEntry(email));
                 //we also need to mark this email as pending, in case
                 //our invite gets lost.
                 model.addPendingInvite(email);
+
             } else {
                 entries.add(null);
             }
         }
+
+        Events.sync(SyncPath.FRIENDS, model.getFriends().getFriends());
 
         final String msg = "Request processing. After accepting your request, "+
             "new Lantern Friends appear on your map once you connect to "+

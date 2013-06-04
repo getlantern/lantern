@@ -25,14 +25,14 @@ public enum SyncPath {
     AUTO_REPORT("settings/autoReport"),
     PROXY_ALL_SITES("settings/proxyAllSites"),
     SYSTEMPROXY("settings/systemProxy"),
-    SUBSCRIPTION_REQUESTS("friends/pending"),
     LOCATION("location"),
     TRANSFERS("transfers"),
     GLOBAL("global"),
     COUNTRIES("countries"),
     NOTIFICATIONS("notifications"),
     SETUPCOMPLETE("setupComplete"),
-    SHOWVIS("showVis");
+    SHOWVIS("showVis"),
+    FRIENDS("friends");
 
     private final String path;
 

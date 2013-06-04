@@ -6,6 +6,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
+import org.lantern.state.Friend;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.util.FiveTuple;
@@ -54,13 +55,13 @@ public interface XmppHandler extends LanternService {
     void addOrRemovePeer(Presence p, String from);
 
     /**
-     * Sends an invite to the specified email address.
+     * Sends an invite to the specified friend
      *
-     * @param email The email address to send the invite to.
+     * @param friend The friend to send the invite to.
      * @param redo Whether we are retrying
      * @return
      */
-    boolean sendInvite(String email, boolean redo);
+    boolean sendInvite(Friend friend, boolean redo);
 
     /**
      * Stop subscribing to the presence of another user.

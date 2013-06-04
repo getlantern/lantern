@@ -56,6 +56,9 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Connectivity;
+import org.lantern.state.Friend;
+import org.lantern.state.Friend.Status;
+import org.lantern.state.Friends;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
@@ -642,6 +645,14 @@ public class DefaultXmppHandler implements XmppHandler {
                 } else {
                     LOG.debug("We didn't invite " + from);
                 }
+
+                // XMPP requires says that we MUST reply to this request with
+                // either 'subscribed' or 'unsubscribed'. But we don't even know
+                // if this is a Lantern request yet, so we can't reply yet.  But
+                // fortunately, we don't have a timeline to respond.  We need to
+                // mark that we owe this user a reply, so that if we do decide to
+                // friend the user, we can approve the request.
+
                 roster.addIncomingSubscriptionRequest(pres);
 
                 break;
@@ -652,8 +663,11 @@ public class DefaultXmppHandler implements XmppHandler {
                 // lists!!
                 return;
             case unsubscribe:
-                LOG.info("Removing subscription request from: {}",from);
-                roster.removeIncomingSubscriptionRequest(from);
+                // The user is unsubscribing from us, so we will no longer be
+                // able to send them messages.  However, we still trust them
+                // so there is no reason to remove them from the friends list.
+                // If they later resubscribe to us, we don't need to go
+                // through the whole friending process again.
                 return;
             case unsubscribed:
                 break;
@@ -729,7 +743,6 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Finished disconnecting XMPP...");
     }
 
-    @SuppressWarnings("unchecked")
     private void processLanternHubMessage(final Message msg) {
         Connectivity connectivity = model.getConnectivity();
         if (!connectivity.getLanternController()) {
@@ -754,76 +767,132 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
         }
 
-        final Long invites =
-            (Long) json.get(LanternConstants.INVITES_KEY);
-        if (invites != null) {
-            LOG.info("Setting invites to: {}", invites);
-            final int oldInvites = this.model.getNinvites();
-            final int newInvites = invites.intValue();
-            if (oldInvites != newInvites) {
-                this.model.setNinvites(newInvites);
-                Events.syncNInvites(invites.intValue());
-            }
-        }
+        handleNInvites(json);
+        handleSetDelay(json);
+        handleUpdate(json);
+        handleProcessedInvites(json);
+        handleFailedInvites(json);
+        handleFriends(json);
+    }
 
-        final Long delay =
-            (Long) json.get(LanternConstants.UPDATE_TIME);
-        LOG.debug("Server sent delay of: "+delay);
-        if (delay != null) {
-            final long now = System.currentTimeMillis();
-            final long elapsed = now - lastInfoMessageScheduled;
-            if (elapsed > 10000 && delay != 0L) {
-                lastInfoMessageScheduled = now;
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        updatePresence();
-                    }
-                }, delay);
-                LOG.debug("Scheduled next info request in {} milliseconds",
-                    delay);
-            } else {
-                LOG.debug("Ignoring duplicate info request scheduling- "+
-                    "scheduled request {} milliseconds ago.", elapsed);
-            }
-        }
+    private void handleFriends(JSONObject json) {
+        @SuppressWarnings("unchecked")
+        final List<Object> friendUpdates = (List<Object>) json.get(LanternConstants.FRIENDS);
+        Friends friends = model.getFriends();
+        if (friendUpdates != null) {
+            for (Object friendObj: friendUpdates) {
+                JSONObject friendJson = (JSONObject) friendObj;
 
+                String email = (String) friendJson.get("email");
+                Status status = Status.valueOf((String) friendJson.get("status"));
+                String name = (String) friendJson.get("name");
+                Long nextQuery = (Long) friendJson.get("nextQuery");
+                Long lastUpdated = (Long) friendJson.get("lastUpdated");
+
+                Friend friend = new Friend(email, status, name, nextQuery, lastUpdated);
+
+                //we need to check if we have had a more-recent update of this friend.
+                //that could happen if we had made some local changes while waiting
+                //to hear back from the XMPP server.  It's not very likely.
+                Friend old = friends.get(email);
+                if (old != null && old.getLastUpdated() > lastUpdated) {
+                    friends.setNeedsSync(true);
+                } else {
+                    friends.add(friend);
+                }
+            }
+            Events.sync(SyncPath.FRIENDS, friends.getFriends());
+        }
+    }
+
+    private void handleFailedInvites(final JSONObject json) {
+        //list of invites that the server has given up on processing
+        //perhaps because you are out of invites.
+        @SuppressWarnings("unchecked")
+        final List<Object> failedInvites = (List<Object>) json.get(LanternConstants.FAILED_INVITES_KEY);
+        LOG.info("Failed invites: " + failedInvites);
+        if (failedInvites == null) {
+            return;
+        }
+        for (Object inviteObj : failedInvites) {
+            JSONObject invite = (JSONObject) inviteObj;
+            String invitee = (String) invite.get(LanternConstants.INVITED_EMAIL);
+            if (!model.getPendingInvites().contains(invitee)) {
+                // we already notified about this one
+                continue;
+            }
+            String reason = (String) invite
+                    .get(LanternConstants.INVITE_FAILED_REASON);
+            LOG.info("Failed invite to " + invitee + " because " + reason);
+            model.removePendingInvite(invitee);
+            String message = "Invite to " + invitee + " failed: " + reason;
+            model.addNotification(message, MessageType.error);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+        }
+    }
+
+    private void handleProcessedInvites(final JSONObject json) {
+        //list of invites that the server has processed
+        @SuppressWarnings("unchecked")
+        final List<Object> invited = (List<Object>) json.get(LanternConstants.INVITED_KEY);
+        if (invited == null) {
+            return;
+        }
+        for (Object invite : invited) {
+            model.removePendingInvite((String) invite);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void handleUpdate(final JSONObject json) {
         // This is really a JSONObject, but that itself is a map.
         final JSONObject update =
             (JSONObject) json.get(LanternConstants.UPDATE_KEY);
-        if (update != null) {
-            LOG.info("About to propagate update...");
-            final Map<String, Object> event =
-                new HashMap<String, Object>();
-            event.putAll(update);
-            Events.asyncEventBus().post(new UpdateEvent(event));
+        if (update == null) {
+            return;
         }
+        LOG.info("About to propagate update...");
+        final Map<String, Object> event = new HashMap<String, Object>();
+        event.putAll(update);
+        Events.asyncEventBus().post(new UpdateEvent(event));
+    }
 
-        //list of invites that the server has processed
-        final List<Object> invited = (List<Object>) json.get(LanternConstants.INVITED_KEY);
-        if (invited != null) {
-            for (Object invite : invited) {
-                model.removePendingInvite((String)invite);
-            }
+    private void handleSetDelay(final JSONObject json) {
+        final Long delay =
+            (Long) json.get(LanternConstants.UPDATE_TIME);
+        LOG.debug("Server sent delay of: "+delay);
+        if (delay == null) {
+            return;
         }
-        //list of invites that the server has given up on processing
-        //perhaps because you are out of invites.
-        final List<Object> failedInvites = (List<Object>) json.get(LanternConstants.FAILED_INVITES_KEY);
-        LOG.info("Failed invites: " + failedInvites);
-        if (failedInvites != null) {
-            for (Object inviteObj : failedInvites) {
-                JSONObject invite = (JSONObject) inviteObj;
-                String invitee = (String)invite.get(LanternConstants.INVITED_EMAIL);
-                if (!model.getPendingInvites().contains(invitee)) {
-                    //we already notified about this one
-                    continue;
+        final long now = System.currentTimeMillis();
+        final long elapsed = now - lastInfoMessageScheduled;
+        if (elapsed > 10000 && delay != 0L) {
+            lastInfoMessageScheduled = now;
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    updatePresence();
                 }
-                String reason = (String)invite.get(LanternConstants.INVITE_FAILED_REASON);
-                LOG.info("Failed invite to " + invitee + " because " + reason);
-                model.removePendingInvite(invitee);
-                model.addNotification("Invite to " + invitee + " failed: " + reason, MessageType.error);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-            }
+            }, delay);
+            LOG.debug("Scheduled next info request in {} milliseconds", delay);
+        } else {
+            LOG.debug("Ignoring duplicate info request scheduling- "
+                    + "scheduled request {} milliseconds ago.", elapsed);
+        }
+    }
+
+    private void handleNInvites(final JSONObject json) {
+        final Long invites =
+            (Long) json.get(LanternConstants.INVITES_KEY);
+        if (invites == null) {
+            return;
+        }
+        LOG.info("Setting invites to: {}", invites);
+        final int oldInvites = this.model.getNinvites();
+        final int newInvites = invites.intValue();
+        if (oldInvites != newInvites) {
+            this.model.setNinvites(newInvites);
+            Events.syncNInvites(invites.intValue());
         }
     }
 
@@ -862,12 +931,12 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     /**
-     * Updates the user's presence. We also include any stats updates in this
-     * message. Note that periodic presence updates are also used on the server
-     * side to verify which clients are actually available.
+     * Updates the user's presence. We also include any stats and friends
+     * updates in this message. Note that periodic presence updates are also
+     * used on the server side to verify which clients are actually available.
      *
-     * We in part send presence updates instead of typical chat messages to
-     * get around these messages showing up in the user's gchat window.
+     * We in part send presence updates instead of typical chat messages to get
+     * around these messages showing up in the user's gchat window.
      */
     private void updatePresence() {
         if (!isLoggedIn()) {
@@ -901,6 +970,13 @@ public class DefaultXmppHandler implements XmppHandler {
             stats.resetCumulativeStats();
         } else {
             LOG.info("No new stats to report");
+        }
+
+        Friends friends = model.getFriends();
+        if (friends.needsSync()) {
+            String friendsJson = JsonUtils.jsonify(friends);
+            forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
+            friends.setNeedsSync(false);
         }
 
         conn.sendPacket(forHub);
@@ -954,14 +1030,17 @@ public class DefaultXmppHandler implements XmppHandler {
                 break;
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
-                LOG.debug("Handling KSCOPE ADVERTISEMENT");
-                final String payload =
-                    (String) msg.getProperty(
-                        LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
-                if (StringUtils.isNotBlank(payload)) {
-                    processKscopePayload(from, payload);
-                } else {
-                    LOG.error("kscope ad with no payload? "+msg.toXML());
+                //only process kscope ads delivered by friends
+                if (model.isFriend(from)) {
+                    LOG.debug("Handling KSCOPE ADVERTISEMENT");
+                    final String payload =
+                            (String) msg.getProperty(
+                                    LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
+                    if (StringUtils.isNotBlank(payload)) {
+                        processKscopePayload(from, payload);
+                    } else {
+                        LOG.error("kscope ad with no payload? "+msg.toXML());
+                    }
                 }
                 break;
             default:
@@ -1082,8 +1161,10 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public boolean sendInvite(final String email, boolean redo) {
+    public boolean sendInvite(final Friend friend, boolean redo) {
         LOG.info("Sending invite");
+
+        String email = friend.getEmail();
 
         if (StringUtils.isBlank(this.hubAddress)) {
             LOG.info("Blank hub address when sending invite?");
@@ -1123,6 +1204,8 @@ public class DefaultXmppHandler implements XmppHandler {
                 pres.setProperty(LanternConstants.INVITEE_NAME, name);
             }
         }
+
+        pres.setProperty(LanternConstants.FRIEND, JsonUtils.jsonify(friend));
 
         invited.add(email);
 
@@ -1169,7 +1252,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public void subscribed(final String jid) {
         LOG.debug("Sending subscribed message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.subscribed);
-        roster.removeIncomingSubscriptionRequest(jid);
     }
 
     @Override
@@ -1182,7 +1264,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public void unsubscribed(final String jid) {
         LOG.debug("Sending unsubscribed message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.unsubscribed);
-        roster.removeIncomingSubscriptionRequest(jid);
     }
 
     private void sendTypedPacket(final String jid, final Type type) {

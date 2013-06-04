@@ -35,6 +35,8 @@ import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
+import org.lantern.state.Friend;
+import org.lantern.state.Friends;
 import org.lantern.state.InternalState;
 import org.lantern.state.InviteQueue;
 import org.lantern.state.JsonModelModifier;
@@ -717,11 +719,18 @@ public class InteractionServlet extends HttpServlet {
     private void declineInvite(final String json) {
         final String email = JsonUtils.getValueFromJson("email", json);
         this.xmppHandler.unsubscribed(email);
+        Friends friends = model.getFriends();
+        friends.setStatus(email, Friend.Status.rejected);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
     }
 
     private void acceptInvite(final String json) {
         final String email = JsonUtils.getValueFromJson("email", json);
         this.xmppHandler.subscribed(email);
+
+        Friends friends = model.getFriends();
+        friends.setStatus(email, Friend.Status.friend);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
 
         // We also automatically subscribe to them in turn so we know about
         // their presence.
