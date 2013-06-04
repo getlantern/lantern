@@ -219,6 +219,12 @@ func Test_decodeURIComponent(t *testing.T) {
 
 	test(`decodeURIComponent.length === 1`, "true")
 	test(`decodeURIComponent.prototype === undefined`, "true")
+
+	test(`
+        var global = Function('return this')();
+        var abc = Object.getOwnPropertyDescriptor(global, "decodeURIComponent");
+        [ abc.value === global.decodeURIComponent, abc.writable, abc.enumerable, abc.configurable ];
+    `, "true,true,false,true")
 }
 
 func TestGlobal_skipEnumeration(t *testing.T) {

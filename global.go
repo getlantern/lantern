@@ -688,7 +688,7 @@ func newContext() *_runtime {
 	)
 
 	self.GlobalObject.write(
-		_propertyMode(101),
+		_propertyMode(0101),
 		"Object", toValue(self.Global.Object),
 		"Function", toValue(self.Global.Function),
 		"Array", toValue(self.Global.Array),
@@ -700,10 +700,6 @@ func newContext() *_runtime {
 		"Date", toValue(self.Global.Date),
 		"Error", toValue(self.Global.Error),
 		// TODO JSON
-
-		// TODO Is _propertyMode(0) compatible with 3?
-		// _propertyMode(0),
-		_propertyMode(101),
 		"undefined", UndefinedValue(),
 		"NaN", NaNValue(),
 		"Infinity", positiveInfinityValue(),
