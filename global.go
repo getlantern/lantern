@@ -171,6 +171,7 @@ func newContext() *_runtime {
 		},
 	)
 	self.Global.Object.write(
+		_propertyMode(0101),
 		"getPrototypeOf", 1, builtinObject_getPrototypeOf,
 		"getOwnPropertyDescriptor", 2, builtinObject_getOwnPropertyDescriptor,
 		"defineProperty", 3, builtinObject_defineProperty,

@@ -34,6 +34,11 @@ func TestObject_getPrototypeOf(t *testing.T) {
         ghi = Object.getPrototypeOf(def);
         [abc,def,ghi,ghi+""];
     `, "[object Object],[object Object],,null")
+
+	test(`
+        abc = Object.getOwnPropertyDescriptor(Object, "getPrototypeOf");
+        [ abc.value === Object.getPrototypeOf, abc.writable, abc.enumerable, abc.configurable ];
+    `, "true,true,false,true")
 }
 
 func TestObject_new(t *testing.T) {
