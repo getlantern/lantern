@@ -99,6 +99,11 @@ func TestDate(t *testing.T) {
         abc = Object.getOwnPropertyDescriptor(Date, "parse");
         [ abc.value === Date.parse, abc.writable, abc.enumerable, abc.configurable ];
     `, "true,true,false,true")
+
+	test(`
+        abc = Object.getOwnPropertyDescriptor(Date.prototype, "toTimeString");
+        [ abc.value === Date.prototype.toTimeString, abc.writable, abc.enumerable, abc.configurable ];
+    `, "true,true,false,true")
 }
 
 func TestDate_parse(t *testing.T) {

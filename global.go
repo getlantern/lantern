@@ -358,6 +358,8 @@ func newContext() *_runtime {
 		builtinNewDate,
 		self.Global.DatePrototype,
 		"toString", 0, builtinDate_toString,
+		"toDateString", 0, builtinDate_toDateString,
+		"toTimeString", 0, builtinDate_toTimeString,
 		"toUTCString", 0, builtinDate_toUTCString,
 		"toGMTString", 0, builtinDate_toGMTString,
 		"toLocaleString", 0, builtinDate_toLocaleString,

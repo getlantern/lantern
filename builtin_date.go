@@ -9,7 +9,9 @@ import (
 const (
 	// TODO Be like V8?
 	// builtinDate_goDateTimeLayout = "Mon Jan 2 2006 15:04:05 GMT-0700 (MST)"
-	builtinDate_goDateTimeLayout = Time.RFC1123
+	builtinDate_goDateTimeLayout = Time.RFC1123 // "Mon, 02 Jan 2006 15:04:05 MST"
+	builtinDate_goDateLayout     = "Mon, 02 Jan 2006"
+	builtinDate_goTimeLayout     = "15:04:05 MST"
 )
 
 func builtinDate(call FunctionCall) Value {
@@ -33,6 +35,22 @@ func builtinDate_toString(call FunctionCall) Value {
 		return toValue("Invalid Date")
 	}
 	return toValue(date.Time().Local().Format(builtinDate_goDateTimeLayout))
+}
+
+func builtinDate_toDateString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
+	return toValue(date.Time().Local().Format(builtinDate_goDateLayout))
+}
+
+func builtinDate_toTimeString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
+	return toValue(date.Time().Local().Format(builtinDate_goTimeLayout))
 }
 
 func builtinDate_toUTCString(call FunctionCall) Value {
