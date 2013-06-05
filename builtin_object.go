@@ -223,11 +223,23 @@ func builtinObject_freeze(call FunctionCall) Value {
 }
 
 func builtinObject_keys(call FunctionCall) Value {
-	if object, keys := call.Argument(0)._object(), []Value{}; nil != object {
+	if object, keys := call.Argument(0)._object(), []Value(nil); nil != object {
 		object.enumerate(false, func(name string) {
 			keys = append(keys, toValue(name))
 		})
 		return toValue(call.runtime.newArrayOf(keys))
+	}
+	panic(newTypeError())
+}
+
+func builtinObject_getOwnPropertyNames(call FunctionCall) Value {
+	if object, propertyNames := call.Argument(0)._object(), []Value(nil); nil != object {
+		object.enumerate(true, func(name string) {
+			if object.hasOwnProperty(name) {
+				propertyNames = append(propertyNames, toValue(name))
+			}
+		})
+		return toValue(call.runtime.newArrayOf(propertyNames))
 	}
 	panic(newTypeError())
 }

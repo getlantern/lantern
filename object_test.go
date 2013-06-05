@@ -271,3 +271,25 @@ func TestObject_keys(t *testing.T) {
         })(undefined, undefined, undefined, undefined);
     `, "0,1,2,3")
 }
+
+func TestObject_getOwnPropertyNames(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`Object.getOwnPropertyNames({ abc:undefined, def:undefined })`, "abc,def")
+
+	test(`
+		var ghi = Object.create(
+            {
+                abc: undefined,
+                def: undefined
+            },
+            {
+                ghi: { value: undefined, enumerable: true },
+                jkl: { value: undefined, enumerable: false }
+		    }
+        );
+        Object.getOwnPropertyNames(ghi)
+    `, "ghi,jkl")
+}

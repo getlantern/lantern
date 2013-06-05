@@ -184,6 +184,7 @@ func newContext() *_runtime {
 		"isFrozen", -1, builtinObject_isFrozen,
 		"freeze", -1, builtinObject_freeze,
 		"keys", -1, builtinObject_keys,
+		"getOwnPropertyNames", -1, builtinObject_getOwnPropertyNames,
 	)
 
 	self.Global.Function = self.newGlobalFunction(
