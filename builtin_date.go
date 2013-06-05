@@ -6,15 +6,21 @@ import (
 
 // Date
 
+const (
+	// TODO Be like V8?
+	// builtinDate_goDateTimeLayout = "Mon Jan 2 2006 15:04:05 GMT-0700 (MST)"
+	builtinDate_goDateTimeLayout = Time.RFC1123
+)
+
 func builtinDate(call FunctionCall) Value {
 	date := &_dateObject{}
 	if len(call.ArgumentList) == 0 {
 		// TODO Should make this prettier
 		date.Set(newDateTime([]Value{}, Time.Local))
-		return toValue(date.Time().Format(Time.RFC1123))
+		return toValue(date.Time().Format(builtinDate_goDateTimeLayout))
 	}
 	date.Set(newDateTime(call.ArgumentList, Time.Local))
-	return toValue(date.Time().Local().Format(Time.RFC1123))
+	return toValue(date.Time().Local().Format(builtinDate_goDateTimeLayout))
 }
 
 func builtinNewDate(self *_object, _ Value, argumentList []Value) Value {
@@ -26,7 +32,7 @@ func builtinDate_toString(call FunctionCall) Value {
 	if date.isNaN {
 		return toValue("Invalid Date")
 	}
-	return toValue(date.Time().Local().Format(Time.RFC1123))
+	return toValue(date.Time().Local().Format(builtinDate_goDateTimeLayout))
 }
 
 func builtinDate_toUTCString(call FunctionCall) Value {
@@ -34,7 +40,7 @@ func builtinDate_toUTCString(call FunctionCall) Value {
 	if date.isNaN {
 		return toValue("Invalid Date")
 	}
-	return toValue(date.Time().Format(Time.RFC1123))
+	return toValue(date.Time().Format(builtinDate_goDateTimeLayout))
 }
 
 func builtinDate_toGMTString(call FunctionCall) Value {
