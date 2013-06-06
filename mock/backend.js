@@ -177,6 +177,16 @@ _.each(_globalModals, function(modal, interaction) {
   };
 });
 
+MockBackend._handlerForInteraction[INTERACTION.changeLang] = function(res, data) {
+  var lang = data && data.lang;
+  if (!(lang in constants.LANG)) {
+    log('Unsupported lang:', lang);
+    res.writeHead(400);
+    return;
+  }
+  this.sync({'/settings/lang': lang});
+};
+
 MockBackend._handlerForInteraction[INTERACTION.close] = function(res, data) {
   if (_.isPlainObject(data) && 'notification' in data) {
     var path = '/notifications/'+data.notification;

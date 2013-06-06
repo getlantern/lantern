@@ -1,14 +1,11 @@
-<!--
-<div id="langchooser"
-     ng-show="model.modal == MODAL.welcome || model.modal == MODAL.settings">
+<div id="langchooser" ng-show="model.dev">
   <ul class="pull-right">
     <li ng-repeat="(langKey, langVal) in LANG" ng-class="{active: lang() == langKey}"><a
-        ng-click="lang() != langKey && changeSetting(SETTING.lang, langKey)"
+        ng-click="lang() != langKey && changeLang(langKey)"
         dir="{{ langVal.dir }}">{{ langVal.name }}</a></li>
     <li><a ng-click="openExternal(EXTERNAL_URL.helpTranslate)">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
   </ul>
 </div>
--->
 
 <div id="unexpectedState" ng-controller="UnexpectedStateCtrl" modal="show">
   <div class="modal-header">
@@ -556,7 +553,7 @@ You should have received a copy of the GNU General Public License along with thi
 
       <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
       <dd ng-hide="inCensoringCountry">
-        <div class="btn-group">
+        <div class="btn-group" dir="ltr">
           <button type="button" class="btn btn-mini btn-give"
                   ng-class="{active: inGiveMode}"
                   ng-disabled="inGiveMode"

@@ -101,6 +101,10 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
     return $scope.interaction(INTERACTION.set, update);
   };
 
+  $scope.changeLang = function(lang) {
+    return $scope.interaction(INTERACTION.changeLang, {lang: lang});
+  };
+
   $scope.openExternal = function(url) {
     return $scope.interaction(INTERACTION.url, {url: url});
   };

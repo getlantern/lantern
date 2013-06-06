@@ -15,11 +15,10 @@ function makeEnum(keys, extra) {
 var DEFAULT_LANG = 'en',
     DEFAULT_DIRECTION = 'ltr',
     LANG = {
-      en: {dir: 'ltr', name: 'English'}/*,
-      zh: {dir: 'ltr', name: '中文'},
-      fa: {dir: 'rtl', name: 'پارسی'},
-      ar: {dir: 'rtl', name: 'العربية'}
-      */
+      en: {dir: 'ltr', name: 'English'},
+      fa: {dir: 'rtl', name: 'پارسی'}
+      //zh: {dir: 'ltr', name: '中文'},
+      //ar: {dir: 'rtl', name: 'العربية'},
     },
     loc = typeof location == 'object' ? location : undefined,
     // this allows the real backend to mount the entire app under a random path
@@ -71,6 +70,7 @@ var DEFAULT_LANG = 'en',
       'scenarios'],
       {none: ''}),
     INTERACTION = makeEnum([
+      'changeLang',
       'give',
       'get',
       'set',
