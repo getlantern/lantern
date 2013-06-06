@@ -53,7 +53,8 @@ git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
 if [[ $VERSION == "latest" ]];
 then
-    VERSION=$(./parseversionfrompom.py);
+    # Exporting it so platform-specific scripts will get the right name.
+    export VERSION=$(./parseversionfrompom.py);
 fi
 
 # The build script in Lantern EC2 instances sets this in the environment.
