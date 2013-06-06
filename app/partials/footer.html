@@ -10,7 +10,7 @@
   </div>
 
   <div id="appInfo">
-    Lantern
+    {{ 'LANTERN' | i18n }}
     {{ model.version.installed | version }}
     {{ mockBackend && '(mock backend)' || model.dev && '(dev mode)' || '' }}
     <span ng-show="model.version.updateAvailable" class="update-available">
@@ -18,10 +18,10 @@
       <a ng-click="interaction(INTERACTION.updateAvailable)">Update available</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.about)">About</a>
+      · <a ng-click="interaction(INTERACTION.about)">{{ 'ABOUT' | i18n }}</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.contact)">Contact</a>
+      · <a ng-click="interaction(INTERACTION.contact)">{{ 'CONTACT' | i18n }}</a>
     </span>
   </div>
 
