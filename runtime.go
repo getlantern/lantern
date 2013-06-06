@@ -356,6 +356,8 @@ func (self *_runtime) ToValue(value interface{}) (Value, error) {
 
 func (self *_runtime) toValue(value interface{}) Value {
 	switch value := value.(type) {
+	case Value:
+		return value
 	case func(FunctionCall) Value:
 		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
 	case _nativeFunction:

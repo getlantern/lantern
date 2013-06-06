@@ -111,3 +111,49 @@ func Test_issue16(t *testing.T) {
         pqr.concat(ghi, def.abc, def, def.xyz).length;
     `, "9")
 }
+
+func Test_issue21(t *testing.T) {
+	Terst(t)
+
+	otto1 := New()
+	otto1.Run(`
+        abc = {}
+        abc.ghi = "Nothing happens.";
+        var jkl = 0;
+        abc.def = function() {
+            jkl += 1;
+            return 1;
+        }
+    `)
+	abc, err := otto1.Get("abc")
+	Is(err, nil)
+
+	otto2 := New()
+	otto2.Set("cba", abc)
+	_, err = otto2.Run(`
+        var pqr = 0;
+        cba.mno = function() {
+            pqr -= 1;
+            return 1;
+        }
+        cba.def();
+        cba.def();
+        cba.def();
+    `)
+	Is(err, nil)
+
+	jkl, err := otto1.Get("jkl")
+	Is(err, nil)
+	Is(jkl, "3")
+
+	_, err = otto1.Run(`
+        abc.mno();
+        abc.mno();
+        abc.mno();
+    `)
+	Is(err, nil)
+
+	pqr, err := otto2.Get("pqr")
+	Is(err, nil)
+	Is(pqr, "-3")
+}
