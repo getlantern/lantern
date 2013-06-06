@@ -18,6 +18,7 @@ mvn release:prepare || die "Could not prepare release?"
 echo "Tagging latest release"
 git=`git rev-parse --verify lantern-$1^{commit} | cut -c1-7`
 git tag -f -a latest -m "latest tagged release" $git
+git push --tags
 
 #echo "Creating branch $1"
 #git branch $1 lantern-$1 || die "Could not create a branch"
