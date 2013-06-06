@@ -42,11 +42,19 @@ git pull || die "Could not git pull?"
 if [[ $VERSION == "HEAD" ]]; 
 then 
     CHECKOUT=HEAD; 
+elif [[ $VERSION == "latest" ]];
+then
+    CHECKOUT=latest;
 else 
     CHECKOUT=lantern-$VERSION; 
 fi
 
 git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
+
+if [[ $VERSION == "latest" ]];
+then
+    VERSION=$(./parseversionfrompom.py);
+fi
 
 # The build script in Lantern EC2 instances sets this in the environment.
 if test -z $FALLBACK_SERVER_HOST; then
