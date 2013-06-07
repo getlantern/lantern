@@ -294,7 +294,6 @@ func TestAPI(t *testing.T) {
 	Otto, test := runTestWithOtto()
 	test(`
 		String.prototype.xyzzy = function(){
-			console.log(this)
 			return this.length + 11 + (arguments[0] || 0)
 		}
 		abc = new String("xyzzy")

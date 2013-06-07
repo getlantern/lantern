@@ -286,7 +286,6 @@ func TestDoWhile(t *testing.T) {
 	`, "4")
 
 	test(`
-        console.log("Xyzzy");
         result = eval("do {abc=1; break; abc=2;} while (0);");
         [ result, abc ];
     `, "1,1")
