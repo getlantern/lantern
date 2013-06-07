@@ -81,21 +81,6 @@ public class InviteQueue {
         //     https://github.com/getlantern/lantern/issues/782
         model.addNotification(msg, MessageType.info, 30);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-
-        int newInvites = model.getNinvites() - emails.size();
-        if (newInvites <= 0) {
-            // setting Ninvites to 0 triggers a notification, but we're not
-            // really sure that all of these invitations will actually be
-            // charged to the user (this depends on lantern-controller),
-            // so we don't want to trigger that until we're sure.  Setting
-            // nInvites to -1 tells the front-end that we have no idea how
-            // many invites we have
-
-            model.setNinvites(-1);
-        } else {
-            model.setNinvites(newInvites);
-        }
-        Events.sync(SyncPath.NINVITES, model.getNinvites());
     }
 
 }

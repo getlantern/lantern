@@ -106,12 +106,6 @@ public class Events {
         sync(SyncPath.ALL, model);
     }
 
-
-    public static void syncNInvites(final Integer ninvites) {
-        sync(SyncPath.NINVITES, ninvites);
-    }
-
-
     public static void syncAdd(String path, Object value) {
         Events.asyncEventBus().post(new SyncEvent(SyncType.ADD, path, value));
     }

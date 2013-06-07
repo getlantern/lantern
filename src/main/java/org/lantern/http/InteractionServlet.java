@@ -32,7 +32,6 @@ import org.lantern.LanternFeedback;
 import org.lantern.LanternUtils;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
-import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
@@ -790,7 +789,6 @@ public class InteractionServlet extends HttpServlet {
         model.setEverGetMode(false);
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
-        model.setNinvites(base.getNinvites());
         model.setNodeId(base.getNodeId());
         model.setProfile(base.getProfile());
         model.setNproxiedSitesMax(base.getNproxiedSitesMax());
@@ -818,24 +816,6 @@ public class InteractionServlet extends HttpServlet {
                 }
             }
         }
-    }
-
-    @Subscribe
-    public void onInvitesChanged(final InvitesChangedEvent e) {
-        int newInvites = e.getNewInvites();
-        if (e.getNewInvites() >= 0) {
-            if (e.getOldInvites() == 0) {
-                String invitation = newInvites == 1 ? "invitation"
-                        : "invitations";
-                String text = "You now have " + newInvites + " " + invitation;
-                model.addNotification(text, MessageType.info);
-            } else if (newInvites == 0 && e.getOldInvites() > 0) {
-                model.addNotification(
-                        "You have no more invitations. You will be notified when you receive more.",
-                        MessageType.important);
-            }
-        }
-        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
     @Subscribe

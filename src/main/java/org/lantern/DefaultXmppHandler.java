@@ -767,7 +767,6 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
         }
 
-        handleNInvites(json);
         handleSetDelay(json);
         handleUpdate(json);
         handleProcessedInvites(json);
@@ -878,21 +877,6 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             LOG.debug("Ignoring duplicate info request scheduling- "
                     + "scheduled request {} milliseconds ago.", elapsed);
-        }
-    }
-
-    private void handleNInvites(final JSONObject json) {
-        final Long invites =
-            (Long) json.get(LanternConstants.INVITES_KEY);
-        if (invites == null) {
-            return;
-        }
-        LOG.info("Setting invites to: {}", invites);
-        final int oldInvites = this.model.getNinvites();
-        final int newInvites = invites.intValue();
-        if (oldInvites != newInvites) {
-            this.model.setNinvites(newInvites);
-            Events.syncNInvites(invites.intValue());
         }
     }
 

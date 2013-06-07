@@ -42,10 +42,6 @@ public class ModelIoTest {
         Connectivity connectivity = model.getConnectivity();
         assertEquals("", connectivity.getIp());
 
-        assertEquals(-1, model.getNinvites());
-        model.setNinvites(10);
-        assertEquals(10, model.getNinvites());
-        
         if ("en".equalsIgnoreCase(SystemUtils.USER_LANGUAGE)) {
             assertEquals("en", system.getLang());
         }
@@ -58,14 +54,12 @@ public class ModelIoTest {
         connectivity = model.getConnectivity();
         assertEquals(1, model.getFriends().getFriends().size());
 
-        assertEquals(10, model.getNinvites());
-        
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());
-        
-        assertEquals("ID should persist across sessions", 
+
+        assertEquals("ID should persist across sessions",
             id, model.getNodeId());
-        
+
     }
 
 }

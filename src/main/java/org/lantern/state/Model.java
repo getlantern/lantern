@@ -21,7 +21,6 @@ import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
 import org.lantern.event.Events;
-import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
@@ -48,8 +47,6 @@ public class Model {
     private final Location location = new Location();
 
     private boolean showVis = false;
-
-    private int ninvites = -1;
 
     private Modal modal = Modal.welcome;
 
@@ -142,20 +139,6 @@ public class Model {
 
     public void setSettings(final Settings settings) {
         this.settings = settings;
-    }
-
-    @JsonView({Run.class, Persistent.class})
-    public int getNinvites() {
-        return ninvites;
-    }
-
-    @JsonView({Run.class})
-    public void setNinvites(int ninvites) {
-        int oldInvites = this.ninvites;
-        this.ninvites = ninvites;
-        if (oldInvites != ninvites) {
-            Events.eventBus().post(new InvitesChangedEvent(oldInvites, ninvites));
-        }
     }
 
     @JsonView({Run.class, Persistent.class})
