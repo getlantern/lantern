@@ -170,12 +170,14 @@ public class NatPmpImpl implements NatPmpService {
         }
 
         if (result == 0) {
-            log.debug("Received successful NAT PMP response");
+            log.debug("Received successful NAT-PMP response on port {}", 
+                response.mappedpublicport);
             map.externalPort = response.mappedpublicport;
             portMapListener.onPortMap(map.externalPort);
             stats.setNatpmp(true);
         } else {
-            log.debug("Did not receive port mapping response...");
+            log.debug("Did not receive port mapping response for {}", 
+                response.mappedpublicport);
             portMapListener.onPortMapError();
             stats.setNatpmp(false);
         }
