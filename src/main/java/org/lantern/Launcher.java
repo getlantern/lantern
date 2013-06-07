@@ -250,6 +250,17 @@ public class Launcher {
         censored = instance(Censored.class);
 
         messageService = instance(MessageService.class);
+        
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            final boolean sixtyFourBits = 
+                System.getProperty("sun.arch.data.model").equals("64");
+            if (!sixtyFourBits) {
+                messageService.showMessage("Operating System Error", 
+                        "We're sorry but Lantern requires a 64 bit operating " +
+                        "system on OSX! Exiting");
+                System.exit(0);
+            }
+        }
         instance(Proxifier.class);
         if (set.isUiEnabled()) {
             browserService = instance(BrowserService.class);
