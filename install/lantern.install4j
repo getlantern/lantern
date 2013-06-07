@@ -1343,7 +1343,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </applications>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/windows-x86-jre.tar.gz" manualJREEntry="true" bundleType="2" jreURL="https://d3g17h6tzzjzlu.cloudfront.net/windows-x86-jre.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/windows-x86-1.7.0_21.tar.gz" manualJREEntry="true" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-1.7.0_21.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="580" />
