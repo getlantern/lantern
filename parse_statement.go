@@ -136,7 +136,8 @@ func (self *_parser) ParseContinue() _node {
 
 func (self *_parser) ParseBreak() _node {
 	result := self.ParseContinueBreak("break", func(kind string) _node { return newBreakNode(kind) })
-	if self.Scope().InIteration || self.Scope().InSwitch {
+	scope := self.Scope()
+	if scope.InIteration || scope.InSwitch {
 		return result
 	}
 	panic(self.Peek().newSyntaxError("Illegal break statement"))
