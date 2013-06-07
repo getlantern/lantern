@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.1.5" transformSequenceNumber="4">
-  <directoryPresets config="/Users/afisk/new-clone-test/secure/bns_cert.p12" />
-  <application name="Wrapper" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="wrapper" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="false" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
+  <directoryPresets config="./jres" />
+  <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="wrapper" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -13,7 +13,7 @@
     </searchSequence>
     <variables />
     <mergedProjects />
-    <codeSigning macEnabled="true" macPkcs12File="/Users/afisk/new-clone-test/secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="/Users/afisk/new-clone-test/secure/bns_cert.p12" />
+    <codeSigning macEnabled="true" macPkcs12File="../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
   </application>
   <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
     <filesets />
@@ -58,15 +58,35 @@
       <customAttributes />
     </autoUpdate>
     <applications>
-      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
+              <void property="customIconImageFiles">
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/16on.png</string>
+                  </object>
+                </void>
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/32on.png</string>
+                  </object>
+                </void>
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/64on.png</string>
+                  </object>
+                </void>
+              </void>
               <void property="executionMode">
                 <object class="com.install4j.runtime.beans.applications.ExecutionMode" field="UNATTENDED_WITH_PROGRESS" />
               </void>
               <void property="splashMessage">
                 <string>Lantern Fetcher</string>
+              </void>
+              <void property="useCustomIcon">
+                <boolean>true</boolean>
               </void>
             </object>
           </java>
@@ -245,7 +265,7 @@
                         <string>lantern.dmg</string>
                       </void>
                       <void property="url">
-                        <string>http://s3.amazonaws.com/lantern/lantern-0.21.3-9-ff18154.dmg</string>
+                        <string>https://s3.amazonaws.com/lantern/lantern-0.21.3-9-ff18154.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -408,6 +428,23 @@
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
+    <windows name="Windows" id="79" customizedId="" mediaFileName="" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-1.7.0_21.tar.gz" jreShared="true" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+      <excludedLaunchers>
+        <launcher id="25" />
+      </excludedLaunchers>
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location=".i4j_fileset_" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <excludedComponents />
+      <includedDownloadableComponents />
+    </windows>
   </mediaSets>
   <buildIds buildAll="true" />
   <buildOptions verbose="false" faster="false" disableSigning="false" debug="false" />
