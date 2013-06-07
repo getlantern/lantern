@@ -157,9 +157,9 @@ public class NatPmpImpl implements NatPmpService {
                 lifeTimeSeconds * 1000);
         final NatPmpResponse response = new NatPmpResponse();
         int result = -1;
-        for (int i = 0; i < 20; ++i) {
+        for (int i = 0; i < 80; ++i) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 // fallthrough
             }
