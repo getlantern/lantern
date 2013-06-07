@@ -267,7 +267,7 @@ if (!sixtyFourBits) {
 
     String command = "tell application \"Finder\"\n" + 
         "activate\n" +
-        "display dialog \"Unfortunately, Lantern requires a 64-bit Mac\"\n" + 
+        "display alert \"Unfortunately, Lantern requires a 64-bit Mac\"\n" + 
     "end";
     Runtime runtime = Runtime.getRuntime();
     runtime.exec(new String[] {"/usr/bin/osascript", "-e", command});
