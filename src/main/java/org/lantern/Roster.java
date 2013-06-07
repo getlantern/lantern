@@ -27,6 +27,8 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.state.Friend;
+import org.lantern.state.Friends;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
@@ -329,6 +331,7 @@ public class Roster implements RosterListener {
     @Override
     public void entriesAdded(final Collection<String> addresses) {
         log.debug("Adding {} entries to roster", addresses.size());
+        Friends friends = model.getFriends();
         for (final String address : addresses) {
             final RosterEntry entry = smackRoster.getEntry(address);
             if (entry == null) {
@@ -337,9 +340,12 @@ public class Roster implements RosterListener {
                 continue;
             }
             addEntry(new LanternRosterEntry(entry), false);
+            Friend friend = friends.get(address);
+            friend.setName(entry.getName());
             processRosterEntryPresences(entry);
         }
         fullRosterSync();
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
     }
 
     private void fullRosterSync() {
