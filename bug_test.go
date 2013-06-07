@@ -157,3 +157,15 @@ func Test_issue21(t *testing.T) {
 	Is(err, nil)
 	Is(pqr, "-3")
 }
+
+func Test_issue24(t *testing.T) {
+	Terst(t)
+
+	otto, _ := runTestWithOtto()
+	otto.Set("abc", []string{"abc", "def", "ghi"})
+	abcValue, err := otto.Get("abc")
+	Is(err, nil)
+	abc, _ := abcValue.Export()
+	_, valid := abc.([]string)
+	Is(valid, true)
+}

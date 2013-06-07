@@ -624,6 +624,8 @@ func (self Value) export() interface{} {
 			return value.value.Interface()
 		case *_goArrayObject:
 			return value.value.Interface()
+		case *_goSliceObject:
+			return value.value.Interface()
 		}
 		if object.class == "Array" {
 			result := make([]interface{}, 0)
@@ -676,6 +678,8 @@ func (self Value) exportNative() interface{} {
 		case *_goMapObject:
 			return value.value.Interface()
 		case *_goArrayObject:
+			return value.value.Interface()
+		case *_goSliceObject:
 			return value.value.Interface()
 		}
 	}
