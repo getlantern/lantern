@@ -93,25 +93,6 @@ public class LanternUtilsTest {
     }
 
     @Test
-    public void testConstantTimeEquals() {
-        // we can't test timing, because JIT (or merely other programs running
-        // at the same time) can cause variance.  But we can test for correct
-        // results of the equality comparison.
-
-        assertTrue(LanternUtils.constantTimeEquals("example", "example"));
-        assertFalse(LanternUtils.constantTimeEquals("example", "ex"));
-        assertFalse(LanternUtils.constantTimeEquals("ex", "example"));
-
-        //these \uffff things are to test out an implementation detail of the method
-        assertTrue(LanternUtils.constantTimeEquals("\uffff", "\uffff"));
-        assertFalse(LanternUtils.constantTimeEquals("a\uffff", "a"));
-        assertFalse(LanternUtils.constantTimeEquals("a\uffff", "ab"));
-        assertFalse(LanternUtils.constantTimeEquals("ab", "a\uffff"));
-        assertFalse(LanternUtils.constantTimeEquals("example one", "example two"));
-
-    }
-
-    @Test
     public void testReplaceInFile() throws Exception {
         final File temp = File.createTempFile(String.valueOf(hashCode()), "test");
         temp.deleteOnExit();

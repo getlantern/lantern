@@ -30,6 +30,7 @@ import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
 import org.lantern.LanternUtils;
+import org.lantern.SecurityUtils;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
@@ -173,7 +174,7 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
 
-        if (!LanternUtils.constantTimeEquals(model.getXsrfToken(),
+        if (!SecurityUtils.constantTimeEquals(model.getXsrfToken(),
                 req.getHeader("X-XSRF-TOKEN"))) {
             log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
             HttpUtils.sendClientError(resp, "invalid X-XSRF-TOKEN");
