@@ -12,31 +12,42 @@ type _runtime struct {
 	GlobalEnvironment *_objectEnvironment
 
 	Global struct {
-		Object   *_object // Object( ... ), new Object( ... ) - 1 (length)
-		Function *_object // Function( ... ), new Function( ... ) - 1
-		Array    *_object // Array( ... ), new Array( ... ) - 1
-		String   *_object // String( ... ), new String( ... ) - 1
-		Boolean  *_object // Boolean( ... ), new Boolean( ... ) - 1
-		Number   *_object // Number( ... ), new Number( ... ) - 1
-		Math     *_object
-		Date     *_object // Date( ... ), new Date( ... ) - 7
-		RegExp   *_object // RegExp( ... ), new RegExp( ... ) - 2
-		Error    *_object // Error( ... ), new Error( ... ) - 1
+		Object         *_object // Object( ... ), new Object( ... ) - 1 (length)
+		Function       *_object // Function( ... ), new Function( ... ) - 1
+		Array          *_object // Array( ... ), new Array( ... ) - 1
+		String         *_object // String( ... ), new String( ... ) - 1
+		Boolean        *_object // Boolean( ... ), new Boolean( ... ) - 1
+		Number         *_object // Number( ... ), new Number( ... ) - 1
+		Math           *_object
+		Date           *_object // Date( ... ), new Date( ... ) - 7
+		RegExp         *_object // RegExp( ... ), new RegExp( ... ) - 2
+		Error          *_object // Error( ... ), new Error( ... ) - 1
+		EvalError      *_object
+		TypeError      *_object
+		RangeError     *_object
+		ReferenceError *_object
+		SyntaxError    *_object
+		URIError       *_object
 		// JSON
 
-		ObjectPrototype   *_object // Object.prototype
-		FunctionPrototype *_object // Function.prototype
-		ArrayPrototype    *_object // Array.prototype
-		StringPrototype   *_object // String.prototype
-		BooleanPrototype  *_object // Boolean.prototype
-		NumberPrototype   *_object // Number.prototype
-		DatePrototype     *_object // Date.prototype
-		RegExpPrototype   *_object // RegExp.prototype
-		ErrorPrototype    *_object // Error.prototype
+		ObjectPrototype         *_object // Object.prototype
+		FunctionPrototype       *_object // Function.prototype
+		ArrayPrototype          *_object // Array.prototype
+		StringPrototype         *_object // String.prototype
+		BooleanPrototype        *_object // Boolean.prototype
+		NumberPrototype         *_object // Number.prototype
+		DatePrototype           *_object // Date.prototype
+		RegExpPrototype         *_object // RegExp.prototype
+		ErrorPrototype          *_object // Error.prototype
+		EvalErrorPrototype      *_object
+		TypeErrorPrototype      *_object
+		RangeErrorPrototype     *_object
+		ReferenceErrorPrototype *_object
+		SyntaxErrorPrototype    *_object
+		URIErrorPrototype       *_object
 	}
 
-	_newError map[string]func(Value) *_object
-	eval      *_object // The builtin eval, for determine indirect versus direct invocation
+	eval *_object // The builtin eval, for determine indirect versus direct invocation
 
 	Otto *Otto
 }
@@ -359,9 +370,9 @@ func (self *_runtime) toValue(value interface{}) Value {
 	case Value:
 		return value
 	case func(FunctionCall) Value:
-		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
+		return toValue(self.newNativeFunction(value))
 	case _nativeFunction:
-		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
+		return toValue(self.newNativeFunction(value))
 	case Object, *Object, _object, *_object:
 		// Nothing happens.
 	default:

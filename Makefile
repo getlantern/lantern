@@ -8,7 +8,7 @@ TEST := .
 CHECK_GO := GOROOT= GOPATH=$(PWD)/.test/check/:$(GOPATH) $(HOME)/go/release/bin/go
 CHECK_OTTO := $(PWD)/.test/check/src/github.com/robertkrimen/otto
 
-test:
+test: inline.go
 	go test -i
 	go test $(TEST)
 
@@ -28,7 +28,7 @@ otto:
 run:
 	go run -a ./otto/main.go ./otto.js
 
-test-all:
+test-all: inline.go
 	go test -i
 	go test
 
@@ -54,3 +54,7 @@ test262: .test
 
 underscore:
 	$(MAKE) -C $@
+
+inline.go: inline
+	./$< > $@
+

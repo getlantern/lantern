@@ -129,7 +129,7 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		case valueString:
 			return toValue("string")
 		case valueObject:
-			if targetValue._object().functionValue() != nil {
+			if targetValue._object().functionValue().call != nil {
 				return toValue("function")
 			}
 			return toValue("object")

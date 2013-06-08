@@ -509,3 +509,9 @@ func TestOttoCall_throw(t *testing.T) {
         [ error instanceof Error, error.message, error.def, typeof error, error, error instanceof Number ];
     `, "false,,,object,3.14159,true")
 }
+
+func BenchmarkNew(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		New()
+	}
+}

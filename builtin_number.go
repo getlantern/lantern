@@ -21,6 +21,27 @@ func builtinNewNumber(self *_object, _ Value, argumentList []Value) Value {
 	return toValue(self.runtime.newNumber(numberValueFromNumberArgumentList(argumentList)))
 }
 
+func builtinNumber_toString(call FunctionCall) Value {
+	// Will throw a TypeError if ThisObject is not a Number
+	value := call.thisClassObject("Number").primitiveValue()
+	radix := 10
+	if len(call.ArgumentList) > 0 {
+		integer := _toInteger(call.Argument(0))
+		if integer < 2 || integer > 36 {
+			panic(newRangeError("RangeError: toString() radix must be between 2 and 36"))
+		}
+		radix = int(integer)
+	}
+	if radix == 10 {
+		return toValue(toString(value))
+	}
+	return toValue(numberToStringRadix(value, radix))
+}
+
+func builtinNumber_valueOf(call FunctionCall) Value {
+	return call.thisClassObject("Number").primitiveValue()
+}
+
 func builtinNumber_toFixed(call FunctionCall) Value {
 	if call.This.IsNaN() {
 		return toValue("NaN")

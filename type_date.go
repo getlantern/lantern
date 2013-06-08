@@ -14,6 +14,15 @@ type _dateObject struct {
 	isNaN bool
 }
 
+var (
+	invalidDateObject = _dateObject{
+		time:  Time.Time{},
+		epoch: -1,
+		value: NaNValue(),
+		isNaN: true,
+	}
+)
+
 type _ecmaTime struct {
 	year        int
 	month       int
@@ -74,6 +83,12 @@ func (self *_dateObject) SetTime(time Time.Time) {
 	self.Set(timeToEpoch(time))
 }
 
+func epoch2dateObject(epoch float64) _dateObject {
+	date := _dateObject{}
+	date.Set(epoch)
+	return date
+}
+
 func (self *_dateObject) Set(epoch float64) {
 	// epoch
 	self.epoch = epochToInteger(epoch)
@@ -121,19 +136,19 @@ func (runtime *_runtime) newDateObject(epoch float64) *_object {
 	self := runtime.newObject()
 	self.class = "Date"
 
-	// TODO Fix this, redundant arguments, etc.
-	date := &_dateObject{}
+	// FIXME This is ugly...
+	date := _dateObject{}
 	date.Set(epoch)
 	self.value = date
 	return self
 }
 
-func (self *_object) dateValue() *_dateObject {
-	object, _ := self.value.(*_dateObject)
-	return object
+func (self *_object) dateValue() _dateObject {
+	value, _ := self.value.(_dateObject)
+	return value
 }
 
-func dateObjectOf(_dateObject *_object) *_dateObject {
+func dateObjectOf(_dateObject *_object) _dateObject {
 	if _dateObject == nil || _dateObject.class != "Date" {
 		panic(newTypeError())
 	}

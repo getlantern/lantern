@@ -58,7 +58,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		panic(newSyntaxError("Invalid regular expression: %s", err.Error()[22:]))
 	}
 
-	self.value = &_regExpObject{
+	self.value = _regExpObject{
 		regularExpression: regularExpression,
 		global:            global,
 		ignoreCase:        ignoreCase,
@@ -74,9 +74,9 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 	return self
 }
 
-func (self *_object) regExpValue() *_regExpObject {
-	object, _ := self.value.(*_regExpObject)
-	return object
+func (self *_object) regExpValue() _regExpObject {
+	value, _ := self.value.(_regExpObject)
+	return value
 }
 
 func execRegExp(this *_object, target string) (match bool, result []int) {

@@ -29,6 +29,42 @@ func builtinNewObject(self *_object, _ Value, argumentList []Value) Value {
 	return toValue(self.runtime.newObject())
 }
 
+func builtinObject_valueOf(call FunctionCall) Value {
+	return toValue(call.thisObject())
+}
+
+func builtinObject_hasOwnProperty(call FunctionCall) Value {
+	propertyName := toString(call.Argument(0))
+	thisObject := call.thisObject()
+	return toValue(thisObject.hasOwnProperty(propertyName))
+}
+
+func builtinObject_isPrototypeOf(call FunctionCall) Value {
+	value := call.Argument(0)
+	if !value.IsObject() {
+		return FalseValue()
+	}
+	prototype := call.toObject(value).prototype
+	thisObject := call.thisObject()
+	for prototype != nil {
+		if thisObject == prototype {
+			return TrueValue()
+		}
+		prototype = prototype.prototype
+	}
+	return FalseValue()
+}
+
+func builtinObject_propertyIsEnumerable(call FunctionCall) Value {
+	propertyName := toString(call.Argument(0))
+	thisObject := call.thisObject()
+	property := thisObject.getOwnProperty(propertyName)
+	if property != nil && property.enumerable() {
+		return TrueValue()
+	}
+	return FalseValue()
+}
+
 func builtinObject_toString(call FunctionCall) Value {
 	result := ""
 	if call.This.IsUndefined() {

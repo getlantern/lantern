@@ -118,45 +118,6 @@ func (self *_object) enumerate(all bool, each func(string)) {
 	self.objectClass.enumerate(self, all, each)
 }
 
-func (self *_object) write(definition ...interface{}) {
-	mode := _propertyMode(0111)
-	length := 0
-	nativeClass_ := "native" + self.class + "_"
-
-	for index := 0; index < len(definition); index++ {
-		value := definition[index]
-		switch value := value.(type) {
-		case _propertyMode:
-			mode = value
-		case string:
-			name := value
-			length = 0
-			index += 1
-		REPEAT:
-			{
-				value := definition[index]
-				switch value := value.(type) {
-				case func(FunctionCall) Value:
-					{
-						value := self.runtime.newNativeFunction(value, length, nativeClass_+name)
-						self.defineProperty(name, toValue(value), mode, false)
-					}
-				case *_object:
-					self.defineProperty(name, toValue(value), mode, false)
-				case Value:
-					self.defineProperty(name, value, mode, false)
-				case int:
-					length = value
-					index += 1
-					goto REPEAT
-				default:
-					panic(hereBeDragons())
-				}
-			}
-		}
-	}
-}
-
 func (self *_object) _exists(name string) bool {
 	_, exists := self.property[name]
 	return exists

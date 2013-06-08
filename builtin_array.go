@@ -22,6 +22,16 @@ func builtinNewArrayNative(runtime *_runtime, argumentList []Value) *_object {
 	return runtime.newArrayOf(argumentList)
 }
 
+func builtinArray_toString(call FunctionCall) Value {
+	thisObject := call.thisObject()
+	join := thisObject.get("join")
+	if join.isCallable() {
+		join := join._object()
+		return join.Call(call.This, call.ArgumentList)
+	}
+	return builtinObject_toString(call)
+}
+
 func builtinArray_concat(call FunctionCall) Value {
 	//return toValue(call.runtime.newArray(0))
 	thisObject := call.thisObject()

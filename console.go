@@ -24,26 +24,28 @@ func builtinConsole_error(call FunctionCall) Value {
 	return UndefinedValue()
 }
 
-func builtinConsole_placeholder(call FunctionCall) Value {
-	// Do nothing, for now
+// Nothing happens.
+func builtinConsole_dir(call FunctionCall) Value {
+	return UndefinedValue()
+}
+
+func builtinConsole_time(call FunctionCall) Value {
+	return UndefinedValue()
+}
+
+func builtinConsole_timeEnd(call FunctionCall) Value {
+	return UndefinedValue()
+}
+
+func builtinConsole_trace(call FunctionCall) Value {
+	return UndefinedValue()
+}
+
+func builtinConsole_assert(call FunctionCall) Value {
 	return UndefinedValue()
 }
 
 func (runtime *_runtime) newConsole() *_object {
 
-	self := runtime.newObject()
-	self.write(
-		"log", builtinConsole_log,
-		"debug", builtinConsole_log,
-		"info", builtinConsole_log,
-		"error", builtinConsole_error,
-		"warn", builtinConsole_error,
-
-		"dir", builtinConsole_placeholder,
-		"time", builtinConsole_placeholder,
-		"timeEnd", builtinConsole_placeholder,
-		"trace", builtinConsole_placeholder,
-		"assert", builtinConsole_placeholder,
-	)
-	return self
+	return newConsoleObject(runtime)
 }

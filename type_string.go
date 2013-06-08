@@ -17,27 +17,24 @@ func (runtime *_runtime) newStringObject(value Value) *_object {
 	self := runtime.newClassObject("String")
 	self.defineProperty("length", toValue(len(value16)), 0, false)
 	self.objectClass = _classString
-	self.value = &_stringObject{
+	self.value = _stringObject{
 		value:   value,
 		value16: value16,
 	}
 	return self
 }
 
-func (self *_object) stringValue() (string, *_stringObject) {
-	value, valid := self.value.(*_stringObject)
+func (self *_object) stringValue() (string, _stringObject) {
+	value, valid := self.value.(_stringObject)
 	if valid {
 		return value.value.value.(string), value
 	}
-	return "", nil
+	return "", _stringObject{}
 }
 
 func (self *_object) stringValue16() []uint16 {
 	_, value := self.stringValue()
-	if value != nil {
-		return value.value16
-	}
-	return nil
+	return value.value16
 }
 
 func utf16Of(value string) []uint16 {

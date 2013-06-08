@@ -28,6 +28,10 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 	return runtime.newNodeFunction(_programNode.toFunction(parameterList), runtime.GlobalEnvironment)
 }
 
+func builtinFunction_toString(call FunctionCall) Value {
+	return toValue("[function]")
+}
+
 func builtinFunction_apply(call FunctionCall) Value {
 	if !call.This.isCallable() {
 		panic(newTypeError())

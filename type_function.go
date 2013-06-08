@@ -1,16 +1,14 @@
 package otto
 
-import ()
-
 type _functionObject struct {
 	call      _callFunction
 	construct _constructFunction
 }
 
-func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length int, name string) *_object {
+func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length int) *_object {
 	self := runtime.newClassObject("Function")
-	self.value = &_functionObject{
-		call:      newNativeCallFunction(native, name),
+	self.value = _functionObject{
+		call:      newNativeCallFunction(native),
 		construct: defaultConstructFunction,
 	}
 	self.defineProperty("length", toValue(length), 0000, false)
@@ -19,7 +17,7 @@ func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length 
 
 func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnvironment _environment) *_object {
 	self := runtime.newClassObject("Function")
-	self.value = &_functionObject{
+	self.value = _functionObject{
 		call:      newNodeCallFunction(node, scopeEnvironment),
 		construct: defaultConstructFunction,
 	}
@@ -29,7 +27,7 @@ func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnviron
 
 func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, argumentList []Value) *_object {
 	self := runtime.newClassObject("Function")
-	self.value = &_functionObject{
+	self.value = _functionObject{
 		call:      newBoundCallFunction(target, this, argumentList),
 		construct: defaultConstructFunction,
 	}
@@ -38,13 +36,13 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 	return self
 }
 
-func (self *_object) functionValue() *_functionObject {
-	object, _ := self.value.(*_functionObject)
-	return object
+func (self *_object) functionValue() _functionObject {
+	value, _ := self.value.(_functionObject)
+	return value
 }
 
 func (self *_object) Call(this Value, argumentList ...interface{}) Value {
-	if self.functionValue() == nil {
+	if self.functionValue().call == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
 	return self.runtime.Call(self, this, self.runtime.toValueArray(argumentList...), false)
@@ -53,7 +51,7 @@ func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 
 func (self *_object) Construct(this Value, argumentList ...interface{}) Value {
 	function := self.functionValue()
-	if function == nil {
+	if function.call == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
 	if function.construct == nil {
@@ -88,7 +86,7 @@ func (self *_object) CallSet(name string, value Value) {
 
 // 15.3.5.3
 func (self *_object) HasInstance(of Value) bool {
-	if self.functionValue() == nil {
+	if self.functionValue().call == nil {
 		// We should not have a HasInstance method
 		panic(newTypeError())
 	}
@@ -111,8 +109,6 @@ func (self *_object) HasInstance(of Value) bool {
 	return false
 }
 
-type _functionSignature string
-
 type _nativeFunction func(FunctionCall) Value
 
 // _constructFunction
@@ -123,38 +119,17 @@ type _callFunction interface {
 	Dispatch(*_object, *_functionEnvironment, *_runtime, Value, []Value, bool) Value
 	Source() string
 	ScopeEnvironment() _environment
-	name() string
-}
-
-type _callFunction_ struct {
-	scopeEnvironment _environment // Can be either Lexical or Variable
-	_name            string
-}
-
-func (self _callFunction_) ScopeEnvironment() _environment {
-	return self.scopeEnvironment
-}
-
-func (self _callFunction_) name() string {
-	return self._name
 }
 
 // _nativeCallFunction
-type _nativeCallFunction struct {
-	_callFunction_
-	Native _nativeFunction
-}
+type _nativeCallFunction _nativeFunction
 
-func newNativeCallFunction(native _nativeFunction, name string) *_nativeCallFunction {
-	self := &_nativeCallFunction{
-		Native: native,
-	}
-	self._callFunction_._name = name
-	return self
+func newNativeCallFunction(native _nativeFunction) _nativeCallFunction {
+	return _nativeCallFunction(native)
 }
 
 func (self _nativeCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, evalHint bool) Value {
-	return self.Native(FunctionCall{
+	return self(FunctionCall{
 		runtime:  runtime,
 		evalHint: evalHint,
 
@@ -164,14 +139,18 @@ func (self _nativeCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, ru
 	})
 }
 
+func (self _nativeCallFunction) ScopeEnvironment() _environment {
+	return nil
+}
+
 func (self _nativeCallFunction) Source() string {
 	return ""
 }
 
 // _nodeCallFunction
 type _nodeCallFunction struct {
-	_callFunction_
-	node *_functionNode
+	node             *_functionNode
+	scopeEnvironment _environment // Can be either Lexical or Variable
 }
 
 func newNodeCallFunction(node *_functionNode, scopeEnvironment _environment) *_nodeCallFunction {
@@ -186,12 +165,15 @@ func (self _nodeCallFunction) Dispatch(function *_object, environment *_function
 	return runtime._callNode(function, environment, self.node, this, argumentList)
 }
 
+func (self _nodeCallFunction) ScopeEnvironment() _environment {
+	return self.scopeEnvironment
+}
+
 func (self _nodeCallFunction) Source() string {
 	return ""
 }
 
 type _boundCallFunction struct {
-	_callFunction_
 	target       *_object
 	this         Value
 	argumentList []Value
@@ -209,6 +191,10 @@ func newBoundCallFunction(target *_object, this Value, argumentList []Value) *_b
 func (self _boundCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
 	argumentList = append(self.argumentList, argumentList...)
 	return runtime.Call(self.target, self.this, argumentList, false)
+}
+
+func (self _boundCallFunction) ScopeEnvironment() _environment {
+	return nil
 }
 
 func (self _boundCallFunction) Source() string {
