@@ -265,7 +265,7 @@
                         <string>lantern.dmg</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/lantern-0.21.3-9-ff18154.dmg</string>
+                        <string>https://s3.amazonaws.com/lantern/lantern-${compiler:sys.version}.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -290,6 +290,46 @@
                   </java>
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
+              </action>
+              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="deleteOnExit">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
+                      <void property="targetFile">
+                        <string>lantern.exe</string>
+                      </void>
+                      <void property="url">
+                        <string>https://s3.amazonaws.com/lantern/lantern-${compiler:sys.version}.exe</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
+              </action>
+              <action name="" id="86" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="executable">
+                        <object class="java.io.File">
+                          <string>lantern.exe</string>
+                        </object>
+                      </void>
+                      <void property="workingDirectory">
+                        <object class="java.io.File">
+                          <string>${installer:sys.workingDir}</string>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
               </action>
             </actions>
             <formComponents />
@@ -419,7 +459,9 @@
     <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="" installDir="Wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
-      <exclude />
+      <exclude>
+        <entry location=".i4j_fileset_" fileType="regular" />
+      </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
         <commentFiles />
@@ -445,6 +487,26 @@
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
+    <unixInstaller name="Unix Installer" id="82" customizedId="" mediaFileName="" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="">
+      <excludedLaunchers>
+        <launcher id="25" />
+      </excludedLaunchers>
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location=".i4j_fileset_" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <excludedComponents />
+      <includedDownloadableComponents />
+      <installerScript mode="1" file="">
+        <content />
+      </installerScript>
+    </unixInstaller>
   </mediaSets>
   <buildIds buildAll="true" />
   <buildOptions verbose="false" faster="false" disableSigning="false" debug="false" />
