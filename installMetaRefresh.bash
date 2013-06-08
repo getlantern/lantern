@@ -19,7 +19,7 @@ echo "Release version: $release"
 
 if $release ; then
   bucket=lantern
-  url=http://$bucket.s3.amazonaws.com/$name
+  url=https//s3.amazonaws.com/$bucket/$name
   echo "Uploading to http://cdn.getlantern.org/$name..."
   aws -putp $bucket $name
   echo "Uploaded lantern to http://cdn.getlantern.org/$name"
