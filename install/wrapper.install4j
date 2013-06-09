@@ -265,7 +265,7 @@
                         <string>lantern.dmg</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/lantern-${compiler:sys.version}.dmg</string>
+                        <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -305,7 +305,7 @@
                         <string>lantern.exe</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/lantern-${compiler:sys.version}.exe</string>
+                        <string>https://s3.amazonaws.com/lantern/latest.exe</string>
                       </void>
                     </object>
                   </java>
