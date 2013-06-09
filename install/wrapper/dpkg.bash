@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-sudo dpkg -i latest.deb
+sudo dpkg -i lantern.deb
