@@ -652,7 +652,8 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
       <installerScript mode="1" file="">
-        <content />
+        <content>echo "Please enter your administrator password"
+sudo ls -la</content>
       </installerScript>
     </unixInstaller>
   </mediaSets>
