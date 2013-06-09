@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.1.5" transformSequenceNumber="4">
-  <directoryPresets config="./jres" />
-  <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern-net-installer" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
+  <directoryPresets config="./dpkg.bash" />
+  <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir=".." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern-net-installer" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -13,13 +13,21 @@
     </searchSequence>
     <variables />
     <mergedProjects />
-    <codeSigning macEnabled="true" macPkcs12File="../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
+    <codeSigning macEnabled="true" macPkcs12File="../../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../../secure/bns_cert.p12" />
   </application>
   <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
-    <filesets />
-    <roots />
-    <mountPoints />
-    <entries />
+    <filesets>
+      <fileset name="Ubuntu" id="131" customizedId="" />
+    </filesets>
+    <roots>
+      <root id="132" fileset="131" location="" />
+    </roots>
+    <mountPoints>
+      <mountPoint id="133" root="132" location="" mode="755" />
+    </mountPoints>
+    <entries>
+      <fileEntry mountPoint="133" file="./dpkg.bash" overwriteMode="4" shared="false" fileMode="744" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
+    </entries>
     <components />
   </files>
   <launchers>
@@ -58,24 +66,24 @@
       <customAttributes />
     </autoUpdate>
     <applications>
-      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="../common/lantern.icns" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
               <void property="customIconImageFiles">
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/16on.png</string>
+                    <string>../common/16on.png</string>
                   </object>
                 </void>
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/32on.png</string>
+                    <string>../common/32on.png</string>
                   </object>
                 </void>
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/64on.png</string>
+                    <string>../common/64on.png</string>
                   </object>
                 </void>
               </void>
@@ -381,12 +389,12 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>lantern.deb</string>
+                          <string>dpkg.bash </string>
                         </object>
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
-                          <string>${installer:sys.workingDir}</string>
+                          <string>${installer:sys.installationDir}</string>
                         </object>
                       </void>
                     </object>
