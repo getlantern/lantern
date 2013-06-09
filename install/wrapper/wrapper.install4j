@@ -343,14 +343,11 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="deleteOnExit">
-                        <boolean>true</boolean>
-                      </void>
                       <void property="retryIfInterrupted">
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>lantern.deb</string>
+                        <string>${installer:sys.installationDir}/lantern.deb</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/latest-64.deb</string>
@@ -365,14 +362,11 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="deleteOnExit">
-                        <boolean>true</boolean>
-                      </void>
                       <void property="retryIfInterrupted">
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>lantern.deb</string>
+                        <string>${installer:sys.installationDir}/lantern.deb</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/latest-32.deb</string>
@@ -391,6 +385,9 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                         <object class="java.io.File">
                           <string>dpkg.bash </string>
                         </object>
+                      </void>
+                      <void property="wait">
+                        <boolean>true</boolean>
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
