@@ -26,18 +26,19 @@ if $release ; then
   echo "Also available at $url"
 
   echo "RELEASING!!!!!"
-  pushd install/$dir || die "Could not change directories"
-  perl -pi -e "s;url_token;$url;g" $latestName || die "Could not replace URL token"
+#  pushd install/$dir || die "Could not change directories"
+#  perl -pi -e "s;url_token;$url;g" $latestName || die "Could not replace URL token"
 
   # Makes sure it actually was replaced
-  grep $url $latestName || die "Something went wrong with creating latest dummy file"
+#  grep $url $latestName || die "Something went wrong with creating latest dummy file"
 
   # Here's the trick -- send a custom mime type that's html instead of the mime type for the file extension
-  aws -putpm $bucket $latestName text/html || die "Could not upload latest?"
+#  aws -putpm $bucket $latestName text/html || die "Could not upload latest?"
 
-  git checkout $latestName || die "Could not checkout"
-  popd
+#  git checkout $latestName || die "Could not checkout"
+#  popd
 
+  ./copys3file.py $name
   shasum $name | cut -d " " -f 1 > $latestName.sha1
   aws -putp $bucket $latestName.sha1
 else
