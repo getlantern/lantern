@@ -38,8 +38,12 @@ if $release ; then
 #  git checkout $latestName || die "Could not checkout"
 #  popd
 
+  echo "Copying on S3 to latest file"
   ./copys3file.py $name
+
   shasum $name | cut -d " " -f 1 > $latestName.sha1
+
+  echo "Uploading SHA-1 `cat $latestName.sha1`"
   aws -putp $bucket $latestName.sha1
 else
   echo "NOT RELEASING!!!"
