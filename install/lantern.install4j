@@ -264,13 +264,8 @@
                           <void property="value">
                             <string>boolean sixtyFourBits = System.getProperty("sun.arch.data.model").equals("64");
 if (!sixtyFourBits) {
-
-    String command = "tell application \"Finder\"\n" + 
-        "activate\n" +
-        "display alert \"Unfortunately, Lantern requires a 64-bit Mac\"\n" + 
-    "end";
-    Runtime runtime = Runtime.getRuntime();
-    runtime.exec(new String[] {"/usr/bin/osascript", "-e", command});
+    Util.showErrorMessage("Unfortunately, Lantern requires a 64-bit Mac. Exiting");
+    context.finish(1);
 }
 
 return sixtyFourBits;</string>
