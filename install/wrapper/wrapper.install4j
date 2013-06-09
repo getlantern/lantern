@@ -26,7 +26,7 @@
       <mountPoint id="133" root="132" location="" mode="755" />
     </mountPoints>
     <entries>
-      <fileEntry mountPoint="133" file="./dpkg.bash" overwriteMode="4" shared="false" fileMode="744" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="133" file="./dpkg.bash" overwriteMode="4" shared="false" fileMode="777" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
     </entries>
     <components />
   </files>
@@ -377,14 +377,30 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                 <condition>final boolean is64Bit = System.getProperty("sun.arch.data.model").equals("64");
 return Util.isLinux() &amp;&amp; !is64Bit;</condition>
               </action>
-              <action name="" id="89" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
+              <action name="" id="89" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>dpkg.bash </string>
+                          <string>${installer:sys.installationDir}/dpkg.bash </string>
                         </object>
+                      </void>
+                      <void property="stderrFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.installationDir}/err.txt</string>
+                        </object>
+                      </void>
+                      <void property="stderrRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
+                      </void>
+                      <void property="stdoutFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.installationDir}/log.txt</string>
+                        </object>
+                      </void>
+                      <void property="stdoutRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
                       </void>
                       <void property="wait">
                         <boolean>true</boolean>
@@ -392,6 +408,43 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                       <void property="workingDirectory">
                         <object class="java.io.File">
                           <string>${installer:sys.installationDir}</string>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isLinux();</condition>
+              </action>
+              <action name="" id="196" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="true" failureStrategy="3" errorMessage="Could not run Lantern installer? Quit?">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>final File f = new File(context.getInstallationDirectory(), "dpkg.bash");
+final File deb = new File(context.getInstallationDirectory(), "lantern.deb");
+//final File out = new File(context.getInstallationDirectory(), "dpkg.bash.out");
+
+// Note these messages don't get shown in unattended mode!
+if (!f.isFile()) {
+    Util.showErrorMessage("NO FILE AT "+f.getPath());
+    return false;
+}
+if (!f.canExecute()) {
+    Util.showErrorMessage("CANNOT EXECUTE FILE AT "+f.getPath());
+    return false;
+}
+f.setExecutable(true);
+
+// Note these messages don't get shown in unattended mode!
+Util.showMessage("Executing "+f.getPath());
+final ProcessBuilder pb = new ProcessBuilder(f.getPath(), deb.getPath());
+final Process p = pb.redirectErrorStream(true).start();
+//pb.redirectOutput(out);
+final int result = p.waitFor();
+return result == 0;</string>
+                          </void>
                         </object>
                       </void>
                     </object>
@@ -599,7 +652,9 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
       </installerScript>
     </unixInstaller>
   </mediaSets>
-  <buildIds buildAll="true" />
-  <buildOptions verbose="false" faster="false" disableSigning="false" debug="false" />
+  <buildIds buildAll="false">
+    <mediaSet refId="127" />
+  </buildIds>
+  <buildOptions verbose="false" faster="false" disableSigning="false" debug="true" />
 </install4j>
 
