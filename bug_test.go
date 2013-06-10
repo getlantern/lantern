@@ -162,10 +162,88 @@ func Test_issue24(t *testing.T) {
 	Terst(t)
 
 	otto, _ := runTestWithOtto()
-	otto.Set("abc", []string{"abc", "def", "ghi"})
-	abcValue, err := otto.Get("abc")
-	Is(err, nil)
-	abc, _ := abcValue.Export()
-	_, valid := abc.([]string)
-	Is(valid, true)
+
+	{
+		otto.Set("abc", []string{"abc", "def", "ghi"})
+		value, err := otto.Get("abc")
+		Is(err, nil)
+		export, _ := value.Export()
+		{
+			value, valid := export.([]string)
+			Is(valid, true)
+
+			Is(value[0], "abc")
+			Is(value[2], "ghi")
+		}
+	}
+
+	{
+		otto.Set("abc", [...]string{"abc", "def", "ghi"})
+		value, err := otto.Get("abc")
+		Is(err, nil)
+		export, _ := value.Export()
+		{
+			value, valid := export.([3]string)
+			Is(valid, true)
+
+			Is(value[0], "abc")
+			Is(value[2], "ghi")
+		}
+	}
+
+	{
+		otto.Set("abc", &[...]string{"abc", "def", "ghi"})
+		value, err := otto.Get("abc")
+		Is(err, nil)
+		export, _ := value.Export()
+		{
+			value, valid := export.(*[3]string)
+			Is(valid, true)
+
+			Is(value[0], "abc")
+			Is(value[2], "ghi")
+		}
+	}
+
+	{
+		otto.Set("abc", map[int]string{0: "abc", 1: "def", 2: "ghi"})
+		value, err := otto.Get("abc")
+		Is(err, nil)
+		export, _ := value.Export()
+		{
+			value, valid := export.(map[int]string)
+			Is(valid, true)
+
+			Is(value[0], "abc")
+			Is(value[2], "ghi")
+		}
+	}
+
+	{
+		otto.Set("abc", testStruct{Abc: true, Ghi: "Nothing happens."})
+		value, err := otto.Get("abc")
+		Is(err, nil)
+		export, _ := value.Export()
+		{
+			value, valid := export.(testStruct)
+			Is(valid, true)
+
+			Is(value.Abc, true)
+			Is(value.Ghi, "Nothing happens.")
+		}
+	}
+
+	{
+		otto.Set("abc", &testStruct{Abc: true, Ghi: "Nothing happens."})
+		value, err := otto.Get("abc")
+		Is(err, nil)
+		export, _ := value.Export()
+		{
+			value, valid := export.(*testStruct)
+			Is(valid, true)
+
+			Is(value.Abc, true)
+			Is(value.Ghi, "Nothing happens.")
+		}
+	}
 }
