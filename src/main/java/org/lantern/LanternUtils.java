@@ -128,7 +128,7 @@ public class LanternUtils {
             
             fallbackServerHost = fp.getIp();
             fallbackServerPort = fp.getPort();
-            LOG.debug("Adding fallback proxy at {}", fallbackServerHost);
+            LOG.debug("Set fallback proxy to {}", fallbackServerHost);
         } catch (final IOException e) {
             LOG.error("Could not load fallback", e);
         } finally {
