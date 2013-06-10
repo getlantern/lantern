@@ -47,6 +47,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -86,6 +87,10 @@ public class LanternUtils {
 
     private static String keystorePath = "<UNSET>";
 
+    private static String fallbackServerHost;
+    
+    private static int fallbackServerPort;
+
     public static boolean isDevMode() {
         return LanternClientConstants.isDevMode();
     }
@@ -98,6 +103,54 @@ public class LanternUtils {
     }
     */
     
+    static {
+        addFallbackProxy();
+    }
+    
+    private static void addFallbackProxy() {
+        try {
+            copyFallback();
+        } catch (final IOException e) {
+            LOG.error("Could not copy fallback?", e);
+        }
+        final ObjectMapper om = new ObjectMapper();
+        InputStream is = null;
+        try {
+            final File file = 
+                new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
+            if (!file.isFile()) {
+                LOG.error("No fallback proxy to load!");
+                return;
+            }
+            is = new FileInputStream(file);
+            final String proxy = IOUtils.toString(is);
+            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
+            
+            fallbackServerHost = fp.getIp();
+            fallbackServerPort = fp.getPort();
+            LOG.debug("Adding fallback proxy at {}", fallbackServerHost);
+        } catch (final IOException e) {
+            LOG.error("Could not load fallback", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+
+    private static void copyFallback() throws IOException {
+        LOG.debug("Copying fallback file");
+        final File from = 
+            new File(new File(SystemUtils.USER_HOME), "fallback.json");
+        if (!from.isFile()) {
+            LOG.debug("No fallback proxy found in root...");
+            return;
+        }
+        final File par = LanternClientConstants.CONFIG_DIR;
+        final File to = new File(par, from.getName());
+        if (!par.isDirectory() && !par.mkdirs()) {
+            throw new IOException("Could not make config dir?");
+        }
+        Files.move(from, to);
+    }
 
     public static FiveTuple openOutgoingPeer(
         final URI uri, final P2PClient<FiveTuple> p2pClient,
@@ -1059,5 +1112,21 @@ public class LanternUtils {
             }
         }
         return equals & expected.length() == got.length();
+    }
+
+    public static String getFallbackServerHost() {
+        return fallbackServerHost;
+    }
+
+    public static void setFallbackServerHost(final String fallbackServerHost) {
+        LanternUtils.fallbackServerHost = fallbackServerHost;
+    }
+
+    public static int getFallbackServerPort() {
+        return fallbackServerPort;
+    }
+
+    public static void setFallbackServerPort(final int fallbackServerPort) {
+        LanternUtils.fallbackServerPort = fallbackServerPort;
     }
 }

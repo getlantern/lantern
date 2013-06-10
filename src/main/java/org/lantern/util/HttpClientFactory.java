@@ -9,8 +9,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.Censored;
-import org.lantern.LanternClientConstants;
 import org.lantern.LanternSocketsUtil;
+import org.lantern.LanternUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -42,10 +42,8 @@ public class HttpClientFactory {
     }
 
     private HttpHost newProxy() {
-        return new HttpHost(
-            LanternClientConstants.FALLBACK_SERVER_HOST, 
-            Integer.valueOf(LanternClientConstants.FALLBACK_SERVER_PORT), 
-                "https");
+        return new HttpHost(LanternUtils.getFallbackServerHost(), 
+            LanternUtils.getFallbackServerPort(), "https");
     }
 
     public HttpClient newClient(final HttpHost proxy) {

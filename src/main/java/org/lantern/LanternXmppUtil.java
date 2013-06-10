@@ -9,7 +9,6 @@ import java.net.UnknownHostException;
 
 import javax.net.SocketFactory;
 
-import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
@@ -44,18 +43,11 @@ public class LanternXmppUtil {
     }
     
     private ProxyInfo proxyInfo() {
-        final int proxyPort;
-        if (NumberUtils.isNumber(LanternClientConstants.FALLBACK_SERVER_PORT)) {
-            proxyPort = Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT);
-        } else {
-            proxyPort = 80;
-        }
+        final int proxyPort = LanternUtils.getFallbackServerPort();
         final ProxyInfo proxyInfo = 
                 new ProxyInfo(ProxyType.HTTP, 
-                        LanternClientConstants.FALLBACK_SERVER_HOST, 
-                    proxyPort, 
-                    LanternClientConstants.FALLBACK_SERVER_USER, 
-                    LanternClientConstants.FALLBACK_SERVER_PASS);
+                        LanternUtils.getFallbackServerHost(), 
+                    proxyPort, "", "");
         return proxyInfo;
     }
 

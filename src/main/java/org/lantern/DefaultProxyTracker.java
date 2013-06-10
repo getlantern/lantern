@@ -50,7 +50,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     /**
      * These are the proxies this Lantern instance is using that can be directly
      * connected to.
-     *
      */
     ProxyQueue proxyQueue;
 
@@ -130,7 +129,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             // Don't use peer proxies since we're not connected to XMPP yet.
             if (peer.isMapped()) {
                 final String id = peer.getPeerid();
-                if (!id.contains(LanternClientConstants.FALLBACK_SERVER_HOST)) {
+                if (!id.contains(LanternUtils.getFallbackServerHost())) {
                     addProxy(LanternUtils.newURI(peer.getPeerid()), 
                         new InetSocketAddress(peer.getIp(), peer.getPort()));
                 }
@@ -143,10 +142,11 @@ public class DefaultProxyTracker implements ProxyTracker {
             final URI uri = LanternUtils.newURI("fallback@getlantern.org");
             final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
             cloud.setMode(org.lantern.state.Mode.give);
-            addProxy(uri, 
-                LanternClientConstants.FALLBACK_SERVER_HOST,
-                Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT),
-                Type.cloud);
+            
+            log.debug("Adding fallback: {}", 
+                LanternUtils.getFallbackServerHost());
+            addProxy(uri, LanternUtils.getFallbackServerHost(), 
+                LanternUtils.getFallbackServerPort(), Type.cloud);
         }
     }
 
