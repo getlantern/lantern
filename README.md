@@ -29,7 +29,7 @@
 
 	open.Run("https://google.com/")
 	
-### open google.com in the user's default browser (method 1):
+### open google.com in the user's default browser (method 2):
 
 	open.Start("https://google.com")
 
