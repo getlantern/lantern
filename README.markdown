@@ -269,7 +269,7 @@ For example, accessing an existing object:
 
 Or, creating a new object:
 
-    object, _ := Otto.Object(`{ xyzzy: "Nothing happens." }`)
+    object, _ := Otto.Object(`({ xyzzy: "Nothing happens." })`)
 
 Or, creating and assigning an object:
 

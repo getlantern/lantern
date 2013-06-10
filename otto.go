@@ -274,7 +274,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 //
 // Or, creating a new object:
 //
-//		object, _ := Otto.Object(`{ xyzzy: "Nothing happens." }`)
+//		object, _ := Otto.Object(`({ xyzzy: "Nothing happens." })`)
 //
 // Or, creating and assigning an object:
 //
