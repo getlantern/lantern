@@ -250,6 +250,17 @@ public class Launcher {
         censored = instance(Censored.class);
 
         messageService = instance(MessageService.class);
+        
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            final boolean sixtyFourBits = 
+                System.getProperty("sun.arch.data.model").equals("64");
+            if (!sixtyFourBits) {
+                messageService.showMessage("Operating System Error", 
+                        "We're sorry but Lantern requires a 64 bit operating " +
+                        "system on OSX! Exiting");
+                System.exit(0);
+            }
+        }
         instance(Proxifier.class);
         if (set.isUiEnabled()) {
             browserService = instance(BrowserService.class);
@@ -323,7 +334,7 @@ public class Launcher {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
-        launchWithOrWithoutUi();
+        launchLantern();
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
@@ -525,27 +536,18 @@ public class Launcher {
         }
     }
 
-    private void launchWithOrWithoutUi() {
-        if (!set.isUiEnabled()) {
-            // We only run headless on Linux for now.
-            LOG.info("Running Lantern with no display...");
-            launchLantern();
-            //LanternHub.jettyLauncher();
-            return;
-        }
-
-        LOG.debug("Is launchd: {}", model.isLaunchd());
-        launchLantern();
-
-    }
-
     public void launchLantern() {
         LOG.debug("Launching Lantern...");
         if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
             model.setModal(Modal.welcome);
         }
         if (set.isUiEnabled()) {
-            browserService.openBrowserWhenPortReady();
+            if (model.isLaunchd() && model.isSetupComplete()) {
+                LOG.debug("Not opening browser when run on startup and " +
+                    "setup is complete");
+            } else {
+                browserService.openBrowserWhenPortReady();
+            }
         }
 
         autoConnect();

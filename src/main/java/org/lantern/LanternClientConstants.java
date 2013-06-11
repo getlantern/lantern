@@ -16,9 +16,6 @@ public class LanternClientConstants {
     private static final Logger LOG =
         LoggerFactory.getLogger(LanternClientConstants.class);
 
-    public static final String FALLBACK_SERVER_HOST;
-    public static final String FALLBACK_SERVER_PORT;
-
     private static final boolean isDevMode;
 
     /**
@@ -31,10 +28,6 @@ public class LanternClientConstants {
     public static final String GIT_VERSION;
 
     static {
-        final String host = "fallback_server_host_tok";
-        final String port = "fallback_server_port_tok";
-        FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "54.251.192.164" : host;
-        FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "11225" : port;
         final Properties prop = new Properties();
         try {
             final ClassLoader cl = 
@@ -56,8 +49,6 @@ public class LanternClientConstants {
             throw new Error("Could not load version props?", e);
         }
     }
-    public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
-    public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
 
     public static final File DATA_DIR;
 

@@ -155,11 +155,11 @@ public class NatPmpImpl implements NatPmpService {
 
         pmpDevice.sendNewPortMappingRequest(protocol, localPort, -1,
                 lifeTimeSeconds * 1000);
-        NatPmpResponse response = new NatPmpResponse();
+        final NatPmpResponse response = new NatPmpResponse();
         int result = -1;
-        for (int i = 0; i < 5; ++i) {
+        for (int i = 0; i < 80; ++i) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 // fallthrough
             }
@@ -170,10 +170,15 @@ public class NatPmpImpl implements NatPmpService {
         }
 
         if (result == 0) {
+            log.debug("Received successful NAT-PMP response mapping local " +
+                    "port {} to remote port {}", 
+                    localPort, response.mappedpublicport);
             map.externalPort = response.mappedpublicport;
             portMapListener.onPortMap(map.externalPort);
             stats.setNatpmp(true);
         } else {
+            log.debug("Did not receive port mapping response for local {}", 
+                    localPort);
             portMapListener.onPortMapError();
             stats.setNatpmp(false);
         }

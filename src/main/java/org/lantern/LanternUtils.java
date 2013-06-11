@@ -47,6 +47,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -86,6 +87,10 @@ public class LanternUtils {
 
     private static String keystorePath = "<UNSET>";
 
+    private static String fallbackServerHost;
+
+    private static int fallbackServerPort;
+
     public static boolean isDevMode() {
         return LanternClientConstants.isDevMode();
     }
@@ -97,7 +102,68 @@ public class LanternUtils {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, true);
     }
     */
-    
+
+    static {
+        addFallbackProxy();
+    }
+
+    private static void addFallbackProxy() {
+        final File file =
+            new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
+        if (!file.isFile()) {
+            try {
+                copyFallback();
+            } catch (final IOException e) {
+                LOG.error("Could not copy fallback?", e);
+            }
+        }
+        if (!file.isFile()) {
+            LOG.error("No fallback proxy to load!");
+            return;
+        }
+
+        final ObjectMapper om = new ObjectMapper();
+        InputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            final String proxy = IOUtils.toString(is);
+            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
+
+            fallbackServerHost = fp.getIp();
+            fallbackServerPort = fp.getPort();
+            LOG.debug("Set fallback proxy to {}", fallbackServerHost);
+        } catch (final IOException e) {
+            LOG.error("Could not load fallback", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+
+    private static void copyFallback() throws IOException {
+        LOG.debug("Copying fallback file");
+        final File from;
+
+        final File home =
+            new File(new File(SystemUtils.USER_HOME), "fallback.json");
+        if (home.isFile()) {
+            from = home;
+        } else {
+            LOG.debug("No fallback proxy found in home - checking cur...");
+            final File curDir = new File("fallback.json");
+            if (curDir.isFile()) {
+                from = curDir;
+            } else {
+                LOG.warn("Still could not find fallback proxy!");
+                return;
+            }
+        }
+        final File par = LanternClientConstants.CONFIG_DIR;
+        final File to = new File(par, from.getName());
+        if (!par.isDirectory() && !par.mkdirs()) {
+            throw new IOException("Could not make config dir?");
+        }
+        Files.copy(from, to);
+    }
 
     public static FiveTuple openOutgoingPeer(
         final URI uri, final P2PClient<FiveTuple> p2pClient,
@@ -384,11 +450,11 @@ public class LanternUtils {
 
     /**
      * Execute keytool, returning the output.
-     * 
+     *
      * @throws IOException If the executable cannot be found.
      */
     public static String runKeytool(final String... args) {
-        
+
         try {
             final CommandLine command = new CommandLine(findKeytoolPath(), args);
             command.execute();
@@ -695,7 +761,7 @@ public class LanternUtils {
         final int y = (screenSize.height - height) / 2;
         return new Point(x, y);
     }
-    
+
 
     public static boolean waitForServer(final int port) {
         return waitForServer(port, 60 * 1000);
@@ -824,9 +890,9 @@ public class LanternUtils {
     }
 
     /**
-     * The completion of the native calls is dependent on OS process 
+     * The completion of the native calls is dependent on OS process
      * scheduling, so we need to wait until files actually exist.
-     * 
+     *
      * @param file The file to wait for.
      */
     public static void waitForFile(final File file) {
@@ -846,43 +912,43 @@ public class LanternUtils {
         }
     }
 
-    
+
     public static void fullDelete(final File file) {
         file.deleteOnExit();
         if (file.isFile() && !file.delete()) {
             LOG.error("Could not delete file {}!!", file);
         }
     }
-    
-    
-    public static void addCert(final String alias, final File cert, 
+
+
+    public static void addCert(final String alias, final File cert,
         final File trustStore, final String storePass) {
         if (!cert.isFile()) {
             LOG.error("No cert at "+cert);
             return;
         }
         LOG.debug("Importing cert");
-        
+
         // Quick not on '-import' versus '-importcert' from the oracle docs:
         //
-        // "This command was named -import in previous releases. This old name 
-        // is still supported in this release and will be supported in future 
-        // releases, but for clarify the new name, -importcert, is preferred 
+        // "This command was named -import in previous releases. This old name
+        // is still supported in this release and will be supported in future
+        // releases, but for clarify the new name, -importcert, is preferred
         // going forward."
         //
         // We use import for backwards compatibility.
-        final String result = LanternUtils.runKeytool("-import", 
-            "-noprompt", "-file", cert.getAbsolutePath(), 
-            "-alias", alias, "-keystore", 
+        final String result = LanternUtils.runKeytool("-import",
+            "-noprompt", "-file", cert.getAbsolutePath(),
+            "-alias", alias, "-keystore",
             trustStore.getAbsolutePath(), "-storepass", storePass);
-        
+
         LOG.debug("Result of running keytool: {}", result);
     }
 
     public static boolean isConnect(final HttpRequest request) {
         return request.getMethod() == HttpMethod.CONNECT;
     }
-    
+
     public static InetSocketAddress isa(final String host, final int port) {
         final InetAddress ia;
         try {
@@ -932,10 +998,10 @@ public class LanternUtils {
         }
         return false;
     }
-    
+
     /**
      * Modifies .desktop files on Ubuntu with out hack to set our icon.
-     * 
+     *
      * @param path The path to the file.
      */
     public static void addStartupWMClass(final String path) {
@@ -944,9 +1010,9 @@ public class LanternUtils {
             LOG.warn("No lantern desktop file at: {}", desktopFile);
             return;
         }
-        final Collection<?> lines = 
+        final Collection<?> lines =
             Arrays.asList("StartupWMClass=127.0.0.1__"+
-        
+
             // We use the substring here to get rid of the leading "/"
             StaticSettings.getPrefix().substring(1)+"_index.html");
         try {
@@ -958,14 +1024,14 @@ public class LanternUtils {
 
     public static String photoUrl(final String email) {
         try {
-            return LanternUtils.photoUrlBase() + "?email=" + 
+            return LanternUtils.photoUrlBase() + "?email=" +
                     URLEncoder.encode(email, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
             LOG.error("Unsupported encoding?", e);
             throw new RuntimeException(e);
         }
     }
-    
+
     public static String runCommand(final String cmd, final String... args)
             throws IOException {
         LOG.debug("Command: {}\nargs: {}", cmd, Arrays.asList(args));
@@ -1009,7 +1075,7 @@ public class LanternUtils {
 
     /**
      * Returns whether or not this Lantern is running as a fallback proxy.
-     * 
+     *
      * @return <code>true</code> if it's a fallback proxy, otherwise
      * <code>false</code>.
      */
@@ -1030,5 +1096,21 @@ public class LanternUtils {
     public static void setKeystorePath(final String path) {
         LOG.info("Setting keystorePath to '" + path + "'");
         keystorePath = path;
+    }
+
+    public static String getFallbackServerHost() {
+        return fallbackServerHost;
+    }
+
+    public static void setFallbackServerHost(final String fallbackServerHost) {
+        LanternUtils.fallbackServerHost = fallbackServerHost;
+    }
+
+    public static int getFallbackServerPort() {
+        return fallbackServerPort;
+    }
+
+    public static void setFallbackServerPort(final int fallbackServerPort) {
+        LanternUtils.fallbackServerPort = fallbackServerPort;
     }
 }

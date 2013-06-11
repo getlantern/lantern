@@ -66,7 +66,6 @@ import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
-import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -229,7 +228,7 @@ public class DefaultXmppHandler implements XmppHandler {
         XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
 
-        this.mappedServer = new MappedTcpAnswererServer(natPmpService,
+        this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
             upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
         this.started = true;
     }

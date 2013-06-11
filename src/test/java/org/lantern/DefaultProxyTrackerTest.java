@@ -99,7 +99,7 @@ public class DefaultProxyTrackerTest {
         // with multiple proxies, we get a different proxy for each getProxy()
         // call
         tracker.addProxy(new URI("proxy2@example.com"), "127.0.0.1:55022");
-        Thread.sleep(10);
+        Thread.sleep(100);
         ProxyHolder proxy1 = waitForProxy(tracker);
         System.err.println(proxy1);
         ProxyHolder proxy2 = waitForProxy(tracker);

@@ -110,7 +110,7 @@ public final class PhotoServlet extends HttpServlet {
                     "Could not authorize Google Talk connection");
                 return;
             } catch (final XMPPException e) {
-                log.debug("Exception accessing vcard for "+email, e);
+                log.debug("Exception accessing vcard for "+email);
             }
             if (raw == null) {
                 imageData = noImage;

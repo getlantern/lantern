@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -71,12 +70,6 @@ public class StatsTracker implements Stats {
     private static final TimeSeries1D downBytesPerSecondFromPeers
         = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
     
-    
-    /**
-     * Peer count tracking, just tracks current for now. 
-     */
-    //private final PeerCounter peersPerSecond;
-    
     private boolean upnp;
     
     private boolean natpmp;
@@ -86,11 +79,10 @@ public class StatsTracker implements Stats {
     private final CountryService countryService;
 
     @Inject
-    public StatsTracker(final Timer timer, final GeoIpLookupService lookupService,
+    public StatsTracker(final GeoIpLookupService lookupService,
         CountryService countryService) {
         this.lookupService = lookupService;
         this.countryService = countryService;
-        //this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
         Events.register(this);
     }
     

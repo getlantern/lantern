@@ -5,15 +5,21 @@ function die() {
   exit 1
 }
 
-if [ $# -ne "1" ]
+if [ $# -ne "0" ]
 then
-    die "$0: Received $# args... version required"
+    die "$0: Received $# args, none expected (I now get version from pom.xml)"
 fi
 
-grep "<version>$1-SNAPSHOT</version>" pom.xml || die "$1 not found in pom.xml"
+
+VERSION=$(./parseversionfrompom.py | sed s/-SNAPSHOT//)
 
 mvn release:clean || die "Could not clean release?"
 mvn release:prepare || die "Could not prepare release?"
+
+echo "Tagging latest release"
+git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
+git tag -f -a latest -m "latest tagged release" $git
+git push --tags
 
 #echo "Creating branch $1"
 #git branch $1 lantern-$1 || die "Could not create a branch"
@@ -26,4 +32,4 @@ mvn release:clean
 # Update to the latest commited code
 git pull || die "Could not pull?"
 
-echo "Finished. You can release from the tag $1"
+echo "Finished. You can release from the tag $VERSION"

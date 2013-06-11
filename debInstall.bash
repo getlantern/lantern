@@ -14,13 +14,13 @@ RELEASE=$2
 ARCH=$3
 BUILD_ID=$4
 
-./installerBuild.bash $VERSION "-Dbuildos=linux -Dsun.arch.data.model=$ARCH -Plinux,-mac,-windows" $RELEASE || die "Could not build!!"
+source ./installerBuild.bash $VERSION "-Dbuildos=linux -Dsun.arch.data.model=$ARCH -Plinux,-mac,-windows" $RELEASE || die "Could not build!!"
 
 #install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 install4jc -b $BUILD_ID -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
-name=lantern-$VERSION-$ARCH-bit-$git.deb
+name=lantern-$VERSION-$git-$ARCH-bit.deb
 mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
 
 ./installMetaRefresh.bash linux $name latest-$ARCH.deb $RELEASE
