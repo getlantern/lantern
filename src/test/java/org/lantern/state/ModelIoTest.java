@@ -32,16 +32,16 @@ public class ModelIoTest {
                 null, countryService);
 
         Model model = io.get();
-        
+
+        Friends friends = model.getFriends();
+        friends.setPendingSubscriptionRequest("example@example.com");
+        assertEquals(1, model.getFriends().getFriends().size());
+
         final String id = model.getNodeId();
         SystemData system = model.getSystem();
         Connectivity connectivity = model.getConnectivity();
         assertEquals("", connectivity.getIp());
 
-        assertEquals(-1, model.getNinvites());
-        model.setNinvites(10);
-        assertEquals(10, model.getNinvites());
-        
         if ("en".equalsIgnoreCase(SystemUtils.USER_LANGUAGE)) {
             assertEquals("en", system.getLang());
         }
@@ -52,14 +52,14 @@ public class ModelIoTest {
         model = io.get();
         system = model.getSystem();
         connectivity = model.getConnectivity();
-        assertEquals(10, model.getNinvites());
-        
+        assertEquals(1, model.getFriends().getFriends().size());
+
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());
-        
-        assertEquals("ID should persist across sessions", 
+
+        assertEquals("ID should persist across sessions",
             id, model.getNodeId());
-        
+
     }
 
 }

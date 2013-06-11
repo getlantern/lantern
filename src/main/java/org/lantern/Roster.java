@@ -27,13 +27,14 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.state.Friend;
+import org.lantern.state.Friends;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +128,7 @@ public class Roster implements RosterListener {
         log.debug("Got presence: {}", presence.toXML());
         if (LanternUtils.isLanternHub(from)) {
             log.debug("Got Lantern hub presence");
-        } else if (LanternXmppUtils.isLanternJid(from)) {
+        } else if (LanternXmppUtils.isLanternJid(from) && model.isFriend(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
             if (presence.isAvailable()) {
                 sendKscope(from);
@@ -162,7 +163,9 @@ public class Roster implements RosterListener {
             if (!lre.isAvailable()) {
                 log.debug("Entry not listed as available {}", lre.getUser());
             }
-            sendKscope(lre.getUser());
+            if (model.isFriend(lre.getEmail())) {
+                sendKscope(lre.getUser());
+            }
         }
     }
 
@@ -315,25 +318,20 @@ public class Roster implements RosterListener {
 
     public void addIncomingSubscriptionRequest(final Presence pres) {
         log.debug("Fetching vcard");
-        this.model.getFriends().addPending(pres.getFrom());
-        syncPending();
+        this.model.getFriends().setPendingSubscriptionRequest(pres.getFrom());
+        syncFriends();
     }
 
 
-    private void syncPending() {
-        Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS.getPath(),
-            this.model.getFriends().getPending());
-    }
-
-    public void removeIncomingSubscriptionRequest(final String from) {
-        final String email = XmppUtils.jidToUser(from);
-        this.model.getFriends().removePending(email);
-        syncPending();
+    private void syncFriends() {
+        Events.syncAdd(SyncPath.FRIENDS.getPath(),
+            this.model.getFriends().getFriends());
     }
 
     @Override
     public void entriesAdded(final Collection<String> addresses) {
         log.debug("Adding {} entries to roster", addresses.size());
+        Friends friends = model.getFriends();
         for (final String address : addresses) {
             final RosterEntry entry = smackRoster.getEntry(address);
             if (entry == null) {
@@ -342,9 +340,12 @@ public class Roster implements RosterListener {
                 continue;
             }
             addEntry(new LanternRosterEntry(entry), false);
+            Friend friend = friends.get(address);
+            friend.setName(entry.getName());
             processRosterEntryPresences(entry);
         }
         fullRosterSync();
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
     }
 
     private void fullRosterSync() {
@@ -386,7 +387,6 @@ public class Roster implements RosterListener {
 
 
     public void reset() {
-        this.model.getFriends().clear();
         synchronized (rosterEntries) {
             this.rosterEntries.get().clear();
         }

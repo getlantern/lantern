@@ -19,20 +19,19 @@ public enum SyncPath {
     CONNECTIVITY_LANTERN_CONTROLLER("connectivity/lanternController"),
     PEERS("peers"),
     INVITED("connectivity/invited"),
-    NINVITES("ninvites"),
     START_AT_LOGIN("settings/startAtLogin"),
     AUTO_CONNECT("settings/autoConnect"),
     AUTO_REPORT("settings/autoReport"),
     PROXY_ALL_SITES("settings/proxyAllSites"),
     SYSTEMPROXY("settings/systemProxy"),
-    SUBSCRIPTION_REQUESTS("friends/pending"),
     LOCATION("location"),
     TRANSFERS("transfers"),
     GLOBAL("global"),
     COUNTRIES("countries"),
     NOTIFICATIONS("notifications"),
     SETUPCOMPLETE("setupComplete"),
-    SHOWVIS("showVis");
+    SHOWVIS("showVis"),
+    FRIENDS("friends");
 
     private final String path;
 

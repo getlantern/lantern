@@ -30,11 +30,13 @@ import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
 import org.lantern.LanternUtils;
+import org.lantern.SecurityUtils;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
-import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
+import org.lantern.state.Friend;
+import org.lantern.state.Friends;
 import org.lantern.state.InternalState;
 import org.lantern.state.InviteQueue;
 import org.lantern.state.JsonModelModifier;
@@ -172,7 +174,7 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
 
-        if (!LanternUtils.constantTimeEquals(model.getXsrfToken(),
+        if (!SecurityUtils.constantTimeEquals(model.getXsrfToken(),
                 req.getHeader("X-XSRF-TOKEN"))) {
             log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
             HttpUtils.sendClientError(resp, "invalid X-XSRF-TOKEN");
@@ -717,11 +719,18 @@ public class InteractionServlet extends HttpServlet {
     private void declineInvite(final String json) {
         final String email = JsonUtils.getValueFromJson("email", json);
         this.xmppHandler.unsubscribed(email);
+        Friends friends = model.getFriends();
+        friends.setStatus(email, Friend.Status.rejected);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
     }
 
     private void acceptInvite(final String json) {
         final String email = JsonUtils.getValueFromJson("email", json);
         this.xmppHandler.subscribed(email);
+
+        Friends friends = model.getFriends();
+        friends.setStatus(email, Friend.Status.friend);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
 
         // We also automatically subscribe to them in turn so we know about
         // their presence.
@@ -781,7 +790,6 @@ public class InteractionServlet extends HttpServlet {
         model.setEverGetMode(false);
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
-        model.setNinvites(base.getNinvites());
         model.setNodeId(base.getNodeId());
         model.setProfile(base.getProfile());
         model.setNproxiedSitesMax(base.getNproxiedSitesMax());
@@ -809,24 +817,6 @@ public class InteractionServlet extends HttpServlet {
                 }
             }
         }
-    }
-
-    @Subscribe
-    public void onInvitesChanged(final InvitesChangedEvent e) {
-        int newInvites = e.getNewInvites();
-        if (e.getNewInvites() >= 0) {
-            if (e.getOldInvites() == 0) {
-                String invitation = newInvites == 1 ? "invitation"
-                        : "invitations";
-                String text = "You now have " + newInvites + " " + invitation;
-                model.addNotification(text, MessageType.info);
-            } else if (newInvites == 0 && e.getOldInvites() > 0) {
-                model.addNotification(
-                        "You have no more invitations. You will be notified when you receive more.",
-                        MessageType.important);
-            }
-        }
-        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
     @Subscribe
