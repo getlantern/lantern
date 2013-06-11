@@ -213,16 +213,9 @@ public class Launcher {
 
         injector = Guice.createInjector(this.lanternModule);
 
-        boolean uiEnabled = true;
-
         // We parse this one separately because we need this value right away.
-        if (cmd.hasOption(OPTION_DISABLE_UI)) {
-            LOG.info("Disabling UI");
-            uiEnabled = false;
-        }
-        else {
-            uiEnabled = true;
-        }
+        model = instance(Model.class);
+        final boolean uiEnabled = isUiEnabled(model, cmd);
 
         LOG.debug("Creating display...");
         final Display display;
@@ -241,9 +234,8 @@ public class Launcher {
             display = null;
         }
 
-        model = instance(Model.class);
         set = model.getSettings();
-        set.setUiEnabled(uiEnabled);
+        set.setUiEnabled(!cmd.hasOption(OPTION_DISABLE_UI));
 
         configureCipherSuites();
 
@@ -334,7 +326,7 @@ public class Launcher {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
-        launchLantern();
+        launchLantern(uiEnabled);
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
@@ -343,6 +335,18 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+    }
+
+    private boolean isUiEnabled(final Model mod, final CommandLine cmd) {
+        if (cmd.hasOption(OPTION_DISABLE_UI)) {
+            LOG.debug("Disabling UI");
+            return false;
+        }
+        else if (cmd.hasOption(OPTION_LAUNCHD) && mod.isSetupComplete()) {
+            LOG.debug("UI disabled on startup if setup is complete");
+            return false;
+        }
+        return true;
     }
 
     private <T> void shutdownable(final Class<T> clazz) {
@@ -536,22 +540,16 @@ public class Launcher {
         }
     }
 
-    public void launchLantern() {
+    private void launchLantern(final boolean uiEnabled) {
         LOG.debug("Launching Lantern...");
         if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
             model.setModal(Modal.welcome);
         }
-        if (set.isUiEnabled()) {
-            if (model.isLaunchd() && model.isSetupComplete()) {
-                LOG.debug("Not opening browser when run on startup and " +
-                    "setup is complete");
-            } else {
-                browserService.openBrowserWhenPortReady();
-            }
+        if (uiEnabled) {
+            browserService.openBrowserWhenPortReady();
         }
 
         autoConnect();
-
         lanternStarted = true;
     }
 
