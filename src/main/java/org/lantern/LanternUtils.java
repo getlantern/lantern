@@ -108,20 +108,23 @@ public class LanternUtils {
     }
     
     private static void addFallbackProxy() {
-        try {
-            copyFallback();
-        } catch (final IOException e) {
-            LOG.error("Could not copy fallback?", e);
+        final File file = 
+            new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
+        if (!file.isFile()) {
+            try {
+                copyFallback();
+            } catch (final IOException e) {
+                LOG.error("Could not copy fallback?", e);
+            }
         }
+        if (!file.isFile()) {
+            LOG.error("No fallback proxy to load!");
+            return;
+        }
+
         final ObjectMapper om = new ObjectMapper();
         InputStream is = null;
         try {
-            final File file = 
-                new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
-            if (!file.isFile()) {
-                LOG.error("No fallback proxy to load!");
-                return;
-            }
             is = new FileInputStream(file);
             final String proxy = IOUtils.toString(is);
             final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
@@ -138,18 +141,28 @@ public class LanternUtils {
 
     private static void copyFallback() throws IOException {
         LOG.debug("Copying fallback file");
-        final File from = 
+        final File from;
+        
+        final File home = 
             new File(new File(SystemUtils.USER_HOME), "fallback.json");
-        if (!from.isFile()) {
-            LOG.debug("No fallback proxy found in root...");
-            return;
+        if (home.isFile()) {
+            from = home;
+        } else {
+            LOG.debug("No fallback proxy found in home - checking cur...");
+            final File curDir = new File("fallback.json");
+            if (curDir.isFile()) {
+                from = curDir;
+            } else {
+                LOG.warn("Still could not find fallback proxy!");
+                return;
+            }
         }
         final File par = LanternClientConstants.CONFIG_DIR;
         final File to = new File(par, from.getName());
         if (!par.isDirectory() && !par.mkdirs()) {
             throw new IOException("Could not make config dir?");
         }
-        Files.move(from, to);
+        Files.copy(from, to);
     }
 
     public static FiveTuple openOutgoingPeer(
