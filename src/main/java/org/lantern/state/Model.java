@@ -368,11 +368,11 @@ public class Model {
         this.countryService = countryService;
     }
 
+    @JsonView({Persistent.class})
     public boolean isWelcomeMessageShown() {
         return welcomeMessageShown;
     }
 
-    @JsonView({Persistent.class})
     public void setWelcomeMessageShown(boolean welcomeMessageShown) {
         this.welcomeMessageShown = welcomeMessageShown;
     }
