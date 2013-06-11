@@ -81,6 +81,8 @@ public class Model {
 
     private boolean isEverGetMode;
 
+    private boolean welcomeMessageShown;
+
     private String xsrfToken;
 
     private CountryService countryService;
@@ -364,5 +366,14 @@ public class Model {
 
     public void setCountryService(CountryService countryService) {
         this.countryService = countryService;
+    }
+
+    public boolean isWelcomeMessageShown() {
+        return welcomeMessageShown;
+    }
+
+    @JsonView({Persistent.class})
+    public void setWelcomeMessageShown(boolean welcomeMessageShown) {
+        this.welcomeMessageShown = welcomeMessageShown;
     }
 }

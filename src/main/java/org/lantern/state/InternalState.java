@@ -17,21 +17,21 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class InternalState {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private Modal lastModal;
 
     private final Modal[] modalSeqGive = {
         Modal.authorize, Modal.lanternFriends, Modal.finished, Modal.none,
     };
-    
+
     private final Modal[] modalSeqGet = {
         Modal.authorize, Modal.lanternFriends, Modal.proxiedSites,
         Modal.finished, Modal.none,
     };
-    
-    private Collection<Modal> modalsCompleted = new HashSet<Modal>();
+
+    private final Collection<Modal> modalsCompleted = new HashSet<Modal>();
 
     private final Model model;
 
@@ -48,7 +48,7 @@ public class InternalState {
         this.model = model;
         Events.register(this);
     }
- 
+
     public void advanceModal(final Modal backToIfNone) {
         final Modal[] seq;
         if (this.model.getSettings().getMode() == Mode.get) {
@@ -74,22 +74,24 @@ public class InternalState {
         if (next == Modal.none) {
             this.model.setSetupComplete(true);
             Events.sync(SyncPath.SETUPCOMPLETE, true);
-
-            final String iconLoc;
-            if (SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_LINUX) {
-                iconLoc = "menu bar at the top of the screen";
-            } else if (SystemUtils.IS_OS_WINDOWS) {
-                iconLoc = "system tray at the bottom right of your screen";
-            } else {
-                log.warn("unsupported OS");
-                iconLoc = "(unsupported OS: Lantern icon may not be visible)";
+            if (!model.isWelcomeMessageShown()) {
+                model.setWelcomeMessageShown(true);
+                final String iconLoc;
+                if (SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_LINUX) {
+                    iconLoc = "menu bar at the top of the screen";
+                } else if (SystemUtils.IS_OS_WINDOWS) {
+                    iconLoc = "system tray at the bottom right of your screen";
+                } else {
+                    log.warn("unsupported OS");
+                    iconLoc = "(unsupported OS: Lantern icon may not be visible)";
+                }
+                final String msg = "Now that you're all set up, take a minute to "
+                        + "explore the Lantern global network map, or just get back to "
+                        + "whatever you'd like to do next. You can always get back here "
+                        + "through the Lantern icon in your " + iconLoc + ".";
+                model.addNotification(msg, MessageType.info, 30);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
             }
-            final String msg = "Now that you're all set up, take a minute to "+
-                "explore the Lantern global network map, or just get back to "+
-                "whatever you'd like to do next. You can always get back here "+
-                "through the Lantern icon in your "+iconLoc+".";
-            model.addNotification(msg, MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
         Events.syncModal(this.model, next);
     }
@@ -114,7 +116,7 @@ public class InternalState {
     public void setModalCompleted(final Modal modal) {
         this.modalsCompleted.add(modal);
     }
-    
+
     @Subscribe
     public void onReset(final ResetEvent re) {
         modalsCompleted.clear();
