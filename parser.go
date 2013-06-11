@@ -72,7 +72,7 @@ func (self *_parser) Consume() string {
 type _sourceScope struct {
 	VariableList []_declaration
 	FunctionList []_declaration
-	_labelSet    _labelSet
+	labelSet     _labelSet
 	AllowIn      bool
 	InFunction   bool
 	InSwitch     bool
@@ -89,14 +89,14 @@ func (self *_sourceScope) AddFunction(name string, definition _node) {
 
 func newSourceScope() *_sourceScope {
 	self := &_sourceScope{
-		_labelSet: _labelSet{},
-		AllowIn:   true,
+		labelSet: _labelSet{},
+		AllowIn:  true,
 	}
 	return self
 }
 
 func (self *_sourceScope) HasLabel(name string) bool {
-	_, exists := self._labelSet[name]
+	_, exists := self.labelSet[name]
 	return exists
 }
 
@@ -116,7 +116,7 @@ func (self *_parser) Scope() *_sourceScope {
 func (self *_parser) Accept(kind string) bool {
 	if kind == "\n" {
 		// This is a PeekLineSkip, except we
-		// retain the adjusted lexer if we really 
+		// retain the adjusted lexer if we really
 		// skipped a line
 		lexerCopy := self.lexer.Copy()
 		didSkip := lexerCopy.ScanLineSkip()

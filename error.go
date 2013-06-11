@@ -108,13 +108,8 @@ func catchPanic(function func()) (err error) {
 					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+1))
 				}
 				return
-			case _result:
-				if caught.Kind == resultThrow {
-					err = errors.New(toString(caught.Value))
-				} else {
-					// TODO Report this better
-					err = fmt.Errorf("Uncaught, unknown panic: %v", caught)
-				}
+			case Value:
+				err = errors.New(toString(caught))
 				return
 			}
 			panic(caught)

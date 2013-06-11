@@ -102,22 +102,6 @@ func (self *_runtime) EnterEvalExecutionContext(call FunctionCall) {
 	self.EnterExecutionContext(new)
 }
 
-func (self *_runtime) Return(value Value) {
-	panic(newReturnResult(value))
-}
-
-func (self *_runtime) Continue(target string) {
-	panic(newContinueResult(target))
-}
-
-func (self *_runtime) Break(target string) {
-	panic(newBreakResult(target))
-}
-
-func (self *_runtime) Throw(value Value) {
-	panic(newThrowResult(value))
-}
-
 func (self *_runtime) GetValue(value Value) Value {
 	if value.isReference() {
 		return value.reference().GetValue()
@@ -168,38 +152,32 @@ func (self *_runtime) _callNode(function *_object, environment *_functionEnviron
 	self.declare("function", node.FunctionList)
 	self.declare("variable", node.VariableList)
 
-	self.evaluateBody(node.Body)
+	result := self.evaluateBody(node.Body)
+	if result.isResult() {
+		return result
+	}
 
 	return UndefinedValue()
 }
 
-func (self *_runtime) Call(function *_object, this Value, argumentList []Value, evalHint bool) (returnValue Value) {
+func (self *_runtime) Call(function *_object, this Value, argumentList []Value, evalHint bool) Value {
 	// Pass eval boolean through to EnterFunctionExecutionContext for further testing
 	_functionEnvironment := self.EnterFunctionExecutionContext(function, this)
 	defer func() {
-		// TODO Catch any errant break/continue, etc. here?
-		//		They should never get here, but we want to be
-		//		very vocal if they do.
 		self.LeaveExecutionContext()
-		if caught := recover(); caught != nil {
-			if result, ok := caught.(_result); ok {
-				if result.Kind == resultReturn {
-					returnValue = result.Value
-					return
-				}
-			}
-			panic(caught)
-		}
 	}()
 
 	if evalHint {
 		evalHint = function == self.eval // If evalHint is true, then it IS a direct eval
 	}
-	returnValue = function.functionValue().call.Dispatch(function, _functionEnvironment, self, this, argumentList, evalHint)
-	return
+	callValue := function.functionValue().call.Dispatch(function, _functionEnvironment, self, this, argumentList, evalHint)
+	if value, valid := callValue.value.(_result); valid {
+		return value.value
+	}
+	return callValue
 }
 
-func (self *_runtime) tryCatchEvaluate(inner func() Value) (resultValue Value, throw bool, throwValue Value, other *_result) {
+func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exception bool) {
 	// resultValue = The value of the block (e.g. the last statement)
 	// throw = Something was thrown
 	// throwValue = The value of what was thrown
@@ -208,70 +186,22 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (resultValue Value, t
 	defer func() {
 		if caught := recover(); caught != nil {
 			switch caught := caught.(type) {
-			case _result:
-				switch caught.Kind {
-				case resultThrow:
-					throw = true
-					throwValue = caught.Value
-				case resultReturn, resultBreak, resultContinue:
-					fallthrough
-				default:
-					other = &caught
-				}
 			case _error:
-				throw = true
-				throwValue = toValue(self.newError(caught.Name, caught.MessageValue()))
+				exception = true
+				tryValue = toValue(self.newError(caught.Name, caught.MessageValue()))
 			case *_syntaxError:
-				throw = true
-				throwValue = toValue(self.newError("SyntaxError", toValue(caught.Message)))
+				exception = true
+				tryValue = toValue(self.newError("SyntaxError", toValue(caught.Message)))
 			case Value:
-				throw = true
-				throwValue = caught
+				exception = true
+				tryValue = caught
 			default:
 				panic(caught)
 			}
 		}
 	}()
 
-	resultValue = inner()
-	return
-}
-
-func (self *_runtime) breakEvaluate(_labelSet map[string]bool, iterator *_iterator, inner func() Value) (returnValue Value) {
-	defer func() {
-		if caught := recover(); caught != nil {
-			if result, ok := caught.(_result); ok {
-				if result.Kind == resultBreak && _labelSet[result.Target] == true {
-					if iterator != nil {
-						returnValue = iterator.value
-					}
-					return
-				}
-			}
-			panic(caught)
-		}
-	}()
-
-	return inner()
-}
-
-func (self *_runtime) continueEvaluate(iterator *_iterator, _labelSet map[string]bool) (returnResult Value) {
-	defer func() {
-		if caught := recover(); caught != nil {
-			if result, ok := caught.(_result); ok {
-				if result.Kind == resultContinue && _labelSet[result.Target] == true {
-					returnResult = emptyValue()
-					return
-				}
-			}
-			panic(caught)
-		}
-	}()
-	for _, node := range iterator.queue {
-		returnResult = self.evaluate(node)
-		// TODO If not empty
-		iterator.value = returnResult
-	}
+	tryValue = inner()
 	return
 }
 

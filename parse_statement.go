@@ -47,32 +47,32 @@ func (self *_parser) ParseStatement() _node {
 	expression := self.ParseExpression()
 
 	if identifier, yes := expression.(*_identifierNode); yes && self.Accept(":") {
-		_labelSet := self.Scope()._labelSet
+		labelSet := self.Scope().labelSet
 		label := identifier.Value
-		if _labelSet[label] {
+		if labelSet[label] {
 			panic(self.History(-2).newSyntaxError("Label '%s' has already been declared", label))
 		}
-		_labelSet[label] = true
+		labelSet[label] = true
 		statement := self.ParseStatement()
-		delete(_labelSet, label)
+		delete(labelSet, label)
 		{
-			_labelSet = nil
+			labelSet = nil
 			switch node := statement.(type) {
 			case *_blockNode:
-				_labelSet = node._labelSet
+				labelSet = node.labelSet
 			case *_doWhileNode:
-				_labelSet = node._labelSet
+				labelSet = node.labelSet
 			case *_whileNode:
-				_labelSet = node._labelSet
+				labelSet = node.labelSet
 			case *_switchNode:
-				_labelSet = node._labelSet
+				labelSet = node.labelSet
 			case *_forNode:
-				_labelSet = node._labelSet
+				labelSet = node.labelSet
 			case *_forInNode:
-				_labelSet = node._labelSet
+				labelSet = node.labelSet
 			}
-			if _labelSet != nil {
-				_labelSet[label] = true
+			if labelSet != nil {
+				labelSet[label] = true
 			}
 		}
 		return statement
@@ -208,7 +208,7 @@ func (self *_parser) ParseDoWhile() _node {
 	self.Expect(")")
 
 	node := newDoWhileNode(test, body)
-	node._labelSet[""] = true
+	node.labelSet[""] = true
 	return node
 }
 
@@ -222,7 +222,7 @@ func (self *_parser) ParseWhile() _node {
 	})
 
 	node := newWhileNode(test, body)
-	node._labelSet[""] = true
+	node.labelSet[""] = true
 	return node
 }
 
@@ -333,7 +333,7 @@ func (self *_parser) ParseSwitch() _node {
 		return nil
 	})
 
-	switchNode._labelSet[""] = true
+	switchNode.labelSet[""] = true
 	return switchNode
 }
 
@@ -485,7 +485,7 @@ func (self *_parser) parseForIn(into _node) *_forInNode {
 
 	node := newForInNode(into, source, body)
 	self.markNode(node)
-	node._labelSet[""] = true
+	node.labelSet[""] = true
 	return node
 }
 
@@ -511,7 +511,7 @@ func (self *_parser) parseFor(initial _node) *_forNode {
 
 	node := newForNode(initial, test, update, body)
 	self.markNode(node)
-	node._labelSet[""] = true
+	node.labelSet[""] = true
 	return node
 }
 

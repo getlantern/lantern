@@ -497,6 +497,23 @@ func TestTryFinally(t *testing.T) {
 		while(!abc && def < 10)
 		ghi;
 	`, "11")
+
+	test(`
+        var abc = 0, def = 0;
+        do {
+            try {
+                abc += 1;
+                throw "ghi";
+            }
+            finally {
+                def = 1;
+                continue;
+            }   
+            def -= 1;
+        }
+        while (abc < 2)
+        [ abc, def ];
+    `, "2,1")
 }
 
 func TestTryCatch(t *testing.T) {
@@ -699,6 +716,17 @@ func TestFor(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
+	test(`
+    xyzzy: for (var abc = 0; abc <= 0; abc++) {
+    for (var def = 0; def <= 1; def++) {
+        if (def === 0) {
+            continue xyzzy;
+            } else {
+            }
+        }  
+    }
+    `)
 
 	test(`
 		result = 7

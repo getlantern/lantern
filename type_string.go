@@ -41,10 +41,12 @@ func utf16Of(value string) []uint16 {
 	return utf16.Encode([]rune(value))
 }
 
-func stringEnumerate(self *_object, all bool, each func(string)) {
+func stringEnumerate(self *_object, all bool, each func(string) bool) {
 	length := len(self.stringValue16())
 	for index := 0; index < length; index += 1 {
-		each(strconv.FormatInt(int64(index), 10))
+		if !each(strconv.FormatInt(int64(index), 10)) {
+			return
+		}
 	}
 	objectEnumerate(self, all, each)
 }

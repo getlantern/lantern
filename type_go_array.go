@@ -81,13 +81,15 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 	return objectGetOwnProperty(self, name)
 }
 
-func goArrayEnumerate(self *_object, all bool, each func(string)) {
+func goArrayEnumerate(self *_object, all bool, each func(string) bool) {
 	object := self.value.(*_goArrayObject)
 	// .0, .1, .2, ...
 
 	for index, length := 0, object.value.Len(); index < length; index++ {
 		name := strconv.FormatInt(int64(index), 10)
-		each(name)
+		if !each(name) {
+			return
+		}
 	}
 
 	objectEnumerate(self, all, each)

@@ -7,14 +7,14 @@ import (
 type _blockNode struct {
 	_nodeType
 	_node_
-	Body      []_node
-	_labelSet _labelSet
+	Body     []_node
+	labelSet _labelSet
 }
 
 func newBlockNode() *_blockNode {
 	return &_blockNode{
 		_nodeType: nodeBlock,
-		_labelSet: _labelSet{},
+		labelSet:  _labelSet{},
 	}
 }
 
@@ -74,19 +74,8 @@ func (self _emptyNode) String() string {
 	return ";"
 }
 
-type _iterator struct {
-	queue []_node
-	value Value
-}
-
 type _iteratorNode struct {
 	body []_node
-}
-
-func (self _iteratorNode) iterator() _iterator {
-	return _iterator{
-		queue: self.body,
-	}
 }
 
 func (self _iteratorNode) String() string {
@@ -100,8 +89,8 @@ type _doWhileNode struct {
 	_nodeType
 	_node_
 	_iteratorNode
-	Test      _node
-	_labelSet _labelSet
+	Test     _node
+	labelSet _labelSet
 }
 
 func newDoWhileNode(test _node, body []_node) *_doWhileNode {
@@ -111,23 +100,23 @@ func newDoWhileNode(test _node, body []_node) *_doWhileNode {
 		_iteratorNode: _iteratorNode{
 			body: body,
 		},
-		_labelSet: _labelSet{},
+		labelSet: _labelSet{},
 	}
 	return self
 }
 
 func (self _doWhileNode) String() string {
-	return fmtNodeString("{ <%s> %s %s }", self._labelSet.label("do-while"), self.Test, self._iteratorNode)
+	return fmtNodeString("{ <%s> %s %s }", self.labelSet.label("do-while"), self.Test, self._iteratorNode)
 }
 
 type _forNode struct {
 	_nodeType
 	_node_
 	_iteratorNode
-	Initial   _node
-	Test      _node
-	Update    _node
-	_labelSet _labelSet
+	Initial  _node
+	Test     _node
+	Update   _node
+	labelSet _labelSet
 }
 
 func newForNode(initial _node, test _node, update _node, body []_node) *_forNode {
@@ -139,14 +128,14 @@ func newForNode(initial _node, test _node, update _node, body []_node) *_forNode
 		_iteratorNode: _iteratorNode{
 			body: body,
 		},
-		_labelSet: _labelSet{},
+		labelSet: _labelSet{},
 	}
 	return self
 }
 
 func (self _forNode) String() string {
 
-	return fmtNodeString("{ <%s> %s %s %s %s }", self._labelSet.label("for"),
+	return fmtNodeString("{ <%s> %s %s %s %s }", self.labelSet.label("for"),
 		fmtNodeString(self.Initial, ";"),
 		fmtNodeString(self.Test, ";"),
 		fmtNodeString(self.Update, ";"),
@@ -158,9 +147,9 @@ type _forInNode struct {
 	_nodeType
 	_node_
 	_iteratorNode
-	Into      _node
-	Source    _node
-	_labelSet _labelSet
+	Into     _node
+	Source   _node
+	labelSet _labelSet
 }
 
 func newForInNode(into _node, source _node, body []_node) *_forInNode {
@@ -171,14 +160,14 @@ func newForInNode(into _node, source _node, body []_node) *_forInNode {
 		_iteratorNode: _iteratorNode{
 			body: body,
 		},
-		_labelSet: _labelSet{},
+		labelSet: _labelSet{},
 	}
 	return self
 }
 
 func (self _forInNode) String() string {
 
-	return fmtNodeString("{ <%s> %s in %s %s }", self._labelSet.label("for-in"),
+	return fmtNodeString("{ <%s> %s in %s %s }", self.labelSet.label("for-in"),
 		self.Into,
 		self.Source,
 		self._iteratorNode,
@@ -189,8 +178,8 @@ type _whileNode struct {
 	_nodeType
 	_node_
 	_iteratorNode
-	Test      _node
-	_labelSet _labelSet
+	Test     _node
+	labelSet _labelSet
 }
 
 func newWhileNode(test _node, body []_node) *_whileNode {
@@ -200,13 +189,13 @@ func newWhileNode(test _node, body []_node) *_whileNode {
 		_iteratorNode: _iteratorNode{
 			body: body,
 		},
-		_labelSet: _labelSet{},
+		labelSet: _labelSet{},
 	}
 	return self
 }
 
 func (self _whileNode) String() string {
-	return fmtNodeString("{ <%s> %s %s }", self._labelSet.label("while"), self.Test, self._iteratorNode)
+	return fmtNodeString("{ <%s> %s %s }", self.labelSet.label("while"), self.Test, self._iteratorNode)
 }
 
 type _ifNode struct {
@@ -292,7 +281,7 @@ type _switchNode struct {
 	Discriminant _node
 	Default      int
 	CaseList     [](*_caseNode)
-	_labelSet    _labelSet
+	labelSet     _labelSet
 }
 
 func newSwitchNode(discriminant _node) *_switchNode {
@@ -300,7 +289,7 @@ func newSwitchNode(discriminant _node) *_switchNode {
 		_nodeType:    nodeSwitch,
 		Discriminant: discriminant,
 		Default:      -1,
-		_labelSet:    _labelSet{},
+		labelSet:     _labelSet{},
 	}
 }
 

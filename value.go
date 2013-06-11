@@ -18,6 +18,7 @@ const (
 	valueString
 	valueBoolean
 	valueObject
+	valueResult
 	valueReference
 )
 
@@ -87,6 +88,10 @@ func (value Value) isCallable() bool {
 		return value.functionValue().call != nil
 	}
 	return false
+}
+
+func (value Value) isResult() bool {
+	return value._valueType == valueResult
 }
 
 func (value Value) isReference() bool {
@@ -310,6 +315,8 @@ func toValue(value interface{}) Value {
 		return Value{valueObject, value.object}
 	case _reference: // reference is an interface (already a pointer)
 		return Value{valueReference, value}
+	case _result:
+		return Value{valueResult, value}
 	case nil:
 		// TODO Ugh.
 		return UndefinedValue()
@@ -368,6 +375,10 @@ func (value Value) String() string {
 }
 
 func (value Value) toBoolean() bool {
+	return toBoolean(value)
+}
+
+func (value Value) isTrue() bool {
 	return toBoolean(value)
 }
 
@@ -644,14 +655,41 @@ func (self Value) export() interface{} {
 		} else {
 			result := make(map[string]interface{})
 			// TODO Should we export everything? Or just what is enumerable?
-			object.enumerate(false, func(name string) {
+			object.enumerate(false, func(name string) bool {
 				result[name] = object.get(name).export()
+				return true
 			})
 			return result
 		}
 	}
 
 	return self
+}
+
+func (self Value) evaluateBreakContinue(labelSet _labelSet) _resultKind {
+	if result, valid := self.value.(_result); valid {
+		switch result.kind {
+		case resultBreak, resultContinue:
+			if labelSet[result.target] {
+				return result.kind
+			}
+		}
+		return resultReturn
+	}
+	return resultNormal
+}
+
+func (self Value) evaluateBreak(labelSet _labelSet) _resultKind {
+	if result, valid := self.value.(_result); valid {
+		switch result.kind {
+		case resultBreak:
+			if labelSet[result.target] {
+				return result.kind
+			}
+		}
+		return resultReturn
+	}
+	return resultNormal
 }
 
 func (self Value) exportNative() interface{} {

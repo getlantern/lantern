@@ -134,9 +134,10 @@ func builtinObject_defineProperties(call FunctionCall) Value {
 	}
 
 	properties := call.runtime.toObject(call.Argument(1))
-	properties.enumerate(true, func(name string) {
+	properties.enumerate(true, func(name string) bool {
 		descriptor := toPropertyDescriptor(properties.get(name))
 		object.defineOwnProperty(name, descriptor, true)
+		return true
 	})
 
 	return objectValue
@@ -154,9 +155,10 @@ func builtinObject_create(call FunctionCall) Value {
 	propertiesValue := call.Argument(1)
 	if propertiesValue.IsDefined() {
 		properties := call.runtime.toObject(propertiesValue)
-		properties.enumerate(true, func(name string) {
+		properties.enumerate(true, func(name string) bool {
 			descriptor := toPropertyDescriptor(properties.get(name))
 			object.defineOwnProperty(name, descriptor, true)
+			return true
 		})
 	}
 
@@ -188,11 +190,12 @@ func builtinObject_isSealed(call FunctionCall) Value {
 			return toValue(false)
 		}
 		result := true
-		object.enumerate(true, func(name string) {
+		object.enumerate(true, func(name string) bool {
 			property := object.getProperty(name)
 			if property.configurable() {
 				result = false
 			}
+			return true
 		})
 		return toValue(result)
 	}
@@ -202,11 +205,12 @@ func builtinObject_isSealed(call FunctionCall) Value {
 func builtinObject_seal(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		object.enumerate(true, func(name string) {
+		object.enumerate(true, func(name string) bool {
 			if property := object.getOwnProperty(name); nil != property && property.configurable() {
 				property.configureOff()
 				object.defineOwnProperty(name, *property, true)
 			}
+			return true
 		})
 		object.extensible = false
 	} else {
@@ -222,11 +226,12 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 			return toValue(false)
 		}
 		result := true
-		object.enumerate(true, func(name string) {
+		object.enumerate(true, func(name string) bool {
 			property := object.getProperty(name)
 			if property.configurable() || property.writable() {
 				result = false
 			}
+			return true
 		})
 		return toValue(result)
 	}
@@ -236,7 +241,7 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 func builtinObject_freeze(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		object.enumerate(true, func(name string) {
+		object.enumerate(true, func(name string) bool {
 			if property, update := object.getOwnProperty(name), false; nil != property {
 				if property.isDataDescriptor() && property.writable() {
 					property.writeOff()
@@ -250,6 +255,7 @@ func builtinObject_freeze(call FunctionCall) Value {
 					object.defineOwnProperty(name, *property, true)
 				}
 			}
+			return true
 		})
 		object.extensible = false
 	} else {
@@ -260,8 +266,9 @@ func builtinObject_freeze(call FunctionCall) Value {
 
 func builtinObject_keys(call FunctionCall) Value {
 	if object, keys := call.Argument(0)._object(), []Value(nil); nil != object {
-		object.enumerate(false, func(name string) {
+		object.enumerate(false, func(name string) bool {
 			keys = append(keys, toValue(name))
+			return true
 		})
 		return toValue(call.runtime.newArrayOf(keys))
 	}
@@ -270,10 +277,11 @@ func builtinObject_keys(call FunctionCall) Value {
 
 func builtinObject_getOwnPropertyNames(call FunctionCall) Value {
 	if object, propertyNames := call.Argument(0)._object(), []Value(nil); nil != object {
-		object.enumerate(true, func(name string) {
+		object.enumerate(true, func(name string) bool {
 			if object.hasOwnProperty(name) {
 				propertyNames = append(propertyNames, toValue(name))
 			}
+			return true
 		})
 		return toValue(call.runtime.newArrayOf(propertyNames))
 	}

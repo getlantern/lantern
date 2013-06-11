@@ -7,15 +7,14 @@ type _resultKind int
 const (
 	resultNormal _resultKind = iota
 	resultReturn
-	resultThrow
 	resultBreak
 	resultContinue
 )
 
 type _result struct {
-	Kind   _resultKind
-	Value  Value
-	Target string
+	kind   _resultKind
+	value  Value
+	target string
 }
 
 func newReturnResult(value Value) _result {
@@ -28,8 +27,4 @@ func newContinueResult(target string) _result {
 
 func newBreakResult(target string) _result {
 	return _result{resultBreak, emptyValue(), target}
-}
-
-func newThrowResult(value Value) _result {
-	return _result{resultThrow, value, ""}
 }

@@ -114,7 +114,7 @@ func (self *_object) delete(name string, throw bool) bool {
 	return self.objectClass.delete(self, name, throw)
 }
 
-func (self *_object) enumerate(all bool, each func(string)) {
+func (self *_object) enumerate(all bool, each func(string) bool) {
 	self.objectClass.enumerate(self, all, each)
 }
 

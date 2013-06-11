@@ -4,19 +4,22 @@ import (
 	"fmt"
 )
 
-func (self *_runtime) evaluateBody(list []_node) Value {
-	value := Value{}
-	for _, child := range list {
-		result := self.evaluate(child)
-		if !result.isEmpty() {
+func (self *_runtime) evaluateBody(body []_node) Value {
+	bodyValue := Value{}
+	for _, node := range body {
+		value := self.evaluate(node)
+		if value.isResult() {
+			return value
+		}
+		if !value.isEmpty() {
 			// We have GetValue here to (for example) trigger a
 			// ReferenceError (of the not defined variety)
 			// Not sure if this is the best way to error out early
 			// for such errors or if there is a better way
-			value = self.GetValue(result)
+			bodyValue = self.GetValue(value)
 		}
 	}
-	return value
+	return bodyValue
 }
 
 func (self *_runtime) evaluate(node _node) Value {
@@ -73,6 +76,8 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateComparison(node)
 
 	case *_returnNode:
+		value := self.evaluateReturn(node)
+		return value
 		return self.evaluateReturn(node)
 
 	case *_ifNode:
@@ -88,7 +93,7 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateCall(node, nil)
 
 	case *_continueNode:
-		self.Continue(node.Target)
+		return toValue(newContinueResult(node.Target))
 
 	case *_switchNode:
 		return self.evaluateSwitch(node)
@@ -100,7 +105,7 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateForIn(node)
 
 	case *_breakNode:
-		self.Break(node.Target)
+		return toValue(newBreakResult(node.Target))
 
 	case *_throwNode:
 		return self.evaluateThrow(node)

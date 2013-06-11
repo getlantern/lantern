@@ -88,12 +88,14 @@ func argumentsDelete(self *_object, name string, throw bool) bool {
 	return objectDelete(self, name, throw)
 }
 
-func argumentsEnumerate(self *_object, all bool, each func(string)) {
+func argumentsEnumerate(self *_object, all bool, each func(string) bool) {
 	{
 		object := self.value.(*_argumentsObject)
 		for index, value := range object.indexOfParameterName {
 			if value != "" {
-				each(strconv.FormatInt(int64(index), 10))
+				if !each(strconv.FormatInt(int64(index), 10)) {
+					return
+				}
 			}
 		}
 		objectEnumerate(self, all, each)
