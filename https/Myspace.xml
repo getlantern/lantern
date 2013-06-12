@@ -1,5 +1,0 @@
-<ruleset name="Myspace">
-	<target host="www.myspace.com" />
-	<target host="myspace.com" />
-	<rule from="^http://(www\.)?myspace\.com/" to="https://www.myspace.com/"/>
-</ruleset>

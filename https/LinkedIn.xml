@@ -1,5 +1,0 @@
-<ruleset name="LinkedIn (minimal)">
-	<target host="platform.linkedin.com" />
-
-	<rule from="^http://platform\.linkedin\.com/" to="https://platform.linkedin.com/" />
-</ruleset>
