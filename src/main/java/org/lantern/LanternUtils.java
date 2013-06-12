@@ -954,7 +954,7 @@ public class LanternUtils {
         try {
             ia = InetAddress.getByName(host);
         } catch (final UnknownHostException e) {
-            LOG.error("Bad host?", e);
+            LOG.error("Could not lookup host address at "+host, e);
             throw new Error("Bad host", e);
         }
         return new InetSocketAddress(ia, port);
