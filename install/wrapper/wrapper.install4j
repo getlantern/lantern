@@ -122,6 +122,15 @@
                       <void property="failIfNotRootUnix">
                         <boolean>true</boolean>
                       </void>
+                      <void property="obtainIfAdminMac">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="obtainIfNormalMac">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="obtainIfNormalWin">
+                        <boolean>true</boolean>
+                      </void>
                     </object>
                   </java>
                 </serializedBean>
