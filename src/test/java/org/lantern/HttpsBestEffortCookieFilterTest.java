@@ -10,6 +10,7 @@ import java.util.List;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.DefaultCookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.InMemoryCookieTracker;
@@ -18,6 +19,7 @@ import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsSecureCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieRule;
 
+@Ignore
 public class HttpsBestEffortCookieFilterTest {
     
     /**

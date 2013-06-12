@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.netty.handler.codec.http.DefaultCookie;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsSecureCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieRule;
 
+@Ignore
 public class HttpsSecureCookieFilterTest {
     
     @Test
