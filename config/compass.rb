@@ -1,7 +1,4 @@
-gem 'compass_twitter_bootstrap', '=2.2.2.2'
-require 'compass_twitter_bootstrap'
-
-BASEDIR = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
+BASEDIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
 http_path = '/'
 project_path = File.join(BASEDIR, 'app')

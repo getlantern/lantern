@@ -1,0 +1,22 @@
+//
+// Component animations
+// --------------------------------------------------
+
+
+.fade {
+  opacity: 0;
+  @include ctb-transition(opacity .15s linear);
+  &.in {
+    opacity: 1;
+  }
+}
+
+.collapse {
+  position: relative;
+  height: 0;
+  overflow: hidden;
+  @include ctb-transition(height .35s ease);
+  &.in {
+    height: auto;
+  }
+}

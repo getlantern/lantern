@@ -35,12 +35,11 @@ Install required dependencies (`sudo` as necessary):
 
 For working on the stylesheets:
 
+* [ruby](http://www.ruby-lang.org/) (comes with OS X)
+
 * [compass](http://compass-style.org/) 0.12.2:
   `gem install compass --version '= 0.12.2'`.
   
-* [compass_twitter_bootstrap](https://github.com/vwall/compass-twitter-bootstrap/) 2.2.2.2:
-  `gem install compass_twitter_bootstrap --version '= 2.2.2.2'`
-
 Tell compass to watch for changes in the sass stylesheets and
 automatically compile them into css in the directory specified by the compass
 config file (`config/compass.rb`):
