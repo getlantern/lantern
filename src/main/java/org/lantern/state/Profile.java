@@ -2,9 +2,11 @@ package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternUtils;
+import org.lantern.annotation.Keep;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
+@Keep
 public class Profile {
     
     private String id = "";

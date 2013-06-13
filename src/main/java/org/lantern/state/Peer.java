@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
+import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
@@ -19,12 +20,14 @@ import org.lantern.util.LanternTrafficCounter;
  * Class containing data for an individual peer, including active connections,
  * IP address, etc.
  */
+@Keep
 public class Peer {
 
     private String peerid = "";
 
     private String country = "";
     
+    @Keep
     public enum Type {
         pc,
         cloud,

@@ -21,6 +21,7 @@ import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ResetEvent;
@@ -46,6 +47,7 @@ import com.google.inject.Singleton;
  * Class that keeps track of all roster entries.
  */
 @Singleton
+@Keep
 public class Roster implements RosterListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
