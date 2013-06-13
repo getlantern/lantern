@@ -3,12 +3,14 @@ package org.lantern.state;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Stats;
+import org.lantern.annotation.Keep;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
 /**
  * Class representing all uploads and downloads data.
  */
+@Keep
 public class Transfers {
 
     private Stats statsTracker;
