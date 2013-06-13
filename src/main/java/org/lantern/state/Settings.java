@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Whitelist;
-import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SystemProxyChangedEvent;
 import org.lantern.state.Model.Persistent;
@@ -24,7 +23,6 @@ import com.google.common.collect.Sets;
 /**
  * Base Lantern settings.
  */
-@Keep
 public class Settings {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

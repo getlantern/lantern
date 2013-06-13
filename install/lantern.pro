@@ -1,4 +1,14 @@
+-injars ../target/lantern-0.3-SNAPSHOT-jar-with-dependencies.jar
+-outjars ../target/lanternpro.jar
+
+# XXX these paths are OS X only
+-libraryjars <java.home>/../Classes/classes.jar
+-libraryjars <java.home>/../Classes/jsse.jar
+-libraryjars <java.home>/lib/jce.jar
+-libraryjars <java.home>/lib/javaws.jar
+-libraryjars <java.home>/lib/dt.jar
 -ignorewarnings
+-target 1.6
 
 -keep public class org.lantern.Launcher {
      public static void main(java.lang.String[]);
@@ -12,48 +22,16 @@
     public protected *;
 }
 
+# -keep class org.eclipse.swt.widgets.Display,
+#             org.eclipse.swt.browser.** {
+#     *;
+# }
+
+
 -keep class org.eclipse.swt.** {
     *;
 }
--keep class dbusjava_localized,
-            dbusjava_localized_en_GB
 
--keep class org.freedesktop.** {
-    *;
-}
-
--keep class cx.ath.matthew.** {
-    *;
-}
-
--keep class org.jivesoftware.**
-
--keep class fr.free.miniupnp.** {
-    <fields>;
-    <methods>;
-}
-
--keepclassmembers class * {
-   @com.google.common.eventbus.Subscribe *;
-}
-
--keep class com.sun.jna.** {
-    *;
-}
-
--keepclassmembers class * extends com.sun.jna.** {
-    <fields>;
-    <methods>;
-}
-
--keep class sun.proxy.** {
-    *;
-}
-
-#guice
--keep class com.google.inject.** { *; } 
--keep class javax.inject.** { *; } 
--keep class javax.annotation.** { *; } 
 
 # enum gobbledygook
 -keepclassmembers enum * {
@@ -66,19 +44,17 @@
     native <methods>;
 }
 
-# Use annotations to keep things
--keep @org.lantern.annotation.Keep class *
-
--keepclassmembers @org.lantern.annotation.Keep class * {
-     *;
-}
-
--keep class org.lantern.LanternModule {
+# Beanish things
+-keep class org.lantern.Settings,
+            org.lantern.Whitelist,
+            org.lantern.WhitelistEntry,
+            org.lantern.Internet, 
+            org.lantern.ConnectivityStatus,
+            org.lantern.SettingsState,
+            org.lantern.Country,
+            org.lantern.Platform, 
+            org.lantern.httpseverywhere.* {
     *;
-}
-
--keepclassmembers class * { 
-    @com.google.inject.Inject <init>(...) ; 
 }
 
 # Annotations
@@ -86,7 +62,7 @@
 
 # referenced by string
 -keep class org.lantern.SettingsJSONContextServer {
-    public protected *;
+    public proctected *;
 }
 
 -keep class org.jivesoftware.smack.sasl.** {
@@ -95,7 +71,9 @@
 
 -dontobfuscate
 -dontoptimize
--dontwarn sun.misc.Unsafe
--dontwarn com.google.common.collect.MinMaxPriorityQueue
 
+#-keeppackagenames org.apache.log4j.**
+
+
+-verbose
 

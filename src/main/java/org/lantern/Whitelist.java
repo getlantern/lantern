@@ -7,14 +7,12 @@ import java.util.TreeSet;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.lantern.annotation.Keep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Keeps track of which domains are whitelisted.
  */
-@Keep
 public class Whitelist {
 
     private final Logger log = LoggerFactory.getLogger(Whitelist.class);

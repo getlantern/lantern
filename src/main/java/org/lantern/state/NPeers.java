@@ -1,8 +1,5 @@
 package org.lantern.state;
 
-import org.lantern.annotation.Keep;
-
-@Keep
 public class NPeers {
     private PeerCount online = new PeerCount();
     private PeerCount ever = new PeerCount();

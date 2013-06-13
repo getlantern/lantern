@@ -1,7 +1,5 @@
 package org.lantern.linux;
 
-import org.lantern.annotation.Keep;
-
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
@@ -20,17 +18,14 @@ public interface AppIndicator extends Library {
     public static final int STATUS_ACTIVE    = 1;
     public static final int STATUS_ATTENTION = 2;
 
-    @Keep
     public interface Fallback extends Callback {
         public Pointer callback(AppIndicatorInstanceStruct self);
     }
 
-    @Keep
     public interface Unfallback extends Callback {
         public void callback(AppIndicatorInstanceStruct self, Pointer status_icon);
     }
 
-    @Keep
     public class AppIndicatorClassStruct extends Structure {
         public class ByReference extends AppIndicatorClassStruct implements Structure.ByReference {}
 
@@ -75,7 +70,6 @@ public interface AppIndicator extends Library {
         */
     }
 
-    @Keep
     public class AppIndicatorInstanceStruct extends Structure {
         public Gobject.GObjectStruct parent;
         public Pointer priv;

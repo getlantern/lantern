@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONObject;
-import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.geoip.GeoIpLookupService;
@@ -26,7 +25,6 @@ import com.google.inject.Singleton;
 /**
  * Class for tracking statistics about Lantern.
  */
-@Keep
 @Singleton
 public class StatsTracker implements Stats {
     
@@ -394,7 +392,6 @@ public class StatsTracker implements Stats {
         return LanternClientConstants.VERSION;
     }
     
-    @Keep
     public final class CountryData {
         private final Set<InetAddress> addresses = new HashSet<InetAddress>();
         private volatile long bytes;

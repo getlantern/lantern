@@ -20,7 +20,6 @@ import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
-import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.InvitesChangedEvent;
 import org.lantern.event.SetupCompleteEvent;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 /**
  * State model of the application for the UI to display.
  */
-@Keep
 public class Model {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

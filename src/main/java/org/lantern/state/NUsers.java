@@ -1,8 +1,5 @@
 package org.lantern.state;
 
-import org.lantern.annotation.Keep;
-
-@Keep
 public class NUsers {
     private long online;
     private long ever;

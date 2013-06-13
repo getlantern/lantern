@@ -17,13 +17,7 @@ done
 
 ls *.hprof &> /dev/null && echo "don't run now, there's an hprof file:" && ls *.hprof && die
 
-#run the minified version if available
-if [ -e target/lantern*SNAPSHOT-small.jar ]
-then
-    jar=target/lantern*SNAPSHOT-small.jar
-else
-    jar=target/lantern*SNAPSHOT.jar
-fi
+jar=target/lantern*SNAPSHOT.jar
 
 # We need to copy the bouncycastle jar in separately because it's signed.
 # The shaded jar includes it in the classpath in its manifest.

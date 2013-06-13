@@ -11,5 +11,4 @@ then
   ls -la configureNetworkServices | grep rwsr | grep wheel || ./setNetUidOsx.bash
 fi
 
-rm -f target/lantern*-small.jar
-mvn package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true -Prelease || die "Could not package"
+mvn package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true || die "Could not package"
