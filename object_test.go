@@ -57,6 +57,31 @@ func TestObject_new(t *testing.T) {
     `, "abc,4")
 }
 
+func TestObject_create(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise: Object.create()`, "TypeError")
+	test(`
+        var abc = Object.create(null)
+        var def = Object.create({x: 10, y: 20})
+        var ghi = Object.create(Object.prototype)
+
+        var jkl = Object.create({x: 10, y: 20}, {
+            z: {
+                value: 30,
+                writable: true
+            },
+            // sum: {
+            //     get: function() {
+            //         return this.x + this.y + this.z
+            //     }
+            // }
+        });
+	      [ abc.prototype, def.x, def.y, ghi, jkl.x, jkl.y, jkl.z ]
+    `, ",10,20,[object Object],10,20,30")
+}
+
 func TestObject_toLocaleString(t *testing.T) {
 	Terst(t)
 

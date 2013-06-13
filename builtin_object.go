@@ -145,12 +145,12 @@ func builtinObject_defineProperties(call FunctionCall) Value {
 
 func builtinObject_create(call FunctionCall) Value {
 	prototypeValue := call.Argument(0)
-	prototype := prototypeValue._object()
-	if prototype == nil {
+	if !prototypeValue.IsNull() && !prototypeValue.IsObject() {
 		panic(newTypeError())
 	}
 
 	object := call.runtime.newObject()
+	object.prototype = prototypeValue._object()
 
 	propertiesValue := call.Argument(1)
 	if propertiesValue.IsDefined() {
