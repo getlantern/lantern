@@ -13,6 +13,7 @@ import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternService;
+import org.lantern.annotation.Keep;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
@@ -29,6 +30,7 @@ import com.google.inject.Singleton;
  */
 @Service("sync")
 @Singleton
+@Keep
 public class SyncService implements LanternService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

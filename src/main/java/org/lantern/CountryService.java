@@ -3,10 +3,13 @@ package org.lantern;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.lantern.annotation.Keep;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
+@Keep
 public class CountryService {
 
     private static String[] countryTable = {

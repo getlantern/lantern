@@ -3,7 +3,7 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>0.21.3-18-SNAPSHOT</version>
+  <version>0.21.3-19-SNAPSHOT</version>
   <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
   <description>
     Lantern is a peer-to-peer and trust-network-based tool for circumventing censors.
@@ -16,6 +16,9 @@
     <slf4j.version>1.7.2</slf4j.version>
     <cometd.version>2.5.1</cometd.version>
     <github.global.server>github</github.global.server>
+    <rt.path>${java.home}/lib/rt.jar</rt.path>
+    <jce.path>${java.home}/lib/jce.jar</jce.path>
+    <jsse.path>${java.home}/lib/jsse.jar</jsse.path>
   </properties>
 
   <organization>
@@ -677,6 +680,19 @@
                     <execute />
                   </action>
                 </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>com.github.wvengen</groupId>
+                    <artifactId>proguard-maven-plugin</artifactId>
+                    <versionRange>[2.0.6,)</versionRange>
+                    <goals>
+                      <goal>proguard</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>
           </configuration>
@@ -686,6 +702,73 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>mac-apple-java</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <file>
+          <!-- Oracle's JRE 7 apparently uses the traditional rt.jar
+               for this; this only activates the mac profile if
+               classes.jar exists (indicating Apple Java 6) -->
+          <exists>${java.home}/../Classes/classes.jar</exists>
+        </file>
+      </activation>
+      <properties>
+        <rt.path>${java.home}/../Classes/classes.jar</rt.path>
+        <jsse.path>${java.home}/../Classes/jsse.jar</jsse.path>
+      </properties>
+    </profile>
+    <profile>
+      <id>release</id>
+      <activation>
+        <property>
+          <name>release</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.wvengen</groupId>
+            <artifactId>proguard-maven-plugin</artifactId>
+            <version>2.0.6</version>
+            <executions>
+              <execution>
+                <id>package-with-proguard</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>proguard</goal>
+                </goals>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>net.sf.proguard</groupId>
+                <artifactId>proguard-base</artifactId>
+                <version>4.8</version>
+                <scope>runtime</scope>
+                <optional>true</optional>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <proguardVersion>4.8</proguardVersion>
+              <libs>
+                <lib>${rt.path}</lib>
+                <lib>${jce.path}</lib>
+                <lib>${jsse.path}</lib>
+              </libs>
+              <injar>${project.build.finalName}.jar</injar>
+              <outjar>${project.build.finalName}-small.jar</outjar>
+              <includeDependency>true</includeDependency>
+              <obfuscate>false</obfuscate>
+              <attach>true</attach>
+              <addMavenDescriptor>false</addMavenDescriptor>
+              <maxMemory>2048m</maxMemory>
+              <proguardInclude>install/lantern.pro</proguardInclude>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>linux</id>
       <activation>
