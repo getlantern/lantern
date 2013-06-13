@@ -279,7 +279,7 @@ public class TcpHttpRequestProcessorTest {
         
         assertTrue("Could not process request?", processed);
         int count = 0;
-        while (browserToProxyChannel.message.length() < 40000 && count < 100) {
+        while (browserToProxyChannel.message.length() < 40000 && count < 200) {
             Thread.sleep(100);
             count++;
         }
