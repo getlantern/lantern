@@ -17,9 +17,11 @@ mvn release:clean || die "Could not clean release?"
 mvn release:prepare || die "Could not prepare release?"
 
 echo "Tagging latest release"
-git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
-git tag -f -a latest -m "latest tagged release" $git
-git push --tags
+git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7` || die "Could not get git version?"
+git tag -f -a latest -m "latest tagged release" $git || die "Could not tag latest?" 
+
+echo "Pushing tags..."
+git push origin :refs/tags/latest || die "Could not push latest tag?"
 
 #echo "Creating branch $1"
 #git branch $1 lantern-$1 || die "Could not create a branch"
