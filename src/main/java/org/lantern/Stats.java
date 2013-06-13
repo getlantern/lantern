@@ -1,9 +1,7 @@
 package org.lantern;
 
 import org.jboss.netty.channel.Channel;
-import org.lantern.annotation.Keep;
 
-@Keep
 public interface Stats {
 
     long getUptime();

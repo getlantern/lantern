@@ -5,7 +5,6 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.TreeSet;
 
-import org.lantern.annotation.Keep;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
@@ -19,7 +18,6 @@ import com.google.inject.Singleton;
  * Class that keeps track of which countries are considered censored.
  */
 @Singleton
-@Keep
 public class DefaultCensored implements Censored {
 
     private static final Logger LOG = 

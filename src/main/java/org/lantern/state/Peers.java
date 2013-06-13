@@ -4,11 +4,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.lantern.annotation.Keep;
-
 import com.google.common.collect.ImmutableMap;
 
-@Keep
 public class Peers {
 
     private Map<URI, Peer> peers = new ConcurrentHashMap<URI, Peer>();

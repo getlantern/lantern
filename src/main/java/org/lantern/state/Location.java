@@ -2,7 +2,6 @@ package org.lantern.state;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
@@ -10,7 +9,6 @@ import org.lantern.state.Model.Run;
 /**
  * Location data for the client.
  */
-@Keep
 public class Location {
 
     private String country = "";

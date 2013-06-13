@@ -74,16 +74,16 @@ perl -pi -e "s/fallback_server_port_tok/$FALLBACK_SERVER_PORT/g" $CONSTANTS_FILE
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE || die "Could not set exceptional key"
 
 mvn clean || die "Could not clean?"
-mvn $MVN_ARGS -Drelease install -Dmaven.test.skip=true || die "Could not build?"
+mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
 echo "Reverting constants file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 if [[ $VERSION == "HEAD" ]];
 then
-    cp target/lantern-*-small.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp target/lantern-*.jar install/common/lantern.jar || die "Could not copy jar?"
 else
-    cp target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
 fi
 
 

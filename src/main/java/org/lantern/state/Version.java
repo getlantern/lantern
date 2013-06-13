@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
-import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
@@ -22,7 +21,6 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Class containing version data for clients.
  */
-@Keep
 public class Version {
 
     private final Installed installed = new Installed();
@@ -61,7 +59,6 @@ public class Version {
         this.updateAvailable = updateAvailable;
     }
 
-    @Keep
     public class Installed {
 
         private final int major;
@@ -168,7 +165,6 @@ public class Version {
 
     }
 
-    @Keep
     public class SemanticVersion {
         private final int major;
 

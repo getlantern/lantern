@@ -8,7 +8,6 @@ import java.lang.management.ManagementFactory;
 import org.apache.commons.io.FileSystemUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.annotation.Keep;
 import org.lantern.state.Model.Run;
 
 import com.sun.management.OperatingSystemMXBean;
@@ -16,7 +15,6 @@ import com.sun.management.OperatingSystemMXBean;
 /**
  * Class containing data about the users system.
  */
-@Keep
 public class SystemData {
 
     private final String os;

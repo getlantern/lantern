@@ -4,9 +4,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.lantern.annotation.Keep;
-
-@Keep
 public class Friends {
 
     private Map<String, Friend> currentMap = 

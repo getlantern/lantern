@@ -1,10 +1,8 @@
 package org.lantern;
 
-import org.lantern.annotation.Keep;
 import org.lantern.state.NPeers;
 import org.lantern.state.NUsers;
 
-@Keep
 public class Country {
 
     private String code;
