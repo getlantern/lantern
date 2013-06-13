@@ -21,7 +21,7 @@ git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7` || die "Could
 git tag -f -a latest -m "latest tagged release" $git || die "Could not tag latest?" 
 
 echo "Pushing tags..."
-git push origin :refs/tags/latest || die "Could not push latest tag?"
+git push -f --tags || die "Could not push latest tag?"
 
 #echo "Creating branch $1"
 #git branch $1 lantern-$1 || die "Could not create a branch"
