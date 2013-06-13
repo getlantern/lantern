@@ -449,3 +449,26 @@ func builtinString_toUpperCase(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	return toValue_string(strings.ToUpper(toString(call.This)))
 }
+
+// 7.2 Table 2 — Whitespace Characters & 7.3 Table 3 - Line Terminator Characters
+const builtinString_trim_whitespace = "\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF"
+
+func builtinString_trim(call FunctionCall) Value {
+	checkObjectCoercible(call.This)
+	return toValue(strings.Trim(toString(call.This),
+		builtinString_trim_whitespace))
+}
+
+// Mozilla extension, not ECMAScript 5
+func builtinString_trimLeft(call FunctionCall) Value {
+	checkObjectCoercible(call.This)
+	return toValue(strings.TrimLeft(toString(call.This),
+		builtinString_trim_whitespace))
+}
+
+// Mozilla extension, not ECMAScript 5
+func builtinString_trimRight(call FunctionCall) Value {
+	checkObjectCoercible(call.This)
+	return toValue(strings.TrimRight(toString(call.This),
+		builtinString_trim_whitespace))
+}

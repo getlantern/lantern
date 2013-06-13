@@ -1655,6 +1655,63 @@ func _newContext(runtime *_runtime) {
 				call: _nativeCallFunction(builtinString_substr),
 			},
 		}
+		trim_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      0,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinString_trim),
+			},
+		}
+		trimLeft_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      0,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinString_trimLeft),
+			},
+		}
+		trimRight_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      0,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinString_trimRight),
+			},
+		}
 		fromCharCode_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -1799,6 +1856,27 @@ func _newContext(runtime *_runtime) {
 					value: Value{
 						_valueType: valueObject,
 						value:      substr_function,
+					},
+				},
+				"trim": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      trim_function,
+					},
+				},
+				"trimLeft": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      trimLeft_function,
+					},
+				},
+				"trimRight": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      trimRight_function,
 					},
 				},
 			},

@@ -284,6 +284,9 @@ sub newContext {
                 "toLowerCase", 0,
                 "toUpperCase", 0,
                 "substr", 2,
+                "trim", 0,
+                "trimLeft", 0,
+                "trimRight", 0,
             );
             return
             ".${class}Prototype =",
