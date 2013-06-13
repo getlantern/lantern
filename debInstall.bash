@@ -16,8 +16,15 @@ BUILD_ID=$4
 
 source ./installerBuild.bash $VERSION "-Dbuildos=linux -Dsun.arch.data.model=$ARCH -Plinux,-mac,-windows" $RELEASE || die "Could not build!!"
 
+if [[ $VERSION == "HEAD" ]];
+then
+    INSTALLVERSION=0.0.1;
+else
+    INSETALLVERSION=$VERSION;
+fi
+
 #install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
-install4jc -b $BUILD_ID -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
+install4jc -b $BUILD_ID -r $INSTALLVERSION ./install/lantern.install4j || die "Could not build Linux installer?"
 
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
 name=lantern-$VERSION-$git-$ARCH-bit.deb
