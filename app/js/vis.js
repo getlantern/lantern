@@ -155,7 +155,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
   //d3.timer(rotateWest);
 
   d3.json(CONFIG.source.world, function dataFetched(error, world) {
-    var countryGeometries = topojson.object(world, world.objects.countries).geometries;
+    var countryGeometries = topojson.feature(world, world.objects.countries).features;
     countryPaths = $$countries.selectAll('path')
       .data(countryGeometries).enter().append('path')
         .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })

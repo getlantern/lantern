@@ -1,0 +1,20 @@
+{
+  "name": "lantern-ui",
+  "version": "0.9.0",
+  "appPath": "app",
+  "dependencies": {
+    "angular": "~1.0.7",
+    "angular-google-analytics": "skivvies/angular-google-analytics",
+    "angular-sanitize": "~1.0.7",
+    "angular-translate": "~0.9.1",
+    "cometd-js-jquery": "~2.6.0",
+    "d3": "~3.1.10",
+    "jsonpatch": "~1.0.0-rc1",
+    "lodash": "~1.3.1",
+    "topojson": "~1.1.3"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.0.7",
+    "angular-scenario": "~1.0.7"
+  }
+}

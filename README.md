@@ -33,6 +33,10 @@ Install required dependencies (`sudo` as necessary):
 * [Node.js](http://nodejs.org/): `brew install node` or equivalent for your
   system
 
+* [Bower](http://bower.io): `npm install -g bower`
+
+* Then run `bower install` from the repo root
+
 For working on the stylesheets:
 
 * [ruby](http://www.ruby-lang.org/) (comes with OS X)
