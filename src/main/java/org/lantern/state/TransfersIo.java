@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.lantern.ClientStats;
 import org.lantern.LanternClientConstants;
-import org.lantern.Stats;
 import org.lantern.privacy.EncryptedFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +18,13 @@ public class TransfersIo extends Storage<Transfers> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Stats tracker;
+    private final ClientStats tracker;
 
     /**
      * Creates a new instance with all the default operations.
      */
     @Inject
-    public TransfersIo(final Stats tracker,
+    public TransfersIo(final ClientStats tracker,
             final EncryptedFileService encryptedFileService, final Timer timer) {
         this(LanternClientConstants.DEFAULT_TRANSFERS_FILE,
                tracker, encryptedFileService, timer);
@@ -37,7 +37,7 @@ public class TransfersIo extends Storage<Transfers> {
      * @param transfersFile
      *            The file where settings are stored.
      */
-    public TransfersIo(final File transfersFile, final Stats tracker,
+    public TransfersIo(final File transfersFile, final ClientStats tracker,
             final EncryptedFileService encryptedFileService, final Timer timer) {
         super(encryptedFileService, transfersFile, Transfers.class);
         this.tracker = tracker;

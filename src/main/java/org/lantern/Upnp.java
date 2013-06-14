@@ -27,13 +27,13 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     private static final MiniupnpcLibrary miniupnpc = MiniupnpcLibrary.INSTANCE;
 
-    private final Stats stats;
+    private final ClientStats stats;
 
     private String publicIp;
 
     private final Set<UpnpMapping> mappings = new HashSet<UpnpMapping>();
 
-    public Upnp(final Stats stats) {
+    public Upnp(final ClientStats stats) {
         this.stats = stats;
     }
 

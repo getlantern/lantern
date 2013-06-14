@@ -15,6 +15,7 @@ import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.state.LocationChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,9 @@ import com.google.inject.Singleton;
  * Class for tracking statistics about Lantern.
  */
 @Singleton
-public class StatsTracker implements Stats {
-    
-    private final static Logger log = 
+public class StatsTracker implements ClientStats {
+
+    private final static Logger log =
         LoggerFactory.getLogger(StatsTracker.class);
 
     private final AtomicLong bytesProxied = new AtomicLong(0L);
@@ -78,9 +79,11 @@ public class StatsTracker implements Stats {
 
     private final CountryService countryService;
 
+    private String countryCode;
+
     @Inject
     public StatsTracker(final GeoIpLookupService lookupService,
-        CountryService countryService) {
+        final CountryService countryService) {
         this.lookupService = lookupService;
         this.countryService = countryService;
         Events.register(this);
@@ -411,5 +414,27 @@ public class StatsTracker implements Stats {
     public void onReset(final ResetEvent event) {
         resetUserStats();
         resetCumulativeStats();
+    }
+
+    @Override
+    public long getPeerCount() {
+        //TODO: implement this (or remove it)
+        return -1;
+    }
+
+    @Override
+    public long getPeerCountThisRun() {
+        //TODO: implement this (or remove it)
+        return -1;
+    }
+
+    @Override
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    @Subscribe
+    public void onLocationChanged(final LocationChangedEvent e) {
+        countryCode = e.getNewCountry();
     }
 }

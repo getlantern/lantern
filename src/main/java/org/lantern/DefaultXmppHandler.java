@@ -147,7 +147,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final Timer timer;
 
-    private final Stats stats;
+    private final ClientStats stats;
 
     private final LanternKeyStoreManager keyStoreManager;
 
@@ -187,7 +187,7 @@ public class DefaultXmppHandler implements XmppHandler {
     @Inject
     public DefaultXmppHandler(final Model model,
         //final PeerProxyManager trustedPeerProxyManager,
-        final Timer updateTimer, final Stats stats,
+        final Timer updateTimer, final ClientStats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,

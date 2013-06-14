@@ -45,7 +45,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final Timer timer;
 
-    private final Stats stats;
+    private final ClientStats stats;
 
     private final Model model;
 
@@ -68,7 +68,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final ServerSocketChannelFactory serverChannelFactory, 
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer, final ChannelGroup channelGroup,
-        final Stats stats,
+        final ClientStats stats,
         final Model model, final ProxyTracker proxyTracker,
         final LanternTrustStore trustStore) {
         this.serverChannelFactory = serverChannelFactory;

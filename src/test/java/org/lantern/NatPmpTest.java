@@ -23,7 +23,7 @@ public class NatPmpTest {
             return;
         }
 
-        final Stats statsTracker = mock(Stats.class);
+        final ClientStats statsTracker = mock(ClientStats.class);
         final NatPmpImpl pmp = new NatPmpImpl(statsTracker);
         final AtomicInteger ai = new AtomicInteger(-1);
         final AtomicBoolean error = new AtomicBoolean();
