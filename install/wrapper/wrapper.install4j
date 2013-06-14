@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.1.5" transformSequenceNumber="4">
-  <directoryPresets config="./dpkg.bash" />
+  <directoryPresets config="." />
   <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir=".." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern-net-installer" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -62,7 +62,9 @@
     </launcher>
   </launchers>
   <installerGui installerType="1" addOnAppId="" suggestPreviousLocations="true" autoUpdateDescriptorUrl="" useAutoUpdateBaseUrl="false" autoUpdateBaseUrl="">
-    <customCode />
+    <customCode>
+      <file location="./InstallDownloader.class" />
+    </customCode>
     <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
       <commentFiles />
       <customAttributes />
@@ -276,29 +278,10 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>lantern.dmg</string>
+                        <string>${installer:sys.userHome}/latest.dmg</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isMacOS();</condition>
-              </action>
-              <action name="" id="31" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
-                      <void property="executable">
-                        <object class="java.io.File">
-                          <string>lantern.dmg</string>
-                        </object>
-                      </void>
-                      <void property="workingDirectory">
-                        <object class="java.io.File">
-                          <string>${installer:sys.workingDir}</string>
-                        </object>
+                        <string>http://s3.amazonaws.com/lantern/latest.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -316,29 +299,10 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.workingDir}/lantern.exe</string>
+                        <string>${installer:sys.userHome}/latest.exe</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest.exe</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isWindows();</condition>
-              </action>
-              <action name="" id="86" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
-                      <void property="executable">
-                        <object class="java.io.File">
-                          <string>lantern.exe</string>
-                        </object>
-                      </void>
-                      <void property="workingDirectory">
-                        <object class="java.io.File">
-                          <string>${installer:sys.workingDir}</string>
-                        </object>
+                        <string>http://s3.amazonaws.com/lantern/latest.exe</string>
                       </void>
                     </object>
                   </java>
@@ -353,10 +317,10 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.installationDir}/lantern.deb</string>
+                        <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest-64.deb</string>
+                        <string>http://s3.amazonaws.com/lantern/latest-64.deb</string>
                       </void>
                     </object>
                   </java>
@@ -372,16 +336,72 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.installationDir}/lantern.deb</string>
+                        <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest-32.deb</string>
+                        <string>http://s3.amazonaws.com/lantern/latest-32.deb</string>
                       </void>
                     </object>
                   </java>
                 </serializedBean>
                 <condition>final boolean is64Bit = System.getProperty("sun.arch.data.model").equals("64");
 return Util.isLinux() &amp;&amp; !is64Bit;</condition>
+              </action>
+              <action name="" id="260" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>final boolean verified = InstallDownloader.verify(new File((String)context.getVariable("sys.userHome")));
+
+return verified;</string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="31" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="executable">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/latest.dmg</string>
+                        </object>
+                      </void>
+                      <void property="workingDirectory">
+                        <object class="java.io.File">
+                          <string>${installer:sys.workingDir}</string>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isMacOS();</condition>
+              </action>
+              <action name="" id="86" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="executable">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/lantern.exe</string>
+                        </object>
+                      </void>
+                      <void property="workingDirectory">
+                        <object class="java.io.File">
+                          <string>${installer:sys.workingDir}</string>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
               </action>
               <action name="" id="89" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
                 <serializedBean>
@@ -429,7 +449,7 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                         <object class="com.install4j.api.beans.ScriptProperty">
                           <void property="value">
                             <string>final File f = new File(context.getInstallationDirectory(), "dpkg.bash");
-final File deb = new File(context.getInstallationDirectory(), "lantern.deb");
+final File deb = new File(new File((String)context.getVariable("sys.userHome")), "latest.deb");
 //final File out = new File(context.getInstallationDirectory(), "dpkg.bash.out");
 
 // Note these messages don't get shown in unattended mode!
