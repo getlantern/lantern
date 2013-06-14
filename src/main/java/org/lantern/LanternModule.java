@@ -84,7 +84,7 @@ public class LanternModule extends AbstractModule {
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
-        bind(Stats.class).to(StatsTracker.class);
+        bind(ClientStats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwtMessageService.class);
@@ -148,7 +148,7 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public UpnpService provideUpnpService(final Stats stats) {
+    public UpnpService provideUpnpService(final ClientStats stats) {
         // Testing.
         if (this.upnpService != null) {
             return this.upnpService;
@@ -157,7 +157,7 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    public NatPmpService provideNatPmpService(final Stats stats) {
+    public NatPmpService provideNatPmpService(final ClientStats stats) {
         // Testing.
         if (this.natPmpService != null) {
             return this.natPmpService;

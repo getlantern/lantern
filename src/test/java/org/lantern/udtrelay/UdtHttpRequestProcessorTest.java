@@ -240,7 +240,7 @@ public class UdtHttpRequestProcessorTest {
         final ProxyTracker proxyTracker = newProxyTracker(ft);
 
         final UdtHttpRequestProcessor processor =
-                new UdtHttpRequestProcessor(proxyTracker, null, null, 
+                new UdtHttpRequestProcessor(proxyTracker, null,
                     trustStore);
         
         final boolean processed = 

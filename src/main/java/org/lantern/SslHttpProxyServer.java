@@ -25,7 +25,7 @@ public class SslHttpProxyServer extends StatsTrackingDefaultHttpProxyServer {
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory, 
         final HandshakeHandlerFactory handshakeHandlerFactory,
-        final Stats stats, final Model model,
+        final ClientStats stats, final Model model,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         super(new HttpResponseFilters() {
             @Override

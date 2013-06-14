@@ -2,7 +2,7 @@ package org.lantern;
 
 import org.jboss.netty.channel.Channel;
 
-public class StatsStub implements Stats {
+public class StatsStub implements ClientStats {
 
     @Override
     public long getUptime() {
@@ -218,6 +218,24 @@ public class StatsStub implements Stats {
     public void addBytesProxied(long bytes, Channel channel) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public long getPeerCount() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public long getPeerCountThisRun() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public String getCountryCode() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

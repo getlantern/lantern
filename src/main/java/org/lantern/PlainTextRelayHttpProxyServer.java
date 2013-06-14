@@ -22,7 +22,7 @@ public class PlainTextRelayHttpProxyServer
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory, 
         final HandshakeHandlerFactory handshakeHandlerFactory,
-        final Stats stats,
+        final ClientStats stats,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         super(new HttpResponseFilters() {
                 @Override

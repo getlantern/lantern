@@ -72,8 +72,8 @@ public class TestUtils {
     
     private static MessageService messageService;
 
-    private static Stats statsTracker;
-    
+    private static ClientStats statsTracker;
+
     private static Roster roster;
 
     private static ModelService modelService;
@@ -158,7 +158,7 @@ public class TestUtils {
         model = instance(Model.class);
         jettyLauncher = instance(JettyLauncher.class);
         messageService = instance(MessageService.class);
-        statsTracker = instance(Stats.class);
+        statsTracker = instance(ClientStats.class);
         roster = instance(Roster.class);
         modelService = instance(ModelService.class);
         proxifier = instance(Proxifier.class);
@@ -188,7 +188,7 @@ public class TestUtils {
         private static File file = new File(LanternClientConstants.DEFAULT_TRANSFERS_FILE + ".test");
 
         @Inject
-        public TestTransfersIo(Stats tracker,
+        public TestTransfersIo(ClientStats tracker,
                 EncryptedFileService encryptedFileService, Timer timer) {
             super(file, tracker, encryptedFileService, timer);
         }
@@ -387,7 +387,7 @@ public class TestUtils {
         return messageService;
     }
 
-    public static Stats getStatsTracker() {
+    public static ClientStats getStatsTracker() {
         if (!loaded) load();
         return statsTracker;
     }
