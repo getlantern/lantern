@@ -72,11 +72,11 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   $scope.$watch('model.showVis', function(showVis, oldShowVis) {
     if (showVis === true) {
-      $peers.tooltip(CONFIG.tooltip);
-      $countries.tooltip(CONFIG.tooltip);
+      //$peers.tooltip(CONFIG.tooltip);
+      //$countries.tooltip(CONFIG.tooltip);
     } else if (showVis === false && oldShowVis) {
-      $peers.tooltip('destroy');
-      $countries.tooltip('destroy');
+      //$peers.tooltip('destroy');
+      //$countries.tooltip('destroy');
       log.debug('showVis toggled off, destroyed tooltips');
     }
   });

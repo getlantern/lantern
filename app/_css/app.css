@@ -2232,7 +2232,7 @@ li [class*=" icon-"].icon-large, .nav li [class^="icon-"].icon-large,
 
 ul.icons {
   list-style-type: none;
-  text-indent: -.75em;
+  text-indent: -0.75em;
 }
 ul.icons li [class^="icon-"],
 ul.icons li [class*=" icon-"] {
@@ -6813,10 +6813,10 @@ textarea {
   color: #999999;
 }
 
-#unexpectedState form, #settingsLoadFailure form {
+.notify {
   margin: 15px 30px 0 30px;
 }
-#unexpectedState form *, #settingsLoadFailure form * {
+.notify * {
   font-size: 11.9px;
 }
 
@@ -6876,7 +6876,7 @@ textarea {
 
 #welcome {
   text-align: center;
-  background: rgba(0, 0, 0, 0.3);
+  background-color: black;
   color: white;
 }
 #welcome .modal-body {

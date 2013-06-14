@@ -9,7 +9,8 @@ var app = angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
-  'ui',
+  'ui.if',
+  'ui.showhide',
   'ui.bootstrap'
   ])
   // angular ui bootstrap config
@@ -19,6 +20,11 @@ var app = angular.module('app', [
       dialogFade: true,
       keyboard: false,
       backdropClick: false
+    });
+  })
+  .config(function($tooltipProvider) {
+    $tooltipProvider.options({
+      appendToBody: true
     });
   })
   // angular-ui config

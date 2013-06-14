@@ -4,9 +4,11 @@
   "appPath": "app",
   "dependencies": {
     "angular": "~1.0.7",
+    "angular-bootstrap": "~0.3.0",
     "angular-google-analytics": "skivvies/angular-google-analytics",
     "angular-sanitize": "~1.0.7",
     "angular-translate": "~0.9.1",
+    "angular-ui-utils": "~0.0.2",
     "cometd-js-jquery": "~2.6.0",
     "d3": "~3.1.10",
     "jsonpatch": "~1.0.0-rc1",

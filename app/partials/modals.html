@@ -7,13 +7,13 @@
   </ul>
 </div>
 
-<div id="unexpectedState" ng-controller="UnexpectedStateCtrl" modal="show">
+<div ng-controller="UnexpectedStateCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body" ng-init="notify = true">
     <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
-    <form>
+    <form class="notify">
       <p>
         <label class="checkbox inline">
           <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
@@ -34,13 +34,13 @@
   </div>
 </div>
 
-<div id="settingsLoadFailure" ng-controller="SettingsLoadFailureCtrl" modal="show">
+<div ng-controller="SettingsLoadFailureCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body" ng-init="notify = true; report = defaultReportMsg()">
     <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
-    <form>
+    <form class="notify">
       <p>
         <label class="checkbox inline">
           <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
@@ -63,8 +63,8 @@
 
 <!-- setup screens -->
 
-<div id="welcome" modal="model.modal == MODAL.welcome">
-  <div class="modal-body">
+<div modal="model.modal == MODAL.welcome">
+  <div class="modal-body" id="welcome">
     <div class="logo">
       <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
       <div class="beta">{{ 'BETA' | i18n }}</div>
@@ -83,11 +83,11 @@
   </div>
 </div>
 
-<div id="authorize" modal="model.modal == MODAL.authorize">
+<div modal="model.modal == MODAL.authorize">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="authorize">
     <div>
       {{ 'AUTHORIZE_PROMPT' | i18n }}
       <small><a ng-click="helpExpanded=!helpExpanded"
@@ -104,21 +104,21 @@
   </div>
 </div>
 
-<div id="connecting" modal="model.modal == MODAL.connecting">
+<div modal="model.modal == MODAL.connecting">
   <div class="modal-header">
     <h3>{{ 'CONNECTING_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="connecting">
     <!-- XXX progress bar would be nice here -->
     <span ng-bind-html="model.connectivity.connectingStatus"></span>
   </div>
 </div>
 
-<div id="confirmReset" modal="model.modal == MODAL.confirmReset">
+<div modal="model.modal == MODAL.confirmReset">
   <div class="modal-header">
     <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="confirmReset">
     <div>{{ 'CONFIRM_RESET_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
@@ -127,11 +127,11 @@
   </div>
 </div>
 
-<div id="giveModeForbidden" modal="model.modal == MODAL.giveModeForbidden">
+<div modal="model.modal == MODAL.giveModeForbidden">
   <div class="modal-header">
     <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="giveModeForbidden">
     <div>{{ 'GIVE_MODE_FORBIDDEN_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
@@ -140,11 +140,11 @@
   </div>
 </div>
 
-<div id="notInvited" modal="model.modal == MODAL.notInvited">
+<div modal="model.modal == MODAL.notInvited">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="notInvited">
     <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
@@ -154,11 +154,11 @@
 </div>
 
 <!--
-<div id="requestInvite" ng-controller="RequestInviteCtrl" modal="model.modal == MODAL.requestInvite">
+<div ng-controller="RequestInviteCtrl" modal="model.modal == MODAL.requestInvite">
   <div class="modal-header">
     <h3>{{ 'REQUEST_INVITE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="requestInvite">
     <div>{{ 'REQUEST_INVITE_PROMPT' | i18n }}</div>
     <form name="sendRequestForm" submit="sendRequest()">
       <label class="radio">
@@ -192,11 +192,11 @@
   </div>
 </div>
 
-<div id="requestSent" modal="model.modal == MODAL.requestSent">
+<div modal="model.modal == MODAL.requestSent">
   <div class="modal-header">
     <h3>{{ 'REQUEST_SENT_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="requestSent">
     <div>{{ 'REQUEST_SENT_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
@@ -204,11 +204,11 @@
   </div>
 </div>
 
-<div id="firstInviteReceived" modal="model.modal == MODAL.firstInviteReceived">
+<div modal="model.modal == MODAL.firstInviteReceived">
   <div class="modal-header">
     <h3>{{ 'FIRST_INVITE_RECEIVED_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="firstInviteReceived">
     <div>{{ 'FIRST_INVITE_RECEIVED_INTRO' | i18n }}</div>
     <br>
     <div>
@@ -227,11 +227,11 @@
 </div>
 -->
 
-<div id="systemProxy" ng-controller="SystemProxyCtrl" modal="model.modal == MODAL.systemProxy">
+<div ng-controller="SystemProxyCtrl" modal="model.modal == MODAL.systemProxy">
   <div class="modal-header">
     <h3>{{ 'SYSTEM_PROXY_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="systemProxy">
     <div>{{ 'SYSTEM_PROXY_PROMPT' | i18n }}</div>
     <br>
     <div class="control-group">
@@ -267,14 +267,14 @@
   </div>
 </div>
 
-<div id="proxiedSites" ng-controller="ProxiedSitesCtrl" modal="show">
+<div ng-controller="ProxiedSitesCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
       {{ 'PROXIED_SITES_TITLE' | i18n }}
     </h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="proxiedSites">
     <div class="prompt small">{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
     <div class="warning noHeightWhenHidden" ui-toggle="model.settings.proxyAllSites">
       <i class="icon icon-warning-sign"></i>
@@ -322,14 +322,14 @@
   </div>
 </div>
 
-<div id="lanternFriends" ng-controller="LanternFriendsCtrl" modal="model.modal == MODAL.lanternFriends">
+<div ng-controller="LanternFriendsCtrl" modal="model.modal == MODAL.lanternFriends">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-friends"></i>
       {{ 'LANTERN_FRIENDS' | i18n }}
     </h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="lanternFriends">
     <div>
       <p id="lanternFriendsIntro">{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
       <!-- <p class="small">{{ 'ROSTER_PROMPT' | i18n }}</p> -->
@@ -391,11 +391,11 @@
   </div>
 </div>
 
-<div id="finished" ng-init="autoReport = true" modal="model.modal == MODAL.finished">
+<div ng-init="autoReport = true" modal="model.modal == MODAL.finished">
   <div class="modal-header">
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="finished">
     <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</p>
     <div id="finished-autoReport">
       <label class="checkbox inline">
@@ -414,11 +414,11 @@
   </div>
 </div>
 
-<div id="contact" ng-controller="ContactCtrl" modal="show">
+<div ng-controller="ContactCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="contact">
     <div class="smaller">
       <!-- XXX i18n -->
       The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation</a>
@@ -444,8 +444,8 @@
 </div>
 
 <!-- XXX i18n -->
-<div id="about" modal="model.modal == MODAL.about">
-  <div class="modal-body">
+<div modal="model.modal == MODAL.about">
+  <div class="modal-body" id="about">
     <div style="text-align:center; margin:0">
       Lantern version {{ model.version.installed | version:true }}<br>
       Frontend version {{ lanternUiVersion }}<br>
@@ -480,11 +480,11 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="updateAvailable" modal="model.modal == MODAL.updateAvailable">
+<div modal="model.modal == MODAL.updateAvailable">
   <div class="modal-header">
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="updateAvailable">
     <p>{{ 'UPDATE_AVAILABLE_PROMPT' | i18n }}</p>
     <details open id="latestDetails">
       <summary>{{ 'VERSION' | i18n }} {{ model.version.latest | version }}</summary>
@@ -517,14 +517,14 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="settings" ng-controller="SettingsCtrl" modal="model.modal == MODAL.settings">
+<div ng-controller="SettingsCtrl" modal="model.modal == MODAL.settings">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-gear"></i>
       {{ 'SETTINGS' | i18n }}
     </h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="settings">
     <dl class="dl-horizontal">
       <dt>{{ 'APP' | i18n }}</dt>
       <dd id="app-settings">
@@ -617,11 +617,11 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="scenarios" ng-controller="ScenariosCtrl" modal="model.modal == MODAL.scenarios">
+<div ng-controller="ScenariosCtrl" modal="model.modal == MODAL.scenarios">
   <div class="modal-header centered">
     <h3>Developer</h3>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" id="scenarios">
     <p class="centered text-error">{{ model.mock.scenarios.prompt }}</p>
     <label>Applied scenarios:</label>
     <select ui-select2 multiple ng-model="appliedScenarios"
