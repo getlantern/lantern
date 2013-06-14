@@ -42,7 +42,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
 
     private final ChannelGroup channelGroup;
 
-    private final Stats stats;
+    private final ClientStats stats;
 
     private final LanternTrustStore trustStore;
 
@@ -53,7 +53,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
     public TcpHttpRequestProcessor( 
         final ProxyTracker proxyTracker, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
-        final ChannelGroup channelGroup, final Stats stats,
+        final ChannelGroup channelGroup, final ClientStats stats,
         final LanternTrustStore trustStore) {
         this.proxyTracker = proxyTracker;
         this.clientSocketChannelFactory = clientSocketChannelFactory;

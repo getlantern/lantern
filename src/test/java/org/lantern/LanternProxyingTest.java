@@ -127,7 +127,8 @@ public class LanternProxyingTest {
         } catch (final IOException e) {
             log.warn("IO error connecting to "+url, e);
             return false;
-        }
+        } 
+        
         if (200 !=  response.getStatusLine().getStatusCode()) {
             return false;
         }
@@ -144,6 +145,7 @@ public class LanternProxyingTest {
             return false;
         }
         EntityUtils.consume(entity);
+        get.reset();
         return true;
     }
 }

@@ -35,14 +35,14 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
 
     private final long startTime;
 
-    private final Stats stats;
-    
+    private final ClientStats stats;
+
     private final boolean incoming;
 
-    public PeerSocketWrapper(final URI peerUri, 
-        final long startTime, final Socket sock, 
-        final ChannelGroup channelGroup, final Stats stats, 
-        final LanternSocketsUtil socketsUtil, 
+    public PeerSocketWrapper(final URI peerUri,
+        final long startTime, final Socket sock,
+        final ChannelGroup channelGroup, final ClientStats stats,
+        final LanternSocketsUtil socketsUtil,
         final boolean incoming) {
         Preconditions.checkNotNull(peerUri, "Null peer URI?");
         this.peerUri = peerUri;

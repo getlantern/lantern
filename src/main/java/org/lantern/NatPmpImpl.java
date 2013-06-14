@@ -32,7 +32,7 @@ public class NatPmpImpl implements NatPmpService {
 
     private NatPmp pmpDevice = null;
 
-    private final Stats stats;
+    private final ClientStats stats;
     private final List<MapRequest> requests = new ArrayList<MapRequest>();
 
     /**
@@ -42,7 +42,7 @@ public class NatPmpImpl implements NatPmpService {
      *             If we could not start NAT-PMP for any reason.
      */
     @Inject
-    public NatPmpImpl(final Stats stats) {
+    public NatPmpImpl(final ClientStats stats) {
         this.stats = stats;
         pmpDevice = new NatPmp();
         log.debug("NAT-PMP device = {}", pmpDevice);

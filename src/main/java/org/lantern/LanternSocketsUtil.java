@@ -32,7 +32,7 @@ public class LanternSocketsUtil {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Stats stats;
+    private final ClientStats stats;
 
     private final ExecutorService threadPool =
         Executors.newCachedThreadPool(new ThreadFactory() {
@@ -50,7 +50,7 @@ public class LanternSocketsUtil {
     private final LanternTrustStore trustStore;
 
     @Inject
-    public LanternSocketsUtil(final Stats stats,
+    public LanternSocketsUtil(final ClientStats stats,
         final LanternTrustStore trustStore) {
         this.stats = stats;
         this.trustStore = trustStore;

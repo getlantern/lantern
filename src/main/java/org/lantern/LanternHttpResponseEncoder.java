@@ -15,10 +15,10 @@ import org.slf4j.LoggerFactory;
 public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final Stats stats;
-    
+    private final ClientStats stats;
 
-    public LanternHttpResponseEncoder(final Stats stats) {
+
+    public LanternHttpResponseEncoder(final ClientStats stats) {
         super(true);
         this.stats = stats; 
     }
