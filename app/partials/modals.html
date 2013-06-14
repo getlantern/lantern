@@ -418,7 +418,8 @@
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body" id="contact">
+  <div class="modal-body">
+  <div class="modal-body" id="contact" dir="ltr">
     <div class="smaller">
       <!-- XXX i18n -->
       The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation</a>
@@ -445,7 +446,7 @@
 
 <!-- XXX i18n -->
 <div modal="model.modal == MODAL.about">
-  <div class="modal-body" id="about">
+  <div class="modal-body" id="about" dir="ltr">
     <div style="text-align:center; margin:0">
       Lantern version {{ model.version.installed | version:true }}<br>
       Frontend version {{ lanternUiVersion }}<br>
