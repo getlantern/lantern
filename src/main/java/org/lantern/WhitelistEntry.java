@@ -1,15 +1,18 @@
 package org.lantern;
 
+import org.lantern.annotation.Keep;
+
 /**
- * Class representing a single whitelisted site along with any higher level 
+ * Class representing a single whitelisted site along with any higher level
  *  attributes of that site, such as whether or not it's required.
  */
+@Keep
 public class WhitelistEntry implements Comparable<WhitelistEntry> {
 
     private String site;
     private boolean required = false;
     private boolean defaultSetting;
-    
+
     public WhitelistEntry() {
     }
 
@@ -20,7 +23,7 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
     public WhitelistEntry(final String site, final boolean required) {
         this(site, required, false);
     }
-    
+
     public WhitelistEntry(final String site, final boolean required,
         final boolean defaultSetting) {
         this.site = site;
@@ -35,7 +38,7 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
     public boolean isRequired() {
         return required;
     }
-    
+
     public void setSite(final String site) {
         this.site = site;
     }
@@ -56,8 +59,8 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
     public int compareTo(final WhitelistEntry o) {
         return this.site.compareTo(o.site);
     }
-    
-    @Override 
+
+    @Override
     public String toString() {
         return this.site;
     }
