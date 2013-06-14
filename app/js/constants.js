@@ -33,8 +33,8 @@ var DEFAULT_LANG = 'en',
     MODEL_SYNC_CHANNEL = '/sync',
     CONTACT_FORM_MAXLEN = 500000,
     INPUT_PAT = {
-      // HTML5 compatible email regex (http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html)
-      EMAIL: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+      // based on http://www.regular-expressions.info/email.html
+      EMAIL: /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,4}$/,
       // from http://html5pattern.com/
       DOMAIN: /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/,
       IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/
