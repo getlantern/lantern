@@ -118,7 +118,8 @@ angular.module('app.i18n', [])
       AUTOREPORT_PROMPT: 'برای امنیت آمار استفاده از لنترن برای بهتر کردن آن بصورت ناشناس جمع آوری خواهد شد',
       FINISH: 'تمام',
       LANTERN_FRIENDS: 'دوستان لنترن',
-      LANTERN_FRIENDS_INTRO: 'لنترن متکی به گروه بزرگی از کاربرانی است که بهمدیگر اعتماد کرده‌اند و کانشکن های خود را در با کاربر قابل اعتماد دیگری به اشتراک گذاشتند. آشنایی دوستان شما با لنترن که شما به آنها اعتماد دارید به لنترن کمک بزرگی خواهد کرد',
+      // XXX
+      LANTERN_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Enter the people you trust below, and they will be invited to become your Lantern Friend when the network can accommodate them.',
       ROSTER_PROMPT: 'دوستان لنترن بصورت خودکار به لیست دوستان شما در گوگل‌تاک اضافه خواهند شد',
       LANTERN_FRIENDS_COLON: 'دوستان لنترن:',
       PROXYING_ALL_TRAFFIC: 'پراکسی کردن تمام ترافیک رد و بدل شده',
@@ -548,7 +549,7 @@ angular.module('app.i18n', [])
       AUTOREPORT_PROMPT: 'Securely report anonymous usage statistics to contribute to Lantern',
       FINISH: 'Finish',
       LANTERN_FRIENDS: 'Lantern Friends',
-      LANTERN_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Friending people on Lantern that you trust helps Lantern work better.',
+      LANTERN_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Enter the people you trust below, and they will be invited to become your Lantern Friend when the network can accommodate them.',
       ROSTER_PROMPT: 'Lantern Friends are automatically added to your Google Talk contacts.',
       LANTERN_FRIENDS_COLON: 'Lantern friends:',
       PROXYING_ALL_TRAFFIC: 'Proxying all traffic',
