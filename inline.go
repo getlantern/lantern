@@ -571,7 +571,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.ObjectPrototype,

@@ -656,9 +656,13 @@ sub globalFunction {
     my $builtinNew = "builtinNew${name}";
     my $prototype = "runtime.Global.${name}Prototype";
     my $propertyMap = "";
+    my $prototypeMode = "0100";
+    if ($name eq "Object") {
+        $prototypeMode = "0";
+    }
     unshift @_,
         $self->property("length", $self->numberValue($length), "0"),
-        $self->property("prototype", $self->objectValue($prototype), "0100"),
+        $self->property("prototype", $self->objectValue($prototype), $prototypeMode);
     ;
 
     if (@_) {

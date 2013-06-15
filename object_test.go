@@ -16,8 +16,9 @@ func TestObject_(t *testing.T) {
 
 	test := runTest()
 	test(`
-        typeof Object.prototype;
-    `, "object")
+        var abc = Object.getOwnPropertyDescriptor(Object, "prototype");
+        [ typeof Object.prototype, abc.writable, abc.enumerable, abc.configurable ];
+    `, "object,false,false,false")
 }
 
 func TestStringObject(t *testing.T) {
