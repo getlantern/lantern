@@ -593,7 +593,7 @@ func TestComparison(t *testing.T) {
 	test := runTest()
 
 	test("undefined = 1")
-	test("undefined", "1")
+	test("undefined", "undefined")
 
 	test("result = undefined == undefined")
 	test("result", "true")

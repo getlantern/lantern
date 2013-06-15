@@ -51,6 +51,15 @@ func TestGlobal(t *testing.T) {
 	test(`eval.length === 1`, "true")
 	test(`eval.prototype === undefined`, "true")
 	test(`raise: new eval()`, "TypeError: [function] is not a constructor")
+
+	test(`
+        [
+            [ delete undefined, undefined ],
+            [ delete NaN, NaN ],
+            [ delete Infinity, Infinity ],
+        ];
+    `, "false,,false,NaN,false,Infinity")
+
 }
 
 func TestGlobalLength(t *testing.T) {

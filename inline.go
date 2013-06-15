@@ -4612,20 +4612,20 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			"undefined": _property{
-				mode: 0101,
+				mode: 0,
 				value: Value{
 					_valueType: valueUndefined,
 				},
 			},
 			"NaN": _property{
-				mode: 0101,
+				mode: 0,
 				value: Value{
 					_valueType: valueNumber,
 					value:      math.NaN(),
 				},
 			},
 			"Infinity": _property{
-				mode: 0100,
+				mode: 0,
 				value: Value{
 					_valueType: valueNumber,
 					value:      math.Inf(+1),

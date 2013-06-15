@@ -551,9 +551,9 @@ sub newContext {
                     "SyntaxError",
                     "URIError",
                 ),
-                $self->property("undefined", $self->undefinedValue(), "0101"),
-                $self->property("NaN", $self->numberValue("math.NaN()"), "0101"),
-                $self->property("Infinity", $self->numberValue("math.Inf(+1)"), "0100"),
+                $self->property("undefined", $self->undefinedValue(), "0"),
+                $self->property("NaN", $self->numberValue("math.NaN()"), "0"),
+                $self->property("Infinity", $self->numberValue("math.Inf(+1)"), "0"),
             ),
         }),
     ;
