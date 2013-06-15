@@ -2,13 +2,19 @@ package org.lantern;
 
 public class FallbackProxy {
 
-    private String base64PublicKey;
+    private String base64PublicKey = "";
     
     private String ip;
     
     private int port;
+
     
     public FallbackProxy() {}
+
+    public FallbackProxy(final String ip, final int port) {
+        this.ip = ip;
+        this.port = port;
+    }
 
     public String getBase64PublicKey() {
         return base64PublicKey;
@@ -67,5 +73,11 @@ public class FallbackProxy {
         if (port != other.port)
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "FallbackProxy [base64PublicKey=" + base64PublicKey + ", ip="
+                + ip + ", port=" + port + "]";
     }
 }

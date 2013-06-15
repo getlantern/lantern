@@ -22,26 +22,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class StatsUpdater extends Thread {
     Logger log = LoggerFactory.getLogger(StatsUpdater.class);
 
     private final Model model;
 
-    private final HttpClient client;
-
     private static final long SLEEP_INTERVAL = 60 * 1000;
 
+    private final HttpClientFactory httpClientFactory;
+
     @Inject
-    public StatsUpdater(Model model, HttpClientFactory httpClientFactory) {
+    public StatsUpdater(final Model model, 
+            final HttpClientFactory httpClientFactory) {
         super();
         setDaemon(true);
         this.model = model;
-        this.client = httpClientFactory.newClient();
+        this.httpClientFactory = httpClientFactory;
     }
 
     @Override
     public void run() {
+        // Wait for a bit because we may not have proxies at the very beginning
+        // if we need them.
+        try {
+            sleep(4000);
+        } catch (final InterruptedException e1) {
+        }
         while (true) {
             updateStats();
             try {
@@ -55,6 +64,8 @@ public class StatsUpdater extends Thread {
     @SuppressWarnings("unchecked")
     private void updateStats() {
         log.debug("Updating stats...");
+        
+        final HttpClient client = this.httpClientFactory.newClient();
         final HttpGet get = new HttpGet();
         try {
             final URI uri = new URI(LanternClientConstants.STATS_URL);

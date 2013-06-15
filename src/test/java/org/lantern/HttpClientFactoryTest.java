@@ -61,7 +61,7 @@ public class HttpClientFactoryTest {
         
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
-                new HttpClientFactory(socketsUtil, censored);
+                new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
         final HttpClient client = factory.newProxiedClient();
 
         testExceptional(client);

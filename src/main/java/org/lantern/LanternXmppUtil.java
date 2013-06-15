@@ -12,7 +12,6 @@ import javax.net.SocketFactory;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
-import org.lantern.util.HttpClientFactory;
 import org.littleshoot.commom.xmpp.XmppConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -27,13 +26,13 @@ public class LanternXmppUtil {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
     private final LanternSocketsUtil socketsUtil;
-    private final HttpClientFactory httpClientFactory;
+    private final ProxySocketFactory proxySocketFactory;
     
     @Inject
     public LanternXmppUtil(final LanternSocketsUtil socketsUtil,
-            final HttpClientFactory httpClientFactory) {
+            final ProxySocketFactory proxySocketFactory) {
         this.socketsUtil = socketsUtil;
-        this.httpClientFactory = httpClientFactory;
+        this.proxySocketFactory = proxySocketFactory;
         XmppConfig.setRetyStrategyFactory(new LanternXmppRetryStrategyFactory());
     }
     
@@ -43,11 +42,11 @@ public class LanternXmppUtil {
     }
     
     private ProxyInfo proxyInfo() {
-        final int proxyPort = LanternUtils.getFallbackServerPort();
+        //final int proxyPort = LanternUtils.getFallbackServerPort();
         final ProxyInfo proxyInfo = 
-                new ProxyInfo(ProxyType.HTTP, 
-                        LanternUtils.getFallbackServerHost(), 
-                    proxyPort, "", "");
+                new ProxyInfo(ProxyType.HTTP, "", 0, "", "");
+                        //LanternUtils.getFallbackServerHost(), 
+                    //proxyPort, "", "");
         return proxyInfo;
     }
 
@@ -65,12 +64,11 @@ public class LanternXmppUtil {
         } else {
             config = new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com", proxyInfo);
-            config.setSocketFactory(
-                new ProxySocketFactory(this.socketsUtil, proxyInfo));
+            config.setSocketFactory(proxySocketFactory);
         }
         
-        config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
-        config.setDirectHttpClient(this.httpClientFactory.newClient());
+        //config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
+        //config.setDirectHttpClient(this.httpClientFactory.newClient());
         
         config.setSslSocketFactory(this.socketsUtil.newTlsSocketFactoryJavaCipherSuites());
         config.setFallbackProxy(proxyInfo);

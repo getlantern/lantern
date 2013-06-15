@@ -20,7 +20,7 @@ public class ProxySocketFactoryTest {
     @Test
     public void test() throws Exception {
         log.debug("Running proxy socket factory test");
-        System.setProperty("javax.net.debug", "ssl");
+        //System.setProperty("javax.net.debug", "ssl");
         
         // Change the server to use because the default LittleProxy server
         // doesn't support higher bit length encryption. That will cause this
@@ -37,7 +37,8 @@ public class ProxySocketFactoryTest {
         assertTrue(trustStore.TRUSTSTORE_FILE.isFile());
         
         final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
-        final ProxySocketFactory factory = new ProxySocketFactory(util, info);
+        final ProxyTracker tracker = TestingUtils.newProxyTracker();
+        final ProxySocketFactory factory = new ProxySocketFactory(util, tracker);
         
         // Just make sure we're able to establish the socket.
         final Socket sock = factory.createSocket("talk.google.com", 5222);

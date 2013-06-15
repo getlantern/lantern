@@ -25,11 +25,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class LanternFeedback {
     
-    private final HttpClient httpClient;
+    private final HttpClientFactory httpClientFactory;
 
     @Inject
     public LanternFeedback(final HttpClientFactory httpClientFactory) {
-        this.httpClient = httpClientFactory.newClient();
+        this.httpClientFactory = httpClientFactory;
     }
 
     public int submit(String message, String replyTo) throws IOException {
@@ -68,7 +68,7 @@ public class LanternFeedback {
             throws IOException {
         // If we're testing we just make sure we can connect successfully.
         final HttpPost post = getHttpPost(url);
-
+        final HttpClient httpClient = httpClientFactory.newClient();
         try {
             final UrlEncodedFormEntity entity =
                     new UrlEncodedFormEntity(params, "UTF-8");

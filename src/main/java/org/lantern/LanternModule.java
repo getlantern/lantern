@@ -16,6 +16,8 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
+import org.jivesoftware.smack.SASLAuthentication;
+import org.jivesoftware.smack.sasl.SASLGoogleOAuth2Mechanism;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
@@ -80,6 +82,9 @@ public class LanternModule extends AbstractModule {
         // Tweak Netty naming...
         ThreadRenamingRunnable.setThreadNameDeterminer(
                 ThreadNameDeterminer.CURRENT);
+        
+        SASLAuthentication.registerSASLMechanism("X-OAUTH2", 
+            LanternSaslGoogleOAuth2Mechanism.class);
         
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);

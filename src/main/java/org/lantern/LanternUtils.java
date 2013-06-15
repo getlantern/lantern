@@ -1127,19 +1127,14 @@ public class LanternUtils {
         return equals & expected.length() == got.length();
     }
 
+    /*
     public static String getFallbackServerHost() {
         return fallbackServerHost;
-    }
-
-    public static void setFallbackServerHost(final String fallbackServerHost) {
-        LanternUtils.fallbackServerHost = fallbackServerHost;
     }
 
     public static int getFallbackServerPort() {
         return fallbackServerPort;
     }
+    */
 
-    public static void setFallbackServerPort(final int fallbackServerPort) {
-        LanternUtils.fallbackServerPort = fallbackServerPort;
-    }
 }

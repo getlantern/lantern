@@ -19,19 +19,24 @@ import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.util.Base64;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 /**
  * {@link SocketFactory} for creating sockets through an HTTP proxy.
  * 
  * HTTPProxySocketFactory
  */
+@Singleton
 public class ProxySocketFactory extends SocketFactory {
 
-    private final ProxyInfo proxy;
     private final SSLSocketFactory socketFactory;
+    private final ProxyTracker proxyTracker;
 
+    @Inject
     public ProxySocketFactory(final LanternSocketsUtil socketsUtil, 
-            final ProxyInfo proxy) {
-        this.proxy = proxy;
+            final ProxyTracker proxyTracker) {
+        this.proxyTracker = proxyTracker;
         this.socketFactory = socketsUtil.newTlsSocketFactory();
     }
 
@@ -62,17 +67,19 @@ public class ProxySocketFactory extends SocketFactory {
 
     private Socket httpConnectSocket(final String host, final int port)
         throws IOException {
-        final String proxyHost = proxy.getProxyAddress();
-        final int proxyPort = proxy.getProxyPort();
+        final ProxyHolder ph = proxyTracker.getProxy();
+        final InetSocketAddress isa = ph.getFiveTuple().getRemote();
+        final String proxyHost = isa.getHostName();
+        final int proxyPort = isa.getPort();
         final Socket sock = this.socketFactory.createSocket();
         sock.connect(new InetSocketAddress(proxyHost, proxyPort), 50 * 1000);
         final String url = "CONNECT " + host + ":" + port;
         String proxyLine;
-        final String user = proxy.getProxyUsername();
+        final String user = ph.getProxyUsername();
         if (StringUtils.isBlank(user)) {
             proxyLine = "";
         } else {
-            final String password = proxy.getProxyPassword();
+            final String password = ph.getProxyPassword();
             proxyLine = "\r\nProxy-Authorization: Basic "
                     + new String(Base64.encodeBytes((user + ":" + password)
                             .getBytes("UTF-8")));
