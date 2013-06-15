@@ -132,6 +132,13 @@ func TestDate_toISOString(t *testing.T) {
 	test(`new Date(0).toISOString()`, "1970-01-01T00:00:00.000Z")
 }
 
+func TestDate_toJSON(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`new Date(0).toJSON()`, "1970-01-01T00:00:00.000Z")
+}
+
 func TestDate_setYear(t *testing.T) {
 	Terst(t)
 

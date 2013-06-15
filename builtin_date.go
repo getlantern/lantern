@@ -1,6 +1,7 @@
 package otto
 
 import (
+	"math"
 	Time "time"
 )
 
@@ -67,6 +68,22 @@ func builtinDate_toISOString(call FunctionCall) Value {
 		return toValue("Invalid Date")
 	}
 	return toValue(date.Time().Format("2006-01-02T15:04:05.000Z"))
+}
+
+func builtinDate_toJSON(call FunctionCall) Value {
+	object := call.thisObject()
+	value := object.DefaultValue(defaultValueHintNumber) // FIXME object.primitiveNumberValue
+	{                                                    // FIXME value.isFinite
+		value := toFloat(value)
+		if math.IsNaN(value) || math.IsInf(value, 0) {
+			return NullValue()
+		}
+	}
+	toISOString := object.get("toISOString")
+	if !toISOString.isCallable() {
+		panic(newTypeError())
+	}
+	return toISOString.call(toValue(object), []Value{})
 }
 
 func builtinDate_toGMTString(call FunctionCall) Value {
