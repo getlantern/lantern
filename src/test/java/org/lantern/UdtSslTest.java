@@ -2,7 +2,6 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -16,7 +15,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.lastbamboo.common.ice.NetSocketUDTWrapper;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -41,9 +39,7 @@ public class UdtSslTest {
     @Test
     public void testSslOverUdt() throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        temp.deleteOnExit();
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         //final LanternKeyStoreManager ksm = TestUtils.getKsm();
@@ -97,8 +93,6 @@ public class UdtSslTest {
             }
         }
         assertEquals(expected.toString(), readOnServer.get());
-        
-        temp.delete();
         
         // TODO: TEST CERTS BEING ADDED *AFTER* THE FACTORIES ARE SET UP!!
     }

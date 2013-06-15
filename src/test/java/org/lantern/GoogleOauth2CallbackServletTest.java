@@ -2,11 +2,9 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.lantern.http.GoogleOauth2CallbackServlet;
 import org.lantern.util.HttpClientFactory;
@@ -17,9 +15,7 @@ public class GoogleOauth2CallbackServletTest {
 
     @Test
     public void testGoogleApis() throws Exception {
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        temp.deleteOnExit();
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);

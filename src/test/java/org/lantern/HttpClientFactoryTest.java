@@ -17,7 +17,6 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -52,9 +51,7 @@ public class HttpClientFactoryTest {
      */
     @Test
     public void testAllInternallyProxiedSites() throws Exception {
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        temp.deleteOnExit();
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);

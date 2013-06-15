@@ -20,7 +20,9 @@ import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLEngine;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -74,6 +76,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
 import org.lantern.stubs.ProxyTrackerStub;
+import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -520,5 +523,31 @@ public class TestingUtils {
             }
         }
         return false;
+    }
+
+    public static HttpClientFactory newHttClientFactory() {
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final LanternSocketsUtil socketsUtil =
+            new LanternSocketsUtil(null, trustStore);
+        
+        final Censored censored = new DefaultCensored();
+        final HttpClientFactory factory = 
+                new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
+        return factory;
+    }
+
+    public static KeyStoreManager newKeyStoreManager() {
+        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    FileUtils.forceDelete(temp);
+                } catch (IOException e) {}
+            }
+        });
+        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        return ksm;
     }
 }

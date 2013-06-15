@@ -14,7 +14,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -41,9 +40,7 @@ public class LanternTrustStoreTest {
     @Test
     public void testFallback() throws UnknownHostException, IOException {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        temp.deleteOnExit();
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
@@ -81,9 +78,7 @@ public class LanternTrustStoreTest {
         //System.setProperty("javax.net.debug", "ssl");
         log.debug("CONFIGURED TRUSTSTORE: "+
                 System.getProperty("javax.net.ssl.trustStore"));
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        temp.deleteOnExit();
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
@@ -157,7 +152,6 @@ public class LanternTrustStoreTest {
         }
         // We need to add this back as otherwise it can affect other tests!
         trustStore.addCert("equifaxsecureca", new File("certs/equifaxsecureca.cer"));
-        temp.delete();
     }
 
     private String trySite(final HttpClient client, final String uri)

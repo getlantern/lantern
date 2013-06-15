@@ -2,7 +2,6 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -11,7 +10,6 @@ import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
@@ -23,9 +21,7 @@ public class LaePinnedCertTest {
         LoggerFactory.getLogger(LaePinnedCertTest.class);
     
     @Test public void testPinnedCert() throws Exception {
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        temp.deleteOnExit();
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         System.setProperty("javax.net.ssl.trustStore",
@@ -62,6 +58,5 @@ public class LaePinnedCertTest {
             i++;
         }
         assertTrue("Handshake not completed!!", completed.get());
-        temp.delete();
     }
 }

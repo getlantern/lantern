@@ -2,6 +2,7 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import org.jivesoftware.smack.SASLAuthentication;
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
@@ -23,6 +24,9 @@ public class DefaultXmppHandlerTest {
     private ClosedBetaEvent closedBetaEvent;
     
     public DefaultXmppHandlerTest() {
+        TestingUtils.newHttClientFactory();
+        SASLAuthentication.registerSASLMechanism("X-OAUTH2", 
+                LanternSaslGoogleOAuth2Mechanism.class);
         Events.register(this);
     }
     
