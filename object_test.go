@@ -13,6 +13,11 @@ func TestObject_(t *testing.T) {
 
 	object.put("xyzzy", toValue("Nothing happens."), true)
 	Is(object.get("xyzzy"), "Nothing happens.")
+
+	test := runTest()
+	test(`
+        typeof Object.prototype;
+    `, "object")
 }
 
 func TestStringObject(t *testing.T) {

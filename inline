@@ -76,7 +76,7 @@ sub newContext {
                 $class,
                 "_classObject",
                 undef,
-                "prototypeValueFunction",
+                "prototypeValueObject",
             ),
         }),
 

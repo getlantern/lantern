@@ -12,7 +12,7 @@ func _newContext(runtime *_runtime) {
 			objectClass: _classObject,
 			prototype:   nil,
 			extensible:  true,
-			value:       prototypeValueFunction,
+			value:       prototypeValueObject,
 		}
 	}
 	{
