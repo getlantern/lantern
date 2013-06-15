@@ -272,9 +272,6 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="deleteOnExit">
-                        <boolean>true</boolean>
-                      </void>
                       <void property="retryIfInterrupted">
                         <boolean>false</boolean>
                       </void>
@@ -282,7 +279,7 @@
                         <string>${installer:sys.userHome}/latest.dmg</string>
                       </void>
                       <void property="url">
-                        <string>http://s3.amazonaws.com/lantern/latest.dmg</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -293,9 +290,6 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="deleteOnExit">
-                        <boolean>true</boolean>
-                      </void>
                       <void property="retryIfInterrupted">
                         <boolean>false</boolean>
                       </void>
@@ -303,7 +297,7 @@
                         <string>${installer:sys.userHome}/latest.exe</string>
                       </void>
                       <void property="url">
-                        <string>http://s3.amazonaws.com/lantern/latest.exe</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest.exe</string>
                       </void>
                     </object>
                   </java>
@@ -321,7 +315,7 @@
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>http://s3.amazonaws.com/lantern/latest-64.deb</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest-64.deb</string>
                       </void>
                     </object>
                   </java>
@@ -340,7 +334,7 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>http://s3.amazonaws.com/lantern/latest-32.deb</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest-32.deb</string>
                       </void>
                     </object>
                   </java>
