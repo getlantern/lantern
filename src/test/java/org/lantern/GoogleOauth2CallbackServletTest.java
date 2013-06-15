@@ -26,7 +26,7 @@ public class GoogleOauth2CallbackServletTest {
         
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
-                new HttpClientFactory(socketsUtil, censored);
+                new HttpClientFactory(socketsUtil, censored, null);
         final GoogleOauth2CallbackServlet servlet = 
             new GoogleOauth2CallbackServlet(null, null, null, null, null, 
                 null, factory, null);

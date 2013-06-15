@@ -28,16 +28,17 @@ public class StatsUpdater extends Thread {
 
     private final Model model;
 
-    private final HttpClient client;
-
     private static final long SLEEP_INTERVAL = 60 * 1000;
 
+    private final HttpClientFactory httpClientFactory;
+
     @Inject
-    public StatsUpdater(Model model, HttpClientFactory httpClientFactory) {
+    public StatsUpdater(final Model model, 
+            final HttpClientFactory httpClientFactory) {
         super();
         setDaemon(true);
         this.model = model;
-        this.client = httpClientFactory.newClient();
+        this.httpClientFactory = httpClientFactory;
     }
 
     @Override
@@ -55,6 +56,8 @@ public class StatsUpdater extends Thread {
     @SuppressWarnings("unchecked")
     private void updateStats() {
         log.debug("Updating stats...");
+        
+        final HttpClient client = this.httpClientFactory.newClient();
         final HttpGet get = new HttpGet();
         try {
             final URI uri = new URI(LanternClientConstants.STATS_URL);

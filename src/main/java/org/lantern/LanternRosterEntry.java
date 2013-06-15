@@ -7,7 +7,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
 import org.lantern.state.Model.Run;
-import org.littleshoot.commom.xmpp.XmppUtils;
+import org.lantern.util.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -35,6 +35,7 @@ public class LanternHttpRequestRetryHandler
     public boolean retryRequest(final IOException exception,
         final int executionCount, final HttpContext context) {
         log.debug("Checking for retry...");
+        /*
         final boolean standard = 
             super.retryRequest(exception, executionCount, context);
         if (!standard) {
@@ -53,6 +54,8 @@ public class LanternHttpRequestRetryHandler
             }
         }
         return standard;
+        */
+        return false;
     }
 
     private boolean isBlockingException(final IOException exception) {
