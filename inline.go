@@ -2509,6 +2509,25 @@ func _newContext(runtime *_runtime) {
 				call: _nativeCallFunction(builtinDate_toUTCString),
 			},
 		}
+		toISOString_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      0,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinDate_toISOString),
+			},
+		}
 		toGMTString_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -3341,6 +3360,13 @@ func _newContext(runtime *_runtime) {
 					value: Value{
 						_valueType: valueObject,
 						value:      toUTCString_function,
+					},
+				},
+				"toISOString": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      toISOString_function,
 					},
 				},
 				"toGMTString": _property{

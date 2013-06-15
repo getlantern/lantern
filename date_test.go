@@ -125,6 +125,13 @@ func TestDate_UTC(t *testing.T) {
 	test(`Date.UTC(2009, 9, 25)`, "1256428800000")
 }
 
+func TestDate_toISOString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`new Date(0).toISOString()`, "1970-01-01T00:00:00.000Z")
+}
+
 func TestDate_setYear(t *testing.T) {
 	Terst(t)
 

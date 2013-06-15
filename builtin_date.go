@@ -61,6 +61,14 @@ func builtinDate_toUTCString(call FunctionCall) Value {
 	return toValue(date.Time().Format(builtinDate_goDateTimeLayout))
 }
 
+func builtinDate_toISOString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
+	return toValue(date.Time().Format("2006-01-02T15:04:05.000Z"))
+}
+
 func builtinDate_toGMTString(call FunctionCall) Value {
 	date := dateObjectOf(call.thisObject())
 	if date.isNaN {

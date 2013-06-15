@@ -367,6 +367,7 @@ sub newContext {
                 "toDateString", 0,
                 "toTimeString", 0,
                 "toUTCString", 0,
+                "toISOString", 0,
                 "toGMTString", 0,
                 "toLocaleString", 0,
                 "toLocaleDateString", 0,
