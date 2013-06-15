@@ -17,7 +17,6 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jivesoftware.smack.SASLAuthentication;
-import org.jivesoftware.smack.sasl.SASLGoogleOAuth2Mechanism;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
