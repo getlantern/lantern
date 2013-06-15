@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.1.5" transformSequenceNumber="4">
-  <directoryPresets config="." />
+  <directoryPresets config="./fallbacks.json" />
   <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir=".." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern-net-installer" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -28,6 +28,7 @@
     </mountPoints>
     <entries>
       <fileEntry mountPoint="201" file="./fallback.json" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="201" file="./fallbacks.json" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="133" file="./dpkg.bash" overwriteMode="4" shared="false" fileMode="744" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
     </entries>
     <components />
@@ -492,6 +493,29 @@ return result == 0;</string>
                           <void index="0">
                             <object class="java.io.File">
                               <string>fallback.json</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="300" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>fallbacks.json</string>
                             </object>
                           </void>
                         </array>

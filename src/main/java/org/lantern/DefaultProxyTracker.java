@@ -151,7 +151,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         parseFallbackProxy();
         addSingleFallbackProxy(fallbackServerHost, fallbackServerPort);
 
-        final File file = new File(SystemUtils.USER_HOME, ".fallbacks.json");
+        final File file = new File(SystemUtils.USER_HOME, "fallbacks.json");
         if (!file.isFile()) {
             log.info("No fallback proxies in: {}", file.getAbsolutePath());
             return;
