@@ -312,10 +312,12 @@ public class Launcher {
         LOG.debug("Processed command line options...");
 
         geoip = instance(GeoIp.class);
-
+        statsUpdater = instance(StatsUpdater.class);
+        
         model.getConnectivity().setInternet(false);
-        Timer timer = new Timer();
-        ConnectivityChecker connectivityChecker = instance(ConnectivityChecker.class);
+        final Timer timer = new Timer();
+        final ConnectivityChecker connectivityChecker = 
+            instance(ConnectivityChecker.class);
         timer.schedule(connectivityChecker, 0, 60 * 1000);
 
         if (!uiDisabled) {
@@ -342,7 +344,6 @@ public class Launcher {
         plainTextAnsererRelayProxy.start(true, false);
 
         syncService.start();
-        statsUpdater = instance(StatsUpdater.class);
         statsUpdater.start();
 
         gnomeAutoStart();

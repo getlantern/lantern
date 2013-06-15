@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -70,8 +71,9 @@ import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
-import org.lantern.util.HttpClientFactory;
+import org.lantern.stubs.ProxyTrackerStub;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -134,7 +136,26 @@ public class TestingUtils {
         set.setUseGoogleOAuth2(true);
         return newXmppHandler(censored, mod);
     }
+    
+    
 
+    public static ProxyTracker newProxyTracker() {
+        return new ProxyTrackerStub() {
+            @Override
+            public ProxyHolder getProxy() {
+                final InetSocketAddress tuple = 
+                    new InetSocketAddress("54.251.192.164", 11225);
+                final URI uri;
+                try {
+                    uri = new URI("fallback@getlantern.org");
+                } catch (URISyntaxException e) {
+                    return null;
+                }
+                return new ProxyHolder("", uri, tuple, null, Type.cloud);
+            }
+        };
+    }
+    
     public static XmppHandler newXmppHandler(final Censored censored, final Model model) {
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
@@ -150,9 +171,9 @@ public class TestingUtils {
         final ClientStats stats = new StatsStub();
         final java.util.Timer updateTimer = new java.util.Timer();
 
-        final HttpClientFactory clientFactory =
-                new HttpClientFactory(socketsUtil, censored);
-        final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, clientFactory);
+        //final ProxyTracker proxyTracker = newProxyTracker();
+        
+
         
         final ModelUtils modelUtils = new DefaultModelUtils(model);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
@@ -190,12 +211,18 @@ public class TestingUtils {
                 return 0;
             }
         };
+        
+        final ProxySocketFactory proxySocketFactory =
+                new ProxySocketFactory(socketsUtil, proxyTracker);
+        final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
+                proxySocketFactory);
+        
         final XmppHandler xmppHandler = new DefaultXmppHandler(model, 
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils, 
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService);
         return xmppHandler;
     }
-    
+
     public static String getRefreshToken() {
         final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
         if (StringUtils.isBlank(oauth)) {
