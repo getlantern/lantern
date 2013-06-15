@@ -16,6 +16,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -91,12 +92,14 @@ public class LanternTrustStoreTest {
                 trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         trustStore.listEntries();
+        
+        final HttpHost proxy = new HttpHost("54.251.192.164", 11225, "https");
         final org.apache.http.conn.ssl.SSLSocketFactory socketFactory =
             new org.apache.http.conn.ssl.SSLSocketFactory(
                 socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
-                new LanternHostNameVerifier());
-        log.debug("CONFIGURED TRUSTSTORE: "+System.getProperty("javax.net.ssl.trustStore"));
-        //final SSLSocketFactory socketFactory = LanternSocketsUtil.
+                new LanternHostNameVerifier(proxy));
+        log.debug("CONFIGURED TRUSTSTORE: "+
+                System.getProperty("javax.net.ssl.trustStore"));
         final Scheme sch = new Scheme("https", 443, socketFactory);
 
         final HttpClient client = new DefaultHttpClient();

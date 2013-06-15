@@ -18,7 +18,6 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.util.Base64;
-import org.littleshoot.util.FiveTuple;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

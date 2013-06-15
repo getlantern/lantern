@@ -16,6 +16,8 @@ import org.lantern.LanternSocketsUtil;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.littleshoot.util.FiveTuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -23,6 +25,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class HttpClientFactory {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final Censored censored;
     private final LanternSocketsUtil socketsUtil;
     private final ProxyTracker proxyTracker;
@@ -53,6 +56,9 @@ public class HttpClientFactory {
             return null;
         }
         final ProxyHolder ph = proxyTracker.getProxy();
+        if (ph == null) {
+            return null;
+        }
         final FiveTuple ft = ph.getFiveTuple();
         final InetSocketAddress isa = ft.getRemote();
         return new HttpHost(isa.getAddress().getHostAddress(), 
@@ -72,7 +78,9 @@ public class HttpClientFactory {
         return client;
     }
     
-    private void configureDefaults(final HttpHost proxy, final DefaultHttpClient httpClient) {
+    private void configureDefaults(final HttpHost proxy, 
+        final DefaultHttpClient httpClient) {
+        log.debug("Configuring defaults...");
         // We wrap our own socket factory in HttpClient's socket factory here
         // for a few reasons. First, we use HttpClient's socket factory 
         // because that's the only way to set the custom name verifier we

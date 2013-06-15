@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class StatsUpdater extends Thread {
     Logger log = LoggerFactory.getLogger(StatsUpdater.class);
 
@@ -43,6 +45,12 @@ public class StatsUpdater extends Thread {
 
     @Override
     public void run() {
+        // Wait for a bit because we may not have proxies at the very beginning
+        // if we need them.
+        try {
+            sleep(4000);
+        } catch (final InterruptedException e1) {
+        }
         while (true) {
             updateStats();
             try {

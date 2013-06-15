@@ -127,8 +127,9 @@ public class LanternSaslGoogleOAuth2Mechanism extends SASLMechanism {
 //            at org.littleshoot.commom.xmpp.GoogleOAuth2Credentials.login(GoogleOAuth2Credentials.java:79)
 //            at org.littleshoot.commom.xmpp.XmppUtils.newConnection(XmppUtils.java:602)
             
-        final HttpClient directClient = this.config.getDirectHttpClient();
+        //final HttpClient directClient = this.config.getDirectHttpClient();
         
+        final HttpClient directClient =  httpClientFactory.newDirectClient();
         final Collection<HttpHost> usedHosts = new HashSet<HttpHost>();
         
         boolean refreshed = false;
@@ -142,8 +143,9 @@ public class LanternSaslGoogleOAuth2Mechanism extends SASLMechanism {
             if (usedHosts.contains(proxy)) {
                 break;
             }
-            
-            final HttpClient proxiedClient = httpClientFactory.newClient(proxy, true);
+            usedHosts.add(proxy);
+            final HttpClient proxiedClient = 
+                httpClientFactory.newClient(proxy, true);
             try {
                 refreshed = refreshAccessToken(new ApacheHttpTransport(proxiedClient));
             } catch (final IOException e) {

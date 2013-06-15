@@ -7,9 +7,7 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
