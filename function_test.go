@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+func TestFunction(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`String.prototype.substring.length`, "2")
+	test(`
+        [ typeof Function.prototype, typeof Function.prototype.length, Function.prototype.length ];
+    `, "function,number,0")
+}
+
 func TestFunction_apply(t *testing.T) {
 	Terst(t)
 

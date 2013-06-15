@@ -292,8 +292,15 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			"constructor": _property{
-				mode:  0100,
+				mode:  0101,
 				value: Value{},
+			},
+			"length": _property{
+				mode: 0,
+				value: Value{
+					_valueType: valueNumber,
+					value:      0,
+				},
 			},
 		}
 	}
@@ -665,7 +672,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.ObjectPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Object,
@@ -702,7 +709,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.Function = Function
 		runtime.Global.FunctionPrototype.property["constructor"] = _property{
-			mode: 0100,
+			mode: 0101,
 			value: Value{
 				_valueType: valueObject,
 				value:      Function,
@@ -710,7 +717,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.FunctionPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Function,
@@ -1076,7 +1083,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.ArrayPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Array,
@@ -1572,7 +1579,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.StringPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.String,
@@ -1671,7 +1678,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.BooleanPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Boolean,
@@ -1883,7 +1890,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.NumberPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Number,
@@ -3661,7 +3668,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.DatePrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Date,
@@ -3786,7 +3793,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.RegExpPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.RegExp,
@@ -3873,7 +3880,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.ErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Error,
@@ -3927,7 +3934,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.EvalErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.EvalError,
@@ -3981,7 +3988,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.TypeErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.TypeError,
@@ -4035,7 +4042,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.RangeErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.RangeError,
@@ -4089,7 +4096,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.ReferenceErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.ReferenceError,
@@ -4143,7 +4150,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.SyntaxErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.SyntaxError,
@@ -4197,7 +4204,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.URIErrorPrototype.property["constructor"] =
 			_property{
-				mode: 0100,
+				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.URIError,

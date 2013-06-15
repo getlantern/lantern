@@ -126,7 +126,8 @@ sub newContext {
             ".${class}Prototype.property =",
             $self->propertyMap(
                 @got,
-                $self->property("constructor", undef, "0100"),
+                $self->property("constructor", undef, "0101"),
+                $self->property("length", $self->numberValue(0), "0"),
             ),
         }),
 
@@ -168,7 +169,7 @@ sub newContext {
             ),
             ".$class = Function",
             ".${class}Prototype.property[\"constructor\"] =",
-            $self->property(undef, $self->objectValue("Function"), "0100"),
+            $self->property(undef, $self->objectValue("Function"), "0101"),
         }),
 
         # Array
@@ -667,7 +668,7 @@ sub globalFunction {
 
     push @postblock, $self->statement(
         "$prototype.property[\"constructor\"] =",
-        $self->property(undef, $self->objectValue("runtime.Global.${name}"), "0100"),
+        $self->property(undef, $self->objectValue("runtime.Global.${name}"), "0101"),
     );
 
     return trim <<_END_;
@@ -764,7 +765,7 @@ sub newFunction {
         push @preblock, $self->statement(
             "$prototype :=",
             $self->newObject(
-                $self->property("constructor", undef, "0100"),
+                $self->property("constructor", undef, "0101"),
             ),
         );
     }
@@ -787,7 +788,7 @@ _END_
     if ($prototype) {
         push @preblock, $self->statement(
             "$prototype.property[\"constructor\"] =",
-            $self->property(undef, $self->objectValue("$label"), "0100"),
+            $self->property(undef, $self->objectValue("$label"), "0101"),
         );
     }
 

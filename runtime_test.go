@@ -69,7 +69,7 @@ func TestOperator(t *testing.T) {
 	test("result", "2")
 }
 
-func TestFunction(t *testing.T) {
+func TestFunction_(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
