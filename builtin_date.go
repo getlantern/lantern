@@ -154,6 +154,11 @@ func builtinDate_UTC(call FunctionCall) Value {
 	return toValue_float64(newDateTime(call.ArgumentList, Time.UTC))
 }
 
+func builtinDate_now(call FunctionCall) Value {
+	call.ArgumentList = []Value(nil)
+	return builtinDate_UTC(call)
+}
+
 // This is a placeholder
 func builtinDate_toLocaleString(call FunctionCall) Value {
 	date := dateObjectOf(call.thisObject())

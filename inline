@@ -483,6 +483,7 @@ sub newContext {
                     $class,
                     "parse", 0,
                     "UTC", 0,
+                    "now", 0,
                 ),
             ),
         }),
