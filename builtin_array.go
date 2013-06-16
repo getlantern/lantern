@@ -37,7 +37,7 @@ func builtinArray_toLocaleString(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	length := uint(toUint32(thisObject.get("length")))
 	if length == 0 {
-		return toValue("")
+		return toValue_string("")
 	}
 	stringList := make([]string, 0, length)
 	for index := uint(0); index < length; index += 1 {
@@ -286,7 +286,7 @@ func builtinArray_unshift(call FunctionCall) Value {
 		thisObject.put(arrayIndexToString(index), itemList[index], true)
 	}
 
-	newLength := toValue(length + itemCount)
+	newLength := toValue_uint(length + itemCount)
 	thisObject.put("length", newLength, true)
 	return newLength
 }
@@ -480,11 +480,11 @@ func builtinArray_indexOf(call FunctionCall) Value {
 				continue
 			}
 			if sameValue(matchValue, thisObject.get(name)) {
-				return toValue(uint32(index))
+				return toValue_uint32(uint32(index))
 			}
 		}
 	}
-	return toValue(-1)
+	return toValue_int(-1)
 }
 
 func builtinArray_lastIndexOf(call FunctionCall) Value {
@@ -500,7 +500,7 @@ func builtinArray_lastIndexOf(call FunctionCall) Value {
 	if index > length {
 		index = length - 1
 	} else if 0 > index {
-		return toValue(-1)
+		return toValue_int(-1)
 	}
 	for ; index >= 0; index-- {
 		name := arrayIndexToString(uint(index))
@@ -508,8 +508,8 @@ func builtinArray_lastIndexOf(call FunctionCall) Value {
 			continue
 		}
 		if sameValue(matchValue, thisObject.get(name)) {
-			return toValue(uint32(index))
+			return toValue_uint32(uint32(index))
 		}
 	}
-	return toValue(-1)
+	return toValue_int(-1)
 }

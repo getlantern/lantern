@@ -5064,3 +5064,101 @@ func newConsoleObject(runtime *_runtime) *_object {
 		}
 	}
 }
+
+func toValue_int(value int) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_int8(value int8) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_int16(value int16) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_int32(value int32) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_int64(value int64) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_uint(value uint) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_uint8(value uint8) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_uint16(value uint16) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_uint32(value uint32) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_uint64(value uint64) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_float32(value float32) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_float64(value float64) Value {
+	return Value{
+		_valueType: valueNumber,
+		value:      value,
+	}
+}
+
+func toValue_string(value string) Value {
+	return Value{
+		_valueType: valueString,
+		value:      value,
+	}
+}
+
+func toValue_bool(value bool) Value {
+	return Value{
+		_valueType: valueBoolean,
+		value:      value,
+	}
+}

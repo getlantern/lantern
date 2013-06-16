@@ -37,6 +37,35 @@ func newConsoleObject(runtime *_runtime) *_object {
 }    
 _END_
 
+for (qw/int int8 int16 int32 int64 uint uint8 uint16 uint32 uint64 float32 float64/) {
+    $fmt->print(<<_END_);
+
+func toValue_$_(value $_) Value {
+    return Value{
+        _valueType: valueNumber,
+        value: value,
+    }
+}
+_END_
+}
+
+$fmt->print(<<_END_);
+
+func toValue_string(value string) Value {
+    return Value{
+        _valueType: valueString,
+        value: value,
+    }
+}
+
+func toValue_bool(value bool) Value {
+    return Value{
+        _valueType: valueBoolean,
+        value: value,
+    }
+}
+_END_
+
 close $fmt;
 
 sub newConsoleObject {
