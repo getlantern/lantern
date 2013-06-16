@@ -482,3 +482,30 @@ func builtinArray_indexOf(call FunctionCall) Value {
 	}
 	return toValue(-1)
 }
+
+func builtinArray_lastIndexOf(call FunctionCall) Value {
+	thisObject, matchValue := call.thisObject(), call.Argument(0)
+	length := int64(toUint32(thisObject.get("length")))
+	index := length - 1
+	if len(call.ArgumentList) > 1 {
+		index = toInteger(call.Argument(1))
+	}
+	if 0 > index {
+		index += length
+	}
+	if index > length {
+		index = length - 1
+	} else if 0 > index {
+		return toValue(-1)
+	}
+	for ; index >= 0; index-- {
+		name := arrayIndexToString(uint(index))
+		if !thisObject.hasProperty(name) {
+			continue
+		}
+		if sameValue(matchValue, thisObject.get(name)) {
+			return toValue(uint32(index))
+		}
+	}
+	return toValue(-1)
+}

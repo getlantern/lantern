@@ -190,6 +190,7 @@ sub newContext {
                 "reverse", 0,
                 "sort", 0,
                 "indexOf", 1,
+                "lastIndexOf", 1,
             );
             return
             ".${class}Prototype =",
