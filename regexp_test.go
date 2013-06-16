@@ -253,3 +253,12 @@ func TestRegExp_notNotEmptyCharacterClass(t *testing.T) {
         [ abc.length, abc.input, abc ];
     `, "1,a\naba,\na")
 }
+
+func TestRegExp_compile(t *testing.T) {
+	Terst(t)
+	test := runTest()
+	test(`
+        var abc = /[\s\S]a/;
+        abc.compile('^\w+');
+    `, "undefined")
+}

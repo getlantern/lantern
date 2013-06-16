@@ -56,3 +56,10 @@ func builtinRegExp_test(call FunctionCall) Value {
 	match, _ := execRegExp(thisObject, target)
 	return toValue(match)
 }
+
+func builtinRegExp_compile(call FunctionCall) Value {
+	// This (useless) function is deprecated, but is here to provide some
+	// semblance of compatibility.
+	// Caveat emptor: it may not be around for long.
+	return UndefinedValue()
+}

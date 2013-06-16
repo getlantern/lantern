@@ -439,6 +439,7 @@ sub newContext {
                 "toString", 0,
                 "exec", 1,
                 "test", 1,
+                "compile", 1,
             );
             return
             ".${class}Prototype =",
