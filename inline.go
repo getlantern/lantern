@@ -744,6 +744,25 @@ func _newContext(runtime *_runtime) {
 				call: _nativeCallFunction(builtinArray_toString),
 			},
 		}
+		toLocaleString_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      0,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinArray_toLocaleString),
+			},
+		}
 		concat_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -973,6 +992,13 @@ func _newContext(runtime *_runtime) {
 					value: Value{
 						_valueType: valueObject,
 						value:      toString_function,
+					},
+				},
+				"toLocaleString": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      toLocaleString_function,
 					},
 				},
 				"concat": _property{

@@ -3,6 +3,7 @@ package otto
 import (
 	. "./terst"
 	"testing"
+	Time "time"
 )
 
 func TestArray(t *testing.T) {
@@ -96,6 +97,22 @@ func TestArray_toString(t *testing.T) {
 		test("def", "[object Array]")
 		test("ghi", "[object Array]")
 	}
+}
+
+func TestArray_toLocaleString(t *testing.T) {
+	Terst(t)
+
+	defer mockTimeLocal(Time.UTC)()
+
+	test := runTest()
+
+	test(`
+        [ 3.14159, "abc", undefined, new Date(0) ].toLocaleString();
+    `, "3.14159,abc,,1970-01-01 00:00:00")
+
+	test(`raise:
+        [ { toLocaleString: undefined } ].toLocaleString();
+    `, "TypeError")
 }
 
 func TestArray_concat(t *testing.T) {

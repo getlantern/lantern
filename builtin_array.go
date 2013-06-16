@@ -32,6 +32,32 @@ func builtinArray_toString(call FunctionCall) Value {
 	return builtinObject_toString(call)
 }
 
+func builtinArray_toLocaleString(call FunctionCall) Value {
+	separator := ","
+	thisObject := call.thisObject()
+	length := uint(toUint32(thisObject.get("length")))
+	if length == 0 {
+		return toValue("")
+	}
+	stringList := make([]string, 0, length)
+	for index := uint(0); index < length; index += 1 {
+		value := thisObject.get(arrayIndexToString(index))
+		stringValue := ""
+		switch value._valueType {
+		case valueEmpty, valueUndefined, valueNull:
+		default:
+			object := call.runtime.toObject(value)
+			toLocaleString := object.get("toLocaleString")
+			if !toLocaleString.isCallable() {
+				panic(newTypeError())
+			}
+			stringValue = toLocaleString.call(toValue(object)).toString()
+		}
+		stringList = append(stringList, stringValue)
+	}
+	return toValue(strings.Join(stringList, separator))
+}
+
 func builtinArray_concat(call FunctionCall) Value {
 	//return toValue(call.runtime.newArray(0))
 	thisObject := call.thisObject()

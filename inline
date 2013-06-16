@@ -178,6 +178,7 @@ sub newContext {
             my @got = $self->functionDeclare(
                 $class,
                 "toString", 0,
+                "toLocaleString", 0,
                 "concat", 1,
                 "join", 1,
                 "splice", 2,
