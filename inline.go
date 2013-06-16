@@ -991,6 +991,25 @@ func _newContext(runtime *_runtime) {
 				call: _nativeCallFunction(builtinArray_lastIndexOf),
 			},
 		}
+		every_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      1,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinArray_every),
+			},
+		}
 		isArray_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -1121,6 +1140,13 @@ func _newContext(runtime *_runtime) {
 					value: Value{
 						_valueType: valueObject,
 						value:      lastIndexOf_function,
+					},
+				},
+				"every": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      every_function,
 					},
 				},
 			},
@@ -5159,6 +5185,13 @@ func toValue_string(value string) Value {
 func toValue_bool(value bool) Value {
 	return Value{
 		_valueType: valueBoolean,
+		value:      value,
+	}
+}
+
+func toValue_object(value *_object) Value {
+	return Value{
+		_valueType: valueObject,
 		value:      value,
 	}
 }

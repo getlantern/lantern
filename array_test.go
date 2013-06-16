@@ -354,3 +354,14 @@ func TestArray_lastIndexOf(t *testing.T) {
 		abc.lastIndexOf('b');
 	`, "3")
 }
+
+func TestArray_every(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise: [].every()`, "TypeError")
+	test(`raise: [].every("abc")`, "TypeError")
+	test(`[].every(function() { return false })`, "true")
+	test(`[1,2,3].every(function() { return false })`, "false")
+	test(`[1,2,3].every(function() { return true })`, "true")
+}

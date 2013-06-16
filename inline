@@ -64,6 +64,13 @@ func toValue_bool(value bool) Value {
         value: value,
     }
 }
+
+func toValue_object(value *_object) Value {
+    return Value{
+        _valueType: valueObject,
+        value: value,
+    }
+}
 _END_
 
 close $fmt;
@@ -220,6 +227,7 @@ sub newContext {
                 "sort", 0,
                 "indexOf", 1,
                 "lastIndexOf", 1,
+                "every", 1,
             );
             return
             ".${class}Prototype =",
