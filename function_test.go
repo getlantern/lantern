@@ -11,8 +11,10 @@ func TestFunction(t *testing.T) {
 	test := runTest()
 	test(`String.prototype.substring.length`, "2")
 	test(`
-        [ typeof Function.prototype, typeof Function.prototype.length, Function.prototype.length ];
-    `, "function,number,0")
+        var abc = Object.getOwnPropertyDescriptor(Function, "prototype");
+        [   [ typeof Function.prototype, typeof Function.prototype.length, Function.prototype.length ],
+            [ abc.writable, abc.enumerable, abc.configurable ] ];
+    `, "function,number,0,false,false,false")
 }
 
 func TestFunction_apply(t *testing.T) {

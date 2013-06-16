@@ -55,6 +55,12 @@ func TestArray(t *testing.T) {
         abc = [,,undefined];
         [ abc.hasOwnProperty(0), abc.hasOwnProperty(1), abc.hasOwnProperty(2) ];
     `, "false,false,true")
+
+	test(`
+        var abc = Object.getOwnPropertyDescriptor(Array, "prototype");
+        [   [ typeof Array.prototype ],
+            [ abc.writable, abc.enumerable, abc.configurable ] ];
+    `, "object,false,false,false")
 }
 
 func TestArray_toString(t *testing.T) {

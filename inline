@@ -169,7 +169,7 @@ sub newContext {
             ),
             ".$class = Function",
             ".${class}Prototype.property[\"constructor\"] =",
-            $self->property(undef, $self->objectValue("Function"), "0101"),
+            $self->property(undef, $self->objectValue("Function"), "0"),
         }),
 
         # Array
@@ -659,13 +659,9 @@ sub globalFunction {
     my $builtinNew = "builtinNew${name}";
     my $prototype = "runtime.Global.${name}Prototype";
     my $propertyMap = "";
-    my $prototypeMode = "0100";
-    if ($name eq "Object") {
-        $prototypeMode = "0";
-    }
     unshift @_,
         $self->property("length", $self->numberValue($length), "0"),
-        $self->property("prototype", $self->objectValue($prototype), $prototypeMode);
+        $self->property("prototype", $self->objectValue($prototype), "0"),
     ;
 
     if (@_) {

@@ -24,6 +24,12 @@ func TestString(t *testing.T) {
 	test(`String(-0)`, "0")
 	test(`""+-0`, "0")
 	test(`(new String("abc")[Math.pow(2, 32)])`, "undefined")
+
+	test(`
+        var abc = Object.getOwnPropertyDescriptor(String, "prototype");
+        [   [ typeof String.prototype ],
+            [ abc.writable, abc.enumerable, abc.configurable ] ];
+    `, "object,false,false,false")
 }
 
 func TestString_charAt(t *testing.T) {

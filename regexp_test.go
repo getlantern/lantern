@@ -63,6 +63,12 @@ func TestRegExp(t *testing.T) {
 	test(`abc = '\\' + String.fromCharCode('0x0058'); eval('/' + abc + '/').source == "\\\u0058"`, "true")
 	test(`abc = '\\' + String.fromCharCode('0x0023'); eval('/' + abc + '/').source == "\\\u0023"`, "true")
 	test(`abc = '\\' + String.fromCharCode('0x0078'); eval('/' + abc + '/').source == "\\\u0078"`, "true")
+
+	test(`
+        var abc = Object.getOwnPropertyDescriptor(RegExp, "prototype");
+        [   [ typeof RegExp.prototype ],
+            [ abc.writable, abc.enumerable, abc.configurable ] ];
+    `, "object,false,false,false")
 }
 
 func TestRegExp_global(t *testing.T) {

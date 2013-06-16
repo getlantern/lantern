@@ -699,7 +699,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.FunctionPrototype,
@@ -709,7 +709,7 @@ func _newContext(runtime *_runtime) {
 		}
 		runtime.Global.Function = Function
 		runtime.Global.FunctionPrototype.property["constructor"] = _property{
-			mode: 0101,
+			mode: 0,
 			value: Value{
 				_valueType: valueObject,
 				value:      Function,
@@ -1066,7 +1066,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.ArrayPrototype,
@@ -1562,7 +1562,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.StringPrototype,
@@ -1668,7 +1668,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.BooleanPrototype,
@@ -1845,7 +1845,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.NumberPrototype,
@@ -3696,7 +3696,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.DatePrototype,
@@ -3861,7 +3861,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.RegExpPrototype,
@@ -3948,7 +3948,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.ErrorPrototype,
@@ -4002,7 +4002,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.EvalErrorPrototype,
@@ -4056,7 +4056,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.TypeErrorPrototype,
@@ -4110,7 +4110,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.RangeErrorPrototype,
@@ -4164,7 +4164,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.ReferenceErrorPrototype,
@@ -4218,7 +4218,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.SyntaxErrorPrototype,
@@ -4272,7 +4272,7 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 				"prototype": _property{
-					mode: 0100,
+					mode: 0,
 					value: Value{
 						_valueType: valueObject,
 						value:      runtime.Global.URIErrorPrototype,

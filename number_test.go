@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+func TestNumber(t *testing.T) {
+	Terst(t)
+	test := runTest()
+	test(`
+        var abc = Object.getOwnPropertyDescriptor(Number, "prototype");
+        [   [ typeof Number.prototype ],
+            [ abc.writable, abc.enumerable, abc.configurable ] ];
+    `, "object,false,false,false")
+}
+
 func TestNumber_toString(t *testing.T) {
 	Terst(t)
 
