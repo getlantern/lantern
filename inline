@@ -189,6 +189,7 @@ sub newContext {
                 "unshift", 1,
                 "reverse", 0,
                 "sort", 0,
+                "indexOf", 1,
             );
             return
             ".${class}Prototype =",

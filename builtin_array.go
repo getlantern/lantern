@@ -459,3 +459,26 @@ func builtinArray_sort(call FunctionCall) Value {
 func builtinArray_isArray(call FunctionCall) Value {
 	return toValue(isArray(call.Argument(0)._object()))
 }
+
+func builtinArray_indexOf(call FunctionCall) Value {
+	thisObject, matchValue := call.thisObject(), call.Argument(0)
+	if length := int64(toUint32(thisObject.get("length"))); length > 0 {
+		index := int64(0)
+		if value := call.Argument(1); value.IsNumber() {
+			index = toInteger(value)
+		}
+		if index < 0 {
+			if index += length; index < 0 {
+				index = 0
+			}
+		} else if index >= length {
+			index = -1
+		}
+		for ; index >= 0 && index < length; index++ {
+			if sameValue(matchValue, thisObject.get(arrayIndexToString(uint(index)))) {
+				return toValue(uint32(index))
+			}
+		}
+	}
+	return toValue(-1)
+}
