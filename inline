@@ -6,6 +6,7 @@ $_fmt = "cat -n" if "cat" eq ($ARGV[0] || "");
 
 use strict;
 use warnings;
+use IO::File;
 
 my $self = __PACKAGE__;
 
