@@ -66,11 +66,11 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		source:            pattern,
 		flags:             flags,
 	}
-	self.defineProperty("global", toValue(global), 0, false)
-	self.defineProperty("ignoreCase", toValue(ignoreCase), 0, false)
-	self.defineProperty("multiline", toValue(multiline), 0, false)
-	self.defineProperty("lastIndex", toValue(0), 0100, false)
-	self.defineProperty("source", toValue(pattern), 0, false)
+	self.defineProperty("global", toValue_bool(global), 0, false)
+	self.defineProperty("ignoreCase", toValue_bool(ignoreCase), 0, false)
+	self.defineProperty("multiline", toValue_bool(multiline), 0, false)
+	self.defineProperty("lastIndex", toValue_int(0), 0100, false)
+	self.defineProperty("source", toValue_string(pattern), 0, false)
 	return self
 }
 
@@ -83,7 +83,7 @@ func execRegExp(this *_object, target string) (match bool, result []int) {
 	if this.class != "RegExp" {
 		panic(newTypeError("Calling RegExp.exec on a non-RegExp object"))
 	}
-	lastIndex := toInteger(this.get("lastIndex"))
+	lastIndex := toInteger(this.get("lastIndex")).value
 	index := lastIndex
 	global := toBoolean(this.get("global"))
 	if !global {
@@ -94,8 +94,8 @@ func execRegExp(this *_object, target string) (match bool, result []int) {
 		result = this.regExpValue().regularExpression.FindStringSubmatchIndex(target[index:])
 	}
 	if result == nil {
-		//this.defineProperty("lastIndex", toValue(0), 0111, true)
-		this.put("lastIndex", toValue(0), true)
+		//this.defineProperty("lastIndex", toValue_(0), 0111, true)
+		this.put("lastIndex", toValue_int(0), true)
 		return // !match
 	}
 	match = true
@@ -107,8 +107,8 @@ func execRegExp(this *_object, target string) (match bool, result []int) {
 		result[index] += int(startIndex)
 	}
 	if global {
-		//this.defineProperty("lastIndex", toValue(endIndex), 0111, true)
-		this.put("lastIndex", toValue(endIndex), true)
+		//this.defineProperty("lastIndex", toValue_(endIndex), 0111, true)
+		this.put("lastIndex", toValue_int(endIndex), true)
 	}
 	return // match
 }
@@ -119,7 +119,7 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 	for index := 0; index < captureCount; index++ {
 		offset := 2 * index
 		if result[offset] != -1 {
-			valueArray[index] = toValue(target[result[offset]:result[offset+1]])
+			valueArray[index] = toValue_string(target[result[offset]:result[offset+1]])
 		} else {
 			valueArray[index] = UndefinedValue()
 		}
@@ -135,8 +135,8 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 		}
 	}
 	match := runtime.newArrayOf(valueArray)
-	match.defineProperty("input", toValue(target), 0111, false)
-	match.defineProperty("index", toValue(matchIndex), 0111, false)
+	match.defineProperty("input", toValue_string(target), 0111, false)
+	match.defineProperty("index", toValue_int(matchIndex), 0111, false)
 	return match
 }
 

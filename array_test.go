@@ -260,7 +260,6 @@ func TestArray_sliceArguments(t *testing.T) {
 			return Array.prototype.slice.call(arguments, 1)
 		})({}, 1, 2, 3)
 	`, "1,2,3")
-
 }
 
 func TestArray_unshift(t *testing.T) {
@@ -339,6 +338,7 @@ func TestArray_indexOf(t *testing.T) {
 		var abc = {0: 'a', 1: 'b', 2: 'c', length: 3};
 		abc.indexOf('c');
 	`, "2")
+	test(`[true].indexOf(true, "-Infinity")`, "0")
 }
 
 func TestArray_lastIndexOf(t *testing.T) {
@@ -364,4 +364,29 @@ func TestArray_every(t *testing.T) {
 	test(`[].every(function() { return false })`, "true")
 	test(`[1,2,3].every(function() { return false })`, "false")
 	test(`[1,2,3].every(function() { return true })`, "true")
+}
+
+func TestArray_indexing(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc = new Array(0, 1);
+        var def = abc.length;
+        abc[4294967296] = 10; // 2^32 => 0
+        abc[4294967297] = 11; // 2^32+1 => 1
+        [ def, abc.length, abc[0], abc[1], abc[4294967296] ];
+    `, "2,2,0,1,10")
+
+	test(`
+        abc = new Array(0, 1);
+        def = abc.length;
+        abc[4294967295] = 10;
+        var ghi = abc.length;
+        abc[4294967299] = 12;
+        var jkl = abc.length;
+        abc[4294967294] = 11;
+        [ def, ghi, jkl, abc.length, abc[4294967295], abc[4294967299] ];
+    `, "2,2,2,4294967295,10,12")
 }

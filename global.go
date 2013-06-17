@@ -193,7 +193,7 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 	self = runtime.newErrorObject(message)
 	self.prototype = runtime.Global.ErrorPrototype
 	if name != "" {
-		self.defineProperty("name", toValue(name), 0111, false)
+		self.defineProperty("name", toValue_string(name), 0111, false)
 	}
 	return self
 }
@@ -202,8 +202,8 @@ func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction) *_ob
 	self := runtime.newNativeFunctionObject(_nativeFunction, 0)
 	self.prototype = runtime.Global.FunctionPrototype
 	prototype := runtime.newObject()
-	self.defineProperty("prototype", toValue(prototype), 0100, false)
-	prototype.defineProperty("constructor", toValue(self), 0100, false)
+	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
+	prototype.defineProperty("constructor", toValue_object(self), 0100, false)
 	return self
 }
 
@@ -212,7 +212,7 @@ func (runtime *_runtime) newNodeFunction(node *_functionNode, scopeEnvironment _
 	self := runtime.newNodeFunctionObject(node, scopeEnvironment)
 	self.prototype = runtime.Global.FunctionPrototype
 	prototype := runtime.newObject()
-	self.defineProperty("prototype", toValue(prototype), 0100, false)
-	prototype.defineProperty("constructor", toValue(self), 0101, false)
+	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
+	prototype.defineProperty("constructor", toValue_object(self), 0101, false)
 	return self
 }

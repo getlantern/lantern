@@ -187,3 +187,14 @@ func TestDate_April1978(t *testing.T) {
         [ abc.getYear(), abc.getMonth(), abc.valueOf() ];
     `, "78,3,260236800000")
 }
+
+func TestDate_setMilliseconds(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        abc = new Date();
+        def = abc.setMilliseconds();
+        [ abc, def ];
+    `, "Invalid Date,NaN")
+}

@@ -2,7 +2,6 @@ package otto
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	runtime_ "runtime"
 	"strconv"
@@ -40,14 +39,20 @@ func stringToArrayIndex(name string) int64 {
 	if index < 0 {
 		return -1
 	}
-	if index > integer_2_32 {
-		return -1 // Bigger than an unsigned 32-bit integer
+	if index >= maxUint32 {
+		// The value 2^32 (or above) is not a valid index because
+		// you cannot store a uint32 length for an index of uint32
+		return -1
 	}
 	return index
 }
 
-func arrayIndexToString(index uint) string {
-	return strconv.FormatInt(int64(index), 10)
+func isUint32(value int64) bool {
+	return value >= 0 && value <= maxUint32
+}
+
+func arrayIndexToString(index int64) string {
+	return strconv.FormatInt(index, 10)
 }
 
 func valueOfArrayIndex(list []Value, index int) Value {
@@ -62,38 +67,42 @@ func valueOfArrayIndex(list []Value, index int) Value {
 
 // A range index can be anything from 0 up to length. It is NOT safe to use as an index
 // to an array, but is useful for slicing and in some ECMA algorithms.
-func valueToRangeIndex(indexValue Value, length uint, negativeIsZero bool) int64 {
-	{
-		index := toIntegerFloat(indexValue)
-		length := float64(length)
-		if negativeIsZero {
-			index := math.Max(index, 0)
-			// minimum(index, length)
-			if index >= length {
-				index = length
-			}
-			return int64(uint(index))
-		}
-
+func valueToRangeIndex(indexValue Value, length int64, negativeIsZero bool) int64 {
+	index := toInteger(indexValue).value
+	if negativeIsZero {
 		if index < 0 {
-			index = math.Max(index+length, 0)
-		} else {
-			index = math.Min(index, length)
+			index = 0
 		}
-		return int64(uint(index))
+		// minimum(index, length)
+		if index >= length {
+			index = length
+		}
+		return index
 	}
+
+	if index < 0 {
+		index += length
+		if index < 0 {
+			index = 0
+		}
+	} else {
+		if index > length {
+			index = length
+		}
+	}
+	return index
 }
 
-func rangeStartEnd(array []Value, size uint, negativeIsZero bool) (start, end int64) {
+func rangeStartEnd(array []Value, size int64, negativeIsZero bool) (start, end int64) {
 	start = valueToRangeIndex(valueOfArrayIndex(array, 0), size, negativeIsZero)
 	if len(array) == 1 {
 		// If there is only the start argument, then end = size
-		end = int64(size)
+		end = size
 		return
 	}
 
 	// Assuming the argument is undefined...
-	end = int64(size)
+	end = size
 	endValue := valueOfArrayIndex(array, 1)
 	if !endValue.IsUndefined() {
 		// Which it is not, so get the value as an array index
@@ -102,8 +111,8 @@ func rangeStartEnd(array []Value, size uint, negativeIsZero bool) (start, end in
 	return
 }
 
-func rangeStartLength(source []Value, size uint) (start, length int64) {
-	start = int64(valueToRangeIndex(valueOfArrayIndex(source, 0), size, false))
+func rangeStartLength(source []Value, size int64) (start, length int64) {
+	start = valueToRangeIndex(valueOfArrayIndex(source, 0), size, false)
 
 	// Assume the second argument is missing or undefined
 	length = int64(size)
@@ -115,7 +124,7 @@ func rangeStartLength(source []Value, size uint) (start, length int64) {
 	lengthValue := valueOfArrayIndex(source, 1)
 	if !lengthValue.IsUndefined() {
 		// Which it is not, so get the value as an array index
-		length = toInteger(lengthValue)
+		length = toInteger(lengthValue).value
 	}
 	return
 }

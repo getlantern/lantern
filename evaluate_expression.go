@@ -38,7 +38,7 @@ func (self *_runtime) evaluateArray(node *_arrayNode) Value {
 
 	result := self.newArrayOf(valueArray)
 
-	return toValue(result)
+	return toValue_object(result)
 }
 
 func (self *_runtime) evaluateObject(node *_objectNode) Value {
@@ -49,11 +49,11 @@ func (self *_runtime) evaluateObject(node *_objectNode) Value {
 		result.defineProperty(property.Key, self.GetValue(self.evaluate(property.Value)), 0111, false)
 	}
 
-	return toValue(result)
+	return toValue_object(result)
 }
 
 func (self *_runtime) evaluateRegExp(node *_regExpNode) Value {
-	return toValue(self._newRegExp(node.Pattern, node.Flags))
+	return toValue_object(self._newRegExp(node.Pattern, node.Flags))
 }
 
 func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
@@ -63,7 +63,7 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 	case "typeof", "delete":
 		if target._valueType == valueReference && target.reference().IsUnresolvable() {
 			if node.Operator == "typeof" {
-				return toValue("undefined")
+				return toValue_string("undefined")
 			}
 			return TrueValue()
 		}
@@ -79,9 +79,9 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		return TrueValue()
 	case "~":
 		integerValue := toInt32(targetValue)
-		return toValue(^integerValue)
+		return toValue_int32(^integerValue)
 	case "+":
-		return toValue(targetValue.toFloat())
+		return toValue_float64(targetValue.toFloat())
 	case "-":
 		value := targetValue.toFloat()
 		// TODO Test this
@@ -89,25 +89,25 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		if math.Signbit(value) {
 			sign = 1
 		}
-		return toValue(math.Copysign(value, sign))
+		return toValue_float64(math.Copysign(value, sign))
 	case "++=": // Prefix ++
-		newValue := toValue(+1 + targetValue.toFloat())
+		newValue := toValue_float64(+1 + targetValue.toFloat())
 		self.PutValue(target.reference(), newValue)
 		return newValue
 	case "--=": // Prefix --
-		newValue := toValue(-1 + targetValue.toFloat())
+		newValue := toValue_float64(-1 + targetValue.toFloat())
 		self.PutValue(target.reference(), newValue)
 		return newValue
 	case "=++": // Postfix ++
 		oldValue := targetValue.toFloat()
-		newValue := toValue(+1 + oldValue)
+		newValue := toValue_float64(+1 + oldValue)
 		self.PutValue(target.reference(), newValue)
-		return toValue(oldValue)
+		return toValue_float64(oldValue)
 	case "=--": // Postfix --
 		oldValue := targetValue.toFloat()
-		newValue := toValue(-1 + oldValue)
+		newValue := toValue_float64(-1 + oldValue)
 		self.PutValue(target.reference(), newValue)
-		return toValue(oldValue)
+		return toValue_float64(oldValue)
 	case "void":
 		return UndefinedValue()
 	case "delete":
@@ -115,24 +115,24 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		if reference == nil {
 			return TrueValue()
 		}
-		return toValue(target.reference().Delete())
+		return toValue_bool(target.reference().Delete())
 	case "typeof":
 		switch targetValue._valueType {
 		case valueUndefined:
-			return toValue("undefined")
+			return toValue_string("undefined")
 		case valueNull:
-			return toValue("object")
+			return toValue_string("object")
 		case valueBoolean:
-			return toValue("boolean")
+			return toValue_string("boolean")
 		case valueNumber:
-			return toValue("number")
+			return toValue_string("number")
 		case valueString:
-			return toValue("string")
+			return toValue_string("string")
 		case valueObject:
 			if targetValue._object().functionValue().call != nil {
-				return toValue("function")
+				return toValue_string("function")
 			}
-			return toValue("object")
+			return toValue_string("object")
 		default:
 			// ?
 		}
@@ -177,7 +177,7 @@ func (self *_runtime) evaluateDivide(left float64, right float64) Value {
 			return negativeInfinityValue()
 		}
 	}
-	return toValue(left / right)
+	return toValue_float64(left / right)
 }
 
 func (self *_runtime) evaluateModulo(left float64, right float64) Value {
@@ -198,24 +198,24 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 		rightValue = toPrimitive(rightValue)
 
 		if leftValue.IsString() || rightValue.IsString() {
-			return toValue(strings.Join([]string{leftValue.toString(), rightValue.toString()}, ""))
+			return toValue_string(strings.Join([]string{leftValue.toString(), rightValue.toString()}, ""))
 		} else {
-			return toValue(leftValue.toFloat() + rightValue.toFloat())
+			return toValue_float64(leftValue.toFloat() + rightValue.toFloat())
 		}
 	case "-":
 		rightValue := self.GetValue(right)
-		return toValue(leftValue.toFloat() - rightValue.toFloat())
+		return toValue_float64(leftValue.toFloat() - rightValue.toFloat())
 
 	// Multiplicative
 	case "*":
 		rightValue := self.GetValue(right)
-		return toValue(leftValue.toFloat() * rightValue.toFloat())
+		return toValue_float64(leftValue.toFloat() * rightValue.toFloat())
 	case "/":
 		rightValue := self.GetValue(right)
 		return self.evaluateDivide(leftValue.toFloat(), rightValue.toFloat())
 	case "%":
 		rightValue := self.GetValue(right)
-		return toValue(math.Mod(leftValue.toFloat(), rightValue.toFloat()))
+		return toValue_float64(math.Mod(leftValue.toFloat(), rightValue.toFloat()))
 
 	// Logical
 	case "&&":
@@ -223,51 +223,51 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 		if !left {
 			return FalseValue()
 		}
-		return toValue(toBoolean(self.GetValue(right)))
+		return toValue_bool(toBoolean(self.GetValue(right)))
 	case "||":
 		left := toBoolean(leftValue)
 		if left {
 			return TrueValue()
 		}
-		return toValue(toBoolean(self.GetValue(right)))
+		return toValue_bool(toBoolean(self.GetValue(right)))
 
 	// Bitwise
 	case "&":
 		rightValue := self.GetValue(right)
-		return toValue(toInt32(leftValue) & toInt32(rightValue))
+		return toValue_int32(toInt32(leftValue) & toInt32(rightValue))
 	case "|":
 		rightValue := self.GetValue(right)
-		return toValue(toInt32(leftValue) | toInt32(rightValue))
+		return toValue_int32(toInt32(leftValue) | toInt32(rightValue))
 	case "^":
 		rightValue := self.GetValue(right)
-		return toValue(toInt32(leftValue) ^ toInt32(rightValue))
+		return toValue_int32(toInt32(leftValue) ^ toInt32(rightValue))
 
 	// Shift
 	// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
 	case "<<":
 		rightValue := self.GetValue(right)
-		return toValue(toInt32(leftValue) << (toUint32(rightValue) & 0x1f))
+		return toValue_int32(toInt32(leftValue) << (toUint32(rightValue) & 0x1f))
 	case ">>":
 		rightValue := self.GetValue(right)
-		return toValue(toInt32(leftValue) >> (toUint32(rightValue) & 0x1f))
+		return toValue_int32(toInt32(leftValue) >> (toUint32(rightValue) & 0x1f))
 	case ">>>":
 		rightValue := self.GetValue(right)
 		// Shifting an unsigned integer is a logical shift
-		return toValue(toUint32(leftValue) >> (toUint32(rightValue) & 0x1f))
+		return toValue_uint32(toUint32(leftValue) >> (toUint32(rightValue) & 0x1f))
 
 	case "instanceof":
 		rightValue := self.GetValue(right)
 		if !rightValue.IsObject() {
 			panic(newTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
 		}
-		return toValue(rightValue._object().HasInstance(leftValue))
+		return toValue_bool(rightValue._object().HasInstance(leftValue))
 
 	case "in":
 		rightValue := self.GetValue(right)
 		if !rightValue.IsObject() {
 			panic(newTypeError())
 		}
-		return toValue(rightValue._object().hasProperty(toString(leftValue)))
+		return toValue_bool(rightValue._object().hasProperty(toString(leftValue)))
 	}
 
 	panic(hereBeDragons(operator))
@@ -417,9 +417,9 @@ func (self *_runtime) calculateComparison(comparator string, left Value, right V
 		} else if x._valueType <= valueString && y._valueType <= valueString {
 			result = x.toFloat() == y.toFloat()
 		} else if x._valueType == valueBoolean {
-			result = self.calculateComparison("==", toValue(x.toFloat()), y)
+			result = self.calculateComparison("==", toValue_float64(x.toFloat()), y)
 		} else if y._valueType == valueBoolean {
-			result = self.calculateComparison("==", x, toValue(y.toFloat()))
+			result = self.calculateComparison("==", x, toValue_float64(y.toFloat()))
 		} else if x._valueType == valueObject {
 			result = self.calculateComparison("==", toPrimitive(x), y)
 		} else if y._valueType == valueObject {
@@ -467,7 +467,7 @@ func (self *_runtime) evaluateComparison(node *_comparisonNode) Value {
 	left := self.GetValue(self.evaluate(node.Left))
 	right := self.GetValue(self.evaluate(node.Right))
 
-	return toValue(self.calculateComparison(node.Comparator, left, right))
+	return toValue_bool(self.calculateComparison(node.Comparator, left, right))
 }
 
 func (self *_runtime) evaluateBinaryOperation(node *_binaryOperationNode) Value {
@@ -511,7 +511,7 @@ func (self *_runtime) evaluateCall(node *_callNode, withArgumentList []interface
 	if calleeReference != nil {
 		if calleeReference.IsPropertyReference() {
 			calleeObject := calleeReference.GetBase().(*_object)
-			this = toValue(calleeObject)
+			this = toValue_object(calleeObject)
 		} else {
 			// TODO ImplictThisValue
 		}
@@ -526,7 +526,7 @@ func (self *_runtime) evaluateCall(node *_callNode, withArgumentList []interface
 }
 
 func (self *_runtime) evaluateFunction(node *_functionNode) Value {
-	return toValue(self.newNodeFunction(node, self.LexicalEnvironment()))
+	return toValue_object(self.newNodeFunction(node, self.LexicalEnvironment()))
 }
 
 func (self *_runtime) evaluateDotMember(node *_dotMemberNode) Value {

@@ -10,10 +10,10 @@ func builtinObject(call FunctionCall) Value {
 	value := call.Argument(0)
 	switch value._valueType {
 	case valueUndefined, valueNull:
-		return toValue(call.runtime.newObject())
+		return toValue_object(call.runtime.newObject())
 	}
 
-	return toValue(call.runtime.toObject(value))
+	return toValue_object(call.runtime.toObject(value))
 }
 
 func builtinNewObject(self *_object, _ Value, argumentList []Value) Value {
@@ -21,22 +21,22 @@ func builtinNewObject(self *_object, _ Value, argumentList []Value) Value {
 	switch value._valueType {
 	case valueNull, valueUndefined:
 	case valueNumber, valueString, valueBoolean:
-		return toValue(self.runtime.toObject(value))
+		return toValue_object(self.runtime.toObject(value))
 	case valueObject:
 		return value
 	default:
 	}
-	return toValue(self.runtime.newObject())
+	return toValue_object(self.runtime.newObject())
 }
 
 func builtinObject_valueOf(call FunctionCall) Value {
-	return toValue(call.thisObject())
+	return toValue_object(call.thisObject())
 }
 
 func builtinObject_hasOwnProperty(call FunctionCall) Value {
 	propertyName := toString(call.Argument(0))
 	thisObject := call.thisObject()
-	return toValue(thisObject.hasOwnProperty(propertyName))
+	return toValue_bool(thisObject.hasOwnProperty(propertyName))
 }
 
 func builtinObject_isPrototypeOf(call FunctionCall) Value {
@@ -74,7 +74,7 @@ func builtinObject_toString(call FunctionCall) Value {
 	} else {
 		result = fmt.Sprintf("[object %s]", call.thisObject().class)
 	}
-	return toValue(result)
+	return toValue_string(result)
 }
 
 func builtinObject_toLocaleString(call FunctionCall) Value {
@@ -96,7 +96,7 @@ func builtinObject_getPrototypeOf(call FunctionCall) Value {
 		return NullValue()
 	}
 
-	return toValue(object.prototype)
+	return toValue_object(object.prototype)
 }
 
 func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
@@ -111,7 +111,7 @@ func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
 	if descriptor == nil {
 		return UndefinedValue()
 	}
-	return toValue(call.runtime.fromPropertyDescriptor(*descriptor))
+	return toValue_object(call.runtime.fromPropertyDescriptor(*descriptor))
 }
 
 func builtinObject_defineProperty(call FunctionCall) Value {
@@ -162,13 +162,13 @@ func builtinObject_create(call FunctionCall) Value {
 		})
 	}
 
-	return toValue(object)
+	return toValue_object(object)
 }
 
 func builtinObject_isExtensible(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
-		return toValue(object.extensible)
+		return toValue_bool(object.extensible)
 	}
 	panic(newTypeError())
 }
@@ -187,7 +187,7 @@ func builtinObject_isSealed(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
 		if object.extensible {
-			return toValue(false)
+			return toValue_bool(false)
 		}
 		result := true
 		object.enumerate(true, func(name string) bool {
@@ -197,7 +197,7 @@ func builtinObject_isSealed(call FunctionCall) Value {
 			}
 			return true
 		})
-		return toValue(result)
+		return toValue_bool(result)
 	}
 	panic(newTypeError())
 }
@@ -223,7 +223,7 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 	object := call.Argument(0)
 	if object := object._object(); object != nil {
 		if object.extensible {
-			return toValue(false)
+			return toValue_bool(false)
 		}
 		result := true
 		object.enumerate(true, func(name string) bool {
@@ -233,7 +233,7 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 			}
 			return true
 		})
-		return toValue(result)
+		return toValue_bool(result)
 	}
 	panic(newTypeError())
 }
@@ -267,10 +267,10 @@ func builtinObject_freeze(call FunctionCall) Value {
 func builtinObject_keys(call FunctionCall) Value {
 	if object, keys := call.Argument(0)._object(), []Value(nil); nil != object {
 		object.enumerate(false, func(name string) bool {
-			keys = append(keys, toValue(name))
+			keys = append(keys, toValue_string(name))
 			return true
 		})
-		return toValue(call.runtime.newArrayOf(keys))
+		return toValue_object(call.runtime.newArrayOf(keys))
 	}
 	panic(newTypeError())
 }
@@ -279,11 +279,11 @@ func builtinObject_getOwnPropertyNames(call FunctionCall) Value {
 	if object, propertyNames := call.Argument(0)._object(), []Value(nil); nil != object {
 		object.enumerate(true, func(name string) bool {
 			if object.hasOwnProperty(name) {
-				propertyNames = append(propertyNames, toValue(name))
+				propertyNames = append(propertyNames, toValue_string(name))
 			}
 			return true
 		})
-		return toValue(call.runtime.newArrayOf(propertyNames))
+		return toValue_object(call.runtime.newArrayOf(propertyNames))
 	}
 	panic(newTypeError())
 }

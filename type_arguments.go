@@ -15,7 +15,7 @@ func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, envir
 
 	self.prototype = runtime.Global.ObjectPrototype
 
-	self.defineProperty("length", toValue(length), 0101, false)
+	self.defineProperty("length", toValue_int(length), 0101, false)
 
 	return self
 }

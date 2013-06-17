@@ -23,8 +23,6 @@ func TestString(t *testing.T) {
 	test(`String(+0)`, "0")
 	test(`String(-0)`, "0")
 	test(`""+-0`, "0")
-	test(`(new String("abc")[Math.pow(2, 32)])`, "undefined")
-
 	test(`
         var abc = Object.getOwnPropertyDescriptor(String, "prototype");
         [   [ typeof String.prototype ],
@@ -246,4 +244,18 @@ func Test_floatToString(t *testing.T) {
 	test(`String(-0.0000001)`, "-1e-7")
 	test(`String(-1e-7)`, "-1e-7")
 	test(`String(-1E-7)`, "-1e-7")
+}
+
+func TestString_indexing(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	// Actually a test of stringToArrayIndex, under the hood.
+	test(`
+        abc = new String("abc");
+        index = Math.pow(2, 32);
+        [ abc.length, abc[index], abc[index+1], abc[index+2], abc[index+3] ];
+    `, "3,,,,")
+
 }

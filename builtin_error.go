@@ -7,11 +7,11 @@ func (runtime *_runtime) newEvalError(message Value) *_object {
 }
 
 func builtinEvalError(call FunctionCall) Value {
-	return toValue(call.runtime.newEvalError(call.Argument(0)))
+	return toValue_object(call.runtime.newEvalError(call.Argument(0)))
 }
 
 func builtinNewEvalError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newEvalError(valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newEvalError(valueOfArrayIndex(argumentList, 0)))
 }
 
 func (runtime *_runtime) newTypeError(message Value) *_object {
@@ -21,11 +21,11 @@ func (runtime *_runtime) newTypeError(message Value) *_object {
 }
 
 func builtinTypeError(call FunctionCall) Value {
-	return toValue(call.runtime.newTypeError(call.Argument(0)))
+	return toValue_object(call.runtime.newTypeError(call.Argument(0)))
 }
 
 func builtinNewTypeError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newTypeError(valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newTypeError(valueOfArrayIndex(argumentList, 0)))
 }
 
 func (runtime *_runtime) newRangeError(message Value) *_object {
@@ -35,11 +35,11 @@ func (runtime *_runtime) newRangeError(message Value) *_object {
 }
 
 func builtinRangeError(call FunctionCall) Value {
-	return toValue(call.runtime.newRangeError(call.Argument(0)))
+	return toValue_object(call.runtime.newRangeError(call.Argument(0)))
 }
 
 func builtinNewRangeError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newRangeError(valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newRangeError(valueOfArrayIndex(argumentList, 0)))
 }
 
 func (runtime *_runtime) newURIError(message Value) *_object {
@@ -55,11 +55,11 @@ func (runtime *_runtime) newReferenceError(message Value) *_object {
 }
 
 func builtinReferenceError(call FunctionCall) Value {
-	return toValue(call.runtime.newReferenceError(call.Argument(0)))
+	return toValue_object(call.runtime.newReferenceError(call.Argument(0)))
 }
 
 func builtinNewReferenceError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newReferenceError(valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newReferenceError(valueOfArrayIndex(argumentList, 0)))
 }
 
 func (runtime *_runtime) newSyntaxError(message Value) *_object {
@@ -69,17 +69,17 @@ func (runtime *_runtime) newSyntaxError(message Value) *_object {
 }
 
 func builtinSyntaxError(call FunctionCall) Value {
-	return toValue(call.runtime.newSyntaxError(call.Argument(0)))
+	return toValue_object(call.runtime.newSyntaxError(call.Argument(0)))
 }
 
 func builtinNewSyntaxError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newSyntaxError(valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newSyntaxError(valueOfArrayIndex(argumentList, 0)))
 }
 
 func builtinURIError(call FunctionCall) Value {
-	return toValue(call.runtime.newURIError(call.Argument(0)))
+	return toValue_object(call.runtime.newURIError(call.Argument(0)))
 }
 
 func builtinNewURIError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newURIError(valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newURIError(valueOfArrayIndex(argumentList, 0)))
 }

@@ -137,9 +137,9 @@ func (self *_runtime) _callNode(function *_object, environment *_functionEnviron
 
 	if !node.ArgumentsIsParameter {
 		arguments := self.newArgumentsObject(indexOfParameterName, environment, len(argumentList))
-		arguments.defineProperty("callee", toValue(function), 0101, false)
+		arguments.defineProperty("callee", toValue_object(function), 0101, false)
 		environment.arguments = arguments
-		self.localSet("arguments", toValue(arguments))
+		self.localSet("arguments", toValue_object(arguments))
 		for index, _ := range argumentList {
 			if index < len(node.ParameterList) {
 				continue
@@ -188,10 +188,10 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 			switch caught := caught.(type) {
 			case _error:
 				exception = true
-				tryValue = toValue(self.newError(caught.Name, caught.MessageValue()))
+				tryValue = toValue_object(self.newError(caught.Name, caught.MessageValue()))
 			case *_syntaxError:
 				exception = true
-				tryValue = toValue(self.newError("SyntaxError", toValue(caught.Message)))
+				tryValue = toValue_object(self.newError("SyntaxError", toValue_string(caught.Message)))
 			case Value:
 				exception = true
 				tryValue = caught
@@ -300,9 +300,9 @@ func (self *_runtime) toValue(value interface{}) Value {
 	case Value:
 		return value
 	case func(FunctionCall) Value:
-		return toValue(self.newNativeFunction(value))
+		return toValue_object(self.newNativeFunction(value))
 	case _nativeFunction:
-		return toValue(self.newNativeFunction(value))
+		return toValue_object(self.newNativeFunction(value))
 	case Object, *Object, _object, *_object:
 		// Nothing happens.
 	default:
@@ -312,18 +312,18 @@ func (self *_runtime) toValue(value interface{}) Value {
 			case reflect.Ptr:
 				switch reflect.Indirect(value).Kind() {
 				case reflect.Struct:
-					return toValue(self.newGoStructObject(value))
+					return toValue_object(self.newGoStructObject(value))
 				case reflect.Array:
-					return toValue(self.newGoArray(value))
+					return toValue_object(self.newGoArray(value))
 				}
 			case reflect.Struct:
-				return toValue(self.newGoStructObject(value))
+				return toValue_object(self.newGoStructObject(value))
 			case reflect.Map:
-				return toValue(self.newGoMapObject(value))
+				return toValue_object(self.newGoMapObject(value))
 			case reflect.Slice:
-				return toValue(self.newGoSlice(value))
+				return toValue_object(self.newGoSlice(value))
 			case reflect.Array:
-				return toValue(self.newGoArray(value))
+				return toValue_object(self.newGoArray(value))
 			}
 		}
 	}

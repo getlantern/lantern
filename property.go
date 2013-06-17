@@ -177,13 +177,13 @@ func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
 	object := self.newObject()
 	if descriptor.isDataDescriptor() {
 		object.defineProperty("value", descriptor.value.(Value), 0111, false)
-		object.defineProperty("writable", toValue(descriptor.writable()), 0111, false)
+		object.defineProperty("writable", toValue_bool(descriptor.writable()), 0111, false)
 	} else if descriptor.isAccessorDescriptor() {
 		getSet := descriptor.value.(_propertyGetSet)
-		object.defineProperty("get", toValue(getSet[0]), 0111, false)
-		object.defineProperty("set", toValue(getSet[1]), 0111, false)
+		object.defineProperty("get", toValue_object(getSet[0]), 0111, false)
+		object.defineProperty("set", toValue_object(getSet[1]), 0111, false)
 	}
-	object.defineProperty("enumerable", toValue(descriptor.enumerable()), 0111, false)
-	object.defineProperty("configurable", toValue(descriptor.configurable()), 0111, false)
+	object.defineProperty("enumerable", toValue_bool(descriptor.enumerable()), 0111, false)
+	object.defineProperty("configurable", toValue_bool(descriptor.configurable()), 0111, false)
 	return object
 }

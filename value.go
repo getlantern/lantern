@@ -432,7 +432,7 @@ func (value Value) ToFloat() (float64, error) {
 func (value Value) ToInteger() (int64, error) {
 	result := int64(0)
 	err := catchPanic(func() {
-		result = toInteger(value)
+		result = toInteger(value).value
 	})
 	return result, err
 }
@@ -641,9 +641,7 @@ func (self Value) export() interface{} {
 		if object.class == "Array" {
 			result := make([]interface{}, 0)
 			lengthValue := object.get("length")
-			// FIXME This was causing a panic?
-			//length := lengthValue.value.(uint32)
-			length := toUint32(lengthValue)
+			length := lengthValue.value.(uint32)
 			for index := uint32(0); index < length; index += 1 {
 				name := strconv.FormatInt(int64(index), 10)
 				if !object.hasProperty(name) {
@@ -730,71 +728,79 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	case reflect.Bool:
 		return reflect.ValueOf(value.toBoolean()), nil
 	case reflect.Int:
+		// We convert to float64 here because converting to int64 will not tell us
+		// if a value is outside the range of int64
 		tmp := toIntegerFloat(value)
-		if tmp < _MinInt_ || tmp > _MaxInt_ {
+		if tmp < float_minInt || tmp > float_maxInt {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int", tmp, value)
 		} else {
 			return reflect.ValueOf(int(tmp)), nil
 		}
 	case reflect.Int8:
-		tmp := toInteger(value)
-		if tmp < _MinInt8_ || tmp > _MaxInt8_ {
+		tmp := toInteger(value).value
+		if tmp < int64_minInt8 || tmp > int64_maxInt8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int8", tmp, value)
 		} else {
 			return reflect.ValueOf(int8(tmp)), nil
 		}
 	case reflect.Int16:
-		tmp := toInteger(value)
-		if tmp < _MinInt16_ || tmp > _MaxInt16_ {
+		tmp := toInteger(value).value
+		if tmp < int64_minInt16 || tmp > int64_maxInt16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int16", tmp, value)
 		} else {
 			return reflect.ValueOf(int16(tmp)), nil
 		}
 	case reflect.Int32:
-		tmp := toInteger(value)
-		if tmp < _MinInt32_ || tmp > _MaxInt32_ {
+		tmp := toInteger(value).value
+		if tmp < int64_minInt32 || tmp > int64_maxInt32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int32", tmp, value)
 		} else {
 			return reflect.ValueOf(int32(tmp)), nil
 		}
 	case reflect.Int64:
+		// We convert to float64 here because converting to int64 will not tell us
+		// if a value is outside the range of int64
 		tmp := toIntegerFloat(value)
-		if tmp < _MinInt64_ || tmp > _MaxInt64_ {
+		if tmp < float_minInt64 || tmp > float_maxInt64 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int", tmp, value)
 		} else {
 			return reflect.ValueOf(int64(tmp)), nil
 		}
 	case reflect.Uint:
+		// We convert to float64 here because converting to int64 will not tell us
+		// if a value is outside the range of uint
 		tmp := toIntegerFloat(value)
-		if tmp < 0 || tmp > _MaxUint_ {
+		if tmp < 0 || tmp > float_maxUint {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint", tmp, value)
 		} else {
 			return reflect.ValueOf(uint(tmp)), nil
 		}
 	case reflect.Uint8:
-		tmp := toInteger(value)
-		if tmp < 0 || tmp > _MaxUint8_ {
+		tmp := toInteger(value).value
+		if tmp < 0 || tmp > int64_maxUint8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint8", tmp, value)
 		} else {
 			return reflect.ValueOf(uint8(tmp)), nil
 		}
 	case reflect.Uint16:
-		tmp := toInteger(value)
-		if tmp < 0 || tmp > _MaxUint16_ {
+		tmp := toInteger(value).value
+		if tmp < 0 || tmp > int64_maxUint16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint16", tmp, value)
 		} else {
 			return reflect.ValueOf(uint16(tmp)), nil
 		}
 	case reflect.Uint32:
-		tmp := toInteger(value)
-		if tmp < 0 || tmp > _MaxUint32_ {
+		tmp := toInteger(value).value
+		if tmp < 0 || tmp > int64_maxUint32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint32", tmp, value)
 		} else {
 			return reflect.ValueOf(uint32(tmp)), nil
 		}
 	case reflect.Uint64:
+		// We convert to float64 here because converting to int64 will not tell us
+		// if a value is outside the range of uint64
 		tmp := toIntegerFloat(value)
-		if tmp < 0 || tmp > _MaxUint64_ {
+		if tmp < 0 || tmp > float_maxUint64 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to uint64", tmp, value)
 		} else {
 			return reflect.ValueOf(uint64(tmp)), nil

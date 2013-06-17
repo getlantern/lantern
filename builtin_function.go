@@ -3,11 +3,11 @@ package otto
 // Function
 
 func builtinFunction(call FunctionCall) Value {
-	return toValue(builtinNewFunctionNative(call.runtime, call.ArgumentList))
+	return toValue_object(builtinNewFunctionNative(call.runtime, call.ArgumentList))
 }
 
 func builtinNewFunction(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(builtinNewFunctionNative(self.runtime, argumentList))
+	return toValue_object(builtinNewFunctionNative(self.runtime, argumentList))
 }
 
 func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object {
@@ -29,7 +29,7 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 }
 
 func builtinFunction_toString(call FunctionCall) Value {
-	return toValue("[function]")
+	return toValue_string("[function]")
 }
 
 func builtinFunction_apply(call FunctionCall) Value {
@@ -39,7 +39,7 @@ func builtinFunction_apply(call FunctionCall) Value {
 	this := call.Argument(0)
 	if this.IsUndefined() {
 		// FIXME Not ECMA5
-		this = toValue(call.runtime.GlobalObject)
+		this = toValue_object(call.runtime.GlobalObject)
 	}
 	argumentList := call.Argument(1)
 	switch argumentList._valueType {
@@ -52,9 +52,9 @@ func builtinFunction_apply(call FunctionCall) Value {
 
 	arrayObject := argumentList._object()
 	thisObject := call.thisObject()
-	length := uint(toUint32(arrayObject.get("length")))
+	length := int64(toUint32(arrayObject.get("length")))
 	valueArray := make([]Value, length)
-	for index := uint(0); index < length; index++ {
+	for index := int64(0); index < length; index++ {
 		valueArray[index] = arrayObject.get(arrayIndexToString(index))
 	}
 	return thisObject.Call(this, valueArray)
@@ -68,7 +68,7 @@ func builtinFunction_call(call FunctionCall) Value {
 	this := call.Argument(0)
 	if this.IsUndefined() {
 		// FIXME Not ECMA5
-		this = toValue(call.runtime.GlobalObject)
+		this = toValue_object(call.runtime.GlobalObject)
 	}
 	if len(call.ArgumentList) >= 1 {
 		return thisObject.Call(this, call.ArgumentList[1:])
@@ -87,8 +87,8 @@ func builtinFunction_bind(call FunctionCall) Value {
 	argumentList := call.slice(1)
 	if this.IsUndefined() {
 		// FIXME Do this elsewhere?
-		this = toValue(call.runtime.GlobalObject)
+		this = toValue_object(call.runtime.GlobalObject)
 	}
 
-	return toValue(call.runtime.newBoundFunctionObject(targetObject, this, argumentList))
+	return toValue_object(call.runtime.newBoundFunctionObject(targetObject, this, argumentList))
 }

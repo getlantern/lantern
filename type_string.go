@@ -11,11 +11,11 @@ type _stringObject struct {
 }
 
 func (runtime *_runtime) newStringObject(value Value) *_object {
-	value = toValue(toString(value))
+	value = toValue_string(toString(value))
 	value16 := utf16Of(value.value.(string))
 
 	self := runtime.newClassObject("String")
-	self.defineProperty("length", toValue(len(value16)), 0, false)
+	self.defineProperty("length", toValue_int(len(value16)), 0, false)
 	self.objectClass = _classString
 	self.value = _stringObject{
 		value:   value,
@@ -59,7 +59,7 @@ func stringGetOwnProperty(self *_object, name string) *_property {
 	if index >= 0 {
 		value16 := self.stringValue16()
 		if index < int64(len(value16)) {
-			return &_property{toValue(string(value16[index])), 0}
+			return &_property{toValue_string(string(value16[index])), 0}
 		}
 	}
 	return nil

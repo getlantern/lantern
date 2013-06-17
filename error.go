@@ -29,7 +29,7 @@ func (self _error) MessageValue() Value {
 	if self.Message == "" {
 		return UndefinedValue()
 	}
-	return toValue(self.Message)
+	return toValue_string(self.Message)
 }
 
 func (self _error) String() string {

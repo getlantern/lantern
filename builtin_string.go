@@ -13,9 +13,9 @@ import (
 
 func stringValueFromStringArgumentList(argumentList []Value) Value {
 	if len(argumentList) > 0 {
-		return toValue(toString(argumentList[0]))
+		return toValue_string(toString(argumentList[0]))
 	}
-	return toValue("")
+	return toValue_string("")
 }
 
 func builtinString(call FunctionCall) Value {
@@ -23,7 +23,7 @@ func builtinString(call FunctionCall) Value {
 }
 
 func builtinNewString(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newString(stringValueFromStringArgumentList(argumentList)))
+	return toValue_object(self.runtime.newString(stringValueFromStringArgumentList(argumentList)))
 }
 
 func builtinString_toString(call FunctionCall) Value {
@@ -38,29 +38,29 @@ func builtinString_fromCharCode(call FunctionCall) Value {
 	for index, value := range call.ArgumentList {
 		chrList[index] = toUint16(value)
 	}
-	return toValue(chrList)
+	return toValue_string16(chrList)
 }
 
 func builtinString_charAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	value := toString(call.This)
 	value16 := utf16.Encode([]rune(value))
-	index := toInteger(call.Argument(0))
+	index := toInteger(call.Argument(0)).value
 	if 0 > index || index >= int64(len(value16)) {
-		return toValue("")
+		return toValue_string("")
 	}
-	return toValue(string(value16[index]))
+	return toValue_string(string(value16[index]))
 }
 
 func builtinString_charCodeAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	value := toString(call.This)
 	value16 := utf16.Encode([]rune(value))
-	index := toInteger(call.Argument(0))
+	index := toInteger(call.Argument(0)).value
 	if 0 > index || index >= int64(len(value16)) {
 		return NaNValue()
 	}
-	return toValue(value16[index])
+	return toValue_uint16(value16[index])
 }
 
 func builtinString_concat(call FunctionCall) Value {
@@ -70,7 +70,7 @@ func builtinString_concat(call FunctionCall) Value {
 	for _, item := range call.ArgumentList {
 		value.WriteString(toString(item))
 	}
-	return toValue(value.String())
+	return toValue_string(value.String())
 }
 
 func builtinString_indexOf(call FunctionCall) Value {
@@ -78,18 +78,18 @@ func builtinString_indexOf(call FunctionCall) Value {
 	value := toString(call.This)
 	target := toString(call.Argument(0))
 	if 2 > len(call.ArgumentList) {
-		return toValue(strings.Index(value, target))
+		return toValue_int(strings.Index(value, target))
 	}
-	start := float64(_toInteger(call.Argument(1)))
+	start := toIntegerFloat(call.Argument(1))
 	if 0 > start {
 		start = 0
 	} else if start >= float64(len(value)) {
 		if target == "" {
-			return toValue(len(value))
+			return toValue_int(len(value))
 		}
-		return toValue(-1)
+		return toValue_int(-1)
 	}
-	return toValue(strings.Index(value[int(start):], target))
+	return toValue_int(strings.Index(value[int(start):], target))
 }
 
 func builtinString_lastIndexOf(call FunctionCall) Value {
@@ -97,26 +97,26 @@ func builtinString_lastIndexOf(call FunctionCall) Value {
 	value := toString(call.This)
 	target := toString(call.Argument(0))
 	if 2 > len(call.ArgumentList) || call.ArgumentList[1].IsUndefined() {
-		return toValue(strings.LastIndex(value, target))
+		return toValue_int(strings.LastIndex(value, target))
 	}
 	length := len(value)
 	if length == 0 {
-		return toValue(strings.LastIndex(value, target))
+		return toValue_int(strings.LastIndex(value, target))
 	}
 	startNumber := toFloat(call.ArgumentList[1])
 	start := int64(0)
 	if math.IsNaN(startNumber) || math.IsInf(startNumber, 0) {
 		// startNumber is infinity, so start is the end of string (start = length)
-		return toValue(strings.LastIndex(value, target))
+		return toValue_int(strings.LastIndex(value, target))
 	} else {
-		start = toInteger(call.ArgumentList[1])
+		start = toInteger(call.ArgumentList[1]).value
 	}
 	if 0 > start {
 		start = 0
 	} else if start >= int64(length) {
-		return toValue(strings.LastIndex(value, target))
+		return toValue_int(strings.LastIndex(value, target))
 	}
-	return toValue(strings.LastIndex(value[:start], target))
+	return toValue_int(strings.LastIndex(value[:start], target))
 }
 
 func builtinString_match(call FunctionCall) Value {
@@ -133,23 +133,23 @@ func builtinString_match(call FunctionCall) Value {
 		if !match {
 			return NullValue()
 		}
-		return toValue(execResultToArray(call.runtime, target, result))
+		return toValue_object(execResultToArray(call.runtime, target, result))
 	}
 
 	{
 		result := matcher.regExpValue().regularExpression.FindAllStringIndex(target, -1)
 		matchCount := len(result)
 		if result == nil {
-			matcher.put("lastIndex", toValue(0), true)
+			matcher.put("lastIndex", toValue_int(0), true)
 			return UndefinedValue() // !match
 		}
 		matchCount = len(result)
 		valueArray := make([]Value, matchCount)
 		for index := 0; index < matchCount; index++ {
-			valueArray[index] = toValue(target[result[index][0]:result[index][1]])
+			valueArray[index] = toValue_string(target[result[index][0]:result[index][1]])
 		}
-		matcher.put("lastIndex", toValue(result[matchCount-1][1]), true)
-		return toValue(call.runtime.newArrayOf(valueArray))
+		matcher.put("lastIndex", toValue_int(result[matchCount-1][1]), true)
+		return toValue_object(call.runtime.newArrayOf(valueArray))
 	}
 }
 
@@ -210,7 +210,7 @@ func builtinString_replace(call FunctionCall) Value {
 
 	found := search.FindAllSubmatchIndex(target, find)
 	if found == nil {
-		return toValue(string(target)) // !match
+		return toValue_string(string(target)) // !match
 	}
 
 	{
@@ -230,13 +230,13 @@ func builtinString_replace(call FunctionCall) Value {
 				for index := 0; index < matchCount; index++ {
 					offset := 2 * index
 					if match[offset] != -1 {
-						argumentList[index] = toValue(target[match[offset]:match[offset+1]])
+						argumentList[index] = toValue_string(target[match[offset]:match[offset+1]])
 					} else {
 						argumentList[index] = UndefinedValue()
 					}
 				}
-				argumentList[matchCount+0] = toValue(match[0])
-				argumentList[matchCount+1] = toValue(target)
+				argumentList[matchCount+0] = toValue_int(match[0])
+				argumentList[matchCount+1] = toValue_string(target)
 				replacement := toString(replace.Call(UndefinedValue(), argumentList))
 				result = append(result, []byte(replacement)...)
 				lastIndex = match[1]
@@ -255,10 +255,10 @@ func builtinString_replace(call FunctionCall) Value {
 		}
 
 		if global && searchObject != nil {
-			searchObject.put("lastIndex", toValue(lastIndex), true)
+			searchObject.put("lastIndex", toValue_int(lastIndex), true)
 		}
 
-		return toValue(string(result))
+		return toValue_string(string(result))
 	}
 
 	return UndefinedValue()
@@ -274,9 +274,9 @@ func builtinString_search(call FunctionCall) Value {
 	}
 	result := search.regExpValue().regularExpression.FindStringIndex(target)
 	if result == nil {
-		return toValue(-1)
+		return toValue_int(-1)
 	}
-	return toValue(result[0])
+	return toValue_int(result[0])
 }
 
 func stringSplitMatch(target string, targetLength int64, index uint, search string, searchLength int64) (bool, uint) {
@@ -302,11 +302,11 @@ func builtinString_split(call FunctionCall) Value {
 	}
 
 	if limit == 0 {
-		return toValue(call.runtime.newArray(0))
+		return toValue_object(call.runtime.newArray(0))
 	}
 
 	if separatorValue.IsUndefined() {
-		return toValue(call.runtime.newArrayOf([]Value{toValue(target)}))
+		return toValue_object(call.runtime.newArrayOf([]Value{toValue_string(target)}))
 	}
 
 	if separatorValue.isRegExp() {
@@ -324,11 +324,11 @@ func builtinString_split(call FunctionCall) Value {
 			}
 
 			if lastIndex != match[0] {
-				valueArray = append(valueArray, toValue(target[lastIndex:match[0]]))
+				valueArray = append(valueArray, toValue_string(target[lastIndex:match[0]]))
 				found++
 			} else if lastIndex == match[0] {
 				if lastIndex != -1 {
-					valueArray = append(valueArray, toValue(""))
+					valueArray = append(valueArray, toValue_string(""))
 					found++
 				}
 			}
@@ -343,7 +343,7 @@ func builtinString_split(call FunctionCall) Value {
 				offset := index * 2
 				value := UndefinedValue()
 				if match[offset] != -1 {
-					value = toValue(target[match[offset]:match[offset+1]])
+					value = toValue_string(target[match[offset]:match[offset+1]])
 				}
 				valueArray = append(valueArray, value)
 				found++
@@ -355,14 +355,14 @@ func builtinString_split(call FunctionCall) Value {
 
 		if found != limit {
 			if lastIndex != targetLength {
-				valueArray = append(valueArray, toValue(target[lastIndex:targetLength]))
+				valueArray = append(valueArray, toValue_string(target[lastIndex:targetLength]))
 			} else {
-				valueArray = append(valueArray, toValue(""))
+				valueArray = append(valueArray, toValue_string(""))
 			}
 		}
 
 	RETURN:
-		return toValue(call.runtime.newArrayOf(valueArray))
+		return toValue_object(call.runtime.newArrayOf(valueArray))
 
 	} else {
 		separator := toString(separatorValue)
@@ -382,10 +382,10 @@ func builtinString_split(call FunctionCall) Value {
 
 		valueArray := make([]Value, len(split))
 		for index, value := range split {
-			valueArray[index] = toValue(value)
+			valueArray[index] = toValue_string(value)
 		}
 
-		return toValue(call.runtime.newArrayOf(valueArray))
+		return toValue_object(call.runtime.newArrayOf(valueArray))
 	}
 
 	return UndefinedValue()
@@ -395,38 +395,38 @@ func builtinString_slice(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	target := toString(call.This)
 
-	length := uint(len(target))
+	length := int64(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
 	if end-start <= 0 {
-		return toValue("")
+		return toValue_string("")
 	}
-	return toValue(target[start:end])
+	return toValue_string(target[start:end])
 }
 
 func builtinString_substring(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	target := toString(call.This)
 
-	length := uint(len(target))
+	length := int64(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, true)
 	if start > end {
 		start, end = end, start
 	}
-	return toValue(target[start:end])
+	return toValue_string(target[start:end])
 }
 
 func builtinString_substr(call FunctionCall) Value {
 	target := toString(call.This)
 
 	size := int64(len(target))
-	start, length := rangeStartLength(call.ArgumentList, uint(size))
+	start, length := rangeStartLength(call.ArgumentList, size)
 
 	if start >= size {
-		return toValue("")
+		return toValue_string("")
 	}
 
 	if length <= 0 {
-		return toValue("")
+		return toValue_string("")
 	}
 
 	if start+length >= size {
@@ -437,15 +437,15 @@ func builtinString_substr(call FunctionCall) Value {
 		length = size - start
 	}
 
-	return toValue(target[start : start+length])
+	return toValue_string(target[start : start+length])
 }
 
 func builtinString_toLowerCase(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue(strings.ToLower(toString(call.This)))
+	return toValue_string(strings.ToLower(toString(call.This)))
 }
 
 func builtinString_toUpperCase(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue(strings.ToUpper(toString(call.This)))
+	return toValue_string(strings.ToUpper(toString(call.This)))
 }

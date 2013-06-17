@@ -103,7 +103,7 @@ func (self *_dateObject) Set(epoch float64) {
 		self.epoch = -1
 		self.value = NaNValue()
 	} else {
-		self.value = toValue(self.epoch)
+		self.value = toValue_int64(self.epoch)
 	}
 }
 

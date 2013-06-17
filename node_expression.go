@@ -402,7 +402,7 @@ func newNumberNode(text string) *_valueNode {
 	return &_valueNode{
 		_nodeType: nodeValue,
 		Text:      text,
-		Value:     toValue(value),
+		Value:     toValue_float64(value),
 		Kind:      valueNodeNumber,
 	}
 }
@@ -411,7 +411,7 @@ func newStringNode(text string) *_valueNode {
 	return &_valueNode{
 		_nodeType: nodeValue,
 		Text:      text,
-		Value:     toValue(text),
+		Value:     toValue_string(text),
 		Kind:      valueNodeString, // Slightly less ugh, but still ugh
 	}
 }

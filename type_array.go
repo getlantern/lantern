@@ -7,7 +7,7 @@ import (
 func (runtime *_runtime) newArrayObject(length uint32) *_object {
 	self := runtime.newObject()
 	self.class = "Array"
-	self.defineProperty("length", toValue(length), 0100, false)
+	self.defineProperty("length", toValue_uint32(length), 0100, false)
 	self.objectClass = _classArray
 	return self
 }
@@ -27,8 +27,15 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		if descriptor.value == nil {
 			return objectDefineOwnProperty(self, name, descriptor, throw)
 		}
-		newLength := toUint32(descriptor.value.(Value))
-		descriptor.value = toValue(newLength)
+		newLength := uint32(0)
+		{
+			tmp := toInteger(descriptor.value.(Value))
+			if !tmp.valid() || !isUint32(tmp.value) {
+				panic(newRangeError())
+			}
+			newLength = uint32(tmp.value)
+		}
+		descriptor.value = toValue_uint32(newLength)
 		if newLength > length {
 			return objectDefineOwnProperty(self, name, descriptor, throw)
 		}
@@ -47,7 +54,7 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		for newLength < length {
 			length -= 1
 			if !self.delete(strconv.FormatInt(int64(length), 10), false) {
-				descriptor.value = toValue(length + 1)
+				descriptor.value = toValue_uint32(length + 1)
 				if !newWritable {
 					descriptor.mode &= 0077
 				}
@@ -60,15 +67,14 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 			objectDefineOwnProperty(self, name, descriptor, false)
 		}
 	} else if index := stringToArrayIndex(name); index >= 0 {
-		index := uint32(index)
-		if index >= length && !lengthProperty.writable() {
+		if index >= int64(length) && !lengthProperty.writable() {
 			goto Reject
 		}
-		if !objectDefineOwnProperty(self, name, descriptor, false) {
+		if !objectDefineOwnProperty(self, strconv.FormatInt(index, 10), descriptor, false) {
 			goto Reject
 		}
-		if index >= length {
-			lengthProperty.value = toValue(index + 1)
+		if index >= int64(length) {
+			lengthProperty.value = toValue_uint32(uint32(index + 1))
 			objectDefineOwnProperty(self, "length", *lengthProperty, false)
 			return true
 		}

@@ -138,7 +138,7 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateConditional(node)
 
 	case *_thisNode:
-		return toValue(self._executionContext(0).this)
+		return toValue_object(self._executionContext(0).this)
 
 	case *_commaNode:
 		return self.evaluateComma(node)

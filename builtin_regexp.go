@@ -14,11 +14,11 @@ func builtinRegExp(call FunctionCall) Value {
 			return pattern
 		}
 	}
-	return toValue(call.runtime.newRegExp(pattern, flags))
+	return toValue_object(call.runtime.newRegExp(pattern, flags))
 }
 
 func builtinNewRegExp(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newRegExp(
+	return toValue_object(self.runtime.newRegExp(
 		valueOfArrayIndex(argumentList, 0),
 		valueOfArrayIndex(argumentList, 1),
 	))
@@ -37,7 +37,7 @@ func builtinRegExp_toString(call FunctionCall) Value {
 	if toBoolean(thisObject.get("multiline")) {
 		flags = append(flags, 'm')
 	}
-	return toValue(fmt.Sprintf("/%s/%s", source, flags))
+	return toValue_string(fmt.Sprintf("/%s/%s", source, flags))
 }
 
 func builtinRegExp_exec(call FunctionCall) Value {
@@ -47,14 +47,14 @@ func builtinRegExp_exec(call FunctionCall) Value {
 	if !match {
 		return NullValue()
 	}
-	return toValue(execResultToArray(call.runtime, target, result))
+	return toValue_object(execResultToArray(call.runtime, target, result))
 }
 
 func builtinRegExp_test(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	target := toString(call.Argument(0))
 	match, _ := execRegExp(thisObject, target)
-	return toValue(match)
+	return toValue_bool(match)
 }
 
 func builtinRegExp_compile(call FunctionCall) Value {

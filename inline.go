@@ -5182,6 +5182,13 @@ func toValue_string(value string) Value {
 	}
 }
 
+func toValue_string16(value []uint16) Value {
+	return Value{
+		_valueType: valueString,
+		value:      value,
+	}
+}
+
 func toValue_bool(value bool) Value {
 	return Value{
 		_valueType: valueBoolean,

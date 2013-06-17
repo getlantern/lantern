@@ -11,7 +11,7 @@ func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length 
 		call:      newNativeCallFunction(native),
 		construct: defaultConstructFunction,
 	}
-	self.defineProperty("length", toValue(length), 0000, false)
+	self.defineProperty("length", toValue_int(length), 0000, false)
 	return self
 }
 
@@ -21,7 +21,7 @@ func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnviron
 		call:      newNodeCallFunction(node, scopeEnvironment),
 		construct: defaultConstructFunction,
 	}
-	self.defineProperty("length", toValue(len(node.ParameterList)), 0000, false)
+	self.defineProperty("length", toValue_int(len(node.ParameterList)), 0000, false)
 	return self
 }
 
@@ -32,7 +32,7 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 		construct: defaultConstructFunction,
 	}
 	// FIXME
-	self.defineProperty("length", toValue(0), 0000, false)
+	self.defineProperty("length", toValue_int(0), 0000, false)
 	return self
 }
 
@@ -43,7 +43,7 @@ func (self *_object) functionValue() _functionObject {
 
 func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 	if self.functionValue().call == nil {
-		panic(newTypeError("%v is not a function", toValue(self)))
+		panic(newTypeError("%v is not a function", toValue_object(self)))
 	}
 	return self.runtime.Call(self, this, self.runtime.toValueArray(argumentList...), false)
 	// ... -> runtime -> self.Function.Call.Dispatch -> ...
@@ -52,10 +52,10 @@ func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 func (self *_object) Construct(this Value, argumentList ...interface{}) Value {
 	function := self.functionValue()
 	if function.call == nil {
-		panic(newTypeError("%v is not a function", toValue(self)))
+		panic(newTypeError("%v is not a function", toValue_object(self)))
 	}
 	if function.construct == nil {
-		panic(newTypeError("%v is not a constructor", toValue(self)))
+		panic(newTypeError("%v is not a constructor", toValue_object(self)))
 	}
 	return function.construct(self, this, self.runtime.toValueArray(argumentList...))
 }
@@ -65,10 +65,10 @@ func defaultConstructFunction(self *_object, this Value, argumentList []Value) V
 	newObject.class = "Object"
 	prototypeValue := self.get("prototype")
 	if !prototypeValue.IsObject() {
-		prototypeValue = toValue(self.runtime.Global.ObjectPrototype)
+		prototypeValue = toValue_object(self.runtime.Global.ObjectPrototype)
 	}
 	newObject.prototype = prototypeValue._object()
-	newObjectValue := toValue(newObject)
+	newObjectValue := toValue_object(newObject)
 	result := self.Call(newObjectValue, argumentList)
 	if result.IsObject() {
 		return result
@@ -77,11 +77,11 @@ func defaultConstructFunction(self *_object, this Value, argumentList []Value) V
 }
 
 func (self *_object) CallGet(name string) Value {
-	return self.runtime.Call(self, toValue(self), []Value{toValue(name)}, false)
+	return self.runtime.Call(self, toValue_object(self), []Value{toValue_string(name)}, false)
 }
 
 func (self *_object) CallSet(name string, value Value) {
-	self.runtime.Call(self, toValue(self), []Value{toValue(name), value}, false)
+	self.runtime.Call(self, toValue_object(self), []Value{toValue_string(name), value}, false)
 }
 
 // 15.3.5.3

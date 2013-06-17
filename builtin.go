@@ -41,12 +41,12 @@ func builtinGlobal_eval(call FunctionCall) Value {
 
 func builtinGlobal_isNaN(call FunctionCall) Value {
 	value := toFloat(call.Argument(0))
-	return toValue(math.IsNaN(value))
+	return toValue_bool(math.IsNaN(value))
 }
 
 func builtinGlobal_isFinite(call FunctionCall) Value {
 	value := toFloat(call.Argument(0))
-	return toValue(!math.IsNaN(value) && !math.IsInf(value, 0))
+	return toValue_bool(!math.IsNaN(value) && !math.IsInf(value, 0))
 }
 
 // radix 3 => 2 (ASCII 50) +47
@@ -120,7 +120,7 @@ func builtinGlobal_parseInt(call FunctionCall) Value {
 	}
 	value *= sign
 
-	return toValue(value)
+	return toValue_int64(value)
 }
 
 var parseFloat_matchBadSpecial = regexp.MustCompile(`[\+\-]?(?:[Ii]nf$|infinity)`)
@@ -148,7 +148,7 @@ func builtinGlobal_parseFloat(call FunctionCall) Value {
 			return NaNValue()
 		}
 	}
-	return toValue(value)
+	return toValue_float64(value)
 }
 
 // encodeURI/decodeURI
@@ -163,7 +163,7 @@ func _builtinGlobal_encodeURI(call FunctionCall, escape *regexp.Regexp) Value {
 		input = utf16.Encode([]rune(toString(value)))
 	}
 	if len(input) == 0 {
-		return toValue("")
+		return toValue_string("")
 	}
 	output := []byte{}
 	length := len(input)
@@ -200,7 +200,7 @@ func _builtinGlobal_encodeURI(call FunctionCall, escape *regexp.Regexp) Value {
 			}
 			return []byte(url.QueryEscape(string(target)))
 		})
-		return toValue(string(value))
+		return toValue_string(string(value))
 	}
 }
 
@@ -236,7 +236,7 @@ func builtinGlobal_decodeURI(call FunctionCall) Value {
 	if err {
 		panic(newURIError("URI malformed"))
 	}
-	return toValue(output)
+	return toValue_string(output)
 }
 
 func builtinGlobal_decodeURIComponent(call FunctionCall) Value {
@@ -244,7 +244,7 @@ func builtinGlobal_decodeURIComponent(call FunctionCall) Value {
 	if err {
 		panic(newURIError("URI malformed"))
 	}
-	return toValue(output)
+	return toValue_string(output)
 }
 
 // escape/unescape
@@ -321,21 +321,21 @@ func builtin_unescape(input string) string {
 }
 
 func builtinGlobal_escape(call FunctionCall) Value {
-	return toValue(builtin_escape(toString(call.Argument(0))))
+	return toValue_string(builtin_escape(toString(call.Argument(0))))
 }
 
 func builtinGlobal_unescape(call FunctionCall) Value {
-	return toValue(builtin_unescape(toString(call.Argument(0))))
+	return toValue_string(builtin_unescape(toString(call.Argument(0))))
 }
 
 // Error
 
 func builtinError(call FunctionCall) Value {
-	return toValue(call.runtime.newError("", call.Argument(0)))
+	return toValue_object(call.runtime.newError("", call.Argument(0)))
 }
 
 func builtinNewError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue(self.runtime.newError("", valueOfArrayIndex(argumentList, 0)))
+	return toValue_object(self.runtime.newError("", valueOfArrayIndex(argumentList, 0)))
 }
 
 func builtinError_toString(call FunctionCall) Value {
@@ -357,12 +357,12 @@ func builtinError_toString(call FunctionCall) Value {
 	}
 
 	if len(name) == 0 {
-		return toValue(message)
+		return toValue_string(message)
 	}
 
 	if len(message) == 0 {
-		return toValue(name)
+		return toValue_string(name)
 	}
 
-	return toValue(fmt.Sprintf("%s: %s", name, message))
+	return toValue_string(fmt.Sprintf("%s: %s", name, message))
 }

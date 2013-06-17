@@ -9,22 +9,22 @@ import (
 
 func builtinMath_abs(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Abs(number))
+	return toValue_float64(math.Abs(number))
 }
 
 func builtinMath_acos(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Acos(number))
+	return toValue_float64(math.Acos(number))
 }
 
 func builtinMath_asin(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Asin(number))
+	return toValue_float64(math.Asin(number))
 }
 
 func builtinMath_atan(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Atan(number))
+	return toValue_float64(math.Atan(number))
 }
 
 func builtinMath_atan2(call FunctionCall) Value {
@@ -36,32 +36,32 @@ func builtinMath_atan2(call FunctionCall) Value {
 	if math.IsNaN(x) {
 		return NaNValue()
 	}
-	return toValue(math.Atan2(y, x))
+	return toValue_float64(math.Atan2(y, x))
 }
 
 func builtinMath_cos(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Cos(number))
+	return toValue_float64(math.Cos(number))
 }
 
 func builtinMath_ceil(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Ceil(number))
+	return toValue_float64(math.Ceil(number))
 }
 
 func builtinMath_exp(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Exp(number))
+	return toValue_float64(math.Exp(number))
 }
 
 func builtinMath_floor(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Floor(number))
+	return toValue_float64(math.Floor(number))
 }
 
 func builtinMath_log(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Log(number))
+	return toValue_float64(math.Log(number))
 }
 
 func builtinMath_max(call FunctionCall) Value {
@@ -69,7 +69,7 @@ func builtinMath_max(call FunctionCall) Value {
 	case 0:
 		return negativeInfinityValue()
 	case 1:
-		return toValue(toFloat(call.ArgumentList[0]))
+		return toValue_float64(toFloat(call.ArgumentList[0]))
 	}
 	result := toFloat(call.ArgumentList[0])
 	if math.IsNaN(result) {
@@ -82,7 +82,7 @@ func builtinMath_max(call FunctionCall) Value {
 		}
 		result = math.Max(result, value)
 	}
-	return toValue(result)
+	return toValue_float64(result)
 }
 
 func builtinMath_min(call FunctionCall) Value {
@@ -90,7 +90,7 @@ func builtinMath_min(call FunctionCall) Value {
 	case 0:
 		return positiveInfinityValue()
 	case 1:
-		return toValue(toFloat(call.ArgumentList[0]))
+		return toValue_float64(toFloat(call.ArgumentList[0]))
 	}
 	result := toFloat(call.ArgumentList[0])
 	if math.IsNaN(result) {
@@ -103,7 +103,7 @@ func builtinMath_min(call FunctionCall) Value {
 		}
 		result = math.Min(result, value)
 	}
-	return toValue(result)
+	return toValue_float64(result)
 }
 
 func builtinMath_pow(call FunctionCall) Value {
@@ -113,11 +113,11 @@ func builtinMath_pow(call FunctionCall) Value {
 	if x == 1 && math.IsInf(y, 0) {
 		return NaNValue()
 	}
-	return toValue(math.Pow(x, y))
+	return toValue_float64(math.Pow(x, y))
 }
 
 func builtinMath_random(call FunctionCall) Value {
-	return toValue(rand.Float64())
+	return toValue_float64(rand.Float64())
 }
 
 func builtinMath_round(call FunctionCall) Value {
@@ -126,20 +126,20 @@ func builtinMath_round(call FunctionCall) Value {
 	if value == 0 {
 		value = math.Copysign(0, number)
 	}
-	return toValue(value)
+	return toValue_float64(value)
 }
 
 func builtinMath_sin(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Sin(number))
+	return toValue_float64(math.Sin(number))
 }
 
 func builtinMath_sqrt(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Sqrt(number))
+	return toValue_float64(math.Sqrt(number))
 }
 
 func builtinMath_tan(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	return toValue(math.Tan(number))
+	return toValue_float64(math.Tan(number))
 }

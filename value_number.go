@@ -92,6 +92,8 @@ func toFloat(value Value) float64 {
 }
 
 const (
+	float_2_64   float64 = 18446744073709551616.0
+	float_2_63   float64 = 9223372036854775808.0
 	float_2_32   float64 = 4294967296.0
 	float_2_31   float64 = 2147483648.0
 	float_2_16   float64 = 65536.0
@@ -101,67 +103,48 @@ const (
 )
 
 const (
-	_MaxInt8   = math.MaxInt8
-	_MinInt8   = math.MinInt8
-	_MaxInt16  = math.MaxInt16
-	_MinInt16  = math.MinInt16
-	_MaxInt32  = math.MaxInt32
-	_MinInt32  = math.MinInt32
-	_MaxInt64  = math.MaxInt64
-	_MinInt64  = math.MinInt64
-	_MaxUint8  = math.MaxUint8
-	_MaxUint16 = math.MaxUint16
-	_MaxUint32 = math.MaxUint32
-	_MaxUint64 = math.MaxUint64
-	_MaxUint   = ^uint(0)
-	_MinUint   = 0
-	_MaxInt    = int(^uint(0) >> 1)
-	_MinInt    = -_MaxInt - 1
+	maxInt8   = math.MaxInt8
+	minInt8   = math.MinInt8
+	maxInt16  = math.MaxInt16
+	minInt16  = math.MinInt16
+	maxInt32  = math.MaxInt32
+	minInt32  = math.MinInt32
+	maxInt64  = math.MaxInt64
+	minInt64  = math.MinInt64
+	maxUint8  = math.MaxUint8
+	maxUint16 = math.MaxUint16
+	maxUint32 = math.MaxUint32
+	maxUint64 = math.MaxUint64
+	maxUint   = ^uint(0)
+	minUint   = 0
+	maxInt    = int(^uint(0) >> 1)
+	minInt    = -maxInt - 1
 
 	// int64
-	_MaxInt8_   int64 = math.MaxInt8
-	_MinInt8_   int64 = math.MinInt8
-	_MaxInt16_  int64 = math.MaxInt16
-	_MinInt16_  int64 = math.MinInt16
-	_MaxInt32_  int64 = math.MaxInt32
-	_MinInt32_  int64 = math.MinInt32
-	_MaxUint8_  int64 = math.MaxUint8
-	_MaxUint16_ int64 = math.MaxUint16
-	_MaxUint32_ int64 = math.MaxUint32
+	int64_maxInt    int64 = int64(maxInt)
+	int64_minInt    int64 = int64(minInt)
+	int64_maxInt8   int64 = math.MaxInt8
+	int64_minInt8   int64 = math.MinInt8
+	int64_maxInt16  int64 = math.MaxInt16
+	int64_minInt16  int64 = math.MinInt16
+	int64_maxInt32  int64 = math.MaxInt32
+	int64_minInt32  int64 = math.MinInt32
+	int64_maxUint8  int64 = math.MaxUint8
+	int64_maxUint16 int64 = math.MaxUint16
+	int64_maxUint32 int64 = math.MaxUint32
 
 	// float64
-	_MaxInt_    float64 = float64(int(^uint(0) >> 1))
-	_MinInt_    float64 = float64(int(-_MaxInt - 1))
-	_MinUint_   float64 = float64(0)
-	_MaxUint_   float64 = float64(uint(^uint(0)))
-	_MinUint64_ float64 = float64(0)
-	_MaxUint64_ float64 = math.MaxUint64
-	_MaxInt64_  float64 = math.MaxInt64
-	_MinInt64_  float64 = math.MinInt64
+	float_maxInt    float64 = float64(int(^uint(0) >> 1))
+	float_minInt    float64 = float64(int(-maxInt - 1))
+	float_minUint   float64 = float64(0)
+	float_maxUint   float64 = float64(uint(^uint(0)))
+	float_minUint64 float64 = float64(0)
+	float_maxUint64 float64 = math.MaxUint64
+	float_maxInt64  float64 = math.MaxInt64
+	float_minInt64  float64 = math.MinInt64
 )
 
-type _integer float64
-
-func (self _integer) float() float64 {
-	return float64(self)
-}
-
-func (self _integer) isInfinity() bool {
-	return math.IsInf(float64(self), 0)
-}
-
-func (self _integer) infinity() int {
-	if math.IsInf(float64(self), 0) {
-		if math.IsInf(float64(self), 1) {
-			return +1
-		}
-		return -1
-	}
-	return 0
-}
-
-// A "safe" replacement for toInteger
-func _toInteger(value Value) _integer {
+func toIntegerFloat(value Value) float64 {
 	float := value.toFloat()
 	if math.IsInf(float, 0) {
 	} else if math.IsNaN(float) {
@@ -171,39 +154,81 @@ func _toInteger(value Value) _integer {
 	} else {
 		float = math.Ceil(float)
 	}
-	return _integer(float)
+	return float
 }
 
-func toIntegerFloat(value Value) float64 {
-	return float64(_toInteger(value))
+type _integerKind int
+
+const (
+	integerValid _integerKind = iota
+	integerInfinite
+	integerInvalid
+)
+
+type _integer struct {
+	_integerKind
+	value int64
 }
 
-func toInteger(value Value) int64 {
+func (self _integer) valid() bool {
+	return self._integerKind == integerValid
+}
+
+func (self _integer) infinite() bool {
+	return self._integerKind == integerInfinite
+}
+
+func toInteger(value Value) (integer _integer) {
+	switch value := value.value.(type) {
+	case int8:
+		integer.value = int64(value)
+		return
+	case int16:
+		integer.value = int64(value)
+		return
+	case uint8:
+		integer.value = int64(value)
+		return
+	case uint16:
+		integer.value = int64(value)
+		return
+	case uint32:
+		integer.value = int64(value)
+		return
+	case int:
+		integer.value = int64(value)
+		return
+	case int64:
+		integer.value = value
+		return
+	}
 	{
-		switch value := value.value.(type) {
-		case int8:
-			return int64(value)
-		case int16:
-			return int64(value)
-		case int32:
-			return int64(value)
+		value := value.toFloat()
+		if value == 0 {
+			return
 		}
+		if math.IsNaN(value) {
+			integer._integerKind = integerInvalid
+			return
+		}
+		if math.IsInf(value, 0) {
+			integer._integerKind = integerInfinite
+		}
+		if value >= float_maxInt64 {
+			integer.value = math.MaxInt64
+			return
+		}
+		if value <= float_minInt64 {
+			integer.value = math.MinInt64
+			return
+		}
+		if value > 0 {
+			integer.value = int64(math.Floor(value))
+			return
+		}
+		integer.value = int64(math.Ceil(value))
+		return
 	}
-	switch value._valueType {
-	case valueUndefined, valueNull:
-		return 0
-	}
-	floatValue := value.toFloat()
-	if math.IsNaN(floatValue) {
-		return 0
-	} else if math.IsInf(floatValue, 0) {
-		// FIXME
-		dbgf("%/panic//%@: %f %v to int64", floatValue, value)
-	}
-	if floatValue > 0 {
-		return int64(math.Floor(floatValue))
-	}
-	return int64(math.Ceil(floatValue))
 }
 
 // ECMA 262: 9.5

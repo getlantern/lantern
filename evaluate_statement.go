@@ -50,7 +50,7 @@ func (self *_runtime) evaluateVariableDeclaration(node *_variableDeclarationNode
 
 		self.PutValue(left, rightValue)
 	}
-	return toValue(node.Identifier)
+	return toValue_string(node.Identifier)
 }
 
 func (self *_runtime) evaluateThrow(node *_throwNode) Value {
@@ -248,7 +248,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 				// TODO Should be true or false (strictness) depending on context
 				into = toValue(getIdentifierReference(self.LexicalEnvironment(), identifier, false, node))
 			}
-			self.PutValue(into.reference(), toValue(name))
+			self.PutValue(into.reference(), toValue_string(name))
 			for _, node := range body {
 				value := self.evaluate(node)
 				switch value.evaluateBreakContinue(labelSet) {
