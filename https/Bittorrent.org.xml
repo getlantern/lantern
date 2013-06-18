@@ -1,6 +1,0 @@
-<ruleset name="bittorrentdotorg" default_off="certificate mismatch">
-  <target host="bittorrent.org" />
-  <target host="www.bittorrent.org" />
-
-  <rule from="^http://(www\.)?bittorrent\.org/" to="https://www.bittorrent.org/"/>
-</ruleset>

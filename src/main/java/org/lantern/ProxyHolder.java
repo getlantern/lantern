@@ -173,4 +173,14 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
     public boolean lastFailed() {
         return lastFailed.get();
     }
+
+    public String getProxyUsername() {
+        // TODO: Implement!
+        return "";
+    }
+
+    public String getProxyPassword() {
+        // TODO: Implement!
+        return "";
+    }
 }

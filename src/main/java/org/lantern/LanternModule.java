@@ -16,6 +16,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
+import org.jivesoftware.smack.SASLAuthentication;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
@@ -81,10 +82,13 @@ public class LanternModule extends AbstractModule {
         ThreadRenamingRunnable.setThreadNameDeterminer(
                 ThreadNameDeterminer.CURRENT);
         
+        SASLAuthentication.registerSASLMechanism("X-OAUTH2", 
+            LanternSaslGoogleOAuth2Mechanism.class);
+        
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
-        bind(Stats.class).to(StatsTracker.class);
+        bind(ClientStats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwtMessageService.class);
@@ -148,7 +152,7 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public UpnpService provideUpnpService(final Stats stats) {
+    public UpnpService provideUpnpService(final ClientStats stats) {
         // Testing.
         if (this.upnpService != null) {
             return this.upnpService;
@@ -157,7 +161,7 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    public NatPmpService provideNatPmpService(final Stats stats) {
+    public NatPmpService provideNatPmpService(final ClientStats stats) {
         // Testing.
         if (this.natPmpService != null) {
             return this.natPmpService;

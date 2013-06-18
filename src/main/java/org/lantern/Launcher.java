@@ -213,37 +213,54 @@ public class Launcher {
 
         injector = Guice.createInjector(this.lanternModule);
 
-        boolean uiEnabled = true;
-
-        // We parse this one separately because we need this value right away.
-        if (cmd.hasOption(OPTION_DISABLE_UI)) {
-            LOG.info("Disabling UI");
-            uiEnabled = false;
-        }
-        else {
-            uiEnabled = true;
-        }
-
         LOG.debug("Creating display...");
-        final Display display;
-        splashScreen = instance(SplashScreen.class);
-        if (uiEnabled) {
-            // We initialize this super early in case there are any errors
-            // during startup we have to display to the user.
-            Display.setAppName("Lantern");
-            //display = injector.getInstance(Display.class);;
-            display = DisplayWrapper.getDisplay();
-            // Also, We need the system tray to listen for events early on.
-            //LanternHub.systemTray().createTray();
-            splashScreen.init(display);
+        
+        // There are four cases here:
+        // 1) We're just starting normally
+        // 2) We're running with UI disabled (such as from a server), in 
+        //    which case we don't show any UI elements
+        // 3) We're running on system startup (specified with --launchd flag)
+        //    and setup is not complete, in which case we show no splash screen,
+        //    but do show the UI at whatever setup step it's currently at
+        //    and put the app in the system tray
+        // 4) We're running on system startup (specified with --launchd flag)
+        //    and setup IS complete, in which case we show no splash screen,
+        //    do not show the UI, but do put the app in the system tray.
+        final boolean uiDisabled = cmd.hasOption(OPTION_DISABLE_UI);
+        final boolean launchD = cmd.hasOption(OPTION_LAUNCHD);
+        
+        final boolean showDashboard;
+        final boolean showTray = !uiDisabled;
+        if (uiDisabled) {
+            showDashboard = false;
+        } else if (launchD) {
+            if (model.isSetupComplete()) {
+                showDashboard = false;
+            } else {
+                showDashboard = true;
+            }
+        } else {
+            showDashboard = true;
         }
-        else {
+        
+        final Display display;
+        if (uiDisabled) {
             display = null;
+        } else {
+            Display.setAppName("Lantern");
+            display = DisplayWrapper.getDisplay();
+            
+            // Never show the splash screen on startup, even if setup is
+            // not complete.
+            if (!launchD) {
+                splashScreen = instance(SplashScreen.class);
+                splashScreen.init(display);
+            }
         }
 
         model = instance(Model.class);
         set = model.getSettings();
-        set.setUiEnabled(uiEnabled);
+        set.setUiEnabled(!uiDisabled);
 
         configureCipherSuites();
 
@@ -262,8 +279,10 @@ public class Launcher {
             }
         }
         instance(Proxifier.class);
-        if (set.isUiEnabled()) {
+        if (showDashboard) {
             browserService = instance(BrowserService.class);
+        }
+        if (showTray) {
             systemTray = instance(SystemTray.class);
         }
         // We need to make sure the trust store is initialized before we
@@ -293,13 +312,15 @@ public class Launcher {
         LOG.debug("Processed command line options...");
 
         geoip = instance(GeoIp.class);
-
+        statsUpdater = instance(StatsUpdater.class);
+        
         model.getConnectivity().setInternet(false);
-        Timer timer = new Timer();
-        ConnectivityChecker connectivityChecker = instance(ConnectivityChecker.class);
+        final Timer timer = new Timer();
+        final ConnectivityChecker connectivityChecker = 
+            instance(ConnectivityChecker.class);
         timer.schedule(connectivityChecker, 0, 60 * 1000);
 
-        if (set.isUiEnabled()) {
+        if (!uiDisabled) {
             LOG.debug("Starting system tray..");
             try {
                 systemTray.start();
@@ -323,7 +344,6 @@ public class Launcher {
         plainTextAnsererRelayProxy.start(true, false);
 
         syncService.start();
-        statsUpdater = instance(StatsUpdater.class);
         statsUpdater.start();
 
         gnomeAutoStart();
@@ -334,7 +354,7 @@ public class Launcher {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
-        launchLantern();
+        launchLantern(showDashboard);
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
@@ -350,6 +370,7 @@ public class Launcher {
     }
 
     private <T> T instance(final Class<T> clazz) {
+        LOG.debug("Loading {}", clazz.getSimpleName());
         final T inst = injector.getInstance(clazz);
         if (Shutdownable.class.isAssignableFrom(clazz)) {
             addShutdownHook((Shutdownable) inst);
@@ -361,6 +382,7 @@ public class Launcher {
         if (splashScreen != null) {
             splashScreen.advanceBar();
         }
+        LOG.debug("Finished loading {}", clazz.getSimpleName());
         return inst;
     }
 
@@ -536,22 +558,16 @@ public class Launcher {
         }
     }
 
-    public void launchLantern() {
+    private void launchLantern(final boolean showDashboard) {
         LOG.debug("Launching Lantern...");
         if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
             model.setModal(Modal.welcome);
         }
-        if (set.isUiEnabled()) {
-            if (model.isLaunchd() && model.isSetupComplete()) {
-                LOG.debug("Not opening browser when run on startup and " +
-                    "setup is complete");
-            } else {
-                browserService.openBrowserWhenPortReady();
-            }
+        if (showDashboard) {
+            browserService.openBrowserWhenPortReady();
         }
 
         autoConnect();
-
         lanternStarted = true;
     }
 

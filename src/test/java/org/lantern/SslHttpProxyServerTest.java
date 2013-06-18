@@ -62,7 +62,7 @@ public class SslHttpProxyServerTest {
         final LanternSocketsUtil socketsUtil = 
                 new LanternSocketsUtil(null, ts);
         final HttpClientFactory httpFactory =
-                new HttpClientFactory(socketsUtil, null);
+                new HttpClientFactory(socketsUtil, null, null);
         
         final HttpHost host = new HttpHost(
                 "127.0.0.1", server.getPort(), "https");

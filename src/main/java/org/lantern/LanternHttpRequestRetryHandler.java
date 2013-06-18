@@ -7,9 +7,7 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
@@ -35,6 +33,7 @@ public class LanternHttpRequestRetryHandler
     public boolean retryRequest(final IOException exception,
         final int executionCount, final HttpContext context) {
         log.debug("Checking for retry...");
+        /*
         final boolean standard = 
             super.retryRequest(exception, executionCount, context);
         if (!standard) {
@@ -53,6 +52,8 @@ public class LanternHttpRequestRetryHandler
             }
         }
         return standard;
+        */
+        return false;
     }
 
     private boolean isBlockingException(final IOException exception) {

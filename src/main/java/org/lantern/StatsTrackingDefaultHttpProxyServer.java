@@ -65,8 +65,8 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
     private final ClientSocketChannelFactory clientChannelFactory;
 
     private final HandshakeHandlerFactory handshakeHandlerFactory;
-    
-    private final Stats stats;
+
+    private final ClientStats stats;
 
     private final GlobalLanternServerTrafficShapingHandler serverTrafficHandler;
 
@@ -95,7 +95,7 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory,
         final HandshakeHandlerFactory handshakeHandlerFactory,
-        final Stats stats, 
+        final ClientStats stats,
         final GlobalLanternServerTrafficShapingHandler serverTrafficHandler) {
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;

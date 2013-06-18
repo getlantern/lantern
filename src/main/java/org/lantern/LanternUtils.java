@@ -954,7 +954,7 @@ public class LanternUtils {
         try {
             ia = InetAddress.getByName(host);
         } catch (final UnknownHostException e) {
-            LOG.error("Bad host?", e);
+            LOG.error("Could not lookup host address at "+host, e);
             throw new Error("Bad host", e);
         }
         return new InetSocketAddress(ia, port);
@@ -1096,21 +1096,5 @@ public class LanternUtils {
     public static void setKeystorePath(final String path) {
         LOG.info("Setting keystorePath to '" + path + "'");
         keystorePath = path;
-    }
-
-    public static String getFallbackServerHost() {
-        return fallbackServerHost;
-    }
-
-    public static void setFallbackServerHost(final String fallbackServerHost) {
-        LanternUtils.fallbackServerHost = fallbackServerHost;
-    }
-
-    public static int getFallbackServerPort() {
-        return fallbackServerPort;
-    }
-
-    public static void setFallbackServerPort(final int fallbackServerPort) {
-        LanternUtils.fallbackServerPort = fallbackServerPort;
     }
 }

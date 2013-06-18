@@ -80,6 +80,8 @@ public class Model {
 
     private boolean isEverGetMode;
 
+    private boolean welcomeMessageShown;
+
     private String xsrfToken;
 
     private CountryService countryService;
@@ -356,5 +358,14 @@ public class Model {
         String email = XmppUtils.jidToUser(from);
         Friend friend = friends.get(email);
         return friend != null && friend.getStatus() != Status.rejected;
+    }
+
+    @JsonView({Persistent.class})
+    public boolean isWelcomeMessageShown() {
+        return welcomeMessageShown;
+    }
+
+    public void setWelcomeMessageShown(boolean welcomeMessageShown) {
+        this.welcomeMessageShown = welcomeMessageShown;
     }
 }

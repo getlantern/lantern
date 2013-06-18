@@ -20,6 +20,20 @@ public class Whitelist {
     private final Collection<String> requiredEntries = new HashSet<String>();
 
     public static final String[] SITES = {
+        
+        "masihalinejad.com",
+        "babakdad.blogspot.fr",
+        "asgharagha.com",
+        "seyedmojtaba-vahedi.blogspot.co.uk",
+        "melimazhabi.com",
+        "mardomak.org",
+        "kayhanlondon.com",
+        "dw.de",
+        "nariman.me",
+        "aminsabeti.net",
+        "arashzad.net",
+        "blognevesht.com",
+        
         "avaaz.org",
         "bittorrent.com",
         "bloglines.com",

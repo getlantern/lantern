@@ -23,8 +23,8 @@ import org.jivesoftware.smackx.packet.VCard;
 import org.lantern.LanternUtils;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
+import org.lantern.util.XmppUtils;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

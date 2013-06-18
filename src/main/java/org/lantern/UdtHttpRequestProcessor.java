@@ -43,8 +43,6 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
 
     private final ChannelGroup channelGroup;
 
-    private final Stats stats;
-
     private final LanternTrustStore trustStore;
 
     private LanternTrafficCounter trafficHandler;
@@ -54,13 +52,12 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
     private final NioEventLoopGroup connectGroup = new NioEventLoopGroup(1,
             Threads.newNonDaemonThreadFactory("connect"), NioUdtProvider.BYTE_PROVIDER);
 
-    public UdtHttpRequestProcessor( 
-        final ProxyTracker proxyTracker, 
-        final ChannelGroup channelGroup, final Stats stats,
+    public UdtHttpRequestProcessor(
+        final ProxyTracker proxyTracker,
+        final ChannelGroup channelGroup,
         final LanternTrustStore trustStore) {
         this.proxyTracker = proxyTracker;
         this.channelGroup = channelGroup;
-        this.stats = stats;
         this.trustStore = trustStore;
     }
     

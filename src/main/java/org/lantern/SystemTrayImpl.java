@@ -152,6 +152,7 @@ public class SystemTrayImpl implements SystemTray {
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
+                    log.debug("Reopening browser?");
                     browserService.reopenBrowser();
                 }
             });
@@ -165,7 +166,7 @@ public class SystemTrayImpl implements SystemTray {
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    System.out.println("Got exit call");
+                    log.debug("Got exit call");
                     
                     // This tells things like the Proxifier to stop proxying.
                     Events.eventBus().post(new QuitEvent());
@@ -178,7 +179,7 @@ public class SystemTrayImpl implements SystemTray {
             trayItem.addListener (SWT.MenuDetect, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    System.out.println("Setting menu visible");
+                    log.debug("Setting menu visible");
                     menu.setVisible (true);
                 }
             });
@@ -202,12 +203,14 @@ public class SystemTrayImpl implements SystemTray {
                     
                     @Override
                     public void widgetDefaultSelected(SelectionEvent se) {
-                        log.info("default selection event unhandled");
+                        log.debug("default selection event unhandled");
                     }
                 });
+                log.debug("Added selection");
             }
             this.active = true;
         }
+        log.debug("Finished creating tray...");
     }
 
     private void setImage(final Image image) {
@@ -239,17 +242,20 @@ public class SystemTrayImpl implements SystemTray {
             iconFile = new File(name);
         }
         if (!iconFile.isFile()) {
-            log.error("Still no icon file at: " + iconFile);
+            log.error("Still no icon file at: {}", iconFile.getAbsolutePath());
+            return null;
         }
         InputStream is = null;
         try {
             is = new FileInputStream(iconFile);
+            log.debug("Returning file at: {}", iconFile.getAbsolutePath());
             return new Image (DisplayWrapper.getDisplay(), is);
         } catch (final FileNotFoundException e) {
             log.error("Could not find icon file: "+iconFile, e);
         } finally {
             IOUtils.closeQuietly(is);
         }
+        log.debug("Returning blank image");
         return new Image (DisplayWrapper.getDisplay(), width, height);
     }
 

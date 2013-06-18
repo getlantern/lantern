@@ -115,7 +115,7 @@ public class LanternProxyingTest {
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 
             3000);
         // Timeout when server does not send data.
-        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 20000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 40000);
         client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
             new HttpHost("localhost", proxyPort));
         final HttpResponse response;
@@ -127,7 +127,8 @@ public class LanternProxyingTest {
         } catch (final IOException e) {
             log.warn("IO error connecting to "+url, e);
             return false;
-        }
+        } 
+        
         if (200 !=  response.getStatusLine().getStatusCode()) {
             return false;
         }
@@ -144,6 +145,7 @@ public class LanternProxyingTest {
             return false;
         }
         EntityUtils.consume(entity);
+        get.reset();
         return true;
     }
 }

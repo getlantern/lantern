@@ -33,7 +33,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final ChannelGroup channelGroup;
 
-    private final Stats stats;
+    private final ClientStats stats;
 
     private final Model model;
 
@@ -50,10 +50,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * @param channelGroup Keeps track of channels to close on shutdown.
      */
     public DispatchingProxyRelayHandler(
-        final ClientSocketChannelFactory clientChannelFactory,
-        final ChannelGroup channelGroup,
-        final Stats stats, final Model model, final ProxyTracker proxyTracker,
-        final LanternTrustStore trustStore) {
+            final ClientSocketChannelFactory clientChannelFactory,
+            final ChannelGroup channelGroup, final ClientStats stats,
+            final Model model, final ProxyTracker proxyTracker,
+            final LanternTrustStore trustStore) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.stats = stats;
@@ -82,7 +82,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      */
     private HttpRequestProcessor newP2PRequestProcessor() {
         return new UdtHttpRequestProcessor(this.proxyTracker,
-            this.channelGroup, this.stats, this.trustStore);
+            this.channelGroup, this.trustStore);
     }
 
     @Override

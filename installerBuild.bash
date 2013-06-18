@@ -8,7 +8,7 @@ function die() {
   git checkout -- $CONSTANTS_FILE || die "Could not revert $CONSTANTS_FILE?"
 
   # Make sure to move back to master, not tag
-  git checkout master
+  git checkout $oldbranch
   exit 1
 }
 
@@ -48,6 +48,8 @@ then
 else 
     CHECKOUT=lantern-$VERSION; 
 fi
+
+oldbranch=`git rev-parse --abbrev-ref HEAD`
 
 git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
@@ -91,5 +93,5 @@ fi
 
 install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
 
-echo "Moving back to master"
-git checkout master
+echo "Moving back to $oldbranch"
+git checkout $oldbranch

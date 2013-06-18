@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.ClientStats;
 import org.lantern.Stats;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
@@ -17,7 +18,7 @@ public class Transfers {
         //for JSON loading
     }
 
-    public Transfers(Stats tracker) {
+    public Transfers(ClientStats tracker) {
         this.setStatsTracker(tracker);
     }
 
