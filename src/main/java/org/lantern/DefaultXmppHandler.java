@@ -1014,7 +1014,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
                 //only process kscope ads delivered by friends
-                if (model.isFriend(from)) {
+                //if (model.isFriend(from)) {
                     LOG.debug("Handling KSCOPE ADVERTISEMENT");
                     final String payload =
                             (String) msg.getProperty(
@@ -1024,7 +1024,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     } else {
                         LOG.error("kscope ad with no payload? "+msg.toXML());
                     }
-                }
+                //}
                 break;
             default:
                 LOG.warn("Did not understand type: "+type);
