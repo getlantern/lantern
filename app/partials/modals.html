@@ -112,6 +112,8 @@
     <!-- XXX progress bar would be nice here -->
     <span ng-bind-html="model.connectivity.connectingStatus"></span>
   </div>
+  <div class="modal-footer">
+  </div>
 </div>
 
 <div modal="model.modal == MODAL.confirmReset">
@@ -267,7 +269,7 @@
   </div>
 </div>
 
-<div ng-controller="ProxiedSitesCtrl" modal="show">
+<div ng-controller="ProxiedSitesCtrl" modal="model.modal == MODAL.proxiedSites">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
@@ -418,7 +420,6 @@
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body">
   <div class="modal-body" id="contact" dir="ltr">
     <div class="smaller">
       <!-- XXX i18n -->
@@ -630,7 +631,7 @@ You should have received a copy of the GNU General Public License along with thi
       <optgroup ng-repeat="(group, scenarios) in model.mock.scenarios.all" label="{{ group }}">
         <option ng-repeat="(key, scen) in scenarios" value="{{ group }}.{{ key }}">{{ scen.desc }}</option>
       </optgroup>
-    </select> 
+    </select>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)">Cancel</button>

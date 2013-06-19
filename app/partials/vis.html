@@ -1,10 +1,71 @@
+<!-- cover up the vis when showVis is false -->
+<div id="vis-block" ng-hide="model.showVis"></div>
+
 <div id="vis" ng-controller="VisCtrl">
-  <svg id="map">
-    <path id="globe"/>
-    <g id="countries"></g>
-    <g id="peers"></g>
-    <path id="self" class="{{ model.settings.mode }}" ui-jq="tooltip" ui-options="{cssClass: 'vis', html: true, placement: 'bottom'}"
-      data-original-title="{{ hoverContentForSelf() }}" />
+  <svg id="map" fullwindow>
+    <!--path id="globe" globe /-->
+    <g id="countries" countries />
+    <g id="peers">
+      <g ng-repeat="peer in model.peers">
+        <path class="connection" ng-d="{{ pathConnection(peer) }}"
+              stroke-opacity="{{ connectionOpacityScale(peer.bpsUpDn) }}"
+              animate-connection />
+        <path class="peer {{ peer.mode }} {{ peer.type }} {{peer.connected && 'connected' || ''}}" id="{{ peer.peerid }}"
+          ng-d="{{ path({type: 'Point', coordinates: [peer.lon, peer.lat]}) }}"
+          tooltip-html-unsafe="<div class=vis>
+            <div class='{{peer.mode}} {{peer.type}}'>
+              <img class=picture src='{{peer.rosterEntry.picture || 'img/default-avatar.png'}}'>
+              <div class=headers>
+                <div class=header>{{peer.rosterEntry.name}}</div>
+                <div class=email>{{peer.rosterEntry.email}}</div>
+                <div class='peerid ip'>{{peer.peerid}} ({{peer.ip}})</div>
+                <div class=type>{{((peer.type|upper)+(peer.mode|upper))|i18n}}</div>
+              </div>
+              <div class=stats>
+                <div class=bps>
+                  {{peer.bpsUp | prettyBps}} {{'UP' | i18n}}
+                  {{peer.bpsDn | prettyBps}} {{'DN' | i18n}}
+                </div>
+                <div class=bytes>
+                  {{peer.bytesUp | prettyBps}} {{'SENT' | i18n}}
+                  {{peer.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
+                </div>
+                <div class=lastConnected>
+                  {{!peer.connected && peer.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
+                  <time>{{!peer.connected && (peer.lastConnected | date:'medium') || ''}}</time>
+                </div>
+              </div>
+            </div>
+          </div>" tooltip-placement="mouse" />
+      </g>
+    </g>
+    <path id="self" class="{{ model.settings.mode }}"
+          ng-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, true) }}"
+          tooltip-html-unsafe="<div class=vis>
+            <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
+              <img class=picture src='{{model.profile.picture || 'img/default-avatar.png'}}'>
+              <div class=headers>
+                <div class=header>{{model.profile.name}}</div>
+                <div class=email>{{model.profile.email}}</div>
+                <div class='peerid ip'>{{model.connectivity.peerid}} ({{model.connectivity.ip}})</div>
+                <div class=type>{{((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n}}</div>
+              </div>
+              <div class=stats>
+                <div class=bps>
+                  {{model.transfers.bpsUp | prettyBps}} {{'UP' | i18n}}
+                  {{model.transfers.bpsDn | prettyBps}} {{'DN' | i18n}}
+                </div>
+                <div class=bytes>
+                  {{model.transfers.bytesUp | prettyBps}} {{'SENT' | i18n}}
+                  {{model.transfers.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
+                </div>
+                <div class=lastConnected>
+                  {{model.connectivity.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
+                  <time>{{model.connectivity.lastConnected && (model.connectivity.lastConnected | date:'medium') || ''}}</time>
+                </div>
+              </div>
+            </div>
+          </div>" tooltip-placement="mouse" />
 
     <filter id="defaultBlur">
       <feGaussianBlur stdDeviation="1" />
@@ -16,21 +77,4 @@
       filter: url(#defaultBlur)
     }
   </style>
-
-  <!--
-  <div id="projectionButtons" class="btn-group">
-    <button class="btn btn-inverse"
-            ng-class="{active: projectionKey == 'mercator'}"
-            ng-disabled="projectionKey == 'mercator'"
-            ng-click="setProjection('mercator')">
-            <i class="icon icon-picture"></i>
-    </button>
-    <button class="btn btn-inverse"
-            ng-class="{active: projectionKey == 'orthographic'}"
-            ng-disabled="projectionKey == 'orthographic'"
-            ng-click="setProjection('orthographic')">
-      <i class="icon icon-globe"></i>
-    </button>
-  </div>
-  -->
 </div>

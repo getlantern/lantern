@@ -1,5 +1,13 @@
 @import mixins
 
+// override bootstrap's modal background color of white
+.modal
+  background-color: transparent
+.modal-header, .modal-body:not(#welcome)
+  background-color: #fff
+.modal-header
+  +border-top-radius(6px)
+
 // override slide effect
 .modal.fade
   +single-transition(opacity, 0.3s, ease)
@@ -58,8 +66,7 @@
 
 #welcome
   +centered
-  //background-color: rgba(0, 0, 0, .3)
-  background-color: #000
+  background-color: rgba(0, 0, 0, .3)
   color: #fff
   .modal-body
     font-size: $baseFontSize * 1.25

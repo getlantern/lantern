@@ -1,0 +1,17 @@
+{
+  "name": "angular-scenario",
+  "version": "1.0.7",
+  "main": "./angular-scenario.js",
+  "dependencies": {
+    "angular": "1.0.7"
+  },
+  "gitHead": "d9233112eb862a05338146967b75142fed8c4f12",
+  "readme": "bower-angular-scenario\n======================\n\nbower repo for angular-scenario.js",
+  "readmeFilename": "README.md",
+  "_id": "angular-scenario@1.0.7",
+  "description": "bower-angular-scenario ======================",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/angular/bower-angular-scenario.git"
+  }
+}

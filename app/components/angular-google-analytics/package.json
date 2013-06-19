@@ -1,0 +1,34 @@
+{
+  "name": "angular-google-analytics",
+  "description": "Angular Google Analytics - Easy tracking for your AngularJS application",
+  "version": "0.0.1",
+  "homepage": "http://revolunet.com.github.com/angular-google-analytics",
+  "author": "Julien Bouquillon <julien@revolunet.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/revolunet/angular-google-analytics.git"
+  },
+  "engines": {
+    "node": ">= 0.8"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://revolunet.mit-license.org"
+    }
+  ],  
+  "dependencies": {},
+  "devDependencies": {
+    "karma": "~ 0.8.0",
+    "grunt": ">= 0.4.0",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-release": "~0.3.3",
+    "grunt-conventional-changelog": "0.0.12"
+  },
+  "scripts": {
+    "test": "karma start test/karma.conf.js --single-run --browsers Chrome",
+    "test-server": "karma start test/karma.conf.js --browsers Chrome"
+  }
+}

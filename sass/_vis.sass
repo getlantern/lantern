@@ -4,6 +4,9 @@ $cloudPeerColor: #008000
 #projectionButtons
   +position(false, false, 75px, 25px)
 
+#vis-block
+  +position(0, 0, 0, 0)
+
 #vis-container, #vis
   height: 100%
 
@@ -36,6 +39,12 @@ $waterColor: rgba(6, 21, 50, .1)
 //&.AQ // antarctica
     display: none
 
+.peer
+  opacity: .4
+
+.peer.connected
+  opacity: 1
+
 .peer.get, #self.get
   fill: $getModeColor
 
@@ -57,8 +66,7 @@ $waterColor: rgba(6, 21, 50, .1)
 g.transferring .connection
   opacity: 1
 
-.tooltip.vis .tooltip-inner
-  max-width: none // override bootstrap's value of 200px
+.tooltip .vis
   text-align: left // override bootstrap's value of center
   white-space: nowrap
   text-overflow: ellipsis

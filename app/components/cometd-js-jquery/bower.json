@@ -1,0 +1,16 @@
+{
+  "name": "cometd-js-jquery",
+  "version": "2.6.0",
+  "ignore": [
+    "README.md"
+  ],
+  "gitHead": "f35c09824f4c3bb1dff7e4c9de330669498c5c9a",
+  "readme": "cometd-js-jquery\n========================\n\nAn implementation of the Bayeux protocol in JavaScript for jQuery for distribution via Bower.\n\nchangelog\n---------\n*   Jun 14th, 2013\n    *   Forked repository (marksherretta/cometd-javascript-jquery)\n    *   Renamed repo\n    *   Added BowerJS description file (bower.json)\n    *   Added CometD version 2.6.0\n",
+  "readmeFilename": "README.md",
+  "_id": "cometd-js-jquery@2.6.0",
+  "description": "cometd-js-jquery ========================",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/askarby/cometd-js-jquery"
+  }
+}

@@ -4,8 +4,7 @@
   "appPath": "app",
   "dependencies": {
     "angular": "~1.0.7",
-    "angular-bootstrap": "~0.3.0",
-    "angular-google-analytics": "skivvies/angular-google-analytics",
+    "angular-google-analytics": "revolunet/angular-google-analytics",
     "angular-sanitize": "~1.0.7",
     "angular-translate": "~0.9.1",
     "angular-ui-utils": "~0.0.2",

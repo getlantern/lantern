@@ -1,5 +1,12 @@
 'use strict';
 
+var PI = Math.PI,
+    TWO_PI = 2 * PI,
+    abs = Math.abs,
+    min = Math.min,
+    max = Math.max,
+    round = Math.round;
+
 angular.module('app.vis', [])
   .constant('CONFIG', {
     style: {
@@ -16,408 +23,131 @@ angular.module('app.vis', [])
     },
     source: {
       world: 'data/world.json'
-    },
-    tooltip: {
-      container: 'body',
-      html: true,
-      selector: 'path',
-      cssClass: 'vis', // XXX hacked app/lib/bootstrap.js to look for this (search it for XXX)
-      placement: 'mouse' // XXX http://stackoverflow.com/a/14761335/161642
     }
+  })
+  .directive('fullwindow', function ($window) {
+    return function (scope, element) {
+      function size() {
+        var w = element.width(), h = element.height();
+        scope.projection.scale(max(w, h) / TWO_PI);
+        scope.projection.translate([w >> 1, round(0.56*h)]);
+      }
+      size();
+      angular.element($window).bind('resize', _.throttle(function () {
+        size();
+        d3.selectAll('#countries path').attr('d', scope.path);
+        d3.selectAll('path.connection')
+          .attr('stroke-dashoffset', null)
+          .attr('stroke-dasharray', null);
+        scope.$digest();
+      }, 500));
+    };
+  })
+  .directive('globe', function () {
+    return function (scope, element) {
+      var d = scope.path({type: 'Sphere'});
+      element.attr('d', d);
+    };
+  })
+  .directive('countries', function (CONFIG, $compile) {
+
+    function ttTmpl(d) {
+      var alpha2 = d.alpha2;
+      return '<div class="vis">'+
+        '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
+        '<div class="give-colored">{{ "NPEERS_ONLINE_GIVE" | i18n:model.countries.'+alpha2+'.npeers.online.give }}</div>'+
+        '<div class="get-colored">{{ "NPEERS_ONLINE_GET" | i18n:model.countries.'+alpha2+'.npeers.online.get }}</div>'+
+        '<div class="npeersEver">{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.nusers.ever }}</div>'+
+        '<div class="stats">'+
+          '<div class="bps">'+
+            '{{ model.countries.'+alpha2+'.bpsUp || 0 | prettyBps }} {{ "UP" | i18n }} '+
+            '{{ model.countries.'+alpha2+'.bpsDn || 0 | prettyBps }} {{ "DN" | i18n }}'+
+          '</div>'+
+          '<div class="bytes">'+
+            '{{ model.countries.'+alpha2+'.bytesUp || 0 | prettyBps }} {{ "UP_EVER" | i18n }} '+
+            '{{ model.countries.'+alpha2+'.bytesDn || 0 | prettyBps }} {{ "DN_EVER" | i18n }}'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }
+
+    return function (scope, element) {
+      d3.json(CONFIG.source.world, function (error, world) {
+        if (error) throw error;
+        //var f = topojson.feature(world, world.objects.countries).features;
+        var f = topojson.object(world, world.objects.countries).geometries;
+        d3.select(element[0]).selectAll('path').data(f).enter().append('path')
+          .attr('class', function(d){ return d.alpha2 || 'COUNTRY_UNKNOWN'; })
+          .attr('tooltip-placement', 'mouse')
+          .attr('tooltip-html-unsafe', ttTmpl)
+          .attr('d', scope.path)
+          .each(function(){ $compile(this)(scope); });
+      });
+    };
+  })
+  .directive('animateConnection', function () {
+
+    function getTotalLength(d) { return this.getTotalLength(); }
+    function getDashArray(d) { var l = this.getTotalLength(); return l+' '+l; }
+
+    return function (scope, element) {
+      element = d3.select(element[0]);
+      scope.$watch('peer.connected', function(newVal, oldVal) {
+        if (!newVal === !oldVal) return;
+        element
+          .transition().duration(500)
+          .each('start', function() {
+            element
+              .attr('stroke-dashoffset', newVal ? getTotalLength : 0)
+              .attr('stroke-dasharray', getDashArray)
+          })
+          .attr('stroke-dashoffset', newVal ? 0 : getTotalLength);
+      });
+    };
   });
 
 function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc, CONFIG) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      PI = Math.PI,
-      TWO_PI = 2 * PI,
-      abs = Math.abs,
-      min = Math.min,
-      max = Math.max,
-      round = Math.round,
-      dim = {},
       i18n = $filter('i18n'),
       date = $filter('date'),
       prettyUser = $filter('prettyUser'),
       prettyBps = $filter('prettyBps'),
       prettyBytes = $filter('prettyBytes'),
-      $map = $('#map'),
-      $$map = d3.select('#map'),
-      $peers = $('#peers'),
-      $$peers = d3.select('#peers'),
-      $countries = $('#countries'),
-      $$countries = d3.select('#countries'),
-      $$self = d3.select('#self'),
-      projections = {
-        orthographic: d3.geo.orthographic().clipAngle(90),
-        mercator: d3.geo.mercator()
-      },
-      projection = projections['mercator'],
-      //λ = d3.scale.linear().range([-180, 180]).clamp(true),
-      //φ = d3.scale.linear().range([-90, 90]).clamp(true),
-      //zoom = d3.behavior.zoom().on('zoom', handleZoom),
+      projection = d3.geo.mercator(),
       path = d3.geo.path().projection(projection),
-      globePath = d3.select('#globe'),
-      countryPaths, peerPaths, connectionPaths,
-      //dragging = false, lastX, lastY,
-      handleResizeThrottled = _.throttle(handleResize, 500);
+      pathSelf = d3.geo.path().projection(projection);
 
-  // disable adaptive resampling to allow projection transitions (http://bl.ocks.org/mbostock/3711652)
-  // warning: this also disables great-arc interpolation (see "Note" below)
-  //_.each(projections, function(p) { p.precision(0); });
+  path.pointRadius(CONFIG.style.pointRadiusPeer);
+  pathSelf.pointRadius(CONFIG.style.pointRadiusSelf);
 
-  $scope.projectionKey = 'mercator';
-
-  handleResize();
-
-  $scope.$watch('model.showVis', function(showVis, oldShowVis) {
-    if (showVis === true) {
-      //$peers.tooltip(CONFIG.tooltip);
-      //$countries.tooltip(CONFIG.tooltip);
-    } else if (showVis === false && oldShowVis) {
-      //$peers.tooltip('destroy');
-      //$countries.tooltip('destroy');
-      log.debug('showVis toggled off, destroyed tooltips');
-    }
-  });
-
-  $scope.setProjection = function(key) {
-    if (!(key in projections)) {
-      log.error('invalid projection:', key);
-      return;
-    }
-    /* XXX check this:
-    switch (key) {
-      case 'mercator':
-        φ.range([-90, 90]);
-        break;
-      case 'orthographic':
-        φ.range([90, -90]);
-        break;
-      default:
-        throw new Error('Unexpected key '+key);
-    }
-    */
-    $scope.projectionKey = key;
-    projection = projections[key];
-    path.projection(projection);
-    handleResize();
+  $scope.path = function (d, self) {
+    // https://bugs.webkit.org/show_bug.cgi?id=110691
+    return (self ? pathSelf : path)(d) || 'M0 0';
   };
 
-  function pathForData(d) {
-    // XXX https://bugs.webkit.org/show_bug.cgi?id=110691
-    return path(d) || 'M0 0';
-  }
+  $scope.pathConnection = function (peer) {
+    var pSelf = projection([model.location.lon, model.location.lat]),
+        pPeer = projection([peer.lon, peer.lat]),
+        xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1],
+        controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
+        xC = controlPoint[0], yC = controlPoint[1];
+    return $scope.inGiveMode ?
+      'M'+xP+','+yP+' Q '+xC+','+yC+' '+xS+','+yS :
+      'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
+  };
 
-  function drawSelf() {
-    path.pointRadius(CONFIG.style.pointRadiusSelf);
-    $$self.attr('d', pathSelf());
-    path.pointRadius(CONFIG.style.pointRadiusPeer);
-  }
+  $scope.projection = projection;
 
-  function redraw() {
-    globePath.attr('d', pathGlobe());
-    if (connectionPaths) connectionPaths.attr('d', pathConnection);
-    if (model.location) drawSelf();
-    if (peerPaths) peerPaths.attr('d', pathPeer);
-    if (countryPaths) countryPaths.attr('d', pathForData);
-  }
-
-  /*
-  $$map.call(zoom).on('mousedown', function() {
-    dragging = true;
-    lastX = d3.event.x;
-    lastY = d3.event.y;
-  }).on('mousemove', function() {
-    if (!dragging) return;
-    var dx = d3.event.x - lastX,
-        dy = d3.event.y - lastY;
-    switch ($scope.projectionKey) {
-      case 'orthographic':
-        var current = projection.rotate();
-        projection.rotate([current[0]+λ(dx), current[1]+φ(dy)]);
-        break;
-      case 'mercator':
-        var current = projection.translate();
-        projection.translate([current[0]+dx, current[1]+dy]);
-    }
-    lastX = d3.event.x;
-    lastY = d3.event.y;
-    redraw();
-  }).on('mouseup', function() {
-    dragging = false;
-  });
-  */
-
-  //function rotateWest() {
-  //  projection.rotate([-λ(velocity * (Date.now() - then)), 0]);
-  //}
-  //d3.timer(rotateWest);
-
-  d3.json(CONFIG.source.world, function dataFetched(error, world) {
-    var countryGeometries = topojson.feature(world, world.objects.countries).features;
-    countryPaths = $$countries.selectAll('path')
-      .data(countryGeometries).enter().append('path')
-        .attr('class', function(d) { return d.alpha2 || 'COUNTRY_UNKNOWN'; })
-        .attr('d', pathForData);
-    _.each(model.countries, function(__, alpha2) { updateCountry(alpha2); });
-    //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
-  });
-
-  function handleResize() {
-    dim.width = $map.width();
-    dim.height = $map.height();
-    //λ.domain([-dim.width, dim.width]);
-    //φ.domain([-dim.height, dim.height]);
-    switch ($scope.projectionKey) {
-      case 'orthographic':
-        dim.radius = min(dim.width, dim.height) >> 1;
-        projection.scale(dim.radius-2);
-        projection.translate([dim.width >> 1, dim.height >> 1]);
-        break;
-      case 'mercator':
-        projection.scale(max(dim.width, dim.height) / TWO_PI);
-        projection.translate([dim.width >> 1, round(0.56*dim.height)]);
-    }
-    //zoom.scale(projection.scale());
-    redraw();
-  }
-  d3.select($window).on('resize', handleResizeThrottled);
-
-  /*
-  // XXX recenter around cursor
-  // XXX look at http://bl.ocks.org/mbostock/4987520
-  function handleZoom() {
-    projection.scale(d3.event.scale);
-    redraw();
-  }
-  */
-
-  function pathGlobe() {
-    return path({type: 'Sphere'});
-  }
-
-  function pathConnection(peer) {
-    switch ($scope.projectionKey) {
-      case 'orthographic':
-        /* https://github.com/mbostock/d3/wiki/Geo-Paths#shape-generators
-         * "Note: to generate a great arc in D3, simply pass a LineString-type
-         * geometry object to d3.geo.path. D3’s projections use great-arc
-         * interpolation for intermediate points (with adaptive resampling), so
-         * there’s no need to use a shape generator to create great arcs."
-         */ 
-        return path({type: 'LineString',
-          coordinates: $scope.inGiveMode ?
-            [[model.location.lon, model.location.lat], [peer.lon, peer.lat]] :
-            [[peer.lon, peer.lat], [model.location.lon, model.location.lat]]});
-      case 'mercator':
-        var pSelf = projection([model.location.lon, model.location.lat]),
-            pPeer = projection([peer.lon, peer.lat]),
-            xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1],
-            controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
-            xC = controlPoint[0], yC = controlPoint[1];
-        return $scope.inGiveMode ?
-          'M'+xP+','+yP+' Q '+xC+','+yC+' '+xS+','+yS :
-          'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
-    }
-  }
-
-  function pathPeer(peer) {
-    return path({type: 'Point', coordinates: [peer.lon, peer.lat]});
-  }
-
-  function pathSelf() {
-    return path({type: 'Point', coordinates: [model.location.lon, model.location.lat]});
-  }
-
-  $scope.$watch('model.location', function(loc) {
-    if (!loc) return;
-    if ($scope.projectionKey === 'orthographic') projection.rotate([-loc.lon, 0]);
-    drawSelf();
-  }, true);
-
-  var connectionOpacityScale = d3.scale.linear().clamp(true)
-        .range([CONFIG.style.connectionOpacityMin, CONFIG.style.connectionOpacityMax]);
-
-  function getPeerid(d) { return d.peerid; }
-  function getTotalLength(d) { return this.getTotalLength(); }
-  function getDashArray(d) { var l = this.getTotalLength(); return l+' '+l; }
+  $scope.connectionOpacityScale = d3.scale.linear().clamp(true)
+    .range([CONFIG.style.connectionOpacityMin, CONFIG.style.connectionOpacityMax]);
 
   $scope.$watch('model.peers', function(peers) {
     if (!peers) return;
 
-    path.pointRadius(CONFIG.style.pointRadiusPeer);
-    peerPaths = $$peers.selectAll('path.peer').data(peers, getPeerid);
-    peerPaths.enter().append('path')
-    peerPaths
-      .attr('class', function(d) { return 'peer '+d.mode+' '+d.type+(d.lat === 0 && d.lon === 0 ? ' hidden' : ''); })
-      .attr('id', function(d) { return d.peerid; })
-      .attr('data-original-title', function(d) { return hoverContentForPeer(d); })
-      .attr('d', pathPeer);
-    peerPaths.exit().remove();
-
     var connectedPeers = _.filter(peers, 'connected'), maxBpsUpDn = 0;
     _.each(connectedPeers, function(p) { if (maxBpsUpDn < p.bpsUpDn) maxBpsUpDn = p.bpsUpDn; });
-    connectionOpacityScale.domain([0, maxBpsUpDn]);
-    connectionPaths = $$peers.selectAll('path.connection').data(connectedPeers, getPeerid);
-    connectionPaths.enter().append('path').classed('connection', true)
-      .attr('d', pathConnection)
-      .attr('stroke-dashoffset', getTotalLength)
-      .attr('stroke-dasharray', getDashArray)
-      .transition().duration(500).attr('stroke-dashoffset', 0)
-      .each('end', function() {
-        d3.select(this).attr('stroke-dashoffset', null).attr('stroke-dasharray', null);
-      });
-    connectionPaths.style('stroke-opacity', function(d) { return connectionOpacityScale(d.bpsUpDn); });
-    connectionPaths.exit().remove();
+    $scope.connectionOpacityScale.domain([0, maxBpsUpDn]);
   }, true);
-
-  var maxGiveGet = -1,
-      countryOpacityScale = d3.scale.linear().clamp(true)
-        .range([CONFIG.style.countryOpacityMin, CONFIG.style.countryOpacityMax]),
-      countryActivityScale = d3.scale.linear().clamp(true),
-      giveGetColorInterpolator = d3.interpolateRgb(CONFIG.style.giveModeColor,
-                                                   CONFIG.style.getModeColor);
-
-  function updateElement(el, update, animate, duration) {
-    if (animate) el.classed('updating', true);
-    if (_.isFunction(update)) {
-      update();
-    } else if (_.isPlainObject(update)) {
-      _.each(update, function(v, k) { el.style(k, v); });
-    } else {
-      log.error('invalid update: expected function or object, got', typeof update);
-    }
-    if (animate) setTimeout(function() { el.classed('updating', false); }, duration || 500);
-  }
-
-  $scope.hoverContentForSelf = function() {
-    if (!model.showVis) return;
-    try {
-      var ctx = _.merge({
-        picture: model.profile.picture,
-        name: model.profile.name,
-        email: model.profile.email,
-        peerid: model.connectivity.peerid,
-        ip: model.connectivity.ip,
-        type: model.connectivity.type,
-        mode: model.settings.mode,
-        typeDesc: i18n(angular.uppercase(model.connectivity.type + model.settings.mode)),
-        bpsUp: prettyBps(model.transfers.bpsUp)+' '+i18n('UP'),
-        bpsDn: prettyBps(model.transfers.bpsDn)+' '+i18n('DN'),
-        bytesUp: prettyBytes(model.transfers.bytesUp)+' '+i18n('SENT'),
-        bytesDn: prettyBytes(model.transfers.bytesDn)+' '+i18n('RECEIVED'),
-        lastConnectedLabel: model.connectivity.lastConnected ? i18n('LAST_CONNECTED') : '',
-        lastConnected: model.connectivity.lastConnected ? date(model.connectivity.lastConnected, 'medium') : ''
-      }, model.profile);
-      return hoverContentForPeer.tmpl(ctx);
-    } catch(e) {
-      // ignore, fields probably just not populated yet
-    }
-  };
-
-  function hoverContentForPeer(peer) {
-    var ctx = {
-      picture: 'img/default-avatar.png',
-      name: '',
-      email: '',
-      peerid: peer.peerid,
-      ip: peer.ip,
-      type: peer.type,
-      mode: peer.mode,
-      typeDesc: i18n(angular.uppercase(peer.type + peer.mode)),
-      bpsUp: peer.connected ? prettyBps(peer.bpsUp)+' '+i18n('UP') : '',
-      bpsDn: peer.connected ? prettyBps(peer.bpsDn)+' '+i18n('DN') : '',
-      bytesUp: prettyBytes(peer.bytesUp)+' '+i18n('SENT'),
-      bytesDn: prettyBytes(peer.bytesDn)+' '+i18n('RECEIVED'),
-      lastConnectedLabel: !peer.connected && peer.lastConnected ? i18n('LAST_CONNECTED') : '',
-      lastConnected: !peer.connected && peer.lastConnected ? date(peer.lastConnected, 'medium') : ''
-    };
-    if (peer.rosterEntry) _.merge(ctx, peer.rosterEntry);
-    return hoverContentForPeer.tmpl(ctx);
-  }
-  hoverContentForPeer.tmpl = _.template(
-    '<div class="${mode} ${type}">'+
-      '<img class="picture" src="${picture}">'+
-      '<div class="headers">'+
-        '<div class="header">${name}</div>'+
-        '<div class="email">${email}</div>'+
-        '<div class="peerid ip">${peerid} (${ip})</div>'+
-        '<div class="type">${typeDesc}</div>'+
-      '</div>'+
-      '<div class="stats">'+
-        '<div class="bps">${bpsUp} ${bpsDn}</div>'+
-        '<div class="bytes">${bytesUp} ${bytesDn}</div>'+
-        '<div class="lastConnected">${lastConnectedLabel} <time>${lastConnected}</time></div>'+
-      '</div>'+
-    '</div>'
-  );
-
-  function hoverContentForCountry(alpha2, country) {
-    if (!alpha2) return;
-    return hoverContentForCountry.tmpl({
-      countryName: i18n(alpha2),
-      npeersOnlineGet: i18n('NPEERS_ONLINE_GET', country.npeers.online.get),
-      npeersOnlineGive: i18n('NPEERS_ONLINE_GIVE', country.npeers.online.give),
-      npeersEver: i18n('NUSERS_EVER', getByPath(country, '/nusers/ever')||0),
-      bpsUp: prettyBps(getByPath(country, '/bpsUp')||0)+' '+i18n('UP'),
-      bpsDn: prettyBps(getByPath(country, '/bpsDn')||0)+' '+i18n('DN'),
-      bytesUp: prettyBytes(getByPath(country, '/bytesUp')||0)+' '+i18n('UP_EVER'),
-      bytesDn: prettyBytes(getByPath(country, '/bytesDn')||0)+' '+i18n('DN_EVER')
-    });
-  }
-  hoverContentForCountry.tmpl = _.template(
-    '<div class="header">${countryName}</div>'+
-    '<div class="give-colored">${npeersOnlineGive}</div>'+
-    '<div class="get-colored">${npeersOnlineGet}</div>'+
-    '<div class="npeersEver">${npeersEver}</div>'+
-    '<div class="stats">'+
-      '<div class="bps">${bpsUp} ${bpsDn}</div>'+
-      '<div class="bytes">${bytesUp} ${bytesDn}</div>'+
-    '</div>'
-  );
-
-  function updateCountry(alpha2, peerCount, animate) {
-    var stroke = CONFIG.style.countryStrokeNoActivity,
-        country = getByPath(model, '/countries/'+alpha2),
-        censors = country.censors,
-        peersOnline = false,
-        el = d3.selectAll('path.'+alpha2);
-    peerCount = peerCount || getByPath(country, '/npeers/online');
-    peersOnline = peerCount.giveGet > 0;
-    if (censors) {
-      if (peerCount.giveGet !== peerCount.get) {
-        log.warn('npeersOnline.giveGet (', peerCount.giveGet, ') !== npeersOnline.get (', peerCount.get, ') for censoring country', alpha2);
-        apiSrvc.exception({error: 'npeersInvalid', npeersOnline: peerCount, message: 'npeersOnline.giveGet ('+peerCount.giveGet+') !== npeersOnline.get ('+peerCount.get+') for censoring country'+alpha2});
-      }
-      stroke = CONFIG.style.getModeColor;
-    } else if (peerCount.giveGet) {
-      countryActivityScale.domain([-peerCount.giveGet, peerCount.giveGet]);
-      var scaled = countryActivityScale(peerCount.get - peerCount.give);
-      stroke = d3.rgb(giveGetColorInterpolator(scaled));
-    }
-    updateElement(el, {'stroke': stroke}, animate);
-    el.attr('data-original-title', hoverContentForCountry(alpha2, country));
-    el.classed('censors', censors);
-    el.classed('peersOnline', peersOnline);
-  }
-
-  var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
-    if (!countries) return;
-    unwatchAllCountries();
-    _.each(countries, function(__, alpha2) {
-      $scope.$watch('model.countries.'+alpha2+'.npeers.online', function(peerCount, peerCountOld) {
-        if (!peerCount) return;
-        if (peerCount.giveGet > maxGiveGet) {
-          maxGiveGet = peerCount.giveGet;
-          countryOpacityScale.domain([0, maxGiveGet]);
-          if (countryPaths) _.each(countries, function(__, alpha2) { updateCountry(alpha2); });
-        } else if (peerCount && !_.isEqual(peerCount, peerCountOld)) {
-          if (countryPaths) updateCountry(alpha2, peerCount, true);
-        }
-      }, true);
-    });
-  }, true);
-
-  // XXX show last seen locations of peers not connected to
+  
 }

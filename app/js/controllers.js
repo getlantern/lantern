@@ -220,7 +220,7 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
   }, true);
 }
 
-function SettingsCtrl($scope, $timeout, modelSrvc, logFactory, MODAL) {
+function SettingsCtrl($scope, logFactory, MODAL) {
   var log = logFactory('SettingsCtrl');
 
   $scope.$watch('model.settings.runAtSystemStart', function(runAtSystemStart) {
@@ -248,10 +248,6 @@ function ProxiedSitesCtrl($scope, $timeout, $filter, logFactory, MODAL, SETTING,
       nproxiedSitesMax = 1000,
       proxiedSites = [],
       proxiedSitesDirty = [];
-
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal === MODAL.proxiedSites;
-  });
 
   $scope.$watch('searchText', function(searchText) {
     $scope.inputFiltered = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty).join('\n');

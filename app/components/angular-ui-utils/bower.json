@@ -1,0 +1,25 @@
+{
+  "author": {
+    "name": "AngularUI Team"
+  },
+  "name": "angular-ui-utils",
+  "description": "AngularUI Utilities - Companion Suite for AngularJS",
+  "version": "0.0.2",
+  "homepage": "http://angular-ui.github.com",
+  "main": "./modules/utils.js",
+  "dependencies": {
+    "angular": ">= 1.0.2"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.0.5",
+    "jquery": ">=1.6"
+  },
+  "gitHead": "34ba5a885fbe37cada1ca72522643203d5baa448",
+  "readme": "# AngularUI - The companion suite for AngularJS\n\n***\n\n[![Build Status](https://travis-ci.org/angular-ui/ui-utils.png?branch=master)](https://travis-ci.org/angular-ui/ui-utils)\n\n## Usage\n\n### Requirements\n\n* **AngularJS v1.0.0+** is currently required.\n* **jQuery*** Until the refactor is complete, some directives still require jQuery\n\n## Installation\n\nAdd the specific modules to your dependencies, or add the entire lib by depending on `ui.utils`\n\n```javascript\nangular.module('myApp', ['ui.keypress', 'ui.event', ...])\n// or if ALL modules are loaded along with modules/utils.js\nangular.module('myApp', ['ui.utils'])\n```\n\nEach directive and filter is now it's own module and will have a relevant README.md in their respective folders\n\n## Development\n\nAt this time, we do not have a build script. You must include all `.js` files you wish to work on.\nWe will likely be adding a `Gruntfile.js` in the near future for this\n\n### Requirements\n\n0. Install [Node.js](http://nodejs.org/) and NPM (should come with)\n\n1. Install global dependencies `grunt-cli`, `bower`, and `karma`:\n\n    ```bash\n    $ npm install -g karma grunt-cli bower\n    ```\n\n2. Install local dependencies:\n\n    ```bash\n    $ npm install\n    $ bower install\n    ```\n\n### Running Tests\n\nMake sure all tests pass in order for your Pull Request to be accepted\n\nYou can choose what browsers to test in: `Chrome,ChromeCanary,Firefox,PhantomJS`\n\n```bash\n$ karma start --browsers=Chrome,Firefox test/test.conf.js\n```\n",
+  "readmeFilename": "README.md",
+  "_id": "angular-ui-utils@0.0.2",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/angular-ui/ui-utils.git"
+  }
+}

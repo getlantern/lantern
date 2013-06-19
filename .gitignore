@@ -9,6 +9,5 @@ manifest.mf
 build.xml
 .project
 .settings
-app/components
 logs/*
 !.gitkeep

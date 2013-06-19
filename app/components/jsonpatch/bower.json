@@ -1,0 +1,22 @@
+{
+  "name": "jsonpatch",
+  "version": "1.0.0-rc1",
+  "main": "lib/jsonpatch.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "devDependencies": {
+    "mocha": "latest"
+  },
+  "gitHead": "66a4d448172b02ac6be9345a47cd4f9c83cdd128",
+  "readme": "JSONPatch\n=========\n\nAn implementation of the [JSONPatch][#jsonpatch] and [JSONPointer][#jsonpointer] IETF RFCs that works in Node.JS and the Browser (as a plain module or with AMD).\n\nA [Dharmafly][#dharmafly] project written by [Thomas Parslow][#tom] <tom@almostobsolete.net> and released with the kind permission of [NetDev][#netdev].\n\n**For full documentation, see [jsonpatchjs.com][#site]**\n\n[![Build Status](https://secure.travis-ci.org/dharmafly/jsonpatch.js.png)](http://travis-ci.org/dharmafly/jsonpatch.js)\n[![browser support](http://ci.testling.com/dharmafly/jsonpatch.js.png)](http://ci.testling.com/dharmafly/jsonpatch.js)\n\nQuick Example\n-------------\n\n```javascript\n    mydoc = {\n      \"baz\": \"qux\",\n      \"foo\": \"bar\"\n    };\n    thepatch = [\n      { \"op\": \"replace\", \"path\": \"/baz\", \"value\": \"boo\" }\n    ]\n    patcheddoc = jsonpatch.apply_patch(mydoc, thepatch);\n    // patcheddoc now equals {\"baz\": \"boo\", \"foo\": \"bar\"}}\n```\n\nAnd that's all you need for basic use. If the patch is invalid or won't apply then you'll get an error thrown. The original doc is NOT mutated so you can use it for other things afterwards, mutating the document is supported via a flag if you need it.\n\nFor more see the [docs][#site].\n\nIs it any good?\n---------------\n\nYes, I hope so\n\nDoes it work in the browser?\n----------------------------\n\nYes. The tests will run in the browser as well if you want to check. It's been tested in modern browsers and even in IE6!\n\n\nDoes it work with Node.JS?\n--------------------------\n\nYes. Install with:\n\n    npm install jsonpatch\n\nAre there tests?\n----------------\n\nYes, there are tests. It also passes JSHint. You can (and should) run the tests yourself by running this from the project directory:\n\n    npm test\n\nOr you can open `test/runner.html` in a browser of your choice.\n\nWe're using [Travis][#travis] and [Testling CI][#testling] to automatically run the tests on Node.JS and in a range of browsers every time a change is commited to this repository. The badges at the top of this readme display the current build status (which should always be passing).\n\n\nOrigin of the project\n---------------------\n\n[Dharmafly][#dharmafly] is currently working to create a collaboration web app for [NetDev][#netdev] that comprises a [Node.js][#nodejs] RESTful API on the back-end and an HTML5 [Backbone.js][#backbone] application on the front. The JSONPatch library was created as an essential part of the RESTful API, and has been subsequently open sourced for the community with NetDev's permission.\n\nI've fixed/improved stuff\n-------------------------\n\nGreat! Send me a pull request [through GitHub](http://github.com/dharmafly/jsonpatch.js) or get in touch on Twitter [@almostobsolete][#tom-twitter] or email at tom@almostobsolete.net\n\n[#site]:http://jsonpatchjs.com\n[#tom]: http://www.almostobsolete.net\n[#tom-twitter]: https://twitter.com/almostobsolete\n[#netdev]: http://www.netdev.co.uk\n[#dharmafly]: http://dharmafly.com\n[#nodejs]: http://nodejs.org\n[#backbone]: http://documentcloud.github.com/backbone/\n[#jsonpatch]: http://tools.ietf.org/html/rfc6902\n[#jsonpointer]: http://tools.ietf.org/html/rfc6901\n[#travis]: http://travis-ci.org/dharmafly/jsonpatch.js\n[#testling]: http://ci.testling.com/dharmafly/jsonpatch.js\n",
+  "readmeFilename": "README.md",
+  "_id": "jsonpatch.js@1.0.0-rc1",
+  "description": "JSONPatch =========",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dharmafly/jsonpatch.js.git"
+  }
+}

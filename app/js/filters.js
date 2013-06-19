@@ -2,6 +2,11 @@
 
 angular.module('app.filters', [])
   // see i18n.js for i18n filter
+  .filter('upper', function() {
+    return function(s) {
+      return angular.uppercase(s);
+    };
+  })
   .filter('badgeCount', function() {
     return function(str, max) {
       var count = parseInt(str), max = max || 9;

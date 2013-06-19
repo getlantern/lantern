@@ -6407,6 +6407,7 @@ html, body {
 
 body {
   background: url('../img/bg.png');
+  overflow: hidden;
 }
 
 small {
@@ -6496,6 +6497,7 @@ label.checkbox.inline, label.radio.inline {
 
 .tooltip-inner {
   font-size: 12.6px;
+  max-width: none;
 }
 
 .btn-give {
@@ -6778,6 +6780,21 @@ textarea {
   }
 }
 
+.modal {
+  background-color: transparent;
+}
+
+.modal-header, .modal-body:not(#welcome) {
+  background-color: white;
+}
+
+.modal-header {
+  -webkit-border-top-left-radius: 6px;
+  border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
 .modal.fade {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
@@ -6876,7 +6893,7 @@ textarea {
 
 #welcome {
   text-align: center;
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.3);
   color: white;
 }
 #welcome .modal-body {
@@ -7265,6 +7282,14 @@ textarea.report {
   left: 25px;
 }
 
+#vis-block {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 #vis-container, #vis {
   height: 100%;
 }
@@ -7302,6 +7327,14 @@ textarea.report {
   stroke-opacity: 1 !important;
 }
 
+.peer {
+  opacity: 0.4;
+}
+
+.peer.connected {
+  opacity: 1;
+}
+
 .peer.get, #self.get {
   fill: #ffcc66;
 }
@@ -7330,54 +7363,53 @@ g.transferring .connection {
   opacity: 1;
 }
 
-.tooltip.vis .tooltip-inner {
-  max-width: none;
+.tooltip .vis {
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.tooltip.vis .tooltip-inner .picture {
+.tooltip .vis .picture {
   height: 64px;
   width: 64px;
   margin: 5px 10px 0 0;
 }
-.tooltip.vis .tooltip-inner .picture, .tooltip.vis .tooltip-inner .headers {
+.tooltip .vis .picture, .tooltip .vis .headers {
   float: left;
 }
-.tooltip.vis .tooltip-inner .header {
+.tooltip .vis .header {
   font-weight: bold;
   font-size: 14.7px;
 }
-.tooltip.vis .tooltip-inner .get .header, .tooltip.vis .tooltip-inner .get .type {
+.tooltip .vis .get .header, .tooltip .vis .get .type {
   color: #ffcc66;
 }
-.tooltip.vis .tooltip-inner .give .header, .tooltip.vis .tooltip-inner .give .type {
+.tooltip .vis .give .header, .tooltip .vis .give .type {
   color: #aad092;
 }
-.tooltip.vis .tooltip-inner .unknown .header, .tooltip.vis .tooltip-inner .unknown .type {
+.tooltip .vis .unknown .header, .tooltip .vis .unknown .type {
   color: #eeeeee;
 }
-.tooltip.vis .tooltip-inner .cloud .header, .tooltip.vis .tooltip-inner .laeproxy .header, .tooltip.vis .tooltip-inner .cloud .type, .tooltip.vis .tooltip-inner .laeproxy .type {
+.tooltip .vis .cloud .header, .tooltip .vis .laeproxy .header, .tooltip .vis .cloud .type, .tooltip .vis .laeproxy .type {
   color: green !important;
 }
-.tooltip.vis .tooltip-inner .type {
+.tooltip .vis .type {
   font-size: 10.5px;
 }
-.tooltip.vis .tooltip-inner .peerid, .tooltip.vis .tooltip-inner .id {
+.tooltip .vis .peerid, .tooltip .vis .id {
   font-size: 10.5px;
   color: #999999;
 }
-.tooltip.vis .tooltip-inner .stats {
+.tooltip .vis .stats {
   clear: both;
   font-size: 10.5px;
 }
-.tooltip.vis .tooltip-inner .lastConnected {
+.tooltip .vis .lastConnected {
   font-size: 10.5px;
 }
-.tooltip.vis .tooltip-inner .npeersEver {
+.tooltip .vis .npeersEver {
   color: #999999;
 }
-.tooltip.vis .tooltip-inner .give-colored {
+.tooltip .vis .give-colored {
   color: #aad092;
 }
 
