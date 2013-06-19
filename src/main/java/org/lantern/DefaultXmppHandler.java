@@ -64,6 +64,8 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
+import org.lantern.ui.FriendNotificationDialog;
+import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -184,6 +186,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private final ExecutorService xmppProcessors =
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
+    private final NotificationManager notificationManager;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -199,7 +203,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
-        final UpnpService upnpService) {
+        final UpnpService upnpService,
+        final NotificationManager notificationManager) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -212,6 +217,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.kscopeAdHandler = kscopeAdHandler;
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
+        this.notificationManager = notificationManager;
         Events.register(this);
         //setupJmx();
     }
@@ -630,6 +636,24 @@ public class DefaultXmppHandler implements XmppHandler {
                 final Presence pres, final String from, final Type type) {
             switch (type) {
             case available:
+                if (!LanternXmppUtils.isLanternJid(from)) {
+                    return;
+                }
+                String email = XmppUtils.jidToUser(from);
+                Friends friends = model.getFriends();
+                Friend friend = friends.get(email);
+                if (friend == null) {
+                    friend = new Friend(email);
+                    final RosterEntry entry = roster.getEntry(email);
+                    if (entry != null) {
+                        friend.setName(entry.getName());
+                    }
+                    friends.add(friend);
+                }
+                if (friend.shouldNotifyAgain()) {
+                    FriendNotificationDialog notification = new FriendNotificationDialog(friends, friend);
+                    notificationManager.notify(notification);
+                }
                 return;
             case error:
                 LOG.warn("Got error packet!! {}", pack.toXML());

@@ -47,6 +47,7 @@ import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
 import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
+import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwtMessageService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lastbamboo.common.portmapping.NatPmpService;
@@ -134,6 +135,7 @@ public class LanternModule extends AbstractModule {
         bind(GeoIp.class);
         bind(CountryService.class);
         bind(SplashScreen.class);
+        bind(NotificationManager.class);
 
         try {
             copyFireFoxExtension();

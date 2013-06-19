@@ -349,6 +349,10 @@ public class Roster implements RosterListener {
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
     }
 
+    public RosterEntry getEntry(String email) {
+        return smackRoster.getEntry(email);
+    }
+
     private void fullRosterSync() {
         updateIndex();
         Events.syncRoster(this);

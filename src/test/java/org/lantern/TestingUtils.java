@@ -1,6 +1,7 @@
-package org.lantern; 
+package org.lantern;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,10 +44,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.DefaultChannelConfig;
 import org.jboss.netty.channel.DefaultChannelFuture;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -76,6 +74,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
 import org.lantern.stubs.ProxyTrackerStub;
+import org.lantern.ui.NotificationManager;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -219,10 +218,13 @@ public class TestingUtils {
                 new ProxySocketFactory(socketsUtil, proxyTracker);
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
-        
-        final XmppHandler xmppHandler = new DefaultXmppHandler(model, 
-            updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils, 
-            roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService);
+
+        NotificationManager notificationManager = mock(NotificationManager.class);
+
+        final XmppHandler xmppHandler = new DefaultXmppHandler(model,
+            updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
+            roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
+            notificationManager);
         return xmppHandler;
     }
 
