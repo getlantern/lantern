@@ -18,11 +18,10 @@ public class FriendNotificationDialog extends NotificationDialog {
     private final Friends friends;
     private final Friend friend;
 
-    public FriendNotificationDialog(Friends friends, Friend friend) {
-        super();
+    public FriendNotificationDialog(NotificationManager manager, Friends friends, Friend friend) {
+        super(manager);
         this.friends = friends;
         this.friend = friend;
-        init();
         layout();
     }
 

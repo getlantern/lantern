@@ -64,7 +64,6 @@ public class NotificationManager {
         display.asyncExec(new Runnable() {
             @Override
             public void run() {
-                notification.setManager(NotificationManager.this);
                 initShell(display);
                 doNotify(notification);
             }

@@ -636,24 +636,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 final Presence pres, final String from, final Type type) {
             switch (type) {
             case available:
-                if (!LanternXmppUtils.isLanternJid(from)) {
-                    return;
-                }
-                String email = XmppUtils.jidToUser(from);
-                Friends friends = model.getFriends();
-                Friend friend = friends.get(email);
-                if (friend == null) {
-                    friend = new Friend(email);
-                    final RosterEntry entry = roster.getEntry(email);
-                    if (entry != null) {
-                        friend.setName(entry.getName());
-                    }
-                    friends.add(friend);
-                }
-                if (friend.shouldNotifyAgain()) {
-                    FriendNotificationDialog notification = new FriendNotificationDialog(friends, friend);
-                    notificationManager.notify(notification);
-                }
+                peerAvailable(from);
                 return;
             case error:
                 LOG.warn("Got error packet!! {}", pack.toXML());
@@ -1349,5 +1332,27 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void sendPacket(final Packet packet) {
         this.client.get().getXmppConnection().sendPacket(packet);
+    }
+
+    private void peerAvailable(final String from) {
+        if (!LanternXmppUtils.isLanternJid(from)) {
+            return;
+        }
+        String email = XmppUtils.jidToUser(from);
+        Friends friends = model.getFriends();
+        Friend friend = friends.get(email);
+        if (friend == null) {
+            friend = new Friend(email);
+            final RosterEntry entry = roster.getEntry(email);
+            if (entry != null) {
+                friend.setName(entry.getName());
+            }
+            friends.add(friend);
+        }
+        if (friend.shouldNotifyAgain()) {
+            FriendNotificationDialog notification;
+            notification = new FriendNotificationDialog(notificationManager, friends, friend);
+            notificationManager.notify(notification);
+        }
     }
 }

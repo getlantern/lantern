@@ -9,28 +9,21 @@ import org.eclipse.swt.widgets.Shell;
 public class NotificationDialog {
 
     Shell shell;
-    public NotificationDialog() {
-    }
-
-    public void init() {
+    public NotificationDialog(final NotificationManager manager) {
         final Display display = Display.getDefault();
 
         display.syncExec(new Runnable() {
             @Override
             public void run() {
                 shell = new Shell(Display.getDefault().getActiveShell(), SWT.NO_FOCUS | SWT.NO_TRIM | SWT.ON_TOP);
+                shell.addListener(SWT.Dispose, new Listener() {
+                    @Override
+                    public void handleEvent(Event event) {
+                        manager.remove(NotificationDialog.this);
+                    }
+                });
             }
         });
     }
 
-
-
-    public void setManager(final NotificationManager manager) {
-        shell.addListener(SWT.Dispose, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                manager.remove(NotificationDialog.this);
-            }
-        });
-    }
 }
