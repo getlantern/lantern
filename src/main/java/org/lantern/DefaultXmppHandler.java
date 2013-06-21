@@ -62,6 +62,7 @@ import org.lantern.state.Friends;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
+import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lantern.ui.FriendNotificationDialog;
@@ -1341,7 +1342,8 @@ public class DefaultXmppHandler implements XmppHandler {
         String email = XmppUtils.jidToUser(from);
         Friends friends = model.getFriends();
         Friend friend = modelUtils.makeFriend(email);
-        if (friend.shouldNotifyAgain()) {
+        Settings settings = model.getSettings();
+        if (friend.shouldNotifyAgain() && settings.shouldShowFriendPrompts()) {
             FriendNotificationDialog notification;
             notification = new FriendNotificationDialog(notificationManager, friends, friend);
             notificationManager.notify(notification);

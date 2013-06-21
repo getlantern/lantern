@@ -85,7 +85,9 @@ public class Settings {
     //private boolean autoConnectToPeers = true;
 
     private boolean useCloudProxies = true;
-    
+
+    private boolean showFriendPrompts = true;
+
     @JsonView(Run.class)
     public String getLang() {
         return lang;
@@ -342,5 +344,13 @@ public class Settings {
 
     public void setUdp(boolean udp) {
         this.udp = udp;
+    }
+
+    public boolean shouldShowFriendPrompts() {
+        return showFriendPrompts;
+    }
+
+    public void setShowFriendPrompts(boolean showFriendPrompts) {
+        this.showFriendPrompts = showFriendPrompts;
     }
 }
