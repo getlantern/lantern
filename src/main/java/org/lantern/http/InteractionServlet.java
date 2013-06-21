@@ -5,10 +5,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -82,7 +81,6 @@ public class InteractionServlet extends HttpServlet {
         CONTACT,
         ABOUT,
         ACCEPT,
-        DECLINE,
         UNEXPECTEDSTATERESET,
         UNEXPECTEDSTATEREFRESH,
         URL,
@@ -367,17 +365,9 @@ public class InteractionServlet extends HttpServlet {
                     this.internalState.advanceModal(null);
                 }
                 break;
-            case ACCEPT:
-                acceptInvite(json);
-                Events.syncModal(model, Modal.lanternFriends);
-                break;
-            case DECLINE:
-                declineInvite(json);
-                Events.syncModal(model, Modal.lanternFriends);
-                break;
             default:
                 log.error("Did not handle interaction {} for modal {}", inter, modal);
-                HttpUtils.sendClientError(resp, 
+                HttpUtils.sendClientError(resp,
                     "Interaction not handled for modal: "+modal+
                     " and interaction: "+inter);
                 break;
@@ -646,6 +636,14 @@ public class InteractionServlet extends HttpServlet {
 
     private void addFriend(String json) {
         setFriendStatus(json, Status.friend);
+        final String email = JsonUtils.getValueFromJson("email", json);
+
+        //if they have requested a subscription to us, we'll accept it.
+        this.xmppHandler.subscribed(email);
+
+        // We also automatically subscribe to them in turn so we know about
+        // their presence.
+        this.xmppHandler.subscribe(email);
     }
 
     private void backupSettings() {
@@ -746,40 +744,6 @@ public class InteractionServlet extends HttpServlet {
         return false;
     }
 
-    private void declineInvite(final String json) {
-        final String email = JsonUtils.getValueFromJson("email", json);
-        this.xmppHandler.unsubscribed(email);
-        Friends friends = model.getFriends();
-        friends.setStatus(email, Friend.Status.rejected);
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
-    }
-
-    private void acceptInvite(final String json) {
-        final String email = JsonUtils.getValueFromJson("email", json);
-        this.xmppHandler.subscribed(email);
-
-        Friends friends = model.getFriends();
-        friends.setStatus(email, Friend.Status.friend);
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
-
-        // We also automatically subscribe to them in turn so we know about
-        // their presence.
-        this.xmppHandler.subscribe(email);
-    }
-
-    static class Invite {
-        List<String> invite;
-
-        public Invite() {}
-
-        public List<String> getInvite() {
-            return invite;
-        }
-
-        public void setInvite(List<String> invite) {
-            this.invite = invite;
-        }
-    }
     private void invite(String json) {
         ObjectMapper om = new ObjectMapper();
         try {
