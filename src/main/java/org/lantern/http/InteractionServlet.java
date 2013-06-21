@@ -36,6 +36,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
+import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
 import org.lantern.state.InternalState;
 import org.lantern.state.InviteQueue;
@@ -46,6 +47,7 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
+import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
@@ -84,7 +86,9 @@ public class InteractionServlet extends HttpServlet {
         UNEXPECTEDSTATERESET,
         UNEXPECTEDSTATEREFRESH,
         URL,
-        EXCEPTION
+        EXCEPTION,
+        ADDFRIEND,
+        REMOVEFRIEND
     }
 
     // modals the user can switch to from other modals
@@ -110,6 +114,8 @@ public class InteractionServlet extends HttpServlet {
 
     private final ModelIo modelIo;
 
+    private final ModelUtils modelUtils;
+
     private final XmppHandler xmppHandler;
 
     private final Censored censored;
@@ -128,7 +134,7 @@ public class InteractionServlet extends HttpServlet {
         final InternalState internalState,
         final ModelIo modelIo, final XmppHandler xmppHandler,
         final Censored censored, final LanternFeedback lanternFeedback,
-        final InviteQueue inviteQueue) {
+        final InviteQueue inviteQueue, final ModelUtils modelUtils) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -137,6 +143,7 @@ public class InteractionServlet extends HttpServlet {
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
         this.inviteQueue = inviteQueue;
+        this.modelUtils = modelUtils;
         Events.register(this);
     }
 
@@ -338,6 +345,12 @@ public class InteractionServlet extends HttpServlet {
         case lanternFriends:
             this.internalState.setCompletedTo(Modal.lanternFriends);
             switch (inter) {
+            case ADDFRIEND:
+                addFriend(json);
+                break;
+            case REMOVEFRIEND:
+                removeFriend(json);
+                break;
             case INVITE:
                 invite(json);
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
@@ -616,6 +629,23 @@ public class InteractionServlet extends HttpServlet {
             log.error("No matching modal for {}", modal);
         }
         this.modelIo.write();
+    }
+
+    private void setFriendStatus(String json, Status status) {
+        final String email = JsonUtils.getValueFromJson("email", json);
+        Friends friends = model.getFriends();
+        Friend friend = modelUtils.makeFriend(email);
+        friend.setStatus(status);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
+        friends.setNeedsSync(true);
+    }
+
+    private void removeFriend(String json) {
+        setFriendStatus(json, Status.rejected);
+    }
+
+    private void addFriend(String json) {
+        setFriendStatus(json, Status.friend);
     }
 
     private void backupSettings() {

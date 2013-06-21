@@ -10,10 +10,12 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jivesoftware.smack.RosterEntry;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.lantern.Roster;
 import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
@@ -226,5 +228,22 @@ public class DefaultModelUtils implements ModelUtils {
     @Override
     public boolean isGet() {
         return this.model.getSettings().getMode() == Mode.get;
+    }
+
+
+    @Override
+    public Friend makeFriend(String email) {
+        Friends friends = model.getFriends();
+        Friend friend = friends.get(email);
+        if (friend == null) {
+            friend = new Friend(email);
+            Roster roster = model.getRoster();
+            final RosterEntry entry = roster.getEntry(email);
+            if (entry != null) {
+                friend.setName(entry.getName());
+            }
+            friends.add(friend);
+        }
+        return friend;
     }
 }

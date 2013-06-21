@@ -2,6 +2,7 @@ package org.lantern;
 
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Test;
+import org.lantern.state.Friend;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
@@ -76,6 +77,11 @@ public class ProxifierTest {
             public boolean isGet() {
                 // TODO Auto-generated method stub
                 return false;
+            }
+
+            @Override
+            public Friend makeFriend(String email) {
+                return null;
             }
         };
     }
