@@ -111,7 +111,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       model = modelSrvc.model,
       i18n = $filter('i18n'),
       date = $filter('date'),
-      prettyUser = $filter('prettyUser'),
       prettyBps = $filter('prettyBps'),
       prettyBytes = $filter('prettyBytes'),
       projection = d3.geo.mercator(),

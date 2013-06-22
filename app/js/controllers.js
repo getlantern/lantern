@@ -5,6 +5,7 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
       model = $scope.model = modelSrvc.model,
       i18nFltr = $filter('i18n'),
       jsonFltr = $filter('json'),
+      prettyUserFltr = $filter('prettyUser'),
       reportedStateFltr = $filter('reportedState'),
       MODE = ENUMS.MODE,
       CONNECTIVITY = ENUMS.CONNECTIVITY;
@@ -80,23 +81,21 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
   function updateContactCompletions() {
     var roster = model.roster;
     if (!roster) return;
-    var completions = [];
-    for (var i=0, l=roster.length, ii=roster[i]; ii; ii=roster[++i]) {
-      var email = ii.email, friend = email && $scope.friendsByEmail[email];
-      if (email && !friend) {
-        // XXX allow completing by name as well as email
-        //completions.push(prettyUser(ii));
-        completions.push(ii.email);
-      }
-    }
+    var completions = {};
     for (var i=0, l=model.friends.length, ii=model.friends[i]; ii; ii=model.friends[++i]) {
       if (ii.status !== FRIEND_STATUS.friend) {
-        // XXX allow completing by name as well as email
-        //completions.push(prettyUser(ii));
-        completions.push(ii.email);
+        completions[ii.email] = ii;
       }
     }
-    completions = _.sortBy(completions); // XXX sort by contact frequency instead
+    for (var i=0, l=roster.length, ii=roster[i]; ii; ii=roster[++i]) {
+      var email = ii.email, friend = email && $scope.friendsByEmail[email];
+      if (email && (!friend || friend.status !== FRIEND_STATUS.friend)) {
+        // if an entry for this email was added in the previous loop, we want
+        // this entry to overwrite it since the roster object has more data
+        completions[ii.email] = ii;
+      }
+    }
+    completions = _.sortBy(completions, function (i) { return prettyUserFltr(i); }); // XXX sort by contact frequency instead
     $scope.contactCompletions = completions;
   }
 
@@ -120,10 +119,6 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
     $scope.gtalkNotConnected = gtalk === CONNECTIVITY.notConnected;
     $scope.gtalkConnecting = gtalk === CONNECTIVITY.connecting;
     $scope.gtalkConnected = gtalk === CONNECTIVITY.connected;
-  }, true);
-
-  $scope.$watch('model.ninvites', function(ninvites) {
-    $scope.ninvitesUnknown = ninvites === -1;
   }, true);
 
   $scope.reload = function() {
@@ -399,25 +394,19 @@ function ProxiedSitesCtrl($scope, $timeout, $filter, logFactory, MODAL, SETTING,
 function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION) {
   var log = logFactory('LanternFriendsCtrl'),
       model = modelSrvc.model,
-      prettyUser = $filter('prettyUser'),
-      EMAIL = INPUT_PAT.EMAIL;
-
-  $scope.$watch('added', function (added) {
-    if (!_.isString(added)) return;
-    var email = added.match(EMAIL);
-    if (!email) {
-      $scope.addFriendForm.addFriendInput.$setValidity('email', false);
-    } else {
-      $scope.addFriendForm.addFriendInput.$setValidity('email', true);
-      $scope.addedEmail = email[0];
-    }
-  }, true);
+      EMAIL = INPUT_PAT.EMAIL,
+      prettyUserFltr = $filter('prettyUser'),
+      i18nFltr = $filter('i18n');
 
   $scope.add = function (email) {
-    email = email || $scope.addedEmail;
+    email = email || $scope.added.email;
+    if (!email) {
+      log.error('missing email');
+      return;
+    }
     $scope.interaction(INTERACTION.friend, {email: email}).then(
       function () {
-        $scope.added = $scope.addedEmail = null;
+        $scope.added = null;
         $scope.errorLabelKey = '';
       },
       function () {
@@ -436,14 +425,40 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
   };
 
   $scope.friendOrder = function (friend) {
+    // entries with status 'requested' come first, then 'friend', then other
+    // within each group, entries with no name field come first
+    // ('-' < '0' < 'A' < 'a')
+    var s = friend.name ? prettyUserFltr(friend) : '-' + friend.email;
     switch (friend.status) {
       case FRIEND_STATUS.requested:
-        return 0;
+        return '0' + s;
       case FRIEND_STATUS.friend:
-        return 1;
+        return '1' + s;
       default:
-        return 100;
+        return '2' + s;
     }
+  };
+
+  $scope.$watch('contactCompletions', function (contactCompletions) {
+    var data = _.map(contactCompletions, function (c) {
+      return angular.extend({}, c, {id: c.email, text: prettyUserFltr(c)});
+    });
+    angular.copy(data, $scope.select2opts.data);
+  });
+
+  $scope.select2opts = {
+    allowClear: true,
+    data: [],
+    createSearchChoice: function (input) {
+      return EMAIL.test(input) ? {id: input, text: input, email: input} : undefined;
+    },
+    formatNoMatches: function() {
+      return i18nFltr('ENTER_VALID_EMAIL');
+    },
+    formatSearching: function() {
+      return i18nFltr('SEARCHING_ELLIPSIS');
+    },
+    selectOnBlur: true
   };
 }
 

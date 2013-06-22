@@ -1,0 +1,31 @@
+{
+  "author": {
+    "name": "AngularUI"
+  },
+  "name": "angular-ui-select2",
+  "version": "0.0.2",
+  "homepage": "http://angular-ui.github.com",
+  "keywords": [
+    "angular",
+    "angularui",
+    "select2"
+  ],
+  "main": "./src/select2.js",
+  "dependencies": {
+    "angular": ">= 1.0.2",
+    "select2": "~3.4",
+    "jquery": ">=1.6.4"
+  },
+  "devDependencies": {
+    "angular-mocks": ">= 1.0.2"
+  },
+  "gitHead": "117bbbc0408a5933f580c6fe7b8e977181d01199",
+  "readme": "ui-select2   [![Build Status](https://travis-ci.org/angular-ui/ui-select2.png)](https://travis-ci.org/angular-ui/ui-select2)\n==========\nThis directive allows you to enhance your select elements with behaviour from the [select2](http://ivaynberg.github.io/select2/) library.\n\n# Requirements\n\n- [AngularJS](http://angularjs.org/)\n- [JQuery](http://jquery.com/)\n- [Select2](http://ivaynberg.github.io/select2/)\n\n## Setup\n\n1. Install **karma**\n  `$ npm install -g karma`\n2. Install **bower**\n  `$ npm install -g bower`\n4. Install components\n  `$ bower install`\n4. ???\n5. Profit!\n\n## Testing\n\n`$ karma start test/test.conf.js --browsers=Chrome`\n\n# Usage\n\nWe use [bower](http://twitter.github.com/bower/) for dependency management.  Add\n\n```javascript\ndependencies: {\n    \"angular-ui-select2\": \"latest\"\n}\n```\n\nTo your `components.json` file. Then run\n\n    bower install\n\nThis will copy the ui-select2 files into your `components` folder, along with its dependencies. Load the script files in your application:\n```html\n<script type=\"text/javascript\" src=\"components/jquery/jquery.js\"></script>\n<script type=\"text/javascript\" src=\"components/angular/angular.js\"></script>\n<script type=\"text/javascript\" src=\"components/angular-ui-select2/src/select2.js\"></script>\n```\n\nAdd the select2 module as a dependency to your application module:\n\n```javascript\nvar myAppModule = angular.module('MyApp', ['ui.select2']);\n```\n\nApply the directive to your form elements:\n\n```html\n<select ui-select2 ng-model=\"select2\" data-placeholder=\"Pick a number\">\n    <option value=\"\"></option>\n    <option value=\"one\">First</option>\n    <option value=\"two\">Second</option>\n    <option value=\"three\">Third</option>\n</select>\n```\n\n## Options\n\nAll the select2 options can be passed through the directive. You can read more about the supported list of options and what they do on the [Select2 Documentation Page](http://ivaynberg.github.com/select2/)\n\n```javascript\nmyAppModule.controller('MyController', function($scope) {\n    $scope.select2Options = {\n        allowClear:true\n    };\n});\n```\n\n```html\n<select ui-select2=\"select2Options\" ng-model=\"select2\">\n    <option value=\"one\">First</option>\n    <option value=\"two\">Second</option>\n    <option value=\"three\">Third</option>\n</select>\n```\n\nSome time it may make sense to specify the options in the template file.\n\n```html\n<select ui-select2=\"{ allowClear: true}\" ng-model=\"select2\">\n    <option value=\"one\">First</option>\n    <option value=\"two\">Second</option>\n    <option value=\"three\">Third</option>\n</select>\n```\n\n## Working with ng-model\n\nThe ui-select2 directive plays nicely with ng-model and validation directives such as ng-required.\n\nIf you add the ng-model directive to same the element as ui-select2 then the picked option is automatically synchronized with the model value.\n\n## Working with dynamic options\n`ui-select2` is incompatible with `<select ng-options>`. For the best results use `<option ng-repeat>` instead.\n```html\n<select ui-select2 ng-model=\"select2\" data-placeholder=\"Pick a number\">\n    <option value=\"\"></option>\n    <option ng-repeat=\"{{number in range}}\" value=\"{{number.value}}\">{{number.text}}</option>\n</select>\n```\n\n## Working with placeholder text\nIn order to properly support the Select2 placeholder, create an empty `<option>` tag at the top of the `<select>` and either set a `data-placeholder` on the select element or pass a `placeholder` option to Select2.\n```html\n<select ui-select2 ng-model=\"number\" data-placeholder=\"Pick a number\">\n    <option value=\"\"></option>\n    <option value=\"one\">First</option>\n    <option value=\"two\">Second</option>\n    <option value=\"three\">Third</option>\n</select>\n```\n\n## ng-required directive\n\nIf you apply the required directive to element then the form element is invalid until an option is selected.\n\nNote: Remember that the ng-required directive must be explicitly set, i.e. to \"true\".  This is especially true on divs:\n\n```html\n<select ui-select2 ng-model=\"number\" data-placeholder=\"Pick a number\" ng-required=\"true\">\n    <option value=\"\"></option>\n    <option value=\"one\">First</option>\n    <option value=\"two\">Second</option>\n    <option value=\"three\">Third</option>\n</select>\n```\n",
+  "readmeFilename": "README.md",
+  "_id": "angular-ui-select2@0.0.2",
+  "description": "ui-select2   [![Build Status](https://travis-ci.org/angular-ui/ui-select2.png)](https://travis-ci.org/angular-ui/ui-select2) ========== This directive allows you to enhance your select elements with behaviour from the [select2](http://ivaynberg.github.io/select2/) library.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/angular-ui/ui-select2.git"
+  }
+}

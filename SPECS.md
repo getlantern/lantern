@@ -62,14 +62,15 @@ published using JSON PATCH, e.g.
 ```json
 [{
   "op": "add",
-  "path": "/friends/pending/-",
+  "path": "/friends/-",
   "value": {
-    "email": "user@example.com"
+    "email": "user@example.com",
+    "status": "requested"
   }
 },{
   "op": "replace",
-  "path": "/ninvites",
-  "value": 0
+  "path": "/friends/-/status",
+  "value": "friend"
 }]
 ```
 
@@ -568,29 +569,12 @@ the backend maintains on the frontend through comet publications:
     </td></tr>
   </tr>
   <tr>
-    <td><strong>friends</strong><br><em>object</em></td>
+    <td><strong>friends</strong><br><em>object[]</em></td>
     <td>
-      <table>
-        <tr><td><strong>current</strong><br><em>object[]</em></td>
-          <td>
-            <table>
-              <tr><td><strong>email</strong><br><em>email</em></td>
-                <td>The friend's email address.</td>
-              <tr><td><strong>name</strong><br><em>string</em></td>
-                <td>The friend's full name, if available.</td>
-              <tr><td><strong>picture</strong><br><em>url</em></td>
-                <td>Url of the contact's profile picture, if available.</td></tr>
-            </table>
-          </td></tr>
-        <tr><td><strong>pending</strong><br><em>object[]</em></td>
-          <td><em>As in</em> <code>current</code>.</td></tr>
-      </table>
+      List of the user's Lantern Friends. As in <code>roster</code>, except
+      with an additional <code>status</code> field, which can take the value
+      <code>"friend", "requested",</code> or <code>"rejected"</code>.
     </td>
-  </tr>
-  <tr>
-    <td><strong>ninvites</strong><br><em>int</em></td>
-    <td>The number of Lantern invites the user has remaining. A value of -1
-        indicates the number of remaining invites is unknown.</td>
   </tr>
   <tr>
     <td><strong>nproxiedSitesMax</strong><br><em>int</em></td>

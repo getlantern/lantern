@@ -336,16 +336,13 @@
       <p id="lanternFriendsIntro">{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
     </div>
 
-    <div id="addFriends">
-      <form name="addFriendForm" ng-submit="add()">
-        <div class="input-append">
-          <input id="addFriendInput" name="addFriendInput" type="text"
-            placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
-            ng-model="added" typeahead="c for c in contactCompletions | filter:$viewValue">
-          <input type="submit" class="btn" value="{{ 'ADD_FRIEND' | i18n }}"
-            id="addFriendButton" ng-disabled="!added || addFriendForm.$invalid">
-        </div>
-      </form>
+    <div>
+      <div>
+        <input type="hidden" id="addFriendInput" name="addFriendInput"
+          placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
+          ng-model="added" ui-select2="select2opts">
+      </div>
+
       <h5 id="currentFriendsHeading" ng-show="nfriends || npending">{{ 'NFRIENDS' | i18n:nfriends }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('PENDING_REQS_PROMPT' | i18n:npending) || '' }}</h5>
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
         <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder"
@@ -372,7 +369,8 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary"
+    <button class="btn btn-success" ng-show="added" ng-click="add()">{{ 'ADD_FRIEND' | i18n }}</button>
+    <button class="btn btn-primary" ng-hide="added"
       ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>
 </div>

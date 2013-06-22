@@ -50,7 +50,6 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
         updateAvailable: 'false',
         gtalkAuthorized: 'true',
         invited: 'true',
-        ninvites: '10',
         gtalkReachable: 'true',
         roster: 'roster1',
         friends: 'friends1',
@@ -322,12 +321,6 @@ MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen.func.call(this);
   if (getByPath(this.model, '/connectivity/gtalk') !== CONNECTIVITY.connected) return;
 
-  // fetch number of invites
-  scen = getByPath(this.model, '/mock/scenarios/applied/ninvites');
-  scen = getByPath(SCENARIOS, '/ninvites/'+scen);
-  log('applying ninvites scenario', scen.desc);
-  scen.func.call(this);
-
   // fetch roster
   scen = getByPath(this.model, '/mock/scenarios/applied/roster');
   scen = getByPath(SCENARIOS, '/roster/'+scen);
@@ -393,14 +386,19 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
     if (!data || !data.email) {
       return res.writeHead(400);
     }
-    var i = _.findIndex(this.model.friends, {email: data.email}), update,
-        status = interaction === INTERACTION.friend ? 'friend' : 'rejected';
+    var email = {email: data.email},
+        rosterEntry = _.find(this.model.roster, email),
+        i = _.findIndex(this.model.friends, email),
+        friendEntry = i === -1 ? null : this.model.friends[i],
+        status = interaction === INTERACTION.friend ? 'friend' : 'rejected',
+        newFriendEntry = _.extend(email, rosterEntry, friendEntry, {status: status}),
+        update;
     if (i === -1) {
-      update = {op: 'add', path: '/friends/-', value: {email: data.email, status: status}};
+      update = [{op: 'add', path: '/friends/-', value: newFriendEntry}];
     } else {
-      update = {op: 'replace', path: '/friends/'+i+'/status', value: status};
+      update = [{op: 'replace', path: '/friends/'+i, value: newFriendEntry}];
     }
-    this.sync([update]);
+    this.sync(update);
   } else if (interaction === INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal();
