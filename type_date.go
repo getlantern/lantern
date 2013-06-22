@@ -72,6 +72,7 @@ func (self *_dateObject) Value() Value {
 	return self.value
 }
 
+// FIXME A date should only be in the range of -100,000,000 to +100,000,000 (1970): 15.9.1.1
 func (self *_dateObject) SetNaN() {
 	self.time = Time.Time{}
 	self.epoch = -1

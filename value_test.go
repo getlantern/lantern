@@ -170,7 +170,7 @@ func TestExport(t *testing.T) {
 	test := runTest()
 
 	Is(test(`null;`).export(), nil)
-	Is(test(`undefined;`).export(), UndefinedValue())
+	Is(test(`undefined;`).export(), nil)
 	Is(test(`true;`).export(), true)
 	Is(test(`false;`).export(), false)
 	Is(test(`0;`).export(), 0)
@@ -178,9 +178,11 @@ func TestExport(t *testing.T) {
 	Is(test(`"Nothing happens";`).export(), "Nothing happens")
 	Is(test(`String.fromCharCode(97,98,99,100,101,102)`).export(), "abcdef")
 	{
-		value := test(`({ abc: 1, def: true });`).export().(map[string]interface{})
+		value := test(`({ abc: 1, def: true, ghi: undefined });`).export().(map[string]interface{})
 		Is(value["abc"], 1)
 		Is(value["def"], true)
+		_, exists := value["ghi"]
+		Is(exists, false)
 	}
 	{
 		value := test(`[ "abc", 1, "def", true, undefined, null ];`).export().([]interface{})
@@ -188,7 +190,7 @@ func TestExport(t *testing.T) {
 		Is(value[1], 1)
 		Is(value[2], "def")
 		Is(value[3], true)
-		Is(value[4], UndefinedValue())
+		Is(value[4], nil)
 		Is(value[5], nil)
 		Is(value[5], interface{}(nil))
 	}

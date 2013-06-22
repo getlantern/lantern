@@ -614,7 +614,7 @@ func (self Value) export() interface{} {
 
 	switch self._valueType {
 	case valueUndefined:
-		return self
+		return nil
 	case valueNull:
 		return nil
 	case valueNumber, valueBoolean:
@@ -647,14 +647,18 @@ func (self Value) export() interface{} {
 				if !object.hasProperty(name) {
 					continue
 				}
-				result = append(result, object.get(name).export())
+				value := object.get(name)
+				result = append(result, value.export())
 			}
 			return result
 		} else {
 			result := make(map[string]interface{})
 			// TODO Should we export everything? Or just what is enumerable?
 			object.enumerate(false, func(name string) bool {
-				result[name] = object.get(name).export()
+				value := object.get(name)
+				if value.IsDefined() {
+					result[name] = value.export()
+				}
 				return true
 			})
 			return result
