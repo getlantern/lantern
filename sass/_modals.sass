@@ -153,16 +153,67 @@
   &::-webkit-search-cancel-button
     -webkit-appearance: searchfield-cancel-button
 
-#lanternFriends
-  h4
-    font-size: $baseFontSize * 1.1
-    margin-bottom: 15px
-
 #lanternFriendsIntro
   margin-bottom: 20px
 
+#addFriendInput
+  width: 400px
+
+#addFriendButton
+  width: 117px
+
+#currentFriendsHeading
+  +centered
+  margin: 15px 0 0 0
+
 #currentFriends
-  display: none // XXX pending https://github.com/getlantern/lantern/issues/539
+  +no-bullets
+  max-height: 215px
+  overflow-y: scroll
+  margin: 10px 0
+  padding: 10px 0
+  .entry
+    padding: 5px
+    color: $grayLight
+    .reject
+      display: inline-block
+      width: 10px
+      opacity: 0
+      color: $grayLight
+      text-decoration: none
+    &:hover
+      color: #000
+      background: #fff
+      .reject
+        opacity: 1
+      .pending
+        height: auto
+        line-height: auto
+        margin: 10px
+        padding: 10px
+        opacity: 1
+  .approve.btn-group
+    display: inline-block
+    float: right
+  .pending
+    +smaller
+    +centered
+    +single-transition(all, 0.3s, ease)
+    +warning-colored
+    opacity: 0
+    clear: both
+    margin: 0
+    height: 0
+    line-height: 0
+  .entry.status-requested
+    .reject
+      opacity: 0
+      cursor: default
+  .email
+    &:before
+      content: '<'
+    &:after
+      content: '>'
 
 .contactList-horizontal
   +neverHideScrollbars

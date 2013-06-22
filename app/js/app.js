@@ -11,6 +11,7 @@ var app = angular.module('app', [
   'ngSanitize',
   'ui.if',
   'ui.showhide',
+  'ui.validate',
   'ui.bootstrap'
   ])
   // angular ui bootstrap config

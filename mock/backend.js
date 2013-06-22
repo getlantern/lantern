@@ -388,50 +388,22 @@ MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, dat
 };
 
 MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
-  if (interaction === INTERACTION.invite) {
-    if (data) {
-      if (data.length > this.model.ninvites) {
-        log('more invitees than invites', data);
-        return res.writeHead(400);
-      }
-      for (var i=0, ii=data[i]; ii; ii=data[++i]) {
-        if (!EMAIL.test(ii)) {
-          log('not a valid email:', ii);
-          return res.writeHead(400);
-        }
-      }
-      var n = data.length, msg = n > 1 ? 'Friend requests' : 'Friend request';
-      msg += ' queued for <span class="titled" title="name here if available">'+data[0]+'</span>';
-      if (n > 2) {
-        data.splice(0, 1);
-        msg += ' and <span class="titled" title="'+data.join(', ')+'">'+(n-1)+' others</span>.'
-      } else if (n === 2) {
-        msg += ' and <span class="titled" title="name here if available">'+data[1]+'</span>.'
-      } else {
-        msg += '.';
-      }
-      var update = {'/ninvites': this.model.ninvites - data.length};
-      update['/notifications/'+nextid()] = {type: 'info', message: msg, autoClose: 30};
-      this.sync(update);
+  if (interaction === INTERACTION.friend ||
+      interaction === INTERACTION.reject) {
+    if (!data || !data.email) {
+      return res.writeHead(400);
     }
+    var i = _.findIndex(this.model.friends, {email: data.email}), update,
+        status = interaction === INTERACTION.friend ? 'friend' : 'rejected';
+    if (i === -1) {
+      update = {op: 'add', path: '/friends/-', value: {email: data.email, status: status}};
+    } else {
+      update = {op: 'replace', path: '/friends/'+i+'/status', value: status};
+    }
+    this.sync([update]);
   } else if (interaction === INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal();
-  } else if (interaction === INTERACTION.accept ||
-             interaction === INTERACTION.decline) {
-    var pending = getByPath(this.model, '/friends/pending') || [],
-        i = _.pluck(pending, 'email').indexOf(data.email);
-    if (i === -1) return res.writeHead(400);
-    var patch = [{op: 'remove', path: '/friends/pending/'+i}], msg;
-    if (interaction === INTERACTION.accept) {
-      patch.push({op: 'add', value: data, path: '/friends/current/-'});
-      patch.push({op: 'add', value: data, path: '/roster/-'});
-      msg = 'Accepted friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
-    } else {
-      msg = 'Declined friend request from <span class="titled" title="'+data.name+'">'+data.email+'</span>.';
-    }
-    patch.push({op: 'add', path: '/notifications/'+nextid(), value: {type: 'info', message: msg, autoClose: 30}});
-    this.sync(patch);
   } else {
     res.writeHead(400);
   }

@@ -31,7 +31,6 @@
             ng-click="interaction(INTERACTION.lanternFriends)"
             ng-class="{active: model.modal == MODAL.lanternFriends}"
             tooltip="{{ 'LANTERN_FRIENDS' | i18n }}">
-      <!-- i class="icon-group"></i -->
       <i class="lsf-icon lsf-friends"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
@@ -40,7 +39,6 @@
             ng-click="interaction(INTERACTION.proxiedSites)"
             ng-class="{active: model.modal == MODAL.proxiedSites}"
             tooltip="{{ 'PROXIED_SITES_TITLE' | i18n }}">
-      <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-web"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
@@ -48,9 +46,8 @@
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
             tooltip="{{ 'SETTINGS' | i18n }}">
-      <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-gear"></i>
     </button>
   </div>
-  <div id="npending" ng-show="model.setupComplete && model.friends.pending.length" class="badge badge-important">{{ model.friends.pending.length | badgeCount }}</div>
+  <div id="npending" ng-show="model.setupComplete && npending" class="badge badge-important">{{ npending | badgeCount }}</div>
 </div>

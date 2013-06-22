@@ -13,6 +13,13 @@ angular.module('app.filters', [])
       return count > max ? max + '+' : count;
     };
   })
+  .filter('notRejected', function(FRIEND_STATUS) {
+    return function(friends) {
+      if (!_.isArray(friends)) return friends;
+      var filtered = _.reject(friends, {status: FRIEND_STATUS.rejected});
+      return filtered;
+    };
+  })
   .filter('prettyUser', function() {
     return function(obj) {
       if (!obj) return obj;

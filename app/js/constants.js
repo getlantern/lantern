@@ -75,9 +75,8 @@ var DEFAULT_LANG = 'en',
       'get',
       'set',
       'lanternFriends',
-      'accept',
-      'decline',
-      'invite',
+      'friend',
+      'reject',
       'contact',
       'settings',
       'reset',
@@ -109,6 +108,11 @@ var DEFAULT_LANG = 'en',
       'cloud',
       'laeproxy'
       ]),
+    FRIEND_STATUS = makeEnum([
+      'friend',
+      'requested',
+      'rejected'
+      ]),
     CONNECTIVITY = makeEnum([
       'notConnected',
       'connecting',
@@ -125,6 +129,7 @@ var DEFAULT_LANG = 'en',
       INTERACTION: INTERACTION,
       SETTING: SETTING,
       PEER_TYPE: PEER_TYPE,
+      FRIEND_STATUS: FRIEND_STATUS,
       CONNECTIVITY: CONNECTIVITY,
       GTALK_STATUS: GTALK_STATUS
     };
@@ -148,6 +153,8 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('MODAL', MODAL)
     .constant('INTERACTION', INTERACTION)
     .constant('SETTING', SETTING)
+    .constant('PEER_TYPE', PEER_TYPE)
+    .constant('FRIEND_STATUS', FRIEND_STATUS)
     .constant('CONNECTIVITY', CONNECTIVITY)
     .constant('GTALK_STATUS', GTALK_STATUS)
     // frontend-only
@@ -173,6 +180,8 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     MODAL: MODAL,
     INTERACTION: INTERACTION,
     SETTING: SETTING,
+    PEER_TYPE: PEER_TYPE,
+    FRIEND_STATUS: FRIEND_STATUS,
     CONNECTIVITY: CONNECTIVITY,
     GTALK_STATUS: GTALK_STATUS
   };

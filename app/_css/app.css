@@ -2232,7 +2232,7 @@ li [class*=" icon-"].icon-large, .nav li [class^="icon-"].icon-large,
 
 ul.icons {
   list-style-type: none;
-  text-indent: -0.75em;
+  text-indent: -.75em;
 }
 ul.icons li [class^="icon-"],
 ul.icons li [class*=" icon-"] {
@@ -7014,17 +7014,85 @@ textarea {
   -webkit-appearance: searchfield-cancel-button;
 }
 
-#lanternFriends h4 {
-  font-size: 15.4px;
-  margin-bottom: 15px;
-}
-
 #lanternFriendsIntro {
   margin-bottom: 20px;
 }
 
+#addFriendInput {
+  width: 400px;
+}
+
+#addFriendButton {
+  width: 117px;
+}
+
+#currentFriendsHeading {
+  text-align: center;
+  margin: 15px 0 0 0;
+}
+
 #currentFriends {
-  display: none;
+  list-style: none;
+  max-height: 215px;
+  overflow-y: scroll;
+  margin: 10px 0;
+  padding: 10px 0;
+}
+#currentFriends li {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: 0;
+}
+#currentFriends .entry {
+  padding: 5px;
+  color: #999999;
+}
+#currentFriends .entry .reject {
+  display: inline-block;
+  width: 10px;
+  opacity: 0;
+  color: #999999;
+  text-decoration: none;
+}
+#currentFriends .entry:hover {
+  color: black;
+  background: white;
+}
+#currentFriends .entry:hover .reject {
+  opacity: 1;
+}
+#currentFriends .entry:hover .pending {
+  height: auto;
+  line-height: auto;
+  margin: 10px;
+  padding: 10px;
+  opacity: 1;
+}
+#currentFriends .approve.btn-group {
+  display: inline-block;
+  float: right;
+}
+#currentFriends .pending {
+  font-size: 10.5px;
+  text-align: center;
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+  color: #c09853;
+  opacity: 0;
+  clear: both;
+  margin: 0;
+  height: 0;
+  line-height: 0;
+}
+#currentFriends .entry.status-requested .reject {
+  opacity: 0;
+  cursor: default;
+}
+#currentFriends .email:before {
+  content: "<";
+}
+#currentFriends .email:after {
+  content: ">";
 }
 
 .contactList-horizontal {

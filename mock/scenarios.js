@@ -8,6 +8,7 @@ var sleep = require('./node_modules/sleep'),
     constants = require('../app/js/constants.js'),
       ENUMS = constants.ENUMS,
         PEER_TYPE = ENUMS.PEER_TYPE,
+        FRIEND_STATUS = ENUMS.FRIEND_STATUS,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODAL = ENUMS.MODAL,
         MODE = ENUMS.MODE,
@@ -114,7 +115,7 @@ exports.SCENARIOS = {
       desc: 'invited: true',
       func: function() {
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern...'});
-              sleep.usleep(3000000);
+              sleep.usleep(300);
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
                          '/connectivity/peerid': 'lantern-45678',
                          '/connectivity/type': 'pc',
@@ -125,7 +126,7 @@ exports.SCENARIOS = {
       desc: 'invited: false',
       func: function() {
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern...'});
-              sleep.usleep(3000000);
+              sleep.usleep(300);
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
                          '/connectivity/invited': false,
                          '/modal': MODAL.notInvited
@@ -150,7 +151,7 @@ exports.SCENARIOS = {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
                 '/connectivity/connectingStatus': 'Connecting to Google Talk...',
                 '/modal': MODAL.connecting});
-              sleep.usleep(3000000);
+              sleep.usleep(300);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.notConnected,
                 '/connectivity/connectingStatus': 'Connecting to Google Talk...Failed',
                 '/notifications/-': {type: 'error', message: 'Unable to reach Google Talk.'},
@@ -163,7 +164,7 @@ exports.SCENARIOS = {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
                 '/connectivity/connectingStatus': 'Connecting to Google Talk...',
                 '/modal': MODAL.connecting});
-              sleep.usleep(3000000);
+              sleep.usleep(300);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connected,
                 '/profile': {
                   email: 'user@example.com',
@@ -217,7 +218,7 @@ exports.SCENARIOS = {
                 statusMessage: 'Shanghai!'
               }];
               this.sync({'/connectivity/connectingStatus': 'Retrieving contacts...'});
-              sleep.usleep(1000000);
+              sleep.usleep(100);
               this.sync({'/connectivity/connectingStatus': 'Retrieving contacts... Done',
                          '/roster': roster});
             }
@@ -227,36 +228,46 @@ exports.SCENARIOS = {
     friends1: {
       desc: 'friends1',
       func: function() {
-              var friends = {
-                current: [{
+              var friends = [
+                          {
                            email: 'lantern_friend1@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Snyder Pearson'
+                           name: 'Snyder Pearson',
+                           status: FRIEND_STATUS.friend
                           },
                           {
                            email: 'lantern_friend2@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Leah X Schmidt'
+                           name: 'Leah X Schmidt',
+                           status: FRIEND_STATUS.friend
                           },
                           {
                            email: 'lantern_power_user@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Myles Horton'
-                          }],
-                pending: [{
+                           name: 'Myles Horton',
+                           status: FRIEND_STATUS.friend
+                          },
+                          {
                            email: 'inviter1@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Example Inviter'
+                           name: 'Example Inviter',
+                           status: FRIEND_STATUS.requested
                           },{
                            email: 'inviter2@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Another Inviter'
+                           name: 'Another Inviter',
+                           status: FRIEND_STATUS.requested
                           },{
                            email: 'inviter3@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Third Inviter'
-                          }]
-                };
+                           name: 'Third Inviter',
+                           status: FRIEND_STATUS.requested
+                          },{
+                           email: 'rejected1@example.com',
+                           picture: 'img/default-avatar.png',
+                           name: 'Rejected Inviter',
+                           status: FRIEND_STATUS.rejected
+                          }];
               this.sync({'/friends': friends});
             }
     }

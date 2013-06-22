@@ -56,6 +56,51 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
     });
   }, true);
 
+  $scope.$watch('model.friends', function(friends) {
+    if (!friends) return;
+    $scope.friendsByEmail = {};
+    $scope.nfriends = 0;
+    $scope.npending = 0;
+    for (var i=0, l=friends.length, ii=friends[i]; ii; ii=friends[++i]) {
+      $scope.friendsByEmail[ii.email] = ii;
+      if (ii.status === FRIEND_STATUS.requested) {
+        $scope.npending++;
+      } else if (ii.status == FRIEND_STATUS.friend) {
+        $scope.nfriends++;
+      }
+    }
+    updateContactCompletions();
+  }, true);
+
+  $scope.$watch('model.roster', function(roster) {
+    if (!roster) return;
+    updateContactCompletions();
+  }, true);
+
+  function updateContactCompletions() {
+    var roster = model.roster;
+    if (!roster) return;
+    var completions = [];
+    for (var i=0, l=roster.length, ii=roster[i]; ii; ii=roster[++i]) {
+      var email = ii.email, friend = email && $scope.friendsByEmail[email];
+      if (email && !friend) {
+        // XXX allow completing by name as well as email
+        //completions.push(prettyUser(ii));
+        completions.push(ii.email);
+      }
+    }
+    for (var i=0, l=model.friends.length, ii=model.friends[i]; ii; ii=model.friends[++i]) {
+      if (ii.status !== FRIEND_STATUS.friend) {
+        // XXX allow completing by name as well as email
+        //completions.push(prettyUser(ii));
+        completions.push(ii.email);
+      }
+    }
+    completions = _.sortBy(completions); // XXX sort by contact frequency instead
+    $scope.contactCompletions = completions;
+  }
+
+
   $scope.$watch('model.settings.mode', function(mode) {
     $scope.inGiveMode = mode === MODE.give;
     $scope.inGetMode = mode === MODE.get;
@@ -351,98 +396,53 @@ function ProxiedSitesCtrl($scope, $timeout, $filter, logFactory, MODAL, SETTING,
   };
 }
 
-function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter, INPUT_PAT, INTERACTION) {
+function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION) {
   var log = logFactory('LanternFriendsCtrl'),
       model = modelSrvc.model,
       prettyUser = $filter('prettyUser'),
       EMAIL = INPUT_PAT.EMAIL;
 
-  $scope.invitees = [];
-
-  var sortedFriendEmails = [];
-  $scope.$watch('model.friends', function(friends) {
-    if (!friends) return;
-    friends = _.flatten([friends.current, friends.pending], true);
-    sortedFriendEmails = [];
-    for (var i=0, ii=friends[i]; ii; ii=friends[++i]) {
-      ii.email && sortedFriendEmails.push(ii.email);
-    }
-    sortedFriendEmails.sort();
-    updateCompletions();
-  }, true);
-
-  function updateCompletions() {
-    var roster = model.roster;
-    if (!roster) return;
-    var notAlreadyFriends;
-    if (_.isEmpty(sortedFriendEmails)) {
-      notAlreadyFriends = roster;
+  $scope.$watch('added', function (added) {
+    if (!_.isString(added)) return;
+    var email = added.match(EMAIL);
+    if (!email) {
+      $scope.addFriendForm.addFriendInput.$setValidity('email', false);
     } else {
-      notAlreadyFriends = [];
-      for (var i=0, ii=roster[i]; ii; ii=roster[++i]) {
-        if (_.indexOf(sortedFriendEmails, ii.email, true) == -1)
-          notAlreadyFriends.push(ii);
-      }
+      $scope.addFriendForm.addFriendInput.$setValidity('email', true);
+      $scope.addedEmail = email[0];
     }
-    $scope.notAlreadyFriends = notAlreadyFriends;
-    angular.copy(_.map(notAlreadyFriends, function(i) {
-      return _.merge({id: i.email, text: prettyUser(i)}, i);
-    }), $scope.selectInvitees.tags);
-  }
-
-  $scope.$watch('model.roster', function(roster) {
-    if (!roster) return;
-    updateCompletions();
   }, true);
 
-  var resultTmpl = _.template(
-    '<div class="invitee vcard">'+
-      '<img class="photo" src="${picture}">'+
-      '<div class="fn">${name}</div>'+
-      '<div class="email">${email}</div>'+
-    '</div>'
-  );
-
-  $scope.selectInvitees = {
-    tags: [],
-    tokenSeparators: [','],
-    multiple: true,
-  //selectOnBlur: true, // requires select2 3.3
-    formatSelection: function(item) {
-      return item.id;
-    },
-    formatSearching: function() {
-      return $filter('i18n')('SEARCHING_ELLIPSIS');
-    },
-    formatNoMatches: function() {
-      return $filter('i18n')('ENTER_VALID_EMAIL');
-    },
-    formatResult: function(result) {
-      return resultTmpl(result);
-    },
-    createSearchChoice: function(input) {
-      return EMAIL.test(input) ? {id: input, text: input, email: input, name: '', picture: ''} : undefined;
-    }
+  $scope.add = function (email) {
+    email = email || $scope.addedEmail;
+    $scope.interaction(INTERACTION.friend, {email: email}).then(
+      function () {
+        $scope.added = $scope.addedEmail = null;
+        $scope.errorLabelKey = '';
+      },
+      function () {
+        $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
+      });
   };
 
-  function resetForm() {
-    $scope.invitees = [];
-  }
-
-  $scope.valid = function() {
-    var invitees = $scope.invitees;
-    if (!invitees) return true;
-    if (!('length' in invitees)) return false;
-    for (var i=0, ii=invitees[i]; ii; ii=invitees[++i]) {
-      if (!EMAIL.test(ii.id)) return false;
-    }
-    return true;
+  $scope.reject = function (email) {
+    $scope.interaction(INTERACTION.reject, {email: email}).then(
+      function () {
+        $scope.errorLabelKey = '';
+      },
+      function () {
+        $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
+      });
   };
 
-  $scope.invite = function() {
-    if ($scope.invitees.length) {
-      var data = _.map($scope.invitees, function(i) { return i.id });
-      $scope.interaction(INTERACTION.invite, data).then(resetForm);
+  $scope.friendOrder = function (friend) {
+    switch (friend.status) {
+      case FRIEND_STATUS.requested:
+        return 0;
+      case FRIEND_STATUS.friend:
+        return 1;
+      default:
+        return 100;
     }
   };
 }
