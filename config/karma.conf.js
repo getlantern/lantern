@@ -4,12 +4,10 @@ files = [
   JASMINE,
   JASMINE_ADAPTER,
 
-  'app/lib/jquery.js',
-  'app/lib/angular/angular.js',
-//'app/lib/angular-ui/angular-ui.js',
-//'app/lib/select2/select2.js',
-  'app/lib/lodash.js',
-  'app/lib/jsonpatch.js',
+  'app/components/jquery/jquery.js',
+  'app/components/angular/angular.js',
+  'app/components/lodash/lodash.js',
+  'app/components/jsonpatch/jsonpatch.min.js',
 
   'app/js/*.js',
 

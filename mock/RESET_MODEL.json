@@ -36,6 +36,7 @@
     "mode":"",
     "lang":"",
     "runAtSystemStart":true,
+    "showFriendPrompts":true,
     "autoReport":true,
     "proxyPort":8787,
     "systemProxy":true,

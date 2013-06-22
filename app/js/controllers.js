@@ -267,6 +267,10 @@ function SettingsCtrl($scope, logFactory, MODAL) {
     $scope.runAtSystemStart = runAtSystemStart;
   }, true);
 
+  $scope.$watch('model.settings.showFriendPrompts', function(showFriendPrompts) {
+    $scope.showFriendPrompts = showFriendPrompts;
+  }, true);
+
   $scope.$watch('model.settings.autoReport', function(autoReport) {
     $scope.autoReport = autoReport;
   }, true);
