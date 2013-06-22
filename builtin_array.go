@@ -68,12 +68,9 @@ func builtinArray_concat(call FunctionCall) Value {
 		case valueObject:
 			object := item._object()
 			if isArray(object) {
-				lengthValue := object.get("length")
-				// FIXME This was causing a panic?
-				//length := lengthValue.value.(uint32)
-				length := toUint32(lengthValue)
-				for index := uint32(0); index < length; index += 1 {
-					name := strconv.FormatInt(int64(index), 10)
+				length := toInteger(object.get("length")).value
+				for index := int64(0); index < length; index += 1 {
+					name := strconv.FormatInt(index, 10)
 					if !object.hasProperty(name) {
 						continue
 					}
