@@ -592,3 +592,34 @@ func builtinArray_filter(call FunctionCall) Value {
 	}
 	panic(newTypeError())
 }
+
+func builtinArray_reduce(call FunctionCall) Value {
+	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+		start := call.Argument(1)
+		index := int64(0)
+		length := int64(toUint32(thisObject.get("length")))
+		if length > 0 || start.IsDefined() {
+			var accumulator Value
+			if !start.IsDefined() {
+				for ; index < length; index++ {
+					if key := arrayIndexToString(index); thisObject.hasProperty(key) {
+						accumulator = thisObject.get(key)
+						index++
+						break
+					}
+				}
+			} else {
+				accumulator = start
+			}
+			if accumulator.IsDefined() {
+				for ; index < length; index++ {
+					if key := arrayIndexToString(index); thisObject.hasProperty(key) {
+						accumulator = fn.call(UndefinedValue(), accumulator, thisObject.get(key), key, toValue_object(thisObject))
+					}
+				}
+				return accumulator
+			}
+		}
+	}
+	panic(newTypeError())
+}

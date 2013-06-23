@@ -445,3 +445,15 @@ func TestArray_filter(t *testing.T) {
 	test(`[1,2,3].filter(function() { return false }).length`, "0")
 	test(`[1,2,3].filter(function() { return true })`, "1,2,3")
 }
+
+func TestArray_reduce(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise: [].reduce("abc")`, "TypeError")
+	test(`raise: [].reduce(function() {})`, "TypeError")
+	test(`[].reduce(function() {}, 0)`, "0")
+	test(`['a','b','c'].reduce(function(result, value) { return result+', '+value })`, "a, b, c")
+	test(`[1,2,3].reduce(function(result, value) { return result + value }, 4)`, "10")
+	test(`[1,2,3].reduce(function(result, value) { return result + value })`, "6")
+}
