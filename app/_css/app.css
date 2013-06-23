@@ -7057,6 +7057,9 @@ textarea {
 #currentFriends .entry:hover .reject {
   opacity: 1;
 }
+#currentFriends .entry:hover .reject:hover {
+  color: black;
+}
 #currentFriends .entry:hover .pending {
   height: auto;
   line-height: auto;

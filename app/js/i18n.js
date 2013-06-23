@@ -167,7 +167,6 @@ angular.module('app.i18n', [])
       MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nتشخیق اطلاعات:\n',
       ERROR_TOO_LONG: {1: '1 حرف بسیار بلند می‌باشد', other: '{} حروف بسیار بلند می‌باشند'},
       SEND: 'ارسال',
-      ADD_FRIEND: 'اضافه کردن دوست',
       GIVE_MODE_FORBIDDEN_TITLE: 'دادن دسترسی به حالت ممنوعه',
       GIVE_MODE_FORBIDDEN_PROMPT: 'اینترنت شما از یک کشوری می‌آید که سانسور اینترنت در آن شدت دارد.دادن دسترسی از طریق این کانکشن می‌تواند برای کاربران دیگر ناخوشایند باشد. اگر شما از کشوری هستید که در آن سانسور اینترنت وجود ندارد می‌تواند در لنترن خود را در حالت دادن دسترسی قرار دهید.', // XXX say which country and source identifying it as censoring
       CONTINUE_IN_GET_MODE: 'ادامه برای حالت دسترسی',
@@ -596,7 +595,6 @@ angular.module('app.i18n', [])
       MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nDiagnostic information:\n',
       ERROR_TOO_LONG: {1: '1 character too long', other: '{} characters too long'},
       SEND: 'Send',
-      ADD_FRIEND: 'Add friend',
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Access Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'Your internet connection appears to be coming from a censoring country. Giving access through this connection could be undesirable for other users. You can run Lantern in Give Access mode if you connect to the internet from outside a censoring country.', // XXX say which country and source identifying it as censoring
       CONTINUE_IN_GET_MODE: 'Continue in Get Access Mode',

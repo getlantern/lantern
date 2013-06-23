@@ -402,6 +402,11 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
       prettyUserFltr = $filter('prettyUser'),
       i18nFltr = $filter('i18n');
 
+  $scope.$watch('added', function (added) {
+    if (!added) return;
+    $scope.add();
+  }, true);
+
   $scope.add = function (email) {
     email = email || $scope.added.email;
     if (!email) {
@@ -461,8 +466,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
     },
     formatSearching: function() {
       return i18nFltr('SEARCHING_ELLIPSIS');
-    },
-    selectOnBlur: true
+    }
   };
 }
 
