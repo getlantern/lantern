@@ -1029,6 +1029,25 @@ func _newContext(runtime *_runtime) {
 				call: _nativeCallFunction(builtinArray_some),
 			},
 		}
+		forEach_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      1,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinArray_forEach),
+			},
+		}
 		isArray_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -1173,6 +1192,13 @@ func _newContext(runtime *_runtime) {
 					value: Value{
 						_valueType: valueObject,
 						value:      some_function,
+					},
+				},
+				"forEach": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      forEach_function,
 					},
 				},
 			},

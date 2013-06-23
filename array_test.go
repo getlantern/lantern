@@ -364,7 +364,7 @@ func TestArray_every(t *testing.T) {
 	test(`[].every(function() { return false })`, "true")
 	test(`[1,2,3].every(function() { return false })`, "false")
 	test(`[1,2,3].every(function() { return true })`, "true")
-	test(`[1,2,3].every(function(index) { if (index === 1) return true })`, "false")
+	test(`[1,2,3].every(function(_, index) { if (index === 1) return true })`, "false")
 }
 
 func TestArray_some(t *testing.T) {
@@ -375,7 +375,30 @@ func TestArray_some(t *testing.T) {
 	test(`[].some(function() { return true })`, "false")
 	test(`[1,2,3].some(function() { return false })`, "false")
 	test(`[1,2,3].some(function() { return true })`, "true")
-	test(`[1,2,3].some(function(index) { if (index === 1) return true })`, "true")
+	test(`[1,2,3].some(function(_, index) { if (index === 1) return true })`, "true")
+}
+
+func TestArray_forEach(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise: [].forEach("abc")`, "TypeError")
+	test(`
+        var abc = 0;
+        [].forEach(function(value) {
+            abc += value;
+        });
+        abc;
+    `, "0")
+	test(`
+        abc = 0;
+        var def = [];
+        [1,2,3].forEach(function(value, index) {
+            abc += value;
+            def.push(index);
+        });
+        [ abc, def ];
+    `, "6,0,1,2")
 }
 
 func TestArray_indexing(t *testing.T) {
