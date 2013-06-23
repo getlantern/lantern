@@ -111,9 +111,11 @@ public class ProxyQueue {
         return proxySet.contains(ph);
     }
 
+    /*
     @Override
     public String toString() {
         return "ProxyQueue [proxySet=" + proxySet + ", proxies=" + proxies
                 + ", pausedProxies=" + pausedProxies + "]";
     }
+    */
 }
