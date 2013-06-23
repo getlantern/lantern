@@ -240,6 +240,7 @@ sub newContext {
                 "map", 1,
                 "filter", 1,
                 "reduce", 1,
+                "reduceRight", 1,
             );
             return
             ".${class}Prototype =",

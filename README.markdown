@@ -4,82 +4,84 @@
 
 Package otto is a JavaScript parser and interpreter written natively in Go.
 
-	// Create a new runtime
-	Otto := otto.New()
+    // Create a new runtime
+    Otto := otto.New()
 
-	Otto.Run(`
-		abc = 2 + 2
-		console.log("The value of abc is " + abc)
-		// The value of abc is 4
-	`)
+    Otto.Run(`
+    	abc = 2 + 2
+    	console.log("The value of abc is " + abc)
+    	// The value of abc is 4
+    `)
 
-	value, err := Otto.Get("abc")
-	{
-		// value is an int64 with a value of 4
-		value, _ := value.ToInteger()
-	}
+    value, err := Otto.Get("abc")
+    {
+    	// value is an int64 with a value of 4
+    	value, _ := value.ToInteger()
+    }
 
-	Otto.Set("def", 11)
-	Otto.Run(`
-		console.log("The value of def is " + def)
-		// The value of def is 11
-	`)
+    Otto.Set("def", 11)
+    Otto.Run(`
+    	console.log("The value of def is " + def)
+    	// The value of def is 11
+    `)
 
-	Otto.Set("xyzzy", "Nothing happens.")
-	Otto.Run(`
-		console.log(xyzzy.length) // 16
-	`)
+    Otto.Set("xyzzy", "Nothing happens.")
+    Otto.Run(`
+    	console.log(xyzzy.length) // 16
+    `)
 
-	value, _ = Otto.Run("xyzzy.length")
-	{
-		// value is an int64 with a value of 16
-		value, _ := value.ToInteger()
-	}
+    value, _ = Otto.Run("xyzzy.length")
+    {
+    	// value is an int64 with a value of 16
+    	value, _ := value.ToInteger()
+    }
 
-	value, err = Otto.Run("abcdefghijlmnopqrstuvwxyz.length")
-	if err != nil {
-		// err = ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined
-		// If there is an error, then value.IsUndefined() is true
-		...
-	}
+    value, err = Otto.Run("abcdefghijlmnopqrstuvwxyz.length")
+    if err != nil {
+    	// err = ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined
+    	// If there is an error, then value.IsUndefined() is true
+    	...
+    }
 
 Embedding a Go function in JavaScript:
 
-	Otto.Set("sayHello", func(call otto.FunctionCall) otto.Value {
-		fmt.Printf("Hello, %s.\n", call.Argument(0).String())
-		return otto.UndefinedValue()
-	})
+    Otto.Set("sayHello", func(call otto.FunctionCall) otto.Value {
+    	fmt.Printf("Hello, %s.\n", call.Argument(0).String())
+    	return otto.UndefinedValue()
+    })
 
-	Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
-		right, _ := call.Argument(0).ToInteger()
-		result, _ := Otto.ToValue(2 + right)
-		return result
-	})
+    Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
+    	right, _ := call.Argument(0).ToInteger()
+    	result, _ := Otto.ToValue(2 + right)
+    	return result
+    })
 
-	result, _ = Otto.Run(`
-		// First, say a greeting
-		sayHello("Xyzzy") // Hello, Xyzzy.
-		sayHello() // Hello, undefined
+    result, _ = Otto.Run(`
+    	// First, say a greeting
+    	sayHello("Xyzzy") // Hello, Xyzzy.
+    	sayHello() // Hello, undefined
 
-		result = twoPlus(2.0) // 4
-	`)
+    	result = twoPlus(2.0) // 4
+    `)
 
-You can run (Go) JavaScript from the commandline with: http://github.com/robertkrimen/otto/tree/master/otto
+You can run (Go) JavaScript from the commandline with:
+http://github.com/robertkrimen/otto/tree/master/otto
 
-	$ go get -v github.com/robertkrimen/otto/otto
+    $ go get -v github.com/robertkrimen/otto/otto
 
 Run JavaScript by entering some source on stdin or by giving otto a filename:
 
-	$ otto example.js
+    $ otto example.js
 
-Optionally include the JavaScript utility-belt library, underscore, with this import:
+Optionally include the JavaScript utility-belt library, underscore, with this
+import:
 
-	import (
-		"github.com/robertkrimen/otto"
-		_ "github.com/robertkrimen/otto/underscore"
-	)
+    import (
+    	"github.com/robertkrimen/otto"
+    	_ "github.com/robertkrimen/otto/underscore"
+    )
 
-	// Now every otto runtime will come loaded with underscore
+    // Now every otto runtime will come loaded with underscore
 
 For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 
@@ -92,18 +94,23 @@ For more information: http://github.com/robertkrimen/otto/tree/master/underscore
     * JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
     * Really, error reporting could use some improvement.
 
+
 ### Regular Expression Syntax
 
-Go translates JavaScript-style regular expressions into something that is "regexp" package compatible.
+Go translates JavaScript-style regular expressions into something that is
+"regexp" package compatible.
 
-Unfortunately, JavaScript has positive lookahead, negative lookahead, and backreferencing,
-all of which are not supported by Go's RE2-like engine: https://code.google.com/p/re2/wiki/Syntax
+Unfortunately, JavaScript has positive lookahead, negative lookahead, and
+backreferencing, all of which are not supported by Go's RE2-like engine:
+https://code.google.com/p/re2/wiki/Syntax
 
-A brief discussion of these limitations: "Regexp (?!re)" https://groups.google.com/forum/?fromgroups=#!topic/golang-nuts/7qgSDWPIh_E
+A brief discussion of these limitations: "Regexp (?!re)"
+https://groups.google.com/forum/?fromgroups=#!topic/golang-nuts/7qgSDWPIh_E
 
 More information about RE2: https://code.google.com/p/re2/
 
-JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
+JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace
+class (\s), while RE2 does not.
 
 ## Usage
 
@@ -240,8 +247,10 @@ this case, the this argument has no effect.
 
     // value is a String object
     value, _ := Otto.Call("Object", nil, "Hello, World.")
+
     // Likewise...
     value, _ := Otto.Call("new Object", nil, "Hello, World.")
+
     // This will perform a concat on the given array and return the result
     // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
     value, _ := Otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
