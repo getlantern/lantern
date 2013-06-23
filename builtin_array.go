@@ -570,7 +570,25 @@ func builtinArray_map(call FunctionCall) Value {
 				values[index] = UndefinedValue()
 			}
 		}
-		return toValue(call.runtime.newArrayOf(values))
+		return toValue_object(call.runtime.newArrayOf(values))
+	}
+	panic(newTypeError())
+}
+
+func builtinArray_filter(call FunctionCall) Value {
+	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+		length := int64(toUint32(thisObject.get("length")))
+		thisValue := call.Argument(1)
+		values := make([]Value, 0)
+		for index := int64(0); index < length; index++ {
+			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
+				value := thisObject.get(key)
+				if fn.call(thisValue, value, index, toValue_object(thisObject)).isTrue() {
+					values = append(values, value)
+				}
+			}
+		}
+		return toValue_object(call.runtime.newArrayOf(values))
 	}
 	panic(newTypeError())
 }

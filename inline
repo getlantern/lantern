@@ -238,6 +238,7 @@ sub newContext {
                 "some", 1,
                 "forEach", 1,
                 "map", 1,
+                "filter", 1,
             );
             return
             ".${class}Prototype =",
