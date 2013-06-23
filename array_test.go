@@ -425,3 +425,13 @@ func TestArray_indexing(t *testing.T) {
         [ def, ghi, jkl, abc.length, abc[4294967295], abc[4294967299] ];
     `, "2,2,2,4294967295,10,12")
 }
+
+func TestArray_map(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise: [].map("abc")`, "TypeError")
+	test(`[].map(function() { return 1 }).length`, "0")
+	test(`[1,2,3].map(function(value) { return value * value })`, "1,4,9")
+	test(`[1,2,3].map(function(value) { return 1 })`, "1,1,1")
+}

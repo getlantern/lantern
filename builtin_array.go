@@ -557,3 +557,20 @@ func builtinArray_forEach(call FunctionCall) Value {
 	}
 	panic(newTypeError())
 }
+
+func builtinArray_map(call FunctionCall) Value {
+	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+		length := int64(toUint32(thisObject.get("length")))
+		thisValue := call.Argument(1)
+		values := make([]Value, length)
+		for index := int64(0); index < length; index++ {
+			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
+				values[index] = fn.call(thisValue, thisObject.get(key), index, toValue_object(thisObject))
+			} else {
+				values[index] = UndefinedValue()
+			}
+		}
+		return toValue(call.runtime.newArrayOf(values))
+	}
+	panic(newTypeError())
+}
