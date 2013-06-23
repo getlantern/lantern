@@ -1097,4 +1097,9 @@ public class LanternUtils {
         LOG.info("Setting keystorePath to '" + path + "'");
         keystorePath = path;
     }
+
+    public static boolean isTesting() {
+        final String prop = System.getProperty("testing");
+        return "true".equalsIgnoreCase(prop);
+    }
 }

@@ -9,6 +9,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.lantern.LanternUtils;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
@@ -26,6 +27,9 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     protected void layout() {
+        if (LanternUtils.isTesting()) {
+            return;
+        }
         final Display display = Display.getDefault();
 
         display.syncExec(new Runnable() {
