@@ -235,6 +235,7 @@ sub newContext {
                 "indexOf", 1,
                 "lastIndexOf", 1,
                 "every", 1,
+                "some", 1,
             );
             return
             ".${class}Prototype =",
