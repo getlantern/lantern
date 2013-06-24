@@ -151,83 +151,8 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
-    <!--<button type="button" class="btn" ng-click="interaction(INTERACTION.requestInvite)">{{ 'REQUEST_INVITE' | i18n }}</button>-->
   </div>
 </div>
-
-<!--
-<div ng-controller="RequestInviteCtrl" modal="model.modal == MODAL.requestInvite">
-  <div class="modal-header">
-    <h3>{{ 'REQUEST_INVITE_TITLE' | i18n }}</h3>
-  </div>
-  <div class="modal-body" id="requestInvite">
-    <div>{{ 'REQUEST_INVITE_PROMPT' | i18n }}</div>
-    <form name="sendRequestForm" submit="sendRequest()">
-      <label class="radio">
-        <input type="radio" ng-disabled="disableForm"
-               ng-model="sendToLanternDevs" ng-value="false">
-        {{ 'SOMEONE_I_KNOW_LABEL' | i18n }}
-      </label>
-      <div class="control-extra">
-        <input type="email" ng-required="!sendToLanternDevs"
-               ng-disabled="disableForm || sendToLanternDevs"
-               ng-model="sendRequestTo" placeholder="email@example.com">
-        <div>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</div>
-        XXX auto-complete from google contacts
-        XXX "add a personal message"
-      </div>
-      <br>
-      <label class="radio">
-        <input type="radio" ng-disabled="disableForm" ng-model="sendToLanternDevs" ng-value="true"> {{ 'LANTERN_DEVS_LABEL' | i18n }}
-      </label>
-      <div class="control-extra">{{ 'LANTERN_DEVS_INFO' | i18n }}</div>
-      <br>
-      <div class="text-error" ui-toggle="requestError">
-        {{ 'ERROR' | i18n }}&nbsp;
-      </div>
-      XXX need (hidden) submit input so pressing enter triggers form submission?
-    </form>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)" tabindex="-1">{{ 'CANCEL' | i18n }}</button>
-    <button type="submit" class="btn btn-primary" ng-disabled="sendRequestForm.$invalid || disableForm" ng-click="requestInvite()">{{ submitButtonLabelKey | i18n }}</button>
-  </div>
-</div>
-
-<div modal="model.modal == MODAL.requestSent">
-  <div class="modal-header">
-    <h3>{{ 'REQUEST_SENT_TITLE' | i18n }}</h3>
-  </div>
-  <div class="modal-body" id="requestSent">
-    <div>{{ 'REQUEST_SENT_PROMPT' | i18n }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
-  </div>
-</div>
-
-<div modal="model.modal == MODAL.firstInviteReceived">
-  <div class="modal-header">
-    <h3>{{ 'FIRST_INVITE_RECEIVED_TITLE' | i18n }}</h3>
-  </div>
-  <div class="modal-body" id="firstInviteReceived">
-    <div>{{ 'FIRST_INVITE_RECEIVED_INTRO' | i18n }}</div>
-    <br>
-    <div>
-      XXX will we have this data?
-      {{ 'FIRST_INVITE_RECEIVED_SENDER' | i18n }}
-      <div class="centered">
-        user@example.com ("Name here")
-      </div>
-    </div>
-    <br>
-    <div>{{ 'FIRST_INVITE_RECEIVED_PROMPT' | i18n }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
-  </div>
-</div>
--->
 
 <div ng-controller="SystemProxyCtrl" modal="model.modal == MODAL.systemProxy">
   <div class="modal-header">

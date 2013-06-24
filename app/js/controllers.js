@@ -197,28 +197,6 @@ function UnexpectedStateCtrl($scope, $filter, cometdSrvc, apiSrvc, modelSrvc, MO
   };
 }
 
-function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
-  var log = logFactory('RequestInviteCtrl');
-
-  $scope.sendToLanternDevs = false;
-  $scope.disableForm = false;
-  $scope.submitButtonLabelKey = 'SEND_REQUEST';
-
-  function resetForm() {
-    $scope.disableForm = false;
-    $scope.submitButtonLabelKey = 'SEND_REQUEST';
-  }
-
-  $scope.requestInvite = function() {
-    $scope.disableForm = true;
-    $scope.requestError = false;
-    $scope.submitButtonLabelKey = 'SENDING_REQUEST';
-    var params = {lanternDevs: $scope.sendToLanternDevs};
-    return $scope.interaction(INTERACTION.requestInvite, params) // XXX TODO
-      .then(resetForm, function() { $scope.requestError = true; });
-  };
-}
-
 function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
   var log = logFactory('SystemProxyCtrl'),
       path = '/settings/'+SETTING.systemProxy;
@@ -461,12 +439,13 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
     createSearchChoice: function (input) {
       return EMAIL.test(input) ? {id: input, text: input, email: input} : undefined;
     },
-    formatNoMatches: function() {
+    formatNoMatches: function () {
       return i18nFltr('ENTER_VALID_EMAIL');
     },
-    formatSearching: function() {
+    formatSearching: function () {
       return i18nFltr('SEARCHING_ELLIPSIS');
-    }
+    },
+    width: '100%'
   };
 }
 
