@@ -268,7 +268,7 @@
           ng-model="added" ui-select2="select2opts">
       </div>
 
-      <h5 id="currentFriendsHeading" ng-show="nfriends || npending">{{ 'NFRIENDS' | i18n:nfriends }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('PENDING_REQS_PROMPT' | i18n:npending) || '' }}</h5>
+      <h5 id="currentFriendsHeading" ng-show="nfriends || npending">{{ 'NFRIENDS' | i18n:nfriends }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</h5>
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
         <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder"
             class="entry status-{{ friend.status }}">
@@ -279,12 +279,12 @@
               <span class="email">{{ friend.email }}</span>
             </span>
             <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending">
-              <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'ACCEPT' | i18n }}</button>
+              <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'FRIEND' | i18n }}</button>
               <button type="button" class="btn btn-mini btn-danger" ng-click="reject(friend.email)">{{ 'DECLINE' | i18n }}</button>
             </span>
           </div>
           <div class="pending" ng-show="friend.status == FRIEND_STATUS.pending">
-            {{ 'PENDING_REQS_INFO' | i18n }}
+            {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
           </div>
         </li>
       </ul>
