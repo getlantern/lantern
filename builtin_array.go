@@ -512,12 +512,14 @@ func builtinArray_lastIndexOf(call FunctionCall) Value {
 }
 
 func builtinArray_every(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		length := int64(toUint32(thisObject.get("length")))
-		thisValue := call.Argument(1)
+		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				if value := thisObject.get(key); fn.call(thisValue, value, toValue_int64(index), toValue_object(thisObject)).isTrue() {
+				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).isTrue() {
 					continue
 				}
 				return FalseValue()
@@ -529,12 +531,14 @@ func builtinArray_every(call FunctionCall) Value {
 }
 
 func builtinArray_some(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		length := int64(toUint32(thisObject.get("length")))
-		thisValue := call.Argument(1)
+		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				if value := thisObject.get(key); fn.call(thisValue, value, toValue_int64(index), toValue_object(thisObject)).isTrue() {
+				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).isTrue() {
 					return TrueValue()
 				}
 			}
@@ -545,12 +549,14 @@ func builtinArray_some(call FunctionCall) Value {
 }
 
 func builtinArray_forEach(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		length := int64(toUint32(thisObject.get("length")))
-		thisValue := call.Argument(1)
+		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				fn.call(thisValue, thisObject.get(key), toValue_int64(index), toValue_object(thisObject))
+				iterator.call(callThis, thisObject.get(key), toValue_int64(index), this)
 			}
 		}
 		return UndefinedValue()
@@ -559,13 +565,15 @@ func builtinArray_forEach(call FunctionCall) Value {
 }
 
 func builtinArray_map(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		length := int64(toUint32(thisObject.get("length")))
-		thisValue := call.Argument(1)
+		callThis := call.Argument(1)
 		values := make([]Value, length)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				values[index] = fn.call(thisValue, thisObject.get(key), index, toValue_object(thisObject))
+				values[index] = iterator.call(callThis, thisObject.get(key), index, this)
 			} else {
 				values[index] = UndefinedValue()
 			}
@@ -576,14 +584,16 @@ func builtinArray_map(call FunctionCall) Value {
 }
 
 func builtinArray_filter(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		length := int64(toUint32(thisObject.get("length")))
-		thisValue := call.Argument(1)
+		callThis := call.Argument(1)
 		values := make([]Value, 0)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 				value := thisObject.get(key)
-				if fn.call(thisValue, value, index, toValue_object(thisObject)).isTrue() {
+				if iterator.call(callThis, value, index, this).isTrue() {
 					values = append(values, value)
 				}
 			}
@@ -594,7 +604,9 @@ func builtinArray_filter(call FunctionCall) Value {
 }
 
 func builtinArray_reduce(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		start := call.Argument(1)
 		length := int64(toUint32(thisObject.get("length")))
 		index := int64(0)
@@ -613,7 +625,7 @@ func builtinArray_reduce(call FunctionCall) Value {
 			}
 			for ; index < length; index++ {
 				if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-					accumulator = fn.call(UndefinedValue(), accumulator, thisObject.get(key), key, toValue_object(thisObject))
+					accumulator = iterator.call(UndefinedValue(), accumulator, thisObject.get(key), key, this)
 				}
 			}
 			return accumulator
@@ -623,7 +635,9 @@ func builtinArray_reduce(call FunctionCall) Value {
 }
 
 func builtinArray_reduceRight(call FunctionCall) Value {
-	if thisObject, fn := call.thisObject(), call.Argument(0); fn.isCallable() {
+	thisObject := call.thisObject()
+	this := toValue_object(thisObject)
+	if iterator := call.Argument(0); iterator.isCallable() {
 		start := call.Argument(1)
 		length := int64(toUint32(thisObject.get("length")))
 		if length > 0 || start.IsDefined() {
@@ -642,7 +656,7 @@ func builtinArray_reduceRight(call FunctionCall) Value {
 			}
 			for ; index >= 0; index-- {
 				if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-					accumulator = fn.call(UndefinedValue(), accumulator, thisObject.get(key), key, toValue_object(thisObject))
+					accumulator = iterator.call(UndefinedValue(), accumulator, thisObject.get(key), key, this)
 				}
 			}
 			return accumulator
