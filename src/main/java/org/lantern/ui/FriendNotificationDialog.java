@@ -114,7 +114,7 @@ public class FriendNotificationDialog extends NotificationDialog {
     protected void later() {
         long tomorrow = System.currentTimeMillis() + 1000 * 86400;
         friend.setNextQuery(tomorrow);
-        friend.setStatus(Status.requested);
+        friend.setStatus(Status.pending);
         friends.add(friend);
         friends.setNeedsSync(true);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
