@@ -10,9 +10,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.lantern.LanternUtils;
+import org.lantern.event.Events;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
+import org.lantern.state.SyncPath;
 
 public class FriendNotificationDialog extends NotificationDialog {
 
@@ -115,20 +117,23 @@ public class FriendNotificationDialog extends NotificationDialog {
         friend.setStatus(Status.requested);
         friends.add(friend);
         friends.setNeedsSync(true);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
         shell.dispose();
     }
 
     protected void no() {
-        friend.setStatus(Status.rejected);
-        friends.add(friend);
-        friends.setNeedsSync(true);
-        shell.dispose();
+        setFriendStatus(Status.rejected);
     }
 
     protected void yes() {
-        friend.setStatus(Status.friend);
+        setFriendStatus(Status.friend);
+    }
+
+    private void setFriendStatus(Status status) {
+        friend.setStatus(status);
         friends.add(friend);
         friends.setNeedsSync(true);
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
         shell.dispose();
     }
 
