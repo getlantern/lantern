@@ -391,10 +391,10 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
       log.error('missing email');
       return;
     }
+    $scope.errorLabelKey = '';
     $scope.interaction(INTERACTION.friend, {email: email}).then(
       function () {
         $scope.added = null;
-        $scope.errorLabelKey = '';
       },
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
@@ -402,10 +402,9 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
   };
 
   $scope.reject = function (email) {
+    $scope.errorLabelKey = '';
     $scope.interaction(INTERACTION.reject, {email: email}).then(
-      function () {
-        $scope.errorLabelKey = '';
-      },
+      null,
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
       });
