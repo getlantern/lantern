@@ -34,7 +34,7 @@ var fs = require('fs'),
 var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--skip-setup',
     // XXX keep `VERSION` in sync with `continueUrl` in googleOauth.html, `version` in
     // ../app/data/package.json, and `REQUIRED_API_VER` in ../app/js/constants.js
-    VERSION = {major: 0, minor: 1, patch: 0},
+    VERSION = {major: 0, minor: 0, patch: 10},
     RESET_INTERNAL_STATE = {
       lastModal: MODAL.none,
       modalsCompleted: {
