@@ -6939,16 +6939,6 @@ textarea {
   font-size: 11.9px;
 }
 
-#requestInvite form {
-  margin: 20px 38px;
-}
-#requestInvite form input[type=email] {
-  margin-top: 5px;
-}
-#requestInvite form .indented {
-  margin-left: 30px;
-}
-
 #proxiedSites .warning {
   text-align: center;
   font-size: 15.4px;
@@ -7018,10 +7008,6 @@ textarea {
   margin-bottom: 20px;
 }
 
-#addFriendInput {
-  width: 100%;
-}
-
 #currentFriendsHeading {
   text-align: center;
   margin: 15px 0 0 0;
@@ -7029,7 +7015,7 @@ textarea {
 
 #currentFriends {
   list-style: none;
-  max-height: 215px;
+  max-height: 170px;
   overflow-y: scroll;
   margin: 10px 0;
   padding: 10px 0;
@@ -7143,46 +7129,6 @@ textarea {
   padding: 0 3px;
   line-height: 1.4;
   font-size: 10.5px;
-}
-
-.invitee {
-  height: 53px;
-}
-.invitee .fn, .invitee .email {
-  max-width: 450px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.invitee img.photo {
-  width: 50px;
-  height: 50px;
-  margin: 2px 6px 5px 0;
-  float: left;
-}
-.invitee img.photo[src=""] {
-  display: none;
-}
-
-.inviteForm {
-  text-align: center;
-}
-.inviteForm label {
-  font-size: 11.9px;
-}
-.inviteForm.invalid .select2-choices {
-  border-color: #e9322d !important;
-  -webkit-box-shadow: 0 0 6px #f8b9b7 !important;
-  -moz-box-shadow: 0 0 6px #f8b9b7 !important;
-  box-shadow: 0 0 6px #f8b9b7 !important;
-}
-
-.selectContacts, input.select2-default, input.select2-input {
-  display: block;
-}
-
-.selectContacts {
-  margin-bottom: 14px;
 }
 
 #systemProxy .control-group {

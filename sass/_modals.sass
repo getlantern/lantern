@@ -100,14 +100,6 @@
   .control-label
     +small
 
-#requestInvite
-  form
-    margin: 20px 38px
-    input[type=email]
-      margin-top: 5px
-    .indented
-      margin-left: 30px
-
 #proxiedSites
   .warning
     text-align: center
@@ -156,16 +148,13 @@
 #lanternFriendsIntro
   margin-bottom: 20px
 
-#addFriendInput
-  width: 100%
-
 #currentFriendsHeading
   +centered
   margin: 15px 0 0 0
 
 #currentFriends
   +no-bullets
-  max-height: 215px
+  max-height: 170px
   overflow-y: scroll
   margin: 10px 0
   padding: 10px 0
@@ -243,31 +232,6 @@
     padding: 0 3px
     line-height: 1.4
     +smaller
-
-.invitee
-  height: 53px
-  .fn, .email
-    +ellipsisPast(450px)
-  img.photo
-    width: 50px
-    height: 50px
-    margin: 2px 6px 5px 0
-    float: left
-    &[src=""]
-      display: none
-
-.inviteForm
-  +centered
-  label
-    +small
-  &.invalid .select2-choices
-    +inputInvalid
-
-.selectContacts, input.select2-default, input.select2-input
-  display: block
-
-.selectContacts
-  margin-bottom: $baseFontSize
 
 #systemProxy
   .control-group
