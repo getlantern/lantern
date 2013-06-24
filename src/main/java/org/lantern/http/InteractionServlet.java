@@ -87,8 +87,8 @@ public class InteractionServlet extends HttpServlet {
         UNEXPECTEDSTATEREFRESH,
         URL,
         EXCEPTION,
-        ADDFRIEND,
-        REMOVEFRIEND
+        FRIEND,
+        REJECT
     }
 
     // modals the user can switch to from other modals
@@ -345,10 +345,10 @@ public class InteractionServlet extends HttpServlet {
         case lanternFriends:
             this.internalState.setCompletedTo(Modal.lanternFriends);
             switch (inter) {
-            case ADDFRIEND:
+            case FRIEND:
                 addFriend(json);
                 break;
-            case REMOVEFRIEND:
+            case REJECT:
                 removeFriend(json);
                 break;
             case INVITE:
