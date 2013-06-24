@@ -765,60 +765,70 @@ public class DefaultXmppHandler implements XmppHandler {
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
 
+        boolean handled = false;
+        handled |= handleSetDelay(json);
+        handled |= handleUpdate(json);
+        handled |= handleProcessedInvites(json);
+        handled |= handleFailedInvites(json);
+        handled |= handleFriends(json);
+
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
 
         if (inClosedBeta != null) {
             Events.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
         } else {
-            Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
+            if (!handled) {
+                // assume closed beta, because server replied with unhandled
+                // message
+                Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
+            }
         }
 
-        handleSetDelay(json);
-        handleUpdate(json);
-        handleProcessedInvites(json);
-        handleFailedInvites(json);
-        handleFriends(json);
     }
 
-    private void handleFriends(JSONObject json) {
+    private boolean handleFriends(JSONObject json) {
         @SuppressWarnings("unchecked")
         final List<Object> friendUpdates = (List<Object>) json.get(LanternConstants.FRIENDS);
         Friends friends = model.getFriends();
-        if (friendUpdates != null) {
-            for (Object friendObj: friendUpdates) {
-                JSONObject friendJson = (JSONObject) friendObj;
-
-                String email = (String) friendJson.get("email");
-                Status status = Status.valueOf((String) friendJson.get("status"));
-                String name = (String) friendJson.get("name");
-                Long nextQuery = (Long) friendJson.get("nextQuery");
-                Long lastUpdated = (Long) friendJson.get("lastUpdated");
-
-                Friend friend = new Friend(email, status, name, nextQuery, lastUpdated);
-
-                //we need to check if we have had a more-recent update of this friend.
-                //that could happen if we had made some local changes while waiting
-                //to hear back from the XMPP server.  It's not very likely.
-                Friend old = friends.get(email);
-                if (old != null && old.getLastUpdated() > lastUpdated) {
-                    friends.setNeedsSync(true);
-                } else {
-                    friends.add(friend);
-                }
-            }
-            Events.sync(SyncPath.FRIENDS, friends.getFriends());
+        if (friendUpdates == null) {
+            return false;
         }
+        for (Object friendObj : friendUpdates) {
+            JSONObject friendJson = (JSONObject) friendObj;
+
+            String email = (String) friendJson.get("email");
+            Status status = Status.valueOf((String) friendJson.get("status"));
+            String name = (String) friendJson.get("name");
+            Long nextQuery = (Long) friendJson.get("nextQuery");
+            Long lastUpdated = (Long) friendJson.get("lastUpdated");
+
+            Friend friend = new Friend(email, status, name, nextQuery,
+                    lastUpdated);
+
+            // we need to check if we have had a more-recent update of this
+            // friend.
+            // that could happen if we had made some local changes while waiting
+            // to hear back from the XMPP server. It's not very likely.
+            Friend old = friends.get(email);
+            if (old != null && old.getLastUpdated() > lastUpdated) {
+                friends.setNeedsSync(true);
+            } else {
+                friends.add(friend);
+            }
+        }
+        Events.sync(SyncPath.FRIENDS, friends.getFriends());
+        return true;
     }
 
-    private void handleFailedInvites(final JSONObject json) {
+    private boolean handleFailedInvites(final JSONObject json) {
         //list of invites that the server has given up on processing
         //perhaps because you are out of invites.
         @SuppressWarnings("unchecked")
         final List<Object> failedInvites = (List<Object>) json.get(LanternConstants.FAILED_INVITES_KEY);
         LOG.info("Failed invites: " + failedInvites);
         if (failedInvites == null) {
-            return;
+            return false;
         }
         for (Object inviteObj : failedInvites) {
             JSONObject invite = (JSONObject) inviteObj;
@@ -835,40 +845,43 @@ public class DefaultXmppHandler implements XmppHandler {
             model.addNotification(message, MessageType.error);
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
         }
+        return true;
     }
 
-    private void handleProcessedInvites(final JSONObject json) {
+    private boolean handleProcessedInvites(final JSONObject json) {
         //list of invites that the server has processed
         @SuppressWarnings("unchecked")
         final List<Object> invited = (List<Object>) json.get(LanternConstants.INVITED_KEY);
         if (invited == null) {
-            return;
+            return false;
         }
         for (Object invite : invited) {
             model.removePendingInvite((String) invite);
         }
+        return true;
     }
 
     @SuppressWarnings("unchecked")
-    private void handleUpdate(final JSONObject json) {
+    private boolean handleUpdate(final JSONObject json) {
         // This is really a JSONObject, but that itself is a map.
         final JSONObject update =
             (JSONObject) json.get(LanternConstants.UPDATE_KEY);
         if (update == null) {
-            return;
+            return false;
         }
         LOG.info("About to propagate update...");
         final Map<String, Object> event = new HashMap<String, Object>();
         event.putAll(update);
         Events.asyncEventBus().post(new UpdateEvent(event));
+        return false;
     }
 
-    private void handleSetDelay(final JSONObject json) {
+    private boolean handleSetDelay(final JSONObject json) {
         final Long delay =
             (Long) json.get(LanternConstants.UPDATE_TIME);
         LOG.debug("Server sent delay of: "+delay);
         if (delay == null) {
-            return;
+            return false;
         }
         final long now = System.currentTimeMillis();
         final long elapsed = now - lastInfoMessageScheduled;
@@ -885,6 +898,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.debug("Ignoring duplicate info request scheduling- "
                     + "scheduled request {} milliseconds ago.", elapsed);
         }
+        return true;
     }
 
     @Subscribe
