@@ -1366,6 +1366,9 @@ public class DefaultXmppHandler implements XmppHandler {
                 Events.sync(SyncPath.FRIENDS, friends.getFriends());
             }
             return;
+        } else {
+            //sync this new friend so it appears in the friends modal
+            Events.sync(SyncPath.FRIENDS, friends.getFriends());
         }
         Settings settings = model.getSettings();
         if (friend.shouldNotifyAgain() && settings.shouldShowFriendPrompts()) {
