@@ -1356,6 +1356,17 @@ public class DefaultXmppHandler implements XmppHandler {
         String email = XmppUtils.jidToUser(from);
         Friends friends = model.getFriends();
         Friend friend = modelUtils.makeFriend(email);
+        if (email.equals(model.getProfile().getEmail())) {
+            //we'll assume that a user already trusts themselves
+            if (friend.getStatus() != Status.friend) {
+                subscribe(email);
+                subscribed(email);
+                friend.setStatus(Status.friend);
+                friends.setNeedsSync(true);
+                Events.sync(SyncPath.FRIENDS, friends.getFriends());
+            }
+            return;
+        }
         Settings settings = model.getSettings();
         if (friend.shouldNotifyAgain() && settings.shouldShowFriendPrompts()) {
             FriendNotificationDialog notification;
