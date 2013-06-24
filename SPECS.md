@@ -65,7 +65,7 @@ published using JSON PATCH, e.g.
   "path": "/friends/-",
   "value": {
     "email": "user@example.com",
-    "status": "requested"
+    "status": "pending"
   }
 },{
   "op": "replace",
@@ -573,7 +573,7 @@ the backend maintains on the frontend through comet publications:
     <td>
       List of the user's Lantern Friends. As in <code>roster</code>, except
       with an additional <code>status</code> field, which can take the value
-      <code>"friend", "requested",</code> or <code>"rejected"</code>.
+      <code>"friend", "pending",</code> or <code>"rejected"</code>.
     </td>
   </tr>
   <tr>

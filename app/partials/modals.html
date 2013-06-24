@@ -348,17 +348,17 @@
         <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder"
             class="entry status-{{ friend.status }}">
           <div>
-            <a class="reject" ng-click="friend.status != FRIEND_STATUS.requested && reject(friend.email)">×</a>
+            <a class="reject" ng-click="friend.status != FRIEND_STATUS.pending && reject(friend.email)">×</a>
             <span class="vcard">
               <span class="fn">{{ friend.name }}</span>
               <span class="email">{{ friend.email }}</span>
             </span>
-            <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.requested">
+            <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending">
               <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'ACCEPT' | i18n }}</button>
               <button type="button" class="btn btn-mini btn-danger" ng-click="reject(friend.email)">{{ 'DECLINE' | i18n }}</button>
             </span>
           </div>
-          <div class="pending" ng-show="friend.status == FRIEND_STATUS.requested">
+          <div class="pending" ng-show="friend.status == FRIEND_STATUS.pending">
             {{ 'PENDING_REQS_INFO' | i18n }}
           </div>
         </li>

@@ -7083,7 +7083,7 @@ textarea {
   height: 0;
   line-height: 0;
 }
-#currentFriends .entry.status-requested .reject {
+#currentFriends .entry.status-pending .reject {
   opacity: 0;
   cursor: default;
 }

@@ -110,7 +110,7 @@ var DEFAULT_LANG = 'en',
       ]),
     FRIEND_STATUS = makeEnum([
       'friend',
-      'requested',
+      'pending',
       'rejected'
       ]),
     CONNECTIVITY = makeEnum([

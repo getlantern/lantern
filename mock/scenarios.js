@@ -238,24 +238,24 @@ exports.SCENARIOS = {
                            status: FRIEND_STATUS.friend
                           },
                           {
-                           email: 'inviter1@example.com',
+                           email: 'suggested_friend@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Example Inviter',
-                           status: FRIEND_STATUS.requested
+                           name: 'Suggested Friend',
+                           status: FRIEND_STATUS.pending
                           },{
-                           email: 'inviter2@example.com',
+                           email: 'suggested2@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Another Inviter',
-                           status: FRIEND_STATUS.requested
+                           name: 'Another Suggestion',
+                           status: FRIEND_STATUS.pending
                           },{
-                           email: 'inviter3@example.com',
+                           email: 'suggested3@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Third Inviter',
-                           status: FRIEND_STATUS.requested
+                           name: 'Third Suggestion',
+                           status: FRIEND_STATUS.pending
                           },{
-                           email: 'rejected1@example.com',
+                           email: 'suggested4@example.com',
                            picture: 'img/default-avatar.png',
-                           name: 'Rejected Inviter',
+                           name: 'Fourth Suggestion',
                            status: FRIEND_STATUS.rejected
                           }];
               this.sync({'/friends': friends});

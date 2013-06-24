@@ -64,7 +64,7 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
     $scope.npending = 0;
     for (var i=0, l=friends.length, ii=friends[i]; ii; ii=friends[++i]) {
       $scope.friendsByEmail[ii.email] = ii;
-      if (ii.status === FRIEND_STATUS.requested) {
+      if (ii.status === FRIEND_STATUS.pending) {
         $scope.npending++;
       } else if (ii.status == FRIEND_STATUS.friend) {
         $scope.nfriends++;
@@ -433,12 +433,12 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, $filter, INPUT_PAT, F
   };
 
   $scope.friendOrder = function (friend) {
-    // entries with status 'requested' come first, then 'friend', then other
+    // entries with status 'pending' come first, then 'friend', then other
     // within each group, entries with no name field come first
     // ('-' < '0' < 'A' < 'a')
     var s = friend.name ? prettyUserFltr(friend) : '-' + friend.email;
     switch (friend.status) {
-      case FRIEND_STATUS.requested:
+      case FRIEND_STATUS.pending:
         return '0' + s;
       case FRIEND_STATUS.friend:
         return '1' + s;
