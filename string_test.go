@@ -297,3 +297,13 @@ func TestString_trimRight(t *testing.T) {
 		a.length + b.length
 	`, "11")
 }
+
+func TestString_localeCompare(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`'a'.localeCompare('c');`, "-1")
+	test(`'c'.localeCompare('a');`, "1")
+	test(`'a'.localeCompare('a');`, "0")
+}

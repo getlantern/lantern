@@ -288,6 +288,7 @@ sub newContext {
                 "trim", 0,
                 "trimLeft", 0,
                 "trimRight", 0,
+                "localeCompare", 1,
             );
             return
             ".${class}Prototype =",

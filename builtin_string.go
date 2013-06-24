@@ -472,3 +472,15 @@ func builtinString_trimRight(call FunctionCall) Value {
 	return toValue(strings.TrimRight(toString(call.This),
 		builtinString_trim_whitespace))
 }
+
+func builtinString_localeCompare(call FunctionCall) Value {
+	checkObjectCoercible(call.This)
+	this := toString(call.This)
+	that := toString(call.Argument(0))
+	if this < that {
+		return toValue_int(-1)
+	} else if this == that {
+		return toValue_int(0)
+	}
+	return toValue_int(1)
+}
