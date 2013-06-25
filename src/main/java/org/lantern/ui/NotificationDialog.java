@@ -9,6 +9,10 @@ import org.lantern.LanternUtils;
 
 public class NotificationDialog {
 
+    public static final int ALPHA = 240;
+    public static final int WIDTH = 320;
+    public static final int HEIGHT = 120;
+
     Shell shell;
     public NotificationDialog(final NotificationManager manager) {
         if (LanternUtils.isTesting()) {

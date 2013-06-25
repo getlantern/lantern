@@ -79,8 +79,16 @@ public class NotificationManager {
         Monitor monitor = display.getPrimaryMonitor();
         Rectangle clientArea = monitor.getClientArea();
 
-        int startX = clientArea.x + clientArea.width - 300;
-        int startY = clientArea.y + clientArea.height - (100 * (notifications.size() + 1));
+        int startX = clientArea.x + clientArea.width - NotificationDialog.WIDTH;
+
+        int totalHeight = 0;
+        for (NotificationDialog existing : notifications) {
+            totalHeight += existing.shell.getSize().y;
+        }
+
+        totalHeight += notification.shell.getSize().y;
+
+        int startY = clientArea.y + clientArea.height - totalHeight;
 
         if (startY < 0) {
             //no need to notify

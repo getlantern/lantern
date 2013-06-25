@@ -4,9 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.lantern.LanternUtils;
@@ -45,18 +46,24 @@ public class FriendNotificationDialog extends NotificationDialog {
     protected void doLayout() {
         // accept/decline/ask again later
 
-        shell.setSize(300, 100);
-        shell.setLayout(new GridLayout(3, false));
+        shell.setSize(NotificationDialog.WIDTH, NotificationDialog.HEIGHT);
+        shell.setAlpha(NotificationDialog.ALPHA);
 
-        Label titleLabel = new Label(shell, SWT.WRAP);
-        GridData gd = new GridData(GridData.FILL_HORIZONTAL
-                | GridData.VERTICAL_ALIGN_CENTER);
-        gd.horizontalSpan = 3;
-        titleLabel.setLayoutData(gd);
+        final RowLayout layout = new RowLayout(SWT.VERTICAL);
+        layout.marginHeight = 10;
+        layout.marginWidth = 10;
+        shell.setLayout(layout);
+
+        final int innerWidth = NotificationDialog.WIDTH - layout.marginWidth * 2 - layout.spacing * 2;
+
+        final Label titleLabel = new Label(shell, SWT.WRAP);
+        final RowData data = new RowData();
+        data.width = innerWidth;
+        titleLabel.setLayoutData(data);
 
         final String name = friend.getName();
         final String email = friend.getEmail();
-        final String text = "%s is running Lantern.  Do you want to be %s's friend?";
+        final String text = "%s is running Lantern.  Do you want to add %s as your Lantern friend?";
         final String displayName;
         final String displayEmail;
         if (StringUtils.isEmpty(name)) {
@@ -69,7 +76,14 @@ public class FriendNotificationDialog extends NotificationDialog {
         final String label = String.format(text, displayEmail, displayName);
         titleLabel.setText(label);
 
-        Button yesButton = new Button(shell, SWT.NONE);
+        final Composite buttons = new Composite(shell, 0);
+        buttons.setSize(innerWidth, 50);
+        final RowLayout layout2 = new RowLayout(SWT.HORIZONTAL);
+        layout2.center = true;
+        layout2.justify = true;
+        buttons.setLayout(layout2);
+
+        final Button yesButton = new Button(buttons, SWT.NONE);
         yesButton.setText("Yes");
         yesButton.addSelectionListener(new SelectionListener() {
             @Override
@@ -82,7 +96,7 @@ public class FriendNotificationDialog extends NotificationDialog {
                 yes();
             }
         });
-        Button noButton = new Button(shell, SWT.NONE);
+        final Button noButton = new Button(buttons, SWT.NONE);
         noButton.setText("No");
         noButton.addSelectionListener(new SelectionListener() {
             @Override
@@ -96,8 +110,8 @@ public class FriendNotificationDialog extends NotificationDialog {
             }
         });
 
-        Button laterButton = new Button(shell, SWT.NONE);
-        laterButton.setText("Later");
+        final Button laterButton = new Button(buttons, SWT.NONE);
+        laterButton.setText("Ask again tomorrow");
         laterButton.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -109,6 +123,7 @@ public class FriendNotificationDialog extends NotificationDialog {
                 later();
             }
         });
+        shell.pack();
     }
 
     protected void later() {
