@@ -1061,9 +1061,9 @@ public class DefaultXmppHandler implements XmppHandler {
             final LanternKscopeAdvertisement ad =
                 mapper.readValue(payload, LanternKscopeAdvertisement.class);
 
-            final URI uri = new URI(ad.getJid());
-            if (this.kscopeAdHandler.handleAd(uri, ad)) {
-                sendAndRequestCert(uri);
+            final String jid = ad.getJid();
+            if (this.kscopeAdHandler.handleAd(jid, ad)) {
+                sendAndRequestCert(jid);
             } else {
                 LOG.debug("Not requesting cert -- duplicate kscope ad?");
             }
@@ -1073,8 +1073,6 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.warn("Could not map JSON", e);
         } catch (final IOException e) {
             LOG.warn("IO error parsing JSON", e);
-        } catch (final URISyntaxException e) {
-            LOG.error("Syntax exception with URI?", e);
         }
     }
 
@@ -1129,13 +1127,13 @@ public class DefaultXmppHandler implements XmppHandler {
         return "";
     }
 
-    private void sendAndRequestCert(final URI peer) {
+    private void sendAndRequestCert(final String peer) {
         LOG.debug("Requesting cert from {}", peer);
         final Message msg = new Message();
         msg.setProperty(P2PConstants.MESSAGE_TYPE,
             XmppMessageConstants.INFO_REQUEST_TYPE);
 
-        msg.setTo(peer.toASCIIString());
+        msg.setTo(peer);
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
         //msg.setProperty(P2PConstants.MAC, this.model.getNodeId());

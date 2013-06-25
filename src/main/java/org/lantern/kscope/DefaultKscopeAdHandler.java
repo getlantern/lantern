@@ -14,10 +14,14 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
+import org.lantern.LanternXmppUtils;
 import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
+import org.lantern.state.Friend;
+import org.lantern.state.Friend.Status;
+import org.lantern.state.Friends;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
@@ -57,15 +61,27 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         this.xmppHandler = xmppHandler;
         this.model = model;
     }
-    
+
     @Override
-    public boolean handleAd(final URI from, 
+    public boolean handleAd(final String from,
             final LanternKscopeAdvertisement ad) {
         // output a bell character to call more attention
         log.debug("\0007*** got kscope ad from {} for {}", from, ad.getJid());
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
-        final LanternKscopeAdvertisement existing = 
+        final LanternKscopeAdvertisement existing =
             awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
+
+        //ignore kscope ads directly or indirectly from untrusted sources
+        //(they might have been relayed via untrusted sources in the middle,
+        //but there is nothing we can do about that)
+
+        if (isUntrusted(ad.getJid())) {
+            return false;
+        }
+
+        if (isUntrusted(from)) {
+            return false;
+        }
 
         if (existing != null) {
             if (existing.equals(ad)) {
@@ -104,7 +120,17 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         tgn.sendAdvertisement(message, nextNid, relayAd.getTtl()); 
         return true;
     }
-    
+
+    private boolean isUntrusted(final String jid) {
+        Friends friends = model.getFriends();
+        String email = LanternXmppUtils.jidToEmail(jid);
+        Friend friend = friends.get(email);
+        if (friend != null && friend.getStatus() == Status.rejected) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void onBase64Cert(final URI jid, final String base64Cert) {
         try {
