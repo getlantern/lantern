@@ -62,6 +62,17 @@ func TestFunctionArguments(t *testing.T) {
         }
         abc("1st", "2nd", "3rd", "4th", "5th");
     `, "string")
+
+	test(`
+        function abc(def, ghi, jkl){
+            arguments[0] = 3.14;
+            arguments[1] = 'Nothing happens';
+            arguments[2] = 42;
+            if (3.14 === def && 'Nothing happens' === ghi && 42 === jkl)
+                return true;
+        }
+        abc(-1, 4.2, 314);
+    `, "true")
 }
 
 func TestFunctionDeclarationInFunction(t *testing.T) {

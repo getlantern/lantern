@@ -1,5 +1,9 @@
 package otto
 
+import (
+	"fmt"
+)
+
 // _environment
 
 type _environment interface {
@@ -18,6 +22,7 @@ type _environment interface {
 	Outer() _environment
 
 	newReference(string, bool) _reference
+	clone(clone *_clone) _environment
 }
 
 // _functionEnvironment
@@ -33,8 +38,16 @@ func (runtime *_runtime) newFunctionEnvironment(outer _environment) *_functionEn
 		_declarativeEnvironment: _declarativeEnvironment{
 			runtime:  runtime,
 			outer:    outer,
-			property: map[string]*_declarativeProperty{},
+			property: map[string]_declarativeProperty{},
 		},
+	}
+}
+
+func (self0 _functionEnvironment) clone(clone *_clone) _environment {
+	return &_functionEnvironment{
+		*(self0._declarativeEnvironment.clone(clone).(*_declarativeEnvironment)),
+		clone.object(self0.arguments),
+		self0.indexOfArgumentName,
 	}
 }
 
@@ -66,12 +79,27 @@ type _objectEnvironment struct {
 func (runtime *_runtime) newObjectEnvironment(object *_object, outer _environment) *_objectEnvironment {
 	if object == nil {
 		object = runtime.newBaseObject()
+		object.class = "environment"
 	}
 	return &_objectEnvironment{
 		runtime: runtime,
 		outer:   outer,
 		Object:  object,
 	}
+}
+
+func (self0 *_objectEnvironment) clone(clone *_clone) _environment {
+	self1, exists := clone.objectEnvironment(self0)
+	if exists {
+		return self1
+	}
+	*self1 = _objectEnvironment{
+		clone.runtime,
+		clone.environment(self0.outer),
+		clone.object(self0.Object),
+		self0.ProvideThis,
+	}
+	return self1
 }
 
 func (self *_objectEnvironment) HasBinding(name string) bool {
@@ -96,7 +124,7 @@ func (self *_objectEnvironment) SetMutableBinding(name string, value Value, stri
 
 func (self *_objectEnvironment) SetValue(name string, value Value, throw bool) {
 	if !self.HasBinding(name) {
-		self.CreateMutableBinding(name, true) // Configureable by default
+		self.CreateMutableBinding(name, true) // Configurable by default
 	}
 	self.SetMutableBinding(name, value, throw)
 }
@@ -140,20 +168,38 @@ func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_declara
 	return &_declarativeEnvironment{
 		runtime:  runtime,
 		outer:    outer,
-		property: map[string]*_declarativeProperty{},
+		property: map[string]_declarativeProperty{},
 	}
+}
+
+func (self0 *_declarativeEnvironment) clone(clone *_clone) _environment {
+	self1, exists := clone.declarativeEnvironment(self0)
+	if exists {
+		return self1
+	}
+	property := make(map[string]_declarativeProperty, len(self0.property))
+	for index, value := range self0.property {
+		property[index] = clone.declarativeProperty(value)
+	}
+	*self1 = _declarativeEnvironment{
+		clone.runtime,
+		clone.environment(self0.outer),
+		property,
+	}
+	return self1
 }
 
 type _declarativeProperty struct {
 	value     Value
 	mutable   bool
 	deletable bool
+	readable  bool
 }
 
 type _declarativeEnvironment struct {
 	runtime  *_runtime
 	outer    _environment
-	property map[string]*_declarativeProperty
+	property map[string]_declarativeProperty
 }
 
 func (self *_declarativeEnvironment) HasBinding(name string) bool {
@@ -164,22 +210,24 @@ func (self *_declarativeEnvironment) HasBinding(name string) bool {
 func (self *_declarativeEnvironment) CreateMutableBinding(name string, deletable bool) {
 	_, exists := self.property[name]
 	if exists {
-		panic(hereBeDragons())
+		panic(fmt.Errorf("CreateMutableBinding: %s: already exists", name))
 	}
-	self.property[name] = &_declarativeProperty{
+	self.property[name] = _declarativeProperty{
 		value:     UndefinedValue(),
 		mutable:   true,
 		deletable: deletable,
+		readable:  false,
 	}
 }
 
 func (self *_declarativeEnvironment) SetMutableBinding(name string, value Value, strict bool) {
-	property := self.property[name]
-	if property == nil {
-		panic(hereBeDragons())
+	property, exists := self.property[name]
+	if !exists {
+		panic(fmt.Errorf("SetMutableBinding: %s: missing", name))
 	}
 	if property.mutable {
 		property.value = value
+		self.property[name] = property
 	} else {
 		typeErrorResult(strict)
 	}
@@ -193,12 +241,15 @@ func (self *_declarativeEnvironment) SetValue(name string, value Value, throw bo
 }
 
 func (self *_declarativeEnvironment) GetBindingValue(name string, strict bool) Value {
-	property := self.property[name]
-	if property == nil {
-		panic(hereBeDragons())
+	property, exists := self.property[name]
+	if !exists {
+		panic(fmt.Errorf("GetBindingValue: %s: missing", name))
 	}
-	if !property.mutable {
-		// TODO If uninitialized...
+	if !property.mutable && !property.readable {
+		if strict {
+			panic(newTypeError())
+		}
+		return UndefinedValue()
 	}
 	return property.value
 }
@@ -208,10 +259,9 @@ func (self *_declarativeEnvironment) GetValue(name string, throw bool) Value {
 }
 
 func (self *_declarativeEnvironment) DeleteBinding(name string) bool {
-	property := self.property[name]
-	if property == nil {
-		delete(self.property, name)
-		return false
+	property, exists := self.property[name]
+	if !exists {
+		return true
 	}
 	if !property.deletable {
 		return false

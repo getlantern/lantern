@@ -11,6 +11,7 @@ type _objectClass struct {
 	defineOwnProperty func(*_object, string, _property, bool) bool
 	delete            func(*_object, string, bool) bool
 	enumerate         func(*_object, bool, func(string) bool)
+	clone             func(*_object, *_object, *_clone) *_object
 }
 
 func objectEnumerate(self *_object, all bool, each func(string) bool) {
@@ -47,6 +48,7 @@ func init() {
 		objectDefineOwnProperty,
 		objectDelete,
 		objectEnumerate,
+		objectClone,
 	}
 
 	_classArray = &_objectClass{
@@ -60,6 +62,7 @@ func init() {
 		arrayDefineOwnProperty,
 		objectDelete,
 		objectEnumerate,
+		objectClone,
 	}
 
 	_classString = &_objectClass{
@@ -73,6 +76,8 @@ func init() {
 		objectDefineOwnProperty,
 		objectDelete,
 		stringEnumerate,
+		objectClone,
+		//stringClone,
 	}
 
 	_classArguments = &_objectClass{
@@ -86,6 +91,8 @@ func init() {
 		argumentsDefineOwnProperty,
 		argumentsDelete,
 		argumentsEnumerate,
+		//argumentsClone
+		objectClone,
 	}
 
 	_classGoStruct = &_objectClass{
@@ -99,6 +106,7 @@ func init() {
 		objectDefineOwnProperty,
 		objectDelete,
 		goStructEnumerate,
+		objectClone,
 	}
 
 	_classGoMap = &_objectClass{
@@ -112,6 +120,7 @@ func init() {
 		goMapDefineOwnProperty,
 		goMapDelete,
 		goMapEnumerate,
+		objectClone,
 	}
 
 	_classGoArray = &_objectClass{
@@ -125,6 +134,7 @@ func init() {
 		goArrayDefineOwnProperty,
 		goArrayDelete,
 		goArrayEnumerate,
+		objectClone,
 	}
 
 	_classGoSlice = &_objectClass{
@@ -138,6 +148,7 @@ func init() {
 		goSliceDefineOwnProperty,
 		goSliceDelete,
 		goSliceEnumerate,
+		objectClone,
 	}
 }
 
@@ -320,4 +331,28 @@ func objectDelete(self *_object, name string, throw bool) bool {
 		return true
 	}
 	return typeErrorResult(throw)
+}
+
+func objectClone(self0 *_object, self1 *_object, clone *_clone) *_object {
+	*self1 = *self0
+
+	self1.runtime = clone.runtime
+	if self1.prototype != nil {
+		self1.prototype = clone.object(self0.prototype)
+	}
+	self1.property = make(map[string]_property, len(self0.property))
+	self1.propertyOrder = make([]string, len(self0.propertyOrder))
+	copy(self1.propertyOrder, self0.propertyOrder)
+	for index, property := range self0.property {
+		self1.property[index] = clone.property(property)
+	}
+
+	switch value := self0.value.(type) {
+	case _functionObject:
+		self1.value = value.clone(clone)
+	case _argumentsObject:
+		self1.value = value.clone(clone)
+	}
+
+	return self1
 }

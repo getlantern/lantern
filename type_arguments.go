@@ -8,7 +8,7 @@ func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, envir
 	self := runtime.newClassObject("Arguments")
 
 	self.objectClass = _classArguments
-	self.value = &_argumentsObject{
+	self.value = _argumentsObject{
 		indexOfParameterName: indexOfParameterName,
 		environment:          environment,
 	}
@@ -30,7 +30,16 @@ type _argumentsObject struct {
 	environment _environment
 }
 
-func (self *_argumentsObject) get(name string) (Value, bool) {
+func (self0 _argumentsObject) clone(clone *_clone) _argumentsObject {
+	indexOfParameterName := make([]string, len(self0.indexOfParameterName))
+	copy(indexOfParameterName, self0.indexOfParameterName)
+	return _argumentsObject{
+		indexOfParameterName,
+		clone.environment(self0.environment),
+	}
+}
+
+func (self _argumentsObject) get(name string) (Value, bool) {
 	index := stringToArrayIndex(name)
 	if index >= 0 && index < int64(len(self.indexOfParameterName)) {
 		name := self.indexOfParameterName[index]
@@ -42,38 +51,38 @@ func (self *_argumentsObject) get(name string) (Value, bool) {
 	return Value{}, false
 }
 
-func (self *_argumentsObject) put(name string, value Value) {
+func (self _argumentsObject) put(name string, value Value) {
 	index := stringToArrayIndex(name)
 	name = self.indexOfParameterName[index]
 	self.environment.SetMutableBinding(name, value, false)
 }
 
-func (self *_argumentsObject) delete(name string) {
+func (self _argumentsObject) delete(name string) {
 	index := stringToArrayIndex(name)
 	self.indexOfParameterName[index] = ""
 }
 
 func argumentsGet(self *_object, name string) Value {
-	if value, exists := self.value.(*_argumentsObject).get(name); exists {
+	if value, exists := self.value.(_argumentsObject).get(name); exists {
 		return value
 	}
 	return objectGet(self, name)
 }
 
 func argumentsGetOwnProperty(self *_object, name string) *_property {
-	if value, exists := self.value.(*_argumentsObject).get(name); exists {
+	if value, exists := self.value.(_argumentsObject).get(name); exists {
 		return &_property{value, 0111}
 	}
 	return objectGetOwnProperty(self, name)
 }
 
 func argumentsDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
-	if _, exists := self.value.(*_argumentsObject).get(name); exists {
+	if _, exists := self.value.(_argumentsObject).get(name); exists {
 		if !objectDefineOwnProperty(self, name, descriptor, false) {
 			return typeErrorResult(throw)
 		}
 		if value, valid := descriptor.value.(Value); valid {
-			self.value.(*_argumentsObject).put(name, value)
+			self.value.(_argumentsObject).put(name, value)
 		}
 		return true
 	}
@@ -81,8 +90,8 @@ func argumentsDefineOwnProperty(self *_object, name string, descriptor _property
 }
 
 func argumentsDelete(self *_object, name string, throw bool) bool {
-	if _, exists := self.value.(*_argumentsObject).get(name); exists {
-		self.value.(*_argumentsObject).delete(name)
+	if _, exists := self.value.(_argumentsObject).get(name); exists {
+		self.value.(_argumentsObject).delete(name)
 		return true
 	}
 	return objectDelete(self, name, throw)
@@ -90,7 +99,7 @@ func argumentsDelete(self *_object, name string, throw bool) bool {
 
 func argumentsEnumerate(self *_object, all bool, each func(string) bool) {
 	{
-		object := self.value.(*_argumentsObject)
+		object := self.value.(_argumentsObject)
 		for index, value := range object.indexOfParameterName {
 			if value != "" {
 				if !each(strconv.FormatInt(int64(index), 10)) {

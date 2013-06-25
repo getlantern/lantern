@@ -2,17 +2,40 @@ package otto
 
 import (
 	. "./terst"
+	"github.com/robertkrimen/otto/underscore"
 	"math"
 	"strings"
 	"testing"
 )
 
 var (
+	_newOttoClone = false
+	_newOtto      = map[string]*Otto{}
+
 	_runTestWithOtto = struct {
 		Otto *Otto
 		test func(string, ...interface{}) Value
 	}{}
 )
+
+func newOtto(kind string, setup func(otto *Otto)) *Otto {
+	if _newOttoClone {
+		otto := _newOtto[kind]
+		if otto == nil {
+			otto = New()
+			if setup != nil {
+				setup(otto)
+			}
+			_newOtto[kind] = otto
+		}
+		return otto.clone()
+	}
+	otto := New()
+	if setup != nil {
+		setup(otto)
+	}
+	return otto
+}
 
 func failSet(name string, value interface{}) {
 	err := _runTestWithOtto.Otto.Set(name, value)
@@ -24,7 +47,7 @@ func failSet(name string, value interface{}) {
 
 func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 	cache := &_runTestWithOtto
-	Otto := New()
+	Otto := newOtto("", nil)
 	test := func(name string, expect ...interface{}) Value {
 		raise := false
 		defer func() {
@@ -510,8 +533,133 @@ func TestOttoCall_throw(t *testing.T) {
     `, "false,,,object,3.14159,true")
 }
 
+func TestOttoCall_clone(t *testing.T) {
+	Terst(t)
+
+	otto := New().clone()
+
+	{
+		Is(otto.runtime.Global.Array.prototype, otto.runtime.Global.FunctionPrototype)
+		IsNot(otto.runtime.Global.ArrayPrototype, nil)
+		Is(otto.runtime.Global.Array.runtime, otto.runtime)
+		Is(otto.runtime.Global.Array.prototype.runtime, otto.runtime)
+		Is(otto.runtime.Global.Array.get("prototype")._object().runtime, otto.runtime)
+	}
+
+	{
+		value, err := otto.Run(`[ 1, 2, 3 ].toString()`)
+		Is(err, nil)
+		Is(value, "1,2,3")
+	}
+
+	{
+		value, err := otto.Run(`[ 1, 2, 3 ]`)
+		Is(err, nil)
+		Is(value, "1,2,3")
+		object := value._object()
+		IsNot(object, nil)
+		Is(object.prototype, otto.runtime.Global.ArrayPrototype)
+
+		value, err = otto.Run(`Array.prototype`)
+		Is(err, nil)
+		object = value._object()
+		Is(object.runtime, otto.runtime)
+		IsNot(object, nil)
+		Is(object, otto.runtime.Global.ArrayPrototype)
+	}
+
+	{
+		otto1 := New()
+		_, err := otto1.Run(`
+            var abc = 1;
+            var def = 2;
+        `)
+		Is(err, nil)
+
+		otto2 := otto1.clone()
+		value, err := otto2.Run(`abc += 1; abc;`)
+		Is(err, nil)
+		Is(value, "2")
+
+		value, err = otto1.Run(`abc += 4; abc;`)
+		Is(err, nil)
+		Is(value, "5")
+	}
+
+	{
+		otto1 := New()
+		_, err := otto1.Run(`
+            var abc = 1;
+            var def = function(value) {
+                abc += value;
+                return abc;
+            }
+        `)
+		Is(err, nil)
+
+		otto2 := otto1.clone()
+		value, err := otto2.Run(`def(1)`)
+		Is(err, nil)
+		Is(value, "2")
+
+		value, err = otto1.Run(`def(4)`)
+		Is(err, nil)
+		Is(value, "5")
+	}
+
+	{
+		otto1 := New()
+		_, err := otto1.Run(`
+            var abc = {
+                ghi: 1,
+                jkl: function(value) {
+                    this.ghi += value;
+                    return this.ghi;
+                }
+            };
+            var def = {
+                abc: abc
+            };
+        `)
+		Is(err, nil)
+
+		otto2 := otto1.clone()
+		value, err := otto2.Run(`def.abc.jkl(1)`)
+		Is(err, nil)
+		Is(value, "2")
+
+		value, err = otto1.Run(`def.abc.jkl(4)`)
+		Is(err, nil)
+		Is(value, "5")
+	}
+}
+
 func BenchmarkNew(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		New()
+	}
+}
+
+func BenchmarkClone(b *testing.B) {
+	otto := New()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		otto.clone()
+	}
+}
+
+func BenchmarkNew_(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		otto := New()
+		otto.Run(underscore.Source())
+	}
+}
+
+func BenchmarkClone_(b *testing.B) {
+	otto := New()
+	otto.Run(underscore.Source())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		otto.clone()
 	}
 }

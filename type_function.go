@@ -5,6 +5,13 @@ type _functionObject struct {
 	construct _constructFunction
 }
 
+func (self0 _functionObject) clone(clone *_clone) _functionObject {
+	return _functionObject{
+		clone.callFunction(self0.call),
+		self0.construct,
+	}
+}
+
 func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length int) *_object {
 	self := runtime.newClassObject("Function")
 	self.value = _functionObject{
@@ -119,6 +126,7 @@ type _callFunction interface {
 	Dispatch(*_object, *_functionEnvironment, *_runtime, Value, []Value, bool) Value
 	Source() string
 	ScopeEnvironment() _environment
+	clone(clone *_clone) _callFunction
 }
 
 // _nativeCallFunction
@@ -147,6 +155,10 @@ func (self _nativeCallFunction) Source() string {
 	return ""
 }
 
+func (self0 _nativeCallFunction) clone(clone *_clone) _callFunction {
+	return self0
+}
+
 // _nodeCallFunction
 type _nodeCallFunction struct {
 	node             *_functionNode
@@ -173,6 +185,14 @@ func (self _nodeCallFunction) Source() string {
 	return ""
 }
 
+func (self0 _nodeCallFunction) clone(clone *_clone) _callFunction {
+	return _nodeCallFunction{
+		node:             self0.node,
+		scopeEnvironment: clone.environment(self0.scopeEnvironment),
+	}
+}
+
+// _boundCallFunction
 type _boundCallFunction struct {
 	target       *_object
 	this         Value
@@ -199,6 +219,14 @@ func (self _boundCallFunction) ScopeEnvironment() _environment {
 
 func (self _boundCallFunction) Source() string {
 	return ""
+}
+
+func (self0 _boundCallFunction) clone(clone *_clone) _callFunction {
+	return _boundCallFunction{
+		target:       clone.object(self0.target),
+		this:         clone.value(self0.this),
+		argumentList: clone.valueArray(self0.argumentList),
+	}
 }
 
 // FunctionCall{}

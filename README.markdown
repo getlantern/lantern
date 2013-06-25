@@ -255,6 +255,20 @@ this case, the this argument has no effect.
     // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
     value, _ := Otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
 
+#### func (*Otto) Copy
+
+```go
+func (self *Otto) Copy() *Otto
+```
+Copy will create a copy/clone of the runtime.
+
+Copy is useful for saving some processing time when creating many similar
+runtimes.
+
+This implementation is alpha-ish, and works by introspecting every part of the
+runtime and reallocating and then relinking everything back together. Please
+report if you notice any inadvertent sharing of data between copies.
+
 #### func (Otto) Get
 
 ```go

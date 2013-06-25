@@ -15,12 +15,12 @@ func newExecutionContext(lexical _environment, variable _environment, this *_obj
 	}
 }
 
-func (self *_executionContext) GetValue(name string) Value {
+func (self *_executionContext) getValue(name string) Value {
 	strict := false
 	return self.LexicalEnvironment.GetValue(name, strict)
 }
 
-func (self *_executionContext) SetValue(name string, value Value, throw bool) {
+func (self *_executionContext) setValue(name string, value Value, throw bool) {
 	self.LexicalEnvironment.SetValue(name, value, throw)
 }
 

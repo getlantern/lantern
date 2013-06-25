@@ -131,6 +131,14 @@ func New() *Otto {
 	return self
 }
 
+func (otto *Otto) clone() *Otto {
+	self := &Otto{
+		runtime: otto.runtime.clone(),
+	}
+	self.runtime.Otto = self
+	return self
+}
+
 // Run will allocate a new JavaScript runtime, run the given source
 // on the allocated runtime, and return the runtime, resulting value, and
 // error (if any).
@@ -297,6 +305,20 @@ func (self Otto) Object(source string) (*Object, error) {
 // ToValue will convert an interface{} value to a value digestible by otto/JavaScript.
 func (self Otto) ToValue(value interface{}) (Value, error) {
 	return self.runtime.ToValue(value)
+}
+
+// Copy will create a copy/clone of the runtime.
+//
+// Copy is useful for saving some processing time when creating many similar
+// runtimes.
+//
+// This implementation is alpha-ish, and works by introspecting every part of the runtime
+// and reallocating and then relinking everything back together. Please report if you
+// notice any inadvertent sharing of data between copies.
+func (self *Otto) Copy() *Otto {
+	return &Otto{
+		runtime: self.runtime.clone(),
+	}
 }
 
 // Object{}

@@ -1155,7 +1155,7 @@ func TestNewFunction(t *testing.T) {
 	// TODO Better error reporting: new this
 	test(`raise:
 		new this
-	`, "TypeError: [object ] is not a function")
+	`, "TypeError: [object environment] is not a function")
 
 	test(`raise:
 		new {}
@@ -1237,4 +1237,24 @@ func TestEvaluationOrder(t *testing.T) {
         var abc = 0;
         abc < (abc = 1) === true;
     `, "true")
+}
+
+func TestClone(t *testing.T) {
+	Terst(t)
+
+	otto1 := New()
+	otto1.Run(`
+        var abc = 1;
+    `)
+
+	otto2 := otto1.clone()
+	otto1.Run(`
+        abc += 2;
+    `)
+	otto2.Run(`
+        abc += 4;
+    `)
+
+	Is(otto1.getValue("abc"), "3")
+	Is(otto2.getValue("abc"), "5")
 }
