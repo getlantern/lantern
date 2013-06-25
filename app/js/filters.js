@@ -15,9 +15,14 @@ angular.module('app.filters', [])
   })
   .filter('notRejected', function(FRIEND_STATUS) {
     return function(friends) {
-      if (!_.isArray(friends)) return friends;
-      var filtered = _.reject(friends, {status: FRIEND_STATUS.rejected});
-      return filtered;
+      return _.reject(friends, {status: FRIEND_STATUS.rejected});
+    };
+  })
+  .filter('noNullIsland', function() {
+    return function(peers) {
+      return _.reject(peers, function (peer) {
+        return peer.lat === 0.0 && peer.lon === 0.0;
+      });
     };
   })
   .filter('prettyUser', function() {
