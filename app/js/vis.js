@@ -72,6 +72,17 @@ angular.module('app.vis', [])
     }
 
     return function (scope, element) {
+      var unwatch = scope.$watch('model.countries', function (countries) {
+        if (!countries) return;
+        d3.select(element[0]).selectAll('path').each(function (d) {
+          var censors = !!getByPath(countries, '/'+d.alpha2+'/censors'); 
+          if (censors) {
+            d3.select(this).classed('censors', censors);
+          }
+        });
+        unwatch();
+      }, true);
+
       d3.json(CONFIG.source.world, function (error, world) {
         if (error) throw error;
         //var f = topojson.feature(world, world.objects.countries).features;

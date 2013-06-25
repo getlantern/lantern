@@ -2232,7 +2232,7 @@ li [class*=" icon-"].icon-large, .nav li [class^="icon-"].icon-large,
 
 ul.icons {
   list-style-type: none;
-  text-indent: -.75em;
+  text-indent: -0.75em;
 }
 ul.icons li [class^="icon-"],
 ul.icons li [class*=" icon-"] {
@@ -7346,6 +7346,10 @@ textarea.report {
 
 .peer.connected {
   opacity: 1;
+}
+
+#self {
+  fill: white;
 }
 
 .peer.get, #self.get {
