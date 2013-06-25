@@ -663,16 +663,32 @@ func isIdentifierPart(chr rune) bool {
 
 func isWhiteSpace(chr rune) bool {
 	switch chr {
-	case ' ', '\t', '\u00a0', '\u000b', '\u000c':
+	case '\u0009', '\u000b', '\u000c', '\u0020', '\u00a0', '\ufeff':
+		return true
+	case '\u000a', '\u000d', '\u2028', '\u2029':
+		return false
+	case '\u0085':
+		return false
+	}
+	return unicode.IsSpace(chr)
+}
+
+func isLineTerminator(chr rune) bool {
+	switch chr {
+	case '\u000a', '\u000d', '\u2028', '\u2029':
 		return true
 	}
 	return false
 }
 
-func isLineTerminator(chr rune) bool {
+func isWhiteSpaceOrLineTerminator(chr rune) bool {
 	switch chr {
-	case '\n', '\r', '\u2028', '\u2029':
+	case '\u0009', '\u000b', '\u000c', '\u0020', '\u00a0', '\ufeff':
 		return true
+	case '\u000a', '\u000d', '\u2028', '\u2029':
+		return true
+	case '\u0085':
+		return false
 	}
-	return false
+	return unicode.IsSpace(chr)
 }

@@ -484,3 +484,11 @@ func builtinString_localeCompare(call FunctionCall) Value {
 	}
 	return toValue_int(1)
 }
+
+/*
+An alternate version
+func builtinString_trim(call FunctionCall) Value {
+	checkObjectCoercible(call.This)
+	return toValue_string(strings.TrimFunc(toString(call.This), isWhiteSpaceOrLineTerminator))
+}
+*/

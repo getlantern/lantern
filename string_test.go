@@ -263,6 +263,7 @@ func TestString_trim(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+	test(`'    \n abc   \t \n'.trim();`, "abc")
 	test(`"		abc\u000B".trim()`, "abc")
 	test(`"abc ".trim()`, "abc")
 	test(`
