@@ -58,9 +58,9 @@ public class Settings {
     private boolean useAnonymousPeers = true;
 
     private boolean useCentralProxies = true;
-    
+
     private boolean tcp = true;
-    
+
     private boolean udp = true;
 
     private Set<String> stunServers = new HashSet<String>();
@@ -346,7 +346,7 @@ public class Settings {
         this.udp = udp;
     }
 
-    public boolean shouldShowFriendPrompts() {
+    public boolean getShowFriendPrompts() {
         return showFriendPrompts;
     }
 
