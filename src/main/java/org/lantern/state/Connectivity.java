@@ -45,6 +45,8 @@ public class Connectivity {
 
     private String pacUrl;
 
+    private int nProxies;
+
     public Connectivity() {
         Events.register(this);
     }
@@ -166,5 +168,13 @@ public class Connectivity {
     @Override
     public String toString() {
         return "Connectivity(" + ip + ", " + internet + ")";
+    }
+
+    public int getNProxies() {
+        return nProxies;
+    }
+
+    public void setNProxies(int nProxies) {
+        this.nProxies = nProxies;
     }
 }

@@ -6,7 +6,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
+import org.lantern.event.Events;
 import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +22,7 @@ public class ProxyQueue {
      *
      */
     protected final Set<ProxyHolder> proxySet = new HashSet<ProxyHolder>();
-    protected final Queue<ProxyHolder> proxies = new ConcurrentLinkedQueue<ProxyHolder>();
+    protected final Queue<ProxyHolder> proxies;
 
     /**
      * Proxies that have failed and thus are timed out, ordered by the time that
@@ -30,8 +32,21 @@ public class ProxyQueue {
 
     private final Model model;
 
+    private class PeerCountingQueue<T> extends ConcurrentLinkedQueue<T> {
+        private static final long serialVersionUID = -2319168304884788977L;
+
+        @Override
+        public boolean add(T obj) {
+            boolean result = super.add(obj);
+            model.getConnectivity().setNProxies(size());
+            Events.sync(SyncPath.CONNECTIVITY_NPROXIES, size());
+            return result;
+        }
+    }
+
     ProxyQueue(Model model) {
         this.model = model;
+        proxies = new PeerCountingQueue<ProxyHolder>();
     }
 
     public synchronized boolean add(ProxyHolder holder) {

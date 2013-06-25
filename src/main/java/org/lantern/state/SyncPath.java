@@ -17,6 +17,7 @@ public enum SyncPath {
     CONNECTIVITY_INTERNET("connectivity/internet"),
     CONNECTIVITY("connectivity"),
     CONNECTIVITY_LANTERN_CONTROLLER("connectivity/lanternController"),
+    CONNECTIVITY_NPROXIES("connectivity/nproxies"),
     PEERS("peers"),
     INVITED("connectivity/invited"),
     START_AT_LOGIN("settings/startAtLogin"),
