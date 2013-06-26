@@ -21,19 +21,15 @@ $waterColor: rgba(6, 21, 50, .1)
 
 #countries path
   +single-transition(all, 0.5s, ease)
-  stroke: rgb(30, 61, 75)
+  stroke: #364d58
   stroke-width: 1px
-  stroke-opacity: 0
   fill: #000
   fill-opacity: .2
-  &.peersOnline
-    stroke-opacity: .1
   &.censors
     fill-opacity: .3
-    //stroke-opacity: .2
   &.updating
-    stroke: #fff !important
-    stroke-opacity: .5 !important
+    fill-opacity: .1 !important
+    stroke-opacity: 1 !important
   &:hover
     stroke-opacity: 1 !important
 //&.AQ // antarctica

@@ -308,6 +308,7 @@ MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
   log('applying gtalkAuthorized scenario', scen.desc);
   scen.func.call(this);
   if (!getByPath(this.model, '/connectivity/gtalkAuthorized')) return;
+  sleep.usleep(750000);
 
   // check for lantern access
   scen = getByPath(this.model, '/mock/scenarios/applied/invited');

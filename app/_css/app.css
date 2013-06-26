@@ -7320,21 +7320,17 @@ textarea.report {
 #countries path {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
-  stroke: #1e3d4b;
+  stroke: #364d58;
   stroke-width: 1px;
-  stroke-opacity: 0;
   fill: black;
   fill-opacity: 0.2;
-}
-#countries path.peersOnline {
-  stroke-opacity: 0.1;
 }
 #countries path.censors {
   fill-opacity: 0.3;
 }
 #countries path.updating {
-  stroke: white !important;
-  stroke-opacity: 0.5 !important;
+  fill-opacity: 0.1 !important;
+  stroke-opacity: 1 !important;
 }
 #countries path:hover {
   stroke-opacity: 1 !important;

@@ -5,7 +5,7 @@
   <svg id="map" fullwindow>
     <!--path id="globe" globe /-->
     <g id="countries" countries />
-    <g id="peers">
+    <g id="peers" watch-connections >
       <g ng-repeat="peer in model.peers | noNullIsland">
         <path class="connection" ng-d="{{ pathConnection(peer) }}"
               stroke-opacity="{{ connectionOpacityScale(peer.bpsUpDn) }}"

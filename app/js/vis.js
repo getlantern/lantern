@@ -8,23 +8,6 @@ var PI = Math.PI,
     round = Math.round;
 
 angular.module('app.vis', [])
-  .constant('CONFIG', {
-    style: {
-      connectionOpacityMin: .1,
-      connectionOpacityMax: 1,
-      countryOpacityMin: .01,
-      countryOpacityMax: .2,
-      countryOpacityNoActivity: .2,
-      countryStrokeNoActivity: 'rgb(30, 61, 75)',
-      giveModeColor: '#aad092',
-      getModeColor: '#ffcc66',
-      pointRadiusSelf: 5,
-      pointRadiusPeer: 3
-    },
-    source: {
-      world: 'data/world.json'
-    }
-  })
   .directive('fullwindow', function ($window) {
     return function (scope, element) {
       function size() {
@@ -49,10 +32,9 @@ angular.module('app.vis', [])
       element.attr('d', d);
     };
   })
-  .directive('countries', function (CONFIG, $compile) {
+  .directive('countries', function ($compile, $timeout) {
 
-    function ttTmpl(d) {
-      var alpha2 = d.alpha2;
+    function ttTmpl(alpha2) {
       return '<div class="vis">'+
         '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
         '<div class="give-colored">{{ "NPEERS_ONLINE_GIVE" | i18n:model.countries.'+alpha2+'.npeers.online.give }}</div>'+
@@ -60,18 +42,28 @@ angular.module('app.vis', [])
         '<div class="npeersEver">{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.nusers.ever }}</div>'+
         '<div class="stats">'+
           '<div class="bps">'+
-            '{{ model.countries.'+alpha2+'.bpsUp || 0 | prettyBps }} {{ "UP" | i18n }} '+
-            '{{ model.countries.'+alpha2+'.bpsDn || 0 | prettyBps }} {{ "DN" | i18n }}'+
+            '{{ model.countries.'+alpha2+'.bps || 0 | prettyBps }} {{ "TRANSFERRING_NOW" | i18n }}'+
           '</div>'+
           '<div class="bytes">'+
-            '{{ model.countries.'+alpha2+'.bytesUp || 0 | prettyBps }} {{ "UP_EVER" | i18n }} '+
-            '{{ model.countries.'+alpha2+'.bytesDn || 0 | prettyBps }} {{ "DN_EVER" | i18n }}'+
+            '{{ model.countries.'+alpha2+'.bytesEver || 0 | prettyBytes }} {{ "TRANSFERRED_EVER" | i18n }}'+
           '</div>'+
         '</div>'+
       '</div>';
     }
 
     return function (scope, element) {
+      var maxNpeersOnline = 0,
+          strokeOpacityScale = d3.scale.linear()
+            .clamp(true).domain([0, 0]).range([0, 1]);
+
+      // detect reset
+      scope.$watch('model.setupComplete', function (newVal, oldVal) {
+        if (oldVal && !newVal) {
+          maxNpeersOnline = 0;
+          strokeOpacityScale.domain([0, 0]);
+        }
+      }, true);
+
       var unwatch = scope.$watch('model.countries', function (countries) {
         if (!countries) return;
         d3.select(element[0]).selectAll('path').each(function (d) {
@@ -83,17 +75,61 @@ angular.module('app.vis', [])
         unwatch();
       }, true);
 
-      d3.json(CONFIG.source.world, function (error, world) {
+      d3.json('data/world.json', function (error, world) {
         if (error) throw error;
         //var f = topojson.feature(world, world.objects.countries).features;
         var f = topojson.object(world, world.objects.countries).geometries;
         d3.select(element[0]).selectAll('path').data(f).enter().append('path')
-          .attr('class', function(d){ return d.alpha2 || 'COUNTRY_UNKNOWN'; })
-          .attr('tooltip-placement', 'mouse')
-          .attr('tooltip-html-unsafe', ttTmpl)
-          .attr('d', scope.path)
-          .each(function(){ $compile(this)(scope); });
+          .each(function (d) {
+            var el = d3.select(this);
+            el.attr('d', scope.path).attr('stroke-opacity', 0);
+            if (d.alpha2) {
+              el.attr('class', d.alpha2)
+                .attr('tooltip-placement', 'mouse')
+                .attr('tooltip-html-unsafe', ttTmpl(d.alpha2));
+              $compile(this)(scope);
+              scope.$watch('model.countries.'+d.alpha2, function (newVal, oldVal) {
+                var npeersOnline = getByPath(newVal, '/npeers/online/giveGet') || 0,
+                    oldNpeersOnline = getByPath(oldVal, '/npeers/online/giveGet') || 0,
+                    updated = npeersOnline !== oldNpeersOnline;
+                if (npeersOnline > maxNpeersOnline) {
+                  maxNpeersOnline = npeersOnline;
+                }
+                strokeOpacityScale.domain([0, maxNpeersOnline]);
+                el.attr('stroke-opacity', strokeOpacityScale(npeersOnline));
+                if (oldVal && updated) {
+                  el.classed('updating', true);
+                  $timeout(function () {
+                    el.classed('updating', false);
+                  }, 500);
+                }
+              }, true);
+            } else {
+              el.attr('class', 'COUNTRY_UNKNOWN');
+            }
+          });
       });
+    };
+  })
+  .directive('watchConnections', function () {
+    return function (scope, element) {
+      scope.connectionOpacityScale = d3.scale.linear()
+        .clamp(true).domain([0, 0]).range([0, .9]);
+
+      scope.$watch('model.peers', function(peers) {
+        if (!peers) return;
+
+        var maxBpsUpDn = 0;
+
+        _.each(peers, function (p) {
+          if (maxBpsUpDn < p.bpsUpDn)
+            maxBpsUpDn = p.bpsUpDn;
+        });
+
+        if (maxBpsUpDn !== scope.connectionOpacityScale.domain()[1]) {
+          scope.connectionOpacityScale.domain([0, maxBpsUpDn]);
+        }
+      }, true);
     };
   })
   .directive('animateConnection', function () {
@@ -117,19 +153,17 @@ angular.module('app.vis', [])
     };
   });
 
-function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc, CONFIG) {
+function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      i18n = $filter('i18n'),
-      date = $filter('date'),
-      prettyBps = $filter('prettyBps'),
-      prettyBytes = $filter('prettyBytes'),
       projection = d3.geo.mercator(),
       path = d3.geo.path().projection(projection),
       pathSelf = d3.geo.path().projection(projection);
 
-  path.pointRadius(CONFIG.style.pointRadiusPeer);
-  pathSelf.pointRadius(CONFIG.style.pointRadiusSelf);
+  $scope.projection = projection;
+
+  path.pointRadius(3);
+  pathSelf.pointRadius(5);
 
   $scope.path = function (d, self) {
     // https://bugs.webkit.org/show_bug.cgi?id=110691
@@ -146,18 +180,4 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       'M'+xP+','+yP+' Q '+xC+','+yC+' '+xS+','+yS :
       'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
   };
-
-  $scope.projection = projection;
-
-  $scope.connectionOpacityScale = d3.scale.linear().clamp(true)
-    .range([CONFIG.style.connectionOpacityMin, CONFIG.style.connectionOpacityMax]);
-
-  $scope.$watch('model.peers', function(peers) {
-    if (!peers) return;
-
-    var connectedPeers = _.filter(peers, 'connected'), maxBpsUpDn = 0;
-    _.each(connectedPeers, function(p) { if (maxBpsUpDn < p.bpsUpDn) maxBpsUpDn = p.bpsUpDn; });
-    $scope.connectionOpacityScale.domain([0, maxBpsUpDn]);
-  }, true);
-  
 }

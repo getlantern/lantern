@@ -115,7 +115,7 @@ exports.SCENARIOS = {
       desc: 'invited: true',
       func: function() {
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern...'});
-              sleep.usleep(300);
+              sleep.usleep(100000);
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
                          '/connectivity/peerid': 'lantern-45678',
                          '/connectivity/type': 'pc',
@@ -126,7 +126,7 @@ exports.SCENARIOS = {
       desc: 'invited: false',
       func: function() {
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern...'});
-              sleep.usleep(300);
+              sleep.usleep(100000);
               this.sync({'/connectivity/connectingStatus': 'Connecting to Lantern... Done',
                          '/connectivity/invited': false,
                          '/modal': MODAL.notInvited
@@ -141,7 +141,7 @@ exports.SCENARIOS = {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
                 '/connectivity/connectingStatus': 'Connecting to Google Talk...',
                 '/modal': MODAL.connecting});
-              sleep.usleep(300);
+              sleep.usleep(100000);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.notConnected,
                 '/connectivity/connectingStatus': 'Connecting to Google Talk...Failed',
                 '/notifications/-': {type: 'error', message: 'Unable to reach Google Talk.'},
@@ -154,7 +154,7 @@ exports.SCENARIOS = {
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
                 '/connectivity/connectingStatus': 'Connecting to Google Talk...',
                 '/modal': MODAL.connecting});
-              sleep.usleep(300);
+              sleep.usleep(100000);
               this.sync({'/connectivity/gtalk': CONNECTIVITY.connected,
                 '/profile': {
                   email: 'user@example.com',
@@ -583,6 +583,11 @@ exports.SCENARIOS = {
           };
           npeersOnlineGlobal += giveDelta + getDelta;
           this_.sync({'/global/nusers/online': npeersOnlineGlobal});
+          if (npeersOnlineGiveGet) {
+            var bytesEverDelta =  _.random(1024, 1000*1048576); /* 1000 MB */
+            update['/countries/'+country+'/bytesEver'] = (getByPath(stats, '/bytesEver') || 0) + bytesEverDelta;
+            update['/countries/'+country+'/bps'] = _.random(1000, 10*1048576);
+          }
         }
       }
     }
