@@ -58,7 +58,7 @@ public class LanternClientConstants {
         new File(System.getProperty("user.home"), ".lantern");
 
     public static final File DEFAULT_MODEL_FILE =
-            new File(CONFIG_DIR, "model");
+            new File(CONFIG_DIR, "model-0.0.1");
 
     public static final File DEFAULT_TRANSFERS_FILE =
             new File(CONFIG_DIR, "transfers");
