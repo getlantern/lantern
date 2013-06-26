@@ -1070,7 +1070,8 @@ public class LanternUtils {
         for (String path : paths) {
             policies.add(path + ":" + StaticSettings.getApiPort());
         }
-        resp.addHeader("Content-Security-Policy", "default-src " + StringUtils.join(policies, " ") + " 'unsafe-inline' 'unsafe-eval'; img-src data://");
+        String localhost = StringUtils.join(policies, " ");
+        resp.addHeader("Content-Security-Policy", "default-src " + localhost + " 'unsafe-inline' 'unsafe-eval'; img-src data:// " + localhost);
     }
 
     /**
