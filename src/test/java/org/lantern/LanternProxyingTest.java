@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -76,9 +77,12 @@ public class LanternProxyingTest {
         final Collection<String> censored = Arrays.asList(//"exceptional.io");
             //"www.getlantern.org",
             "github.com",
-            "facebook.com", "appledaily.com.tw", "orkut.com", "voanews.com", 
-            "balatarin.com"
-            //"igfw.net" 
+            "facebook.com", 
+            "appledaily.com.tw", 
+            "orkut.com", 
+            "voanews.com",
+            "balatarin.com",
+            "igfw.net" 
                 );
         
         //final SSLSocketFactory socketFactory = 
@@ -89,14 +93,19 @@ public class LanternProxyingTest {
         //final Scheme sch = new Scheme("https", 443, socketFactory);
         //client.getConnectionManager().getSchemeRegistry().register(sch);
         
-        int good = 0;
+        final Collection<String> successful = new HashSet<String>();
+        final Collection<String> failed = new HashSet<String>();
         for (final String site : censored) {
-            log.warn("TESTING SITE: {}", site);
-            good += testWhitelistedSite(site, client,
-                LanternConstants.LANTERN_LOCALHOST_HTTP_PORT) ? 1 : 0;
+            log.debug("TESTING SITE: {}", site);
+            final boolean succeeded = testWhitelistedSite(site, client,
+                LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+            if (succeeded) {
+                successful.add(site);
+            } else {
+                failed.add(site);
+            }
         }
-        //allow at most five failures
-        assertEquals("There were site failures", censored.size(), good);
+        assertEquals("There were site failures: "+failed, censored.size(), successful.size());
         //log.info("Stopping proxy");
         //proxy.stop();
         //Launcher.stop();
@@ -113,9 +122,9 @@ public class LanternProxyingTest {
         get.setHeader("Accept-Encoding", "gzip, deflate");
         
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 
-            3000);
+            6000);
         // Timeout when server does not send data.
-        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 40000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
         client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
             new HttpHost("localhost", proxyPort));
         final HttpResponse response;
