@@ -486,7 +486,7 @@ angular.module('app.i18n', [])
       CONNECTION_OFFLINE: 'Your internet connection appears to be offline.',
       AUTHORIZE_TITLE: 'Sign in through Google',
       AUTHORIZE_PROMPT: 'Lantern allows you to sign in through your Google account.',
-      AUTHORIZE_TIP_GTALK: 'Lantern works best with a large network of users who trust one another to share internet connections. Signing in through Google allows you to connect to users you know, and not just anyone.',
+      AUTHORIZE_TIP_GTALK: 'Lantern works best with a large network of users who trust one another to share internet connections. Signing in through Google allows you to connect to users in your social network, and not just anyone.',
       AUTHORIZE_EXTERNAL: 'Click to be taken to google.com',
       HELP: 'Help',
       WHY: 'Why?',
