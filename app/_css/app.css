@@ -2232,7 +2232,7 @@ li [class*=" icon-"].icon-large, .nav li [class^="icon-"].icon-large,
 
 ul.icons {
   list-style-type: none;
-  text-indent: -.75em;
+  text-indent: -0.75em;
 }
 ul.icons li [class^="icon-"],
 ul.icons li [class*=" icon-"] {
@@ -7462,8 +7462,13 @@ g.transferring .connection {
   opacity: 1;
 }
 
-#offline {
+#offline, #noproxies {
   color: #fff343;
+}
+
+#noproxies {
+  font-size: 10.5px;
+  line-height: 14px;
 }
 
 #global-nav {

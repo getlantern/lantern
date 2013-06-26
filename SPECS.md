@@ -395,6 +395,10 @@ the backend maintains on the frontend through comet publications:
           <td>The url of Lantern's pac file.</td>
         </tr>
         <tr>
+          <td><strong>nproxies</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>int</em></td>
+          <td>The number of proxies the user can currently connect to.</td>
+        </tr>
+        <tr>
           <td><strong>connectingStatus</strong><br><em>string</em></td>
           <td>Message the frontend should display to give feedback to the user
               about Lantern's progress during the connection process. Some

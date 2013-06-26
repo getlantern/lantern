@@ -1,10 +1,11 @@
 <!-- XXX i18n -->
 <div id="footer">
-  <div ng-show="model.connectivity.internet">
+  <div ng-show="model.connectivity.internet && (inGiveMode || (inGetMode && model.connectivity.nproxies))">
     {{ 'NUSERS_ONLINE' | i18n:model.global.nusers.online }} ·
     {{ 'NUSERS_EVER' | i18n:model.global.nusers.ever }} ·
     {{ model.global.bytesEver | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
   </div>
+  <div id="noproxies" ng-show="model.connectivity.internet && inGetMode && !model.connectivity.nproxies" ng-bind-html-unsafe="'NO_PROXIES' | i18n"></div>
   <div id="offline" ng-hide="model.connectivity.internet">
     {{ 'CONNECTION_OFFLINE' | i18n }}
   </div>
