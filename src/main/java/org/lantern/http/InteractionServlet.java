@@ -32,6 +32,7 @@ import org.lantern.LanternUtils;
 import org.lantern.SecurityUtils;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
@@ -626,6 +627,7 @@ public class InteractionServlet extends HttpServlet {
         Friends friends = model.getFriends();
         Friend friend = modelUtils.makeFriend(email);
         friend.setStatus(status);
+        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
         friends.setNeedsSync(true);
     }

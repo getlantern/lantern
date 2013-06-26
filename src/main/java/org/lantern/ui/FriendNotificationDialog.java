@@ -12,12 +12,15 @@ import javax.swing.event.HyperlinkListener;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
+import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 public class FriendNotificationDialog extends NotificationDialog {
     private final Logger log =
@@ -31,6 +34,7 @@ public class FriendNotificationDialog extends NotificationDialog {
         super(manager);
         this.friends = friends;
         this.friend = friend;
+        Events.register(this);
         layout();
     }
 
@@ -95,6 +99,7 @@ public class FriendNotificationDialog extends NotificationDialog {
         long tomorrow = System.currentTimeMillis() + 1000 * 86400;
         friend.setNextQuery(tomorrow);
         friend.setStatus(Status.pending);
+        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         friends.add(friend);
         friends.setNeedsSync(true);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
@@ -111,6 +116,7 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     private void setFriendStatus(Status status) {
         friend.setStatus(status);
+        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         friends.add(friend);
         friends.setNeedsSync(true);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
@@ -127,5 +133,12 @@ public class FriendNotificationDialog extends NotificationDialog {
         }
         FriendNotificationDialog o = (FriendNotificationDialog) other;
         return o.friend.getEmail().equals(friend.getEmail());
+    }
+
+    @Subscribe
+    public void onFriendStatusChanged(FriendStatusChangedEvent e) {
+        if (e.getFriend() == friend) {
+            dialog.dispose();
+        }
     }
 }

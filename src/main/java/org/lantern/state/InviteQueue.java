@@ -7,6 +7,7 @@ import org.lantern.LanternRosterEntry;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -57,6 +58,7 @@ public class InviteQueue {
             //also, newly-invited users become friends
             Friend friend = new Friend(email);
             friend.setStatus(Status.friend);
+            Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
             model.getFriends().add(friend);
 
             if (xmppHandler.sendInvite(friend, false)) {

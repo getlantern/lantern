@@ -49,6 +49,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
+import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdateEvent;
@@ -1360,6 +1361,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 subscribe(email);
                 subscribed(email);
                 friend.setStatus(Status.friend);
+                Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
                 friends.setNeedsSync(true);
                 Events.sync(SyncPath.FRIENDS, friends.getFriends());
             }
