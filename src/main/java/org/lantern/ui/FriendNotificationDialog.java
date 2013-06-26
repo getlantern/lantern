@@ -1,28 +1,33 @@
 package org.lantern.ui;
 
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.BorderFactory;
+import javax.swing.JEditorPane;
+import javax.swing.ToolTipManager;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
 import org.lantern.state.SyncPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FriendNotificationDialog extends NotificationDialog {
+    private final Logger log =
+        LoggerFactory.getLogger(LanternUtils.class);
 
     private final Friends friends;
     private final Friend friend;
 
-    public FriendNotificationDialog(NotificationManager manager, Friends friends, Friend friend) {
+    public FriendNotificationDialog(NotificationManager manager,
+            Friends friends, Friend friend) {
         super(manager);
         this.friends = friends;
         this.friend = friend;
@@ -33,37 +38,16 @@ public class FriendNotificationDialog extends NotificationDialog {
         if (LanternUtils.isTesting()) {
             return;
         }
-        final Display display = Display.getDefault();
-
-        display.syncExec(new Runnable() {
-            @Override
-            public void run() {
-                doLayout();
-            }
-        });
+        doLayout();
     }
 
     protected void doLayout() {
-        // accept/decline/ask again later
-
-        shell.setSize(NotificationDialog.WIDTH, NotificationDialog.HEIGHT);
-        shell.setAlpha(NotificationDialog.ALPHA);
-
-        final RowLayout layout = new RowLayout(SWT.VERTICAL);
-        layout.marginHeight = 10;
-        layout.marginWidth = 10;
-        shell.setLayout(layout);
-
-        final int innerWidth = NotificationDialog.WIDTH - layout.marginWidth * 2 - layout.spacing * 2;
-
-        final Label titleLabel = new Label(shell, SWT.WRAP);
-        final RowData data = new RowData();
-        data.width = innerWidth;
-        titleLabel.setLayoutData(data);
-
         final String name = friend.getName();
         final String email = friend.getEmail();
-        final String text = "%s is running Lantern.  Do you want to add %s as your Lantern friend?";
+        final String text = "<html><div style=\"width:%dpx; padding: 5px;\">"
+                + "%s is running Lantern.  Do you want to add %s as your Lantern friend?<br>"
+                + "<a href=\"yes\">Trust</a> &nbsp;&nbsp;<a href=\"no\">Don't trust</a>&nbsp;&nbsp; <a href=\"later\">Ask again tomorrow</a>"
+                + "</div></html>";
         final String displayName;
         final String displayEmail;
         if (StringUtils.isEmpty(name)) {
@@ -71,59 +55,40 @@ public class FriendNotificationDialog extends NotificationDialog {
             displayEmail = email;
         } else {
             displayName = name;
-            displayEmail = name + " <" + email + ">";
+            displayEmail = name + " &lt;" + email + "&gt;";
         }
-        final String label = String.format(text, displayEmail, displayName);
-        titleLabel.setText(label);
+        final String popupHtml = String.format(text, WIDTH, displayEmail,
+                displayName);
 
-        final Composite buttons = new Composite(shell, 0);
-        buttons.setSize(innerWidth, 50);
-        final RowLayout layout2 = new RowLayout(SWT.HORIZONTAL);
-        layout2.center = true;
-        layout2.justify = true;
-        buttons.setLayout(layout2);
+        dialog.setMaximumSize(new Dimension(WIDTH, HEIGHT));
+        dialog.setBackground(new Color(255, 255, 255, ALPHA));
+        final JEditorPane pane = new JEditorPane("text/html", popupHtml);
+        pane.setEditable(false);
+        pane.setBorder(BorderFactory.createLineBorder(Color.black));
+        ToolTipManager.sharedInstance().registerComponent(pane);
 
-        final Button yesButton = new Button(buttons, SWT.NONE);
-        yesButton.setText("Yes");
-        yesButton.addSelectionListener(new SelectionListener() {
+        HyperlinkListener l = new HyperlinkListener() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
-                yes();
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                if (HyperlinkEvent.EventType.ACTIVATED == e.getEventType()) {
+                    String url = e.getDescription().toString();
+                    if (url.equals("yes")) {
+                        yes();
+                    } else if (url.equals("no")) {
+                        no();
+                    } else if (url.equals("later")) {
+                        later();
+                    } else {
+                        log.debug("Unexpected URL ");
+                    }
+                }
+
             }
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                yes();
-            }
-        });
-        final Button noButton = new Button(buttons, SWT.NONE);
-        noButton.setText("No");
-        noButton.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                no();
-            }
-
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                no();
-            }
-        });
-
-        final Button laterButton = new Button(buttons, SWT.NONE);
-        laterButton.setText("Ask again tomorrow");
-        laterButton.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                later();
-            }
-
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-                later();
-            }
-        });
-        shell.pack();
+        };
+        pane.addHyperlinkListener(l);
+        dialog.add(pane);
+        dialog.pack();
     }
 
     protected void later() {
@@ -133,7 +98,7 @@ public class FriendNotificationDialog extends NotificationDialog {
         friends.add(friend);
         friends.setNeedsSync(true);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
-        shell.dispose();
+        dialog.dispose();
     }
 
     protected void no() {
@@ -149,7 +114,7 @@ public class FriendNotificationDialog extends NotificationDialog {
         friends.add(friend);
         friends.setNeedsSync(true);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
-        shell.dispose();
+        dialog.dispose();
     }
 
     @Override

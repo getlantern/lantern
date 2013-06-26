@@ -1,16 +1,10 @@
 package org.lantern.ui;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Monitor;
-import org.eclipse.swt.widgets.Shell;
 import org.lantern.state.Settings;
 
 import com.google.inject.Inject;
@@ -20,28 +14,12 @@ import com.google.inject.Singleton;
 public class NotificationManager {
 
     List<NotificationDialog> notifications = new ArrayList<NotificationDialog>();
-    private Shell shell;
     private final Settings settings;
     public static final int MAX_NOTIFICATIONS = 3;
 
     @Inject
     public NotificationManager(Settings settings) {
         this.settings = settings;
-    }
-
-    private void initShell(final Display display) {
-        if (shell != null) {
-            //shell already initialized
-            return;
-        }
-        shell = new Shell(Display.getDefault().getActiveShell(), SWT.NO_FOCUS
-                | SWT.NO_TRIM);
-
-        shell.setLayout(new FillLayout(SWT.VERTICAL));
-
-        Color backgroundColor = new Color(display, 255, 251, 204);
-
-        shell.setBackground(backgroundColor);
     }
 
     public synchronized void notify(final NotificationDialog notification) {
@@ -59,34 +37,52 @@ public class NotificationManager {
                 return;
             }
         }
-        final Display display = Display.getDefault();
 
-        display.asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                initShell(display);
-                doNotify(notification);
-            }
-        });
+        doNotify(notification);
 
     }
+    /*
+    static public Rectangle getScreenBounds(Window wnd) {
+        Rectangle sb;
+        Insets si = getScreenInsets(wnd);
 
+        if (wnd == null) {
+            sb = Toolkit.getDefaultToolkit().getGraphicsConfiguration().getBounds();
+        } else {
+            sb = wnd.getGraphicsConfiguration().getBounds();
+        }
+
+        sb.x += si.left;
+        sb.width -= (si.left + si.right);
+        sb.y += si.top;
+        sb.height -= (si.top + si.bottom);
+        return sb;
+    }
+
+    static public Insets getScreenInsets(Window wnd) {
+        Insets si;
+
+        if (wnd == null) {
+            si = Toolkit.getDefaultToolkit().getScreenInsets(new Frame().getGraphicsConfiguration());
+        } else {
+            si = wnd.getToolkit().getScreenInsets(wnd.getGraphicsConfiguration());
+        }
+        return si;
+    }
+    */
     protected synchronized void doNotify(NotificationDialog notification) {
         //install the dialog in the shell
 
-        Display display = Display.getDefault();
+        Rectangle clientArea = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 
-        Monitor monitor = display.getPrimaryMonitor();
-        Rectangle clientArea = monitor.getClientArea();
-
-        int startX = clientArea.x + clientArea.width - NotificationDialog.WIDTH;
+        int startX = clientArea.x + clientArea.width - notification.dialog.getSize().width;
 
         int totalHeight = 0;
         for (NotificationDialog existing : notifications) {
-            totalHeight += existing.shell.getSize().y;
+            totalHeight += existing.dialog.getSize().height;
         }
 
-        totalHeight += notification.shell.getSize().y;
+        totalHeight += notification.dialog.getSize().height;
 
         int startY = clientArea.y + clientArea.height - totalHeight;
 
@@ -95,8 +91,8 @@ public class NotificationManager {
             return;
         }
 
-        notification.shell.setLocation(startX, startY);
-        notification.shell.setVisible(true);
+        notification.dialog.setLocation(startX, startY);
+        notification.dialog.setVisible(true);
 
         notifications.add(notification);
 
@@ -107,9 +103,9 @@ public class NotificationManager {
         for (int i = 0; i < notifications.size(); ++i) {
             NotificationDialog notification = notifications.get(i);
             if (later) {
-                Point location = notification.shell.getLocation();
-                int height = notification.shell.getSize().y;
-                notification.shell.setLocation(location.x, location.y + height);
+                Point location = notification.dialog.getLocation();
+                int height = notification.dialog.getSize().height;
+                notification.dialog.setLocation(location.x, location.y + height);
             } else if (notification == toRemove) {
                 later = true;
             }
