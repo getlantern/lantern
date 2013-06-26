@@ -97,5 +97,11 @@
 -dontoptimize
 -dontwarn sun.misc.Unsafe
 -dontwarn com.google.common.collect.MinMaxPriorityQueue
+-dontnote
 
-
+#plain -dontwarn does not work, so this hack:
+-dontwarn org.**
+-dontwarn com.**
+-dontwarn javax.**
+-dontwarn java.**
+-dontwarn javassist.**
