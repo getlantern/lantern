@@ -46,6 +46,10 @@
     *;
 }
 
+-keep class com.barchart.udt.** {
+    *;
+}
+
 -keepclassmembers class * extends com.sun.jna.** {
     <fields>;
     <methods>;
