@@ -1,7 +1,6 @@
 package org.lantern.linux;
 
-import java.util.Arrays;
-import java.util.List;
+import org.lantern.annotation.Keep;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
@@ -11,7 +10,7 @@ import com.sun.jna.Structure;
 
 public interface Gobject extends Library {
     
-
+    @Keep
     public class GTypeClassStruct extends Structure {
         public class ByValue extends GTypeClassStruct implements Structure.ByValue {}
         public class ByReference extends GTypeClassStruct implements Structure.ByReference {}
@@ -19,6 +18,7 @@ public interface Gobject extends Library {
         
     };
 
+    @Keep
     public class GTypeInstanceStruct extends Structure {
         public class ByValue extends GTypeInstanceStruct implements Structure.ByValue {}
         public class ByReference extends GTypeInstanceStruct implements Structure.ByReference {}
@@ -26,6 +26,7 @@ public interface Gobject extends Library {
         
     }
 
+    @Keep
     public class GObjectStruct extends Structure {
         public class ByValue extends GObjectStruct implements Structure.ByValue {}
         public class ByReference extends GObjectStruct implements Structure.ByReference {}
@@ -36,6 +37,7 @@ public interface Gobject extends Library {
         
     }
 
+    @Keep
     public class GObjectClassStruct extends Structure {
         public class ByValue extends GObjectClassStruct implements Structure.ByValue {}
         public class ByReference extends GObjectClassStruct implements Structure.ByReference {}
@@ -60,6 +62,7 @@ public interface Gobject extends Library {
         
     };
 
+    @Keep
     public interface GCallback extends Callback {
         public void callback(Pointer instance, Pointer data);
     }

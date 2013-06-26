@@ -1,8 +1,13 @@
 package org.lantern.state;
 
+import org.lantern.annotation.Keep;
+
+@Keep
 public class Notification {
     private MessageType type;
     private String message;
+
+    @Keep
     public enum MessageType {
         info, warning, error, success, important;
     }

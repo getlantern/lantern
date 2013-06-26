@@ -1,8 +1,11 @@
 package org.lantern.state;
 
+import org.lantern.annotation.Keep;
+
 /**
  * The state for the modal dialog.
  */
+@Keep
 public enum Modal {
 
 

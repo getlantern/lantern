@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.lantern.annotation.Keep;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
@@ -115,6 +116,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         return 1;
     }
 
+    @Keep
     static class UpnpMapping {
         public PortMappingProtocol prot;
         public int internalPort;

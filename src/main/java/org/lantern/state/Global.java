@@ -1,5 +1,8 @@
 package org.lantern.state;
 
+import org.lantern.annotation.Keep;
+
+@Keep
 public class Global {
 
     private final NUsers nusers = new NUsers();

@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadFactory;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.JsonUtils;
+import org.lantern.annotation.Keep;
 import org.lantern.event.SyncType;
 import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
@@ -71,6 +72,7 @@ public class CometDSyncStrategy implements SyncStrategy {
      *
      * https://github.com/getlantern/lantern-ui/blob/master/SPECS.md
      */
+    @Keep
     public static class SyncData {
         private final String op;
         private final String path;

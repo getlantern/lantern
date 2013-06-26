@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.LanternConstants;
+import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.state.Model.Persistent;
@@ -19,6 +20,7 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Class representing data about Lantern's connectivity.
  */
+@Keep
 public class Connectivity {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
