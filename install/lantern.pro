@@ -37,6 +37,11 @@
    @com.google.common.eventbus.Subscribe *;
 }
 
+-keepclassmembers class org.lastbamboo.common.sdp.** {
+   *;
+}
+
+
 -keep class com.sun.jna.** {
     *;
 }
@@ -89,8 +94,8 @@
     public protected *;
 }
 
--keep class org.jivesoftware.smack.sasl.** {
-    public protected *;
+-keepclassmembers class org.lantern.** {
+    *;
 }
 
 -dontobfuscate
@@ -105,3 +110,4 @@
 -dontwarn javax.**
 -dontwarn java.**
 -dontwarn javassist.**
+-dontwarn gnu.**
