@@ -77,7 +77,7 @@ angular.module('app.vis', [])
         unwatch();
       }, true);
 
-      d3.json('data/world.json', function (error, world) {
+      d3.json('data/world.topojson', function (error, world) {
         if (error) throw error;
         //var f = topojson.feature(world, world.objects.countries).features;
         var f = topojson.object(world, world.objects.countries).geometries;
