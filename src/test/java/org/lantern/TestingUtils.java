@@ -149,7 +149,7 @@ public class TestingUtils {
             @Override
             public ProxyHolder getProxy() {
                 final InetSocketAddress tuple = 
-                    new InetSocketAddress("54.251.192.164", 11225);
+                    new InetSocketAddress("54.254.96.14", 16589);
                 final URI uri;
                 try {
                     uri = new URI("fallback@getlantern.org");

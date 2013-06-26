@@ -53,7 +53,7 @@ public class LanternTrustStoreTest {
         trustStore.listEntries();
         final SSLSocketFactory socketFactory = socketsUtil.newTlsSocketFactory();
         
-        final SSLSocket sock = (SSLSocket) socketFactory.createSocket("54.251.192.164", 11225);
+        final SSLSocket sock = (SSLSocket) socketFactory.createSocket("54.254.96.14", 16589);
         //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("75.101.134.244", 7777);
         //final SSLSocket sock = (SSLSocket) socketFactory.createSocket("192.168.0.2", 7777);
         sock.isConnected();
@@ -88,7 +88,7 @@ public class LanternTrustStoreTest {
 
         trustStore.listEntries();
         
-        final HttpHost proxy = new HttpHost("54.251.192.164", 11225, "https");
+        final HttpHost proxy = new HttpHost("54.254.96.14", 16589, "https");
         final org.apache.http.conn.ssl.SSLSocketFactory socketFactory =
             new org.apache.http.conn.ssl.SSLSocketFactory(
                 socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
