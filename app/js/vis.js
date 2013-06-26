@@ -39,12 +39,14 @@ angular.module('app.vis', [])
         '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
         '<div class="give-colored">{{ "NPEERS_ONLINE_GIVE" | i18n:model.countries.'+alpha2+'.npeers.online.give }}</div>'+
         '<div class="get-colored">{{ "NPEERS_ONLINE_GET" | i18n:model.countries.'+alpha2+'.npeers.online.get }}</div>'+
-        '<div class="npeersEver">{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.nusers.ever }}</div>'+
+        '<div class="nusers {{ (!model.countries.'+alpha2+'.nusers.ever) && \'gray\' || \'\' }}">'+
+          '{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.nusers.ever }}'+
+        '</div>'+
         '<div class="stats">'+
-          '<div class="bps">'+
+          '<div class="bps{{ model.countries.'+alpha2+'.bps || 0 }}">'+
             '{{ model.countries.'+alpha2+'.bps || 0 | prettyBps }} {{ "TRANSFERRING_NOW" | i18n }}'+
           '</div>'+
-          '<div class="bytes">'+
+          '<div class="bytes{{ model.countries.'+alpha2+'.bytesEver || 0 }}">'+
             '{{ model.countries.'+alpha2+'.bytesEver || 0 | prettyBytes }} {{ "TRANSFERRED_EVER" | i18n }}'+
           '</div>'+
         '</div>'+

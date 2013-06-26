@@ -2232,7 +2232,7 @@ li [class*=" icon-"].icon-large, .nav li [class^="icon-"].icon-large,
 
 ul.icons {
   list-style-type: none;
-  text-indent: -0.75em;
+  text-indent: -.75em;
 }
 ul.icons li [class^="icon-"],
 ul.icons li [class*=" icon-"] {
@@ -6479,6 +6479,10 @@ label.checkbox.inline, label.radio.inline {
   text-align: center;
 }
 
+.white {
+  color: white;
+}
+
 .gray {
   color: #999999;
 }
@@ -7378,8 +7382,6 @@ g.transferring .connection {
 
 .tooltip .vis {
   text-align: left;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 .tooltip .vis .picture {
   height: 64px;
@@ -7410,16 +7412,23 @@ g.transferring .connection {
 }
 .tooltip .vis .peerid, .tooltip .vis .id {
   font-size: 10.5px;
-  color: #999999;
+  color: #dddddd;
 }
 .tooltip .vis .stats {
-  clear: both;
   font-size: 10.5px;
+  clear: both;
+}
+.tooltip .vis .bps0, .tooltip .vis .bytes0 {
+  color: #999999;
 }
 .tooltip .vis .lastConnected {
   font-size: 10.5px;
+  color: #999999;
 }
-.tooltip .vis .npeersEver {
+.tooltip .vis .nusers {
+  color: #eeeeee;
+}
+.tooltip .vis .nusers.gray {
   color: #999999;
 }
 .tooltip .vis .give-colored {

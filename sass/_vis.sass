@@ -67,8 +67,6 @@ g.transferring .connection
 
 .tooltip .vis
   text-align: left // override bootstrap's value of center
-  white-space: nowrap
-  text-overflow: ellipsis
   .picture
     height: 64px
     width: 64px
@@ -90,13 +88,18 @@ g.transferring .connection
     +smaller
   .peerid, .id
     +smaller
-    +gray
+    color: #ddd
   .stats
-    clear: both
     +smaller
+    clear: both
+  .bps0, .bytes0
+    +gray
   .lastConnected
     +smaller
-  .npeersEver
     +gray
+  .nusers
+    color: #eee
+    &.gray
+      +gray
   .give-colored
     color: $giveModeColorMap

@@ -22,17 +22,17 @@
                 <div class=type>{{((peer.type|upper)+(peer.mode|upper))|i18n}}</div>
               </div>
               <div class=stats>
-                <div class=bps>
-                  {{peer.bpsUp | prettyBps}} {{'UP' | i18n}}
+                <div class=bps{{peer.bpsUpDn}}>
+                  {{peer.bpsUp | prettyBps}} {{'UP' | i18n}},
                   {{peer.bpsDn | prettyBps}} {{'DN' | i18n}}
                 </div>
-                <div class=bytes>
-                  {{peer.bytesUp | prettyBps}} {{'SENT' | i18n}}
+                <div class=bytes{{peer.bytesUpDn}}>
+                  {{peer.bytesUp | prettyBps}} {{'SENT' | i18n}},
                   {{peer.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
                 </div>
                 <div class=lastConnected>
                   {{!peer.connected && peer.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
-                  <time>{{!peer.connected && (peer.lastConnected | date:'medium') || ''}}</time>
+                  <time>{{!peer.connected && (peer.lastConnected | date:'short') || ''}}</time>
                 </div>
               </div>
             </div>
@@ -51,17 +51,17 @@
                 <div class=type>{{((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n}}</div>
               </div>
               <div class=stats>
-                <div class=bps>
-                  {{model.transfers.bpsUp | prettyBps}} {{'UP' | i18n}}
+                <div class=bps{{model.transfers.bpsUpDn}}>
+                  {{model.transfers.bpsUp | prettyBps}} {{'UP' | i18n}},
                   {{model.transfers.bpsDn | prettyBps}} {{'DN' | i18n}}
                 </div>
-                <div class=bytes>
-                  {{model.transfers.bytesUp | prettyBps}} {{'SENT' | i18n}}
+                <div class=bytes{{model.transfers.bytesUpDn}}>
+                  {{model.transfers.bytesUp | prettyBps}} {{'SENT' | i18n}},
                   {{model.transfers.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
                 </div>
                 <div class=lastConnected>
                   {{model.connectivity.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
-                  <time>{{model.connectivity.lastConnected && (model.connectivity.lastConnected | date:'medium') || ''}}</time>
+                  <time>{{model.connectivity.lastConnected && (model.connectivity.lastConnected | date:'short') || ''}}</time>
                 </div>
               </div>
             </div>
