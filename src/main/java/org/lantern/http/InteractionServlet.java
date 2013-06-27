@@ -623,7 +623,7 @@ public class InteractionServlet extends HttpServlet {
     }
 
     private void setFriendStatus(String json, Status status) {
-        final String email = JsonUtils.getValueFromJson("email", json);
+        final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
         Friends friends = model.getFriends();
         Friend friend = modelUtils.makeFriend(email);
         friend.setStatus(status);
@@ -638,7 +638,7 @@ public class InteractionServlet extends HttpServlet {
 
     private void addFriend(String json) {
         setFriendStatus(json, Status.friend);
-        final String email = JsonUtils.getValueFromJson("email", json);
+        final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
 
         //if they have requested a subscription to us, we'll accept it.
         this.xmppHandler.subscribed(email);
