@@ -42,6 +42,15 @@ public class ProxyQueue {
             Events.sync(SyncPath.CONNECTIVITY_NPROXIES, size());
             return result;
         }
+
+
+        @Override
+        public T remove() {
+            T result = super.remove();
+            model.getConnectivity().setNProxies(size());
+            Events.sync(SyncPath.CONNECTIVITY_NPROXIES, size());
+            return result;
+        }
     }
 
     ProxyQueue(Model model) {

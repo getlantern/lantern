@@ -47,7 +47,7 @@ public class Connectivity {
 
     private String pacUrl;
 
-    private int nProxies;
+    private int nProxies = -1;
 
     public Connectivity() {
         Events.register(this);
