@@ -1,15 +1,10 @@
 package org.lantern.state;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import org.lantern.LanternRosterEntry;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
-import org.lantern.event.FriendStatusChangedEvent;
-import org.lantern.state.Friend.Status;
-import org.lantern.state.Notification.MessageType;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,38 +46,16 @@ public class InviteQueue {
 
     }
 
-    public void invite(List<String> emails) {
-        // XXX i18n
-        ArrayList<LanternRosterEntry> entries = new ArrayList<LanternRosterEntry>();
-        for (String email : emails) {
-            //also, newly-invited users become friends
-            Friend friend = new Friend(email);
-            friend.setStatus(Status.friend);
-            Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-            model.getFriends().add(friend);
-
-            if (xmppHandler.sendInvite(friend, false)) {
-                entries.add(roster.getRosterEntry(email));
-                //we also need to mark this email as pending, in case
-                //our invite gets lost.
-                model.addPendingInvite(email);
-
-            } else {
-                entries.add(null);
-            }
+    public void invite(Friend friend) {
+        String email = friend.getEmail();
+        if (xmppHandler.sendInvite(friend, false)) {
+            // we need to mark this email as pending, in case
+            // our invite gets lost.
+            model.addPendingInvite(email);
         }
 
         Events.sync(SyncPath.FRIENDS, model.getFriends().getFriends());
 
-        final String msg = "Request processing. After accepting your request, "+
-            "new Lantern Friends appear on your map once you connect to "+
-            "them successfully.";
-        // XXX not entirely true until we fix
-        //     https://github.com/getlantern/lantern/issues/647
-        // XXX change message to say "look out for a notification" once we fix
-        //     https://github.com/getlantern/lantern/issues/782
-        model.addNotification(msg, MessageType.info, 30);
-        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
 }

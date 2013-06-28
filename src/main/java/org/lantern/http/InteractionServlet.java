@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -68,7 +67,6 @@ public class InteractionServlet extends HttpServlet {
     private enum Interaction {
         GET,
         GIVE,
-        INVITE,
         CONTINUE,
         SETTINGS,
         CLOSE,
@@ -350,10 +348,6 @@ public class InteractionServlet extends HttpServlet {
             case REJECT:
                 removeFriend(json);
                 break;
-            case INVITE:
-                invite(json);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-                break;
             case CONTINUE:
                 // This dialog always passes continue as of this writing and
                 // not close.
@@ -625,7 +619,12 @@ public class InteractionServlet extends HttpServlet {
     private void setFriendStatus(String json, Status status) {
         final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
         Friends friends = model.getFriends();
-        Friend friend = modelUtils.makeFriend(email);
+        Friend friend = friends.get(email);
+        if (friend == null || friend.getStatus() == Status.rejected) {
+            friend = modelUtils.makeFriend(email);
+            if (status == Status.friend)
+                inviteQueue.invite(friend);
+        }
         friend.setStatus(status);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
@@ -744,19 +743,6 @@ public class InteractionServlet extends HttpServlet {
             log.warn("Exception closing notifications {}", e);
         }
         return false;
-    }
-
-    private void invite(String json) {
-        ObjectMapper om = new ObjectMapper();
-        try {
-            if (json.length() == 0) {
-                return;//nobody to invite
-            }
-            ArrayList<String> invites = om.readValue(json, ArrayList.class);
-            inviteQueue.invite(invites);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private void handleSetModeWelcome(final Mode mode) {

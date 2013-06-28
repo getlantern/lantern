@@ -1209,8 +1209,6 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
 
-        pres.setProperty(LanternConstants.FRIEND, JsonUtils.jsonify(friend));
-
         invited.add(email);
 
         final Runnable runner = new Runnable() {
