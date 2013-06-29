@@ -10,13 +10,13 @@ if key.endswith('dmg'):
     latest = 'latest.dmg'
 elif key.endswith('exe'):
     latest = 'latest.exe'
-elif key.endswith('32.deb'):
+elif key.endswith('32-bit.deb'):
     latest = 'latest-32.deb'
-elif key.endswith('64.deb'):
+elif key.endswith('64-bit.deb'):
     latest = 'latest-64.deb'
 else:
-    print 'File name with full version required. .deb files should end in 32.deb or 64.deb'
-    sys.exit()   
+    print 'File name with full version required. .deb files should end in 32-bit.deb or 64-bit.deb'
+    sys.exit(1)   
 
 conn = boto.connect_s3()
 b = conn.get_bucket('lantern')

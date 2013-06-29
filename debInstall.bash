@@ -28,7 +28,7 @@ install4jc -b $BUILD_ID -r $INSTALLVERSION ./install/lantern.install4j || die "C
 
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
 name=lantern-$VERSION-$git-$ARCH-bit.deb
-mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
+mv install/lantern*$ARCH*.deb $name || die "Could not find built installer to copy?"
 
 ./installMetaRefresh.bash linux $name latest-$ARCH.deb $RELEASE
 
