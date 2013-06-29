@@ -448,7 +448,6 @@ public class Launcher {
             "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
 
     public static void configureCipherSuites() {
-        log("Java path is " + System.getProperty("java.home"));
         Security.addProvider(new BouncyCastleProvider());
         if (!LanternUtils.isUnlimitedKeyStrength()) {
             if (LanternUtils.isDevMode()) {
