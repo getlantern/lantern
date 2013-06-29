@@ -20,7 +20,7 @@ if [[ $VERSION == "HEAD" ]];
 then
     INSTALLVERSION=0.0.1;
 else
-    INSETALLVERSION=$VERSION;
+    INSTALLVERSION=$VERSION;
 fi
 
 #install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j || die "Could not build Linux installer?"
