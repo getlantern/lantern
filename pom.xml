@@ -19,6 +19,7 @@
     <rt.path>${java.home}/lib/rt.jar</rt.path>
     <jce.path>${java.home}/lib/jce.jar</jce.path>
     <jsse.path>${java.home}/lib/jsse.jar</jsse.path>
+    <main.class>org.lantern.Launcher</main.class>
   </properties>
 
   <organization>
@@ -607,7 +608,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <Main-Class>org.lantern.Launcher</Main-Class>
+                    <Main-Class>${main.class}</Main-Class>
                     <Class-Path>. ./bcprov-jdk16-1.46.jar</Class-Path>
                   </manifestEntries>
                 </transformer>
