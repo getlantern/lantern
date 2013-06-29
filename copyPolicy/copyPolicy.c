@@ -6,13 +6,29 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/utsname.h>
 
-#ifdef WINDOWS
+#ifdef _WIN32
 #include <windows.h>
+ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count) {
+    printf("Wrong OS\n");
+    exit(0);
+}
+
+//this is a total hack
+int asprintf(char** strp, const char *format, ...) {
+    *strp = malloc(10000);
+    va_list args;
+    va_start (args, format);
+    int result = vsprintf (*strp, format, args);
+    va_end (args);
+    return result;
+}
+
+#else
+#include <sys/utsname.h>
+#include <sys/sendfile.h>
 #endif
 
 typedef enum {
@@ -22,6 +38,11 @@ typedef enum {
 } os;
 
 static os detect_os() {
+
+#ifdef _WIN32
+
+    return windows;
+#else
     struct utsname name;
     uname (&name);
     if (strncmp("Linux", name.sysname, 5) == 0) {
@@ -31,6 +52,7 @@ static os detect_os() {
     } else {
         return windows;
     }
+#endif
 }
 
 const char* MAC_JVM_PREFIXES [] = {
