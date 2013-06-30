@@ -11,10 +11,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count) {
-    printf("Wrong OS\n");
-    exit(0);
-}
 
 //this is a total hack
 int asprintf(char** strp, const char *format, ...) {
@@ -28,7 +24,6 @@ int asprintf(char** strp, const char *format, ...) {
 
 #else
 #include <sys/utsname.h>
-#include <sys/sendfile.h>
 #endif
 
 typedef enum {
@@ -136,23 +131,30 @@ char* get_policy_path(os the_os, int version) {
 }
 
 int copy_file(const char* src, const char* dest) {
-    int in_fd = open(src, O_RDONLY);
-    if (in_fd == -1) 
+    FILE* in_fp = fopen(src, "rb");
+    if (!in_fp) 
         return 1;
-    int out_fd = open(dest, O_WRONLY | O_TRUNC | O_CREAT);
-    if (out_fd == -1) {
-        close(in_fd);
+    FILE* out_fp = fopen(dest, "wb");
+    if (!out_fp) {
+        fclose(in_fp);
         return 1;
     }
 
-    struct stat statbuf;
-    fstat(in_fd, &statbuf);
+    char buf[4096];
+    size_t rc;
+    while((rc = fread(buf, 1, sizeof(buf), in_fp))) {
+        size_t wrc = fwrite(buf, 1, sizeof(buf), out_fp);
+        if (wrc != rc) {
+            //too few bytes copied
+            return 1;
+        }
+    }
 
-    off_t off = 0;
-    sendfile(out_fd, in_fd, &off, (size_t)statbuf.st_size);
-
-    close(in_fd);
-    close(out_fd);
+    if (ferror(in_fp) || ferror(out_fp)) {
+        return 1;
+    }
+    fclose(in_fp);
+    fclose(out_fp);
     return 0;
 }
 
@@ -232,11 +234,11 @@ int main(int argc, char** argv) {
         printf("Failed to copy policy files: prefix mismatch\n");
         return -1;
     case gnu_linux:
-        if (copy_file("/opt/lantern/java6/local_policy.jar", "/opt/lantern/jre/lib/security/local_policy.jar")) {
+        if (copy_file("/opt/lantern/java6/local_policy.jar", "/tmp/opt/lantern/jre/lib/security/local_policy.jar")) {
             perror("Failed to copy policy files");
             return 5;
         }
-        if (copy_file("/opt/lantern/java6/US_export_policy.jar", "/opt/lantern/jre/lib/security/US_export_policy.jar")) {
+        if (copy_file("/opt/lantern/java6/US_export_policy.jar", "/tmp/opt/lantern/jre/lib/security/US_export_policy.jar")) {
             perror("Failed to copy policy files");
             return 5;
         }
