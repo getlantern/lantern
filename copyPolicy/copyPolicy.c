@@ -33,13 +33,18 @@ typedef enum {
 } os;
 
 static os detect_os() {
+    //this whole function could be done at compile-time
+    //but this is simpler
 
 #ifdef _WIN32
-
+    //uname is not present on windows
     return windows;
 #else
     struct utsname name;
-    uname (&name);
+    if (uname (&name) != 0) {
+        perror("Failed to get OS");
+        exit(EXIT_FAILURE);
+    }
     if (strncmp("Linux", name.sysname, 5) == 0) {
         return gnu_linux;
     } else if (strncmp("Darwin", name.sysname, 6) == 0) {
@@ -121,7 +126,7 @@ char* get_policy_path(os the_os, int version) {
 
 #else
         printf("Incorrectly detected OS as Windows\n");
-        exit(3);
+        exit(EXIT_FAILURE);
 #endif
         break;
     }
@@ -146,11 +151,15 @@ int copy_file(const char* src, const char* dest) {
         size_t wrc = fwrite(buf, 1, sizeof(buf), out_fp);
         if (wrc != rc) {
             //too few bytes copied
+            fclose(in_fp);
+            fclose(out_fp);
             return 1;
         }
     }
 
     if (ferror(in_fp) || ferror(out_fp)) {
+        fclose(in_fp);
+        fclose(out_fp);
         return 1;
     }
     fclose(in_fp);
@@ -234,6 +243,9 @@ int main(int argc, char** argv) {
         printf("Failed to copy policy files: prefix mismatch\n");
         return -1;
     case gnu_linux:
+        /* FIXME: assumes Java 6.  That's what we presently package
+         on Linux. */
+
         if (copy_file("/opt/lantern/java6/local_policy.jar", "/tmp/opt/lantern/jre/lib/security/local_policy.jar")) {
             perror("Failed to copy policy files");
             return 5;
@@ -247,7 +259,7 @@ int main(int argc, char** argv) {
     case windows:
         /* FIXME: assumes Java 7 */
 
-        if (argc != 2) {
+        if (argc < 2) {
             printf("Required arguments: path to JAVA_HOME\n");
             return 1;
         }
