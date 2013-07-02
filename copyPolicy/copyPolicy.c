@@ -154,7 +154,7 @@ int copy_file(const char* src, const char* dest) {
     char buf[4096];
     size_t rc;
     while((rc = fread(buf, 1, sizeof(buf), in_fp))) {
-        size_t wrc = fwrite(buf, 1, sizeof(buf), out_fp);
+        size_t wrc = fwrite(buf, 1, rc, out_fp);
         if (wrc != rc) {
             //too few bytes copied
             printf("Too few bytes copied to %s\n", dest);
