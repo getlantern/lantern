@@ -64,28 +64,31 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
-public class LanternModule extends AbstractModule { 
-    
-    private static final Logger log = 
+public class LanternModule extends AbstractModule {
+
+    private static final Logger log =
         LoggerFactory.getLogger(LanternModule.class);
     private LocalCipherProvider localCipherProvider;
-    
+
     private EncryptedFileService encryptedFileService;
-    
+
     private NatPmpService natPmpService;
-    
+
     private UpnpService upnpService;
     private GeoIpLookupService geoIpLookupService;
 
-    @Override 
+    @Override
     protected void configure() {
+        //install policy files before anything gets loaded
+        LanternUtils.installPolicyFiles();
+
         // Tweak Netty naming...
         ThreadRenamingRunnable.setThreadNameDeterminer(
                 ThreadNameDeterminer.CURRENT);
-        
-        SASLAuthentication.registerSASLMechanism("X-OAUTH2", 
+
+        SASLAuthentication.registerSASLMechanism("X-OAUTH2",
             LanternSaslGoogleOAuth2Mechanism.class);
-        
+
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
@@ -94,7 +97,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwtMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
-        
+
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
@@ -104,11 +107,11 @@ public class LanternModule extends AbstractModule {
         bind(BrowserService.class).to(ChromeBrowserService.class);
         bind(Transfers.class).toProvider(TransfersIo.class).in(Singleton.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
-        
+
         bind(ModelService.class).to(DefaultModelService.class);
 
         bind(RandomRoutingTable.class).to(BasicRandomRoutingTable.class);
-        
+
         bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);
@@ -120,7 +123,7 @@ public class LanternModule extends AbstractModule {
         bind(PlainTextRelayHttpProxyServer.class);
         bind(PhotoServlet.class);
         bind(LanternFeedback.class);
-        
+
         bind(Censored.class).to(DefaultCensored.class);
         bind(ProxyTracker.class).to(DefaultProxyTracker.class);
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
@@ -161,7 +164,7 @@ public class LanternModule extends AbstractModule {
         }
         return new Upnp(stats);
     }
-    
+
     @Provides @Singleton
     public NatPmpService provideNatPmpService(final ClientStats stats) {
         // Testing.
@@ -180,9 +183,9 @@ public class LanternModule extends AbstractModule {
         }
         return new DefaultEncryptedFileService(lcp);
     }
-    
+
     @Provides @Singleton
-    SystemTray provideSystemTray(final BrowserService browserService, 
+    SystemTray provideSystemTray(final BrowserService browserService,
         final Model model) {
         if (SystemUtils.IS_OS_LINUX) {
             return new AppIndicatorTray(browserService, model);
@@ -190,31 +193,31 @@ public class LanternModule extends AbstractModule {
             return new SystemTrayImpl(browserService, model);
         }
     }
-    
+
     @Provides @Singleton
     ChannelGroup provideChannelGroup() {
         return new DefaultChannelGroup("LanternChannelGroup");
     }
-    
+
     @Provides @Singleton
     Timer provideTimer() {
         return new Timer("Lantern-Timer", true);
     }
-    
+
     @Provides  @Singleton
     public LocalCipherProvider provideLocalCipher() {
         if (this.localCipherProvider != null) {
             return this.localCipherProvider;
         }
-        final LocalCipherProvider lcp; 
-        
+        final LocalCipherProvider lcp;
+
         /*
         if (!settings().isKeychainEnabled()) {
             lcp = new DefaultLocalCipherProvider();
         }
         */
         if (SystemUtils.IS_OS_WINDOWS) {
-            lcp = new WindowsLocalCipherProvider();   
+            lcp = new WindowsLocalCipherProvider();
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             lcp = new MacLocalCipherProvider();
             //lcp = new DefaultLocalCipherProvider();
@@ -225,11 +228,11 @@ public class LanternModule extends AbstractModule {
         else {
             lcp = new DefaultLocalCipherProvider();
         }
-        
+
         return lcp;
     }
-    
-    
+
+
     @Provides @Singleton
     ServerSocketChannelFactory provideServerSocketChannelFactory() {
         return new NioServerSocketChannelFactory(
@@ -240,7 +243,7 @@ public class LanternModule extends AbstractModule {
                 new ThreadFactoryBuilder().setNameFormat(
                     "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
     }
-    
+
     @Provides @Singleton
     ClientSocketChannelFactory provideClientSocketChannelFactory() {
         return new NioClientSocketChannelFactory(
@@ -251,11 +254,11 @@ public class LanternModule extends AbstractModule {
                 new ThreadFactoryBuilder().setNameFormat(
                     "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
     }
-    
+
 
     /**
      * Copies our FireFox extension to the appropriate place.
-     * 
+     *
      * @return The {@link File} for the final destination directory of the
      * extension.
      * @throws IOException If there's an error copying the extension.
@@ -266,7 +269,7 @@ public class LanternModule extends AbstractModule {
         if (!dir.isDirectory()) {
             log.info("Making FireFox extension directory...");
             // NOTE: This likely means the user does not have FireFox. We copy
-            // the extension here anyway in case the user ever installs 
+            // the extension here anyway in case the user ever installs
             // FireFox in the future.
             if (!dir.mkdirs()) {
                 log.error("Could not create ext dir: "+dir);
@@ -294,7 +297,7 @@ public class LanternModule extends AbstractModule {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
             return new File(ffDir, "Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
-            return new File(userHome, 
+            return new File(userHome,
                 "Library/Application Support/Mozilla/Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         } else {
             return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
