@@ -12,6 +12,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <Shlobj.h>
+#include <direct.h>
 
 //this is a total hack
 int asprintf(char** strp, const char *format, ...) {
@@ -106,22 +108,20 @@ char* get_policy_path(os the_os, int version) {
 #ifdef _WIN32
 #define BUF_SIZE 100000
         {
-        char username[BUF_SIZE];
-        long size = BUF_SIZE;
-        GetUserName(username,&size);
-        username[size] = 0;
+
+        char appdata[BUF_SIZE];
+        SHGetFolderPath(0,
+			CSIDL_APPDATA,
+			0,
+		        0,
+			appdata);
 
         char* path;
-        asprintf(&path, "C:\\Documents and Settings\\%s\\Application Data\\Lantern\\java7", username);
+        asprintf(&path, "%s\\Lantern\\java7", appdata);
         if (is_dir(path)) {
-            return path;
+	  return path;
         } else {
-            free(path);
-        }
-        
-        path =  "C:\\Program Files\\Lantern\\java7";
-        if (is_dir(path)) {
-            return path;
+	  free(path);
         }
         }
 #else
