@@ -8,4 +8,6 @@ sed -i s,^Icon=.*png$,Icon=/opt/lantern/128on.png, /opt/lantern/lantern.desktop
 chown $SUDO_USER:$SUDO_USER /opt/lantern/lantern.desktop
 cp /opt/lantern/lantern.desktop /usr/share/applications || echo "Could not copy desktop file!!"  >> $logf
 
+chmod 4711 /opt/lantern/copyPolicy.exe
+
 echo "Finished running post install script..." >> $logf
