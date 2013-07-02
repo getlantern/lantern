@@ -191,6 +191,23 @@ int copy_policy_files(const char* java_home, os the_os, int version) {
     return 0;
 }
 
+int is_suspicious_path(const char* path) {
+    const char* start = path;
+
+    while ((start = strstr(start, "..")) != 0) {
+        char next = *(start + 2);
+        if (start == path && (next == '/' || next == '\\' || next == '\0')) {
+            return 1;
+        }
+        char prev = *(start - 1);
+        if ((prev == '/' || prev == '\\') && (next == '/' || next == '\\' || next == '\0')) {
+            return 1;
+        }
+        start += 2;
+    }
+
+    return 0;
+}
 
 int main(int argc, char** argv) {
 
@@ -230,6 +247,11 @@ int main(int argc, char** argv) {
         }
 
         java_home = argv[1];
+        if (is_suspicious_path(java_home)) {
+            printf("Suspicious Java path\n");
+            return -1;
+        }
+
         for (const char** prefix = MAC_JVM_PREFIXES; *prefix; ++prefix) {
             if (strncmp(*prefix, java_home, strlen(*prefix)) == 0) {
                 if (copy_policy_files(java_home, the_os, version)) {
@@ -266,6 +288,10 @@ int main(int argc, char** argv) {
 
         java_home = argv[1];
         const char* prefix = "c:\\program files\\java\\";
+        if (is_suspicious_path(java_home)) {
+            printf("Suspicious Java path\n");
+            return -1;
+        }
         if (strncmp(prefix, java_home, strlen(prefix)) != 0) {
             printf("Not a valid Java path\n");
             return -1;
