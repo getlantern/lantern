@@ -105,10 +105,9 @@ char* get_policy_path(os the_os, int version) {
     case windows:
 #ifdef _WIN32
 #define BUF_SIZE 100000
-        char  username[BUF_SIZE];
-        long size;
-
-        bufCharCount = INFO_BUFFER_SIZE;
+        {
+        char username[BUF_SIZE];
+        long size = BUF_SIZE;
         GetUserName(username,&size);
         username[size] = 0;
 
@@ -117,14 +116,14 @@ char* get_policy_path(os the_os, int version) {
         if (is_dir(path)) {
             return path;
         } else {
-            free(freepath);
+            free(path);
         }
         
         path =  "C:\\Program Files\\Lantern\\java7";
         if (is_dir(path)) {
             return path;
         }
-
+        }
 #else
         printf("Incorrectly detected OS as Windows\n");
         exit(EXIT_FAILURE);
