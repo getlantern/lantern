@@ -103,7 +103,7 @@ char* get_policy_path(os the_os, int version) {
          */
         break;
     case windows:
-#ifdef windows
+#ifdef _WIN32
 #define BUF_SIZE 100000
         char  username[BUF_SIZE];
         long size;
