@@ -137,10 +137,16 @@ char* get_policy_path(os the_os, int version) {
 
 int copy_file(const char* src, const char* dest) {
     FILE* in_fp = fopen(src, "rb");
-    if (!in_fp) 
+    if (!in_fp) {
+        perror("failed to open input file");
         return 1;
+    }
     FILE* out_fp = fopen(dest, "wb");
     if (!out_fp) {
+        char* error_message;
+        asprintf(&error_message,"failed to open output file %s for writing", dest);
+        perror(error_message);
+        free(error_message);
         fclose(in_fp);
         return 1;
     }
@@ -151,6 +157,7 @@ int copy_file(const char* src, const char* dest) {
         size_t wrc = fwrite(buf, 1, sizeof(buf), out_fp);
         if (wrc != rc) {
             //too few bytes copied
+            printf("Too few bytes copied to %s\n", dest);
             fclose(in_fp);
             fclose(out_fp);
             return 1;
@@ -158,6 +165,7 @@ int copy_file(const char* src, const char* dest) {
     }
 
     if (ferror(in_fp) || ferror(out_fp)) {
+        perror("Error reading or writing");
         fclose(in_fp);
         fclose(out_fp);
         return 1;
