@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -292,15 +293,22 @@ int main(int argc, char** argv) {
             printf("Suspicious Java path\n");
             return -1;
         }
-        if (strncmp(prefix, java_home, strlen(prefix)) != 0) {
+        char* lowercase_java_home = strdup(java_home);
+        for (char* c = lowercase_java_home; *c; ++c) {
+            *c = tolower(*c);
+        }
+        if (strncmp(prefix, lowercase_java_home, strlen(prefix)) != 0) {
             printf("Not a valid Java path\n");
+            free(lowercase_java_home);
             return -1;
         }
         if (copy_policy_files(java_home, the_os, 7)) {
             printf("Failed to copy policy files\n");
+            free(lowercase_java_home);
             return 5;
         }
 
+        free(lowercase_java_home);
         return 0;
     }
 }
