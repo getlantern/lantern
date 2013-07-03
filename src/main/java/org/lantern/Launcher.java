@@ -62,9 +62,12 @@ import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
+import org.littleshoot.p2p.P2PEndpoints;
+import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.barchart.udt.ResourceUDT;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -75,6 +78,12 @@ import com.google.inject.Module;
  * Launches a new Lantern HTTP proxy.
  */
 public class Launcher {
+    static {
+        // this sets the system property necessary for barchart udt to extract
+        // to the correct place
+        System.setProperty(ResourceUDT.PROPERTY_LIBRARY_EXTRACT_LOCATION, 
+                CommonUtils.getLittleShootDir().getAbsolutePath());
+    }
 
     private static Logger LOG;
     private boolean lanternStarted = false;
