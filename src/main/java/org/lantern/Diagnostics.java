@@ -12,9 +12,9 @@ import java.util.HashSet;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -49,14 +49,21 @@ public class Diagnostics {
         
         text.append("<html>");
         final JFrame frame = new JFrame("Lantern Diagnostics...");
-        //final JProgressBar progressBar = new JProgressBar();
-        //progressBar.setIndeterminate(true);
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                if (JOptionPane.showConfirmDialog(frame, 
+                    "Are you sure you want to close Lantern Diagnostic tests?", "Quit?", 
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+                    System.exit(0);
+                }
+            }
+        });
+        
         final JPanel contentPane = new JPanel();
         contentPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         contentPane.setLayout(new BorderLayout());
-        //contentPane.add(new JLabel("Loading..."), BorderLayout.NORTH);
-        //contentPane.add(progressBar, BorderLayout.CENTER);
-        
         output = new JLabel("Testing") {
             public Dimension getPreferredSize() {
                 return new Dimension(800, 600);
@@ -93,7 +100,7 @@ public class Diagnostics {
         final Launcher launcher = new Launcher(lm, args);
         launcher.configureDefaultLogger();
         
-        output("Running Lantern...");
+        output("Running Lantern. This will include logging in to Google Talk and may take awhile...");
         launcher.run();
         launcher.model.setSetupComplete(true);
 
@@ -123,7 +130,7 @@ public class Diagnostics {
             "orkut.com", 
             "voanews.com",
             "balatarin.com",
-            "igfw.net" 
+            "igfw.net"
                 );
         
         //final SSLSocketFactory socketFactory = 
@@ -137,16 +144,20 @@ public class Diagnostics {
         final Collection<String> successful = new HashSet<String>();
         final Collection<String> failed = new HashSet<String>();
         for (final String site : censored) {
+            // Just a blank line...
+            final long start = System.currentTimeMillis();
+            output("");
             output("Testing access to site: " + site);
             try {
                 final boolean succeeded = testWhitelistedSite(site, client,
                     LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+                final long time = System.currentTimeMillis() - start;
                 if (succeeded) {
-                    output("Successfully proxied access to "+site);
+                    output("Successfully proxied access to "+site+" in "+time/1000+" seconds.");
                     successful.add(site);
                 } else {
                     failed.add(site);
-                    output("Failed to proxy access to "+site);
+                    output("Failed to proxy access to "+site+" in "+time/1000+" seconds.");
                 }
             } catch (final Exception e) {
                 output("Failed to proxy access to "+site);
@@ -155,15 +166,10 @@ public class Diagnostics {
             log.debug("FINISHED TESTING SITE: {}", site);
         }
         
-        // when loading is finished, make frame disappear
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                frame.setVisible(false);
-                frame.dispose();
-            }
-        });
-        System.exit(0);
+        output("");
+        output("ALL TESTS COMPLETE!");
+        output("");
+        output("CLOSE THE WINDOW TO QUIT.");
     }
 
     private static boolean testWhitelistedSite(final String url,
@@ -190,7 +196,7 @@ public class Diagnostics {
                 output("Received unexpected status code: "+code);
                 return false;
             }
-
+            output("Received response from "+url);
             log.debug("Consuming entity");
             final HttpEntity entity = response.getEntity();
             final String raw = IOUtils.toString(entity.getContent());
@@ -222,7 +228,7 @@ public class Diagnostics {
         output(str, null);
     }
 
-    private static void output(String str, Exception e) {
+    private static void output(final String str, final Exception e) {
         if (e != null) {
             log.info(str, e);
         } else {
@@ -232,8 +238,6 @@ public class Diagnostics {
         text.append(str);
         text.append("</div>");
         final String full = text.toString()+"</html>";
-        System.err.println(full);
         output.setText(full);
-        System.out.println(str);
     }
 }
