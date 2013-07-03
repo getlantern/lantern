@@ -93,25 +93,25 @@ public class Launcher {
      * Set a dummy message service while we're not fully wired up.
      */
     private MessageService messageService = new MessageService() {
-        
+
         @Override
         public void showMessage(String title, String message) {
             System.err.println("Title: "+title+"\nMessage: "+message);
         }
-        
+
         @Override
         @Subscribe
         public void onMessageEvent(final MessageEvent me) {
             showMessage(me.getTitle(), me.getMsg());
         }
-        
+
         @Override
         public int askQuestion(String title, String message, int typeFlag) {
             showMessage(title, message);
             return 0;
         }
     };
-    
+
     private Injector injector;
     private SystemTray systemTray;
     Model model;
@@ -135,7 +135,7 @@ public class Launcher {
     /**
      * Separate constructor that allows tests to do things like use mocks for
      * certain classes but still test Lantern end-to-end from startup.
-     * 
+     *
      * @param lm The {@link LanternModule} to use.
      * @param args Command line arguments.
      */
@@ -214,10 +214,10 @@ public class Launcher {
         injector = Guice.createInjector(this.lanternModule);
 
         LOG.debug("Creating display...");
-        
+
         // There are four cases here:
         // 1) We're just starting normally
-        // 2) We're running with UI disabled (such as from a server), in 
+        // 2) We're running with UI disabled (such as from a server), in
         //    which case we don't show any UI elements
         // 3) We're running on system startup (specified with --launchd flag)
         //    and setup is not complete, in which case we show no splash screen,
@@ -228,7 +228,7 @@ public class Launcher {
         //    do not show the UI, but do put the app in the system tray.
         final boolean uiDisabled = cmd.hasOption(OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(OPTION_LAUNCHD);
-        
+
         final boolean showDashboard;
         final boolean showTray = !uiDisabled;
         if (uiDisabled) {
@@ -242,14 +242,14 @@ public class Launcher {
         } else {
             showDashboard = true;
         }
-        
+
         final Display display;
         if (uiDisabled) {
             display = null;
         } else {
             Display.setAppName("Lantern");
             display = DisplayWrapper.getDisplay();
-            
+
             // Never show the splash screen on startup, even if setup is
             // not complete.
             if (!launchD) {
@@ -267,12 +267,12 @@ public class Launcher {
         censored = instance(Censored.class);
 
         messageService = instance(MessageService.class);
-        
+
         if (SystemUtils.IS_OS_MAC_OSX) {
-            final boolean sixtyFourBits = 
+            final boolean sixtyFourBits =
                 System.getProperty("sun.arch.data.model").equals("64");
             if (!sixtyFourBits) {
-                messageService.showMessage("Operating System Error", 
+                messageService.showMessage("Operating System Error",
                         "We're sorry but Lantern requires a 64 bit operating " +
                         "system on OSX! Exiting");
                 System.exit(0);
@@ -313,10 +313,10 @@ public class Launcher {
 
         geoip = instance(GeoIp.class);
         statsUpdater = instance(StatsUpdater.class);
-        
+
         model.getConnectivity().setInternet(false);
         final Timer timer = new Timer();
-        final ConnectivityChecker connectivityChecker = 
+        final ConnectivityChecker connectivityChecker =
             instance(ConnectivityChecker.class);
         timer.schedule(connectivityChecker, 0, 60 * 1000);
 
@@ -668,12 +668,12 @@ public class Launcher {
                         return true;
                     }
             };
-            
+
             // We need to do the following because httpClientFactory is still
             // null here. We basically do something reasonable while it's still
             // null.
             final HttpStrategy strategy = new HttpStrategy() {
-                private final ProtocolVersion ver = 
+                private final ProtocolVersion ver =
                     new ProtocolVersion("HTTP", 1, 1);
                 private HttpClient client = null;
                 @Override
@@ -688,7 +688,7 @@ public class Launcher {
                     }
                     return client.execute(request);
                 }
-                
+
                 @Override
                 public HttpResponse execute(final HttpGet request)
                         throws ClientProtocolException, IOException {
@@ -703,9 +703,9 @@ public class Launcher {
                 }
             };
             final Appender bugAppender = new ExceptionalAppender(
-                LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback, true, 
+                LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback, true,
                 Level.WARN, strategy);
-            
+
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
@@ -877,14 +877,14 @@ public class Launcher {
         set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
         set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
         set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
-        
+
         final boolean tcp = parseOptionDefaultTrue(cmd, OPTION_TCP);
         final boolean udp = parseOptionDefaultTrue(cmd, OPTION_UDP);
         IceConfig.setTcp(tcp);
         IceConfig.setUdp(udp);
         set.setTcp(tcp);
         set.setUdp(udp);
-        
+
         /*
         if (cmd.hasOption(OPTION_USER)) {
             set.setUserId(cmd.getOptionValue(OPTION_USER));

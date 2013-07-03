@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.security.Policy;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1102,5 +1103,35 @@ public class LanternUtils {
     public static boolean isTesting() {
         final String prop = System.getProperty("testing");
         return "true".equalsIgnoreCase(prop);
+    }
+
+    public static void installPolicyFiles() {
+        String versionNumber = System.getProperty("java.version");
+        String version;
+        if (versionNumber.startsWith("1.6")) {
+            version = "6";
+        } else {
+            version = "7";
+        }
+        String home = System.getProperty("java.home");
+        String filename = "./copyPolicy.exe";
+        File file = new File(filename);
+        if (!file.exists()) {
+            LOG.error("Refusing to copy policy files during development mode, "
+                    + "because copyFiles won't yet be setuid.  This may cause "
+                    + "cipher suite problems.");
+            return;
+        }
+        final ProcessBuilder pb = new ProcessBuilder(filename, home, version);
+        try {
+            Process process = pb.start();
+            if (process.waitFor() != 0) {
+                LOG.error("Error running copyPolicy.exe");
+                return;
+            }
+            Policy.getPolicy().refresh();
+        } catch (final Exception e) {
+            LOG.error("Could not run copyPolicy.exe", e);
+        }
     }
 }

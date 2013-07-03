@@ -276,11 +276,11 @@ int main(int argc, char** argv) {
         /* FIXME: assumes Java 6.  That's what we presently package
          on Linux. */
 
-        if (copy_file("/opt/lantern/java6/local_policy.jar", "/tmp/opt/lantern/jre/lib/security/local_policy.jar")) {
+        if (copy_file("/opt/lantern/java6/local_policy.jar", "/opt/lantern/jre/lib/security/local_policy.jar")) {
             perror("Failed to copy policy files");
             return 5;
         }
-        if (copy_file("/opt/lantern/java6/US_export_policy.jar", "/tmp/opt/lantern/jre/lib/security/US_export_policy.jar")) {
+        if (copy_file("/opt/lantern/java6/US_export_policy.jar", "/opt/lantern/jre/lib/security/US_export_policy.jar")) {
             perror("Failed to copy policy files");
             return 5;
         }
