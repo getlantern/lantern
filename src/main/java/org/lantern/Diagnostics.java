@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -65,12 +66,15 @@ public class Diagnostics {
         contentPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         contentPane.setLayout(new BorderLayout());
         output = new JLabel("Testing") {
+            @Override
             public Dimension getPreferredSize() {
                 return new Dimension(800, 600);
             }
+            @Override
             public Dimension getMinimumSize() {
                 return new Dimension(800, 600);
             }
+            @Override
             public Dimension getMaximumSize() {
                 return new Dimension(800, 600);
             }
@@ -87,11 +91,29 @@ public class Diagnostics {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        
         output("Starting diagnostics...");
+        try {
+            output("Deleting Lantern configuration directory...");
+            FileUtils.deleteDirectory(LanternClientConstants.CONFIG_DIR);
+        } catch (IOException e1) {
+            output("Could not delete Lantern configuration directory?");
+        }
+        final String refresh = LanternUtils.getRefreshToken();
+        final String access = LanternUtils.getAccessToken();
+        if (org.apache.commons.lang3.StringUtils.isBlank(refresh)) {
+            output("NO REFRESH TOKEN!! CANNOT TEST. CLOSE WINDOW TO QUIT.");
+        } else if (org.apache.commons.lang3.StringUtils.isBlank(access)) {
+            output("NO ACCESS TOKEN!! CANNOT TEST. CLOSE WINDOW TO QUIT.");
+        } else {
+            runDiagnostics(refresh, access);
+        }
+    }
+
+    private static void runDiagnostics(final String refresh, final String access) {
+
         final String[] args = new String[]{"--disable-ui", "--force-get", 
-                "--refresh-tok", "", 
-                "--access-tok", "", 
+                "--refresh-tok", refresh, 
+                "--access-tok", access, 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
         final Module lm = new LanternModule();
@@ -101,17 +123,31 @@ public class Diagnostics {
         launcher.configureDefaultLogger();
         
         output("Running Lantern. This will include logging in to Google Talk and may take awhile...");
-        launcher.run();
-        launcher.model.setSetupComplete(true);
+        final Runnable starter = new Runnable() {
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.error("Interrupted?", e);
+            @Override
+            public void run() {
+                launcher.run();
+                launcher.model.setSetupComplete(true);
+                synchronized (Diagnostics.class) {
+                    Diagnostics.class.notify();
+                }
+            }
+        };
+        final Thread t = new Thread(starter, "Diagnostics-Startup");
+        t.start();
+
+        synchronized (Diagnostics.class) {
+            try {
+                Diagnostics.class.wait(40000);
+            } catch (InterruptedException e) {
+            }
         }
+        output("Created Lantern...");
         
         final File certsFile = new File("src/test/resources/cacerts");
         if (!certsFile.isFile()) {
+            output("Could not find cacerts?");
             throw new IllegalStateException("COULD NOT FIND CACERTS!!");
         }
         
@@ -122,6 +158,7 @@ public class Diagnostics {
         
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
 
+        output("Connected to server....");
         final Collection<String> censored = Arrays.asList(//"exceptional.io");
             //"www.getlantern.org",
             "github.com",

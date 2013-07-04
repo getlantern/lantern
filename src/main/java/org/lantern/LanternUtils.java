@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -90,6 +91,9 @@ public class LanternUtils {
     private static String fallbackServerHost;
 
     private static int fallbackServerPort;
+    
+    private static final Properties privateProps = new Properties();
+    private static final File privatePropsFile;
 
     public static boolean isDevMode() {
         return LanternClientConstants.isDevMode();
@@ -105,6 +109,35 @@ public class LanternUtils {
 
     static {
         addFallbackProxy();
+        
+        LOG.debug("LOADING PRIVATE PROPS FILE!");
+        // The following are only used for diagnostics.
+        if (LanternClientConstants.TEST_PROPS.isFile()) {
+            privatePropsFile = LanternClientConstants.TEST_PROPS;
+        } else {
+            privatePropsFile = LanternClientConstants.TEST_PROPS2;
+        }
+        if (privatePropsFile.isFile()) {
+            InputStream is = null;
+            try {
+                is = new FileInputStream(privatePropsFile);
+                privateProps.load(is);
+                LOG.debug("LOADED PRIVATE PROPS FILE!");
+            } catch (final IOException e) {
+                LOG.debug("COULD NOT LOAD PRIVATE PROPS FILE AT "+ 
+                        privatePropsFile);
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+            
+            if (StringUtils.isBlank(getRefreshToken()) ||
+                StringUtils.isBlank(getAccessToken())) {
+                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
+                //throw new Error("Tokens not in "+privatePropsFile);
+            }
+        } else {
+            LOG.debug("NO PRIVATE PROPS FILE AT: "+privatePropsFile);
+        }
     }
 
     private static void addFallbackProxy() {
@@ -1102,5 +1135,21 @@ public class LanternUtils {
     public static boolean isTesting() {
         final String prop = System.getProperty("testing");
         return "true".equalsIgnoreCase(prop);
+    }
+    
+    public static String getRefreshToken() {
+        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("refresh_token");
+        }
+        return oauth;
+     }
+
+    public static String getAccessToken() {
+        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
+        if (StringUtils.isBlank(oauth)) {
+            return privateProps.getProperty("access_token");
+        }
+        return oauth;
     }
 }
