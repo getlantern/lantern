@@ -75,6 +75,8 @@ perl -pi -e "s/fallback_server_port_tok/$FALLBACK_SERVER_PORT/g" $CONSTANTS_FILE
 
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE || die "Could not set exceptional key"
 
+rm target/*.jar
+
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS -Drelease install -Dmaven.test.skip=true || die "Could not build?"
 
