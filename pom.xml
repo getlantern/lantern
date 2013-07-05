@@ -734,7 +734,6 @@
       </activation>
       <build>
         <plugins>
-<!--
           <plugin>
             <groupId>com.github.wvengen</groupId>
             <artifactId>proguard-maven-plugin</artifactId>
@@ -774,7 +773,6 @@
               <proguardInclude>install/lantern.pro</proguardInclude>
             </configuration>
           </plugin>
--->
         </plugins>
       </build>
     </profile>
