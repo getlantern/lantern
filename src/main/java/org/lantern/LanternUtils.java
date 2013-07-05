@@ -114,8 +114,10 @@ public class LanternUtils {
         // The following are only used for diagnostics.
         if (LanternClientConstants.TEST_PROPS.isFile()) {
             privatePropsFile = LanternClientConstants.TEST_PROPS;
-        } else {
+        } else if (LanternClientConstants.TEST_PROPS2.isFile()){
             privatePropsFile = LanternClientConstants.TEST_PROPS2;
+        } else {
+            privatePropsFile = new File("test.properties");
         }
         if (privatePropsFile.isFile()) {
             InputStream is = null;

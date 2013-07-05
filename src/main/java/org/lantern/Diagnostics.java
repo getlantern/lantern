@@ -123,32 +123,18 @@ public class Diagnostics {
         launcher.configureDefaultLogger();
         
         output("Running Lantern. This will include logging in to Google Talk and may take awhile...");
-        final Runnable starter = new Runnable() {
-
-            @Override
-            public void run() {
-                launcher.run();
-                launcher.model.setSetupComplete(true);
-                synchronized (Diagnostics.class) {
-                    Diagnostics.class.notify();
-                }
-            }
-        };
-        final Thread t = new Thread(starter, "Diagnostics-Startup");
-        t.start();
-
-        synchronized (Diagnostics.class) {
-            try {
-                Diagnostics.class.wait(40000);
-            } catch (InterruptedException e) {
-            }
-        }
+        launcher.run();
+        launcher.model.setSetupComplete(true);
+        output("Setup complete...");
         output("Created Lantern...");
         
         final File certsFile = new File("src/test/resources/cacerts");
         if (!certsFile.isFile()) {
-            output("Could not find cacerts?");
-            throw new IllegalStateException("COULD NOT FIND CACERTS!!");
+            final File certsFile2 = new File("cacerts");
+            if (!certsFile2.isFile()) {
+                output("Could not find cacerts?");
+                throw new IllegalStateException("COULD NOT FIND CACERTS!!");
+            }
         }
         
         // We set this back to the global trust store because in this case 
@@ -156,6 +142,7 @@ public class Diagnostics {
         // internally.
         System.setProperty("javax.net.ssl.trustStore", certsFile.getAbsolutePath());
         
+        output("Checking localhost server...");
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
 
         output("Connected to server....");
