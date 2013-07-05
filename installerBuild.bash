@@ -85,7 +85,7 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 if [[ $VERSION == "HEAD" ]];
 then
-    cp target/lantern-*.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp target/lantern-*-small.jar install/common/lantern.jar || die "Could not copy jar?"
 else
     cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
 fi
