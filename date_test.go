@@ -137,7 +137,7 @@ func TestDate_now(t *testing.T) {
 
 	test := runTest()
 	time := Time.Now()
-	test(`Date.now()`, strconv.FormatInt(epochToInteger(timeToEpoch(time)), 10))
+	test(`(""+Date.now()).substr(0, 10)`, strconv.FormatInt(epochToInteger(timeToEpoch(time)), 10)[:10])
 	test(`Date.now() === Date.now(1,2,3)`, "true")
 }
 
