@@ -52,9 +52,9 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     @Override
     void initializeCipher(Cipher cipher, int opmode, Key key) 
         throws GeneralSecurityException {
-        final byte [] salt = new byte[8]; 
+        final byte [] salt = new byte[16];
         secureRandom.nextBytes(salt);
-        cipher.init(opmode, key, new PBEParameterSpec(salt, 100));
+        cipher.init(opmode, key, new PBEParameterSpec(salt, 1000));
     }
     
     @Override
