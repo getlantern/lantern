@@ -29,10 +29,16 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     public final File KEYSTORE_FILE;
     
     private final File CERT_FILE;
-    
-    private static final String PASS = 
-        String.valueOf(new SecureRandom().nextLong());
-    
+
+    private static final String PASS;
+
+    static {
+        //initialize PASS to a value with 128 bits of entropy
+        byte[] bytes = new byte[16];
+        new SecureRandom().nextBytes(bytes);
+        PASS = Base64.encodeBase64URLSafeString(bytes);
+    }
+
     private static final String KEYSIZE = "2048";
     
     private static final String ALG = "RSA";
