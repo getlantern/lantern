@@ -1,7 +1,12 @@
 package org.lantern.ui;
 
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +78,7 @@ public class NotificationManager {
     protected synchronized void doNotify(NotificationDialog notification) {
         //install the dialog in the shell
 
-        Rectangle clientArea = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        Rectangle clientArea = getClientArea();
 
         int startX = clientArea.x + clientArea.width - notification.dialog.getSize().width;
 
@@ -96,6 +101,27 @@ public class NotificationManager {
 
         notifications.add(notification);
 
+    }
+
+    private Rectangle getClientArea() {
+
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+
+        GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        Rectangle bounds = gc.getBounds();
+
+        Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+
+        Rectangle clientArea = new Rectangle();
+
+        clientArea.x = bounds.x + screenInsets.left;
+        clientArea.y = bounds.y + screenInsets.top;
+        clientArea.height = bounds.height - screenInsets.top
+                - screenInsets.bottom;
+        clientArea.width = bounds.width - screenInsets.left
+                - screenInsets.right;
+
+        return clientArea;
     }
 
     public void remove(NotificationDialog toRemove) {
