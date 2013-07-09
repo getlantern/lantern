@@ -36,7 +36,7 @@ public class LanternUtilsTest {
         TestUtils.load(true);
         System.setProperty("javax.net.debug", "ssl");
     }
-    
+
     @Test
     public void testGetTargetForPath() throws Exception {
         final Model model = TestUtils.getModel();
@@ -103,6 +103,37 @@ public class LanternUtilsTest {
         assertEquals("blah blah blah <false/> blah blah", newFile);
     }
 
+
+    @Test
+    public void testInstallPolicyFiles() throws Exception {
+        String home = System.getProperty("java.home");
+        try {
+            File tmp = new File(System.getProperty("java.io.tmpdir"));
+            File fakeJRE = new File(tmp, "fakejre");
+            File security = new File(fakeJRE, "lib/security");
+            security.mkdirs();
+
+            File export = new File(security, "US_export_policy.jar");
+            FileUtils.write(export, "test", "UTF-8");
+
+            File local = new File(security, "local_policy.jar");
+            FileUtils.write(local, "test", "UTF-8");
+
+            System.setProperty("java.home", fakeJRE.toString());
+            LanternUtils.installPolicyFiles();
+
+            byte[] export_read = FileUtils.readFileToByteArray(export);
+            //jars are zips and so always start with PK
+            assertEquals('P', export_read[0]);
+
+            byte[] local_read = FileUtils.readFileToByteArray(export);
+            assertEquals('P', local_read[0]);
+
+        } finally {
+            System.setProperty("java.home", home);
+        }
+    }
+
     @Test
     public void testGoogleStunServers() throws Exception {
         LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing STUN servers...");
@@ -155,11 +186,11 @@ public class LanternUtilsTest {
         //System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
         LOG.debug("Got response: {}", activateResponse);
-        
+
         final String allOtr = XmppUtils.getOtr(conn).toXML();
         LOG.debug("All OTR: {}", allOtr);
-        
-        assertTrue("Unexpected response: "+allOtr, 
+
+        assertTrue("Unexpected response: "+allOtr,
             allOtr.contains("google:nosave"));
     }
 
@@ -186,5 +217,5 @@ public class LanternUtilsTest {
         //assertTrue(candidates.contains("*.com"));
         //assertTrue(candidates.contains("*"));
     }
-    
+
 }

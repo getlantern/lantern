@@ -1157,23 +1157,30 @@ public class LanternUtils {
     }
 
     public static void installPolicyFiles() {
-        String versionNumber = System.getProperty("java.version");
-        String version;
-        if (versionNumber.startsWith("1.6")) {
-            version = "6";
-        } else {
-            version = "7";
-        }
         String home = System.getProperty("java.home");
         String filename = "./copyPolicy.exe";
         File file = new File(filename);
         if (!file.exists()) {
-            LOG.error("Refusing to copy policy files during development mode, "
-                    + "because copyFiles won't yet be setuid.  This may cause "
-                    + "cipher suite problems.");
-            return;
+            //development mode
+            String os;
+            if (SystemUtils.IS_OS_LINUX) {
+                os = "linux";
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                os = "win";
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                os = "osx";
+            } else {
+                LOG.error("Unexpected OS");
+                return;
+            }
+            filename = "install/" + os + "/copyPolicy.exe";
+            file = new File(filename);
+            if (!file.exists()) {
+                LOG.error("Could not find file " + filename);
+                return;
+            }
         }
-        final ProcessBuilder pb = new ProcessBuilder(filename, home, version);
+        final ProcessBuilder pb = new ProcessBuilder(filename, home);
         try {
             Process process = pb.start();
             if (process.waitFor() != 0) {

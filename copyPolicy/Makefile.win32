@@ -1,0 +1,8 @@
+
+all: copyPolicy.exe
+
+copyPolicy.exe: copyPolicy.c policy_jars.h
+	gcc -o copyPolicy.exe copyPolicy.c -mno-cygwin -std=c99
+
+policy_jars.h: ../install/java7/US_export_policy.jar ../install/java7/local_policy.jar
+	./make-policy-jars-header.py
