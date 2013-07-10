@@ -76,6 +76,7 @@ public class Whitelist {
         "torproject.org",
         "tumblr.com",
         "twitter.com",
+        "twimg.com",
         "vimeo.com",
         "whatismyip.com",
         "wikileaks.org",
