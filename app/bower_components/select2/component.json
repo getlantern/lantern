@@ -1,0 +1,23 @@
+{
+  "name": "select2",
+  "version": "3.4.1",
+  "main": [
+    "select2.js",
+    "select2.css",
+    "select2.png",
+    "select2x2.png",
+    "select2-spinner.gif"
+  ],
+  "dependencies": {
+    "jquery": ">= 1.7.1"
+  },
+  "gitHead": "13dc8a1ff3af6515c23dbca1ae3dcc0b0dc1b0c1",
+  "readme": "Select2\n=======\n\nSelect2 is a jQuery-based replacement for select boxes. It supports searching, remote data sets, and infinite scrolling of results.\n\nTo get started, checkout examples and documentation at http://ivaynberg.github.com/select2\n\nUse cases\n---------\n\n* Enhancing native selects with search.\n* Enhancing native selects with a better multi-select interface.\n* Loading data from JavaScript: easily load items via ajax and have them searchable.\n* Nesting optgroups: native selects only support one level of nested. Select2 does not have this restriction.\n* Tagging: ability to add new items on the fly.\n* Working with large, remote datasets: ability to partially load a dataset based on the search term.\n* Paging of large datasets: easy support for loading more pages when the results are scrolled to the end.\n* Templating: support for custom rendering of results and selections.\n\nBrowser compatibility\n---------------------\n* IE 8+\n* Chrome 8+\n* Firefox 10+\n* Safari 3+\n* Opera 10.6+\n\nIntegrations\n------------\n\n* [Wicket-Select2](https://github.com/ivaynberg/wicket-select2) (Java / [Apache Wicket](http://wicket.apache.org))\n* [select2-rails](https://github.com/argerim/select2-rails) (Ruby on Rails)\n* [AngularUI](http://angular-ui.github.com/#directives-select2) ([AngularJS](angularjs.org))\n* [Django](https://github.com/applegrew/django-select2)\n* [Symfony](https://github.com/19Gerhard85/sfSelect2WidgetsPlugin)\n* [Bootstrap](https://github.com/t0m/select2-bootstrap-css) (CSS skin)\n* [Yii](https://github.com/tonybolzan/yii-select2)\n\nInternationalization (i18n)\n---------------------------\n\nSelect2 supports multiple languages by simply including the right\nlanguage JS file (`select2_locale_it.js`, `select2_locale_nl.js`, etc.).\n\nMissing a language? Just copy `select2_locale_en.js.template`, translate\nit, and make a pull request back to Select2 here on GitHub.\n\nBug tracker\n-----------\n\nHave a bug? Please create an issue here on GitHub!\n\nhttps://github.com/ivaynberg/select2/issues\n\nMailing list\n------------\n\nHave a question? Ask on our mailing list!\n\nselect2@googlegroups.com\n\nhttps://groups.google.com/d/forum/select2\n\n\nCopyright and license\n---------------------\n\nCopyright 2012 Igor Vaynberg\n\nThis software is licensed under the Apache License, Version 2.0 (the \"Apache License\") or the GNU\nGeneral Public License version 2 (the \"GPL License\"). You may choose either license to govern your\nuse of this software only upon the condition that you accept all of the terms of either the Apache\nLicense or the GPL License.\n\nYou may obtain a copy of the Apache License and the GPL License in the LICENSE file, or at:\n\nhttp://www.apache.org/licenses/LICENSE-2.0\nhttp://www.gnu.org/licenses/gpl-2.0.html\n\nUnless required by applicable law or agreed to in writing, software distributed under the Apache License\nor the GPL License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,\neither express or implied. See the Apache License and the GPL License for the specific language governing\npermissions and limitations under the Apache License and the GPL License.\n",
+  "readmeFilename": "README.md",
+  "_id": "select2@3.4.1",
+  "description": "Select2 =======",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ivaynberg/select2.git"
+  }
+}

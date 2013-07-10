@@ -9,11 +9,11 @@ if (typeof inspect != 'function') {
 }
 
 if (typeof _ != 'function') {
-  var _ = require('../components/lodash/lodash.js')._;
+  var _ = require('../bower_components/lodash/lodash.js')._;
 }
 
 if (typeof jsonpatch != 'object') {
-  var jsonpatch = require('../components/jsonpatch/jsonpatch.min.js');
+  var jsonpatch = require('../bower_components/jsonpatch/lib/jsonpatch.js');
 }
 var JSONPatch = jsonpatch.JSONPatch,
     JSONPointer = jsonpatch.JSONPointer,

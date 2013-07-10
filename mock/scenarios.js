@@ -1,5 +1,5 @@
 var sleep = require('./node_modules/sleep'),
-    _ = require('../app/components/lodash/lodash.js')._,
+    _ = require('../app/bower_components/lodash/lodash.js')._,
     helpers = require('../app/js/helpers.js'),
       makeLogger = helpers.makeLogger,
         log = makeLogger('scenarios'),
@@ -456,6 +456,8 @@ exports.SCENARIOS = {
                   update.push({op: 'add', path: '/transfers/bpsUp', value: bpsUp});
                   update.push({op: 'add', path: '/transfers/bpsDn', value: bpsDn});
                   update.push({op: 'add', path: '/transfers/bpsUpDn', value: bpsUpDn});
+                  //update.push({op: 'replace', path: '/connectivity/nproxies', value:
+                  //  _.filter(peersCurrent, {mode: MODE.give}).length});
                   this_.sync(update);
                 }
 
