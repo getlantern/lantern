@@ -7135,16 +7135,6 @@ textarea {
   font-size: 10.5px;
 }
 
-#systemProxy .control-group {
-  margin: 0 75px;
-}
-#systemProxy .text-error {
-  margin: 20px 75px;
-}
-#systemProxy .controls {
-  margin-top: 10px;
-}
-
 #finished-autoReport {
   text-align: center;
   margin-top: 25px;

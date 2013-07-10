@@ -154,46 +154,6 @@
   </div>
 </div>
 
-<div ng-controller="SystemProxyCtrl" modal="model.modal == MODAL.systemProxy">
-  <div class="modal-header">
-    <h3>{{ 'SYSTEM_PROXY_TITLE' | i18n }}</h3>
-  </div>
-  <div class="modal-body" id="systemProxy">
-    <div>{{ 'SYSTEM_PROXY_PROMPT' | i18n }}</div>
-    <br>
-    <div class="control-group">
-      <div class="controls">
-        <label class="radio control-label">
-          <input type="radio" ng-model="systemProxy" ng-value="true"
-                 ng-disabled="disableForm">
-          {{ 'SYSTEM_PROXY_TRUE' | i18n }}
-        </label>
-        <div class="control-extra">{{ 'AUTO_PROXY' | i18n }}</div>
-      </div>
-      <div class="controls">
-        <label class="radio control-label">
-          <input type="radio" ng-model="systemProxy" ng-value="false"
-                 ng-disabled="disableForm">
-          {{ 'SYSTEM_PROXY_FALSE' | i18n }}
-        </label>
-        <div class="control-extra">
-          {{ 'PAC_FILE_LOC' | i18n }}
-          {{ model.connectivity.pacUrl }}
-        </div>
-      </div>
-    </div>
-    <div class="text-error" ui-toggle="sysproxyError">
-      {{ 'SYSTEM_PROXY_ERROR' | i18n }}&nbsp;
-    </div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="continue()"
-            ng-disabled="disableForm">
-      {{ submitButtonLabelKey | i18n }}
-    </button>
-  </div>
-</div>
-
 <div ng-controller="ProxiedSitesCtrl" modal="model.modal == MODAL.proxiedSites">
   <div class="modal-header">
     <h3>

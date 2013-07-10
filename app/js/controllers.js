@@ -197,32 +197,6 @@ function UnexpectedStateCtrl($scope, $filter, cometdSrvc, apiSrvc, modelSrvc, MO
   };
 }
 
-function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
-  var log = logFactory('SystemProxyCtrl'),
-      path = '/settings/'+SETTING.systemProxy;
-
-  $scope.systemProxy = true;
-  $scope.disableForm = false;
-  $scope.submitButtonLabelKey = 'CONTINUE';
-
-  $scope.$watch('model.settings.systemProxy', function(systemProxy) {
-    if (_.isBoolean(systemProxy)) $scope.systemProxy = systemProxy;
-  });
-
-  function resetForm() {
-    $scope.disableForm = false;
-    $scope.submitButtonLabelKey = 'CONTINUE';
-  }
-
-  $scope.continue = function() {
-    $scope.sysproxyError = false;
-    $scope.disableForm = true;
-    $scope.submitButtonLabelKey = 'CONFIGURING';
-    $scope.interaction(INTERACTION.continue, {path: path, value: $scope.systemProxy})
-      .then(resetForm, resetForm);
-  };
-}
-
 function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
   $scope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
 

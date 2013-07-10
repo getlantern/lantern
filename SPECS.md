@@ -358,7 +358,7 @@ the backend maintains on the frontend through comet publications:
     <td><strong>modal</strong><br>
       "settingsLoadFailure" | "welcome" | "giveModeForbidden" | "authorize" |
       "connecting" | "contact" | "settings" | "about" | "updateAvailable"
-      "notInvited" | "proxiedSites" | "systemProxy" | "lanternFriends" | "finished" | ""
+      "notInvited" | "proxiedSites" | "lanternFriends" | "finished" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.

@@ -41,7 +41,6 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
         welcome: false,
         authorize: false,
         proxiedSites: false,
-        systemProxy: false,
         lanternFriends: false,
         finished: false
       },
@@ -61,7 +60,7 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
     },
     DEFAULT_PROXIED_SITES = RESET_MODEL.settings.proxiedSites.slice(0),
     MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
-    MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
+    MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.finished, MODAL.none];
 
 function nextid() {
   return ++nextid.id;
@@ -372,15 +371,6 @@ MockBackend._handlerForModal[MODAL.proxiedSites] = function(interaction, res, da
   } else {
     res.writeHead(400);
   }
-};
-
-MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
-  var path = '/settings/'+SETTING.systemProxy;
-  if (!(interaction === INTERACTION.continue && data.path === path && _.isBoolean(data.value))) return res.writeHead(400);
-  this.sync([{op: 'add', path: path, value: data.value}]);
-  if (data.value) sleep.usleep(750000);
-  this._internalState.modalsCompleted[MODAL.systemProxy] = true;
-  this._advanceModal();
 };
 
 MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
