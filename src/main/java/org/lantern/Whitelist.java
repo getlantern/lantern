@@ -56,6 +56,7 @@ public class Whitelist {
         "getlantern.org",
         "github.com",
         "google.com",
+        "googleusercontent.com",
         "greatfire.org",
         "hrw.org", // Human Rights Watch
         "ifconfig.me",
@@ -76,6 +77,7 @@ public class Whitelist {
         "torproject.org",
         "tumblr.com",
         "twitter.com",
+        "twimg.com",
         "vimeo.com",
         "whatismyip.com",
         "wikileaks.org",

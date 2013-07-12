@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.security.Policy;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1153,5 +1154,42 @@ public class LanternUtils {
             return privateProps.getProperty("access_token");
         }
         return oauth;
+    }
+
+    public static void installPolicyFiles() {
+        String home = System.getProperty("java.home");
+        String filename = "./copyPolicy.exe";
+        File file = new File(filename);
+        if (!file.exists()) {
+            //development mode
+            String os;
+            if (SystemUtils.IS_OS_LINUX) {
+                os = "linux";
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                os = "win";
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                os = "osx";
+            } else {
+                LOG.error("Unexpected OS");
+                return;
+            }
+            filename = "install/" + os + "/copyPolicy.exe";
+            file = new File(filename);
+            if (!file.exists()) {
+                LOG.error("Could not find file " + filename);
+                return;
+            }
+        }
+        final ProcessBuilder pb = new ProcessBuilder(filename, home);
+        try {
+            Process process = pb.start();
+            if (process.waitFor() != 0) {
+                LOG.error("Error running copyPolicy.exe");
+                return;
+            }
+            Policy.getPolicy().refresh();
+        } catch (final Exception e) {
+            LOG.error("Could not run copyPolicy.exe", e);
+        }
     }
 }

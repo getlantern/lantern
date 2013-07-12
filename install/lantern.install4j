@@ -175,8 +175,8 @@
       <vmOptionsFile mode="template" overwriteMode="0" fileMode="644">
         <content />
       </vmOptionsFile>
-      <customScript mode="1" file="">
-        <content />
+      <customScript mode="3" file="">
+        <content>./copyPolicy.exe</content>
       </customScript>
       <infoPlist mode="1" file="">
         <content />
@@ -737,6 +737,27 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                   </java>
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
+              </action>
+              <action name="" id="1339" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.SetModeAction">
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>copyPolicy.exe</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="mode">
+                        <string>4711</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
               </action>
               <action name="" id="343" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not fix file permissions.">
                 <serializedBean>
@@ -1398,7 +1419,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
         <content />
       </postUninstallScript>
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-x86-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org" architectureSet="true" architecture="x86">
+    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-x86-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org" architectureSet="true" architecture="i386">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
