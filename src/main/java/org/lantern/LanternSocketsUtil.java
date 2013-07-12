@@ -212,7 +212,7 @@ public class LanternSocketsUtil {
             }
 
             private void configure(final SSLSocket sock) {
-                sock.setNeedClientAuth(true);
+                //sock.setNeedClientAuth(true);
                 if (cipherSuites != null && cipherSuites.length > 0) {
                     sock.setEnabledCipherSuites(cipherSuites);
                 }
