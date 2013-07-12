@@ -202,7 +202,8 @@ public class Diagnostics {
         final Collection<String> censored = Arrays.asList(//"exceptional.io");
             //"www.getlantern.org",
             //"github.com",
-            "facebook.com" 
+            "facebook.com",
+                "yahoo.com"
             //"appledaily.com.tw", 
             //"orkut.com", 
             //"voanews.com",
@@ -387,9 +388,9 @@ public class Diagnostics {
         get.setHeader("Accept-Encoding", "gzip, deflate");
         
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 
-            6000);
+            30000);
         // Timeout when server does not send data.
-        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 60000);
         client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
             new HttpHost("localhost", proxyPort));
         
