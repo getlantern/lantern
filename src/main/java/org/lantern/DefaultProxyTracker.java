@@ -566,6 +566,8 @@ public class DefaultProxyTracker implements ProxyTracker {
             } catch (final IOException e) {
                 log.error("Could not copy fallback?", e);
             }
+        } else {
+            log.debug("Fallback file already exists!");
         }
         if (!file.isFile()) {
             log.error("No fallback proxy to load!");
@@ -593,15 +595,15 @@ public class DefaultProxyTracker implements ProxyTracker {
         log.debug("Copying fallback file");
         final File from;
         
-        final File home = 
-            new File(new File(SystemUtils.USER_HOME), "fallback.json");
-        if (home.isFile()) {
-            from = home;
+        final File cur = 
+            new File(new File(SystemUtils.USER_DIR), "fallback.json");
+        if (cur.isFile()) {
+            from = cur;
         } else {
             log.debug("No fallback proxy found in home - checking cur...");
-            final File curDir = new File("fallback.json");
-            if (curDir.isFile()) {
-                from = curDir;
+            final File home = new File(new File(SystemUtils.USER_HOME), "fallback.json");
+            if (home.isFile()) {
+                from = home;
             } else {
                 log.warn("Still could not find fallback proxy!");
                 return;
@@ -612,6 +614,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (!par.isDirectory() && !par.mkdirs()) {
             throw new IOException("Could not make config dir?");
         }
+        log.debug("Copying from {} to {}", from, to);
         Files.copy(from, to);
     }
 

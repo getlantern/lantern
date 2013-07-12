@@ -49,7 +49,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -83,15 +82,10 @@ public class LanternUtils {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    private static String MAC_ADDRESS;
-
     private static boolean amFallbackProxy = false;
 
     private static String keystorePath = "<UNSET>";
 
-    private static String fallbackServerHost;
-
-    private static int fallbackServerPort;
     
     private static final Properties privateProps = new Properties();
     private static final File privatePropsFile;
@@ -109,8 +103,6 @@ public class LanternUtils {
     */
 
     static {
-        addFallbackProxy();
-        
         LOG.debug("LOADING PRIVATE PROPS FILE!");
         // The following are only used for diagnostics.
         if (LanternClientConstants.TEST_PROPS.isFile()) {
@@ -141,64 +133,6 @@ public class LanternUtils {
         } else {
             LOG.debug("NO PRIVATE PROPS FILE AT: "+privatePropsFile);
         }
-    }
-
-    private static void addFallbackProxy() {
-        final File file =
-            new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
-        if (!file.isFile()) {
-            try {
-                copyFallback();
-            } catch (final IOException e) {
-                LOG.error("Could not copy fallback?", e);
-            }
-        }
-        if (!file.isFile()) {
-            LOG.error("No fallback proxy to load!");
-            return;
-        }
-
-        final ObjectMapper om = new ObjectMapper();
-        InputStream is = null;
-        try {
-            is = new FileInputStream(file);
-            final String proxy = IOUtils.toString(is);
-            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
-
-            fallbackServerHost = fp.getIp();
-            fallbackServerPort = fp.getPort();
-            LOG.debug("Set fallback proxy to {}", fallbackServerHost);
-        } catch (final IOException e) {
-            LOG.error("Could not load fallback", e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-    }
-
-    private static void copyFallback() throws IOException {
-        LOG.debug("Copying fallback file");
-        final File from;
-
-        final File home =
-            new File(new File(SystemUtils.USER_HOME), "fallback.json");
-        if (home.isFile()) {
-            from = home;
-        } else {
-            LOG.debug("No fallback proxy found in home - checking cur...");
-            final File curDir = new File("fallback.json");
-            if (curDir.isFile()) {
-                from = curDir;
-            } else {
-                LOG.warn("Still could not find fallback proxy!");
-                return;
-            }
-        }
-        final File par = LanternClientConstants.CONFIG_DIR;
-        final File to = new File(par, from.getName());
-        if (!par.isDirectory() && !par.mkdirs()) {
-            throw new IOException("Could not make config dir?");
-        }
-        Files.copy(from, to);
     }
 
     public static FiveTuple openOutgoingPeer(
@@ -277,7 +211,7 @@ public class LanternUtils {
             LOG.debug("Got outgoing peer socket {}", sock);
             if (sock instanceof SSLSocket) {
                 LOG.debug("Socket has ciphers {}",
-                    ((SSLSocket)sock).getEnabledCipherSuites());
+                    Arrays.asList(((SSLSocket)sock).getEnabledCipherSuites()));
             } else {
                 LOG.warn("Not an SSL socket...");
             }
