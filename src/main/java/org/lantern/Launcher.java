@@ -62,7 +62,6 @@ import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.p2p.P2PEndpoints;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -955,5 +954,9 @@ public class Launcher {
         } else if (cmd.hasOption(OPTION_GET)) {
             model.getSettings().setMode(Mode.get);
         }
+    }
+
+    public Injector getInjector() {
+        return injector;
     }
 }
