@@ -372,14 +372,12 @@ public class Diagnostics {
   
         final HttpGet get = new HttpGet("http://"+url);
         
-        final HttpHost proxy = new HttpHost(this.fallbackServerHost, 
-                this.fallbackServerPort, "https");
+        //final HttpHost proxy = new HttpHost(this.fallbackServerHost, 
+         //       this.fallbackServerPort, "https");
         //client.getConnectionManager().getSchemeRegistry().register(sch);
-        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        //client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         
         client.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(2,true));
-        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);
-        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
         
         // Some sites require more standard headers to be present.
         get.setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:15.0) Gecko/20100101 Firefox/15.0");
