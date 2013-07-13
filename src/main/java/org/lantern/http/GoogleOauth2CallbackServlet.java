@@ -245,7 +245,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     log.info("This user is not invited");
                     Events.syncModal(model, Modal.notInvited);
                 } catch (final IOException e) {
-                    log.info("We can't connect (internet connection died?).  Retry.");
+                    log.info("We can't connect (internet connection died?).  Retry.", e);
                     Events.syncModal(model, Modal.authorize);
                 }
             }
