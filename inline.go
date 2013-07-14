@@ -41,6 +41,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_valueOf),
 			},
@@ -59,6 +62,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_toString),
@@ -79,6 +85,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_toLocaleString),
 			},
@@ -97,6 +106,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_hasOwnProperty),
@@ -117,6 +129,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_isPrototypeOf),
 			},
@@ -135,6 +150,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_propertyIsEnumerable),
@@ -183,6 +201,19 @@ func _newContext(runtime *_runtime) {
 					value:      propertyIsEnumerable_function,
 				},
 			},
+			"constructor": _property{
+				mode:  0101,
+				value: Value{},
+			},
+		}
+		runtime.Global.ObjectPrototype.propertyOrder = []string{
+			"valueOf",
+			"toString",
+			"toLocaleString",
+			"hasOwnProperty",
+			"isPrototypeOf",
+			"propertyIsEnumerable",
+			"constructor",
 		}
 	}
 	{
@@ -200,6 +231,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinFunction_toString),
@@ -220,6 +254,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinFunction_apply),
 			},
@@ -239,6 +276,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinFunction_call),
 			},
@@ -257,6 +297,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinFunction_bind),
@@ -303,6 +346,14 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 		}
+		runtime.Global.FunctionPrototype.propertyOrder = []string{
+			"toString",
+			"apply",
+			"call",
+			"bind",
+			"constructor",
+			"length",
+		}
 	}
 	{
 		getPrototypeOf_function := &_object{
@@ -319,6 +370,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_getPrototypeOf),
@@ -339,6 +393,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_getOwnPropertyDescriptor),
 			},
@@ -357,6 +414,9 @@ func _newContext(runtime *_runtime) {
 						value:      3,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_defineProperty),
@@ -377,6 +437,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_defineProperties),
 			},
@@ -395,6 +458,9 @@ func _newContext(runtime *_runtime) {
 						value:      2,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_create),
@@ -415,6 +481,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_isExtensible),
 			},
@@ -433,6 +502,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_preventExtensions),
@@ -453,6 +525,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_isSealed),
 			},
@@ -471,6 +546,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_seal),
@@ -491,6 +569,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_isFrozen),
 			},
@@ -509,6 +590,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_freeze),
@@ -529,6 +613,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_keys),
 			},
@@ -548,6 +635,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinObject_getOwnPropertyNames),
 			},
@@ -563,6 +653,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewObject,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -669,6 +763,24 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
+				"getPrototypeOf",
+				"getOwnPropertyDescriptor",
+				"defineProperty",
+				"defineProperties",
+				"create",
+				"isExtensible",
+				"preventExtensions",
+				"isSealed",
+				"seal",
+				"isFrozen",
+				"freeze",
+				"keys",
+				"getOwnPropertyNames",
+			},
 		}
 		runtime.Global.ObjectPrototype.property["constructor"] =
 			_property{
@@ -691,6 +803,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewFunction,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -705,6 +821,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.FunctionPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.Function = Function
@@ -740,6 +861,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_toString),
 			},
@@ -758,6 +882,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_toLocaleString),
@@ -778,6 +905,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_concat),
 			},
@@ -796,6 +926,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_join),
@@ -816,6 +949,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_splice),
 			},
@@ -834,6 +970,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_shift),
@@ -854,6 +993,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_pop),
 			},
@@ -872,6 +1014,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_push),
@@ -892,6 +1037,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_slice),
 			},
@@ -910,6 +1058,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_unshift),
@@ -930,6 +1081,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_reverse),
 			},
@@ -948,6 +1102,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_sort),
@@ -968,6 +1125,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_indexOf),
 			},
@@ -986,6 +1146,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_lastIndexOf),
@@ -1006,6 +1169,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_every),
 			},
@@ -1024,6 +1190,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_some),
@@ -1044,6 +1213,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_forEach),
 			},
@@ -1062,6 +1234,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_map),
@@ -1082,6 +1257,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_filter),
 			},
@@ -1100,6 +1278,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_reduce),
@@ -1120,6 +1301,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_reduceRight),
 			},
@@ -1138,6 +1322,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinArray_isArray),
@@ -1306,6 +1493,30 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+				"toString",
+				"toLocaleString",
+				"concat",
+				"join",
+				"splice",
+				"shift",
+				"pop",
+				"push",
+				"slice",
+				"unshift",
+				"reverse",
+				"sort",
+				"indexOf",
+				"lastIndexOf",
+				"every",
+				"some",
+				"forEach",
+				"map",
+				"filter",
+				"reduce",
+				"reduceRight",
+			},
 		}
 		runtime.Global.Array = &_object{
 			runtime:     runtime,
@@ -1318,6 +1529,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewArray,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -1339,6 +1554,12 @@ func _newContext(runtime *_runtime) {
 						value:      isArray_function,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
+				"isArray",
 			},
 		}
 		runtime.Global.ArrayPrototype.property["constructor"] =
@@ -1366,6 +1587,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_toString),
 			},
@@ -1384,6 +1608,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_valueOf),
@@ -1404,6 +1631,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_charAt),
 			},
@@ -1422,6 +1652,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_charCodeAt),
@@ -1442,6 +1675,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_concat),
 			},
@@ -1460,6 +1696,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_indexOf),
@@ -1480,6 +1719,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_lastIndexOf),
 			},
@@ -1498,6 +1740,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_match),
@@ -1518,6 +1763,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_replace),
 			},
@@ -1536,6 +1784,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_search),
@@ -1556,6 +1807,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_split),
 			},
@@ -1574,6 +1828,9 @@ func _newContext(runtime *_runtime) {
 						value:      2,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_slice),
@@ -1594,6 +1851,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_substring),
 			},
@@ -1612,6 +1872,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_toLowerCase),
@@ -1632,6 +1895,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_toUpperCase),
 			},
@@ -1650,6 +1916,9 @@ func _newContext(runtime *_runtime) {
 						value:      2,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_substr),
@@ -1670,6 +1939,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_trim),
 			},
@@ -1688,6 +1960,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_trimLeft),
@@ -1708,6 +1983,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_trimRight),
 			},
@@ -1726,6 +2004,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_localeCompare),
@@ -1746,6 +2027,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_toLocaleLowerCase),
 			},
@@ -1765,6 +2049,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_toLocaleUpperCase),
 			},
@@ -1783,6 +2070,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinString_fromCharCode),
@@ -1958,6 +2248,31 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+				"toString",
+				"valueOf",
+				"charAt",
+				"charCodeAt",
+				"concat",
+				"indexOf",
+				"lastIndexOf",
+				"match",
+				"replace",
+				"search",
+				"split",
+				"slice",
+				"substring",
+				"toLowerCase",
+				"toUpperCase",
+				"substr",
+				"trim",
+				"trimLeft",
+				"trimRight",
+				"localeCompare",
+				"toLocaleLowerCase",
+				"toLocaleUpperCase",
+			},
 		}
 		runtime.Global.String = &_object{
 			runtime:     runtime,
@@ -1970,6 +2285,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewString,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -1991,6 +2310,12 @@ func _newContext(runtime *_runtime) {
 						value:      fromCharCode_function,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
+				"fromCharCode",
 			},
 		}
 		runtime.Global.StringPrototype.property["constructor"] =
@@ -2018,6 +2343,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinBoolean_toString),
 			},
@@ -2036,6 +2364,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinBoolean_valueOf),
@@ -2064,6 +2395,10 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"toString",
+				"valueOf",
+			},
 		}
 		runtime.Global.Boolean = &_object{
 			runtime:     runtime,
@@ -2076,6 +2411,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewBoolean,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -2090,6 +2429,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.BooleanPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.BooleanPrototype.property["constructor"] =
@@ -2117,6 +2461,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinNumber_toString),
 			},
@@ -2135,6 +2482,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinNumber_valueOf),
@@ -2155,6 +2505,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinNumber_toFixed),
 			},
@@ -2173,6 +2526,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinNumber_toExponential),
@@ -2193,6 +2549,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinNumber_toPrecision),
 			},
@@ -2211,6 +2570,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinNumber_toLocaleString),
@@ -2267,6 +2629,14 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"toString",
+				"valueOf",
+				"toFixed",
+				"toExponential",
+				"toPrecision",
+				"toLocaleString",
+			},
 		}
 		runtime.Global.Number = &_object{
 			runtime:     runtime,
@@ -2279,6 +2649,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewNumber,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -2329,6 +2703,16 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
+				"MAX_VALUE",
+				"MIN_VALUE",
+				"NaN",
+				"NEGATIVE_INFINITY",
+				"POSITIVE_INFINITY",
+			},
 		}
 		runtime.Global.NumberPrototype.property["constructor"] =
 			_property{
@@ -2355,6 +2739,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_abs),
 			},
@@ -2373,6 +2760,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_acos),
@@ -2393,6 +2783,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_asin),
 			},
@@ -2411,6 +2804,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_atan),
@@ -2431,6 +2827,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_atan2),
 			},
@@ -2449,6 +2848,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_ceil),
@@ -2469,6 +2871,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_cos),
 			},
@@ -2487,6 +2892,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_exp),
@@ -2507,6 +2915,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_floor),
 			},
@@ -2525,6 +2936,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_log),
@@ -2545,6 +2959,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_max),
 			},
@@ -2563,6 +2980,9 @@ func _newContext(runtime *_runtime) {
 						value:      2,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_min),
@@ -2583,6 +3003,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_pow),
 			},
@@ -2601,6 +3024,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_random),
@@ -2621,6 +3047,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_round),
 			},
@@ -2639,6 +3068,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_sin),
@@ -2659,6 +3091,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_sqrt),
 			},
@@ -2677,6 +3112,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinMath_tan),
@@ -2872,6 +3310,34 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"abs",
+				"acos",
+				"asin",
+				"atan",
+				"atan2",
+				"ceil",
+				"cos",
+				"exp",
+				"floor",
+				"log",
+				"max",
+				"min",
+				"pow",
+				"random",
+				"round",
+				"sin",
+				"sqrt",
+				"tan",
+				"E",
+				"LN10",
+				"LN2",
+				"LOG2E",
+				"LOG10E",
+				"PI",
+				"SQRT1_2",
+				"SQRT2",
+			},
 		}
 	}
 	{
@@ -2889,6 +3355,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toString),
@@ -2909,6 +3378,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toDateString),
 			},
@@ -2927,6 +3399,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toTimeString),
@@ -2947,6 +3422,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toUTCString),
 			},
@@ -2965,6 +3443,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toISOString),
@@ -2985,6 +3466,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toJSON),
 			},
@@ -3003,6 +3487,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toGMTString),
@@ -3023,6 +3510,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toLocaleString),
 			},
@@ -3041,6 +3531,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toLocaleDateString),
@@ -3061,6 +3554,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_toLocaleTimeString),
 			},
@@ -3079,6 +3575,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_valueOf),
@@ -3099,6 +3598,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getTime),
 			},
@@ -3117,6 +3619,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getYear),
@@ -3137,6 +3642,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getFullYear),
 			},
@@ -3155,6 +3663,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCFullYear),
@@ -3175,6 +3686,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getMonth),
 			},
@@ -3193,6 +3707,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCMonth),
@@ -3213,6 +3730,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getDate),
 			},
@@ -3231,6 +3751,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCDate),
@@ -3251,6 +3774,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getDay),
 			},
@@ -3269,6 +3795,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCDay),
@@ -3289,6 +3818,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getHours),
 			},
@@ -3307,6 +3839,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCHours),
@@ -3327,6 +3862,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getMinutes),
 			},
@@ -3345,6 +3883,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCMinutes),
@@ -3365,6 +3906,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getSeconds),
 			},
@@ -3383,6 +3927,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCSeconds),
@@ -3403,6 +3950,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getMilliseconds),
 			},
@@ -3421,6 +3971,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getUTCMilliseconds),
@@ -3441,6 +3994,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_getTimezoneOffset),
 			},
@@ -3459,6 +4015,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setTime),
@@ -3479,6 +4038,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setMilliseconds),
 			},
@@ -3497,6 +4059,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCMilliseconds),
@@ -3517,6 +4082,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setSeconds),
 			},
@@ -3535,6 +4103,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCSeconds),
@@ -3555,6 +4126,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setMinutes),
 			},
@@ -3573,6 +4147,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCMinutes),
@@ -3593,6 +4170,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setHours),
 			},
@@ -3611,6 +4191,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCHours),
@@ -3631,6 +4214,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setDate),
 			},
@@ -3649,6 +4235,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCDate),
@@ -3669,6 +4258,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setMonth),
 			},
@@ -3687,6 +4279,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCMonth),
@@ -3707,6 +4302,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setYear),
 			},
@@ -3725,6 +4323,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setFullYear),
@@ -3745,6 +4346,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_setUTCFullYear),
 			},
@@ -3763,6 +4367,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_parse),
@@ -3783,6 +4390,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_UTC),
 			},
@@ -3801,6 +4411,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinDate_now),
@@ -4137,6 +4750,54 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"toString",
+				"toDateString",
+				"toTimeString",
+				"toUTCString",
+				"toISOString",
+				"toJSON",
+				"toGMTString",
+				"toLocaleString",
+				"toLocaleDateString",
+				"toLocaleTimeString",
+				"valueOf",
+				"getTime",
+				"getYear",
+				"getFullYear",
+				"getUTCFullYear",
+				"getMonth",
+				"getUTCMonth",
+				"getDate",
+				"getUTCDate",
+				"getDay",
+				"getUTCDay",
+				"getHours",
+				"getUTCHours",
+				"getMinutes",
+				"getUTCMinutes",
+				"getSeconds",
+				"getUTCSeconds",
+				"getMilliseconds",
+				"getUTCMilliseconds",
+				"getTimezoneOffset",
+				"setTime",
+				"setMilliseconds",
+				"setUTCMilliseconds",
+				"setSeconds",
+				"setUTCSeconds",
+				"setMinutes",
+				"setUTCMinutes",
+				"setHours",
+				"setUTCHours",
+				"setDate",
+				"setUTCDate",
+				"setMonth",
+				"setUTCMonth",
+				"setYear",
+				"setFullYear",
+				"setUTCFullYear",
+			},
 		}
 		runtime.Global.Date = &_object{
 			runtime:     runtime,
@@ -4149,6 +4810,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewDate,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4185,6 +4850,14 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
+				"parse",
+				"UTC",
+				"now",
+			},
 		}
 		runtime.Global.DatePrototype.property["constructor"] =
 			_property{
@@ -4211,6 +4884,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinRegExp_toString),
 			},
@@ -4229,6 +4905,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinRegExp_exec),
@@ -4249,6 +4928,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinRegExp_test),
 			},
@@ -4267,6 +4949,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinRegExp_compile),
@@ -4309,6 +4994,12 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"toString",
+				"exec",
+				"test",
+				"compile",
+			},
 		}
 		runtime.Global.RegExp = &_object{
 			runtime:     runtime,
@@ -4321,6 +5012,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewRegExp,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4335,6 +5030,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.RegExpPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.RegExpPrototype.property["constructor"] =
@@ -4361,6 +5061,9 @@ func _newContext(runtime *_runtime) {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinError_toString),
@@ -4396,6 +5099,11 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"toString",
+				"name",
+				"message",
+			},
 		}
 		runtime.Global.Error = &_object{
 			runtime:     runtime,
@@ -4408,6 +5116,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4422,6 +5134,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.ErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.ErrorPrototype.property["constructor"] =
@@ -4450,6 +5167,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"name",
+			},
 		}
 		runtime.Global.EvalError = &_object{
 			runtime:     runtime,
@@ -4462,6 +5182,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewEvalError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4476,6 +5200,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.EvalErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.EvalErrorPrototype.property["constructor"] =
@@ -4504,6 +5233,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"name",
+			},
 		}
 		runtime.Global.TypeError = &_object{
 			runtime:     runtime,
@@ -4516,6 +5248,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewTypeError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4530,6 +5266,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.TypeErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.TypeErrorPrototype.property["constructor"] =
@@ -4558,6 +5299,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"name",
+			},
 		}
 		runtime.Global.RangeError = &_object{
 			runtime:     runtime,
@@ -4570,6 +5314,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewRangeError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4584,6 +5332,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.RangeErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.RangeErrorPrototype.property["constructor"] =
@@ -4612,6 +5365,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"name",
+			},
 		}
 		runtime.Global.ReferenceError = &_object{
 			runtime:     runtime,
@@ -4624,6 +5380,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewReferenceError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4638,6 +5398,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.ReferenceErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.ReferenceErrorPrototype.property["constructor"] =
@@ -4666,6 +5431,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"name",
+			},
 		}
 		runtime.Global.SyntaxError = &_object{
 			runtime:     runtime,
@@ -4678,6 +5446,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewSyntaxError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4692,6 +5464,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.SyntaxErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.SyntaxErrorPrototype.property["constructor"] =
@@ -4720,6 +5497,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"name",
+			},
 		}
 		runtime.Global.URIError = &_object{
 			runtime:     runtime,
@@ -4732,6 +5512,10 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewURIError,
 			},
 			property: map[string]_property{
+				"constructor": _property{
+					mode:  0101,
+					value: Value{},
+				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4746,6 +5530,11 @@ func _newContext(runtime *_runtime) {
 						value:      runtime.Global.URIErrorPrototype,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"constructor",
+				"length",
+				"prototype",
 			},
 		}
 		runtime.Global.URIErrorPrototype.property["constructor"] =
@@ -4773,6 +5562,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_eval),
 			},
@@ -4791,6 +5583,9 @@ func _newContext(runtime *_runtime) {
 						value:      2,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_parseInt),
@@ -4811,6 +5606,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_parseFloat),
 			},
@@ -4829,6 +5627,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_isNaN),
@@ -4849,6 +5650,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_isFinite),
 			},
@@ -4867,6 +5671,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_decodeURI),
@@ -4887,6 +5694,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_decodeURIComponent),
 			},
@@ -4905,6 +5715,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_encodeURI),
@@ -4925,6 +5738,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_encodeURIComponent),
 			},
@@ -4944,6 +5760,9 @@ func _newContext(runtime *_runtime) {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_escape),
 			},
@@ -4962,6 +5781,9 @@ func _newContext(runtime *_runtime) {
 						value:      1,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinGlobal_unescape),
@@ -5094,18 +5916,18 @@ func _newContext(runtime *_runtime) {
 					value:      runtime.Global.Math,
 				},
 			},
-			"RegExp": _property{
-				mode: 0101,
-				value: Value{
-					_valueType: valueObject,
-					value:      runtime.Global.RegExp,
-				},
-			},
 			"Date": _property{
 				mode: 0101,
 				value: Value{
 					_valueType: valueObject,
 					value:      runtime.Global.Date,
+				},
+			},
+			"RegExp": _property{
+				mode: 0101,
+				value: Value{
+					_valueType: valueObject,
+					value:      runtime.Global.RegExp,
 				},
 			},
 			"Error": _property{
@@ -5178,6 +6000,38 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 		}
+		runtime.GlobalObject.propertyOrder = []string{
+			"eval",
+			"parseInt",
+			"parseFloat",
+			"isNaN",
+			"isFinite",
+			"decodeURI",
+			"decodeURIComponent",
+			"encodeURI",
+			"encodeURIComponent",
+			"escape",
+			"unescape",
+			"Object",
+			"Function",
+			"Array",
+			"String",
+			"Boolean",
+			"Number",
+			"Math",
+			"Date",
+			"RegExp",
+			"Error",
+			"EvalError",
+			"TypeError",
+			"RangeError",
+			"ReferenceError",
+			"SyntaxError",
+			"URIError",
+			"undefined",
+			"NaN",
+			"Infinity",
+		}
 	}
 }
 
@@ -5198,6 +6052,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_log),
 			},
@@ -5216,6 +6073,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_log),
@@ -5236,6 +6096,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_log),
 			},
@@ -5254,6 +6117,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_error),
@@ -5274,6 +6140,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_error),
 			},
@@ -5292,6 +6161,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_dir),
@@ -5312,6 +6184,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_time),
 			},
@@ -5330,6 +6205,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_timeEnd),
@@ -5350,6 +6228,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 					},
 				},
 			},
+			propertyOrder: []string{
+				"length",
+			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_trace),
 			},
@@ -5368,6 +6249,9 @@ func newConsoleObject(runtime *_runtime) *_object {
 						value:      0,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"length",
 			},
 			value: _functionObject{
 				call: _nativeCallFunction(builtinConsole_assert),
@@ -5450,6 +6334,18 @@ func newConsoleObject(runtime *_runtime) *_object {
 						value:      assert_function,
 					},
 				},
+			},
+			propertyOrder: []string{
+				"log",
+				"debug",
+				"info",
+				"error",
+				"warn",
+				"dir",
+				"time",
+				"timeEnd",
+				"trace",
+				"assert",
 			},
 		}
 	}
