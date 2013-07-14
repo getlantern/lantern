@@ -13,7 +13,6 @@ import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.littleshoot.commom.xmpp.XmppConfig;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +69,8 @@ public class LanternXmppUtil {
         //config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
         //config.setDirectHttpClient(this.httpClientFactory.newClient());
         
-        config.setSslSocketFactory(this.socketsUtil.newTlsSocketFactoryJavaCipherSuites());
-        config.setFallbackProxy(proxyInfo);
+        //config.setSslSocketFactory(this.socketsUtil.newTlsSocketFactoryJavaCipherSuites());
+        //config.setFallbackProxy(proxyInfo);
         config.setExpiredCertificatesCheckEnabled(true);
         
         // We don't check for matching domains because Google Talk uses the
@@ -172,13 +171,5 @@ public class LanternXmppUtil {
             LOG.info("Creating socket");
             return createSocket(InetAddress.getByName(host), port);
         }
-    }
-    
-    public void configureXmpp() {
-        XmppUtils.setGlobalConfig(xmppConfig(null));
-    }
-
-    public void configureXmppWithBackupProxy() {
-        XmppUtils.setGlobalConfig(xmppProxyConfig());
     }
 }

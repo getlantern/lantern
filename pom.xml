@@ -254,11 +254,13 @@
       <version>0.0.1</version>
     </dependency>
 
+<!--
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>smack-xmpp-3-2-2</artifactId>
-      <version>1.0.5</version>
+      <version>1.0.6</version>
     </dependency>
+-->
 
     <dependency>
       <groupId>org.littleshoot</groupId>
@@ -281,7 +283,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>p2p</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.5</version>
     </dependency>
 
     <dependency>
