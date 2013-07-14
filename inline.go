@@ -1731,6 +1731,25 @@ func _newContext(runtime *_runtime) {
 				call: _nativeCallFunction(builtinString_localeCompare),
 			},
 		}
+		toLocaleLowerCase_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      0,
+					},
+				},
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinString_toLocaleLowerCase),
+			},
+		}
 		fromCharCode_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -1903,6 +1922,13 @@ func _newContext(runtime *_runtime) {
 					value: Value{
 						_valueType: valueObject,
 						value:      localeCompare_function,
+					},
+				},
+				"toLocaleLowerCase": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      toLocaleLowerCase_function,
 					},
 				},
 			},

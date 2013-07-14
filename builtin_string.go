@@ -486,9 +486,13 @@ func builtinString_localeCompare(call FunctionCall) Value {
 }
 
 /*
-An alternate version
+An alternate version of String.trim
 func builtinString_trim(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	return toValue_string(strings.TrimFunc(toString(call.This), isWhiteSpaceOrLineTerminator))
 }
 */
+
+func builtinString_toLocaleLowerCase(call FunctionCall) Value {
+	return builtinString_toLowerCase(call)
+}

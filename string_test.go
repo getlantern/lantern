@@ -218,6 +218,8 @@ func TestString_toCase(t *testing.T) {
 	test := runTest()
 	test(`"abc".toLowerCase()`, "abc")
 	test(`"ABC".toLowerCase()`, "abc")
+	test(`"abc".toLocaleLowerCase()`, "abc")
+	test(`"ABC".toLocaleLowerCase()`, "abc")
 	test(`"abc".toUpperCase()`, "ABC")
 	test(`"ABC".toUpperCase()`, "ABC")
 }
