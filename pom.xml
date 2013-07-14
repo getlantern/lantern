@@ -283,7 +283,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>p2p</artifactId>
-      <version>1.0.7</version>
+      <version>1.0.8</version>
     </dependency>
 
     <dependency>
