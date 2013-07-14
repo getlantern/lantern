@@ -496,3 +496,7 @@ func builtinString_trim(call FunctionCall) Value {
 func builtinString_toLocaleLowerCase(call FunctionCall) Value {
 	return builtinString_toLowerCase(call)
 }
+
+func builtinString_toLocaleUpperCase(call FunctionCall) Value {
+	return builtinString_toUpperCase(call)
+}

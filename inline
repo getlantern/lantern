@@ -290,6 +290,7 @@ sub newContext {
                 "trimRight", 0,
                 "localeCompare", 1,
                 "toLocaleLowerCase", 0,
+                "toLocaleUpperCase", 0,
             );
             return
             ".${class}Prototype =",
