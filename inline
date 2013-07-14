@@ -350,6 +350,7 @@ sub newContext {
                 "toFixed", 1,
                 "toExponential", 1,
                 "toPrecision", 1,
+                "toLocaleString", 1,
             );
             return
             ".${class}Prototype =",

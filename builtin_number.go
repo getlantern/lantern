@@ -81,3 +81,7 @@ func builtinNumber_toPrecision(call FunctionCall) Value {
 	}
 	return toValue_string(strconv.FormatFloat(toFloat(call.This), 'g', int(precision), 64))
 }
+
+func builtinNumber_toLocaleString(call FunctionCall) Value {
+	return builtinNumber_toString(call)
+}

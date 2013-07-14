@@ -92,3 +92,17 @@ func TestNumber_toPrecision(t *testing.T) {
 	test(`5.123456.toPrecision(2)`, "5.1")
 	test(`5.123456.toPrecision(1)`, "5")
 }
+
+func TestNumber_toLocaleString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        [
+        new Number(451).toLocaleString(),
+        new Number(451).toLocaleString(10),
+        new Number(451).toLocaleString(8)
+        ];
+    `, "451,451,703")
+}
