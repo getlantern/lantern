@@ -8,7 +8,7 @@ with copy similar to "Restart to being using the new version of X".
 
 Updating your program to a new version is as easy as:
 
-	err := update.FromUrl("https://updates.example.com/releases/2.0/myprogram")
+	err := update.FromUrl("http://release.example.com/2.0/myprogram")
 	if err != nil {
 		fmt.Printf("Update failed: %v", err)
 	}
