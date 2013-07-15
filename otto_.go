@@ -55,14 +55,19 @@ func arrayIndexToString(index int64) string {
 	return strconv.FormatInt(index, 10)
 }
 
-func valueOfArrayIndex(list []Value, index int) Value {
-	if index >= 0 && index < len(list) {
-		value := list[index]
+func valueOfArrayIndex(array []Value, index int) Value {
+	value, _ := getValueOfArrayIndex(array, index)
+	return value
+}
+
+func getValueOfArrayIndex(array []Value, index int) (Value, bool) {
+	if index >= 0 && index < len(array) {
+		value := array[index]
 		if !value.isEmpty() {
-			return value
+			return value, true
 		}
 	}
-	return UndefinedValue()
+	return UndefinedValue(), false
 }
 
 // A range index can be anything from 0 up to length. It is NOT safe to use as an index

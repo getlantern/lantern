@@ -276,6 +276,10 @@ func (self FunctionCall) Argument(index int) Value {
 	return valueOfArrayIndex(self.ArgumentList, index)
 }
 
+func (self FunctionCall) getArgument(index int) (Value, bool) {
+	return getValueOfArrayIndex(self.ArgumentList, index)
+}
+
 func (self FunctionCall) slice(index int) []Value {
 	if index < len(self.ArgumentList) {
 		return self.ArgumentList[index:]

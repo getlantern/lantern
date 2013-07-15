@@ -43,6 +43,7 @@ func (runtime *_runtime) clone() *_runtime {
 		clone.object(runtime.Global.ReferenceError),
 		clone.object(runtime.Global.SyntaxError),
 		clone.object(runtime.Global.URIError),
+		clone.object(runtime.Global.JSON),
 
 		clone.object(runtime.Global.ObjectPrototype),
 		clone.object(runtime.Global.FunctionPrototype),

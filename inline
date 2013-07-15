@@ -582,6 +582,21 @@ sub newContext {
             });
         } qw/Eval Type Range Reference Syntax URI/),
 
+        # JSON
+        $self->block(sub {
+            my $class = "JSON";
+            return
+            ".$class =",
+            $self->globalObject(
+                $class,
+                $self->functionDeclare(
+                    $class,
+                    "parse", 2,
+                    "stringify", 3,
+                ),
+            ),
+        }),
+
         # Global
         $self->block(sub {
             my $class = "Global";
@@ -618,6 +633,7 @@ sub newContext {
                     "ReferenceError",
                     "SyntaxError",
                     "URIError",
+                    "JSON",
                 ),
                 $self->property("undefined", $self->undefinedValue(), "0"),
                 $self->property("NaN", $self->numberValue("math.NaN()"), "0"),

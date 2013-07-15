@@ -5465,6 +5465,79 @@ func _newContext(runtime *_runtime) {
 			}
 	}
 	{
+		parse_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      2,
+					},
+				},
+			},
+			propertyOrder: []string{
+				"length",
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinJSON_parse),
+			},
+		}
+		stringify_function := &_object{
+			runtime:     runtime,
+			class:       "Function",
+			objectClass: _classObject,
+			prototype:   runtime.Global.FunctionPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"length": _property{
+					mode: 0,
+					value: Value{
+						_valueType: valueNumber,
+						value:      3,
+					},
+				},
+			},
+			propertyOrder: []string{
+				"length",
+			},
+			value: _functionObject{
+				call: _nativeCallFunction(builtinJSON_stringify),
+			},
+		}
+		runtime.Global.JSON = &_object{
+			runtime:     runtime,
+			class:       "JSON",
+			objectClass: _classObject,
+			prototype:   runtime.Global.ObjectPrototype,
+			extensible:  true,
+			property: map[string]_property{
+				"parse": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      parse_function,
+					},
+				},
+				"stringify": _property{
+					mode: 0101,
+					value: Value{
+						_valueType: valueObject,
+						value:      stringify_function,
+					},
+				},
+			},
+			propertyOrder: []string{
+				"parse",
+				"stringify",
+			},
+		}
+	}
+	{
 		eval_function := &_object{
 			runtime:     runtime,
 			class:       "Function",
@@ -5897,6 +5970,13 @@ func _newContext(runtime *_runtime) {
 					value:      runtime.Global.URIError,
 				},
 			},
+			"JSON": _property{
+				mode: 0101,
+				value: Value{
+					_valueType: valueObject,
+					value:      runtime.Global.JSON,
+				},
+			},
 			"undefined": _property{
 				mode: 0,
 				value: Value{
@@ -5946,6 +6026,7 @@ func _newContext(runtime *_runtime) {
 			"ReferenceError",
 			"SyntaxError",
 			"URIError",
+			"JSON",
 			"undefined",
 			"NaN",
 			"Infinity",

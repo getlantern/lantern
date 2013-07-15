@@ -22,6 +22,7 @@ type _global struct {
 	ReferenceError *_object
 	SyntaxError    *_object
 	URIError       *_object
+	JSON           *_object
 
 	ObjectPrototype         *_object // Object.prototype
 	FunctionPrototype       *_object // Function.prototype
