@@ -37,7 +37,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-//	"syscall"
 )
 
 var (
@@ -48,28 +47,6 @@ var (
 func init() {
 	UpdateUnavailable = fmt.Errorf("204 server response indicates no available update")
 }
-
-/*
-// Restart forks a new copy of the program by running the executable file
-// with the same arguments. It then terminates the current program. Use this
-// function after an update has completed to start running the new, updated
-// code.
-func Restart() error {
-	execPath, err := execpath.Get()
-	if err != nil {
-		return err
-	}
-
-	_, err = syscall.ForkExec(execPath, os.Args[1:len(os.Args)])
-	if err != nil {
-		return err
-	}
-
-	// We successfully spawned the updated program, shut down the old one
-	os.Exit(0)
-	return nil
-}
-*/
 
 // Type Download encapsulates the necessary parameters and state
 // needed to download an update from the internet. Create an instance
@@ -97,6 +74,7 @@ type Download struct {
 // NewDownload initializes a new Download object
 func NewDownload() *Download {
 	return &Download{
+		HttpClient: new(http.Client),
 		Progress: make(chan int),
 		Method: "GET",
 	}
