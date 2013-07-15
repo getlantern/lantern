@@ -85,7 +85,6 @@ public class LanternUtils {
     private static boolean amFallbackProxy = false;
 
     private static String keystorePath = "<UNSET>";
-
     
     private static final Properties privateProps = new Properties();
     private static final File privatePropsFile;
@@ -119,12 +118,12 @@ public class LanternUtils {
                 privateProps.load(is);
                 LOG.debug("LOADED PRIVATE PROPS FILE!");
             } catch (final IOException e) {
-                LOG.debug("COULD NOT LOAD PRIVATE PROPS FILE AT "+ 
+                LOG.debug("COULD NOT LOAD PRIVATE PROPS FILE AT "+
                         privatePropsFile);
             } finally {
                 IOUtils.closeQuietly(is);
             }
-            
+
             if (StringUtils.isBlank(getRefreshToken()) ||
                 StringUtils.isBlank(getAccessToken())) {
                 System.err.println("NO REFRESH OR ACCESS TOKENS!!");
@@ -439,7 +438,7 @@ public class LanternUtils {
         return "";
     }
 
-    private static String findKeytoolPath() {
+    public static String findKeytoolPath() {
 
         if (SystemUtils.IS_OS_MAC_OSX) {
             // try to explicitly select the 1.6 keytool --
@@ -1048,7 +1047,7 @@ public class LanternUtils {
         final String prop = System.getProperty("testing");
         return "true".equalsIgnoreCase(prop);
     }
-    
+
     public static String getRefreshToken() {
         final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
         if (StringUtils.isBlank(oauth)) {
