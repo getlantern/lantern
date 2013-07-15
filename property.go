@@ -73,6 +73,18 @@ func (self _property) copy() *_property {
 	return &property
 }
 
+func (self _property) get(this *_object) Value {
+	switch value := self.value.(type) {
+	case Value:
+		return value
+	case _propertyGetSet:
+		if value[0] != nil {
+			return value[0].callGet(toValue(this))
+		}
+	}
+	return UndefinedValue()
+}
+
 func (self _property) isAccessorDescriptor() bool {
 	setGet, test := self.value.(_propertyGetSet)
 	return test && setGet[0] != nil || setGet[1] != nil
@@ -134,8 +146,6 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	getterSetter := false
 
 	if objectDescriptor.hasProperty("get") {
-		// FIXME
-		panic(newTypeError("get: is not supported by otto (yet)"))
 		value := objectDescriptor.get("get")
 		if value.IsDefined() {
 			if !value.isCallable() {
@@ -147,8 +157,6 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	}
 
 	if objectDescriptor.hasProperty("set") {
-		// FIXME
-		panic(newTypeError("set: is not supported by otto (yet)"))
 		value := objectDescriptor.get("set")
 		if value.IsDefined() {
 			if !value.isCallable() {

@@ -366,3 +366,67 @@ func TestObject_getOwnPropertyNames(t *testing.T) {
         Object.getOwnPropertyNames(ghi)
     `, "ghi,jkl")
 }
+
+func TestObjectGetterSetter(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`raise:
+        Object.create({}, {
+            abc: {
+                get: function(){
+                    return "true";
+                },
+                writable: true
+            }
+        }).abc;
+    `, "TypeError")
+
+	test(`raise:
+        Object.create({}, {
+            abc: {
+                get: function(){
+                    return "true";
+                },
+                writable: false
+            }
+        }).abc;
+    `, "TypeError")
+
+	test(`
+        Object.create({}, {
+            abc: {
+                get: function(){
+                    return "true";
+                }
+            }
+        }).abc;
+    `, "true")
+
+	test(`
+        Object.create({xyz:true},{abc:{get:function(){return this.xyx}}}).abc;
+        Object.create({
+                xyz: true
+            }, {
+            abc: {
+                get: function(){
+                    return this.xyz;
+                }
+            }
+        }).abc;
+    `, "true")
+
+	test(`
+		var abc = false;
+		var def = Object.create({}, {
+			xyz: {
+				set: function(value) {
+					abc = value;
+				}
+			}
+		});
+	    def.xyz = true;
+        [ abc ];
+	`, "true")
+}

@@ -181,7 +181,7 @@ func objectGetProperty(self *_object, name string) *_property {
 func objectGet(self *_object, name string) Value {
 	property := self.getProperty(name)
 	if property != nil {
-		return property.value.(Value)
+		return property.get(self)
 	}
 	return UndefinedValue()
 }
@@ -191,11 +191,11 @@ func objectCanPut(self *_object, name string) bool {
 
 	property := self.getOwnProperty(name)
 	if property != nil {
-		switch value := property.value.(type) {
+		switch propertyValue := property.value.(type) {
 		case Value:
 			return property.writable()
 		case _propertyGetSet:
-			return value[1] != nil
+			return propertyValue[1] != nil
 		default:
 			panic(newTypeError())
 		}
@@ -210,14 +210,14 @@ func objectCanPut(self *_object, name string) bool {
 		return self.extensible
 	}
 
-	switch value := property.value.(type) {
+	switch propertyValue := property.value.(type) {
 	case Value:
 		if !self.extensible {
 			return false
 		}
 		return property.writable()
 	case _propertyGetSet:
-		return value[1] != nil
+		return propertyValue[1] != nil
 	default:
 		panic(newTypeError())
 	}
@@ -237,8 +237,21 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 	if property == nil {
 		self.defineProperty(name, value, 0111, throw)
 	} else {
-		property.value = value
-		self.defineOwnProperty(name, *property, throw)
+		switch propertyValue := property.value.(type) {
+		case Value:
+			property.value = value
+			self.defineOwnProperty(name, *property, throw)
+		case _propertyGetSet:
+			if propertyValue[1] != nil {
+				propertyValue[1].callSet(toValue(self), value)
+				return
+			}
+			if throw {
+				panic(newTypeError())
+			}
+		default:
+			panic(newTypeError())
+		}
 	}
 }
 
