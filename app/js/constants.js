@@ -12,12 +12,12 @@ function makeEnum(keys, extra) {
   return obj;
 }
 
-var DEFAULT_LANG = 'en',
+var DEFAULT_LANG = 'en_US',
     DEFAULT_DIRECTION = 'ltr',
     LANG = {
-      en: {dir: 'ltr', name: 'English'},
-      fa: {dir: 'rtl', name: 'پارسی'}
-      //zh: {dir: 'ltr', name: '中文'},
+      en_US: {dir: 'ltr', name: 'English'},
+      fa_IR: {dir: 'rtl', name: 'پارسی'}
+      //zh_CN: {dir: 'ltr', name: '中文'},
       //ar: {dir: 'rtl', name: 'العربية'},
     },
     loc = typeof location == 'object' ? location : undefined,
