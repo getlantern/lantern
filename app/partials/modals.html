@@ -93,9 +93,10 @@
       <small><a ng-click="helpExpanded=!helpExpanded"
                 class="toggle">{{ 'WHY' | i18n }}</a></small>
     </div>
-    <div class="prompt-extra" collapse="!helpExpanded">
+    <div class="prompt-extra gray" collapse="!helpExpanded">
       {{ 'AUTHORIZE_TIP_GTALK' | i18n }}
     </div>
+    <div class="prompt-extra">{{ 'EMAIL_USE' | i18n }}</div>
   </div>
   <div class="modal-footer">
     <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}">
