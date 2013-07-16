@@ -103,8 +103,8 @@
       </java>
       <includedFiles />
       <unextractableFiles />
-      <vmOptionsFile mode="none" overwriteMode="0" fileMode="644">
-        <content />
+      <vmOptionsFile mode="content" overwriteMode="0" fileMode="644">
+        <content>-XstartOnFirstThread</content>
       </vmOptionsFile>
       <customScript mode="1" file="">
         <content />
