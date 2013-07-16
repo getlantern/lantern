@@ -75,7 +75,7 @@ type Download struct {
 func NewDownload() *Download {
 	return &Download{
 		HttpClient: new(http.Client),
-		Progress: make(chan int),
+		Progress: make(chan int, 100),
 		Method: "GET",
 	}
 }
@@ -169,16 +169,44 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 		return
 	}
 
-	// Download the update
-	n, err := io.Copy(fp, resp.Body)
-	if err != nil {
-		return
+	// Determine how much we have to download
+	clength := 0
+	if resp.Header["Content-Length"] != nil {
+		clength, err = strconv.Atoi(resp.Header["Content-Length"][0])
+		if err != nil {
+			clength = 0
+		}
 	}
 
-	// make sure we downloaded the entire file
-	clength := resp.Header["Content-Length"]
-	if clength != nil && clength[0] != strconv.FormatInt(n, 10) {
-		err = fmt.Errorf("Failed to download entire file, only %d bytes out of %s", n, clength[0])
+	// Download the update
+	defer close(d.Progress)
+	if clength > 0 {
+		nTotal := int64(0)
+		for i := 0; i < 100; i++ {
+			var n int64
+			nCopy := int64(clength / 100) + 1
+			n, err = io.CopyN(fp, resp.Body, nCopy)
+			nTotal += n
+			d.Progress <- (i+1)
+
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				return
+			}
+		}
+
+		// make sure we downloaded the entire file
+		if nTotal != int64(clength) {
+			err = fmt.Errorf("Failed to download entire file, only %d bytes out of %d", nTotal, clength)
+			return
+		}
+	} else {
+		// streaming response, we can't calculate progress, just copy it all
+		_, err = io.Copy(fp, resp.Body)
+		if err != nil {
+			return
+		}
 	}
 
 	// Seek to the beginning of the file before we pass fp to FromStream()
