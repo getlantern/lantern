@@ -531,7 +531,7 @@ public class Proxifier implements ProxyService, LanternService {
     public void onModeChangedEvent(final ModeChangedEvent event) {
         switch (event.getNewMode()) {
         case get:
-            LOG.debug("Nothing to do on roster when switched to get mode");
+            LOG.debug("Nothing to do on proxifier when switched to get mode");
             return;
         case give:
             LOG.debug("Switched to give mode");
