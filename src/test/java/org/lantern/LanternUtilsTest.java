@@ -1,5 +1,6 @@
 package org.lantern;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -12,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
+import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
@@ -33,6 +35,8 @@ public class LanternUtilsTest {
     @BeforeClass
     public static void setup() throws Exception {
         LOG.debug("Setting up LanternUtilsTests...");
+        SASLAuthentication.registerSASLMechanism("X-OAUTH2",
+                LanternSaslGoogleOAuth2Mechanism.class);
         TestUtils.load(true);
         System.setProperty("javax.net.debug", "ssl");
     }
@@ -104,14 +108,17 @@ public class LanternUtilsTest {
     }
 
 
-    @Test
+    //@Test
     public void testInstallPolicyFiles() throws Exception {
         String home = System.getProperty("java.home");
         try {
             File tmp = new File(System.getProperty("java.io.tmpdir"));
             File fakeJRE = new File(tmp, "fakejre");
             File security = new File(fakeJRE, "lib/security");
-            security.mkdirs();
+            if (!security.isDirectory() && !security.mkdirs()) {
+                fail("Could not make directories...");
+                return;
+            }
 
             File export = new File(security, "US_export_policy.jar");
             FileUtils.write(export, "test", "UTF-8");
@@ -124,7 +131,9 @@ public class LanternUtilsTest {
 
             byte[] export_read = FileUtils.readFileToByteArray(export);
             //jars are zips and so always start with PK
-            assertEquals('P', export_read[0]);
+            final char first = (char)export_read[0];
+            
+            assertEquals("Expected 'P' but was '"+first+"'", 'P', (char)export_read[0]);
 
             byte[] local_read = FileUtils.readFileToByteArray(export);
             assertEquals('P', local_read[0]);
