@@ -219,8 +219,6 @@ sub newContext {
                 1,
             ),
             ".$class = Function",
-            ".${class}Prototype.property[\"constructor\"] =",
-            $self->property(undef, $self->objectValue("Function"), "0"),
         }),
 
         # Array
@@ -746,7 +744,6 @@ sub globalFunction {
     my $prototype = "runtime.Global.${name}Prototype";
     my $propertyMap = "";
     unshift @_,
-        $self->property("constructor", undef),
         $self->property("length", $self->numberValue($length), "0"),
         $self->property("prototype", $self->objectValue($prototype), "0"),
     ;
@@ -834,14 +831,7 @@ sub newFunction {
         $name = $name[0];
     }
 
-    my $prototype = "${name}_prototype";
-
-    if ($name =~ s/^-//) {
-        undef $prototype;
-    }
-
     if ($func =~ m/^builtin\w+_$/) {
-        undef $prototype;
         $func = "$func$name[1]";
     }
 
@@ -850,23 +840,9 @@ sub newFunction {
         $self->property("length", $self->numberValue($length), "0"),
     );
 
-    if ($prototype) {
-        push @propertyMap, $self->property("prototype", $self->objectValue($prototype), "0100");
-    }
-
-    if ($prototype) {
-        push @preblock, $self->statement(
-            "$prototype :=",
-            $self->newObject(
-                $self->property("constructor", undef, "0101"),
-            ),
-        );
-    }
-
     if (@propertyMap) {
         $propertyOrder = $self->propertyOrder(@propertyMap);
         $propertyOrder = "$propertyOrder,";
-
     }
 
     my $label = functionLabel($name);
@@ -884,13 +860,6 @@ sub newFunction {
 } 
 _END_
     );
-
-    if ($prototype) {
-        push @preblock, $self->statement(
-            "$prototype.property[\"constructor\"] =",
-            $self->property(undef, $self->objectValue("$label"), "0101"),
-        );
-    }
 
     return $name;
 }

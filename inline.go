@@ -653,10 +653,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewObject,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -764,7 +760,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 				"getPrototypeOf",
@@ -803,10 +798,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewFunction,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -823,19 +814,11 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
 		}
 		runtime.Global.Function = Function
-		runtime.Global.FunctionPrototype.property["constructor"] = _property{
-			mode: 0,
-			value: Value{
-				_valueType: valueObject,
-				value:      Function,
-			},
-		}
 		runtime.Global.FunctionPrototype.property["constructor"] =
 			_property{
 				mode: 0101,
@@ -1529,10 +1512,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewArray,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -1556,7 +1535,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 				"isArray",
@@ -2285,10 +2263,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewString,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -2312,7 +2286,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 				"fromCharCode",
@@ -2411,10 +2384,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewBoolean,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -2431,7 +2400,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -2649,10 +2617,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewNumber,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -2704,7 +2668,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 				"MAX_VALUE",
@@ -4810,10 +4773,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewDate,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -4851,7 +4810,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 				"parse",
@@ -5012,10 +4970,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewRegExp,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5032,7 +4986,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5116,10 +5069,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5136,7 +5085,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5182,10 +5130,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewEvalError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5202,7 +5146,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5248,10 +5191,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewTypeError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5268,7 +5207,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5314,10 +5252,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewRangeError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5334,7 +5268,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5380,10 +5313,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewReferenceError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5400,7 +5329,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5446,10 +5374,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewSyntaxError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5466,7 +5390,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},
@@ -5512,10 +5435,6 @@ func _newContext(runtime *_runtime) {
 				construct: builtinNewURIError,
 			},
 			property: map[string]_property{
-				"constructor": _property{
-					mode:  0101,
-					value: Value{},
-				},
 				"length": _property{
 					mode: 0,
 					value: Value{
@@ -5532,7 +5451,6 @@ func _newContext(runtime *_runtime) {
 				},
 			},
 			propertyOrder: []string{
-				"constructor",
 				"length",
 				"prototype",
 			},

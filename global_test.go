@@ -69,6 +69,11 @@ func TestGlobal(t *testing.T) {
         Object.getOwnPropertyNames(Object.prototype).sort();
     `, "constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf")
 
+	// arguments,caller,length,name,prototype
+	test(`
+        Object.getOwnPropertyNames(EvalError).sort();
+    `, "length,prototype")
+
 	test(`
         var abc = [];
         var def = [EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError];
@@ -81,6 +86,18 @@ func TestGlobal(t *testing.T) {
         }
         abc;
     `, "true,true,true,true,true,true,true,true,true,true,true,true,true,true,true")
+
+	test(`
+        [ Array.prototype.constructor === Array, Array.constructor === Function ];
+    `, "true,true")
+
+	test(`
+        [ Number.prototype.constructor === Number, Number.constructor === Function ];
+    `, "true,true")
+
+	test(`
+        [ Function.prototype.constructor === Function, Function.constructor === Function ];
+    `, "true,true")
 }
 
 func TestGlobalLength(t *testing.T) {
