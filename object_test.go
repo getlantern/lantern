@@ -80,6 +80,16 @@ func TestObject_create(t *testing.T) {
         });
 	      [ abc.prototype, def.x, def.y, ghi, jkl.x, jkl.y, jkl.z ]
     `, ",10,20,[object Object],10,20,30")
+
+	test(`
+        var properties = {};
+        Object.defineProperty(properties, "abc", {
+            value: {},
+            enumerable: false
+        });
+        var mno = Object.create({}, properties);
+        mno.hasOwnProperty("abc");
+    `, "false")
 }
 
 func TestObject_toLocaleString(t *testing.T) {

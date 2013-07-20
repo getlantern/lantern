@@ -155,7 +155,7 @@ func builtinObject_create(call FunctionCall) Value {
 	propertiesValue := call.Argument(1)
 	if propertiesValue.IsDefined() {
 		properties := call.runtime.toObject(propertiesValue)
-		properties.enumerate(true, func(name string) bool {
+		properties.enumerate(false, func(name string) bool {
 			descriptor := toPropertyDescriptor(properties.get(name))
 			object.defineOwnProperty(name, descriptor, true)
 			return true
