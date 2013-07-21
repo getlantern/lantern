@@ -276,7 +276,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 			// Test that, if enumerable is set on the property descriptor, then it should
 			// be the same as the existing property
 			if descriptor.enumerateSet() && descriptor.enumerable() != property.enumerable() {
-				return false
+				goto Reject
 			}
 		}
 		value, isDataDescriptor := property.value.(Value)
