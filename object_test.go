@@ -170,24 +170,24 @@ func TestObject_seal(t *testing.T) {
 	test := runTest()
 	test(`raise: Object.seal()`, "TypeError")
 	test(`
-		var abc = {a:1,b:1,c:3};
-		var sealed = Object.isSealed(abc);
-		Object.seal(abc);
-		[sealed, Object.isSealed(abc)];
-	`, "false,true")
+        var abc = {a:1,b:1,c:3};
+        var sealed = Object.isSealed(abc);
+        Object.seal(abc);
+        [sealed, Object.isSealed(abc)];
+    `, "false,true")
 	test(`
 		var abc = {a:1,b:1,c:3};
 		var sealed = Object.isSealed(abc);
 		var caught = false;
 		Object.seal(abc);
 		abc.b = 5;
-		Object.defineProperty(abc, "a", {value:4});
-		try {
-			Object.defineProperty(abc, "a", {value:42,enumerable:false});
-		} catch (e) {
-			caught = e instanceof TypeError;
-		}
-		[sealed, Object.isSealed(abc), caught, abc.a, abc.b];
+        Object.defineProperty(abc, "a", {value:4});
+        try {
+            Object.defineProperty(abc, "a", {value:42,enumerable:false});
+        } catch (e) {
+            caught = e instanceof TypeError;
+        }
+        [sealed, Object.isSealed(abc), caught, abc.a, abc.b];
 	`, "false,true,true,4,5")
 
 	test(`Object.seal.length`, "1")
@@ -262,6 +262,18 @@ func TestObject_defineProperty(t *testing.T) {
         `,
 		"true",
 	)
+
+	test(`
+        var abc = {};
+        abc.def = 3.14; // Default: writable: true, enumerable: true, configurable: true
+
+        Object.defineProperty(abc, "def", {
+            value: 42
+        });
+
+        var ghi = Object.getOwnPropertyDescriptor(abc, "def");
+        [ ghi.value, ghi.writable, ghi.enumerable, ghi.configurable ];
+    `, "42,true,true,true")
 }
 
 func TestObject_keys(t *testing.T) {
