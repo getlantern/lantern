@@ -44,16 +44,18 @@ angular.module('app.i18n', [])
       if (_.isUndefined(key)) return '(translation key undefined. did you forget quotes?)';
       if (!key) return '';
       if (!fetched) return ''; // XXX remove when hack above is removed
+      if (!_.isUndefined(count)) {
+        key += count === 1 ? '_1' : '_OTHER';
+        var translation =
+            (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
+            TRANSLATIONS[DEFAULT_LANG][key];
+        if (translation) return translation.replace(COUNT, numFltr(count));
+        return pluralNotFound(key, count);
+      }
       var translation =
           (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
           TRANSLATIONS[DEFAULT_LANG][key];
       if (!translation) return keyNotFound(key);
-      if (_.isPlainObject(translation)) {
-        if (_.isUndefined(count)) return '';
-        translation = translation[count] || translation.other;
-        if (translation) return translation.replace(COUNT, numFltr(count));
-        return pluralNotFound(key, count);
-      }
       return translation;
     };
   });

@@ -239,7 +239,7 @@
               <span class="fn">{{ friend.name }}</span>
               <span class="email">{{ friend.email }}</span>
             </span>
-            <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending">
+            <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending" dir="ltr">
               <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'FRIEND' | i18n }}</button>
               <button type="button" class="btn btn-mini btn-danger" ng-click="reject(friend.email)">{{ 'DECLINE' | i18n }}</button>
             </span>
