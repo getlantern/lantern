@@ -274,6 +274,14 @@ func TestObject_defineProperty(t *testing.T) {
         var ghi = Object.getOwnPropertyDescriptor(abc, "def");
         [ ghi.value, ghi.writable, ghi.enumerable, ghi.configurable ];
     `, "42,true,true,true")
+
+	// Test that we handle the case of DefineOwnProperty
+	// where [[Writable]] is something but [[Value] is not given
+	test(`
+		var abc = [];
+        Object.defineProperty(abc, "0", { writable: false });
+        0 in abc;
+    `, "true")
 }
 
 func TestObject_keys(t *testing.T) {

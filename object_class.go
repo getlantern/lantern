@@ -300,7 +300,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 					goto Reject
 				}
 				if !property.writable() {
-					if !sameValue(value, descriptor.value.(Value)) {
+					if descriptor.value != nil && !sameValue(value, descriptor.value.(Value)) {
 						goto Reject
 					}
 				}
