@@ -20,7 +20,7 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 	lengthProperty := self.getOwnProperty("length")
 	lengthValue, valid := lengthProperty.value.(Value)
 	if !valid {
-		return objectDefineOwnProperty(self, name, descriptor, throw)
+		panic("Array.length != Value{}")
 	}
 	length := lengthValue.value.(uint32)
 	if name == "length" {

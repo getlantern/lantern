@@ -469,3 +469,27 @@ func TestArray_reduceRight(t *testing.T) {
 	test(`[1,2,3].reduceRight(function(result, value) { return result + value }, 4)`, "10")
 	test(`[1,2,3].reduceRight(function(result, value) { return result + value })`, "6")
 }
+
+func TestArray_defineOwnProperty(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = [];
+        Object.defineProperty(abc, "length", {
+            writable: false
+        });
+        abc.length;
+    `, "0")
+
+	test(`raise:
+        var abc = [];
+        var exception;
+        Object.defineProperty(abc, "length", {
+            writable: false
+        });
+        Object.defineProperty(abc, "length", {
+            writable: true
+        });
+    `, "TypeError")
+}
