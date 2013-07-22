@@ -276,12 +276,23 @@ func TestObject_defineProperty(t *testing.T) {
     `, "42,true,true,true")
 
 	// Test that we handle the case of DefineOwnProperty
-	// where [[Writable]] is something but [[Value] is not given
+	// where [[Writable]] is something but [[Value]] is not
 	test(`
 		var abc = [];
         Object.defineProperty(abc, "0", { writable: false });
         0 in abc;
     `, "true")
+
+	// Test that we handle the case of DefineOwnProperty
+	// where [[Writable]] is something but [[Value]] is not
+	// (and the property originally had something for [[Value]]
+	test(`
+		abc = {
+            def: 42
+        };
+        Object.defineProperty(abc, "def", { writable: false });
+        abc.def;
+    `, "42")
 }
 
 func TestObject_keys(t *testing.T) {

@@ -313,23 +313,31 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				}
 			}
 		}
-		mode1 := descriptor.mode
-		if mode1&0222 != 0 {
-			// TODO Factor this out into somewhere testable
-			// (Maybe put into switch ...)
-			mode0 := property.mode
-			if mode1&0200 != 0 {
-				mode1 |= (mode0 & 0100)
+		{
+			// This section will preserve attributes of
+			// the original property, if necessary
+			value1 := descriptor.value
+			if value1 == nil {
+				value1 = property.value
 			}
-			if mode1&020 != 0 {
-				mode1 |= (mode0 & 010)
+			mode1 := descriptor.mode
+			if mode1&0222 != 0 {
+				// TODO Factor this out into somewhere testable
+				// (Maybe put into switch ...)
+				mode0 := property.mode
+				if mode1&0200 != 0 {
+					mode1 |= (mode0 & 0100)
+				}
+				if mode1&020 != 0 {
+					mode1 |= (mode0 & 010)
+				}
+				if mode1&02 != 0 {
+					mode1 |= (mode0 & 01)
+				}
+				mode1 &= 0111
 			}
-			if mode1&02 != 0 {
-				mode1 |= (mode0 & 01)
-			}
-			mode1 &= 0111
+			self._write(name, value1, mode1)
 		}
-		self._write(name, descriptor.value, mode1)
 		return true
 	}
 Reject:
