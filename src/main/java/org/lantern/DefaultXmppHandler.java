@@ -936,6 +936,11 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Status:\n{}", status.toXML());
     }
 
+    @Subscribe
+    public void onFriendsStatusChanged(FriendStatusChangedEvent e) {
+        updatePresence();
+    }
+
     /**
      * Updates the user's presence. We also include any stats and friends
      * updates in this message. Note that periodic presence updates are also
