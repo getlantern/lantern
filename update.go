@@ -30,13 +30,14 @@ package update
 
 import (
 	"fmt"
+	"compress/gzip"
 	execpath "github.com/inconshreveable/go-execpath"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
-	"strconv"
+	"path/filepath"
+	"runtime"
 )
 
 var (
@@ -46,6 +47,65 @@ var (
 
 func init() {
 	UpdateUnavailable = fmt.Errorf("204 server response indicates no available update")
+}
+
+type MeteredReader struct {
+	rd io.ReadCloser
+	totalSize int64
+	progress chan int
+	totalRead int64
+	ticks int64
+}
+
+func (m *MeteredReader) Close() error{
+	return m.rd.Close()
+}
+
+func (m *MeteredReader) Read(b []byte) (n int, err error) {
+	chunkSize := (m.totalSize / 100) + 1
+	lenB := int64(len(b))
+
+	var nChunk int
+	for start := int64(0); start < lenB; start += int64(nChunk)  {
+		end := start+chunkSize
+		if end > lenB {
+			end = lenB
+		}
+
+		nChunk, err = m.rd.Read(b[start:end])
+
+		n += nChunk
+		m.totalRead += int64(nChunk)
+
+		if m.totalRead > (m.ticks * chunkSize) {
+			m.ticks += 1
+			// try to send on channel, but don't block if it's full
+			select {
+			case m.progress <- int(m.ticks + 1):
+			default:
+			}
+
+			// give the progress channel consumer a chance to run
+			runtime.Gosched()
+		}
+
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// We wrap the round tripper when making requests
+// because we need to add headers to the requests we make
+// even when they are requests made after a redirect
+type RoundTripper struct {
+	RoundTripFn func (*http.Request) (*http.Response, error)
+}
+
+func (rt *RoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	return rt.RoundTripFn(r)
 }
 
 // Type Download encapsulates the necessary parameters and state
@@ -75,7 +135,7 @@ type Download struct {
 func NewDownload() *Download {
 	return &Download{
 		HttpClient: new(http.Client),
-		Progress: make(chan int, 100),
+		Progress: make(chan int),
 		Method: "GET",
 	}
 }
@@ -104,6 +164,9 @@ func NewDownload() *Download {
 func (d *Download) UpdateFromUrl(url string) (err error) {
 	var offset int64 = 0
 	var fp *os.File
+
+	// Close the progress channel whenever this function completes
+	defer close(d.Progress)
 
 	// open a file where we will stream the downloaded update to
 	// we do this first because if the caller specified a non-empty dlpath
@@ -141,9 +204,25 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 		return
 	}
 
-	// add header for download continuation
-	if offset > 0 {
-		req.Header.Add("Range", fmt.Sprintf("%d-", offset))
+	// we have to add headers like this so they get used across redirects
+	trans := d.HttpClient.Transport
+	if trans == nil {
+		trans = http.DefaultTransport
+	}
+
+	d.HttpClient.Transport = &RoundTripper{
+		RoundTripFn: func(r *http.Request) (*http.Response, error) {
+			// add header for download continuation
+			if offset > 0 {
+				r.Header.Add("Range", fmt.Sprintf("%d-", offset))
+			}
+
+			// ask for gzipped content so that net/http won't unzip it for us
+			// and destroy the content length header we need for progress calculations
+			r.Header.Add("Accept-Encoding", "gzip")
+
+			return trans.RoundTrip(r)
+		},
 	}
 
 	// start downloading the file
@@ -170,43 +249,30 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 	}
 
 	// Determine how much we have to download
-	clength := 0
-	if resp.Header["Content-Length"] != nil {
-		clength, err = strconv.Atoi(resp.Header["Content-Length"][0])
+	// net/http sets this to -1 when it is unknown
+	clength := resp.ContentLength
+
+	// Read the content from the response body
+	rd := resp.Body
+
+	// meter the rate at which we download content for
+	// progress reporting if we know how much to expect
+	if clength > 0 {
+		rd = &MeteredReader{rd:rd, totalSize:clength, progress:d.Progress}
+	}
+
+	// Decompress the content if necessary
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		rd, err = gzip.NewReader(rd)
 		if err != nil {
-			clength = 0
+			return
 		}
 	}
 
 	// Download the update
-	defer close(d.Progress)
-	if clength > 0 {
-		nTotal := int64(0)
-		for i := 0; i < 100; i++ {
-			var n int64
-			nCopy := int64(clength / 100) + 1
-			n, err = io.CopyN(fp, resp.Body, nCopy)
-			nTotal += n
-			d.Progress <- (i+1)
-
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				return
-			}
-		}
-
-		// make sure we downloaded the entire file
-		if nTotal != int64(clength) {
-			err = fmt.Errorf("Failed to download entire file, only %d bytes out of %d", nTotal, clength)
-			return
-		}
-	} else {
-		// streaming response, we can't calculate progress, just copy it all
-		_, err = io.Copy(fp, resp.Body)
-		if err != nil {
-			return
-		}
+	_, err = io.Copy(fp, rd)
+	if err != nil {
+		return
 	}
 
 	// Seek to the beginning of the file before we pass fp to FromStream()
@@ -258,17 +324,19 @@ func FromFile(filepath string) (err error) {
 // 
 // FromStream performs the following actions to ensure a cross-platform safe 
 // update:
+//
+// - Creates a new file, /path/to/.program-name.new with mode 0755 and copies
+// the contents of newBinary into the file
 // 
 // - Renames the current program's executable file from /path/to/program-name
 // to /path/to/.program-name.old
 //
-// - Opens the now-empty path /path/to/program-name with mode 0755 and copies
-// the contents of newBinary into the file.
+// - Renames /path/to/.program-name.new to /path/to/program-name
 //
-// - If the copy is successful, it erases /path/to/.program.old. If this operation
+// - If the rename is successful, it erases /path/to/.program.old. If this operation
 // fails, no error is reported.
 //
-// - If the copy is unsuccessful, it attempts to rename /path/to/.program-name.old
+// - If the rename is unsuccessful, it attempts to rename /path/to/.program-name.old
 // back to /path/to/program-name. If this operation fails, the error is not reported
 // in order to not mask the error that caused the rename recovery attempt.
 func FromStream(newBinary io.Reader) (err error) {
@@ -279,23 +347,28 @@ func FromStream(newBinary io.Reader) (err error) {
 	}
 
 	// get the directory the executable exists in
-	execDir := path.Dir(thisExecPath)
-	execName := path.Base(thisExecPath)
+	execDir := filepath.Dir(thisExecPath)
+	execName := filepath.Base(thisExecPath)
+
+	// Copy the contents of of newbinary to a the new executable file
+	newExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.new", execName))
+	fp, err := os.OpenFile(newExecPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		return
+	}
+	defer fp.Close()
+	_, err = io.Copy(fp, newBinary)
 
 	// move the existing executable to a new file in the same directory
-	oldExecPath := path.Join(execDir, fmt.Sprintf(".%s.old", execName))
+	oldExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.old", execName))
 	err = os.Rename(thisExecPath, oldExecPath)
 	if err != nil {
 		return
 	}
 
-	fp, err := os.OpenFile(thisExecPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
-	if err != nil {
-		return
-	}
-	defer fp.Close()
+	// move the new exectuable in to become the new program
+	err = os.Rename(newExecPath, thisExecPath)
 
-	_, err = io.Copy(fp, newBinary)
 
 	if err != nil {
 		// copy unsuccessful
