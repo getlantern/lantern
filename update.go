@@ -17,20 +17,20 @@ The most low-level API is FromStream() which updates the current executable
 with the bytes read from an io.Reader.
 
 Additional APIs are provided for common update strategies which include
-updating from a file with FromFile() and updating from the internet with 
+updating from a file with FromFile() and updating from the internet with
 FromUrl().
 
 Using the more advaced Download.UpdateFromUrl() API gives you the ability
 to resume an interrupted download to enable large updates to complete even
 over intermittent or slow connections. This API also enables more fine-grained
 control over how the update is downloaded from the internet as well as access to
-download progress, 
+download progress,
 */
 package update
 
 import (
-	"fmt"
 	"compress/gzip"
+	"fmt"
 	execpath "github.com/inconshreveable/go-execpath"
 	"io"
 	"io/ioutil"
@@ -50,14 +50,14 @@ func init() {
 }
 
 type MeteredReader struct {
-	rd io.ReadCloser
+	rd        io.ReadCloser
 	totalSize int64
-	progress chan int
+	progress  chan int
 	totalRead int64
-	ticks int64
+	ticks     int64
 }
 
-func (m *MeteredReader) Close() error{
+func (m *MeteredReader) Close() error {
 	return m.rd.Close()
 }
 
@@ -66,8 +66,8 @@ func (m *MeteredReader) Read(b []byte) (n int, err error) {
 	lenB := int64(len(b))
 
 	var nChunk int
-	for start := int64(0); start < lenB; start += int64(nChunk)  {
-		end := start+chunkSize
+	for start := int64(0); start < lenB; start += int64(nChunk) {
+		end := start + chunkSize
 		if end > lenB {
 			end = lenB
 		}
@@ -101,7 +101,7 @@ func (m *MeteredReader) Read(b []byte) (n int, err error) {
 // because we need to add headers to the requests we make
 // even when they are requests made after a redirect
 type RoundTripper struct {
-	RoundTripFn func (*http.Request) (*http.Response, error)
+	RoundTripFn func(*http.Request) (*http.Response, error)
 }
 
 func (rt *RoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -125,7 +125,7 @@ type Download struct {
 
 	// Progress returns the percentage of the download
 	// completed as an integer between 0 and 100
-	Progress chan(int)
+	Progress chan (int)
 
 	// HTTP Method to use in the download request. Default is "GET"
 	Method string
@@ -135,15 +135,15 @@ type Download struct {
 func NewDownload() *Download {
 	return &Download{
 		HttpClient: new(http.Client),
-		Progress: make(chan int),
-		Method: "GET",
+		Progress:   make(chan int),
+		Method:     "GET",
 	}
 }
 
 // UpdateFromUrl downloads the given url from the internet to a file on disk
 // and then calls FromStream() to update the current program's executable file
 // with the contents of that file.
-// 
+//
 // If the update is successful, the downloaded file will be erased from disk.
 // Otherwise, it will remain in d.Path to allow the download to resume later
 // or be skipped entirely.
@@ -151,10 +151,10 @@ func NewDownload() *Download {
 // Only HTTP/1.1 servers that implement the Range header are supported.
 //
 // UpdateFromUrl() uses HTTP status codes to determine what action to take.
-// 
+//
 // - The HTTP server should return 200 or 206 for the update to be downloaded.
-// 
-// - The HTTP server should return 204 if no update is available at this time. 
+//
+// - The HTTP server should return 204 if no update is available at this time.
 // This will cause UpdateFromUrl to return the error UpdateUnavailable.
 //
 // - If the HTTP server returns a 3XX redirect, it will be followed
@@ -258,7 +258,7 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 	// meter the rate at which we download content for
 	// progress reporting if we know how much to expect
 	if clength > 0 {
-		rd = &MeteredReader{rd:rd, totalSize:clength, progress:d.Progress}
+		rd = &MeteredReader{rd: rd, totalSize: clength, progress: d.Progress}
 	}
 
 	// Decompress the content if necessary
@@ -295,14 +295,13 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 
 // FromUrl downloads the contents of the given url and uses them to update
 // the current program's executable file. It is a convenience function which is equivalent to
-// 
+//
 // 	NewDownload().UpdateFromUrl(url)
 //
 // See Download.UpdateFromUrl for more details.
 func FromUrl(url string) error {
 	return NewDownload().UpdateFromUrl(url)
 }
-
 
 // FromFile reads the contents of the given file and uses them
 // to update the current program's executable file by calling FromStream().
@@ -321,13 +320,13 @@ func FromFile(filepath string) (err error) {
 
 // FromStream reads the contents of the supplied io.Reader newBinary
 // and uses them to update the current program's executable file.
-// 
-// FromStream performs the following actions to ensure a cross-platform safe 
+//
+// FromStream performs the following actions to ensure a cross-platform safe
 // update:
 //
 // - Creates a new file, /path/to/.program-name.new with mode 0755 and copies
 // the contents of newBinary into the file
-// 
+//
 // - Renames the current program's executable file from /path/to/program-name
 // to /path/to/.program-name.old
 //
@@ -368,7 +367,6 @@ func FromStream(newBinary io.Reader) (err error) {
 
 	// move the new exectuable in to become the new program
 	err = os.Rename(newExecPath, thisExecPath)
-
 
 	if err != nil {
 		// copy unsuccessful
