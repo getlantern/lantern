@@ -594,13 +594,6 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <!-- we have to exclude bouncycastle b/c  it is signed -->
-              <artifactSet>
-                <excludes>
-                  <exclude>org.bouncycastle:*</exclude>
-                </excludes>
-              </artifactSet>
-
               <filters>
                 <filter>
                   <artifact>*:*</artifact>

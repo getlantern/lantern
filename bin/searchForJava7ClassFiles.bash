@@ -24,7 +24,7 @@ do
    #echo "jarName $jarName"
    jar xf $jarName
 
-   find . -name "*.class" | xargs file | grep 51 && echo "FOUND JAVA 7 CLASS FILE IN $x" && exit 1
+   find . -name "*.class" | xargs file | grep 'version 51' && echo "FOUND JAVA 7 CLASS FILE IN $x" && exit 1
    cd ..
    rm -rf temp
 done
