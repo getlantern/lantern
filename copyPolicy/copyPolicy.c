@@ -97,7 +97,10 @@ int write_file(const char* data, const int len, const char* dest) {
   }
 
   if (ferror(out_fp)) {
-    perror("Error reading or writing");
+    char* error_message;
+    asprintf(&error_message, "Error writing to %s", dest);
+    perror(error_message);
+    free(error_message);
     fclose(out_fp);
     return 1;
   }
@@ -106,21 +109,41 @@ int write_file(const char* data, const int len, const char* dest) {
 }
 
 int main(int argc, char** argv) {
-  if (argc != 2) {
-    printf("Required argument: path to JAVA_HOME\n");
+  if (argc != 3) {
+    printf("Required argument: path to JAVA_HOME, java version (must be 6 or 7) \n");
     return 1;
   }
+
+  const char* java_home = argv[1];
+  if (strlen(argv[2]) != 1) {
+      printf("Version must be 6 or 7\n");
+      return 1;
+  }
+  int java_version;
+  if (argv[2][0] == '6') {
+      java_version = 0;
+  } else if (argv[2][0] == '7') {
+      java_version = 1;
+  } else {
+      printf("Version must be 6 or 7\n");
+      return 1;
+  }
+
   for (int i = 0; POLICY_JARS[i]; ++i) {
     const char* jar = POLICY_JARS[i];
     char* dest;
-    asprintf(&dest, "%s/lib/security/%s", argv[1], jar);
+    asprintf(&dest, "%s/lib/security/%s", java_home, jar);
     if (file_exists_and_is_owned_by_root(dest)) {
-      const char* data = POLICY_JAR_CONTENTS[i];
-      int len = POLICY_JAR_LEN[i];
+      const char* data = POLICY_JAR_CONTENTS[java_version][i];
+      int len = POLICY_JAR_LEN[java_version][i];
       if (write_file(data, len, dest)) {
           return 1;
       }
+    } else {
+        printf("No such file or directory %s", dest);
+        return 1;
     }
+    free(dest);
   }
   return 0;
 }

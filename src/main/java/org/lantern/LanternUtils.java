@@ -1114,7 +1114,9 @@ public class LanternUtils {
                 return;
             }
         }
-        final ProcessBuilder pb = new ProcessBuilder(filename, home);
+        String systemVersion = System.getProperty("java.version");
+        String[] parts = systemVersion.split("\\.");
+        final ProcessBuilder pb = new ProcessBuilder(filename, home, parts[1]);
         try {
             Process process = pb.start();
             if (process.waitFor() != 0) {
