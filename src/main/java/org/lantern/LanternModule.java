@@ -79,8 +79,6 @@ public class LanternModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        //install policy files before anything gets loaded
-        LanternUtils.installPolicyFiles();
 
         // Tweak Netty naming...
         ThreadRenamingRunnable.setThreadNameDeterminer(
