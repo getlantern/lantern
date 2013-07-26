@@ -253,6 +253,25 @@
             <preActivation />
             <postActivation />
             <actions>
+              <action name="" id="1393" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.SetVariableAction" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.SetVariableAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>return (String)context.getVariable("sys.userName");</string>
+                          </void>
+                        </object>
+                      </void>
+                      <void property="variableName">
+                        <string>originalUserName</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="1260" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -279,6 +298,9 @@ return sixtyFourBits;</string>
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction">
+                      <void property="failIfNotRootUnix">
+                        <boolean>true</boolean>
+                      </void>
                       <void property="obtainIfAdminMac">
                         <boolean>true</boolean>
                       </void>
