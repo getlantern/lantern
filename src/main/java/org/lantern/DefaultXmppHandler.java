@@ -795,6 +795,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (friendUpdates == null) {
             return false;
         }
+        LOG.info("Handling friends update from server");
         for (Object friendObj : friendUpdates) {
             JSONObject friendJson = (JSONObject) friendObj;
 
@@ -815,6 +816,9 @@ public class DefaultXmppHandler implements XmppHandler {
             if (old != null && old.getLastUpdated() > lastUpdated) {
                 friends.setNeedsSync(true);
             } else {
+                if (old == null || old.getStatus() != friend.getStatus()) {
+                    Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
+                }
                 friends.add(friend);
             }
         }
