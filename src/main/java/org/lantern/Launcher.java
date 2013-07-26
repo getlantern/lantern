@@ -237,20 +237,6 @@ public class Launcher {
         final boolean uiDisabled = cmd.hasOption(OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(OPTION_LAUNCHD);
 
-        final boolean showDashboard;
-        final boolean showTray = !uiDisabled;
-        if (uiDisabled) {
-            showDashboard = false;
-        } else if (launchD) {
-            if (model.isSetupComplete()) {
-                showDashboard = false;
-            } else {
-                showDashboard = true;
-            }
-        } else {
-            showDashboard = true;
-        }
-
         final Display display;
         if (uiDisabled) {
             display = null;
@@ -287,6 +273,10 @@ public class Launcher {
             }
         }
         instance(Proxifier.class);
+        final boolean showDashboard = 
+                shouldShowDashboard(model, uiDisabled, launchD);
+        final boolean showTray = !uiDisabled;
+
         if (showDashboard) {
             browserService = instance(BrowserService.class);
         }
@@ -370,6 +360,24 @@ public class Launcher {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
+        }
+    }
+
+    private boolean shouldShowDashboard(final Model mod, 
+        final boolean uiDisabled, final boolean launchD) {
+        if (mod == null) {
+            throw new NullPointerException("Can't have a null model here!");
+        }
+        if (uiDisabled) {
+            return false;
+        } else if (launchD) {
+            if (model.isSetupComplete()) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return true;
         }
     }
 
