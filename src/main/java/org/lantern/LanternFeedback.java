@@ -18,6 +18,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.lantern.util.HttpClientFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -25,6 +27,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class LanternFeedback {
     
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final HttpClientFactory httpClientFactory;
 
     @Inject
@@ -68,7 +71,8 @@ public class LanternFeedback {
             throws IOException {
         // If we're testing we just make sure we can connect successfully.
         final HttpPost post = getHttpPost(url);
-        final HttpClient httpClient = httpClientFactory.newClient();
+        log.debug("Creating proxied client...");
+        final HttpClient httpClient = httpClientFactory.newProxiedClient();
         try {
             final UrlEncodedFormEntity entity =
                     new UrlEncodedFormEntity(params, "UTF-8");

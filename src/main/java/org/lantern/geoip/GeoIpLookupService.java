@@ -127,7 +127,7 @@ public class GeoIpLookupService {
         if (inStream == null) {
             LOG.error("Failed to load geoip.db.  All geo ip lookups will fail.");
             dataLoaded = true;
-            return;
+            throw new Error("No geoip database at geoip.db?");
         }
 
         inStream = new BufferedInputStream(inStream);
