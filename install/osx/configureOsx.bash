@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
+function dieNoLog() {
+  echo "`date`: $@"
+  exit 1
+}
 
-mkdir -p ~/Library/Logs/Lantern 
+# User is apparently not root here, although it's very unclear why that would be the case
+# since we've elevated privileges in install4j.
+test -d ~/Library/Logs/Lantern || mkdir -p ~/Library/Logs/Lantern || dieNoLog "Could not create logs dir?" 
+
 LOG_FILE=~/Library/Logs/Lantern/installer.log
 rm $LOG_FILE
 
@@ -54,12 +61,24 @@ launchctl unload -F $LAUNCHD_PLIST
 #test -f ~/.lantern/lantern_truststore.jks && rm -rf ~/.lantern/lantern_truststore.jks
 #test -f ~/.lantern/lantern_truststore.jks && log "trust store still exists!! not good."
 
-log "Executing perl replace on Info.plist"
 # The following is done to modify the install4j-generated Info.plist to run without a UI
+# This is now done directly in the install4j config!
 #perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
 
+# We just need to copy this, so just make sure we have read permissions, which we always should.
+test -r $APP_PATH || die "We don't have permissions to read from the Info.plist file at $PLIST_INSTALL_FULL!!"
+
+log "Copying launchd plist file"
+
+# This file likely has root permissions, so we can only copy it and then change it.
+cp $PLIST_INSTALL_FULL $PLIST_DIR || die "Could not copy plist file from $PLIST_INSTALL_FULL to $PLIST_DIR"
+
+# Make sure the copied file is writable!!
+test -w $LAUNCHD_PLIST || die "We don't have permissions to write to the Info.plist file at $LAUNCHD_PLIST!!"
+
+log "Executing perl replace on Info.plist -- setting app path to $APP_PATH on $LAUNCHD_PLIST"
 # Just make sure the launchd Info.plist is using the correct path to our app bundle...
-perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FULL || die "Could not fix Info.plist"
+perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $LAUNCHD_PLIST || die "Could not fix Info.plist"
 
 # this is done from within install4j
 #log "About to sign code...output is"
@@ -70,8 +89,6 @@ perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FUL
 log "Running in `pwd`"
 
 
-log "Copying launchd plist file"
-cp $PLIST_INSTALL_FULL $PLIST_DIR || die "Could not copy plist file from $PLIST_INSTALL_FULL to $PLIST_DIR"
 
 log "Changing permissions on launchd plist file"
 chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
@@ -95,7 +112,13 @@ log "Loading launchd plist file"
 #cp $APP_PATH/Contents/Resources/app/proxy_off.pac ~/.lantern/proxy.pac || die "Could not copy default pac file using APP_PATH $APP_PATH ?"
 #log "Copied pac file!!"
 
+log "Copied plist file is: "
 logFile $LAUNCHD_PLIST
+
+
+log "Before copy plist file was: "
+logFile $PLIST_INSTALL_FULL
+
 
 log "Finished configuring Lantern!"
 exit 0
