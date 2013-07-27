@@ -358,6 +358,10 @@ func FromStream(newBinary io.Reader) (err error) {
 	defer fp.Close()
 	_, err = io.Copy(fp, newBinary)
 
+	// if we don't call fp.Close(), windows won't let us move the new executable
+	// because the file will still be "in use"
+	fp.Close()
+
 	// move the existing executable to a new file in the same directory
 	oldExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.old", execName))
 	err = os.Rename(thisExecPath, oldExecPath)
