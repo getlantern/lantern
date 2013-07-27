@@ -40,15 +40,6 @@ import (
 	"runtime"
 )
 
-var (
-	// Returned when the remote server indicates that no download is available
-	UpdateUnavailable error
-)
-
-func init() {
-	UpdateUnavailable = fmt.Errorf("204 server response indicates no available update")
-}
-
 type MeteredReader struct {
 	rd        io.ReadCloser
 	totalSize int64
@@ -111,6 +102,8 @@ func (rt *RoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 // Type Download encapsulates the necessary parameters and state
 // needed to download an update from the internet. Create an instance
 // with the NewDownload() factory function.
+//
+// You may only use a Download once,
 type Download struct {
 	// net/http.Client to use when downloading the update.
 	// If nil, a default http.Client is used
@@ -129,6 +122,10 @@ type Download struct {
 
 	// HTTP Method to use in the download request. Default is "GET"
 	Method string
+
+	// Set to true when the server confirms a new version is available
+	// even if the updating process encounters an error later on
+	Available bool
 }
 
 // NewDownload initializes a new Download object
@@ -155,7 +152,6 @@ func NewDownload() *Download {
 // - The HTTP server should return 200 or 206 for the update to be downloaded.
 //
 // - The HTTP server should return 204 if no update is available at this time.
-// This will cause UpdateFromUrl to return the error UpdateUnavailable.
 //
 // - If the HTTP server returns a 3XX redirect, it will be followed
 // according to d.HttpClient's redirect policy.
@@ -234,12 +230,12 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 
 	switch resp.StatusCode {
 	// ok
-	case 200:
-	case 206:
+	case 200, 206:
+		d.Available = true
 
 	// no update available
 	case 204:
-		err = UpdateUnavailable
+		err = fmt.Errorf("204 server response indicates no available update")
 		return
 
 	// server error
