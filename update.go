@@ -235,7 +235,6 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 
 	// no update available
 	case 204:
-		err = fmt.Errorf("204 server response indicates no available update")
 		return
 
 	// server error
