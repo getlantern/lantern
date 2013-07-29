@@ -78,9 +78,11 @@ import com.google.inject.Module;
  */
 public class Launcher {
     static {
+        //install policy files before anything gets loaded
+        LanternUtils.installPolicyFiles();
         // this sets the system property necessary for barchart udt to extract
         // to the correct place
-        System.setProperty(ResourceUDT.PROPERTY_LIBRARY_EXTRACT_LOCATION, 
+        System.setProperty(ResourceUDT.PROPERTY_LIBRARY_EXTRACT_LOCATION,
                 CommonUtils.getLittleShootDir().getAbsolutePath());
     }
 
@@ -176,6 +178,8 @@ public class Launcher {
      * @param args Any command line arguments.
      */
     public static void main(final String... args) {
+        //install policy files before anything gets loaded
+        LanternUtils.installPolicyFiles();
         main(true, args);
     }
 
