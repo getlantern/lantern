@@ -68,6 +68,36 @@ You should then see something like this when you load the app:
 
 ![screenshot-vis](./screenshots/vis.png)
 
+## i18n
+
+Translated strings are fetched from json files in the "app/locale" directory
+and interpolated into the app using
+[Angular Translate](https://github.com/PascalPrecht/angular-translate).
+To add or change a translated string, update the corresponding mapping
+in "app/locale/en_US.json" and add or update any references to it in the app if
+needed.
+
+### Transifex
+
+All translatable content for Lantern has been uploaded to [the Lantern
+Transifex project](https://www.transifex.com/projects/p/lantern/] to help
+manage translations. Translatable strings from this code have been uploaded to
+the [ui](https://www.transifex.com/projects/p/lantern/resource/ui/) resource
+therein. Transifex has been set up to automatically pull updates to that
+resource from [its GitHub
+url](https://raw.github.com/getlantern/lantern-ui/master/app/locale/en_US.json)
+(see
+http://support.transifex.com/customer/portal/articles/1166968-updating-your-source-files-automatically
+for more information).
+
+After translators add translations of these strings to the Transifex project,
+the [Transifex
+client](http://support.transifex.com/customer/portal/articles/960804-overview)
+can be used to pull them. See
+http://support.transifex.com/customer/portal/articles/996157-getting-translations
+for more.
+
+
 ## Running tests
 
 Globally install required Node.js packages (`sudo` as necessary):
