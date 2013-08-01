@@ -146,6 +146,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             @Override
             public ChannelPipeline getPipeline() throws Exception {
                 
+                log.debug("Creating lantern pipeline...");
                 final SimpleChannelUpstreamHandler dispatcher = 
                     new DispatchingProxyRelayHandler(clientChannelFactory, 
                         channelGroup, stats, model, proxyTracker, 

@@ -26,6 +26,7 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
     @Override
     protected Object encode(final ChannelHandlerContext ctx, 
         final Channel channel, final Object msg) throws Exception {
+        log.debug("Encoding response...");
         final ChannelBuffer cb = 
             (ChannelBuffer) super.encode(ctx, channel, msg);
         if (cb == null) {
