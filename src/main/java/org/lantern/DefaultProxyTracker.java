@@ -231,7 +231,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public void addProxy(final URI fullJid, final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
-        addProxy(fullJid, isa.getHostString(), isa.getPort(), Type.pc);
+        addProxy(fullJid, isa.getAddress().getHostAddress(), isa.getPort(), Type.pc);
     }
 
     private void addProxy(final URI fullJid, final String host, 
