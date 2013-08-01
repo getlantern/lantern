@@ -91,7 +91,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     @Override
     public void start() {
-        log.debug("Starting proxy on HTTP port "+httpLocalPort);
+        log.debug("Starting give mode proxy on HTTP port "+httpLocalPort);
         
         newServerBootstrap(newHttpChannelPipelineFactory(), 
             httpLocalPort);

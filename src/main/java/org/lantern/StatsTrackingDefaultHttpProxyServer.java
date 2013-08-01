@@ -201,12 +201,15 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
             if (stats != null) {
                 pipeline.addFirst("stats", new StatsTrackingHandler() {
                     @Override
-                    public void addUpBytes(long bytes) {
+                    public void addUpBytes(long bytes, final Channel ch) {
+                        
                         stats.addUpBytesToPeers(bytes);
+                        stats.addBytesProxied(bytes, ch);
                     }
                     @Override
-                    public void addDownBytes(long bytes) {
+                    public void addDownBytes(long bytes, final Channel ch) {
                         stats.addDownBytesFromPeers(bytes);
+                        stats.addBytesProxied(bytes, ch);
                     }
                 });
             }
@@ -256,12 +259,15 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
                     if (stats != null) {
                         pipeline.addFirst("stats", new StatsTrackingHandler() {
                             @Override
-                            public void addUpBytes(final long bytes) {
+                            public void addUpBytes(long bytes, final Channel ch) {
+                                
                                 stats.addUpBytesForPeers(bytes);
+                                stats.addBytesProxied(bytes, ch);
                             }
                             @Override
-                            public void addDownBytes(final long bytes) {
+                            public void addDownBytes(long bytes, final Channel ch) {
                                 stats.addDownBytesForPeers(bytes);
+                                stats.addBytesProxied(bytes, ch);
                             }
                         });
                     }

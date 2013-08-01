@@ -126,11 +126,11 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
         if (stats != null) {
             final ChannelHandler statsHandler = new StatsTrackingHandler() {
                 @Override
-                public void addUpBytes(final long bytes) {
+                public void addUpBytes(final long bytes, final Channel ch) {
                     stats.addUpBytesViaProxies(bytes);
                 }
                 @Override
-                public void addDownBytes(final long bytes) {
+                public void addDownBytes(final long bytes, final Channel ch) {
                     stats.addDownBytesViaProxies(bytes);
                 }
             };

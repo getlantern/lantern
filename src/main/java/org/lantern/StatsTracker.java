@@ -34,7 +34,7 @@ public class StatsTracker implements ClientStats {
     private final static Logger log =
         LoggerFactory.getLogger(StatsTracker.class);
 
-    private final AtomicLong bytesProxied = new AtomicLong(0L);
+    private final AtomicLong totalBytesProxied = new AtomicLong(0L);
     
     private final AtomicLong directBytes = new AtomicLong(0L);
     
@@ -106,7 +106,7 @@ public class StatsTracker implements ClientStats {
         this.directRequests.set(0);
         this.directBytes.set(0L);
         this.proxiedRequests.set(0);
-        this.bytesProxied.set(0L);
+        this.totalBytesProxied.set(0L);
     }
     
     public void resetUserStats() {
@@ -275,7 +275,7 @@ public class StatsTracker implements ClientStats {
 
     @Override
     public long getTotalBytesProxied() {
-        return bytesProxied.get();
+        return totalBytesProxied.get();
     }
 
     @Override
@@ -310,7 +310,7 @@ public class StatsTracker implements ClientStats {
 
     @Override
     public void addBytesProxied(final long bp, final Channel channel) {
-        bytesProxied.addAndGet(bp);
+        totalBytesProxied.addAndGet(bp);
         if (LanternUtils.isLocalHost(channel)) {
             return;
         }
@@ -323,7 +323,7 @@ public class StatsTracker implements ClientStats {
     }
 
     public void addBytesProxied(final long bp, final Socket sock) {
-        bytesProxied.addAndGet(bp);
+        totalBytesProxied.addAndGet(bp);
         if (LanternUtils.isLocalHost(sock)) {
             return;
         }

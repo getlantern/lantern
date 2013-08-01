@@ -18,7 +18,7 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler
     @Override
     public void writeComplete(final ChannelHandlerContext ctx, 
         final WriteCompletionEvent e) {
-        addUpBytes(e.getWrittenAmount());
+        addUpBytes(e.getWrittenAmount(), ctx.getChannel());
     }
     
     @Override
@@ -27,7 +27,7 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler
         final Object msg = e.getMessage();
         if (msg instanceof ChannelBuffer) {
             final ChannelBuffer cb = (ChannelBuffer) msg;
-            addDownBytes(cb.readableBytes());
+            addDownBytes(cb.readableBytes(), ctx.getChannel());
         }
         else {
             log.warn("StatsTrackingHandler messageRecieved was not " +
