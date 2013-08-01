@@ -42,6 +42,14 @@ func TestArray(t *testing.T) {
         abc;
     `, "0,1")
 
+	test(`raise:
+        [].length = 3.14159;
+    `, "RangeError")
+
+	test(`raise:
+        new Array(3.14159);
+    `, "RangeError")
+
 	test(`
         Object.defineProperty(Array.prototype, "0", {
             value: 100,
@@ -58,10 +66,11 @@ func TestArray(t *testing.T) {
     `, "false,false,true")
 
 	test(`
-        var abc = Object.getOwnPropertyDescriptor(Array, "prototype");
+        abc = Object.getOwnPropertyDescriptor(Array, "prototype");
         [   [ typeof Array.prototype ],
             [ abc.writable, abc.enumerable, abc.configurable ] ];
     `, "object,false,false,false")
+
 }
 
 func TestArray_toString(t *testing.T) {

@@ -17,8 +17,7 @@ func builtinNewArray(self *_object, _ Value, argumentList []Value) Value {
 
 func builtinNewArrayNative(runtime *_runtime, argumentList []Value) *_object {
 	if len(argumentList) == 1 {
-		// TODO Check for RangeError
-		return runtime.newArray(toUint32(argumentList[0]))
+		return runtime.newArray(arrayUint32(argumentList[0]))
 	}
 	return runtime.newArrayOf(argumentList)
 }

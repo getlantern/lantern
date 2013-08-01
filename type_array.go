@@ -16,6 +16,14 @@ func isArray(object *_object) bool {
 	return object != nil && (object.class == "Array" || object.class == "GoArray")
 }
 
+func arrayUint32(value Value) uint32 {
+	tmp := toInteger(value)
+	if !tmp.exact() || !isUint32(tmp.value) {
+		panic(newRangeError())
+	}
+	return uint32(tmp.value)
+}
+
 func arrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
 	lengthProperty := self.getOwnProperty("length")
 	lengthValue, valid := lengthProperty.value.(Value)
@@ -27,14 +35,7 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		if descriptor.value == nil {
 			return objectDefineOwnProperty(self, name, descriptor, throw)
 		}
-		newLength := uint32(0)
-		{
-			tmp := toInteger(descriptor.value.(Value))
-			if !tmp.valid() || !isUint32(tmp.value) {
-				panic(newRangeError())
-			}
-			newLength = uint32(tmp.value)
-		}
+		newLength := arrayUint32(descriptor.value.(Value))
 		descriptor.value = toValue_uint32(newLength)
 		if newLength > length {
 			return objectDefineOwnProperty(self, name, descriptor, throw)
