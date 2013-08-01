@@ -106,3 +106,15 @@ func TestNumber_toLocaleString(t *testing.T) {
         ];
     `, "451,451,703")
 }
+
+func Test_toInteger(t *testing.T) {
+	Terst(t)
+
+	integer := toInteger(toValue(0.0))
+	Is(integer.valid(), true)
+	Is(integer.exact(), true)
+
+	integer = toInteger(toValue(3.14159))
+	Is(integer.valid(), true)
+	Is(integer.exact(), false)
+}

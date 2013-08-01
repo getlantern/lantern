@@ -160,9 +160,10 @@ func toIntegerFloat(value Value) float64 {
 type _integerKind int
 
 const (
-	integerValid _integerKind = iota
-	integerInfinite
-	integerInvalid
+	integerValid    _integerKind = iota // 3.0 => 3.0
+	integerFloat                        // 3.14159 => 3.0
+	integerInfinite                     // Infinity => 2**63-1
+	integerInvalid                      // NaN => 0
 )
 
 type _integer struct {
@@ -171,6 +172,10 @@ type _integer struct {
 }
 
 func (self _integer) valid() bool {
+	return self._integerKind == integerValid || self._integerKind == integerFloat
+}
+
+func (self _integer) exact() bool {
 	return self._integerKind == integerValid
 }
 
@@ -222,12 +227,21 @@ func toInteger(value Value) (integer _integer) {
 			integer.value = math.MinInt64
 			return
 		}
-		if value > 0 {
-			integer.value = int64(math.Floor(value))
+		{
+			value0 := value
+			value1 := float64(0)
+			if value0 > 0 {
+				value1 = math.Floor(value0)
+			} else {
+				value1 = math.Ceil(value0)
+			}
+
+			if value0 != value1 {
+				integer._integerKind = integerFloat
+			}
+			integer.value = int64(value1)
 			return
 		}
-		integer.value = int64(math.Ceil(value))
-		return
 	}
 }
 
