@@ -45,6 +45,7 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
             // bypassed any encoder.
             
             // global bytes proxied statistic
+            log.debug("Adding bytes proxied!!!");
             this.stats.addBytesProxied(bytes, channel);
         }
         return cb;
