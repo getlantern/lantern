@@ -177,6 +177,13 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
         this.authenticationManager.addHandler(pah);
     }
     
+    /**
+     * This class is the pipeline factory for the initial requests themselves
+     * as opposed to the relayed requests. So this receives HTTP requests
+     * directly from peers, while StatsTrackingDefaultRelayPipelineFactoryFactory
+     * relays those requests to the destination site, of course relaying the
+     * corresponding responses back to peers.
+     */
     private class StatsTrackingHttpServerPipelineFactory 
         extends HttpServerPipelineFactory {
         
@@ -202,14 +209,11 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
                 pipeline.addFirst("stats", new StatsTrackingHandler() {
                     @Override
                     public void addUpBytes(long bytes, final Channel ch) {
-                        
                         stats.addUpBytesToPeers(bytes);
-                        stats.addBytesProxied(bytes, ch);
                     }
                     @Override
                     public void addDownBytes(long bytes, final Channel ch) {
                         stats.addDownBytesFromPeers(bytes);
-                        stats.addBytesProxied(bytes, ch);
                     }
                 });
             }
@@ -230,7 +234,7 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
      * from them as opposed to the data to and from the peer itself.
      * 
      * So we DON'T learn about any new Lantern peers here, but rather remote
-     * peers.
+     * servers.
      */
     private class StatsTrackingDefaultRelayPipelineFactoryFactory 
         extends DefaultRelayPipelineFactoryFactory {
