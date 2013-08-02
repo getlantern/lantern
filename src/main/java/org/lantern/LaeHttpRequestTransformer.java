@@ -20,6 +20,9 @@ public class LaeHttpRequestTransformer implements HttpRequestTransformer {
         final InetSocketAddress proxyAddress) {
         final String uri = request.getUri();
         
+        // TODO: This call can do a reverse DNS lookup here. Do we really want
+        // this? Do we already have the IP in this case? 
+        // Use getAddress().getHostAddress() instead?
         final String host = proxyAddress.getHostName();
         final String proxyBaseUri = "https://" + host;
         if (!uri.startsWith(proxyBaseUri)) {

@@ -721,7 +721,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Collection<InetSocketAddress> googleStunServers) {
         final Set<String> strings = new HashSet<String>();
         for (final InetSocketAddress isa : googleStunServers) {
-            strings.add(isa.getHostName()+":"+isa.getPort());
+            strings.add(isa.getAddress().getHostAddress()+":"+isa.getPort());
         }
         return strings;
     }

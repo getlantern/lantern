@@ -69,7 +69,7 @@ public class ProxySocketFactory extends SocketFactory {
         throws IOException {
         final ProxyHolder ph = proxyTracker.getProxy();
         final InetSocketAddress isa = ph.getFiveTuple().getRemote();
-        final String proxyHost = isa.getHostName();
+        final String proxyHost = isa.getAddress().getHostAddress();
         final int proxyPort = isa.getPort();
         final Socket sock = this.socketFactory.createSocket();
         sock.connect(new InetSocketAddress(proxyHost, proxyPort), 50 * 1000);
