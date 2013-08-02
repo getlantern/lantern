@@ -214,6 +214,7 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
                     @Override
                     public void addDownBytes(long bytes, final Channel ch) {
                         stats.addDownBytesFromPeers(bytes);
+                        stats.addBytesProxied(bytes, ch);
                     }
                 });
             }
@@ -264,9 +265,7 @@ public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxySe
                         pipeline.addFirst("stats", new StatsTrackingHandler() {
                             @Override
                             public void addUpBytes(long bytes, final Channel ch) {
-                                
                                 stats.addUpBytesForPeers(bytes);
-                                stats.addBytesProxied(bytes, ch);
                             }
                             @Override
                             public void addDownBytes(long bytes, final Channel ch) {
