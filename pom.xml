@@ -384,7 +384,7 @@
       <extension>
         <groupId>org.springframework.build</groupId>
         <artifactId>aws-maven</artifactId>
-        <version>4.4.0.RELEASE</version>
+        <version>4.8.0.RELEASE</version>
       </extension>
     </extensions>
 
