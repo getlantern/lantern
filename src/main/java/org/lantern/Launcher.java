@@ -241,7 +241,7 @@ public class Launcher {
         if (uiDisabled) {
             display = null;
         } else {
-            Display.setAppName("Lantern");
+            Display.setAppName("Lantern Beta");
             display = DisplayWrapper.getDisplay();
 
             // Never show the splash screen on startup, even if setup is
