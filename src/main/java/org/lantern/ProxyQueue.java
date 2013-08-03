@@ -110,7 +110,7 @@ public class ProxyQueue {
                     pausedProxies.add(proxyAddress);
                 }
             } else {
-                log.debug("Proxy already in {}", proxies);
+                log.debug("Proxy already in proxies");
             }
         }
     }

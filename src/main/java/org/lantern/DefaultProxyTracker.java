@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -95,6 +96,8 @@ public class DefaultProxyTracker implements ProxyTracker {
     private String fallbackServerHost;
 
     private int fallbackServerPort;
+    
+    private final java.util.Timer proxyRetryTimer = new java.util.Timer();
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -107,6 +110,16 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.peerFactory = peerFactory;
         this.timer = timer;
         this.xmppHandler = xmppHandler;
+        
+        proxyRetryTimer.schedule(new TimerTask() {
+            
+            @Override
+            public void run() {
+                restoreTimedInProxies(proxyQueue);
+                restoreTimedInProxies(peerProxyQueue);
+                restoreTimedInProxies(laeProxyQueue);
+            }
+        }, 10000, 4000);
 
         Events.register(this);
     }
@@ -432,13 +445,11 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public ProxyHolder getLaeProxy() {
-        restoreTimedInProxies(laeProxyQueue);
         return laeProxyQueue.getProxy();
     }
 
     @Override
     public ProxyHolder getProxy() {
-        restoreTimedInProxies(proxyQueue);
         return proxyQueue.getProxy();
     }
 
@@ -455,7 +466,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public ProxyHolder getJidProxy() {
-        restoreTimedInProxies(peerProxyQueue);
         return peerProxyQueue.getProxy();
     }
 
