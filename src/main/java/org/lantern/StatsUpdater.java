@@ -39,6 +39,7 @@ public class StatsUpdater extends Thread {
             final HttpClientFactory httpClientFactory) {
         super();
         setDaemon(true);
+        setName("Stats-Updating-Thread-"+hashCode());
         this.model = model;
         this.httpClientFactory = httpClientFactory;
     }
