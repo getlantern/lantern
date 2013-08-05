@@ -251,7 +251,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (natPmpService != null) {
             natPmpService.shutdown();
         }
-        LOG.debug("Finished stoppeding XMPP handler...");
+        LOG.debug("Stopped XMPP handler...");
     }
 
     @Subscribe
