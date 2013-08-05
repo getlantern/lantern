@@ -35,28 +35,38 @@ $waterColor: rgba(6, 21, 50, .1)
 //&.AQ // antarctica
     display: none
 
-.peer
-  opacity: .4
+path.peer
+  +single-transition(all, 0.5s, ease)
 
-.peer.connected
-  opacity: 1
+g.peer
+  path.peer
+    opacity: .4
+  &:hover
+    path.peer
+      opacity: 1
+
+path.peer-hover-area
+  opacity: 0
+
+path.peer.connected
+  opacity: 1 !important
 
 #self
   fill: #fff
 
-.peer.get, #self.get
+path.peer.get, #self.get
   fill: $getModeColor
 
-.peer.give, #self.give
+path.peer.give, #self.give
   fill: $giveModeColorMap
 
-.peer.unknown
+path.peer.unknown
   fill: $unknownModeColor
 
-.peer.cloud, .peer.laeproxy
+path.peer.cloud, path.peer.laeproxy
   fill: $cloudPeerColor !important
 
-.connection
+path.connection
   fill: none
   stroke-width: 1px
   stroke: #fff

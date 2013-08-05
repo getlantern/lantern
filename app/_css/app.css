@@ -7326,35 +7326,47 @@ textarea.report {
   stroke-opacity: 1 !important;
 }
 
-.peer {
-  opacity: 0.4;
+path.peer {
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
 }
 
-.peer.connected {
+g.peer path.peer {
+  opacity: 0.4;
+}
+g.peer:hover path.peer {
   opacity: 1;
+}
+
+path.peer-hover-area {
+  opacity: 0;
+}
+
+path.peer.connected {
+  opacity: 1 !important;
 }
 
 #self {
   fill: white;
 }
 
-.peer.get, #self.get {
+path.peer.get, #self.get {
   fill: #ffcc66;
 }
 
-.peer.give, #self.give {
+path.peer.give, #self.give {
   fill: #aad092;
 }
 
-.peer.unknown {
+path.peer.unknown {
   fill: #eeeeee;
 }
 
-.peer.cloud, .peer.laeproxy {
+path.peer.cloud, path.peer.laeproxy {
   fill: green !important;
 }
 
-.connection {
+path.connection {
   fill: none;
   stroke-width: 1px;
   stroke: white;

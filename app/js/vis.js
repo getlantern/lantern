@@ -160,16 +160,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
       model = modelSrvc.model,
       projection = d3.geo.mercator(),
       path = d3.geo.path().projection(projection),
-      pathSelf = d3.geo.path().projection(projection);
+      DEFAULT_POINT_RADIUS = 3;
 
   $scope.projection = projection;
 
-  path.pointRadius(3);
-  pathSelf.pointRadius(5);
-
-  $scope.path = function (d, self) {
+  $scope.path = function (d, pointRadius) {
+    path.pointRadius(pointRadius || DEFAULT_POINT_RADIUS);
     // https://bugs.webkit.org/show_bug.cgi?id=110691
-    return (self ? pathSelf : path)(d) || 'M0 0';
+    return path(d) || 'M0 0';
   };
 
   $scope.pathConnection = function (peer) {
