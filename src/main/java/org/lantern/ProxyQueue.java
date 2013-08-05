@@ -39,7 +39,6 @@ public class ProxyQueue {
         public boolean add(T obj) {
             boolean result = super.add(obj);
             model.getConnectivity().setNProxies(size());
-            Events.sync(SyncPath.CONNECTIVITY_NPROXIES, size());
             return result;
         }
 
@@ -48,7 +47,6 @@ public class ProxyQueue {
         public T remove() {
             T result = super.remove();
             model.getConnectivity().setNProxies(size());
-            Events.sync(SyncPath.CONNECTIVITY_NPROXIES, size());
             return result;
         }
     }
@@ -69,6 +67,7 @@ public class ProxyQueue {
         }
         proxySet.add(holder);
         proxies.add(holder);
+        Events.sync(SyncPath.CONNECTIVITY_NPROXIES, proxies.size());
         return true;
     }
 
@@ -81,6 +80,7 @@ public class ProxyQueue {
         final ProxyHolder proxy = proxies.remove();
         reenqueueProxy(proxy);
         log.debug("FIFO queue is now: {}", proxies);
+        
         return proxy;
     }
 
@@ -96,7 +96,7 @@ public class ProxyQueue {
             proxySet.add(proxyAddress);
         }
         if (model.getConnectivity().isInternet()) {
-            proxies.remove(proxyAddress);
+            removeProxyWithSync(proxyAddress);
             proxyAddress.addFailure();
             if (!pausedProxies.contains(proxyAddress)) {
                 pausedProxies.add(proxyAddress);
@@ -115,9 +115,15 @@ public class ProxyQueue {
         }
     }
 
+    private void removeProxyWithSync(final ProxyHolder proxyAddress) {
+        if (proxies.remove(proxyAddress)) {
+            Events.sync(SyncPath.CONNECTIVITY_NPROXIES, proxies.size());
+        }
+    }
+
     public synchronized void removeProxy(ProxyHolder proxyAddress) {
         proxySet.remove(proxyAddress);
-        proxies.remove(proxyAddress);
+        removeProxyWithSync(proxyAddress);
         pausedProxies.remove(proxyAddress);
     }
 
