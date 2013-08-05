@@ -60,8 +60,13 @@ import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
+import org.lantern.util.Stopwatch;
+import org.lantern.util.StopwatchManager;
 import org.lastbamboo.common.offer.answer.IceConfig;
+import org.lastbamboo.common.portmapping.NatPmpService;
+import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +76,6 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-
 
 /**
  * Launches a new Lantern HTTP proxy.
@@ -84,6 +88,8 @@ public class Launcher {
                 CommonUtils.getLittleShootDir().getAbsolutePath());
     }
 
+    public static final long START_TIME = System.currentTimeMillis();
+    
     private static Logger LOG;
     private boolean lanternStarted = false;
     private LanternHttpProxyServer localProxy;
@@ -125,7 +131,6 @@ public class Launcher {
     Model model;
     private ModelUtils modelUtils;
     private Settings set;
-    private Censored censored;
 
     private InternalState internalState;
 
@@ -133,7 +138,6 @@ public class Launcher {
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
     private final Module lanternModule;
-    private GeoIp geoip;
     private SplashScreen splashScreen;
 
     public Launcher(final String... args) {
@@ -194,7 +198,10 @@ public class Launcher {
 
     private void launch(final String... args) {
         LOG.info("Starting Lantern...");
-
+        final Stopwatch earlyWatch = 
+            StopwatchManager.getStopwatch("pre-instance-creation", 
+                STOPWATCH_LOG, STOPWATCH_GROUP);
+        earlyWatch.start();
         // first apply any command line settings
         final Options options = buildOptions();
 
@@ -252,13 +259,14 @@ public class Launcher {
             }
         }
 
+        earlyWatch.start();
         model = instance(Model.class);
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
 
         configureCipherSuites();
 
-        censored = instance(Censored.class);
+        instance(Censored.class);
 
         messageService = instance(MessageService.class);
 
@@ -272,6 +280,10 @@ public class Launcher {
                 System.exit(0);
             }
         }
+        instance(KeyStoreManager.class);
+        instance(NatPmpService.class);
+        instance(UpnpService.class);
+        instance(LanternTrustStore.class);
         instance(Proxifier.class);
         final boolean showDashboard = 
                 shouldShowDashboard(model, uiDisabled, launchD);
@@ -285,7 +297,7 @@ public class Launcher {
         }
         // We need to make sure the trust store is initialized before we
         // do our public IP lookup as well as modelUtils.
-        instance(LanternTrustStore.class);
+        //instance(LanternTrustStore.class);
 
         xmpp = instance(DefaultXmppHandler.class);
         jettyLauncher = instance(JettyLauncher.class);
@@ -309,13 +321,20 @@ public class Launcher {
         processCommandLineOptions(cmd);
         LOG.debug("Processed command line options...");
 
-        geoip = instance(GeoIp.class);
+        instance(GeoIp.class);
         statsUpdater = instance(StatsUpdater.class);
 
         model.getConnectivity().setInternet(false);
-        final Timer timer = new Timer();
+        
         final ConnectivityChecker connectivityChecker =
             instance(ConnectivityChecker.class);
+        
+        final Stopwatch watch = 
+            StopwatchManager.getStopwatch("post-instance-creation", 
+                STOPWATCH_LOG, STOPWATCH_GROUP);
+        watch.start();
+
+        final Timer timer = new Timer();
         timer.schedule(connectivityChecker, 0, 60 * 1000);
 
         if (!uiDisabled) {
@@ -352,6 +371,8 @@ public class Launcher {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
+        
+        watch.stop();
         launchLantern(showDashboard);
 
         // This is necessary to keep the tray/menu item up in the case
@@ -386,7 +407,14 @@ public class Launcher {
     }
 
     private <T> T instance(final Class<T> clazz) {
-        LOG.debug("Loading {}", clazz.getSimpleName());
+        final String name = clazz.getSimpleName();
+        
+        final Stopwatch watch = 
+            StopwatchManager.getStopwatch(name, STOPWATCH_LOG, STOPWATCH_GROUP);
+        
+        watch.start();
+        
+        LOG.debug("Loading {}", name);
         final T inst = injector.getInstance(clazz);
         if (Shutdownable.class.isAssignableFrom(clazz)) {
             addShutdownHook((Shutdownable) inst);
@@ -398,7 +426,7 @@ public class Launcher {
         if (splashScreen != null) {
             splashScreen.advanceBar();
         }
-        LOG.debug("Finished loading {}", clazz.getSimpleName());
+        watch.stop();
         return inst;
     }
 
@@ -462,6 +490,10 @@ public class Launcher {
 
     private static final String CIPHER_SUITE_HIGH_BIT =
             "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
+
+    private static final String STOPWATCH_LOG = "org.lantern.STOPWATCH_LOG";
+    
+    private static final String STOPWATCH_GROUP = "launcherGroup";
 
     public static void configureCipherSuites() {
         Security.addProvider(new BouncyCastleProvider());
@@ -575,6 +607,7 @@ public class Launcher {
     }
 
     private void launchLantern(final boolean showDashboard) {
+        printLaunchTimes();
         LOG.debug("Launching Lantern...");
         if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
             model.setModal(Modal.welcome);
@@ -587,6 +620,12 @@ public class Launcher {
         lanternStarted = true;
     }
 
+
+    private void printLaunchTimes() {
+        LOG.debug("STARTUP TOOK {} MILLISECONDS", 
+           System.currentTimeMillis() - START_TIME);
+        StopwatchManager.logSummaries(STOPWATCH_LOG);
+    }
 
     private void autoConnect() {
         LOG.debug("Connecting if oauth is configured...");

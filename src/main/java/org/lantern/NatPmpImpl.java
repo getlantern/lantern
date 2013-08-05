@@ -30,22 +30,35 @@ public class NatPmpImpl implements NatPmpService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private NatPmp pmpDevice = null;
+    //private NatPmp pmpDevice = null;
 
     private final ClientStats stats;
     private final List<MapRequest> requests = new ArrayList<MapRequest>();
 
+    private NatPmp loadedNatPmp;
+    
+    private boolean attemptedLoad = false;
+
     /**
      * Creates a new NAT-PMP instance.
      * 
-     * @throws NatPmpException
-     *             If we could not start NAT-PMP for any reason.
+     * @throws NatPmpException If we could not start NAT-PMP for any reason.
      */
     @Inject
     public NatPmpImpl(final ClientStats stats) {
         this.stats = stats;
-        pmpDevice = new NatPmp();
-        log.debug("NAT-PMP device = {}", pmpDevice);
+    }
+    
+    private NatPmp loadNatPmp() {
+        if (attemptedLoad) {
+            return loadedNatPmp;
+        }
+        if (loadedNatPmp == null) {
+            loadedNatPmp = new NatPmp();
+        }
+        log.debug("NAT-PMP device = {}", loadedNatPmp);
+        attemptedLoad = true;
+        return loadedNatPmp;
     }
 
     public boolean isNatPmpSupported() {
@@ -55,14 +68,14 @@ public class NatPmpImpl implements NatPmpService {
         }
         // tests to see if NAT-PMP is supported by issuing a getExternalAddress
         // query
-        log.debug("NAT-PMP device = {}", pmpDevice);
-        if (pmpDevice == null) {
+        log.debug("NAT-PMP device = {}", loadedNatPmp);
+        if (loadedNatPmp == null) {
             return false;
         }
-        pmpDevice.sendPublicAddressRequest();
+        loadNatPmp().sendPublicAddressRequest();
         for (int i = 0; i < 5; ++i) {
             NatPmpResponse response = new NatPmpResponse();
-            int result = pmpDevice.readNatPmpResponseOrRetry(response);
+            int result = loadNatPmp().readNatPmpResponseOrRetry(response);
             if (result == 0) {
                 return true;
             }
@@ -84,12 +97,14 @@ public class NatPmpImpl implements NatPmpService {
 
         final MapRequest request = requests.get(mappingIndex);
 
-        pmpDevice.sendNewPortMappingRequest(request.protocol,
+        loadNatPmp().sendNewPortMappingRequest(request.protocol,
                 request.internalPort, request.externalPort, 0);
 
     }
+    
+    
 
-    class MapRequest {
+    private static class MapRequest {
         public MapRequest(int protocol, int localPort, int externalPort,
                 int lifeTimeSeconds) {
             this.protocol = protocol;
@@ -98,10 +113,10 @@ public class NatPmpImpl implements NatPmpService {
             this.lifeTimeSeconds = lifeTimeSeconds;
         }
 
-        int protocol;
-        int internalPort;
-        int externalPort;
-        int lifeTimeSeconds;
+        private final int protocol;
+        private final int internalPort;
+        private int externalPort;
+        private final int lifeTimeSeconds;
     }
 
     @Override
@@ -135,9 +150,10 @@ public class NatPmpImpl implements NatPmpService {
 
     protected void addMapping(final PortMappingProtocol prot,
             final int localPort, final PortMapListener portMapListener) {
-        log.info("Adding NAT-PMP mapping");
+        log.debug("Adding NAT-PMP mapping");
 
-        if (pmpDevice == null) {
+        if (loadNatPmp() == null) {
+            log.warn("No NAT-PMP device?");
             return;
         }
 
@@ -153,7 +169,7 @@ public class NatPmpImpl implements NatPmpService {
 
         MapRequest map = new MapRequest(protocol, localPort, 0, lifeTimeSeconds);
 
-        pmpDevice.sendNewPortMappingRequest(protocol, localPort, -1,
+        loadNatPmp().sendNewPortMappingRequest(protocol, localPort, -1,
                 lifeTimeSeconds * 1000);
         final NatPmpResponse response = new NatPmpResponse();
         int result = -1;
@@ -163,7 +179,7 @@ public class NatPmpImpl implements NatPmpService {
             } catch (InterruptedException e) {
                 // fallthrough
             }
-            result = pmpDevice.readNatPmpResponseOrRetry(response);
+            result = loadNatPmp().readNatPmpResponseOrRetry(response);
             if (result == 0) {
                 break;
             }
@@ -190,13 +206,13 @@ public class NatPmpImpl implements NatPmpService {
     @Override
     public void shutdown() {
         // Remove all the mappings and shutdown.
-        log.info("Shutting down NAT-PMP");
+        log.debug("Shutting down NAT-PMP");
         final int num = requests.size();
         for (int i = 0; i < num; i++) {
             removeNatPmpMapping(i);
         }
         // pmpDevice.shutdown();
-        log.info("Finished shutdown for NAT-PMP");
+        log.debug("Finished shutdown for NAT-PMP");
     }
 
 }
