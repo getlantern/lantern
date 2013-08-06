@@ -1,322 +1,186 @@
 package org.lantern;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Enumeration;
+import java.util.concurrent.atomic.AtomicReference;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.jboss.netty.channel.ChannelPipeline;
 import org.lantern.event.Events;
 import org.lantern.event.PeerCertEvent;
-import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * This class manages the local trust store of external entities we trust
+ * for creating SSL connections. This includes both hard coded certificates
+ * for a small number of services we use as well as dynamically added
+ * certificates for peers. Peer certificates must be discovered and added
+ * through a trusted channel such as one of the hard coded trusted authorities
+ * (aka Google Talk with its equifax certificate as of this writing).
+ */
 @Singleton
 public class LanternTrustStore {
 
     private final static Logger log = 
         LoggerFactory.getLogger(LanternTrustStore.class);
 
-    private static final String KEYSIZE = "2048";
+    private final AtomicReference<SSLContext> sslClientContextRef = 
+            new AtomicReference<SSLContext>();
+    private final LanternKeyStoreManager ksm;
 
-    public static final String PASS =
-        String.valueOf(new SecureRandom().nextLong());
+    private final KeyStore trustStore;
 
-    private static final String ALG = "RSA";
-
-    private SSLContext sslClientContext;
-    private final KeyStoreManager ksm;
-
-    private KeyManagerFactory keyManagerFactory;
-
-    /**
-     * We re-create a random trust store on each run. This requires that
-     * we re-negotiate keys with peers on new connections, which will not
-     * always be the case if the remote client is longer lived than we are
-     * (i.e., the remote client thinks it has our key, but our key has changed).
-     * 
-     * Note this is not static so that tests don't conflict using the same
-     * trust store.
-     */
-    public final File TRUSTSTORE_FILE =
-        new File(LanternClientConstants.CONFIG_DIR,
-            String.valueOf(new SecureRandom().nextLong()));
+    private TrustManagerFactory tmf;
 
     @Inject
-    public LanternTrustStore(final KeyStoreManager ksm) {
+    public LanternTrustStore(final LanternKeyStoreManager ksm) {
         this.ksm = ksm;
-        System.setProperty("javax.net.ssl.trustStore",
-                TRUSTSTORE_FILE.getAbsolutePath());
-        configureTrustStore();
-
-        onTrustStoreChanged();
-        Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
-            @Override
-            public void run() {
-                LanternUtils.fullDelete(TRUSTSTORE_FILE);
-            }
-        }, "Keystore-Delete-Thread"));
+        this.trustStore = blankTrustStore();
+        this.tmf = initTrustManagerFactory();
     }
 
+    /**
+     * Every time the trust store changes, we need to recreate particularly
+     * our SSL context because we now trust different servers. We reload only
+     * on trust store changes as an optimization to avoid loading the whole
+     * SSL context from scratch for each new outgoing socket.
+     */
     private void onTrustStoreChanged() {
-        this.keyManagerFactory = loadKeyManagerFactory();
-        sslClientContext = provideClientSslContext();
+        this.tmf = initTrustManagerFactory();
+        this.sslClientContextRef.set(provideClientSslContext());
     }
 
-    private void configureTrustStore() {
-        LanternUtils.fullDelete(TRUSTSTORE_FILE);
-        createTrustStore();
-        addStaticCerts();
-        log.debug("Created trust store!!");
-    }
-
-    private void createTrustStore() {
-        if (TRUSTSTORE_FILE.isFile()) {
-            log.error("Trust store already exists at "+TRUSTSTORE_FILE);
-            return;
+    private TrustManagerFactory initTrustManagerFactory() {
+        try {
+            final TrustManagerFactory trustManagerFactory = 
+                    TrustManagerFactory.getInstance(
+                    TrustManagerFactory.getDefaultAlgorithm());
+            
+            // We create the trust manager factory with the latest trust store.
+            trustManagerFactory.init(this.trustStore);
+            return trustManagerFactory;
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("Could not load algorithm?", e);
+            throw new Error("Could not load algorithm", e);
+        } catch (final KeyStoreException e) {
+            log.error("Could not load keystore?", e);
+            throw new Error("Could not load keystore for tmf", e);
         }
-        final String dummyCn = String.valueOf(new SecureRandom().nextLong());
-        //final String dummyCn = model.getNodeId();
-        log.debug("Dummy CN is: {}", dummyCn);
-        final String result = LanternUtils.runKeytool("-genkey", "-alias",
-            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG,
-            "-dname", "CN="+dummyCn, "-keystore",
-            TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS,
-            "-storepass", PASS);
-        log.debug("Got result of creating trust store: {}", result);
-        LanternUtils.waitForFile(TRUSTSTORE_FILE);
     }
 
-    private void addStaticCerts() {
-        addCert("digicerthighassurancerootca", "certs/DigiCertHighAssuranceCA-3.cer");
-        addCert("littleproxy", "certs/littleproxy.cer");
-        addCert("equifaxsecureca", "certs/equifaxsecureca.cer");
+    private KeyStore blankTrustStore() {
+        try {
+            final KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(null, null);
+            
+            final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            addCert(ks, cf, "littleproxy", LITTLEPROXY);
+            addCert(ks, cf, "digicerthighassurancerootca", DIGICERT);
+            addCert(ks, cf, "equifaxsecureca", EQUIFAX);
+            return ks;
+        } catch (final KeyStoreException e) {
+            log.error("Could not load keystore?", e);
+            throw new Error("Could not load blank trust store", e);
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("No such algo?", e);
+            throw new Error("Could not load blank trust store", e);
+        } catch (final CertificateException e) {
+            log.error("Bad cert?", e);
+            throw new Error("Could not load blank trust store", e);
+        } catch (final IOException e) {
+            log.error("Could not load?", e);
+            throw new Error("Could not load blank trust store", e);
+        } 
     }
 
-    private void addCert(final String alias, final String fileName) {
-        final File cert = new File(fileName);
-        addCert(alias, cert);
+    private void addCert(final KeyStore ks, final CertificateFactory cf,
+        final String alias, final String pemCert) 
+                throws CertificateException, KeyStoreException {
+        final InputStream bis = 
+            new ByteArrayInputStream(pemCert.getBytes(Charsets.UTF_8));
+        final Certificate cert = cf.generateCertificate(bis);
+        ks.setCertificateEntry(alias, cert);
     }
 
-    public void addCert(final String alias, final File cert) {
-        LanternUtils.addCert(alias, cert, TRUSTSTORE_FILE, PASS);
+    public void addBase64Cert(final URI jid, final String base64Cert) {
+        log.debug("Adding base 64 cert for {} to trust store", jid);
+        Events.asyncEventBus().post(new PeerCertEvent(jid, base64Cert));
+
+        final byte[] decoded = Base64.decodeBase64(base64Cert);
+        final InputStream is = new ByteArrayInputStream(decoded);
+        addCert(jid.toASCIIString(), is);
+    }
+    
+    public void addCert(final String alias, final InputStream is) {
+        log.debug("Importing cert");
+        try {
+            final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            final Certificate certificate = cf.generateCertificate(is);
+            this.trustStore.setCertificateEntry(alias, certificate);
+        } catch (final CertificateException e) {
+            log.error("Could not load cert - cert error?", e);
+        } catch (final KeyStoreException e) {
+            log.error("Could not load cert into keystore?", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+        
         onTrustStoreChanged();
     }
+    
 
-    public void addBase64Cert(final URI jid, final String base64Cert)
-        throws IOException {
-        log.debug("Adding base 64 cert for {} to store: {}", jid, TRUSTSTORE_FILE);
-        Events.asyncEventBus().post(new PeerCertEvent(jid, base64Cert));
-        // Alright, we need to decode the certificate from base 64, write it
-        // to a file, and then use keytool to import it.
-
-        // Here's the keytool doc:
-        /*
-         * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
-         [-alias <alias>]
-         [-file <cert_file>] [-keypass <keypass>]
-         [-keystore <keystore>] [-storepass <storepass>]
-         [-storetype <storetype>] [-providername <name>]
-         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
-         [-providerpath <pathlist>]
-         */
-        final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final String normalizedAlias =
-            FileUtils.removeIllegalCharsFromFileName(jid.toASCIIString());
-        final File certFile = 
-            new File(LanternClientConstants.CONFIG_DIR, normalizedAlias);
-        OutputStream os = null;
-        try {
-            os = new FileOutputStream(certFile);
-            IOUtils.copy(new ByteArrayInputStream(decoded), os);
-        } catch (final IOException e) {
-            log.error("Could not write to file: " + certFile.getAbsolutePath(), e);
-            throw e;
-        } finally {
-            IOUtils.closeQuietly(os);
-        }
-        /*
-         * -delete      [-v] [-protected] -alias <alias>
-         [-keystore <keystore>] [-storepass <storepass>]
-         [-storetype <storetype>] [-providername <name>]
-         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
-         [-providerpath <pathlist>]
-         */
-
-        log.debug("Using normalized alias {}", normalizedAlias);
-        // Make sure we delete the old one (will fail when it doesn't exist -
-        // this is expected).
-        deleteCert(normalizedAlias);
-        addCert(normalizedAlias, certFile);
-
-        // get rid of our imported file
-        certFile.delete();
-        certFile.deleteOnExit();
-    }
-
-    private String getTrustStorePath() {
-        return TRUSTSTORE_FILE.getAbsolutePath();
-    }
 
     /**
      * Accessor for the client SSL context. This is regenerated whenever
-     * we receive new certificates. This also differs from the server SSL
-     * context in that it is initialized with null array of trust managers,
-     * which signals the use of the default trust managers specified in
-     * the javax.net.ssl.trustStore property. That overrides java's default
-     * trusted certificates. The same strategy can't be used on the server
-     * side, however, because java explicitly requires a TrustManager for 
-     * verifying trusted *clients* with mutual authentication turned on --
-     * passing null trust managers doesn't trigger the use of the default
-     * trust store for client authentication like it does for server 
-     * authentication.
+     * we receive new certificates.
      * 
      * @return The client SSL context.
      */
-    public SSLContext getClientContext() {
-        return sslClientContext;
+    public synchronized SSLContext getClientContext() {
+        if (this.sslClientContextRef.get() == null) {
+            this.sslClientContextRef.set(provideClientSslContext());
+        }
+        return sslClientContextRef.get();
     }
 
     private SSLContext provideClientSslContext() {
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
-
-            // Note that specifying null for the trust managers here simply
-            // tells the JVM to load them from our trusted certs keystore.
-            // We set that specially with our call to:
-            //
-            // System.setProperty("javax.net.ssl.trustStore",
-            //     TRUSTSTORE_FILE.getAbsolutePath());
-            //
-            // This is the "safe" way to do it because we completely override
-            // all the JVM's default trusted certs and only trust the few
-            // certs we specify, and that file is generated on the fly
-            // on each run, added to dynamically, and reloaded here.
-            context.init(this.keyManagerFactory.getKeyManagers(), null, null);
+            
+            // Create the context with the latest trust manager factory.
+            context.init(this.ksm.getKeyManagerFactory().getKeyManagers(), 
+                this.tmf.getTrustManagers(), null);
             return context;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
         }
     }
-    
-
-    private KeyManagerFactory loadKeyManagerFactory() {
-        String algorithm =
-            Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
-        try {
-            final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(ksm.keyStoreAsInputStream(), ksm.getKeyStorePassword());
-
-            // Set up key manager factory to use our key store
-            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-            kmf.init(ks, ksm.getCertificatePassword());
-
-            return kmf;
-        } catch (final KeyStoreException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final UnrecoverableKeyException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final CertificateException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final IOException e) {
-            throw new Error("Key manager issue", e);
-        }
-    }
 
     public void deleteCert(final String alias) {
-        final String deleteResult = LanternUtils.runKeytool("-delete",
-            "-alias", alias,
-            "-keystore", getTrustStorePath(),
-            "-storepass", PASS);
-
-        log.debug("Result of deleting old cert: {}", deleteResult);
-        onTrustStoreChanged();
-    }
-
-
-    private static void listEntries(final KeyStore ks) {
         try {
-            final Enumeration<String> aliases = ks.aliases();
-            while (aliases.hasMoreElements()) {
-                final String alias = aliases.nextElement();
-                //System.err.println(alias+": "+ks.getCertificate(alias));
-                System.err.println(alias);
-            }
+            this.trustStore.deleteEntry(alias);
+            onTrustStoreChanged();
         } catch (final KeyStoreException e) {
-            log.warn("KeyStore error", e);
+            log.debug("Error removing entry -- doesn't exist?", e);
         }
-    }
-    
-    public static void listEntries(final File keyStore, final String pass) {
-        final KeyStore ks = loadKeyStore(keyStore, pass);
-        listEntries(ks);
-    }
-    
-    public static KeyStore loadKeyStore(final File keyStore, final String pass) {
-        InputStream is = null;
-        try {
-            is = new FileInputStream(keyStore);
-            final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            ks.load(is, pass.toCharArray());
-            return ks;
-        } catch (final KeyStoreException e) {
-            log.warn("Could not load keystore?", e);
-            throw new RuntimeException("Could not load keystore", e);
-        } catch (final NoSuchAlgorithmException e) {
-            log.warn("Could not load keystore?", e);
-            throw new RuntimeException("Could not load keystore", e);
-        } catch (final CertificateException e) {
-            log.warn("Could not load keystore?", e);
-            throw new RuntimeException("Could not load keystore", e);
-        } catch (final FileNotFoundException e) {
-            log.warn("Could not load keystore?", e);
-            throw new RuntimeException("Could not load keystore", e);
-        } catch (final IOException e) {
-            log.warn("Could not load keystore?", e);
-            throw new RuntimeException("Could not load keystore", e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-    }
-
-    public void listEntries() {
-        listEntries(TRUSTSTORE_FILE, PASS);
-    }
-    
-    public KeyStore loadKeyStore() {
-        return loadKeyStore(TRUSTSTORE_FILE, PASS);
     }
 
     /**
@@ -329,15 +193,15 @@ public class LanternTrustStore {
      * otherwise <code>false</code>.
      */
     public boolean containsCertificate(final X509Certificate cert) {
-        log.debug("Loading trust store: {}", TRUSTSTORE_FILE);
-        final KeyStore ks = loadKeyStore();
+        log.debug("Loading trust store...");
         
         // We could use getCertificateAlias here, but that will iterate through
         // everything, potentially causing issues when there are a lot of certs.
         final String alias = 
             cert.getIssuerDN().getName().substring(3).toLowerCase();
+        log.debug("Looking for alias {}", alias);
         try {
-            final Certificate existingCert = ks.getCertificate(alias);
+            final Certificate existingCert = this.trustStore.getCertificate(alias);
             return existingCert.equals(cert);
         } catch (final KeyStoreException e) {
             log.warn("Exception accessing keystore", e);
@@ -345,7 +209,93 @@ public class LanternTrustStore {
         }
     }
 
-    public KeyManagerFactory getKeyManagerFactory() {
-        return keyManagerFactory;
-    }
+    private static final String EQUIFAX =
+            "-----BEGIN CERTIFICATE-----\n"
+            + "MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV\n"
+            + "UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy\n"
+            + "dGlmaWNhdGUgQXV0aG9yaXR5MB4XDTk4MDgyMjE2NDE1MVoXDTE4MDgyMjE2NDE1\n"
+            + "MVowTjELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0VxdWlmYXgxLTArBgNVBAsTJEVx\n"
+            + "dWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTCBnzANBgkqhkiG9w0B\n"
+            + "AQEFAAOBjQAwgYkCgYEAwV2xWGcIYu6gmi0fCG2RFGiYCh7+2gRvE4RiIcPRfM6f\n"
+            + "BeC4AfBONOziipUEZKzxa1NfBbPLZ4C/QgKO/t0BCezhABRP/PvwDN1Dulsr4R+A\n"
+            + "cJkVV5MW8Q+XarfCaCMczE1ZMKxRHjuvK9buY0V7xdlfUNLjUA86iOe/FP3gx7kC\n"
+            + "AwEAAaOCAQkwggEFMHAGA1UdHwRpMGcwZaBjoGGkXzBdMQswCQYDVQQGEwJVUzEQ\n"
+            + "MA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2VydGlm\n"
+            + "aWNhdGUgQXV0aG9yaXR5MQ0wCwYDVQQDEwRDUkwxMBoGA1UdEAQTMBGBDzIwMTgw\n"
+            + "ODIyMTY0MTUxWjALBgNVHQ8EBAMCAQYwHwYDVR0jBBgwFoAUSOZo+SvSspXXR9gj\n"
+            + "IBBPM5iQn9QwHQYDVR0OBBYEFEjmaPkr0rKV10fYIyAQTzOYkJ/UMAwGA1UdEwQF\n"
+            + "MAMBAf8wGgYJKoZIhvZ9B0EABA0wCxsFVjMuMGMDAgbAMA0GCSqGSIb3DQEBBQUA\n"
+            + "A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y\n"
+            + "7qj/WsjTVbJmcVfewCHrPSqnI0kBBIZCe/zuf6IWUrVnZ9NA2zsmWLIodz2uFHdh\n"
+            + "1voqZiegDfqnc1zqcPGUIWVEX/r87yloqaKHee9570+sB3c4\n"
+            + "-----END CERTIFICATE-----";
+    
+    private static final String DIGICERT =
+            "-----BEGIN CERTIFICATE-----\n"
+            + "MIIGWDCCBUCgAwIBAgIQCl8RTQNbF5EX0u/UA4w/OzANBgkqhkiG9w0BAQUFADBs\n"
+            + "MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n"
+            + "d3cuZGlnaWNlcnQuY29tMSswKQYDVQQDEyJEaWdpQ2VydCBIaWdoIEFzc3VyYW5j\n"
+            + "ZSBFViBSb290IENBMB4XDTA4MDQwMjEyMDAwMFoXDTIyMDQwMzAwMDAwMFowZjEL\n"
+            + "MAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3\n"
+            + "LmRpZ2ljZXJ0LmNvbTElMCMGA1UEAxMcRGlnaUNlcnQgSGlnaCBBc3N1cmFuY2Ug\n"
+            + "Q0EtMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL9hCikQH17+NDdR\n"
+            + "CPge+yLtYb4LDXBMUGMmdRW5QYiXtvCgFbsIYOBC6AUpEIc2iihlqO8xB3RtNpcv\n"
+            + "KEZmBMcqeSZ6mdWOw21PoF6tvD2Rwll7XjZswFPPAAgyPhBkWBATaccM7pxCUQD5\n"
+            + "BUTuJM56H+2MEb0SqPMV9Bx6MWkBG6fmXcCabH4JnudSREoQOiPkm7YDr6ictFuf\n"
+            + "1EutkozOtREqqjcYjbTCuNhcBoz4/yO9NV7UfD5+gw6RlgWYw7If48hl66l7XaAs\n"
+            + "zPw82W3tzPpLQ4zJ1LilYRyyQLYoEt+5+F/+07LJ7z20Hkt8HEyZNp496+ynaF4d\n"
+            + "32duXvsCAwEAAaOCAvowggL2MA4GA1UdDwEB/wQEAwIBhjCCAcYGA1UdIASCAb0w\n"
+            + "ggG5MIIBtQYLYIZIAYb9bAEDAAIwggGkMDoGCCsGAQUFBwIBFi5odHRwOi8vd3d3\n"
+            + "LmRpZ2ljZXJ0LmNvbS9zc2wtY3BzLXJlcG9zaXRvcnkuaHRtMIIBZAYIKwYBBQUH\n"
+            + "AgIwggFWHoIBUgBBAG4AeQAgAHUAcwBlACAAbwBmACAAdABoAGkAcwAgAEMAZQBy\n"
+            + "AHQAaQBmAGkAYwBhAHQAZQAgAGMAbwBuAHMAdABpAHQAdQB0AGUAcwAgAGEAYwBj\n"
+            + "AGUAcAB0AGEAbgBjAGUAIABvAGYAIAB0AGgAZQAgAEQAaQBnAGkAQwBlAHIAdAAg\n"
+            + "AEMAUAAvAEMAUABTACAAYQBuAGQAIAB0AGgAZQAgAFIAZQBsAHkAaQBuAGcAIABQ\n"
+            + "AGEAcgB0AHkAIABBAGcAcgBlAGUAbQBlAG4AdAAgAHcAaABpAGMAaAAgAGwAaQBt\n"
+            + "AGkAdAAgAGwAaQBhAGIAaQBsAGkAdAB5ACAAYQBuAGQAIABhAHIAZQAgAGkAbgBj\n"
+            + "AG8AcgBwAG8AcgBhAHQAZQBkACAAaABlAHIAZQBpAG4AIABiAHkAIAByAGUAZgBl\n"
+            + "AHIAZQBuAGMAZQAuMBIGA1UdEwEB/wQIMAYBAf8CAQAwNAYIKwYBBQUHAQEEKDAm\n"
+            + "MCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20wgY8GA1UdHwSB\n"
+            + "hzCBhDBAoD6gPIY6aHR0cDovL2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0SGln\n"
+            + "aEFzc3VyYW5jZUVWUm9vdENBLmNybDBAoD6gPIY6aHR0cDovL2NybDQuZGlnaWNl\n"
+            + "cnQuY29tL0RpZ2lDZXJ0SGlnaEFzc3VyYW5jZUVWUm9vdENBLmNybDAfBgNVHSME\n"
+            + "GDAWgBSxPsNpA/i/RwHUmCYaCALvY2QrwzAdBgNVHQ4EFgQUUOpzidsp+xCPnuUB\n"
+            + "INTeeZlIg/cwDQYJKoZIhvcNAQEFBQADggEBAB7ipUiebNtTOA/vphoqrOIDQ+2a\n"
+            + "vD6OdRvw/S4iWawTwGHi5/rpmc2HCXVUKL9GYNy+USyS8xuRfDEIcOI3ucFbqL2j\n"
+            + "CwD7GhX9A61YasXHJJlIR0YxHpLvtF9ONMeQvzHB+LGEhtCcAarfilYGzjrpDq6X\n"
+            + "dF3XcZpCdF/ejUN83ulV7WkAywXgemFhM9EZTfkI7qA5xSU1tyvED7Ld8aW3DiTE\n"
+            + "JiiNeXf1L/BXunwH1OH8zVowV36GEEfdMR/X/KLCvzB8XSSq6PmuX2p0ws5rs0bY\n"
+            + "Ib4p1I5eFdZCSucyb6Sxa1GDWL4/bcf72gMhy2oWGU4K8K2Eyl2Us1p292E=\n"
+            + "-----END CERTIFICATE-----";
+    
+    private static final String LITTLEPROXY =
+            "-----BEGIN CERTIFICATE-----\n"
+            + "MIIEqjCCApKgAwIBAgIETSOp+zANBgkqhkiG9w0BAQUFADAWMRQwEgYDVQQDEwts\n"
+            + "aXR0bGVwcm94eTAgFw0xMTAxMDQyMzE1MDdaGA8yMTEwMTIxMTIzMTUwN1owFjEU\n"
+            + "MBIGA1UEAxMLbGl0dGxlcHJveHkwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK\n"
+            + "AoICAQCm4Ulsi69ZqgeSf+aVDFlVMkMWzYKomTcDFCX9rpys+nKiLpKbzXKruBUM\n"
+            + "Ud9BSG1I3eiJ9jJP77f5DpW0z2bptOHSRi0a9GOpx6I8AjKBvKH2CtV8cnGsopN8\n"
+            + "JMMop6tZ7hVRo3M0BmGh9SgAQaX46nVIwcA3oUSLQKEqAsw8WVmbYJhwNWpPAl5M\n"
+            + "0BT/ElEKG2LPaB0ha+8mFeT3haq4Jeuxeb5MfnpuEnLQ4FTre27f7bO3r/QaxVpu\n"
+            + "UHF6MyMjoQCcjUO99Fo6a0poo6XX7ys9jnPEl44Pt36ygced2S3U4ZtchWWf634B\n"
+            + "Wh5jmHtrcdOo94emzHGdah+XnTJI5BYUyNgNeI/8D3OyTlVWxUDU4f/9XqxVtc1F\n"
+            + "KjMe33eT6kL2s5GWaT+1R9dJ4TCFizPQrWrwu2IDbyDj2sJGdSrjj+w2kHQ/V17q\n"
+            + "AD2TmDlMmIvrqRc1lptBhcSpdTp5EoZEvgwTyRM7jpwDj5rAUXV8eu/93NcImJY2\n"
+            + "QkGxAamB2vFWwxxYShKUqyG1zxyIF1cvWnAywgZuE4t5TGiZ9AIor5XkNDcaE0pj\n"
+            + "6yJtblOFhSKiJgSUR49dl0D39fzy++gkkWmjgUuRTMglx0wAFPxFa/TGhfK0Ukze\n"
+            + "WpJxoWHR06+EPN0kj/nagk5q4Ovz8EOZratTwToCEi9Doe5N8wIDAQABMA0GCSqG\n"
+            + "SIb3DQEBBQUAA4ICAQBiLlzTzBfFsvtfz6ll8mU8jptS6A3YV7Zldon25I/xQlik\n"
+            + "72hS25+s2U3mzcIz1kkdSYhyTa8B1JhXygnUYkJV+AShP5+tlcYXWq1YMx9GrKC2\n"
+            + "SEOrsmt2tHLJS03oyCZfYcKdoJMRoTXnKe8WDs7M4iFSXGeaFn1SePbdjNMGHCVT\n"
+            + "Cr58PhCxigXushNAVy5GZFh0gcFeMIYJIUqJADbw4IyicXpcUdQJHs7DkvXxquXZ\n"
+            + "rNv2NKWlqQI2iwn2Aow8V0c7mud/kGdzLFM18NZVfZQsWWBWXP3CxUPGGrfaxiCH\n"
+            + "aLo1i9KnD6yEw9x/0mcajy3VN4y8QdJpgPhGDQXMMvqDWIEouy05sES4V0GVTksQ\n"
+            + "42SscqVWyT0HNRgmvOQHEc9Oh9mkCuspEzSA+LH1CGYc+dSTUTZUO+MmcfMDYpj4\n"
+            + "NkLH/AgVwKPiFyD5MUYi7isLJnfpkmZcgJOL/FXtGmLeD8nt8eRPRS4YZMLDtd/9\n"
+            + "FVo6KC1mlaiosLys7wUBuu15HdyJrkD+k4ZNrkx/oMlcLOgPdz2Qkue3Rqa9DRuX\n"
+            + "jwwv90xVufuOJ5mYcQ2VA80x8YT+XTq194BGSqYAAU8Rq1/5fAMg5cwhg4BDjmY2\n"
+            + "ok2U3fCl58xbiwp6owpamVoPblrq7Zl4ylyF33H6ewM+f5XA+L1iC5KWs9q8Kw==\n"
+            + "-----END CERTIFICATE-----";
+
+
 }
