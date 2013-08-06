@@ -531,7 +531,7 @@ public class TestingUtils {
     }
 
     public static HttpClientFactory newHttClientFactory() {
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
@@ -542,7 +542,7 @@ public class TestingUtils {
         return factory;
     }
 
-    public static KeyStoreManager newKeyStoreManager() {
+    public static LanternKeyStoreManager newKeyStoreManager() {
         final File temp = new File(String.valueOf(RandomUtils.nextInt()));
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -552,7 +552,7 @@ public class TestingUtils {
                 } catch (IOException e) {}
             }
         });
-        final KeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager(temp);
         return ksm;
     }
 }

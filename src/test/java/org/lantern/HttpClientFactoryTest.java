@@ -29,7 +29,6 @@ import org.apache.http.util.EntityUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
 import org.lantern.util.HttpClientFactory;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -51,7 +50,7 @@ public class HttpClientFactoryTest {
      */
     @Test
     public void testAllInternallyProxiedSites() throws Exception {
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);

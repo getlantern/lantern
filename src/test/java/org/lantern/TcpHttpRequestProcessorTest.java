@@ -56,8 +56,7 @@ public class TcpHttpRequestProcessorTest {
     public void test() throws Exception {
         // The idea here is to start an HTTP proxy server locally that the UDT
         // relay relays to -- i.e. just like the real world setup.
-        
-        
+        System.setProperty("javax.net.debug", "ssl");
         Launcher.configureCipherSuites();
         
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
@@ -67,7 +66,7 @@ public class TcpHttpRequestProcessorTest {
         trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         
         final HandshakeHandlerFactory hhf = 
-            new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore);
+            new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore, ksm);
         final PeerFactory peerFactory = new PeerFactory() {
 
             @Override
@@ -92,7 +91,6 @@ public class TcpHttpRequestProcessorTest {
         startProxyServer(proxyPort, hhf, true, peerFactory);
         final InetSocketAddress localProxyAddress = 
             new InetSocketAddress(LanternClientConstants.LOCALHOST, proxyPort);
-        
         
         
         // Hit the proxy directly first so we can verify we get the exact

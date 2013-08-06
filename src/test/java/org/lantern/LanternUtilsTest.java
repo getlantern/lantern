@@ -68,7 +68,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testVCard() throws Exception {
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing vcard");
+        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing vcard");
         final XMPPConnection conn = TestUtils.xmppConnection();
         assertTrue(conn.isAuthenticated());
         final VCard vcard = XmppUtils.getVCard(conn, TestUtils.getUserName());
@@ -145,7 +145,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testGoogleStunServers() throws Exception {
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing STUN servers...");
+        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing STUN servers...");
         final XMPPConnection conn = TestUtils.xmppConnection();
 
         final Collection<InetSocketAddress> servers =
@@ -182,7 +182,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testOtrMode() throws Exception {
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing OTR mode...");
+        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing OTR mode...");
         //System.setProperty("javax.net.debug", "ssl");
         /*
         final File certsFile = new File("src/test/resources/cacerts");

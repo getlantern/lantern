@@ -8,14 +8,13 @@ import java.util.Map;
 import org.junit.Test;
 import org.lantern.http.GoogleOauth2CallbackServlet;
 import org.lantern.util.HttpClientFactory;
-import org.littleshoot.proxy.KeyStoreManager;
 
 public class GoogleOauth2CallbackServletTest {
 
 
     @Test
     public void testGoogleApis() throws Exception {
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);

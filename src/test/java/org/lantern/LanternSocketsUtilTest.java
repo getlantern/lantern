@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.lantern.TestCategories.TrustStoreTests;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class LanternSocketsUtilTest {
         //System.setProperty("javax.net.debug", "all");
         //System.setProperty("javax.net.debug", "ssl");
         LOG.debug("Testing Lantern mutually authenticated sockets");
-        final KeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final String testId = "test@gmail.com/somejidresource";
         trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));

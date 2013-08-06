@@ -17,7 +17,6 @@ import javax.net.ssl.SSLSocketFactory;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.lastbamboo.common.ice.NetSocketUDTWrapper;
-import org.littleshoot.proxy.KeyStoreManager;
 
 import udt.UDTReceiver;
 
@@ -39,7 +38,7 @@ public class UdtSslTest {
     @Test
     public void testSslOverUdt() throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         //final LanternKeyStoreManager ksm = TestUtils.getKsm();

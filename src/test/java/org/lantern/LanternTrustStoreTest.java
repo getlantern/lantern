@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,7 +29,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.lantern.TestCategories.TrustStoreTests;
 import org.lantern.util.LanternHostNameVerifier;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,17 +41,17 @@ public class LanternTrustStoreTest {
     @Test
     public void testFallback() throws UnknownHostException, IOException {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
 
-        System.setProperty("javax.net.ssl.trustStore",
-                trustStore.TRUSTSTORE_FILE.getAbsolutePath());
+        //System.setProperty("javax.net.ssl.trustStore",
+                //trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         // Higher bit cipher suites aren't enabled on littleproxy.
         Launcher.configureCipherSuites();
-        trustStore.listEntries();
+        //trustStore.listEntries();
         final SSLSocketFactory socketFactory = socketsUtil.newTlsSocketFactory();
         
         final SSLSocket sock = (SSLSocket) socketFactory.createSocket("54.254.96.14", 16589);
@@ -74,27 +75,27 @@ public class LanternTrustStoreTest {
     }
     
     @Test
-    public void testSites() {//throws Exception {
+    public void testSites() throws FileNotFoundException {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        log.debug("CONFIGURED TRUSTSTORE: "+
-                System.getProperty("javax.net.ssl.trustStore"));
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        //log.debug("CONFIGURED TRUSTSTORE: "+
+        //        System.getProperty("javax.net.ssl.trustStore"));
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
             new LanternSocketsUtil(null, trustStore);
 
-        System.setProperty("javax.net.ssl.trustStore",
-                trustStore.TRUSTSTORE_FILE.getAbsolutePath());
+        //System.setProperty("javax.net.ssl.trustStore",
+          //      trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
-        trustStore.listEntries();
+        //trustStore.listEntries();
         
         final HttpHost proxy = new HttpHost("54.254.96.14", 16589, "https");
         final org.apache.http.conn.ssl.SSLSocketFactory socketFactory =
             new org.apache.http.conn.ssl.SSLSocketFactory(
                 socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 new LanternHostNameVerifier(proxy));
-        log.debug("CONFIGURED TRUSTSTORE: "+
-                System.getProperty("javax.net.ssl.trustStore"));
+        //log.debug("CONFIGURED TRUSTSTORE: "+
+          //      System.getProperty("javax.net.ssl.trustStore"));
         final Scheme sch = new Scheme("https", 443, socketFactory);
 
         final HttpClient client = new DefaultHttpClient();
@@ -151,7 +152,7 @@ public class LanternTrustStoreTest {
             }
         }
         // We need to add this back as otherwise it can affect other tests!
-        trustStore.addCert("equifaxsecureca", new File("certs/equifaxsecureca.cer"));
+        trustStore.addCert("equifaxsecureca", new FileInputStream(new File("certs/equifaxsecureca.cer")));
     }
 
     private String trySite(final HttpClient client, final String uri)

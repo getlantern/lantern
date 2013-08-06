@@ -11,7 +11,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.junit.Test;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +20,11 @@ public class LaePinnedCertTest {
         LoggerFactory.getLogger(LaePinnedCertTest.class);
     
     @Test public void testPinnedCert() throws Exception {
-        final KeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
-        System.setProperty("javax.net.ssl.trustStore",
-                trustStore.TRUSTSTORE_FILE.getAbsolutePath());
+        //System.setProperty("javax.net.ssl.trustStore",
+          //      trustStore.TRUSTSTORE_FILE.getAbsolutePath());
         
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);

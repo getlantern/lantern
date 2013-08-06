@@ -73,7 +73,7 @@ public class UdtHttpRequestProcessorTest {
         final String dummyId = "test@gmail.com/-lan-22LJDEE";
         trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         final HandshakeHandlerFactory hhf = 
-                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore);
+                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore, ksm);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
