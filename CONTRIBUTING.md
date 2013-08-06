@@ -23,6 +23,8 @@ contributors to follow to facilitate the process:
     checkout fix/master/my_contribution`.  Please avoid working directly on the
     `master` branch.
 * Make commits of logical units.
+* Adhere to the [AngularJS code
+  standards](http://docs.angularjs.org/misc/contribute#applyingcodestandards).
 * Check for unnecessary whitespace with `git diff --check` before committing.
 * Make sure your commit messages are in the proper format.
 
