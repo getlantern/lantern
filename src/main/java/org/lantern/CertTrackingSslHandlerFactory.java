@@ -57,12 +57,16 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
     private final LanternTrustStore trustStore;
 
     private final Timer timer;
+
+    private final LanternKeyStoreManager keyStoreManager;
     
     @Inject
     public CertTrackingSslHandlerFactory(final Timer timer,
-        final LanternTrustStore trustStore) {
+        final LanternTrustStore trustStore, 
+        final LanternKeyStoreManager keyStoreManager) {
         this.timer = timer;
         this.trustStore = trustStore;
+        this.keyStoreManager = keyStoreManager;
     }
     
     @Override
@@ -132,7 +136,7 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
         log.debug("Using standard SSL context");
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
-            context.init(trustStore.getKeyManagerFactory().getKeyManagers(), 
+            context.init(this.keyStoreManager.getKeyManagerFactory().getKeyManagers(), 
                 new TrustManager[]{trustManager}, null);
             final SSLEngine engine = context.createSSLEngine();
             engine.setUseClientMode(false);

@@ -5,14 +5,22 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.net.ssl.KeyManagerFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +52,10 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private static final String ALG = "RSA";
 
     private String localCert;
+
+    private final AtomicReference<KeyManagerFactory> keyManagerFactoryRef = 
+            new AtomicReference<KeyManagerFactory>();
+    
 
     @Inject
     public LanternKeyStoreManager() {
@@ -106,19 +118,17 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
 
     private void generateLocalCert(final String jid) {
-        final String normalizedAlias = 
-                FileUtils.removeIllegalCharsFromFileName(jid);
         final String genKeyResult = LanternUtils.runKeytool("-genkey", 
-            "-alias", normalizedAlias, 
+            "-alias", jid, 
             "-keysize", KEYSIZE, 
             "-validity", "365", 
             "-keyalg", ALG, 
-            "-dname", "CN="+normalizedAlias,
+            "-dname", "CN="+jid,
             "-keypass", PASS,
             "-storepass", PASS,
             "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
-        log.info("Result of keytool -genkey call: {}", genKeyResult);
+        log.debug("Result of keytool -genkey call: {}", genKeyResult);
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
@@ -128,12 +138,12 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         // export for backwards compatibility).
         final String exportCertResult = LanternUtils.runKeytool(
             "-export", 
-            "-alias", normalizedAlias, 
+            "-alias", jid, 
             "-keystore", KEYSTORE_FILE.getAbsolutePath(), 
             "-storepass", PASS, 
             "-file", CERT_FILE.getAbsolutePath());
         
-        log.info("Result of keytool -exportcert call: {}", exportCertResult);
+        log.debug("Result of keytool -exportcert call: {}", exportCertResult);
         LanternUtils.waitForFile(CERT_FILE);
         
         try {
@@ -174,5 +184,38 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     @Override
     public char[] getKeyStorePassword() {
         return PASS.toCharArray();
+    }
+    
+
+    public KeyManagerFactory getKeyManagerFactory() {
+        if (this.keyManagerFactoryRef.get() != null) {
+            return this.keyManagerFactoryRef.get();
+        }
+        String algorithm =
+            Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
+        }
+        try {
+            final KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(keyStoreAsInputStream(), getKeyStorePassword());
+
+            // Set up key manager factory to use our key store
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+            kmf.init(ks, getKeyStorePassword());
+
+            this.keyManagerFactoryRef.set(kmf);
+            return kmf;
+        } catch (final KeyStoreException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final UnrecoverableKeyException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final CertificateException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final IOException e) {
+            throw new Error("Key manager issue", e);
+        }
     }
 }

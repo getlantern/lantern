@@ -259,7 +259,7 @@ public class Launcher {
             }
         }
 
-        earlyWatch.start();
+        earlyWatch.stop();
         model = instance(Model.class);
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
@@ -329,10 +329,10 @@ public class Launcher {
         final ConnectivityChecker connectivityChecker =
             instance(ConnectivityChecker.class);
         
-        final Stopwatch watch = 
+        final Stopwatch lateWatch = 
             StopwatchManager.getStopwatch("post-instance-creation", 
                 STOPWATCH_LOG, STOPWATCH_GROUP);
-        watch.start();
+        lateWatch.start();
 
         final Timer timer = new Timer();
         timer.schedule(connectivityChecker, 0, 60 * 1000);
@@ -372,7 +372,7 @@ public class Launcher {
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
         
-        watch.stop();
+        lateWatch.stop();
         launchLantern(showDashboard);
 
         // This is necessary to keep the tray/menu item up in the case

@@ -1,6 +1,5 @@
 package org.lantern.kscope;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
@@ -133,12 +132,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
 
     @Override
     public void onBase64Cert(final URI jid, final String base64Cert) {
-        try {
-            this.trustStore.addBase64Cert(jid, base64Cert);
-        } catch (final IOException e) {
-            log.error("Could not add cert?", e);
-            return;
-        }
+        this.trustStore.addBase64Cert(jid, base64Cert);
         
         final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
         if (ad != null) {

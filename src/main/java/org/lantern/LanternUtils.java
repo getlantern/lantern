@@ -4,9 +4,11 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.io.ByteArrayInputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,9 +24,15 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Policy;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -888,31 +896,6 @@ public class LanternUtils {
         if (file.isFile() && !file.delete()) {
             LOG.error("Could not delete file {}!!", file);
         }
-    }
-
-
-    public static void addCert(final String alias, final File cert,
-        final File trustStore, final String storePass) {
-        if (!cert.isFile()) {
-            LOG.error("No cert at "+cert);
-            return;
-        }
-        LOG.debug("Importing cert");
-
-        // Quick not on '-import' versus '-importcert' from the oracle docs:
-        //
-        // "This command was named -import in previous releases. This old name
-        // is still supported in this release and will be supported in future
-        // releases, but for clarify the new name, -importcert, is preferred
-        // going forward."
-        //
-        // We use import for backwards compatibility.
-        final String result = LanternUtils.runKeytool("-import",
-            "-noprompt", "-file", cert.getAbsolutePath(),
-            "-alias", alias, "-keystore",
-            trustStore.getAbsolutePath(), "-storepass", storePass);
-
-        LOG.debug("Result of running keytool: {}", result);
     }
 
     public static boolean isConnect(final HttpRequest request) {
