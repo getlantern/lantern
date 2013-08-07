@@ -45,8 +45,7 @@ public class CometDTest {
         final Model model = new Model(countryService);
         final SyncService syncer =
             new SyncService(new CometDSyncStrategy(), model, new Timer(), null);
-        final JettyLauncher jl = new JettyLauncher(syncer, null, null, model, null,
-                new SplashScreen());
+        final JettyLauncher jl = new JettyLauncher(syncer, null, null, model, null);
         startJetty(jl, port);
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
