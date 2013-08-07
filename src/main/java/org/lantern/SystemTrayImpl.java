@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -62,6 +63,8 @@ public class SystemTrayImpl implements SystemTray {
     //private final XmppHandler handler;
     private final BrowserService browserService;
     private final Model model;
+    private String connectionStatusText;
+    private Image trayItemImage;
     
     /**
      * Creates a new system tray handler class.
@@ -128,6 +131,12 @@ public class SystemTrayImpl implements SystemTray {
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
                 I18n.tr("Lantern ")+LanternClientConstants.VERSION);
+            
+            // Another thread could have set the tray item image before the
+            // tray item was created.
+            if (this.trayItemImage != null) {
+                this.trayItem.setImage(trayItemImage);
+            }
             this.trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -144,7 +153,14 @@ public class SystemTrayImpl implements SystemTray {
             this.menu = new Menu (shell, SWT.POP_UP);
             
             this.connectionStatusItem = new MenuItem(menu, SWT.PUSH);
-            connectionStatusItem.setText(LABEL_DISCONNECTED); // XXX i18n 
+            
+            // Other threads can set the label before we've constructed the 
+            // menu item, so check for it.
+            if (StringUtils.isNotBlank(connectionStatusText)) {
+                connectionStatusItem.setText(connectionStatusText);
+            } else {
+                connectionStatusItem.setText(LABEL_DISCONNECTED); // XXX i18n
+            }
             connectionStatusItem.setEnabled(false);
             
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
@@ -156,7 +172,6 @@ public class SystemTrayImpl implements SystemTray {
                     browserService.reopenBrowser();
                 }
             });
-            
             
             new MenuItem(menu, SWT.SEPARATOR);
             
@@ -217,7 +232,11 @@ public class SystemTrayImpl implements SystemTray {
         DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
-                trayItem.setImage (image);
+                if (trayItem == null) {
+                    trayItemImage = image;
+                } else {
+                    trayItem.setImage (image);
+                }
             }
         });
     }
@@ -227,7 +246,11 @@ public class SystemTrayImpl implements SystemTray {
             @Override
             public void run () {
                 // XXX i18n 
-                connectionStatusItem.setText(status);
+                if (connectionStatusItem == null) {
+                    connectionStatusText = status;
+                } else {
+                    connectionStatusItem.setText(status);
+                }
             }
         });
     }

@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.IOException;
 
-import org.eclipse.swt.SWT;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,8 +88,13 @@ public class ChromeBrowserService implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady(final int port, final String prefix) {
+        log.debug("Waiting for server...");
+        final long start = System.currentTimeMillis();
         LanternUtils.waitForServer(port);
-        log.info("Server is running. Opening browser on port: {}", port);
+        log.debug("Server is running. Opening browser on port: {} WAITED FOR " +
+            "SERVER FOR {} ms", port, System.currentTimeMillis() - start);
+        log.debug("OPENING BROWSER AFTER {} OF TOTAL START TIME...", 
+            System.currentTimeMillis() - Launcher.START_TIME);
         openBrowser(port, prefix);
     }
 

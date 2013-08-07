@@ -5,6 +5,7 @@ import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -34,6 +35,8 @@ public class SplashScreen implements Shutdownable {
     int progress = 0;
     private Label label;
 
+    private AtomicBoolean closed = new AtomicBoolean(false);
+
     public void init(final Display display) {
         this.display = display;
         final File installed = new File("lantern-ui/img/splash.png");
@@ -46,7 +49,7 @@ public class SplashScreen implements Shutdownable {
 
         image = new Image(display, splashImage);
         splash = new Shell(SWT.NO_TRIM);
-        splash.setText("Lantern");
+        splash.setText("Lantern Beta");
         bar = new ProgressBar(splash, SWT.NONE);
 
         //The number of modules loaded in Launcher.launch()
@@ -86,15 +89,32 @@ public class SplashScreen implements Shutdownable {
     }
 
     public void advanceBar() {
-        if (display == null || Thread.currentThread() != display.getThread()) {
-            log.warn("Calling advanceBar outside of SWT thread is forbidden");
+        if (display == null) {// || Thread.currentThread() != display.getThread()) {
+            //log.warn("Calling advanceBar outside of SWT thread is forbidden");
+            log.warn("Display cannot be null...");
             return;
         }
-        if (bar != null) {
-            bar.setSelection(++progress);
-            while(display.readAndDispatch())
-                //do nothing
-                ;
+        if (this.closed.get()) {
+            log.debug("Ignoring advance call when closed...");
+            return;
+        }
+        if (bar != null && !display.isDisposed()) {
+            display.asyncExec(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        bar.setSelection(++progress);
+                    } catch (final Exception e) {
+                        log.debug("Exception setting progress bar...", e);
+                    }
+                    while(display.readAndDispatch())
+                        //do nothing
+                        ;
+                }
+                
+            });
+
         }
     }
 
@@ -103,6 +123,7 @@ public class SplashScreen implements Shutdownable {
     }
 
     public void close() {
+        this.closed.set(true);
         if (splash != null) {
             display.asyncExec(new Runnable() {
                 @Override

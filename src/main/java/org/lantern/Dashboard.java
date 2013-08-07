@@ -100,7 +100,7 @@ public class Dashboard implements BrowserService {
         final Image[] icons = new Image[]{small, medium, large};
         shell.setImages(icons);
         // this.shell = createShell(this.display);
-        shell.setText("Lantern Dashboard");
+        shell.setText("Lantern Beta");
         //this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
 

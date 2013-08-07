@@ -136,7 +136,8 @@ public class JettyLauncher implements LanternService {
         cometd.setInitParameter("jsonContext", 
             "org.lantern.SettingsJSONContextServer");
 
-        cometd.setInitOrder(1);
+        // An init order of -1 means to initialize upon first use.
+        cometd.setInitOrder(-11);
         contextHandler.addServlet(cometd, "/cometd/*");
         
         final ServletHolder ds = new ServletHolder(new DefaultServlet() {
@@ -168,25 +169,25 @@ public class JettyLauncher implements LanternService {
         ds.setInitParameter("cacheControl", "no-cache");
         ds.setInitParameter("aliases", "true");
 
-        ds.setInitOrder(3);
+        ds.setInitOrder(1);
         contextHandler.addServlet(ds, "/*");
         
         if (this.redirectServlet != null) {
             final ServletHolder settings = new ServletHolder(redirectServlet);
-            settings.setInitOrder(3);
+            settings.setInitOrder(-1);
             contextHandler.addServlet(settings, "/oauth/");
         }
         
         if (this.interactionServlet != null) {
             final ServletHolder interactionServletHolder = 
                 new ServletHolder(this.interactionServlet);
-            interactionServletHolder.setInitOrder(2);
+            interactionServletHolder.setInitOrder(-1);
             contextHandler.addServlet(interactionServletHolder, apiPath());
         }
         
         if (this.photoServlet != null) {
             final ServletHolder photo = new ServletHolder(this.photoServlet);
-            photo.setInitOrder(3);
+            photo.setInitOrder(-1);
             contextHandler.addServlet(photo, "/photo/*");
         }
 
@@ -195,7 +196,7 @@ public class JettyLauncher implements LanternService {
         final ServletHolder bayeux = new ServletHolder(bi);
         bayeux.setInitParameter("jsonContext", 
             "org.cometd.server.JacksonJSONContextServer");
-        bayeux.setInitOrder(2);
+        bayeux.setInitOrder(-1);
         contextHandler.getServletHandler().addServlet(bayeux);
         
         if (!this.model.getSettings().isBindToLocalhost()) {

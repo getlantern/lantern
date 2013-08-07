@@ -140,6 +140,10 @@ public class Launcher {
     private final Module lanternModule;
     private SplashScreen splashScreen;
 
+    private ProxyTracker proxyTracker;
+
+    private LanternKeyStoreManager keyStoreManager;
+
     public Launcher(final String... args) {
         this(new LanternModule(), args);
     }
@@ -225,11 +229,21 @@ public class Launcher {
             printVersion();
             return;
         }
-
+        earlyWatch.stop();
+        
+        final Stopwatch injectorWatch = 
+            StopwatchManager.getStopwatch("Guice-Injector", 
+                STOPWATCH_LOG, STOPWATCH_GROUP);
+        injectorWatch.start();
         injector = Guice.createInjector(this.lanternModule);
-
+        injectorWatch.stop();
+        
         LOG.debug("Creating display...");
 
+        final Stopwatch preInstanceWatch = 
+            StopwatchManager.getStopwatch("Pre-Instance-Creation", 
+                STOPWATCH_LOG, STOPWATCH_GROUP);
+        preInstanceWatch.start();
         // There are four cases here:
         // 1) We're just starting normally
         // 2) We're running with UI disabled (such as from a server), in
@@ -244,13 +258,15 @@ public class Launcher {
         final boolean uiDisabled = cmd.hasOption(OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(OPTION_LAUNCHD);
 
+        configureCipherSuites();
         final Display display;
         if (uiDisabled) {
             display = null;
+            preInstanceWatch.stop();
         } else {
             Display.setAppName("Lantern Beta");
             display = DisplayWrapper.getDisplay();
-
+            preInstanceWatch.stop();
             // Never show the splash screen on startup, even if setup is
             // not complete.
             if (!launchD) {
@@ -259,13 +275,9 @@ public class Launcher {
             }
         }
 
-        earlyWatch.stop();
         model = instance(Model.class);
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
-
-        configureCipherSuites();
-
         instance(Censored.class);
 
         messageService = instance(MessageService.class);
@@ -280,39 +292,44 @@ public class Launcher {
                 System.exit(0);
             }
         }
-        instance(KeyStoreManager.class);
+        jettyLauncher = instance(JettyLauncher.class);
+        jettyLauncher.start();
+        modelUtils = instance(ModelUtils.class);
+        final boolean showDashboard = 
+                shouldShowDashboard(model, uiDisabled, launchD);
+        if (showDashboard) {
+            browserService = instance(BrowserService.class);
+        }
+        launchLantern(showDashboard);
+        
+        keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
         instance(LanternTrustStore.class);
         instance(Proxifier.class);
-        final boolean showDashboard = 
-                shouldShowDashboard(model, uiDisabled, launchD);
         final boolean showTray = !uiDisabled;
 
-        if (showDashboard) {
-            browserService = instance(BrowserService.class);
-        }
         if (showTray) {
             systemTray = instance(SystemTray.class);
+            try {
+                systemTray.start();
+            } catch (final Exception e) {
+                LOG.error("Error starting tray?", e);
+            }
         }
-        // We need to make sure the trust store is initialized before we
-        // do our public IP lookup as well as modelUtils.
-        //instance(LanternTrustStore.class);
 
         xmpp = instance(DefaultXmppHandler.class);
-        jettyLauncher = instance(JettyLauncher.class);
 
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTextRelayHttpProxyServer.class);
-        modelUtils = instance(ModelUtils.class);
 
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
-        final ProxyTracker proxyTracker = instance(ProxyTracker.class);
+        proxyTracker = instance(ProxyTracker.class);
 
         // We do this to make sure it's added to the shutdown list.
         instance(GlobalLanternServerTrafficShapingHandler.class);
@@ -326,45 +343,6 @@ public class Launcher {
 
         model.getConnectivity().setInternet(false);
         
-        final ConnectivityChecker connectivityChecker =
-            instance(ConnectivityChecker.class);
-        
-        final Stopwatch lateWatch = 
-            StopwatchManager.getStopwatch("post-instance-creation", 
-                STOPWATCH_LOG, STOPWATCH_GROUP);
-        lateWatch.start();
-
-        final Timer timer = new Timer();
-        timer.schedule(connectivityChecker, 0, 60 * 1000);
-
-        if (!uiDisabled) {
-            LOG.debug("Starting system tray..");
-            try {
-                systemTray.start();
-            } catch (final Exception e) {
-                LOG.error("Error starting tray?", e);
-            }
-            LOG.debug("Started system tray..");
-        }
-
-        shutdownable(ModelIo.class);
-
-        try {
-            proxyTracker.start();
-        } catch (final Exception e) {
-            LOG.error("Could not start proxy tracker?", e);
-        }
-        jettyLauncher.start();
-        xmpp.start();
-        sslProxy.start(false, false);
-        localProxy.start();
-        plainTextAnsererRelayProxy.start(true, false);
-
-        syncService.start();
-        statsUpdater.start();
-
-        gnomeAutoStart();
-
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
         if (stunServers != null && !stunServers.isEmpty()) {
@@ -372,8 +350,9 @@ public class Launcher {
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
         
-        lateWatch.stop();
-        launchLantern(showDashboard);
+        
+        startServices();
+
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
@@ -382,6 +361,47 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+    }
+
+    /**
+     * This starts all of the services on a separate thread to avoid holding
+     * up the main thread that is in charge of displaying the UI.
+     */
+    private void startServices() {
+        final Thread t = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                keyStoreManager.start();
+                final ConnectivityChecker connectivityChecker =
+                    instance(ConnectivityChecker.class);
+                final Timer timer = new Timer();
+                timer.schedule(connectivityChecker, 0, 60 * 1000);
+
+                shutdownable(ModelIo.class);
+                
+                
+                try {
+                    proxyTracker.start();
+                } catch (final Exception e) {
+                    LOG.error("Could not start proxy tracker?", e);
+                }
+                xmpp.start();
+                sslProxy.start(false, false);
+                localProxy.start();
+                plainTextAnsererRelayProxy.start(true, false);
+
+                syncService.start();
+                statsUpdater.start();
+
+                gnomeAutoStart();
+                
+                autoConnect();
+            }
+            
+        }, "Launcher-Start-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 
     private boolean shouldShowDashboard(final Model mod, 
@@ -608,15 +628,24 @@ public class Launcher {
 
     private void launchLantern(final boolean showDashboard) {
         printLaunchTimes();
-        LOG.debug("Launching Lantern...");
-        if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
-            model.setModal(Modal.welcome);
-        }
-        if (showDashboard) {
-            browserService.openBrowserWhenPortReady();
-        }
+        
+        // Note this is the non-daemon thread that keeps the app alive.
+        final Thread t = new Thread(new Runnable() {
 
-        autoConnect();
+            @Override
+            public void run() {
+                LOG.debug("Launching Lantern...");
+                if (!modelUtils.isConfigured() && model.getModal() != Modal.settingsLoadFailure) {
+                    model.setModal(Modal.welcome);
+                }
+                if (showDashboard) {
+                    browserService.openBrowserWhenPortReady();
+                }
+            }
+            
+        }, "Browser-Launching-Thread");
+        t.start();
+
         lanternStarted = true;
     }
 

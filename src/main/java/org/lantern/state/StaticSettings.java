@@ -22,74 +22,73 @@ public class StaticSettings {
             .getLogger(StaticSettings.class);
 
     private static String prefix;
-    private static int port;
+    private static final int API_PORT;
 
-    public static final File constantsFile = new File(
+    private static final File constantsFile = new File(
             LanternClientConstants.CONFIG_DIR, "serverAddress");
 
     static {
-        loadSettings();
+        API_PORT = loadSettings();
     }
 
-    private static void loadSettings() {
-        Properties props = new Properties();
+    private static int loadSettings() {
+        final Properties props = new Properties();
         if (constantsFile.isFile()) {
             InputStream is = null;
             try {
                 is = new FileInputStream(constantsFile);
                 props.load(is);
                 prefix = props.getProperty("prefix");
-                port = Integer.parseInt(props.getProperty("port"));
+                return Integer.parseInt(props.getProperty("port"));
             } catch (final IOException e) {
-                System.err.println("Could not load settings file at"
+                LOG.error("Could not load settings file at"
                         + constantsFile.getAbsolutePath());
                 e.printStackTrace();
             } finally {
                 IOUtils.closeQuietly(is);
             }
-        } else {
-            //need to generate the file
-            createPropertiesFile();
-        }
+        } 
+        //need to generate the file
+        return createPropertiesFile();
     }
 
     /**
      * During the install process, we need to generate a random
      * port and prefix
+     * 
+     * @return  The port we're using.
      */
-    private static void createPropertiesFile() {
-        Properties props = new Properties();
-        byte[] bytes = new byte[16];
+    private static int createPropertiesFile() {
+        final Properties props = new Properties();
+        final byte[] bytes = new byte[16];
         new SecureRandom().nextBytes(bytes);
-        String randomPrefix = Base64.encodeBase64URLSafeString(bytes);
+        final String randomPrefix = Base64.encodeBase64URLSafeString(bytes);
 
         prefix = "/" + randomPrefix;
-        port = LanternUtils.randomPort();
+        final int tempPort = LanternUtils.randomPort();
 
-        props.put("port", "" + port);
+        props.put("port", "" + tempPort);
         props.put("prefix", prefix);
 
-        OutputStream is = null;
+        OutputStream os = null;
         try {
-            is = new FileOutputStream(constantsFile);
-            props.store(is, "Randomly generated port/prefix settings");
+            os = new FileOutputStream(constantsFile);
+            props.store(os, "Randomly generated port/prefix settings");
             prefix = props.getProperty("prefix");
-            port = Integer.parseInt(props.getProperty("port"));
         } catch (final IOException e) {
-            System.err.println("Could not save settings file at"
-                    + constantsFile.getAbsolutePath());
-            e.printStackTrace();
+            LOG.error("Could not save settings file at {}", constantsFile);
         } finally {
-            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
         }
+        return tempPort;
     }
 
     public static int getApiPort() {
-        return port;
+        return API_PORT;
     }
 
     public static String getLocalEndpoint() {
-        return getLocalEndpoint(port, prefix);
+        return getLocalEndpoint(API_PORT, prefix);
     }
 
     public static String getLocalEndpoint(final int port, String prefix) {

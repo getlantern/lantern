@@ -28,7 +28,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class LanternKeyStoreManager implements KeyStoreManager {
+public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -74,7 +74,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
                 log.error("Could not create config dir!! "+CONFIG_DIR);
             }
         }
-        reset();
         Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
             @Override
             public void run() {
@@ -83,6 +82,15 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             }
         }, "Keystore-Delete-Thread"));
     }
+    
+    @Override
+    public void start() {
+        reset();
+    }
+
+    @Override
+    public void stop() {}
+
 
     private void reset() {
         log.debug("RESETTING KEYSTORE AND TRUSTSTORE!!");
@@ -160,14 +168,26 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     @Override
     public String getBase64Cert(final String id) {
+        // The keystore file itself is created lazily, so make sure we have it
+        // before proceeding here.
+        waitForKeystore();
         if (StringUtils.isBlank(localCert)) {
             generateLocalCert(id);
         }
         return localCert;
     }
 
+    private void waitForKeystore() {
+        if (!KEYSTORE_FILE.isFile()) {
+            LanternUtils.waitForFile(KEYSTORE_FILE);
+        }
+    }
+
     @Override
     public InputStream keyStoreAsInputStream() {
+        // The keystore file itself is created lazily, so make sure we have it
+        // before proceeding here.
+        waitForKeystore();
         try {
             return new FileInputStream(KEYSTORE_FILE);
         } catch (final FileNotFoundException e) {

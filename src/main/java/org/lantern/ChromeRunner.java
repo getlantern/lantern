@@ -176,7 +176,7 @@ public class ChromeRunner {
 
         public Analyzer(final InputStream is) {
             this.is = is;
-            final Thread t = new Thread(this);
+            final Thread t = new Thread(this, "Browser-Process-Output-Thread");
             t.setDaemon(true);
             t.start();
         }
