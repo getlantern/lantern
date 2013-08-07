@@ -12,6 +12,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -56,6 +57,7 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     private final AtomicReference<KeyManagerFactory> keyManagerFactoryRef = 
             new AtomicReference<KeyManagerFactory>();
     
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
     @Inject
     public LanternKeyStoreManager() {
@@ -85,6 +87,9 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     
     @Override
     public void start() {
+        if (started.getAndSet(true)) {
+            return;
+        }
         reset();
     }
 
@@ -179,6 +184,7 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
 
     private void waitForKeystore() {
         if (!KEYSTORE_FILE.isFile()) {
+            start();
             LanternUtils.waitForFile(KEYSTORE_FILE);
         }
     }
