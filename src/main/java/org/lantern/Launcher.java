@@ -128,7 +128,7 @@ public class Launcher {
 
     private Injector injector;
     private SystemTray systemTray;
-    private Model model;
+    Model model;
     private ModelUtils modelUtils;
     private Settings set;
 
