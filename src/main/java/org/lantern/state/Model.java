@@ -217,6 +217,7 @@ public class Model {
         this.nproxiedSitesMax = nproxiedSitesMax;
     }
 
+    @JsonView({Run.class})
     public Map<String, Country> getCountries() {
         return countryService.allCountries();
     }

@@ -4,13 +4,12 @@ import org.lantern.annotation.Keep;
 
 /**
  * Class representing a single whitelisted site along with any higher level
- *  attributes of that site, such as whether or not it's required.
+ * attributes of that site, such as whether or not it's required.
  */
 @Keep
 public class WhitelistEntry implements Comparable<WhitelistEntry> {
 
     private String site;
-    private boolean required = false;
     private boolean defaultSetting;
 
     public WhitelistEntry() {
@@ -20,14 +19,8 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
         this(site, false);
     }
 
-    public WhitelistEntry(final String site, final boolean required) {
-        this(site, required, false);
-    }
-
-    public WhitelistEntry(final String site, final boolean required,
-        final boolean defaultSetting) {
+    public WhitelistEntry(final String site, final boolean defaultSetting) {
         this.site = site;
-        this.required = required;
         this.defaultSetting = defaultSetting;
     }
 
@@ -35,16 +28,8 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
         return site;
     }
 
-    public boolean isRequired() {
-        return required;
-    }
-
     public void setSite(final String site) {
         this.site = site;
-    }
-
-    public void setRequired(final boolean required) {
-        this.required = required;
     }
 
     public void setDefault(boolean defaultSetting) {

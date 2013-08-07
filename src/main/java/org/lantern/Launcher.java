@@ -128,7 +128,7 @@ public class Launcher {
 
     private Injector injector;
     private SystemTray systemTray;
-    Model model;
+    private Model model;
     private ModelUtils modelUtils;
     private Settings set;
 
@@ -138,7 +138,7 @@ public class Launcher {
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
     private final Module lanternModule;
-    private SplashScreen splashScreen;
+    //private SplashScreen splashScreen;
 
     private ProxyTracker proxyTracker;
 
@@ -270,8 +270,15 @@ public class Launcher {
             // Never show the splash screen on startup, even if setup is
             // not complete.
             if (!launchD) {
+                /*
                 splashScreen = instance(SplashScreen.class);
+                final Stopwatch splashWatch = 
+                        StopwatchManager.getStopwatch("Splash-Screen-Init", 
+                            STOPWATCH_LOG, STOPWATCH_GROUP);
+                splashWatch.start();
                 splashScreen.init(display);
+                splashWatch.stop();
+                */
             }
         }
 
@@ -293,7 +300,13 @@ public class Launcher {
             }
         }
         jettyLauncher = instance(JettyLauncher.class);
+        
+        final Stopwatch jettyWatch = 
+                StopwatchManager.getStopwatch("Jetty-Start", 
+                    STOPWATCH_LOG, STOPWATCH_GROUP);
+        jettyWatch.start();
         jettyLauncher.start();
+        jettyWatch.stop();
         modelUtils = instance(ModelUtils.class);
         final boolean showDashboard = 
                 shouldShowDashboard(model, uiDisabled, launchD);
@@ -443,9 +456,11 @@ public class Launcher {
             LOG.error("Could not load instance of "+clazz);
             throw new NullPointerException("Could not load instance of "+clazz);
         }
+        /*
         if (splashScreen != null) {
             splashScreen.advanceBar();
         }
+        */
         watch.stop();
         return inst;
     }

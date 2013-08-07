@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
-@Singleton
+//@Singleton
 public class SplashScreen implements Shutdownable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

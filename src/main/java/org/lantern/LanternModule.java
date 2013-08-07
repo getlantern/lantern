@@ -136,7 +136,7 @@ public class LanternModule extends AbstractModule {
         bind(InviteQueue.class);
         bind(GeoIp.class);
         bind(CountryService.class);
-        bind(SplashScreen.class);
+        //bind(SplashScreen.class);
         bind(NotificationManager.class);
 
         try {

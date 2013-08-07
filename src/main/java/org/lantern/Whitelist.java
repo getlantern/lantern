@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.annotate.JsonView;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.annotation.Keep;
+import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +20,6 @@ import org.slf4j.LoggerFactory;
 public class Whitelist {
 
     private final Logger log = LoggerFactory.getLogger(Whitelist.class);
-
-    private final Collection<String> requiredEntries = new HashSet<String>();
 
     public static final String[] SITES = {
         
@@ -207,16 +207,9 @@ public class Whitelist {
     }
 
     private void addDefaultEntry(final String entry) {
-        addDefaultEntry(entry, false);
-    }
-
-    private void addDefaultEntry(final String entry, final boolean required) {
-        final WhitelistEntry we = new WhitelistEntry(entry, required, true);
+        final WhitelistEntry we = new WhitelistEntry(entry, true);
         whitelist.add(we);
         defaultWhitelist.add(we);
-        if (required) {
-            this.requiredEntries.add(entry);
-        }
     }
 
     private String normalized(final String entry) {
@@ -242,10 +235,7 @@ public class Whitelist {
 
     public void removeEntry(final String entry) {
         final String normalized = normalized(entry);
-        if (!this.requiredEntries.contains(normalized)) {
-            log.debug("Removing whitelist entry: {}", normalized);
-            whitelist.remove(new WhitelistEntry(normalized));
-        }
+        whitelist.remove(new WhitelistEntry(normalized));
     }
 
     public Collection<WhitelistEntry> getEntries() {
@@ -313,6 +303,7 @@ public class Whitelist {
         }
     }
 
+    @JsonView({Run.class})
     public Collection<String> getEntriesAsStrings() {
         final Collection<WhitelistEntry> entries = getEntries();
         final Collection<String> parsed =
@@ -328,7 +319,6 @@ public class Whitelist {
         // these domains host required services and can't be removed
         whitelist.clear();
         defaultWhitelist.clear();
-        requiredEntries.clear();
         for (final String site : SITES) {
             addDefaultEntry(site);
         }
