@@ -10,8 +10,16 @@ body
 small
   +small
 
-a
+i.icon-external-link
+  margin-left: 2px
+  +single-transition(all, 0.5s, ease)
+
+a, button
   cursor: pointer
+  i.icon-external-link
+    opacity: 0
+  &:hover i.icon-external-link
+    opacity: 1
 
 i[class*=icon]
   font-style: normal

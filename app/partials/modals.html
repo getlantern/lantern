@@ -83,6 +83,34 @@
   </div>
 </div>
 
+<div modal="model.modal == MODAL.sponsor">
+  <div class="modal-header">
+    <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
+  </div>
+  <div class="modal-body" id="sponsor">
+    <p ng-show="inGetMode">
+      {{ 'SPONSOR_PROMPT_GET' | i18n }}
+    </p>
+    <p ng-show="!inGetMode">
+      {{ 'SPONSOR_PROMPT_GIVE' | i18n }}
+    </p>
+    <ul class="action-list">
+      <li>
+        <a ng-click="openExternal(EXTERNAL_URL.rally)">
+          {{ 'SPONSOR_CLOUD_PROXY' | i18n }}<sup><i class="icon-external-link"></i></sup>
+        </a>
+      </li>
+      <li>
+        <a ng-click="openExternal(EXTERNAL_URL.rally)">
+          {{ 'VIEW_WAYS_TO_CONTRIBUTE' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+      </li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+  </div>
+</div>
+
 <div modal="model.modal == MODAL.authorize">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
@@ -90,13 +118,12 @@
   <div class="modal-body" id="authorize">
     <div>
       {{ 'AUTHORIZE_PROMPT' | i18n }}
-      <small><a ng-click="helpExpanded=!helpExpanded"
-                class="toggle">{{ 'WHY' | i18n }}</a></small>
+      <a ng-mouseenter="helpExpanded=true" ng-click="helpExpanded=!helpExpanded" class="toggle"><i class="icon-info-sign"></i></a>
     </div>
-    <div class="prompt-extra gray" collapse="!helpExpanded">
-      {{ 'AUTHORIZE_TIP_GTALK' | i18n }}
+    <div class="prompt-extra" collapse="!helpExpanded">
+      <p>{{ 'AUTHORIZE_TIP_GTALK' | i18n }}</p>
+      <p>{{ 'EMAIL_USE' | i18n }}</p>
     </div>
-    <div class="prompt-extra">{{ 'EMAIL_USE' | i18n }}</div>
   </div>
   <div class="modal-footer">
     <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}">

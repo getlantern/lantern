@@ -165,6 +165,7 @@ var _globalModals = {};
 _globalModals[INTERACTION.updateAvailable] = MODAL.updateAvailable;
 _globalModals[INTERACTION.about] = MODAL.about;
 _globalModals[INTERACTION.contact] = MODAL.contact;
+_globalModals[INTERACTION.sponsor] = MODAL.sponsor;
 _globalModals[INTERACTION.lanternFriends] = MODAL.lanternFriends;
 _globalModals[INTERACTION.proxiedSites] = MODAL.proxiedSites;
 _globalModals[INTERACTION.settings] = MODAL.settings;

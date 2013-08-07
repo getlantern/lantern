@@ -40,11 +40,13 @@ var DEFAULT_LANG = 'en_US',
       IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/
     },
     EXTERNAL_URL = {
+      rally: 'https://rally.org/lantern/donate', // XXX
       helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       homepage: 'https://www.getlantern.org/',
       userForums: 'https://groups.google.com/group/lantern-users-en', // XXX link to user forum in user's language if available
       docs: 'https://github.com/getlantern/lantern/wiki',
+      contributing: 'https://github.com/getlantern/lantern/wiki/Contributing#contributing',
       developers: 'https://github.com/getlantern/lantern'
     },
     // enums
@@ -65,6 +67,7 @@ var DEFAULT_LANG = 'en_US',
       'confirmReset',
       'giveModeForbidden',
       'about',
+      'sponsor',
       'updateAvailable',
       'scenarios'],
       {none: ''}),
@@ -81,6 +84,7 @@ var DEFAULT_LANG = 'en_US',
       'reset',
       'proxiedSites',
       'about',
+      'sponsor',
       'updateAvailable',
       'retry',
       'cancel',
