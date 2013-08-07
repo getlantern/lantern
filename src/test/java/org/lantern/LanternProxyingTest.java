@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Injector;
 import com.google.inject.Module;
 
 /**
@@ -49,8 +50,15 @@ public class LanternProxyingTest {
         launcher.configureDefaultLogger();
         launcher.run();
         launcher.model.setSetupComplete(true);
-
-        Thread.sleep(500);
+        
+        final Injector injector = launcher.getInjector();
+        final ProxyTracker proxyTracker = injector.getInstance(ProxyTracker.class);
+        
+        int tries = 0;
+        while (!proxyTracker.hasProxy() && tries < 200) {
+            Thread.sleep(200);
+            tries++;
+        }
         
         //LanternUtils.addCert("digicerthighassurancerootca", new File("certs/DigiCertHighAssuranceCA-3.cer"), certsFile, "changeit");
         //LanternUtils.addCert("littleproxy", new File("certs/littleproxy.cer"), certsFile, "changeit");
