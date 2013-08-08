@@ -45,6 +45,11 @@ if $release ; then
 
   echo "Uploading SHA-1 `cat $latestName.sha1`"
   aws -putp $bucket $latestName.sha1
+
+  cp install/common/lantern.jar $latestName.jar || die "Could not copy latest jar?"
+
+  echo "Uploading latest jar: $latestName.jar"
+  aws -putp $bucket $latestName.jar
 else
   echo "NOT RELEASING!!!"
 fi
