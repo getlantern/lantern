@@ -85,12 +85,13 @@ angular.module('app.filters', [])
     };
   })
   .filter('version', function() {
-    return function(versionObj, full) {
+    return function(versionObj, tag, git) {
       if (!versionObj) return versionObj;
       var components = [versionObj.major, versionObj.minor, versionObj.patch],
           versionStr = components.join('.');
-      if (!full) return versionStr;
+      if (!tag) return versionStr;
       if (versionObj.tag) versionStr += '-'+versionObj.tag;
+      if (!git) return versionStr;
       if (versionObj.git) versionStr += ' ('+versionObj.git.substring(0, 7)+')';
       return versionStr;
     };

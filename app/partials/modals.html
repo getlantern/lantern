@@ -118,7 +118,7 @@
   <div class="modal-body" id="authorize">
     <div>
       {{ 'AUTHORIZE_PROMPT' | i18n }}
-      <a ng-mouseenter="helpExpanded=true" ng-click="helpExpanded=!helpExpanded" class="toggle"><i class="icon-info-sign"></i></a>
+      <a ng-click="helpExpanded=!helpExpanded" class="more-info">{{ 'MORE_INFO' | i18n }}</a>
     </div>
     <div class="prompt-extra" collapse="!helpExpanded">
       <p>{{ 'AUTHORIZE_TIP_GTALK' | i18n }}</p>
@@ -298,8 +298,8 @@
         <input type="checkbox" ng-model="autoReport"
                ng-change="changeSetting(SETTING.autoReport, autoReport)">
         {{ 'AUTOREPORT_PROMPT' | i18n }}
-        <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" tooltip="{{ 'MORE_INFO' | i18n }}">
-          <i class="icon-external-link"></i>
+        <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
+          {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
         </a>
       </label>
     </div>
@@ -317,8 +317,8 @@
   <div class="modal-body" id="contact" dir="ltr">
     <div class="smaller">
       <!-- XXX i18n -->
-      The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation</a>
-      and <a ng-click="openExternal(EXTERNAL_URL.userForums)">user forums</a>
+      The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation<sup><i class="icon-external-link"></i></sup></a>
+      and <a ng-click="openExternal(EXTERNAL_URL.userForums)">user forums<sup><i class="icon-external-link"></i></sup></a>
       are the best places to search, request, and provide information appropriate
       for public access. Private messages can be submitted securely through this form.
     </div>
@@ -339,37 +339,32 @@
   </div>
 </div>
 
-<!-- XXX i18n -->
 <div modal="model.modal == MODAL.about">
   <div class="modal-body" id="about" dir="ltr">
     <div style="text-align:center; margin:0">
-      Lantern version {{ model.version.installed | version:true }}<br>
-      Frontend version {{ lanternUiVersion }}<br>
+      {{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }},
+      UI {{ 'VERSION' | i18n }} {{ lanternUiVersion }}<br>
       <span class="smaller">
-        <a ng-click="openExternal(EXTERNAL_URL.homepage)">Homepage</a> ·
-        <a ng-click="openExternal(EXTERNAL_URL.userForums)">Forums</a> ·
-        <a ng-click="openExternal(EXTERNAL_URL.docs)">Docs</a> ·
-        <a ng-click="openExternal(EXTERNAL_URL.developers)">Developers</a>
+        <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+        <a ng-click="openExternal(EXTERNAL_URL.userForums)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+        <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+        <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
       </span>
     </div>
     <div>
-      Credits
+      {{ 'CREDITS' | i18n }}
       <textarea readonly rows="1" style="text-align:center;word-spacing:15px">myleshorton _pants aranhoide leahxschmidt ox ghostdance forkner messier</textarea>
     </div>
     <div>
-      Privacy
-      <textarea readonly rows="3">Lantern takes the responsibility of providing internet access very seriously. We have an explicit interest in keeping any personally identifiable information routed through Lantern servers and clients limited, secret, and ephemeral. All Lantern software and infrastructure has been configured with strong security protections and data expungement policies in accordance with that interest. For more information, please see https://github.com/getlantern/lantern/wiki/Privacy.</textarea>
+      {{ 'PRIVACY' | i18n }}
+      <textarea readonly rows="3">{{ 'PRIVACY_STATEMENT' | i18n }}</textarea>
     </div>
     <div>
-      License
-      <textarea readonly rows="4">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version. The full text of version 3 of the GPL can be found in the file LICENSE.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</textarea>
+      {{ 'LICENSE' | i18n }}
+      <textarea readonly rows="4">{{ 'LICENSE_STATEMENT' | i18n }}</textarea>
     </div>
     <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
-    <div class="smaller gray centered" style="margin:0">© 2013 Team Lantern.</div>
+    <div class="smaller gray centered" style="margin:0">{{ 'COPYRIGHT' | i18n }}</div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
@@ -441,8 +436,8 @@ You should have received a copy of the GNU General Public License along with thi
             <input type="checkbox" ng-model="autoReport"
                    ng-click="changeSetting(SETTING.autoReport, autoReport)">
             {{ 'AUTOREPORT_PROMPT' | i18n }}
-            <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="small always-underlined">
-              {{ 'MORE_INFO' | i18n }}
+            <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
+              {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
             </a>
           </label>
         </div>

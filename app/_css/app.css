@@ -6416,6 +6416,9 @@ small {
 
 i.icon-external-link {
   margin-left: 2px;
+}
+
+i[class*=icon] {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
@@ -6423,15 +6426,29 @@ i.icon-external-link {
 a, button {
   cursor: pointer;
 }
+a i[class*=icon], button i[class*=icon] {
+  color: #333333;
+}
 a i.icon-external-link, button i.icon-external-link {
   opacity: 0;
+  width: 0;
+}
+a:hover i[class*=icon], button:hover i[class*=icon] {
+  color: #0088cc;
 }
 a:hover i.icon-external-link, button:hover i.icon-external-link {
   opacity: 1;
+  color: #005580;
+  width: 8px;
 }
 
 i[class*=icon] {
   font-style: normal;
+}
+
+.more-info {
+  font-size: 10.5px;
+  margin-left: 2px;
 }
 
 details *:not(summary) {
@@ -6638,11 +6655,11 @@ a.disabled:hover {
 }
 
 .error-colored, .text-error {
-  color: #b94a48;
+  color: #b94a48 !important;
 }
 
 .warning-colored, .text-warning {
-  color: #c09853;
+  color: #c09853 !important;
 }
 
 .give-colored {
@@ -6946,9 +6963,6 @@ textarea {
   text-align: center;
 }
 
-#authorize a.toggle {
-  color: black;
-}
 #authorize .prompt-extra {
   margin: 10px 0 15px 30px;
   font-size: 11.9px;
@@ -6960,7 +6974,7 @@ textarea {
   margin: 28px 0 14px;
 }
 #proxiedSites .warning i, #proxiedSites .warning a {
-  color: #c09853;
+  color: #c09853 !important;
 }
 #proxiedSites .warning a {
   text-decoration: underline;
@@ -6976,7 +6990,7 @@ textarea {
 }
 #proxiedSites .error {
   text-align: center;
-  color: #b94a48;
+  color: #b94a48 !important;
   margin: 10px 0;
   height: 21px;
 }
@@ -7017,6 +7031,10 @@ textarea {
 }
 #proxiedSitesSearch::-webkit-search-cancel-button {
   -webkit-appearance: searchfield-cancel-button;
+}
+
+#lanternFriends {
+  min-height: 115px;
 }
 
 #lanternFriendsIntro {
@@ -7077,7 +7095,7 @@ textarea {
   text-align: center;
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
-  color: #c09853;
+  color: #c09853 !important;
   opacity: 0;
   clear: both;
   margin: 0;
@@ -7147,10 +7165,10 @@ textarea {
 }
 
 #finished-autoReport {
-  text-align: center;
-  margin-top: 25px;
+  margin: 20px 0 10px 35px;
+  color: #666666;
 }
-#finished-autoReport * {
+#finished-autoReport label {
   font-size: 10.5px;
 }
 #finished-autoReport input[type=checkbox] {
@@ -7182,7 +7200,7 @@ textarea {
 
 #autoreport-warning {
   margin-left: 20px;
-  color: #c09853;
+  color: #c09853 !important;
   font-size: 10.5px;
   margin-top: 3px;
 }
@@ -7496,11 +7514,11 @@ g.transferring .connection {
   white-space: nowrap;
 }
 #global-nav button {
-  color: #999999;
   width: 49px;
   padding: 10px;
 }
 #global-nav button i.lsf-icon {
+  color: #999999;
   line-height: 17px;
   font-size: 22px;
   vertical-align: middle;

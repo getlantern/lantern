@@ -1,5 +1,4 @@
-<!-- cover up the vis when showVis is false -->
-<div id="vis-block" ng-hide="model.showVis"></div>
+<div id="vis-block" ng-hide="!model.modal || model.modal == 'none'"></div>
 
 <div id="vis" ng-controller="VisCtrl">
   <svg id="map" fullwindow>
