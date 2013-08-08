@@ -112,7 +112,7 @@ public class LanternModule extends AbstractModule {
 
         bind(RandomRoutingTable.class).to(BasicRandomRoutingTable.class);
 
-        bind(HttpsEverywhere.class);
+        //bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);

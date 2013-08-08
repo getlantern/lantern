@@ -7,7 +7,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -24,9 +23,7 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.lantern.state.Peers;
 import org.lantern.util.LanternTrafficCounter;
-import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,22 +40,18 @@ public class DefaultPeerFactory implements PeerFactory {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final GeoIpLookupService geoIpLookupService;
-    private final Peers peers;
-
-    /**
-     * We create an executor here because we need to thread our geo-ip lookups.
-     */
-    private final ExecutorService exec =
-        Threads.newCachedThreadPool("Peer-Factory-Thread-");
 
     private final Roster roster;
 
+    private final Model model;
+
     @Inject
-    public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService, final Model model,
+    public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService, 
+            final Model model,
             final Roster roster) {
         this.geoIpLookupService = geoIpLookupService;
+        this.model = model;
         this.roster = roster;
-        this.peers = model.getPeerCollector();
         Events.register(this);
     }
 
@@ -94,14 +87,14 @@ public class DefaultPeerFactory implements PeerFactory {
         log.debug("Adding peer through kscope ad...");
         final String jid = ad.getJid();
         final URI uri = LanternUtils.newURI(jid);
-        final Peer existing = this.peers.getPeer(uri);
+        final Peer existing = this.model.getPeerCollector().getPeer(uri);
         final LanternRosterEntry entry = this.roster.getRosterEntry(jid);
         if (existing == null) {
             // The following can be null.
             final Peer peer = new Peer(uri, "",
                     ad.hasMappedEndpoint(), 0, 0, Type.pc, ad.getAddress(),
                     ad.getPort(), Mode.give, false, null, entry);
-            this.peers.addPeer(uri, peer);
+            this.model.getPeerCollector().addPeer(uri, peer);
             updateGeoData(peer, ad.getAddress());
         } else {
             existing.setIp(ad.getAddress());
@@ -137,7 +130,7 @@ public class DefaultPeerFactory implements PeerFactory {
 
     private void updatePeer(final URI fullJid, final InetSocketAddress isa,
             final Type type, final LanternTrafficCounter trafficCounter) {
-        final Peer peer = peers.getPeer(fullJid);
+        final Peer peer = this.model.getPeerCollector().getPeer(fullJid);
         if (peer == null) {
             log.warn("No peer for {}", fullJid);
             return;
@@ -189,7 +182,7 @@ public class DefaultPeerFactory implements PeerFactory {
         final LanternRosterEntry entry = rosterEntry(fullJid);
         log.debug("Got roster entry: {}", entry);
 
-        final Peer existing = peers.getPeer(fullJid);
+        final Peer existing = this.model.getPeerCollector().getPeer(fullJid);
 
         if (existing != null) {
             log.debug("Peer already exists...");
@@ -198,7 +191,7 @@ public class DefaultPeerFactory implements PeerFactory {
             log.debug("Adding peer {}", fullJid);
             final Peer peer = new Peer(fullJid, "", false, 0L, 0L, type,
                     "", 0, Mode.unknown, false, null, entry);
-            peers.addPeer(fullJid, peer);
+            this.model.getPeerCollector().addPeer(fullJid, peer);
             return peer;
         }
     }
@@ -212,10 +205,11 @@ public class DefaultPeerFactory implements PeerFactory {
 
     @Subscribe
     public void onCert(final PeerCertEvent event) {
-        final Peer peer = this.peers.getPeer(event.getJid());
+        final Peer peer = this.model.getPeerCollector().getPeer(event.getJid());
         if (peer == null) {
             log.error("Got a cert for peer we don't know about? " +
-                "{} not found in {}", event.getJid(), this.peers.getPeers().keySet());
+                "{} not found in {}", event.getJid(), 
+                this.model.getPeerCollector().getPeers().keySet());
         } else {
             certsToPeers.put(event.getBase64Cert(), peer);
         }
