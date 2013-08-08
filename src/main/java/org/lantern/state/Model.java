@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -101,6 +102,8 @@ public class Model {
      */
     @JsonView({Persistent.class})
     private List<String> pendingInvites = new ArrayList<String>();
+
+    private String instanceId;
 
     public List<String> getPendingInvites() {
         return pendingInvites;
@@ -370,5 +373,24 @@ public class Model {
 
     public void setWelcomeMessageShown(boolean welcomeMessageShown) {
         this.welcomeMessageShown = welcomeMessageShown;
+    }
+
+    private String generateInstanceId() {
+        final byte [] instanceIdBytes = new byte[16];
+        SecureRandom secureRandom = new SecureRandom();
+        secureRandom.nextBytes(instanceIdBytes);
+        return Hex.encodeHexString(instanceIdBytes);
+    }
+
+    @JsonView({Persistent.class})
+    public String getInstanceId() {
+        if (instanceId == null) {
+            instanceId = generateInstanceId();
+        }
+        return instanceId;
+    }
+
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
     }
 }
