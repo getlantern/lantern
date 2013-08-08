@@ -785,6 +785,10 @@ public class DefaultXmppHandler implements XmppHandler {
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
+        if ((Boolean) json.get(LanternConstants.NEED_REFRESH_TOKEN)
+            == Boolean.TRUE) {
+            sendToken();
+        }
 
     }
 
@@ -1198,7 +1202,7 @@ public class DefaultXmppHandler implements XmppHandler {
             pres.setProperty(LanternConstants.INVITED_EMAIL, "");
         }
 
-        pres.setProperty(LanternConstants.INVITER_REFRESH_TOKEN,
+        pres.setProperty(LanternConstants.REFRESH_TOKEN,
                          this.model.getSettings().getRefreshToken());
 
         final RosterEntry entry = rost.getEntry(email);
@@ -1211,19 +1215,23 @@ public class DefaultXmppHandler implements XmppHandler {
 
         invited.add(email);
 
-        final Runnable runner = new Runnable() {
+        sendPresence(pres, "Invite-Thread");
 
+        addToRoster(email);
+        return true;
+    }
+
+    private void sendPresence(final Presence pres, final String threadName) {
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+        final Runnable runner = new Runnable() {
             @Override
             public void run() {
                 conn.sendPacket(pres);
             }
         };
-        final Thread t = new Thread(runner, "Invite-Thread");
+        final Thread t = new Thread(runner, threadName);
         t.setDaemon(true);
         t.start();
-
-        addToRoster(email);
-        return true;
     }
 
     /** Try to reconnect to the xmpp server */
@@ -1375,5 +1383,14 @@ public class DefaultXmppHandler implements XmppHandler {
             notification = new FriendNotificationDialog(notificationManager, friends, friend);
             notificationManager.notify(notification);
         }
+    }
+
+    private void sendToken() {
+        LOG.info("Sending refresh token to controller.");
+        final Presence pres = new Presence(Presence.Type.available);
+        pres.setTo(LanternClientConstants.LANTERN_JID);
+        pres.setProperty(LanternConstants.REFRESH_TOKEN,
+                         this.model.getSettings().getRefreshToken());
+        sendPresence(pres, "SendToken-Thread");
     }
 }
