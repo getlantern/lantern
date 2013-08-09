@@ -1454,7 +1454,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <preInstallScript mode="1" file="">
         <content />
       </preInstallScript>
-      <postInstallScript mode="1" file="./linux/configureUbuntu.txt">
+      <postInstallScript mode="2" file="./linux/configureUbuntu.txt">
         <content />
       </postInstallScript>
       <preUninstallScript mode="1" file="">
