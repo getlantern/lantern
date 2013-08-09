@@ -626,9 +626,9 @@ public class InteractionServlet extends HttpServlet {
                 inviteQueue.invite(friend);
         }
         friend.setStatus(status);
+        friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
-        friends.setNeedsSync(true);
     }
 
     private void removeFriend(String json) {
@@ -639,12 +639,17 @@ public class InteractionServlet extends HttpServlet {
         setFriendStatus(json, Status.friend);
         final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
 
-        //if they have requested a subscription to us, we'll accept it.
-        this.xmppHandler.subscribed(email);
+        try {
+            //if they have requested a subscription to us, we'll accept it.
+            this.xmppHandler.subscribed(email);
 
-        // We also automatically subscribe to them in turn so we know about
-        // their presence.
-        this.xmppHandler.subscribe(email);
+            // We also automatically subscribe to them in turn so we know about
+            // their presence.
+            this.xmppHandler.subscribe(email);
+        } catch (IllegalStateException e) {
+            log.info("IllegalStateException while friending (you are probably offline)", e);
+            return;
+        }
     }
 
     private void backupSettings() {
