@@ -16,6 +16,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
@@ -104,11 +105,28 @@ public class Roster implements RosterListener {
                 ros.addRosterListener(Roster.this);
                 final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
-                
+
+                Friends friends = model.getFriends();
+
+                HashSet<String> alreadyOnRoster = new HashSet<String>(unordered.size());
                 for (final RosterEntry entry : unordered) {
                     final LanternRosterEntry lre = new LanternRosterEntry(entry);
                     addEntry(lre, false);
                     processRosterEntryPresences(entry);
+                    String email = lre.getEmail();
+                    alreadyOnRoster.add(email);
+                    if (entry.getStatus() == ItemStatus.SUBSCRIPTION_PENDING) {
+                        if (model.isFriend(email)) {
+                            xmppHandler.subscribed(email);
+                        }
+                    }
+                }
+
+                for (Friend friend : friends.getFriends()) {
+                    if (!alreadyOnRoster.contains(friend.getEmail())) {
+                        //we have a friend who is not yet on our roster.
+                        xmppHandler.subscribe(friend.getEmail());
+                    }
                 }
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);

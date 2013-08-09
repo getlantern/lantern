@@ -137,7 +137,7 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     @Subscribe
     public void onFriendStatusChanged(FriendStatusChangedEvent e) {
-        if (e.getFriend() == friend) {
+        if (e.getFriend().getEmail().equals(friend.getEmail())) {
             dialog.dispose();
         }
     }
