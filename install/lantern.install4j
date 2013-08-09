@@ -172,9 +172,6 @@
       <vmOptionsFile mode="template" overwriteMode="0" fileMode="644">
         <content />
       </vmOptionsFile>
-      <customScript mode="3" file="">
-        <content>./copyPolicy.exe</content>
-      </customScript>
       <infoPlist mode="1" file="">
         <content />
       </infoPlist>
