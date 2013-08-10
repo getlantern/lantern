@@ -1041,17 +1041,21 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 LOG.debug("Handling INFO request from {}", from);
-                processInfoData(msg);
+                if (!model.isRejected(from)) {
+                    processInfoData(msg);
+                }
                 sendInfoResponse(from);
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
                 LOG.debug("Handling INFO response from {}", from);
-                processInfoData(msg);
+                if (!model.isRejected(from)) {
+                    processInfoData(msg);
+                }
                 break;
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
                 //only process kscope ads delivered by friends
-                //if (model.isFriend(from)) {
+                if (model.isFriend(from)) {
                     LOG.debug("Handling KSCOPE ADVERTISEMENT");
                     final String payload =
                             (String) msg.getProperty(
@@ -1061,7 +1065,9 @@ public class DefaultXmppHandler implements XmppHandler {
                     } else {
                         LOG.error("kscope ad with no payload? "+msg.toXML());
                     }
-                //}
+                } else {
+                    LOG.warn("kscope ad from non-friend");
+                }
                 break;
             default:
                 LOG.warn("Did not understand type: "+type);

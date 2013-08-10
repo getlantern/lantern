@@ -148,8 +148,7 @@ public class Roster implements RosterListener {
         log.debug("Got presence: {}", presence.toXML());
         if (LanternUtils.isLanternHub(from)) {
             log.debug("Got Lantern hub presence");
-        //} else if (LanternXmppUtils.isLanternJid(from) && model.isFriend(from)) {
-        } else if (LanternXmppUtils.isLanternJid(from)) {
+        } else if (LanternXmppUtils.isLanternJid(from) && model.isFriend(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
             if (presence.isAvailable()) {
                 sendKscope(from);
@@ -184,9 +183,9 @@ public class Roster implements RosterListener {
             if (!lre.isAvailable()) {
                 log.debug("Entry not listed as available {}", lre.getUser());
             }
-            //if (model.isFriend(lre.getEmail())) {
+            if (model.isFriend(lre.getEmail())) {
                 sendKscope(lre.getUser());
-            //}
+            }
         }
     }
 
