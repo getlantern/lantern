@@ -363,7 +363,7 @@ public class Model {
         Friends friends = getFriends();
         String email = XmppUtils.jidToUser(from);
         Friend friend = friends.get(email);
-        return friend != null && friend.getStatus() != Status.rejected;
+        return friend != null && friend.getStatus() == Status.friend;
     }
 
     @JsonView({Persistent.class})
@@ -392,5 +392,12 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+
+    public boolean isRejected(String from) {
+        Friends friends = getFriends();
+        String email = XmppUtils.jidToUser(from);
+        Friend friend = friends.get(email);
+        return friend != null && friend.getStatus() == Status.rejected;
     }
 }
