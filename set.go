@@ -1,4 +1,4 @@
-// Goset is a thread safe SET implementation based on Go's internal Map data structure.
+// GoSet is a thread safe SET implementation based on Go's internal Map data structure.
 package goset
 
 import "sync"
@@ -15,7 +15,7 @@ func New() *Set {
 	}
 }
 
-// Add add
+// Add includes  the specified item to the set
 func (s *Set) Add(item interface{}) {
 	s.Lock()
 	defer s.Unlock()
@@ -59,7 +59,7 @@ func (s *Set) IsEmpty() bool {
 	return false
 }
 
-// Set returns a slice of all items
+// List returns a slice of all items
 func (s *Set) List() []interface{} {
 	s.RLock()
 	defer s.RUnlock()
