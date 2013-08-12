@@ -39,6 +39,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
+import org.jivesoftware.smack.Connection;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
@@ -66,7 +67,6 @@ import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +86,11 @@ public class Launcher {
         // to the correct place
         System.setProperty(ResourceUDT.PROPERTY_LIBRARY_EXTRACT_LOCATION, 
                 CommonUtils.getLittleShootDir().getAbsolutePath());
+        
+        System.setProperty("javax.net.debug", "ssl");
+        
+        // Set the following for debugging XMPP connections.
+        //Connection.DEBUG_ENABLED = true;
     }
 
     public static final long START_TIME = System.currentTimeMillis();
@@ -157,10 +162,8 @@ public class Launcher {
      */
     public Launcher(final Module lm, final String[] args) {
         this.lanternModule = lm;
-        //System.setProperty("javax.net.debug", "ssl");
         this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
-        //Connection.DEBUG_ENABLED = true;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -539,7 +542,7 @@ public class Launcher {
                     "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
                     "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
                     "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
-                //System.exit(1);
+                System.exit(1);
             }
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
                 log("No policy files on non-Vista machine!!");
@@ -815,12 +818,12 @@ public class Launcher {
 
     private void handleError(final Throwable t, final boolean exit) {
         final String msg = msg(t);
-        LOG.error("Uncaught exception on\n" +
-                "OS_NAME: "+SystemUtils.OS_NAME +
-                "OS_ARCH: "+SystemUtils.OS_ARCH +
-                "OS_VERSION: "+SystemUtils.OS_VERSION +
-                "USER_COUNTRY: "+SystemUtils.USER_COUNTRY +
-                "USER_LANGUAGE: "+SystemUtils.USER_LANGUAGE +
+        LOG.error("Uncaught exception on" +
+                "\nOS_NAME: "+SystemUtils.OS_NAME +
+                "\nOS_ARCH: "+SystemUtils.OS_ARCH +
+                "\nOS_VERSION: "+SystemUtils.OS_VERSION +
+                "\nUSER_COUNTRY: "+SystemUtils.USER_COUNTRY +
+                "\nUSER_LANGUAGE: "+SystemUtils.USER_LANGUAGE +
                 "\n\n"+msg, t);
         if (t instanceof SWTError || msg.contains("SWTError")) {
             System.out.println(
