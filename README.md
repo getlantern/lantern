@@ -38,8 +38,15 @@ func main() {
 	set.Add(21)
 
 	// show the total size and content of the set
-	fmt.Printf("total # of items: %d\n", set.Len())
+	fmt.Printf("total # of items: %d\n", set.Size())
 	fmt.Printf("set items: %v\n", set.List())
+
+	// create another set and merge it
+	countries := goset.New()
+	countries.Add("turkey")
+	countries.Add("germany")
+	countries.Add("us")
+	set.AddAll(countries) // contains all items from set and countries
 
 	// remove all items from the set
 	set.Clear()
@@ -60,4 +67,5 @@ func main() {
 	set.Remove("coffee") // does not exist
 	fmt.Println("list of all items:", set.List())
 }
+
 ```

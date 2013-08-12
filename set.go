@@ -15,11 +15,18 @@ func New() *Set {
 	}
 }
 
-// Add includes  the specified item to the set
+// Add includes the specified item to the set
 func (s *Set) Add(item interface{}) {
 	s.Lock()
 	defer s.Unlock()
 	s.m[item] = true
+}
+
+// AddAll merge the specified set to the s
+func (s *Set) AddAll(set *Set) {
+	for _, item := range set.List() {
+		s.Add(item)
+	}
 }
 
 // Remove deletes the specified item from the set
@@ -37,8 +44,8 @@ func (s *Set) Has(item interface{}) bool {
 	return ok
 }
 
-// Len returns the number of items in a set.
-func (s *Set) Len() int {
+// Size returns the number of items in a set.
+func (s *Set) Size() int {
 	s.RLock()
 	defer s.RUnlock()
 	return len(s.m)
@@ -53,7 +60,7 @@ func (s *Set) Clear() {
 
 // IsEmpty checks for emptiness of the set
 func (s *Set) IsEmpty() bool {
-	if s.Len() == 0 {
+	if s.Size() == 0 {
 		return true
 	}
 	return false
