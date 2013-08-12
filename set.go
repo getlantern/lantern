@@ -125,7 +125,7 @@ func (s *Set) Intersection(t *Set) *Set {
 	return u
 }
 
-// Intersection returns a new set which contains items which is in both s and t.
+// Intersection returns a new set which contains items which are both s but not in t.
 func (s *Set) Difference(t *Set) *Set {
 	u := New()
 	for _, item := range s.List() {

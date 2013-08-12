@@ -3,7 +3,7 @@
 Goset is a basic and simple **thread safe** SET data structure implementation in
 Go. Because it's thread safe, you can use it concurrently with your goroutines.
 
-For more info look at godoc: [Goset godoc](http://godoc.org/github.com/fatih/goset)
+For usage see examples below or look at godoc: [Goset godoc](http://godoc.org/github.com/fatih/goset)
 
 ## Install
 
@@ -11,64 +11,86 @@ For more info look at godoc: [Goset godoc](http://godoc.org/github.com/fatih/gos
 go get github.com/fatih/goset
 ```
 
-## Example
+## Examples
+
+
+Initialization of a new Set
 
 ```go
-package main
 
-import (
-	"fmt"
-	"github.com/fatih/goset"
-)
+// create a set with zero items
+set := goset.New()
 
-func main() {
-	// initialize a new set
-	set := goset.New()
+// ... or with some initial values
+set := goset.New("istanbul", frankfurt", "san francisco", 1234)
 
-	// add items
-	set.Add("istanbul")
-	set.Add("istanbul") // duplicate item
-	set.Add("sf")
-	set.Add("frankfurt")
-
-	// ... or some integers
-	set.Add(8)
-	set.Add(13)
-	set.Add(13) // again a duplicate item
-	set.Add(21)
-
-	// show the total size and content of the set
-	fmt.Printf("total # of items: %d\n", set.Size())
-	fmt.Printf("set items: %v\n", set.List())
-
-	// create another set and merge it
-	cities := goset.New()
-	cities.Add("ankara")
-	cities.Add("berlin")
-	cities.Add("frankfurt") // set has this already
-	cities.Add("boston")
-	fmt.Printf("cities items: %v\n", cities.List())
-
-	set.AddAll(cities) // contains all items from set and cities
-	fmt.Printf("set items after merging: %v\n", set.List())
-
-	// remove all items from the set
-	set.Clear()
-
-	// check if the set is empty
-	if set.IsEmpty() {
-		fmt.Printf("we have 0 items\n")
-	}
-
-	// check if the set contains the item
-	set.Add("gopher")
-	if set.Has("gopher") {
-		fmt.Println("gopher does exist")
-	}
-
-	// remove some items
-	set.Remove("gopher")
-	set.Remove("coffee") // does not exist
-	fmt.Println("list of all items:", set.List())
-}
 ```
+
+Basic Operations
+
+```go
+// add items
+set.Add("berlin")
+set.Add("istanbul") // nothing happens if you add duplicate item
+
+// remove item
+set.Remove("frankfurt")
+set.Remove("frankfurt") // nothing happes if you remove a nonexisting item
+
+// create a new copy
+other := set.Copy() 
+
+// remove all items
+set.Clear()
+
+// check for set emptiness
+set.IsEmpty()
+
+// check for a single item exist
+if set.Has("istanbul") {
+  ...
+  ...
+}
+
+// number of items in the set
+len := set.Size()
+
+// return a list of items
+items := set.List()
+
+```
+
+Set Operations
+
+
+```go
+a := goset.New("ankara", "berlin", "san francisco") // now with some values
+b := goset.New("frankfurt", "berlin")               // now with some values
+
+// creates a new set with the items in a and b combined.
+c := a.Union(b) // [frankfurt, berlin, ankara, san francisco]
+
+// contains items which is in both a and b
+// [berlin]
+c = a.Intersection(b) 
+
+// contains items which are in a but not in b
+// [ankara, san francisco]
+c = a.Difference(b) 
+
+// contains items which are in one of either, but not in both.
+// [frankfurt, ankara, san francisco]
+c = a.SymmetricDifference(b) 
+
+```
+
+```go
+// like Union but saves the result back into a.
+a.Merge(b)
+
+// removes the set items which are in b from a and saves the result back into a.
+a.Sepereate(b)
+
+```
+
+
