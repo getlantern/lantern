@@ -109,3 +109,11 @@ You can also access JavaDocs and automatically generated reports on the Lantern
 codebase at the following:
 
 * http://getlantern.github.com/lantern/
+
+Acknowledgements
+----------------
+
+The Lantern team is very grateful for the support from a number of software vendors. We 
+would particularly like to acknowledge the great support from YourKit, who provides us
+with their excellent profiler. Check it out at 
+http://www.yourkit.com/java/profiler/index.jsp!
