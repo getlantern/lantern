@@ -47,9 +47,9 @@ func main() {
 	cities.Add("berlin")
 	cities.Add("frankfurt") // set has this already
 	cities.Add("boston")
-	fmt.Printf("country items: %v\n", cities.List())
+	fmt.Printf("cities items: %v\n", cities.List())
 
-	set.AddAll(cities) // contains all items from set and countries
+	set.AddAll(cities) // contains all items from set and cities
 	fmt.Printf("set items after merging: %v\n", set.List())
 
 	// remove all items from the set
