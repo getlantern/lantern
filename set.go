@@ -101,9 +101,9 @@ func (s *Set) Merge(t *Set) {
 	}
 }
 
-// Seperate removes the set items containing in t from set s. Please aware that
+// Separate removes the set items containing in t from set s. Please aware that
 // it's not the opposite of Merge.
-func (s *Set) Seperate(t *Set) {
+func (s *Set) Separate(t *Set) {
 	for _, item := range t.List() {
 		s.Remove(item)
 	}

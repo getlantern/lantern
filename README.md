@@ -13,7 +13,6 @@ go get github.com/fatih/goset
 
 ## Examples
 
-
 Initialization of a new Set
 
 ```go
@@ -21,8 +20,8 @@ Initialization of a new Set
 // create a set with zero items
 set := goset.New()
 
-// ... or with some initial values
-set := goset.New("istanbul", frankfurt", "san francisco", 1234)
+// ... or with some initial values 
+set := goset.New("istanbul", "frankfurt", "san francisco", 1234)
 
 ```
 
@@ -44,12 +43,13 @@ other := set.Copy()
 set.Clear()
 
 // check for set emptiness
-set.IsEmpty()
+if !set.IsEmpty() {
+
+}
 
 // check for a single item exist
 if set.Has("istanbul") {
-  ...
-  ...
+
 }
 
 // number of items in the set
@@ -64,23 +64,25 @@ Set Operations
 
 
 ```go
-a := goset.New("ankara", "berlin", "san francisco") // now with some values
-b := goset.New("frankfurt", "berlin")               // now with some values
+// let us initialize two sets with some values
+a := goset.New("ankara", "berlin", "san francisco")
+b := goset.New("frankfurt", "berlin")
 
 // creates a new set with the items in a and b combined.
-c := a.Union(b) // [frankfurt, berlin, ankara, san francisco]
+// [frankfurt, berlin, ankara, san francisco]
+c := a.Union(b) 
 
 // contains items which is in both a and b
 // [berlin]
-c = a.Intersection(b) 
+c := a.Intersection(b) 
 
 // contains items which are in a but not in b
 // [ankara, san francisco]
-c = a.Difference(b) 
+c := a.Difference(b) 
 
 // contains items which are in one of either, but not in both.
 // [frankfurt, ankara, san francisco]
-c = a.SymmetricDifference(b) 
+c := a.SymmetricDifference(b) 
 
 ```
 
@@ -89,8 +91,45 @@ c = a.SymmetricDifference(b)
 a.Merge(b)
 
 // removes the set items which are in b from a and saves the result back into a.
-a.Sepereate(b)
+a.Separate(b)
 
 ```
 
+Concurrent safe operations
+
+```
+package main
+
+import (
+	"fmt"
+	"github.com/fatih/goset"
+	"strconv"
+	"sync"
+)
+
+func main() {
+	var wg sync.WaitGroup // this is just for waiting until all goroutines finish
+
+	// Initialize our Set
+	s := goset.New()
+
+	// Add items concurrently (item1, item2, and so on)
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(i int) {
+			item := "item" + strconv.Itoa(i)
+			fmt.Println("adding", item)
+			s.Add(item)
+			wg.Done()
+		}(i)
+	}
+
+	// Wait until all concurrent calls finished
+	wg.Wait()
+
+	// You'll see that it's not ordered, because each goroutine has finished it differently
+	fmt.Println(s.List())
+}
+```
+	
 
