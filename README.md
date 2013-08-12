@@ -42,11 +42,15 @@ func main() {
 	fmt.Printf("set items: %v\n", set.List())
 
 	// create another set and merge it
-	countries := goset.New()
-	countries.Add("turkey")
-	countries.Add("germany")
-	countries.Add("us")
-	set.AddAll(countries) // contains all items from set and countries
+	cities := goset.New()
+	cities.Add("ankara")
+	cities.Add("berlin")
+	cities.Add("frankfurt") // set has this already
+	cities.Add("boston")
+	fmt.Printf("country items: %v\n", cities.List())
+
+	set.AddAll(cities) // contains all items from set and countries
+	fmt.Printf("set items after merging: %v\n", set.List())
 
 	// remove all items from the set
 	set.Clear()
@@ -67,5 +71,4 @@ func main() {
 	set.Remove("coffee") // does not exist
 	fmt.Println("list of all items:", set.List())
 }
-
 ```
