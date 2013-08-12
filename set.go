@@ -1,4 +1,4 @@
-// Goset is a thread safe SET implementation based on Go's internal Map data structure.
+// Goset is a thread safe SET data structure implementation
 package goset
 
 import "sync"
