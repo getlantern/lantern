@@ -299,7 +299,9 @@ public class Launcher {
                 messageService.showMessage("Operating System Error",
                         "We're sorry but Lantern requires a 64 bit operating " +
                         "system on OSX! Exiting");
-                System.exit(0);
+                if (!System.getenv("BAMBOO").equalsIgnoreCase("true")) {
+                    System.exit(0);
+                }
             }
         }
         jettyLauncher = instance(JettyLauncher.class);
