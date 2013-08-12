@@ -78,6 +78,11 @@ func (s *Set) List() []interface{} {
 	return list
 }
 
+// Copy returns a new Set with a copy of s.
+func (s *Set) Copy() *Set {
+	return New(s.List()...)
+}
+
 // Union is the merger of two sets. It returns a new set with the element in s
 // and t combined.
 func (s *Set) Union(t *Set) *Set {
