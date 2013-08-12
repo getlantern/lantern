@@ -87,7 +87,7 @@ public class Launcher {
         System.setProperty(ResourceUDT.PROPERTY_LIBRARY_EXTRACT_LOCATION, 
                 CommonUtils.getLittleShootDir().getAbsolutePath());
         
-        System.setProperty("javax.net.debug", "ssl");
+        //System.setProperty("javax.net.debug", "ssl");
         
         // Set the following for debugging XMPP connections.
         //Connection.DEBUG_ENABLED = true;
