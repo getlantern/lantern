@@ -1,4 +1,4 @@
-# Goset
+# Goset [![Build Status](https://travis-ci.org/fatih/goset.png)](https://travis-ci.org/fatih/goset)
 
 Goset is a basic and simple, hash-based, **thread safe** SET data structure
 implementation in Go. Because it's thread safe, you can use it concurrently
