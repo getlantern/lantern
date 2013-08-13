@@ -63,10 +63,8 @@ fmt.Printf("set is %s", set.String())
 #### Check Operations
 
 ```go
-// check for set emptiness
-if !set.IsEmpty() {
-
-}
+// check for set emptiness, returns true if set is empty
+set.IsEmpty()
 
 // check for a single item exist
 set.Has("istanbul")
