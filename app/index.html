@@ -21,23 +21,17 @@
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
 
-    <!-- XXX https://groups.google.com/d/msg/angular/jizUZ6JgUcE/cKmFOUBg7DEJ
-    <script src="lib/angular/i18n/angular-locale_zh-cn.js"></script>
-    <script src="lib/angular/i18n/angular-locale_fa-ir.js"></script>
-    <script src="lib/angular/i18n/angular-locale_ar.js"></script>
-
-    <script src="bower_components/select2/select2_locale_zh-CN.js"></script>
-    -->
-
     <script src="bower_components/angular-ui-utils/modules/if/if.js"></script>
     <script src="bower_components/angular-ui-utils/modules/showhide/showhide.js"></script>
     <script src="bower_components/angular-ui-utils/modules/validate/validate.js"></script>
+    <!-- XXX using our own build of ui-bootstrap with custom patches -->
     <!--script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script-->
     <script src="lib/ui-bootstrap-tpls-0.5.0-SNAPSHOT.js"></script>
     <script src="bower_components/lodash/lodash.js"></script>
     <script src="bower_components/select2/select2.js"></script>
     <script src="bower_components/angular-ui-select2/src/select2.js"></script>
     <script src="bower_components/d3/d3.js"></script>
+    <!-- XXX see "XXX" in js/vis.js before switching to more recent topojson -->
     <!-- <script src="bower_components/topojson/topojson.js"></script> -->
     <script src="lib/topojson.js"></script>
 
@@ -61,9 +55,6 @@
 
     <div id="waiting" ng-show="modelSrvc.sane && !cometdConnected">
       <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
-      <!-- XXX https://github.com/FortAwesome/Font-Awesome/issues/701
-      <i class="icon-spinner icon-spin icon-3x"></i>
-      -->
       <img src="img/spinner.gif">
     </div>
 

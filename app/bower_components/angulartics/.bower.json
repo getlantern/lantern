@@ -1,0 +1,18 @@
+{
+  "name": "angulartics",
+  "version": "0.3.7",
+  "main": "./src/angulartics.js",
+  "dependencies": {
+    "angular": ">= 1.0.7"
+  },
+  "homepage": "https://github.com/luisfarzati/angulartics",
+  "_release": "0.3.7",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.3.7",
+    "commit": "54728ef0050469f2c64439019ee57ab6801d0cd3"
+  },
+  "_source": "git://github.com/luisfarzati/angulartics.git",
+  "_target": "~0.3.7",
+  "_direct": true
+}

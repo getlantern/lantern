@@ -7,13 +7,5 @@
     "component"
   ],
   "main": "jquery.js",
-  "license": "MIT",
-  "gitHead": "0bf14f5cacfe6ba08e35e812f5413a0dcacee05d",
-  "readme": "jQuery Component\n================\n\nShim repository for the [jQuery](http://jquery.com).\n\nPackage Managers\n----------------\n\n* [Bower](http://twitter.github.com/bower/): `jquery`\n* [Component](https://github.com/component/component): `components/jquery`\n* [Composer](http://packagist.org/packages/components/jquery): `components/jquery`\n",
-  "readmeFilename": "README.md",
-  "_id": "jquery@2.0.3",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/components/jquery.git"
-  }
+  "license": "MIT"
 }
