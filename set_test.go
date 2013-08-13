@@ -1,8 +1,9 @@
 package goset
 
-import "reflect"
-
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestSet_New(t *testing.T) {
 	s := New()
