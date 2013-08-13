@@ -104,6 +104,8 @@ Globally install required Node.js packages (`sudo` as necessary):
 
     npm install -g karma
 
+and [PhantomJS](http://phantomjs.org/) (brew install phantomjs).
+
 Check out `.travis.yml` and referenced files for examples of running the
 unit tests and end-to-end tests.
 

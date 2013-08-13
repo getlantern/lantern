@@ -11,8 +11,8 @@ before_script:
   - sleep 1 # give server time to start
 
 script:
-  - karma start config/karma.conf.js --no-auto-watch --single-run --reporters=dots --browsers=Firefox
-  - karma start config/karma-e2e.conf.js --reporters=dots --browsers=Firefox
+  - karma start config/karma.conf.js --no-auto-watch --single-run --reporters=dots
+  - karma start config/karma-e2e.conf.js --reporters=dots
 
 notifications:
   irc: "irc.freenode.net#lantern"

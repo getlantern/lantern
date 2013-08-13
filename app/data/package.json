@@ -24,10 +24,14 @@
   "keywords": [
     "lantern"
   ],
-  "dependencies": {
-    "cookiejar": "*",
-    "faye-websocket": "*"
-  },
+  "dependencies": [
+    "cookiejar",
+    "faye-websocket"
+  ],
+  "devDependencies": [
+    "karma",
+    "karma-ng-scenario"
+  ],
   "analyze": false,
   "license": "GPLv3",
   "engines": {
