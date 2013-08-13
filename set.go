@@ -20,33 +20,55 @@ func New(items ...interface{}) *Set {
 		m: make(map[interface{}]struct{}), // struct{} doesn't take up space
 	}
 
-	for _, item := range items {
-		s.Add(item)
-	}
-
+	s.Add(items...)
 	return s
 }
 
-// Add includes the specified item to the set.
-func (s *Set) Add(item interface{}) {
+// Add includes the specified items (one or more) to the set. If passed nothing
+// it silently returns.
+func (s *Set) Add(items ...interface{}) {
+	if len(items) == 0 {
+		return
+	}
 	s.l.Lock()
 	defer s.l.Unlock()
-	s.m[item] = struct{}{}
+
+	for _, item := range items {
+		s.m[item] = struct{}{}
+	}
 }
 
-// Remove deletes the specified item from the set
-func (s *Set) Remove(item interface{}) {
+// Remove deletes the specified items from the set. If passed nothing it
+// silently returns.
+func (s *Set) Remove(items ...interface{}) {
+	if len(items) == 0 {
+		return
+	}
 	s.l.Lock()
 	defer s.l.Unlock()
-	delete(s.m, item)
+
+	for _, item := range items {
+		delete(s.m, item)
+	}
 }
 
-// Has looks for the existence of an item
-func (s *Set) Has(item interface{}) bool {
+// Has looks for the existence of items passed. It returns false if nothing is
+// passed. For multiple items it returns true only if all of  the items exist.
+func (s *Set) Has(items ...interface{}) bool {
+	// assume checked for empty item, which not exist
+	if len(items) == 0 {
+		return false
+	}
 	s.l.RLock()
 	defer s.l.RUnlock()
-	_, ok := s.m[item]
-	return ok
+
+	for _, item := range items {
+		if _, ok := s.m[item]; !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Size returns the number of items in a set.

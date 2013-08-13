@@ -1,6 +1,6 @@
 # Goset [![Build Status](https://travis-ci.org/fatih/goset.png)](https://travis-ci.org/fatih/goset)
 
-Goset is a basic and simple, hash-based, **thread safe** SET data structure
+Goset is a basic and simple, hash-based, *thread safe*,  **Set** data structure
 implementation in Go. Because it's thread safe, you can use it concurrently
 with your goroutines.
 
@@ -33,9 +33,15 @@ set := goset.New("istanbul", "frankfurt", 30.123, "san francisco", 1234)
 set.Add("berlin")
 set.Add("istanbul") // nothing happens if you add duplicate item
 
+// add multiple items
+set.Add("ankara", "san francisco", 3.14)
+
 // remove item
 set.Remove("frankfurt")
 set.Remove("frankfurt") // nothing happes if you remove a nonexisting item
+
+// remove multiple items
+set.Remove("barcelona", 3.14, "ankara")
 
 // create a new copy
 other := set.Copy() 
@@ -63,9 +69,10 @@ if !set.IsEmpty() {
 }
 
 // check for a single item exist
-if set.Has("istanbul") {
+set.Has("istanbul")
 
-}
+// ... or for multiple items. This will return true if all of the items exist.
+set.Has("istanbul", "san francisco", 3.14)
 
 // create two sets for the following checks...
 s := goset.New("1", "2", "3", "4", "5")

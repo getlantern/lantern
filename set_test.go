@@ -23,7 +23,6 @@ func TestSet_New_parameters(t *testing.T) {
 }
 
 func TestSet_Add(t *testing.T) {
-	// This also tests for s.Has() method
 	s := New()
 	s.Add(1)
 	s.Add(2)
@@ -36,10 +35,22 @@ func TestSet_Add(t *testing.T) {
 		t.Error("Add: items are not unique. The set size should be four")
 	}
 
-	if !s.Has(1) || !s.Has(2) || !s.Has("fatih") || !s.Has("zeynep") {
+	if !s.Has(1, 2, "fatih", "zeynep") {
 		t.Error("Add: added items are not availabile in the set.")
 	}
+}
 
+func TestSet_Add_multiple(t *testing.T) {
+	s := New()
+	s.Add("ankara", "san francisco", 3.14)
+
+	if s.Size() != 3 {
+		t.Error("Add: items are not unique. The set size should be three")
+	}
+
+	if !s.Has("ankara", "san francisco", 3.14) {
+		t.Error("Add: added items are not availabile in the set.")
+	}
 }
 
 func TestSet_Remove(t *testing.T) {
@@ -65,6 +76,32 @@ func TestSet_Remove(t *testing.T) {
 	}
 
 	s.Remove("fatih") // try to remove something from a zero length set
+}
+
+func TestSet_Remove_multiple(t *testing.T) {
+	s := New()
+	s.Add("ankara", "san francisco", 3.14, "istanbul")
+	s.Remove("ankara", "san francisco", 3.14)
+
+	if s.Size() != 1 {
+		t.Error("Remove: items are not unique. The set size should be four")
+	}
+
+	if !s.Has("istanbul") {
+		t.Error("Add: added items are not availabile in the set.")
+	}
+}
+
+func TestSet_Has(t *testing.T) {
+	s := New("1", "2", "3", "4")
+
+	if !s.Has("1") {
+		t.Error("Has: the item 1 exist, but 'Has' is returning false")
+	}
+
+	if !s.Has("1", "2", "3", "4") {
+		t.Error("Has: the items all exist, but 'Has' is returning false")
+	}
 }
 
 func TestSet_Clear(t *testing.T) {
@@ -180,7 +217,7 @@ func TestSet_Union(t *testing.T) {
 		t.Error("Union: the merged set doesn't have all items in it.")
 	}
 
-	if !u.Has("1") || !u.Has("2") || !u.Has("3") || !u.Has("4") || !u.Has("5") {
+	if !u.Has("1", "2", "3", "4", "5") {
 		t.Error("Union: merged items are not availabile in the set.")
 	}
 }
@@ -194,7 +231,7 @@ func TestSet_Merge(t *testing.T) {
 		t.Error("Merge: the set doesn't have all items in it.")
 	}
 
-	if !s.Has("1") || !s.Has("2") || !s.Has("3") || !s.Has("4") || !s.Has("5") {
+	if !s.Has("1", "2", "3", "4", "5") {
 		t.Error("Merge: merged items are not availabile in the set.")
 	}
 }
@@ -250,7 +287,7 @@ func TestSet_SymmetricDifference(t *testing.T) {
 		t.Error("SymmetricDifference: the set doesn't have all items in it.")
 	}
 
-	if !u.Has("1") || !u.Has("2") || !u.Has("4") || !u.Has("5") {
+	if !u.Has("1", "2", "4", "5") {
 		t.Error("SymmetricDifference: items are not availabile in the set.")
 	}
 }
