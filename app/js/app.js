@@ -32,4 +32,9 @@ var app = angular.module('app', [
   // angular-ui config
   .value('ui.config', {
     animate: 'ui-hide',
+  })
+  .run(function ($window, $rootScope, modelSrvc) {
+    // XXX for easier inspection in the JavaScript console
+    $window.rootScope = $rootScope;
+    $window.model = $rootScope.model = modelSrvc.model;
   });

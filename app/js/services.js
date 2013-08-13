@@ -4,7 +4,15 @@ angular.module('app.services', [])
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
-  .factory('logFactory', function($log, logWhiteList, state) {
+  .factory('logFactory', function($log, logWhiteList) {
+    // XXX can take out on upgrade to angular 1.1 which added $log.debug
+    if (!$log.debug) {
+      $log.debug = function () {
+        if (console.debug) {
+          console.debug.apply(console, arguments);
+        }
+      };
+    }
     return function(prefix) {
       var match = prefix ? prefix.match(logWhiteList) : true;
       function extracted(prop) {
@@ -15,13 +23,11 @@ angular.module('app.services', [])
           $log[prop].apply($log, args);
         };
       }
-      var logLogger = extracted('log');
       return {
-        log:   logLogger,
+        log:   extracted('log'),
         warn:  extracted('warn'),
         error: extracted('error'),
-        // XXX angular now has support for console.debug?
-        debug: function() { if (state.dev) logLogger.apply(logLogger, arguments); }
+        debug: extracted('debug')
       };
     };
   })
@@ -73,12 +79,16 @@ angular.module('app.services', [])
       connected = msg.successful;
       if (!wasConnected && connected) { // reconnected
         log.debug('connection established');
-        $rootScope.$broadcast('cometdConnected');
+        $rootScope.$apply(function () {
+          $rootScope.cometdConnected = true;
+        });
         // XXX why do docs put this in successful handshake callback?
         cometd.batch(function(){ refresh(); });
       } else if (wasConnected && !connected) {
         log.warn('connection broken');
-        $rootScope.$broadcast('cometdDisconnected');
+        $rootScope.$apply(function () {
+          $rootScope.cometdConnected = false;
+        });
       }
     });
 

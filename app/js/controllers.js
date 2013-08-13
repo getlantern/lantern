@@ -13,10 +13,6 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
   $scope.cometdSrvc = cometdSrvc;
   $scope.lanternUiVersion = LANTERNUI_VER.join('.');
   $scope.state = state;
-  // XXX for easier inspection in the JavaScript console
-  $window.state = state;
-  $window.model = model;
-  $window.rootScope = $scope;
   $scope.EXTERNAL_URL = EXTERNAL_URL;
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;
@@ -25,22 +21,6 @@ function RootCtrl(state, $scope, $filter, $timeout, logFactory, modelSrvc, comet
   $scope.lang = langSrvc.lang;
   $scope.direction = langSrvc.direction;
   $scope.LANG = LANG;
-
-  $scope.$watch('model.dev', function(dev) {
-    state.dev = dev;
-  });
-
-  $scope.$on('cometdConnected', function() {
-    log.debug('cometdConnected');
-    $scope.cometdConnected = true;
-    $scope.$apply();
-  });
-
-  $scope.$on('cometdDisconnected', function () {
-    log.debug('cometdDisconnected');
-    $scope.cometdConnected = false;
-    $scope.$apply();
-  });
 
   $scope.defaultReportMsg = function() {
     var reportedState = jsonFltr(reportedStateFltr($scope.model));
