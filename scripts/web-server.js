@@ -7,13 +7,17 @@ var util = require('util'),
     events = require('events');
 var MockBackend = require('../mock/backend').MockBackend;
 
+var DEFAULT_HOST = '127.0.0.1';
 var DEFAULT_PORT = 8000;
 
 function main(argv) {
   new HttpServer({
     'GET': createServlet(StaticServlet),
     'HEAD': createServlet(StaticServlet)
-  }).start(Number(argv[2]) || DEFAULT_PORT);
+  }).start(
+    Number(argv[2]) || DEFAULT_PORT,
+    argv[3] || DEFAULT_HOST
+    );
 }
 
 function escapeHtml(value) {
@@ -42,11 +46,11 @@ function HttpServer(handlers) {
   mockBackend.attachServer(this.server);
 }
 
-HttpServer.prototype.start = function(port) {
+HttpServer.prototype.start = function(port, host) {
   this.port = port;
-  this.server.listen(port, '0.0.0.0');
-  util.puts('Bayeux-attached http server running at http://0.0.0.0:'+port);
-  util.puts('Lantern UI running at http://0.0.0.0:'+port+'/app/index.html');
+  this.server.listen(port, host);
+  util.puts('Mock Lantern client backend running at http://'+host+':'+port);
+  util.puts('Load Lantern UI at http://'+host+':'+port+'/app/index.html');
 };
 
 HttpServer.prototype.parseUrl_ = function(urlString) {

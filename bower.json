@@ -3,7 +3,6 @@
   "version": "0.0.10",
   "dependencies": {
     "angular": "~1.0.7",
-    "angular-google-analytics": "revolunet/angular-google-analytics",
     "angular-sanitize": "~1.0.7",
     "angular-translate": "0.9.4",
     "angular-ui-select2": "0.0.2",

@@ -55,7 +55,6 @@ config file (`config/compass.rb`):
 Start up the Node.js mock server simulating the Lantern backend:
 
     $ scripts/web-server.js
-    Bayeux-attached http server running at...
 
 The UI should now be available at
 [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
