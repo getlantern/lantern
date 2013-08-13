@@ -182,3 +182,33 @@ func (s *Set) SymmetricDifference(t *Set) *Set {
 	v := t.Difference(s)
 	return u.Union(v)
 }
+
+// StringSlice is a helper function that returns a slice of strings of s. If
+// the set contains mixed types of items only items of type string are returned.
+func (s *Set) StringSlice() []string {
+	slice := make([]string, 0)
+	for _, item := range s.List() {
+		v, ok := item.(string)
+		if !ok {
+			continue
+		}
+
+		slice = append(slice, v)
+	}
+	return slice
+}
+
+// IntSlice is a helper function that returns a slice of ints of s. If
+// the set contains mixed types of items only items of type int are returned.
+func (s *Set) IntSlice() []int {
+	slice := make([]int, 0)
+	for _, item := range s.List() {
+		v, ok := item.(int)
+		if !ok {
+			continue
+		}
+
+		slice = append(slice, v)
+	}
+	return slice
+}

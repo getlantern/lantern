@@ -123,6 +123,28 @@ a.Separate(b)
 
 ```
 
+#### Helper methods
+
+The Slice functions below are a convenient way to extract or convert your Set data
+into basic data types.
+
+
+```go
+// create a set of mixed types
+s := goset.New("ankara", "5", "8", "san francisco", 13, 21
+
+
+// convert s into a slice of strings, it is of type []string
+// [ankara 5 8 san francisco]
+t := s.StringSlice()
+
+
+// u contains a slice of ints, it is of type []int
+// [13, 21]
+u := s.IntSlice()
+
+```
+
 #### Concurrent safe operations
 
 ```
