@@ -123,7 +123,7 @@ public class InteractionServlet extends HttpServlet {
 
     /* only open external urls to these hosts: */
     private static final Set<String> allowedDomains = new HashSet<String>(
-        Arrays.asList("google.com", "github.com", "getlantern.org"));
+        Arrays.asList("google.com", "github.com", "getlantern.org", "rally.org"));
 
     @Inject
     public InteractionServlet(final Model model,
