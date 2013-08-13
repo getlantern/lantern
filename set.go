@@ -103,7 +103,7 @@ func (s *Set) String() string {
 	for _, item := range s.List() {
 		t = append(t, fmt.Sprintf("%v", item))
 	}
-	return fmt.Sprintf("[%s]\n", strings.Join(t, ", "))
+	return fmt.Sprintf("[%s]", strings.Join(t, ", "))
 }
 
 // List returns a slice of all items
