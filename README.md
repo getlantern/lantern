@@ -180,11 +180,9 @@ func main() {
 		}(i)
 	}
 
-	// Wait until all concurrent calls finished
+	// Wait until all concurrent calls finished and print our set
 	wg.Wait()
-
-	// You'll see that it's not ordered, because each goroutine has finished it differently
-	fmt.Println(s.List())
+	fmt.Println(s)
 }
 ```
 	
