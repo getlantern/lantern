@@ -21,7 +21,7 @@ go get github.com/fatih/goset
 set := goset.New()
 
 // ... or with some initial values 
-set := goset.New("istanbul", "frankfurt", "san francisco", 1234)
+set := goset.New("istanbul", "frankfurt", 30.123, "san francisco", 1234)
 
 ```
 
@@ -66,11 +66,12 @@ if set.Has("istanbul") {
 
 }
 
+// create two sets for the following checks...
 s := goset.New("1", "2", "3", "4", "5")
 t := goset.New("1", "2", "3")
 
 
-// check if they are them
+// check if they are the same
 if !s.IsEqual(t) {
     fmt.Println("s is not equal to t")
 }
@@ -134,12 +135,12 @@ into basic data types.
 s := goset.New("ankara", "5", "8", "san francisco", 13, 21)
 
 
-// convert s into a slice of strings, it is of type []string
+// convert s into a slice of strings (type is []string)
 // [ankara 5 8 san francisco]
 t := s.StringSlice()
 
 
-// u contains a slice of ints, it is of type []int
+// u contains a slice of ints (type is []int)
 // [13, 21]
 u := s.IntSlice()
 
