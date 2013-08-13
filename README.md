@@ -145,7 +145,11 @@ u := s.IntSlice()
 
 ```
 
-#### Concurrent safe operations
+#### Concurrent safe usage
+
+Below is an example of a concurrent way that uses goset. We call ten functions
+concurrently and wait until they are finished. It basically creates a new
+string for each goroutine and adds it to our set.
 
 ```
 package main
