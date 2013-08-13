@@ -78,19 +78,16 @@ func (s *Set) Size() int {
 	return len(s.m)
 }
 
-// Clear removes all items from the set
+// Clear removes all items from the set.
 func (s *Set) Clear() {
 	s.l.Lock()
 	defer s.l.Unlock()
 	s.m = make(map[interface{}]struct{})
 }
 
-// IsEmpty checks for emptiness of the set
+// IsEmpty checks for emptiness of the set.
 func (s *Set) IsEmpty() bool {
-	if s.Size() == 0 {
-		return true
-	}
-	return false
+	return s.Size() == 0
 }
 
 // IsEqual test whether s and t are the same in size and have the same items.
