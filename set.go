@@ -8,8 +8,8 @@ import (
 )
 
 type Set struct {
-	m map[interface{}]bool
-	l sync.RWMutex // not embedded because we don't expose it
+	m map[interface{}]struct{}
+	l sync.RWMutex // we name it because we don't want to expose it
 }
 
 // New creates and initialize a new Set. It's accept a variable number of
@@ -17,7 +17,7 @@ type Set struct {
 // size is created.
 func New(items ...interface{}) *Set {
 	s := &Set{
-		m: make(map[interface{}]bool),
+		m: make(map[interface{}]struct{}), // struct{} doesn't take up space
 	}
 
 	for _, item := range items {
@@ -31,7 +31,7 @@ func New(items ...interface{}) *Set {
 func (s *Set) Add(item interface{}) {
 	s.l.Lock()
 	defer s.l.Unlock()
-	s.m[item] = true
+	s.m[item] = struct{}{}
 }
 
 // Remove deletes the specified item from the set
@@ -60,7 +60,7 @@ func (s *Set) Size() int {
 func (s *Set) Clear() {
 	s.l.Lock()
 	defer s.l.Unlock()
-	s.m = make(map[interface{}]bool)
+	s.m = make(map[interface{}]struct{})
 }
 
 // IsEmpty checks for emptiness of the set

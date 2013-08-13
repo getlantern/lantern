@@ -1,7 +1,8 @@
 # Goset
 
-Goset is a basic and simple **thread safe** SET data structure implementation in
-Go. Because it's thread safe, you can use it concurrently with your goroutines.
+Goset is a basic and simple, hash-based, **thread safe** SET data structure
+implementation in Go. Because it's thread safe, you can use it concurrently
+with your goroutines.
 
 For usage see examples below or look at godoc: [Goset godoc](http://godoc.org/github.com/fatih/goset)
 
