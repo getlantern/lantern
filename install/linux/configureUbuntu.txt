@@ -10,4 +10,6 @@ cp /opt/lantern/lantern.desktop /usr/share/applications || echo "Could not copy 
 
 chmod 4711 /opt/lantern/copyPolicy.exe
 
+test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
+
 echo "Finished running post install script..." >> $logf
