@@ -121,10 +121,6 @@ public class InteractionServlet extends HttpServlet {
 
     private final InviteQueue inviteQueue;
 
-    /* only open external urls to these hosts: */
-    private static final Set<String> allowedDomains = new HashSet<String>(
-        Arrays.asList("google.com", "github.com", "getlantern.org"));
-
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
@@ -220,20 +216,6 @@ public class InteractionServlet extends HttpServlet {
             } catch (MalformedURLException e) {
                 log.error("invalid url: {}", url);
                 HttpUtils.sendClientError(resp, "invalid url");
-                return;
-            }
-            final String host = url_.getHost();
-            final String[] hostParts = StringUtils.split(host, ".");
-            if (hostParts.length < 2) {
-                log.error("host not allowed: {}", host);
-                HttpUtils.sendClientError(resp, "host not allowed");
-                return;
-            }
-            final String domain = hostParts[hostParts.length-2] + "." +
-                hostParts[hostParts.length-1];
-            if (!allowedDomains.contains(domain)) {
-                log.error("domain not allowed: {}", domain);
-                HttpUtils.sendClientError(resp, "domain not allowed");
                 return;
             }
 
