@@ -27,6 +27,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -980,6 +981,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternClientConstants.LANTERN_JID);
 
+        forHub.setProperty("language", SystemUtils.USER_LANGUAGE);
+        
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
         final String str = JsonUtils.jsonify(stats);
