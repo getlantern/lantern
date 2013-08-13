@@ -40,7 +40,7 @@ var DEFAULT_LANG = 'en_US',
       IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/
     },
     EXTERNAL_URL = {
-      rally: 'https://rally.org/lantern/donate', // XXX
+      rally: 'https://rally.org/lantern/donate',
       helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       homepage: 'https://www.getlantern.org/',
@@ -68,6 +68,7 @@ var DEFAULT_LANG = 'en_US',
       'giveModeForbidden',
       'about',
       'sponsor',
+      'sponsorToContinue',
       'updateAvailable',
       'scenarios'],
       {none: ''}),

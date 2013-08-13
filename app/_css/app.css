@@ -6423,20 +6423,20 @@ i[class*=icon] {
   transition: all 0.5s ease;
 }
 
-a, button {
+a, button, .icon-external-link-wrapper {
   cursor: pointer;
 }
-a i[class*=icon], button i[class*=icon] {
+a i[class*=icon], button i[class*=icon], .icon-external-link-wrapper i[class*=icon] {
   color: #333333;
 }
-a i.icon-external-link, button i.icon-external-link {
+a i.icon-external-link, button i.icon-external-link, .icon-external-link-wrapper i.icon-external-link {
   opacity: 0;
   width: 0;
 }
-a:hover i[class*=icon], button:hover i[class*=icon] {
+a:hover i[class*=icon], button:hover i[class*=icon], .icon-external-link-wrapper:hover i[class*=icon] {
   color: #0088cc;
 }
-a:hover i.icon-external-link, button:hover i.icon-external-link {
+a:hover i.icon-external-link, button:hover i.icon-external-link, .icon-external-link-wrapper:hover i.icon-external-link {
   opacity: 1;
   color: #005580;
   width: 8px;
@@ -7265,11 +7265,8 @@ textarea.report {
   margin-top: 24px;
 }
 
-#sponsor .action-list {
-  margin-left: 40px;
-}
-#sponsor .action-list li {
-  padding: 5px 0;
+#sponsor .actions {
+  margin: 30px 0 15px 45px;
 }
 
 #topbar {

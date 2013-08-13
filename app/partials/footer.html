@@ -4,7 +4,11 @@
     {{ 'CONNECTION_OFFLINE' | i18n }}
   </div>
   <div ng-show="model.connectivity.internet">
-    <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies == 0" ng-bind-html-unsafe="'NO_PROXIES' | i18n"></div>
+    <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies == 0">
+      {{ 'NO_PROXIES' | i18n }}<br>
+      {{ 'WAIT_FOR_FRIEND_OR' | i18n }}
+      <a class="always-underlined warning-colored" ng-click="interaction(INTERACTION.sponsor)">{{ 'SPONSOR_NOW' | i18n }}</a>
+    </div>
     <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
       {{ 'NUSERS_ONLINE' | i18n:model.global.nusers.online }} ·
       {{ 'NUSERS_EVER' | i18n:model.global.nusers.ever }} ·

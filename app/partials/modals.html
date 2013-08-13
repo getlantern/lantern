@@ -61,8 +61,6 @@
   </div>
 </div>
 
-<!-- setup screens -->
-
 <div modal="model.modal == MODAL.welcome">
   <div class="modal-body" id="welcome">
     <div class="logo">
@@ -83,31 +81,19 @@
   </div>
 </div>
 
-<div modal="model.modal == MODAL.sponsor">
+<div modal="model.modal == MODAL.sponsorToContinue">
   <div class="modal-header">
-    <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
+    <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body" id="sponsor">
-    <p ng-show="inGetMode">
-      {{ 'SPONSOR_PROMPT_GET' | i18n }}
-    </p>
-    <p ng-show="!inGetMode">
-      {{ 'SPONSOR_PROMPT_GIVE' | i18n }}
-    </p>
-    <ul class="action-list">
-      <li>
-        <a ng-click="openExternal(EXTERNAL_URL.rally)">
-          {{ 'SPONSOR_CLOUD_PROXY' | i18n }}<sup><i class="icon-external-link"></i></sup>
-        </a>
-      </li>
-      <li>
-        <a ng-click="openExternal(EXTERNAL_URL.rally)">
-          {{ 'VIEW_WAYS_TO_CONTRIBUTE' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-      </li>
-    </ul>
+  <div class="modal-body" id="sponsorToContinue">
+    {{ 'SPONSOR_TO_CONTINUE_PROMPT' | i18n }}
   </div>
   <div class="modal-footer">
-    <button class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <span class="icon-external-link-wrapper">
+      <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)">
+        {{ 'SPONSOR' | i18n }}
+      </button><sup><i class="icon-external-link"></i></sup>
+    </span>
   </div>
 </div>
 
@@ -405,6 +391,35 @@
        tabindex="{{ model.modal == MODAL.updateAvailable && 1 || '' }}">
       {{ 'DOWNLOAD' | i18n }}
     </a>
+  </div>
+</div>
+
+<div modal="model.modal == MODAL.sponsor">
+  <div class="modal-header">
+    <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
+  </div>
+  <div class="modal-body" id="sponsor">
+    <p ng-show="inGetMode">
+      {{ 'SPONSOR_PROMPT_GET' | i18n }}
+    </p>
+    <p ng-show="!inGetMode">
+      {{ 'SPONSOR_PROMPT_GIVE' | i18n }}
+    </p>
+    <p class="actions">
+      <span class="icon-external-link-wrapper">
+        <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)">
+          {{ 'SPONSOR_CLOUD_PROXY' | i18n }}
+        </button><sup><i class="icon-external-link"></i></sup>
+      </span>
+      <small>
+        {{ 'OR' | i18n }}
+        <a class="always-underlined" ng-click="openExternal(EXTERNAL_URL.contributing)">
+          {{ 'VIEW_WAYS_TO_CONTRIBUTE' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+      </small>
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>
 
