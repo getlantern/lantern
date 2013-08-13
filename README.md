@@ -131,7 +131,7 @@ into basic data types.
 
 ```go
 // create a set of mixed types
-s := goset.New("ankara", "5", "8", "san francisco", 13, 21
+s := goset.New("ankara", "5", "8", "san francisco", 13, 21)
 
 
 // convert s into a slice of strings, it is of type []string
