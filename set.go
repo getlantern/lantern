@@ -1,7 +1,11 @@
 // Goset is a thread safe SET data structure implementation
 package goset
 
-import "sync"
+import (
+	"fmt"
+	"strings"
+	"sync"
+)
 
 type Set struct {
 	m map[interface{}]bool
@@ -65,6 +69,41 @@ func (s *Set) IsEmpty() bool {
 		return true
 	}
 	return false
+}
+
+// IsEqual test whether s and t are the same in size and have the same items.
+func (s *Set) IsEqual(t *Set) bool {
+	if s.Size() != t.Size() {
+		return false
+	}
+	if s.Size() != s.Union(t).Size() {
+		return false
+	}
+	return true
+}
+
+// IsSubset tests t is a subset of s.
+func (s *Set) IsSubset(t *Set) bool {
+	for _, item := range t.List() {
+		if !s.Has(item) {
+			return false
+		}
+	}
+	return true
+}
+
+// IsSuperset tests if t is a superset of s.
+func (s *Set) IsSuperset(t *Set) bool {
+	return t.IsSubset(s)
+}
+
+// String representation of s
+func (s *Set) String() string {
+	t := make([]string, 0)
+	for _, item := range s.List() {
+		t = append(t, fmt.Sprintf("%v", item))
+	}
+	return fmt.Sprintf("[%s]\n", strings.Join(t, ", "))
 }
 
 // List returns a slice of all items

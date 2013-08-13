@@ -13,7 +13,7 @@ go get github.com/fatih/goset
 
 ## Examples
 
-Initialization of a new Set
+#### Initialization of a new Set
 
 ```go
 
@@ -25,7 +25,7 @@ set := goset.New("istanbul", "frankfurt", "san francisco", 1234)
 
 ```
 
-Basic Operations
+#### Basic Operations
 
 ```go
 // add items
@@ -42,6 +42,20 @@ other := set.Copy()
 // remove all items
 set.Clear()
 
+// number of items in the set
+len := set.Size()
+
+// return a list of items
+items := set.List()
+
+// string representation of set
+fmt.Printf("set is %s", set.String())
+
+```
+
+#### Check Operations
+
+```go
 // check for set emptiness
 if !set.IsEmpty() {
 
@@ -52,15 +66,29 @@ if set.Has("istanbul") {
 
 }
 
-// number of items in the set
-len := set.Size()
+s := goset.New("1", "2", "3", "4", "5")
+t := goset.New("1", "2", "3")
 
-// return a list of items
-items := set.List()
+
+// check if they are them
+if !s.IsEqual(t) {
+    fmt.Println("s is not equal to t")
+}
+
+// if s contains all elements of t
+if s.IsSubset(t) {
+	fmt.Println("t is a subset of s")
+}
+
+// ... or if s is a superset of t
+if t.IsSuperset(s) {
+	fmt.Println("s is a superset of t")
+}
+
 
 ```
 
-Set Operations
+#### Set Operations
 
 
 ```go
@@ -95,7 +123,7 @@ a.Separate(b)
 
 ```
 
-Concurrent safe operations
+#### Concurrent safe operations
 
 ```
 package main
