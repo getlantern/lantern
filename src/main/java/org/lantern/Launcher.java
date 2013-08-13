@@ -39,7 +39,6 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
-import org.jivesoftware.smack.Connection;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
@@ -299,9 +298,8 @@ public class Launcher {
                 messageService.showMessage("Operating System Error",
                         "We're sorry but Lantern requires a 64 bit operating " +
                         "system on OSX! Exiting");
-                if (!System.getenv("BAMBOO").equalsIgnoreCase("true")) {
-                    System.exit(0);
-                }
+                
+                System.exit(0);
             }
         }
         jettyLauncher = instance(JettyLauncher.class);
@@ -544,7 +542,13 @@ public class Launcher {
                     "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
                     "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
                     "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
-                System.exit(1);
+                
+                // Don't exit if we're running on CI...
+                final String env = System.getenv("BAMBOO");
+                System.err.println("Env: "+System.getenv());
+                if (!env.equalsIgnoreCase("true")) {
+                    System.exit(1);
+                }
             }
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
                 log("No policy files on non-Vista machine!!");
