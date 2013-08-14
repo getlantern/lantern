@@ -546,7 +546,7 @@ public class Launcher {
                 // Don't exit if we're running on CI...
                 final String env = System.getenv("BAMBOO");
                 System.err.println("Env: "+System.getenv());
-                if (!env.equalsIgnoreCase("true")) {
+                if (!"true".equalsIgnoreCase(env)) {
                     System.exit(1);
                 }
             }
