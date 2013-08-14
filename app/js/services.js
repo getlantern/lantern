@@ -4,10 +4,10 @@ angular.module('app.services', [])
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
-  .factory('logFactory', function($log, logWhiteList) {
+  .factory('logFactory', function($log, $window, logWhiteList) {
     // XXX can take out on upgrade to angular 1.1 which added $log.debug
     if (!$log.debug) {
-      $log.debug = (console.debug || console.log || angular.noop).bind(console);
+      $log.debug = $window.console ? angular.noop : ($window.console.debug || $window.console.log).bind($window.console);
     }
     return function(prefix) {
       var match = prefix ? prefix.match(logWhiteList) : true;
