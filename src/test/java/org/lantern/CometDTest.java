@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class CometDTest {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Test
@@ -57,7 +57,7 @@ public class CometDTest {
         final ClientTransport transport =
             LongPollingTransport.create(options, httpClient);
 
-        final String url = 
+        final String url =
             StaticSettings.getLocalEndpoint(port, StaticSettings.getPrefix())+"/cometd";
         final ClientSession session = new BayeuxClient(url, transport);
 
@@ -75,7 +75,7 @@ public class CometDTest {
                     }
                 }
             });
-        
+
         Thread.yield();
         session.handshake();
         waitForBoolean(handshake);
@@ -108,13 +108,9 @@ public class CometDTest {
 
         final Map<String,Object> updateJson =
             new LinkedHashMap<String,Object>();
-        updateJson.put(LanternConstants.UPDATE_VERSION_KEY, "0.20");
-        updateJson.put(LanternConstants.UPDATE_RELEASED_KEY,
-            "2012-10-31T11:15:00Z");
+
         updateJson.put(LanternConstants.UPDATE_URL_KEY,
-            "http://s3.amazonaws.com/lantern/latest.dmg");
-        updateJson.put(LanternConstants.UPDATE_MESSAGE_KEY,
-            "test update");
+            "http://s3.amazonaws.com/lantern/latest.dmg.jar");
 
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
 
