@@ -818,7 +818,8 @@ public class DefaultXmppHandler implements XmppHandler {
             // that could happen if we had made some local changes while waiting
             // to hear back from the XMPP server. It's not very likely.
             Friend old = friends.get(email);
-            if (old != null && old.getLastUpdated() > lastUpdated) {
+            if (old != null && old.getLastUpdated() > lastUpdated &&
+                    old.getStatus() != Status.pending) {
                 friends.setNeedsSync(true);
             } else {
                 if (old == null || old.getStatus() != friend.getStatus()) {
