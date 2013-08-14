@@ -23,6 +23,7 @@ public enum SyncPath {
     START_AT_LOGIN("settings/startAtLogin"),
     AUTO_CONNECT("settings/autoConnect"),
     AUTO_REPORT("settings/autoReport"),
+    SHOW_FRIEND_PROMPTS("settings/showFriendPrompts"),
     PROXY_ALL_SITES("settings/proxyAllSites"),
     SYSTEMPROXY("settings/systemProxy"),
     LOCATION("location"),

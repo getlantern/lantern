@@ -79,6 +79,7 @@ public class InteractionServlet extends HttpServlet {
         REQUESTINVITE,
         CONTACT,
         ABOUT,
+        SPONSOR,
         ACCEPT,
         UNEXPECTEDSTATERESET,
         UNEXPECTEDSTATEREFRESH,
@@ -92,6 +93,7 @@ public class InteractionServlet extends HttpServlet {
     private static final Set<Modal> switchModals = new HashSet<Modal>();
     static {
         switchModals.add(Modal.about);
+        switchModals.add(Modal.sponsor);
         switchModals.add(Modal.contact);
         switchModals.add(Modal.settings);
         switchModals.add(Modal.proxiedSites);
@@ -546,7 +548,8 @@ public class InteractionServlet extends HttpServlet {
                         " and interaction: "+inter);
             }
             break;
-        case about:
+        case about: // fall through on purpose
+        case sponsor:
             switch (inter) {
             case CLOSE:
                 Events.syncModal(model, this.internalState.getLastModal());

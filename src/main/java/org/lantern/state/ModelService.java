@@ -20,6 +20,8 @@ public interface ModelService {
 
     void setAutoReport(boolean report);
 
+    void setShowFriendPrompts(boolean showFriendPrompts);
+
     //void setAutoConnect(boolean autoConnect);
 
     //void setPort(int port);

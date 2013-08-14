@@ -27,6 +27,8 @@ public enum Modal {
     confirmReset,
     giveModeForbidden,
     about,
+    sponsor,
+    sponsorToContinue,
     updateAvailable,
     scenarios,
     none

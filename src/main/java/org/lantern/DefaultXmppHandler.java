@@ -1390,7 +1390,7 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.sync(SyncPath.FRIENDS, friends.getFriends());
         }
         Settings settings = model.getSettings();
-        if (friend.shouldNotifyAgain() && settings.getShowFriendPrompts()
+        if (friend.shouldNotifyAgain() && settings.isShowFriendPrompts()
                 && model.isSetupComplete()) {
             FriendNotificationDialog notification;
             notification = new FriendNotificationDialog(notificationManager, friends, friend);

@@ -326,8 +326,8 @@ public class Settings {
     }
 
     @JsonView({Run.class, Persistent.class})
-    public void setRunAtSystemStart(boolean runOnSystemStartup) {
-        this.runAtSystemStart = runOnSystemStartup;
+    public void setRunAtSystemStart(boolean runAtSystemStart) {
+        this.runAtSystemStart = runAtSystemStart;
     }
 
     @JsonIgnore
@@ -348,10 +348,11 @@ public class Settings {
         this.udp = udp;
     }
 
-    public boolean getShowFriendPrompts() {
+    public boolean isShowFriendPrompts() {
         return showFriendPrompts;
     }
 
+    @JsonView({Run.class, Persistent.class})
     public void setShowFriendPrompts(boolean showFriendPrompts) {
         this.showFriendPrompts = showFriendPrompts;
     }

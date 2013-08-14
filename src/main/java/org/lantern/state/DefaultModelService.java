@@ -170,6 +170,12 @@ public class DefaultModelService implements ModelService {
         Events.sync(SyncPath.AUTO_REPORT, autoReport);
     }
 
+    @Override
+    public void setShowFriendPrompts(final boolean showFriendPrompts) {
+        this.model.getSettings().setShowFriendPrompts(showFriendPrompts);
+        Events.sync(SyncPath.SHOW_FRIEND_PROMPTS, showFriendPrompts);
+    }
+
     //this is necessary for JSON-pointer updating, since we want
     //all updates to go through this class
     public DefaultModelService getSettings() {
