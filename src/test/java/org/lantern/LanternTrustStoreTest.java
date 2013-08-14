@@ -104,8 +104,8 @@ public class LanternTrustStoreTest {
         client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 
         final String[] success = {"talk.google.com",
-            "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com"}; //"www.exceptional.io",
-
+            "lanternctrl.appspot.com", "docs.google.com",
+            "www.googleapis.com", "s3.amazonaws.com"};
 
         for (final String uri : success) {
             try {

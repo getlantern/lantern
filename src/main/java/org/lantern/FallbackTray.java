@@ -1,15 +1,11 @@
 package org.lantern;
 
-import java.util.Map;
-
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.event.Events;
-import org.lantern.event.UpdateEvent;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -59,18 +55,6 @@ public class FallbackTray implements SystemTray {
         else {
             fallback(); // fall back immediately
         }
-    }
-
-    @Subscribe
-    public void onUpdate(final UpdateEvent update) {
-        if (nonLinuxTray != null) {
-            nonLinuxTray.addUpdate(update.getData());
-        }
-    }
-    
-    @Override
-    public void addUpdate(final Map<String, Object> updateData) {
-        nonLinuxTray.addUpdate(updateData);
     }
 
     @Override

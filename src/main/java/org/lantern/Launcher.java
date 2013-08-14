@@ -59,6 +59,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
+import org.lantern.updater.UpdateListener;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
@@ -103,6 +104,7 @@ public class Launcher {
     private XmppHandler xmpp;
     private BrowserService browserService;
     private StatsUpdater statsUpdater;
+    private UpdateListener updateListener;
 
     private SslHttpProxyServer sslProxy;
 
@@ -288,6 +290,9 @@ public class Launcher {
         model = instance(Model.class);
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
+        final boolean updatesDisabled = cmd.hasOption(OPTION_UPDATES_DISABLED);
+        set.setCheckForUpdates(!updatesDisabled);
+
         instance(Censored.class);
 
         messageService = instance(MessageService.class);
@@ -356,6 +361,7 @@ public class Launcher {
 
         instance(GeoIp.class);
         statsUpdater = instance(StatsUpdater.class);
+        updateListener = instance(UpdateListener.class);
 
         model.getConnectivity().setInternet(false);
         
@@ -886,6 +892,7 @@ public class Launcher {
     public static final String OPTION_CONTROLLER_ID = "controller-id";
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
+    public static final String OPTION_UPDATES_DISABLED = "no-updates";
 
     private static Options buildOptions() {
         final Options options = new Options();

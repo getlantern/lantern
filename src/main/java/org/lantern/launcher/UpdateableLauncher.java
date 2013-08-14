@@ -43,16 +43,9 @@ package org.lantern.launcher;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.lf5.util.StreamUtils;
 
 /**
  * Lantern's JAR file is, sometimes, stored in a place where Lantern cannot
@@ -80,10 +73,9 @@ public class UpdateableLauncher {
         String systemLantern = System.getProperty("user.dir");
         File file = new File(systemLantern, "lantern.cer");
         X509Certificate cert = SignatureCheckingJarLoader.loadCert(file);
-        byte[] signature = cert.getSignature();
-        // fixme: need to check that the signature (or pubkey, or something)
-        // is actually the one we think it is.
-        System.out.println("HERE:" + signature.length);
+        //FIXME: we never actually check this certificate to see that
+        //it is a real Lantern cert.  It could be any old cert.
+
         return cert;
     }
 
@@ -114,11 +106,6 @@ public class UpdateableLauncher {
         try {
 
             Class<?> cls = loader.loadClass("org.lantern.Launcher");
-            ClassLoader otherLoader = makeClassloaderFromManifest();
-            // FIXME: having generate a classloader, how do I use it?
-            
-            // TODO: need to read Class-Path from manifest
-            // load bcprov
 
             Method method = cls.getMethod("main", String[].class);
             method.invoke(null);
@@ -126,7 +113,7 @@ public class UpdateableLauncher {
             throw new RuntimeException(e);
         }
     }
-
+/* pretty sure this is not needed
     private ClassLoader makeClassloaderFromManifest() throws IOException {
         InputStream is = loader.getResourceAsStream("META-INF/MANIFEST.MF");
         String manifest = new String(StreamUtils.getBytes(is));
@@ -167,5 +154,5 @@ public class UpdateableLauncher {
         ClassLoader cl2 = new URLClassLoader(urls.toArray(new URL[urls.size()]));
         return cl2;
     }
-
+*/
 }

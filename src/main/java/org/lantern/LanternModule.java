@@ -49,6 +49,7 @@ import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwtMessageService;
+import org.lantern.updater.UpdateListener;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
@@ -138,6 +139,7 @@ public class LanternModule extends AbstractModule {
         bind(CountryService.class);
         //bind(SplashScreen.class);
         bind(NotificationManager.class);
+        bind(UpdateListener.class);
 
         try {
             copyFireFoxExtension();

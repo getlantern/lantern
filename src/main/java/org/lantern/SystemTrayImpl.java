@@ -25,7 +25,6 @@ import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
-import org.lantern.event.UpdateEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
@@ -280,39 +279,6 @@ public class SystemTrayImpl implements SystemTray {
         }
         log.debug("Returning blank image");
         return new Image (DisplayWrapper.getDisplay(), width, height);
-    }
-
-    @Override
-    public void addUpdate(final Map<String, Object> data) {
-        log.info("Adding update data: {}", data);
-        if (this.updateData != null && this.updateData.equals(data)) {
-            log.info("Ignoring duplicate update data");
-            return;
-        }
-        this.updateData = data;
-        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
-            @Override
-            public void run () {
-                if (updateItem == null) {
-                    updateItem = new MenuItem(menu, SWT.PUSH, 0);
-                    updateItem.addListener (SWT.Selection, new Listener () {
-                        @Override
-                        public void handleEvent (final Event event) {
-                            log.info("Got update call");
-                            NativeUtils.openUri((String) updateData.get(
-                                LanternConstants.UPDATE_URL_KEY));
-                        }
-                    });
-                }
-                updateItem.setText(I18n.tr("Update to Lantern ")+
-                    data.get(LanternConstants.UPDATE_VERSION_KEY));
-            }
-        });
-    }
-    
-    @Subscribe
-    public void onUpdate(final UpdateEvent update) {
-        addUpdate(update.getData());
     }
 
     @Subscribe

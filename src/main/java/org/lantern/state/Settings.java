@@ -90,6 +90,8 @@ public class Settings {
 
     private boolean showFriendPrompts = true;
 
+    private boolean checkForUpdates;
+
     @JsonView(Run.class)
     public String getLang() {
         return lang;
@@ -354,5 +356,14 @@ public class Settings {
 
     public void setShowFriendPrompts(boolean showFriendPrompts) {
         this.showFriendPrompts = showFriendPrompts;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public boolean getCheckForUpdates() {
+        return checkForUpdates;
+    }
+
+    public void setCheckForUpdates(boolean check) {
+        this.checkForUpdates = check;
     }
 }

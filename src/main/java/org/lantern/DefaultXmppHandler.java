@@ -27,6 +27,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -998,6 +999,15 @@ public class DefaultXmppHandler implements XmppHandler {
             forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
             friends.setNeedsSync(false);
         }
+
+        String versionStr = this.model.getVersion().getInstalled().toString();
+        forHub.setProperty(LanternConstants.VERSION_KEY,
+                         versionStr);
+        forHub.setProperty(LanternConstants.OS_KEY,
+                         SystemUtils.OS_NAME);
+        forHub.setProperty(LanternConstants.ARCH_KEY,
+                         SystemUtils.OS_ARCH);
+
 
         conn.sendPacket(forHub);
     }

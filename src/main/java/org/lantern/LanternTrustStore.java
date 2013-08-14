@@ -89,11 +89,12 @@ public class LanternTrustStore {
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(null, null);
-            
+
             final CertificateFactory cf = CertificateFactory.getInstance("X.509");
             addCert(ks, cf, "littleproxy", LITTLEPROXY);
             addCert(ks, cf, "digicerthighassurancerootca", DIGICERT);
             addCert(ks, cf, "equifaxsecureca", EQUIFAX);
+            addCert(ks, cf, "verisign-G2-C3", VERISIGN);
             return ks;
         } catch (final KeyStoreException e) {
             log.error("Could not load keystore?", e);
@@ -107,13 +108,13 @@ public class LanternTrustStore {
         } catch (final IOException e) {
             log.error("Could not load?", e);
             throw new Error("Could not load blank trust store", e);
-        } 
+        }
     }
 
     private void addCert(final KeyStore ks, final CertificateFactory cf,
-        final String alias, final String pemCert) 
+        final String alias, final String pemCert)
                 throws CertificateException, KeyStoreException {
-        final InputStream bis = 
+        final InputStream bis =
             new ByteArrayInputStream(pemCert.getBytes(Charsets.UTF_8));
         final Certificate cert = cf.generateCertificate(bis);
         ks.setCertificateEntry(alias, cert);
@@ -297,5 +298,25 @@ public class LanternTrustStore {
             + "ok2U3fCl58xbiwp6owpamVoPblrq7Zl4ylyF33H6ewM+f5XA+L1iC5KWs9q8Kw==\n"
             + "-----END CERTIFICATE-----";
 
+    private static final String VERISIGN =
+            "-----BEGIN CERTIFICATE-----\n"
+            + "MIIDAjCCAmsCEH3Z/gfPqB63EHln+6eJNMYwDQYJKoZIhvcNAQEFBQAwgcExCzAJ\n"
+            + "BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xh\n"
+            + "c3MgMyBQdWJsaWMgUHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAtIEcy\n"
+            + "MTowOAYDVQQLEzEoYykgMTk5OCBWZXJpU2lnbiwgSW5jLiAtIEZvciBhdXRob3Jp\n"
+            + "emVkIHVzZSBvbmx5MR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMB4X\n"
+            + "DTk4MDUxODAwMDAwMFoXDTI4MDgwMTIzNTk1OVowgcExCzAJBgNVBAYTAlVTMRcw\n"
+            + "FQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xhc3MgMyBQdWJsaWMg\n"
+            + "UHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAtIEcyMTowOAYDVQQLEzEo\n"
+            + "YykgMTk5OCBWZXJpU2lnbiwgSW5jLiAtIEZvciBhdXRob3JpemVkIHVzZSBvbmx5\n"
+            + "MR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMIGfMA0GCSqGSIb3DQEB\n"
+            + "AQUAA4GNADCBiQKBgQDMXtERXVxp0KvTuWpMmR9ZmDCOFoUgRm1HP9SFIIThbbP4\n"
+            + "pO0M8RcPO/mn+SXXwc+EY/J8Y8+iR/LGWzOOZEAEaMGAuWQcRXfH2G71lSk8UOg0\n"
+            + "13gfqLptQ5GVj0VXXn7F+8qkBOvqlzdUMG+7AUcyM83cV5tkaWH4mx0ciU9cZwID\n"
+            + "AQABMA0GCSqGSIb3DQEBBQUAA4GBAFFNzb5cy5gZnBWyATl4Lk0PZ3BwmcYQWpSk\n"
+            + "U01UbSuvDV1Ai2TT1+7eVmGSX6bEHRBhNtMsJzzoKQm5EWR0zLVznxxIqbxhAe7i\n"
+            + "F6YM40AIOw7n60RzKprxaZLvcRTDOaxxp5EJb+RxBrO6WVcmeQD2+A2iMzAo1KpY\n"
+            + "oJ2daZH9\n"
+            + "-----END CERTIFICATE-----";
 
 }
