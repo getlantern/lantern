@@ -41,6 +41,7 @@ var DEFAULT_LANG = 'en_US',
     },
     EXTERNAL_URL = {
       rally: 'https://rally.org/lantern/donate',
+      cloudServers: 'https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Servers',
       helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       homepage: 'https://www.getlantern.org/',

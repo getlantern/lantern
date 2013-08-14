@@ -86,6 +86,8 @@
   </div>
   <div class="modal-body" id="sponsorToContinue">
     {{ 'SPONSOR_TO_CONTINUE_PROMPT' | i18n }}
+    <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
+      {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
   </div>
   <div class="modal-footer">
     <span class="icon-external-link-wrapper">
@@ -398,11 +400,10 @@
     <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
   </div>
   <div class="modal-body" id="sponsor">
-    <p ng-show="inGetMode">
-      {{ 'SPONSOR_PROMPT_GET' | i18n }}
-    </p>
-    <p ng-show="!inGetMode">
-      {{ 'SPONSOR_PROMPT_GIVE' | i18n }}
+    <p>
+      {{ inGetMode && 'SPONSOR_PROMPT_GET' || 'SPONSOR_PROMPT_GIVE' | i18n }}
+      <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
+        {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
     </p>
     <p class="actions">
       <span class="icon-external-link-wrapper">
