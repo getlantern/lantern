@@ -50,7 +50,7 @@
     <link rel="icon" type="image/png" href="img/favicon.png">
   </head>
 
-  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}" dir="{{ direction() }}"
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
     <div id="waiting" ng-show="modelSrvc.sane && !cometdConnected">

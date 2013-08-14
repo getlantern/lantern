@@ -7,11 +7,7 @@ angular.module('app.services', [])
   .factory('logFactory', function($log, logWhiteList) {
     // XXX can take out on upgrade to angular 1.1 which added $log.debug
     if (!$log.debug) {
-      $log.debug = function () {
-        if (console.debug) {
-          console.debug.apply(console, arguments);
-        }
-      };
+      $log.debug = (console.debug || console.log || angular.noop).bind(console);
     }
     return function(prefix) {
       var match = prefix ? prefix.match(logWhiteList) : true;

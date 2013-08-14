@@ -14,7 +14,7 @@ function makeEnum(keys, extra) {
 
 var DEFAULT_LANG = 'en_US',
     DEFAULT_DIRECTION = 'ltr',
-    LANG = {
+    LANGS = {
       en_US: {dir: 'ltr', name: 'English'},
       fa_IR: {dir: 'rtl', name: 'پارسی'}
       //zh_CN: {dir: 'ltr', name: '中文'},
@@ -44,7 +44,7 @@ var DEFAULT_LANG = 'en_US',
       helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       homepage: 'https://www.getlantern.org/',
-      userForums: 'https://groups.google.com/group/lantern-users-en', // XXX link to user forum in user's language if available
+      userForums: 'https://groups.google.com/group/lantern-users-en', // XXX may not be in user's language, but there should be links forums in other languages on the landing page
       docs: 'https://github.com/getlantern/lantern/wiki',
       contributing: 'https://github.com/getlantern/lantern/wiki/Contributing#contributing',
       developers: 'https://github.com/getlantern/lantern'
@@ -143,7 +143,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
   angular.module('app.constants', [])
     .constant('DEFAULT_LANG', DEFAULT_LANG)
     .constant('DEFAULT_DIRECTION', DEFAULT_DIRECTION)
-    .constant('LANG', LANG)
+    .constant('LANGS', LANGS)
     .constant('API_MOUNT_POINT', API_MOUNT_POINT)
     .constant('APP_MOUNT_POINT', APP_MOUNT_POINT)
     .constant('COMETD_MOUNT_POINT', COMETD_MOUNT_POINT)
@@ -170,7 +170,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
   module.exports = {
     DEFAULT_LANG: DEFAULT_LANG,
     DEFAULT_DIRECTION: DEFAULT_DIRECTION,
-    LANG: LANG,
+    LANGS: LANGS,
     API_MOUNT_POINT: API_MOUNT_POINT,
     APP_MOUNT_POINT: APP_MOUNT_POINT,
     COMETD_MOUNT_POINT: COMETD_MOUNT_POINT,

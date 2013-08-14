@@ -17,7 +17,7 @@
                 <div class=header>{{peer.rosterEntry.name}}</div>
                 <div class=email>{{peer.rosterEntry.email}}</div>
                 <div class='peerid ip'>{{peer.peerid}} ({{peer.ip}})</div>
-                <div class=type>{{((peer.type|upper)+(peer.mode|upper))|i18n}}</div>
+                <div class=type>{{peer.type && peer.mode && (((peer.type|upper)+(peer.mode|upper))|i18n) || ''}}</div>
               </div>
               <div class=stats>
                 <div class=bps{{peer.bpsUpDn}}>
@@ -51,7 +51,7 @@
                 <div class=header>{{model.profile.name}}</div>
                 <div class=email>{{model.profile.email}}</div>
                 <div class='peerid ip'>{{model.connectivity.peerid}} ({{model.connectivity.ip}})</div>
-                <div class=type>{{((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n}}</div>
+                <div class=type>{{model.connectivity.type && model.settings.mode && (((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n) || ''}}</div>
               </div>
               <div class=stats>
                 <div class=bps{{model.transfers.bpsUpDn}}>
@@ -63,7 +63,7 @@
                   {{model.transfers.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
                 </div>
                 <div class=lastConnected>
-                  {{model.connectivity.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
+                  {{model.connectivity.lastConnected && ('LAST_CONNECTED' | i18n) || '' }}
                   <time>{{model.connectivity.lastConnected && (model.connectivity.lastConnected | date:'short') || ''}}</time>
                 </div>
               </div>

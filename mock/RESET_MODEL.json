@@ -9,7 +9,7 @@
     "displays":[[1280,1024]],
     "java":"1.7.0_33",
     "chrome":"25.0.1364.5",
-    "lang":"en"
+    "lang":"en_US"
   },
   "modal":"welcome",
   "notifications":{},

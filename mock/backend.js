@@ -22,7 +22,7 @@ var fs = require('fs'),
       COMETD_MOUNT_POINT = constants.COMETD_MOUNT_POINT,
       MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
       EMAIL = constants.INPUT_PAT.EMAIL,
-      LANG = constants.LANG,
+      LANGS = constants.LANGS,
       ENUMS = constants.ENUMS,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
         INTERACTION = ENUMS.INTERACTION,
@@ -180,7 +180,7 @@ _.each(_globalModals, function(modal, interaction) {
 
 MockBackend._handlerForInteraction[INTERACTION.changeLang] = function(res, data) {
   var lang = data && data.lang;
-  if (!(lang in constants.LANG)) {
+  if (!(lang in constants.LANGS)) {
     log('Unsupported lang:', lang);
     res.writeHead(400);
     return;
