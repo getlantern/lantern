@@ -166,6 +166,15 @@ public class Version {
             this.installerSHA1 = installerSHA1;
         }
 
+        @Override
+        public String toString() {
+            String version = major + "." + minor + "." + patch;
+            if (!StringUtils.isBlank(tag)) {
+                version += "-" + tag;
+            }
+            return version;
+        }
+
     }
 
     @Keep
@@ -202,6 +211,11 @@ public class Version {
         @JsonView({Run.class})
         public boolean isMock() {
             return mock;
+        }
+
+        @Override
+        public String toString() {
+            return this.major + "." + this.minor + "." + this.patch;
         }
     }
 }
