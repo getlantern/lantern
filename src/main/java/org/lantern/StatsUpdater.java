@@ -68,12 +68,13 @@ public class StatsUpdater extends Thread {
         
         final HttpClient client = this.httpClientFactory.newClient();
         final HttpGet get = new HttpGet();
+        String json = "";
         try {
             final URI uri = new URI(LanternClientConstants.STATS_URL);
             get.setURI(uri);
             final HttpResponse response = client.execute(get);
             final HttpEntity entity = response.getEntity();
-            final String json = IOUtils.toString(entity.getContent());
+            json = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
             final ObjectMapper om = new ObjectMapper();
             Map<String, Object> stats = om.readValue(json, Map.class);
@@ -94,7 +95,7 @@ public class StatsUpdater extends Thread {
             Events.sync(SyncPath.GLOBAL, model.getGlobal());
             Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (final IOException e) {
-            log.info("Could not connect to stats url", e);
+            log.info("Error getting stats. RESPONSE:\n"+json, e);
         } catch (final URISyntaxException e) {
             log.error("URI error", e);
         } catch (IllegalAccessException e) {
