@@ -123,21 +123,82 @@ type Download struct {
 	// HTTP Method to use in the download request. Default is "GET"
 	Method string
 
+	// HTTP URL to issue the download request to
+	Url string
+
 	// Set to true when the server confirms a new version is available
 	// even if the updating process encounters an error later on
 	Available bool
 }
 
 // NewDownload initializes a new Download object
-func NewDownload() *Download {
+func NewDownload(url string) *Download {
 	return &Download{
 		HttpClient: new(http.Client),
 		Progress:   make(chan int),
 		Method:     "GET",
+		Url: url,
 	}
 }
 
-// UpdateFromUrl downloads the given url from the internet to a file on disk
+func (d *Download) sharedHttp(offset int64) (resp *http.Response, err error) {
+	// create the download request
+	req, err := http.NewRequest(d.Method, d.Url, nil)
+	if err != nil {
+		return
+	}
+
+	// we have to add headers like this so they get used across redirects
+	trans := d.HttpClient.Transport
+	if trans == nil {
+		trans = http.DefaultTransport
+	}
+
+	d.HttpClient.Transport = &RoundTripper{
+		RoundTripFn: func(r *http.Request) (*http.Response, error) {
+			// add header for download continuation
+			if offset > 0 {
+				r.Header.Add("Range", fmt.Sprintf("%d-", offset))
+			}
+
+			// ask for gzipped content so that net/http won't unzip it for us
+			// and destroy the content length header we need for progress calculations
+			r.Header.Add("Accept-Encoding", "gzip")
+
+			return trans.RoundTrip(r)
+		},
+	}
+
+	// issue the download request
+	return d.HttpClient.Do(req)
+}
+
+func (d *Download) Check() (available bool, err error) {
+	resp, err := d.sharedHttp(0)
+	if err != nil {
+		return
+	}
+	resp.Body.Close()
+
+	switch resp.StatusCode {
+	// ok
+	case 200, 206:
+		available = true
+
+	// no update available
+	case 204:
+		available = false
+
+	// server error
+	default:
+		err = fmt.Errorf("Non 2XX response when downloading update: %s", resp.Status)
+		return
+	}
+
+	return
+}
+
+// Get() downloads the given url from the internet to a file on disk
 // and then calls FromStream() to update the current program's executable file
 // with the contents of that file.
 //
@@ -145,7 +206,8 @@ func NewDownload() *Download {
 // Otherwise, it will remain in d.Path to allow the download to resume later
 // or be skipped entirely.
 //
-// Only HTTP/1.1 servers that implement the Range header are supported.
+// Only HTTP/1.1 servers that implement the Range header support resuming a
+// partially completed download.
 //
 // UpdateFromUrl() uses HTTP status codes to determine what action to take.
 //
@@ -157,7 +219,7 @@ func NewDownload() *Download {
 // according to d.HttpClient's redirect policy.
 //
 // - Any other HTTP status code will cause UpdateFromUrl to return an error.
-func (d *Download) UpdateFromUrl(url string) (err error) {
+func (d *Download) Get() (err error) {
 	var offset int64 = 0
 	var fp *os.File
 
@@ -194,35 +256,8 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 		offset = fi.Size()
 	}
 
-	// create the download request
-	req, err := http.NewRequest(d.Method, url, nil)
-	if err != nil {
-		return
-	}
-
-	// we have to add headers like this so they get used across redirects
-	trans := d.HttpClient.Transport
-	if trans == nil {
-		trans = http.DefaultTransport
-	}
-
-	d.HttpClient.Transport = &RoundTripper{
-		RoundTripFn: func(r *http.Request) (*http.Response, error) {
-			// add header for download continuation
-			if offset > 0 {
-				r.Header.Add("Range", fmt.Sprintf("%d-", offset))
-			}
-
-			// ask for gzipped content so that net/http won't unzip it for us
-			// and destroy the content length header we need for progress calculations
-			r.Header.Add("Accept-Encoding", "gzip")
-
-			return trans.RoundTrip(r)
-		},
-	}
-
 	// start downloading the file
-	resp, err := d.HttpClient.Do(req)
+	resp, err := d.sharedHttp(offset)
 	if err != nil {
 		return
 	}
@@ -270,37 +305,43 @@ func (d *Download) UpdateFromUrl(url string) (err error) {
 		return
 	}
 
-	// Seek to the beginning of the file before we pass fp to FromStream()
-	_, err = fp.Seek(0, os.SEEK_SET)
-	if err != nil {
+	return
+}
+
+func (d *Download) GetAndUpdate() (err error, errRecover error) {
+	// check before we download if this will work
+	if err = SanityCheck(); err != nil {
 		return
 	}
 
-	// Perform the update
-	err = FromStream(fp)
-	if err != nil {
+	// download the update
+	if err = d.Get(); err != nil {
 		return
 	}
 
-	// remove the downloaded binary after it's been installed
+	// apply the update
+	if err, errRecover = FromFile(d.Path); err != nil || errRecover != nil {
+		return
+	}
+
+	// remove the temporary file
 	os.Remove(d.Path)
-
 	return
 }
 
 // FromUrl downloads the contents of the given url and uses them to update
 // the current program's executable file. It is a convenience function which is equivalent to
 //
-// 	NewDownload().UpdateFromUrl(url)
+// 	NewDownload(url).GetAndUpdate()
 //
-// See Download.UpdateFromUrl for more details.
-func FromUrl(url string) error {
-	return NewDownload().UpdateFromUrl(url)
+// See Download.Get() for more details.
+func FromUrl(url string) (err error, errRecover error) {
+	return NewDownload(url).GetAndUpdate()
 }
 
 // FromFile reads the contents of the given file and uses them
 // to update the current program's executable file by calling FromStream().
-func FromFile(filepath string) (err error) {
+func FromFile(filepath string) (err error, errRecover error) {
 	// open the new binary
 	fp, err := os.Open(filepath)
 	if err != nil {
@@ -309,8 +350,7 @@ func FromFile(filepath string) (err error) {
 	defer fp.Close()
 
 	// do the update
-	err = FromStream(fp)
-	return
+	return FromStream(fp)
 }
 
 // FromStream reads the contents of the supplied io.Reader newBinary
@@ -333,7 +373,7 @@ func FromFile(filepath string) (err error) {
 // - If the rename is unsuccessful, it attempts to rename /path/to/.program-name.old
 // back to /path/to/program-name. If this operation fails, the error is not reported
 // in order to not mask the error that caused the rename recovery attempt.
-func FromStream(newBinary io.Reader) (err error) {
+func FromStream(newBinary io.Reader) (err error, errRecover error) {
 	// get the path to the executable
 	thisExecPath, err := execpath.Get()
 	if err != nil {
@@ -369,11 +409,38 @@ func FromStream(newBinary io.Reader) (err error) {
 
 	if err != nil {
 		// copy unsuccessful
-		_ = os.Rename(oldExecPath, thisExecPath)
+		errRecover = os.Rename(oldExecPath, thisExecPath)
 	} else {
 		// copy successful, remove the old binary
 		_ = os.Remove(oldExecPath)
 	}
 
+	return
+}
+
+// SanityCheck() attempts to determine whether an in-place executable update could
+// succeed by performing preliminary checks (to establish valid permissions, etc).
+// This helps avoid downloading updates when we know the update can't be successfully
+// applied later.
+func SanityCheck() (err error) {
+	// get the path to the executable
+	thisExecPath, err := execpath.Get()
+	if err != nil {
+		return
+	}
+
+	// get the directory the executable exists in
+	execDir := filepath.Dir(thisExecPath)
+	execName := filepath.Base(thisExecPath)
+
+	// attempt to open a file in the executable's directory
+	newExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.new", execName))
+	fp, err := os.OpenFile(newExecPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	if err != nil {
+		return
+	}
+	defer fp.Close()
+
+	os.Remove(newExecPath)
 	return
 }
