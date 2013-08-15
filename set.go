@@ -85,7 +85,7 @@ func (s *Set) Size() int {
 	return l
 }
 
-// Clear removes all items from the set. It returns an empty set.
+// Clear removes all items from the set.
 func (s *Set) Clear() {
 	s.l.Lock()
 	s.m = make(map[interface{}]struct{})

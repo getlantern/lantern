@@ -329,23 +329,27 @@ func TestSet_IntSlice(t *testing.T) {
 		}
 	}
 }
-func TestSet_Goroutines(t *testing.T) {
+func TestSet_RaceAdd(t *testing.T) {
+	// Create two sets. Add concurrently items to each of them. Remove from one
+	// go test -race should detect this if the library is not thread-safe.
 	s := New()
+	u := New()
 
-	// Add items concurrently (item1, item2, and so on)
 	go func() {
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 1000; i++ {
+			item := "item" + strconv.Itoa(i)
 			go func(i int) {
-				item := "item" + strconv.Itoa(i)
 				s.Add(item)
+				u.Add(item)
 			}(i)
 		}
 	}()
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
+		item := "item" + strconv.Itoa(i)
 		go func(i int) {
-			item := "item" + strconv.Itoa(i)
-			s.Remove(item)
+			s.Add(item)
+			u.Add(item)
 		}(i)
 	}
 }
