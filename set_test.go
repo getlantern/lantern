@@ -2,6 +2,8 @@ package goset
 
 import (
 	"reflect"
+	"strconv"
+
 	"testing"
 )
 
@@ -176,8 +178,12 @@ func TestSet_IsSuperset(t *testing.T) {
 }
 
 func TestSet_String(t *testing.T) {
-	s := New("1", "2", "3", "4")
+	s := New()
+	if s.String() != "[]" {
+		t.Error("String: output is not what is excepted", s.String())
+	}
 
+	s.Add("1", "2", "3", "4")
 	if s.String() != "[1, 2, 3, 4]" {
 		t.Error("String: output is not what is excepted")
 	}
@@ -245,7 +251,7 @@ func TestSet_Separate(t *testing.T) {
 		t.Error("Separate: the set doesn't have all items in it.")
 	}
 
-	if !s.Has("1") || !s.Has("2") {
+	if !s.Has("1", "2") {
 		t.Error("Separate: items after separation are not availabile in the set.")
 	}
 }
@@ -321,5 +327,25 @@ func TestSet_IntSlice(t *testing.T) {
 		if r.Kind().String() != "int" {
 			t.Error("Intslice: slice item should be a int")
 		}
+	}
+}
+func TestSet_Goroutines(t *testing.T) {
+	s := New()
+
+	// Add items concurrently (item1, item2, and so on)
+	go func() {
+		for i := 0; i < 100; i++ {
+			go func(i int) {
+				item := "item" + strconv.Itoa(i)
+				s.Add(item)
+			}(i)
+		}
+	}()
+
+	for i := 0; i < 100; i++ {
+		go func(i int) {
+			item := "item" + strconv.Itoa(i)
+			s.Remove(item)
+		}(i)
 	}
 }

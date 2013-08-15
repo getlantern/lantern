@@ -1,4 +1,8 @@
 // Goset is a thread safe SET data structure implementation
+// The thread safety encompasses all operations on one set.
+// Operations on multiple sets are consistent in that the elements
+// of each set used was valid at exactly one point in time between the
+// start and the end of the operation.
 package goset
 
 import (
@@ -8,24 +12,27 @@ import (
 )
 
 type Set struct {
-	m map[interface{}]struct{}
-	l sync.RWMutex // we name it because we don't want to expose it
+	m map[interface{}]struct{} // struct{} doesn't take up space
+	l sync.RWMutex             // we name it because we don't want to expose it
 }
+
+// helpful to not write everywhere struct{}{}
+var keyExists = struct{}{}
 
 // New creates and initialize a new Set. It's accept a variable number of
 // arguments to populate the initial set. If nothing passed a Set with zero
 // size is created.
 func New(items ...interface{}) *Set {
 	s := &Set{
-		m: make(map[interface{}]struct{}), // struct{} doesn't take up space
+		m: make(map[interface{}]struct{}),
 	}
 
 	s.Add(items...)
 	return s
 }
 
-// Add includes the specified items (one or more) to the set. If passed nothing
-// it silently returns.
+// Add includes the specified items (one or more) to the set. The underlying
+// Set s is modified. If passed nothing it silently returns.
 func (s *Set) Add(items ...interface{}) {
 	if len(items) == 0 {
 		return
@@ -33,13 +40,13 @@ func (s *Set) Add(items ...interface{}) {
 
 	s.l.Lock()
 	for _, item := range items {
-		s.m[item] = struct{}{}
+		s.m[item] = keyExists
 	}
 	s.l.Unlock()
 }
 
-// Remove deletes the specified items from the set. If passed nothing it
-// silently returns.
+// Remove deletes the specified items from the set.  The underlying Set s is
+// modified. If passed nothing it silently returns.
 func (s *Set) Remove(items ...interface{}) {
 	if len(items) == 0 {
 		return
@@ -78,60 +85,82 @@ func (s *Set) Size() int {
 	return l
 }
 
-// Clear removes all items from the set.
+// Clear removes all items from the set. It returns an empt set.
 func (s *Set) Clear() {
 	s.l.Lock()
 	s.m = make(map[interface{}]struct{})
 	s.l.Unlock()
 }
 
-// IsEmpty checks for emptiness of the set.
+// IsEmpty reports whether the Set is empty.
 func (s *Set) IsEmpty() bool {
 	return s.Size() == 0
 }
 
 // IsEqual test whether s and t are the same in size and have the same items.
 func (s *Set) IsEqual(t *Set) bool {
-	if s.Size() != t.Size() {
-		return false
-	}
-	if s.Size() != s.Union(t).Size() {
-		return false
-	}
-	return true
-}
+	s.l.RLock()
+	t.l.RLock()
+	equal := true
 
-// IsSubset tests t is a subset of s.
-func (s *Set) IsSubset(t *Set) bool {
-	for _, item := range t.List() {
-		if !s.Has(item) {
-			return false
+	if len(s.m) != len(t.m) {
+		equal = false
+	}
+
+	// if lenghts are the same, check if the items are equal
+	for item := range s.m {
+		if _, equal = t.m[item]; !equal {
+			break
 		}
 	}
-	return true
+
+	t.l.RUnlock()
+	s.l.RUnlock()
+	return equal
 }
 
-// IsSuperset tests if t is a superset of s.
+// IsSubset tests whether t is a subset of s.
+func (s *Set) IsSubset(t *Set) bool {
+	s.l.RLock()
+	t.l.RLock()
+	subset := true
+
+	for item := range t.m {
+		if _, subset = s.m[item]; !subset {
+			break
+		}
+	}
+
+	t.l.RUnlock()
+	s.l.RUnlock()
+	return subset
+}
+
+// IsSuperset tests whether t is a superset of s.
 func (s *Set) IsSuperset(t *Set) bool {
 	return t.IsSubset(s)
 }
 
-// String representation of s
+// String returns a string representation of s
 func (s *Set) String() string {
-	t := make([]string, 0)
+	t := make([]string, 0, len(s.List()))
 	for _, item := range s.List() {
 		t = append(t, fmt.Sprintf("%v", item))
 	}
 	return fmt.Sprintf("[%s]", strings.Join(t, ", "))
 }
 
-// List returns a slice of all items
+// List returns a slice of all items. There is also StringSlice() and
+// IntSlice() methods for returning slices of type string or int.
 func (s *Set) List() []interface{} {
 	s.l.RLock()
+
 	list := make([]interface{}, 0)
+
 	for item := range s.m {
 		list = append(list, item)
 	}
+
 	s.l.RUnlock()
 	return list
 }
@@ -142,55 +171,43 @@ func (s *Set) Copy() *Set {
 }
 
 // Union is the merger of two sets. It returns a new set with the element in s
-// and t combined.
+// and t combined. It doesn't modify s. Use Merge() if  you want to change the
+// underlying set s.
 func (s *Set) Union(t *Set) *Set {
-	u := New(t.List()...)
-	for _, item := range s.List() {
-		u.Add(item)
-	}
+	u := s.Copy()
+	u.Merge(t)
 	return u
 }
 
 // Merge is like Union, however it modifies the current set it's applied on
 // with the given t set.
 func (s *Set) Merge(t *Set) {
-	for _, item := range t.List() {
-		s.Add(item)
+	s.l.Lock()
+	t.l.RLock()
+	for item := range t.m {
+		s.m[item] = keyExists
 	}
+	t.l.RUnlock()
+	s.l.Unlock()
 }
 
 // Separate removes the set items containing in t from set s. Please aware that
 // it's not the opposite of Merge.
 func (s *Set) Separate(t *Set) {
-	for _, item := range t.List() {
-		s.Remove(item)
-	}
+	s.Remove(t.List()...)
 }
 
 // Intersection returns a new set which contains items which is in both s and t.
 func (s *Set) Intersection(t *Set) *Set {
-	u := New()
-	for _, item := range s.List() {
-		if t.Has(item) {
-			u.Add(item)
-		}
-	}
-	for _, item := range t.List() {
-		if s.Has(item) {
-			u.Add(item)
-		}
-	}
+	u := s.Copy()
+	u.Separate(u.Difference(t))
 	return u
 }
 
 // Intersection returns a new set which contains items which are both s but not in t.
 func (s *Set) Difference(t *Set) *Set {
-	u := New()
-	for _, item := range s.List() {
-		if !t.Has(item) {
-			u.Add(item)
-		}
-	}
+	u := s.Copy()
+	u.Separate(t)
 	return u
 }
 

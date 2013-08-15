@@ -1,8 +1,11 @@
 # Goset [![Build Status](https://travis-ci.org/fatih/goset.png)](https://travis-ci.org/fatih/goset)
 
 Goset is a basic and simple, hash-based, *thread safe*,  **Set** data structure
-implementation in Go. Because it's thread safe, you can use it concurrently
-with your goroutines.
+implementation in Go. The thread safety encompasses all operations on one set.
+Operations on multiple sets are consistent in that the elements of each set
+used was valid at exactly one point in time between the start and the end of
+the operation. Because it's thread safe, you can use it concurrently with your
+goroutines.
 
 For usage see examples below or look at godoc: [Goset godoc](http://godoc.org/github.com/fatih/goset)
 
@@ -191,4 +194,13 @@ func main() {
 }
 ```
 	
+
+## Credits
+
+ * [Fatih Arslan](https://github.com/fatih)
+ * [Arne Hormann](https://github.com/arnehormann)
+
+## License
+
+The MIT License (MIT) - see LICENSE.md for more details
 
