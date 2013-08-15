@@ -33,7 +33,7 @@ set := goset.New("istanbul", "frankfurt", 30.123, "san francisco", 1234)
 
 ```go
 // add items
-set.Add("berlin")
+set.Add("istanbul")
 set.Add("istanbul") // nothing happens if you add duplicate item
 
 // add multiple items
