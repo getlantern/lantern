@@ -317,7 +317,7 @@ func (d *Download) GetAndUpdate() (err error, errRecover error) {
 	}
 
 	// download the update
-	if err = d.Get(); err != nil {
+	if err = d.Get(); err != nil || !d.Available {
 		return
 	}
 
