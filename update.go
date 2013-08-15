@@ -311,6 +311,8 @@ func (d *Download) Get() (err error) {
 func (d *Download) GetAndUpdate() (err error, errRecover error) {
 	// check before we download if this will work
 	if err = SanityCheck(); err != nil {
+		// keep the contract that d.Progress will close whenever Get() terminates
+		close(d.Progress)
 		return
 	}
 
