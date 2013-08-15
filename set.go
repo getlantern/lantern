@@ -67,14 +67,14 @@ func (s *Set) Has(items ...interface{}) bool {
 	}
 
 	s.l.RLock()
+	has := true
 	for _, item := range items {
-		if _, ok := s.m[item]; !ok {
-			return false
+		if _, has = s.m[item]; !has {
+			break
 		}
 	}
 	s.l.RUnlock()
-
-	return true
+	return has
 }
 
 // Size returns the number of items in a set.
