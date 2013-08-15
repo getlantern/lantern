@@ -30,12 +30,12 @@ func (s *Set) Add(items ...interface{}) {
 	if len(items) == 0 {
 		return
 	}
-	s.l.Lock()
-	defer s.l.Unlock()
 
+	s.l.Lock()
 	for _, item := range items {
 		s.m[item] = struct{}{}
 	}
+	s.l.Unlock()
 }
 
 // Remove deletes the specified items from the set. If passed nothing it
@@ -45,11 +45,10 @@ func (s *Set) Remove(items ...interface{}) {
 		return
 	}
 	s.l.Lock()
-	defer s.l.Unlock()
-
 	for _, item := range items {
 		delete(s.m, item)
 	}
+	s.l.Unlock()
 }
 
 // Has looks for the existence of items passed. It returns false if nothing is
@@ -59,14 +58,14 @@ func (s *Set) Has(items ...interface{}) bool {
 	if len(items) == 0 {
 		return false
 	}
-	s.l.RLock()
-	defer s.l.RUnlock()
 
+	s.l.RLock()
 	for _, item := range items {
 		if _, ok := s.m[item]; !ok {
 			return false
 		}
 	}
+	s.l.RUnlock()
 
 	return true
 }
@@ -74,15 +73,16 @@ func (s *Set) Has(items ...interface{}) bool {
 // Size returns the number of items in a set.
 func (s *Set) Size() int {
 	s.l.RLock()
-	defer s.l.RUnlock()
-	return len(s.m)
+	l := len(s.m)
+	s.l.RUnlock()
+	return l
 }
 
 // Clear removes all items from the set.
 func (s *Set) Clear() {
 	s.l.Lock()
-	defer s.l.Unlock()
 	s.m = make(map[interface{}]struct{})
+	s.l.Unlock()
 }
 
 // IsEmpty checks for emptiness of the set.
@@ -128,11 +128,11 @@ func (s *Set) String() string {
 // List returns a slice of all items
 func (s *Set) List() []interface{} {
 	s.l.RLock()
-	defer s.l.RUnlock()
 	list := make([]interface{}, 0)
 	for item := range s.m {
 		list = append(list, item)
 	}
+	s.l.RUnlock()
 	return list
 }
 
