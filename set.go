@@ -85,7 +85,7 @@ func (s *Set) Size() int {
 	return l
 }
 
-// Clear removes all items from the set. It returns an empt set.
+// Clear removes all items from the set. It returns an empty set.
 func (s *Set) Clear() {
 	s.l.Lock()
 	s.m = make(map[interface{}]struct{})
@@ -103,14 +103,11 @@ func (s *Set) IsEqual(t *Set) bool {
 	t.l.RLock()
 	equal := true
 
-	if len(s.m) != len(t.m) {
-		equal = false
-	}
-
-	// if lenghts are the same, check if the items are equal
-	for item := range s.m {
-		if _, equal = t.m[item]; !equal {
-			break
+	if equal = len(s.m) == len(t.m); equal {
+		for item := range s.m {
+			if _, equal = t.m[item]; !equal {
+				break
+			}
 		}
 	}
 
@@ -155,7 +152,7 @@ func (s *Set) String() string {
 func (s *Set) List() []interface{} {
 	s.l.RLock()
 
-	list := make([]interface{}, 0)
+	list := make([]interface{}, 0, len(s.m))
 
 	for item := range s.m {
 		list = append(list, item)
