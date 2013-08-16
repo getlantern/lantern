@@ -147,7 +147,11 @@ var app = angular.module('app', [
     };
 
     $rootScope.openExternal = function(url) {
-      return $rootScope.interaction(INTERACTION.url, {url: url});
+      if ($rootScope.mockBackend) {
+        return $window.open(url);
+      } else {
+        return $rootScope.interaction(INTERACTION.url, {url: url});
+      }
     };
 
     $rootScope.defaultReportMsg = function() {
