@@ -160,7 +160,7 @@
   "NPEERS_ONLINE_GET_1": "1 user online getting access",
   "NPEERS_ONLINE_GET_OTHER": "{} users online getting access",
   "NPEERS_ONLINE_GIVE_1": "1 user online giving access",
-  "NPEERS_ONLINE_GIVE_OTHER": "{} users online giving",
+  "NPEERS_ONLINE_GIVE_OTHER": "{} users online giving access",
   "NUSERS_ONLINE_1": "1 user online",
   "NUSERS_ONLINE_OTHER": "{} users online",
   "NUSERS_EVER_1": "1 user ever",
