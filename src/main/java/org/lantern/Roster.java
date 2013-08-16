@@ -97,6 +97,7 @@ public class Roster implements RosterListener {
         final XMPPConnection conn = xmpp.getP2PClient().getXmppConnection();
         final org.jivesoftware.smack.Roster ros = conn.getRoster();
         this.smackRoster = ros;
+        
         final Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -110,11 +111,13 @@ public class Roster implements RosterListener {
 
                 HashSet<String> alreadyOnRoster = new HashSet<String>(unordered.size());
                 for (final RosterEntry entry : unordered) {
+                    log.debug("START {} ***********************", entry.getUser());
                     final LanternRosterEntry lre = new LanternRosterEntry(entry);
                     addEntry(lre, false);
                     processRosterEntryPresences(entry);
                     String email = lre.getEmail();
                     alreadyOnRoster.add(email);
+                    log.debug("STATUS OF {}: {}", entry.getUser(), entry.getStatus());
                     if (entry.getStatus() == ItemStatus.SUBSCRIPTION_PENDING) {
                         if (model.isFriend(email)) {
                             xmppHandler.subscribed(email);
@@ -123,6 +126,7 @@ public class Roster implements RosterListener {
                                     + "non-friend: {}", email);
                         }
                     }
+                    log.debug("END {} ***********************\n\n", entry.getUser());
                 }
 
                 for (Friend friend : friends.getFriends()) {
