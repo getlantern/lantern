@@ -379,10 +379,7 @@ public class Proxifier implements ProxyService, LanternService {
     
     private void proxyLinux(final String url) 
         throws ProxyConfigurationError {
-        //final String path = url.toURI().toASCIIString();
 
-        // TODO: what if the user has spaces in their user name? does the 
-        // URL-encoding of the path make the pac file config fail?
         try {
             final String result1 = 
                 LanternUtils.runCommand("gsettings", "set", "org.gnome.system.proxy", 
