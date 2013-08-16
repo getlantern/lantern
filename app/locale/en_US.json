@@ -84,7 +84,7 @@
   "AUTOREPORT_PROMPT": "Securely report anonymous usage statistics to contribute to Lantern",
   "FINISH": "Finish",
   "LANTERN_FRIENDS": "Lantern Friends",
-  "LANTERN_FRIENDS_INTRO": "Help Grow the Lantern Network! Lantern relies on a large network of users who trust one another to share internet connections with each other. Adding the people you trust below will directly help thousands of censored citizens worldwide.",
+  "LANTERN_FRIENDS_INTRO": "Help grow the Lantern Network!\n\nLantern relies on a large network of users who trust one another to share internet connections with each other. Adding the people you trust below will directly help countless censored citizens worldwide.",
   "LANTERN_FRIENDS_COLON": "Lantern friends:",
   "PROXYING_ALL_TRAFFIC": "Proxying all traffic",
   "NO_NAME": "(name unavailable)",
