@@ -142,7 +142,7 @@ public class UdtHttpRequestProcessor implements HttpRequestProcessor {
                     final io.netty.channel.ChannelPipeline p = ch.pipeline();
                     
                     final SSLEngine engine = 
-                        trustStore.getClientContext().createSSLEngine();
+                        trustStore.getSslContext().createSSLEngine();
                     engine.setUseClientMode(true);
                     p.addLast("ssl", new SslHandler(engine));
                     

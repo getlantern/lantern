@@ -41,7 +41,7 @@ public class LanternTrustStore {
     private final static Logger log = 
         LoggerFactory.getLogger(LanternTrustStore.class);
 
-    private final AtomicReference<SSLContext> sslClientContextRef = 
+    private final AtomicReference<SSLContext> sslContextRef = 
             new AtomicReference<SSLContext>();
     private final LanternKeyStoreManager ksm;
 
@@ -64,7 +64,7 @@ public class LanternTrustStore {
      */
     private void onTrustStoreChanged() {
         this.tmf = initTrustManagerFactory();
-        this.sslClientContextRef.set(provideClientSslContext());
+        this.sslContextRef.set(provideSslContext());
     }
 
     private TrustManagerFactory initTrustManagerFactory() {
@@ -148,19 +148,19 @@ public class LanternTrustStore {
 
 
     /**
-     * Accessor for the client SSL context. This is regenerated whenever
+     * Accessor for the SSL context. This is regenerated whenever
      * we receive new certificates.
      * 
-     * @return The client SSL context.
+     * @return The SSL context.
      */
-    public synchronized SSLContext getClientContext() {
-        if (this.sslClientContextRef.get() == null) {
-            this.sslClientContextRef.set(provideClientSslContext());
+    public synchronized SSLContext getSslContext() {
+        if (this.sslContextRef.get() == null) {
+            this.sslContextRef.set(provideSslContext());
         }
-        return sslClientContextRef.get();
+        return sslContextRef.get();
     }
 
-    private SSLContext provideClientSslContext() {
+    private SSLContext provideSslContext() {
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
             

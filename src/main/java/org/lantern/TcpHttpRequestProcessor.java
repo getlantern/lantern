@@ -109,7 +109,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
         
         // It's necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
-        final SSLEngine engine = trustStore.getClientContext().createSSLEngine();
+        final SSLEngine engine = trustStore.getSslContext().createSSLEngine();
         engine.setUseClientMode(true);
         
         if (trafficHandler != null) {
@@ -169,12 +169,15 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
             public void operationComplete(final ChannelFuture future) 
                 throws Exception {
                 if (future.isSuccess()) {
+                    log.debug("Connected to peer at {}", proxyAddress);
                     connectFuture.getChannel().write(request).addListener(
                         new ChannelFutureListener() {
                             @Override
                             public void operationComplete(
                                 final ChannelFuture channelFuture) 
                                 throws Exception {
+                                log.debug("Wrote request, switching to " +
+                                    "CONNECT relay mode");
                                 // we're using HTTP connect here, so we need
                                 // to remove the encoder and start reading
                                 // from the inbound channel only when we've
@@ -189,6 +192,7 @@ public class TcpHttpRequestProcessor implements HttpRequestProcessor {
                     proxyTracker.setSuccess(proxyHolder);
                 } else {
                     // Close the connection if the connection attempt has failed.
+                    log.debug("Could not connect to peer at {}", proxyAddress);
                     browserToProxyChannel.close();
                     proxyTracker.onCouldNotConnect(proxyHolder);
                 }

@@ -272,7 +272,7 @@ public class UdtRelayTest {
                             throws Exception {
                         final ChannelPipeline p = ch.pipeline();
                         final SSLEngine engine = 
-                            trustStore.getClientContext().createSSLEngine();
+                            trustStore.getSslContext().createSSLEngine();
                         
                         //SSLEngine serverEngine = sslc.createSSLEngine();
                         engine.setUseClientMode(true);

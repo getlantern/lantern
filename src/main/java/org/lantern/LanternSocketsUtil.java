@@ -129,7 +129,7 @@ public class LanternSocketsUtil {
     }
 
     protected SSLServerSocketFactory ssf() {
-        return this.trustStore.getClientContext().getServerSocketFactory();
+        return this.trustStore.getSslContext().getServerSocketFactory();
     }
 
     public SSLSocketFactory newTlsSocketFactoryJavaCipherSuites() {
@@ -137,6 +137,15 @@ public class LanternSocketsUtil {
         return newTlsSocketFactory(null);
     }
 
+    /**
+     * Returns a new SSL socket factory. Note that we need to recreate a 
+     * complete socket factory in many cases, particularly when connecting
+     * to peers, because we dynamically add new trusted peer certificates to our
+     * trust store over the course of running, so we need new socket factories
+     * that reflect the most recent trust information.
+     * 
+     * @return A socket factory with the most up to date trust store data.
+     */
     public SSLSocketFactory newTlsSocketFactory() {
         log.debug("Creating TLS socket factory");
         return newTlsSocketFactory(IceConfig.getCipherSuites());
@@ -221,7 +230,7 @@ public class LanternSocketsUtil {
     }
 
     private SSLSocketFactory sf() {
-        return trustStore.getClientContext().getSocketFactory();
+        return trustStore.getSslContext().getSocketFactory();
     }
 
     public void startReading(final Socket sock, final Channel channel,
