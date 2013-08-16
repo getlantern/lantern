@@ -120,7 +120,7 @@ public class Roster implements RosterListener {
                             xmppHandler.subscribed(email);
                         } else {
                             log.debug("Not sending subscribed message to "
-                                    + "non-friend");
+                                    + "non-friend: {}", email);
                         }
                     }
                 }
