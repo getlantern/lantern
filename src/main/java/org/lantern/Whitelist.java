@@ -79,7 +79,7 @@ public class Whitelist {
         "twitter.com",
         "twimg.com",
         "vimeo.com",
-        "whatismyip.com",
+        "whatismyipaddress.com",
         "wikileaks.org",
         "wordpress.org",
         "wordpress.com",
