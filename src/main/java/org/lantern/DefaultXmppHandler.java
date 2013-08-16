@@ -1047,6 +1047,9 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.debug("Handling INFO request from {}", from);
                 if (!model.isRejected(from)) {
                     processInfoData(msg);
+                } else {
+                    LOG.debug("Not processing message from rejected friend {}", 
+                            from);
                 }
                 sendInfoResponse(from);
                 break;

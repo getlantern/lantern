@@ -118,6 +118,9 @@ public class Roster implements RosterListener {
                     if (entry.getStatus() == ItemStatus.SUBSCRIPTION_PENDING) {
                         if (model.isFriend(email)) {
                             xmppHandler.subscribed(email);
+                        } else {
+                            log.debug("Not sending subscribed message to "
+                                    + "non-friend");
                         }
                     }
                 }
@@ -148,12 +151,16 @@ public class Roster implements RosterListener {
         log.debug("Got presence: {}", presence.toXML());
         if (LanternUtils.isLanternHub(from)) {
             log.debug("Got Lantern hub presence");
-        } else if (LanternXmppUtils.isLanternJid(from) && model.isFriend(from)) {
-            Events.eventBus().post(new UpdatePresenceEvent(presence));
-            if (presence.isAvailable()) {
-                sendKscope(from);
+        } else if (LanternXmppUtils.isLanternJid(from)) {
+            if (model.isFriend(from)) {
+                Events.eventBus().post(new UpdatePresenceEvent(presence));
+                if (presence.isAvailable()) {
+                    sendKscope(from);
+                }
+                onPresence(presence, sync, updateIndex);
+            } else {
+                log.debug("Got presence from non-friend: {}", from);
             }
-            onPresence(presence, sync, updateIndex);
         } else {
             onPresence(presence, sync, updateIndex);
         }
@@ -185,6 +192,9 @@ public class Roster implements RosterListener {
             }
             if (model.isFriend(lre.getEmail())) {
                 sendKscope(lre.getUser());
+            } else {
+                log.debug("Not sending kscope ad to non-friend: {}", 
+                        lre.getEmail());
             }
         }
     }
