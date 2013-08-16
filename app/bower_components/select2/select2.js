@@ -1,7 +1,7 @@
 /*
 Copyright 2012 Igor Vaynberg
 
-Version: 3.4.2 Timestamp: Mon Aug 12 15:04:12 PDT 2013
+Version: @@ver@@ Timestamp: @@timestamp@@
 
 This software is licensed under the Apache License, Version 2.0 (the "Apache License") or the GNU
 General Public License version 2 (the "GPL License"). You may choose either license to govern your
@@ -692,10 +692,11 @@ the specific language governing permissions and limitations under the Apache Lic
             this.container.data("select2", this);
 
             this.dropdown = this.container.find(".select2-drop");
-            this.dropdown.addClass(evaluate(opts.dropdownCssClass));
-            this.dropdown.data("select2", this);
 
             syncCssClasses(this.dropdown, this.opts.element, this.opts.adaptDropdownCssClass);
+            
+            this.dropdown.addClass(evaluate(opts.dropdownCssClass));
+            this.dropdown.data("select2", this);
 
             this.results = results = this.container.find(resultsSelector);
             this.search = search = this.container.find("input.select2-input");
@@ -2083,7 +2084,7 @@ the specific language governing permissions and limitations under the Apache Lic
 
         isPlaceholderOptionSelected: function() {
             var placeholderOption;
-            if (!this.opts.placeholder) return false; // no placeholder specified so no option should be considered
+            if (!this.getPlaceholder()) return false; // no placeholder specified so no option should be considered
             return ((placeholderOption = this.getPlaceholderOption()) !== undefined && placeholderOption.is(':selected'))
                 || (this.opts.element.val() === "")
                 || (this.opts.element.val() === undefined)

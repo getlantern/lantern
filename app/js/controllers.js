@@ -268,7 +268,6 @@ function LanternFriendsCtrl($scope, logFactory, $filter, INPUT_PAT, FRIEND_STATU
     formatSearching: function () {
       return i18nFltr('SEARCHING_ELLIPSIS');
     },
-    placeholder: true, // XXX https://github.com/ivaynberg/select2/issues/1614
     width: '100%'
   };
 }
