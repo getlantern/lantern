@@ -34,4 +34,8 @@ public class NotificationDialog {
         dialog.setFocusable(false);
     }
 
+    public void dispose() {
+        dialog.dispose();
+    }
+
 }
