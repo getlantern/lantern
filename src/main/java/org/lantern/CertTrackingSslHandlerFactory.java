@@ -213,6 +213,7 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
                 // and we do that here. We have a new incoming socket and 
                 // check for an existing handler. If it's there, we use it. 
                 // Otherwise we add and use a new one.
+                /*
                 final InetSocketAddress isa = 
                     (InetSocketAddress) ctx.getChannel().getRemoteAddress();
                 final InetAddress address = isa.getAddress();
@@ -233,6 +234,7 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
                 this.channel = ctx.getChannel();
                 this.trafficCounter = toUse;
                 this.channel.getPipeline().addFirst(PIPELINE_ID, toUse);
+                */
             } finally {
                 // The message is then just passed to the next handler
                 super.channelConnected(ctx, e);
