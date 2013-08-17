@@ -884,7 +884,7 @@
     <repository>
       <id>aws-release</id>
       <name>AWS Release Repository</name>
-      <url>s3://lantern-mvn-repo/release</url>
+      <url>https://s3.amazonaws.com/lantern-mvn-repo/release</url>
       <releases>
         <enabled>true</enabled>
       </releases>
