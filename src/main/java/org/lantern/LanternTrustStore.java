@@ -11,6 +11,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLContext;
@@ -207,6 +208,24 @@ public class LanternTrustStore {
             log.warn("Exception accessing keystore", e);
             return false;
         }
+    }
+    
+    private void listEntries(final KeyStore ks) {
+        try {
+            final Enumeration<String> aliases = ks.aliases();
+            while (aliases.hasMoreElements()) {
+                final String alias = aliases.nextElement();
+                //System.err.println(alias+": "+ks.getCertificate(alias));
+                System.err.println(alias);
+                log.debug(alias);
+            }
+        } catch (final KeyStoreException e) {
+            log.warn("KeyStore error", e);
+        }
+    }
+    
+    public void listEntries() {
+        listEntries(trustStore);
     }
 
     private static final String EQUIFAX =
