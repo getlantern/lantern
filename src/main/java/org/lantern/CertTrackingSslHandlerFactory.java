@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -25,6 +24,7 @@ import org.jboss.netty.util.Timer;
 import org.lantern.event.Events;
 import org.lantern.event.IncomingPeerEvent;
 import org.lantern.util.Netty3LanternTrafficCounterHandler;
+import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.HandshakeHandler;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.SslHandshakeHandler;
@@ -141,6 +141,7 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
             final SSLEngine engine = context.createSSLEngine();
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
+            engine.setEnabledCipherSuites(IceConfig.getCipherSuites());
             return engine;
         } catch (final Exception e) {
             throw new Error(
