@@ -105,6 +105,11 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     }
 
     private void createKeyStore() {
+        // Whenever the key store changes, we need to set the ref to null
+        // so we don't pass stale versions of the key manager factory 
+        // to callers.
+        
+        this.keyManagerFactoryRef.set(null);
         final String dummyId = String.valueOf(RandomUtils.nextInt());
         // Generate the keystore using a dummy ID.
         log.debug("Dummy ID is: {}", dummyId);
@@ -131,6 +136,10 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     }
 
     private void generateLocalCert(final String jid) {
+        // Whenever the key store changes, we need to set the ref to null
+        // so we don't pass stale versions of the key manager factory 
+        // to callers.
+        this.keyManagerFactoryRef.set(null);
         final String genKeyResult = LanternUtils.runKeytool("-genkey", 
             "-alias", jid, 
             "-keysize", KEYSIZE, 
@@ -214,11 +223,9 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     
 
     public KeyManagerFactory getKeyManagerFactory() {
-        /*
         if (this.keyManagerFactoryRef.get() != null) {
             return this.keyManagerFactoryRef.get();
         }
-        */
         String algorithm =
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
