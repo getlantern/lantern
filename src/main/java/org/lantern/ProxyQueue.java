@@ -62,6 +62,8 @@ public class ProxyQueue {
                 holder.resetFailures();
                 proxies.add(holder);
                 return true;
+            } else {
+                log.debug("Not adding connected proxy holder");
             }
             return false;
         }

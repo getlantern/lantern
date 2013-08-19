@@ -255,6 +255,10 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
 
+        if (!host.startsWith("192")) {
+            return;
+        }
+        
         addProxyWithChecks(fullJid, proxyQueue,
             new ProxyHolder(host, fullJid, isa, netty3TrafficCounter(), type));
     }
