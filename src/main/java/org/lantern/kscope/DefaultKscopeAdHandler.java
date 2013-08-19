@@ -65,7 +65,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     public boolean handleAd(final String from,
             final LanternKscopeAdvertisement ad) {
         // output a bell character to call more attention
-        log.debug("\0007*** got kscope ad from {} for {}", from, ad.getJid());
+        log.debug("\u0007*** got kscope ad from {} for {}", from, ad.getJid());
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
         final LanternKscopeAdvertisement existing =
             awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
