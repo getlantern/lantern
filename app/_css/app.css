@@ -7242,15 +7242,17 @@ textarea {
   margin-left: 0;
 }
 
+.modal-header.about {
+  font-size: 11.9px;
+  text-align: center;
+  margin: 0;
+  border-bottom: none;
+}
+
 #about {
   font-size: 11.9px;
 }
-#about .header {
-  text-align: center;
-  margin: 0;
-  line-height: 6px;
-}
-#about div {
+#about > div:not(:first-child) {
   margin-top: 10px;
 }
 #about .contributing-prompt {

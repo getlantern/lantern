@@ -293,13 +293,15 @@
   overflow: auto
   margin-left: 0
 
+.modal-header.about
+  +small
+  +centered
+  margin: 0
+  border-bottom: none
+
 #about
   +small
-  .header
-    +centered
-    margin: 0
-    line-height: 6px
-  div
+  > div:not(:first-child)
     margin-top: 10px
   .contributing-prompt
     +smaller

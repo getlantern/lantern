@@ -328,21 +328,20 @@
 </div>
 
 <div modal="model.modal == MODAL.about">
-  <div class="modal-body" id="about" dir="ltr">
-    <div class="header">
-      <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
-      <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
-      <div class="smaller">
-        <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-        <a ng-click="openExternal(EXTERNAL_URL.userForums)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-        <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-        <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-      </div>
+  <div class="modal-header about">
+    <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
+    <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
+    <div class="smaller">
+      <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.userForums)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
     </div>
+  </div>
+  <div class="modal-body" id="about" dir="ltr">
     <div>
       {{ 'NOTE' | i18n }}
       <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea>
-
       <p class="contributing-prompt">
         {{ 'VIEW_THE' | i18n }}
         <a ng-click="openExternal(EXTERNAL_URL.contributing)">{{ 'CONTRIBUTING' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
@@ -358,7 +357,7 @@
       <textarea readonly rows="3">{{ 'LICENSE_STATEMENT' | i18n }}</textarea>
     </div>
     <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
-    <div class="smaller gray centered" style="margin:0">{{ 'COPYRIGHT' | i18n }}</div>
+    <div class="smaller gray centered">{{ 'COPYRIGHT' | i18n }}</div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
