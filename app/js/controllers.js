@@ -10,6 +10,27 @@ function SettingsLoadFailureCtrl($scope, MODAL) {
   });
 }
 
+function SponsorCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.sponsor;
+  });
+}
+
+function SponsorToContinueCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.sponsorToContinue;
+  });
+}
+
+function UpdateAvailableCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.updateAvailable;
+  });
+}
+
 function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {
   var log = logFactory('UnexpectedStateCtrl');
 
@@ -65,7 +86,41 @@ function ContactCtrl($scope, MODAL, CONTACT_FORM_MAXLEN) {
   });
 }
 
-function SettingsCtrl($scope) {
+function ConfirmResetCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.confirmReset;
+  });
+}
+
+function GiveModeForbiddenCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.giveModeForbidden;
+  });
+}
+
+function NotInvitedCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.notInvited;
+  });
+}
+
+function FinishedCtrl($scope, MODAL) {
+  $scope.autoReport = true;
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.finished;
+  });
+}
+
+function SettingsCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.settings;
+  });
+
   $scope.$watch('model.settings.runAtSystemStart', function (runAtSystemStart) {
     $scope.runAtSystemStart = runAtSystemStart;
   });
@@ -87,7 +142,21 @@ function SettingsCtrl($scope) {
   });
 }
 
-function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INPUT_PAT) {
+function AuthorizeCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.authorize;
+  });
+}
+
+function AboutCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.about;
+  });
+}
+
+function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INPUT_PAT, MODAL) {
   var log = logFactory('ProxiedSitesCtrl'),
       fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
@@ -95,6 +164,11 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
       nproxiedSitesMax = 1000,
       proxiedSites = [],
       proxiedSitesDirty = [];
+
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.proxiedSites;
+  });
 
   $scope.$watch('searchText', function (searchText) {
     $scope.inputFiltered = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty).join('\n');
@@ -198,11 +272,23 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
   };
 }
 
-function LanternFriendsCtrl($scope, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION) {
+function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
       EMAIL = INPUT_PAT.EMAIL,
       prettyUserFltr = $filter('prettyUser'),
       i18nFltr = $filter('i18n');
+
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.lanternFriends;
+    if ($scope.show) {
+      $timeout(function () {
+        // XXX hack to set focus to select2 element since ui-select2 provides no API for this
+        // https://github.com/angular-ui/ui-select2/issues/60
+        $('#addFriendInput').select2('focus', true);
+      }, 500);
+    }
+  });
 
   $scope.$watch('added', function (added) {
     if (!added) return;

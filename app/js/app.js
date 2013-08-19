@@ -9,6 +9,7 @@ var app = angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
+  'ui.event',
   'ui.if',
   'ui.showhide',
   'ui.select2',

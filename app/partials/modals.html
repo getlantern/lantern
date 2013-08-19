@@ -80,7 +80,7 @@
   </div>
 </div>
 
-<div modal="model.modal == MODAL.sponsorToContinue">
+<div ng-controller="SponsorToContinueCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | i18n }}</h3>
   </div>
@@ -91,14 +91,14 @@
   </div>
   <div class="modal-footer">
     <span class="icon-external-link-wrapper">
-      <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)">
+      <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)" focus-on="show">
         {{ 'SPONSOR' | i18n }}
       </button><sup><i class="icon-external-link"></i></sup>
     </span>
   </div>
 </div>
 
-<div modal="model.modal == MODAL.authorize">
+<div ng-controller="AuthorizeCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
   </div>
@@ -114,7 +114,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}">
+    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}" focus-on="show">
       {{ 'SIGN_IN' | i18n }}
     </a>
   </div>
@@ -132,7 +132,7 @@
   </div>
 </div>
 
-<div modal="model.modal == MODAL.confirmReset">
+<div ng-controller="ConfirmResetCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
   </div>
@@ -140,12 +140,12 @@
     <div>{{ 'CONFIRM_RESET_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
+    <button type="button" class="btn" focus-on="show" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
     <button type="button" class="btn btn-danger" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | i18n }}</button>
   </div>
 </div>
 
-<div modal="model.modal == MODAL.giveModeForbidden">
+<div ng-controller="GiveModeForbiddenCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
   </div>
@@ -154,11 +154,11 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-hide="model.setupComplete" ng-click="interaction(INTERACTION.cancel)">{{ 'BACK' | i18n }}</button>
-    <button type="button" class="btn btn-primary btn-get-mode" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE_IN_GET_MODE' | i18n }}</button>
+    <button type="button" class="btn btn-primary btn-get-mode" focus-on="show" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE_IN_GET_MODE' | i18n }}</button>
   </div>
 </div>
 
-<div modal="model.modal == MODAL.notInvited">
+<div ng-controller="NotInvitedCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
   </div>
@@ -166,11 +166,11 @@
     <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
+    <button type="button" class="btn" focus-on="show" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
   </div>
 </div>
 
-<div ng-controller="ProxiedSitesCtrl" modal="model.modal == MODAL.proxiedSites">
+<div ng-controller="ProxiedSitesCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
@@ -193,6 +193,7 @@
         </label>
         <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
             ng-disabled="model.settings.proxyAllSites"
+            ng-class="{show: showSearchInput}"
             placeholder="{{ 'SEARCH' | i18n }}">
       </div>
       <form name="proxiedSitesForm">
@@ -200,6 +201,7 @@
           ng-disabled="model.settings.proxyAllSites || updating"
           ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
           ui-validate="'validate($value)'" id="proxiedSitesInput"
+          ui-event="{focus: 'showSearchInput=true', blur: 'showSearchInput=false'}"
           dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
         <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }}"
           ng-show="!!searchText" readonly dir="ltr"></textarea>
@@ -225,7 +227,7 @@
   </div>
 </div>
 
-<div ng-controller="LanternFriendsCtrl" modal="model.modal == MODAL.lanternFriends">
+<div ng-controller="LanternFriendsCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-friends"></i>
@@ -280,7 +282,7 @@
   </div>
 </div>
 
-<div ng-init="autoReport = true" modal="model.modal == MODAL.finished">
+<div ng-controller="FinishedCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
@@ -299,6 +301,7 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
+            focus-on="show"
             ng-click="interaction(INTERACTION.continue)">{{ 'FINISH' | i18n }}</button>
   </div>
 </div>
@@ -317,6 +320,7 @@
     </div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
+        focus-on="show"
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
       <div class="text-error" ui-toggle="contactForm.contactMsg.$error.maxlength">
         {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - 500000) }}&nbsp;
@@ -332,7 +336,7 @@
   </div>
 </div>
 
-<div modal="model.modal == MODAL.about">
+<div ng-controller="AboutCtrl" modal="show">
   <div class="modal-header about">
     <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
@@ -365,11 +369,11 @@
     <div class="smaller gray centered">{{ 'COPYRIGHT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>
 
-<div modal="model.modal == MODAL.updateAvailable">
+<div ng-controller="UpdateAvailableCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
   </div>
@@ -396,17 +400,17 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.close)"
-            tabindex="{{ model.modal == MODAL.updateAvailable && 2 || '' }}">
+            tabindex="{{ show && 2 || '' }}">
       {{ 'CLOSE' | i18n }}
     </button>
-    <a class="btn btn-primary" ng-click="openExternal(model.version.latest.installerUrl)"
-       tabindex="{{ model.modal == MODAL.updateAvailable && 1 || '' }}">
+    <button type="button" class="btn btn-primary" ng-click="openExternal(model.version.latest.installerUrl)"
+       focus-on="show" tabindex="{{ show && 1 || '' }}">
       {{ 'DOWNLOAD' | i18n }}
-    </a>
+    </button>
   </div>
 </div>
 
-<div modal="model.modal == MODAL.sponsor">
+<div ng-controller="SponsorCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
   </div>
@@ -418,7 +422,7 @@
     </p>
     <p class="actions">
       <span class="icon-external-link-wrapper">
-        <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)">
+        <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)" focus-on="show">
           {{ 'SPONSOR_CLOUD_PROXY' | i18n }}
         </button><sup><i class="icon-external-link"></i></sup>
       </span>
@@ -434,7 +438,7 @@
   </div>
 </div>
 
-<div ng-controller="SettingsCtrl" modal="model.modal == MODAL.settings">
+<div ng-controller="SettingsCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-gear"></i>
@@ -536,7 +540,7 @@
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET_ELLIPSIS' | i18n }}
     </button>
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)" focus-on="show">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>
 
