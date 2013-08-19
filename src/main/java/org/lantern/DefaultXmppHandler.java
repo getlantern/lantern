@@ -1135,7 +1135,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (StringUtils.isNotBlank(base64Cert)) {
             LOG.debug("Got certificate:\n"+
                 new String(Base64.decodeBase64(base64Cert),
-                    LanternConstants.UTF8).replaceAll( "\\W", "."));
+                    LanternConstants.UTF8).replaceAll("\u0007", "[bell]")); // don't ring any bells
             // Add the peer if we're able to add the cert.
             this.kscopeAdHandler.onBase64Cert(uri, base64Cert);
         } else {
