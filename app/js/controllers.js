@@ -281,13 +281,6 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.lanternFriends;
-    if ($scope.show) {
-      $timeout(function () {
-        // XXX hack to set focus to select2 element since ui-select2 provides no API for this
-        // https://github.com/angular-ui/ui-select2/issues/60
-        $('#addFriendInput').select2('focus', true);
-      }, 500);
-    }
   });
 
   $scope.$watch('added', function (added) {
