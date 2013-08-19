@@ -1,5 +1,5 @@
 <div id="footer">
-  <div id="offline" ng-hide="model.connectivity.internet">
+  <div id="offline" ng-show="model.connectivity.internet == false">
     {{ 'CONNECTION_OFFLINE' | i18n }}
   </div>
   <div ng-show="model.connectivity.internet">
