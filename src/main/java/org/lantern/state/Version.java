@@ -70,7 +70,7 @@ public class Version {
 
         private final int patch;
 
-        private final String tag = "";
+        private final String tag;
 
         private final String gitFull;
         private final String git;
@@ -91,8 +91,8 @@ public class Version {
             } else {
                 releaseDate = new Date(System.currentTimeMillis());
             }
-            String version = LanternClientConstants.VERSION;
-            String number = StringUtils.substringBefore(version, "-");
+            final String version = LanternClientConstants.VERSION;
+            final String number = StringUtils.substringBefore(version, "-");
             final String[] parts = number.split("\\.");
             major = Integer.parseInt(parts[0]);
             if (parts.length > 1) {
@@ -105,6 +105,9 @@ public class Version {
             } else {
                 minor = patch = 0;
             }
+            
+            final String fullTag = StringUtils.substringAfter(version, "-");
+            tag = StringUtils.substringBefore(fullTag, "-SNAPSHOT");
 
             gitFull = LanternClientConstants.GIT_VERSION;
             // the first 7 chars are sufficient to uniquely identify a revision
