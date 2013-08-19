@@ -329,19 +329,25 @@
 
 <div modal="model.modal == MODAL.about">
   <div class="modal-body" id="about" dir="ltr">
-    <div style="text-align:center; margin:0">
-      {{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }},
-      UI {{ 'VERSION' | i18n }} {{ lanternUiVersion }}<br>
-      <span class="smaller">
+    <div class="header">
+      <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
+      <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
+      <div class="smaller">
         <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
         <a ng-click="openExternal(EXTERNAL_URL.userForums)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
         <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
         <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-      </span>
+      </div>
     </div>
     <div>
-      {{ 'CREDITS' | i18n }}
-      <textarea readonly rows="1" style="text-align:center;word-spacing:15px">myleshorton _pants aranhoide leahxschmidt ox ghostdance forkner messier</textarea>
+      {{ 'NOTE' | i18n }}
+      <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea>
+
+      <p class="contributing-prompt">
+        {{ 'VIEW_THE' | i18n }}
+        <a ng-click="openExternal(EXTERNAL_URL.contributing)">{{ 'CONTRIBUTING' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'CONTRIBUTING_CONTINUED' | i18n }}
+      </p>
     </div>
     <div>
       {{ 'PRIVACY' | i18n }}
@@ -349,7 +355,7 @@
     </div>
     <div>
       {{ 'LICENSE' | i18n }}
-      <textarea readonly rows="4">{{ 'LICENSE_STATEMENT' | i18n }}</textarea>
+      <textarea readonly rows="3">{{ 'LICENSE_STATEMENT' | i18n }}</textarea>
     </div>
     <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
     <div class="smaller gray centered" style="margin:0">{{ 'COPYRIGHT' | i18n }}</div>

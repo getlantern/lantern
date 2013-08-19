@@ -6939,6 +6939,7 @@ textarea {
   position: absolute;
   right: 40px;
   margin-top: -95px;
+  text-transform: uppercase;
 }
 #welcome .tagLine {
   margin: -20px 0 70px;
@@ -7244,8 +7245,18 @@ textarea {
 #about {
   font-size: 11.9px;
 }
+#about .header {
+  text-align: center;
+  margin: 0;
+  line-height: 6px;
+}
 #about div {
   margin-top: 10px;
+}
+#about .contributing-prompt {
+  font-size: 10.5px;
+  text-align: center;
+  font-weight: bold;
 }
 #about textarea {
   width: 100%;

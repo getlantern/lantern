@@ -47,7 +47,7 @@ var DEFAULT_LANG = 'en_US',
       homepage: 'https://www.getlantern.org/',
       userForums: 'https://groups.google.com/group/lantern-users-en', // XXX may not be in user's language, but there should be links forums in other languages on the landing page
       docs: 'https://github.com/getlantern/lantern/wiki',
-      contributing: 'https://github.com/getlantern/lantern/wiki/Contributing#contributing',
+      contributing: 'https://github.com/getlantern/lantern/wiki/Contributing',
       developers: 'https://github.com/getlantern/lantern'
     },
     // enums
