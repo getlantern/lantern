@@ -234,10 +234,14 @@
   </div>
   <div class="modal-body" id="lanternFriends">
     <div>
-      <p id="lanternFriendsIntro">{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
+      <p>{{ 'LANTERN_FRIENDS_PROMPT' | i18n }}</p>
+      <p class="small">
+        {{ 'LANTERN_FRIENDS_EXP_INTRO' | i18n }}
+        {{ inGiveMode && 'LANTERN_FRIENDS_EXP_GIVE' || 'LANTERN_FRIENDS_EXP_GET'  | i18n }}
+      </p>
     </div>
 
-    <div>
+    <div class="addFriendsControls">
       <div>
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
@@ -245,7 +249,7 @@
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
       </div>
 
-      <h5 id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</h5>
+      <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</p>
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
         <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder"
             class="entry status-{{ friend.status }}">

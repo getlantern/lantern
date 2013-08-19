@@ -7037,9 +7037,8 @@ textarea {
 #lanternFriends {
   min-height: 115px;
 }
-
-#lanternFriendsIntro {
-  margin-bottom: 20px;
+#lanternFriends .addFriendsControls {
+  margin-top: 20px;
 }
 
 #currentFriendsHeading {
