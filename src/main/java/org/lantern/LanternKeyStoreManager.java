@@ -214,9 +214,11 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
     
 
     public KeyManagerFactory getKeyManagerFactory() {
+        /*
         if (this.keyManagerFactoryRef.get() != null) {
             return this.keyManagerFactoryRef.get();
         }
+        */
         String algorithm =
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
