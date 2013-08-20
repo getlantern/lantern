@@ -2,7 +2,9 @@
   <ul class="pull-right">
     <li ng-repeat="(langKey, langVal) in LANGS" ng-class="{active: lang == langKey}"><a
         ng-click="lang != langKey && changeLang(langKey)">{{ langVal.name }}</a></li>
+    <!--
     <li><a ng-click="openExternal(EXTERNAL_URL.helpTranslate)">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
+    -->
   </ul>
 </div>
 
