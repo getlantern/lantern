@@ -21,9 +21,9 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;
 import org.lantern.LanternUtils;
+import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
-import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -186,7 +186,7 @@ public final class PhotoServlet extends HttpServlet {
                 return conn;
             }
             
-            final GoogleOAuth2Credentials  cred = 
+            final LanternGoogleOAuth2Credentials  cred = 
                 this.modelUtils.newGoogleOauthCreds("vcard-connection");
 
             conn = XmppUtils.simpleGoogleTalkConnection(cred);

@@ -19,6 +19,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;

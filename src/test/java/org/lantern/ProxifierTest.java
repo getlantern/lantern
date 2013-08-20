@@ -2,10 +2,10 @@ package org.lantern;
 
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Test;
+import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.lantern.state.Friend;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
-import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 
 
 public class ProxifierTest {
@@ -33,7 +33,7 @@ public class ProxifierTest {
             }
             
             @Override
-            public GoogleOAuth2Credentials newGoogleOauthCreds(String resource) {
+            public LanternGoogleOAuth2Credentials newGoogleOauthCreds(String resource) {
                 return null;
             }
             

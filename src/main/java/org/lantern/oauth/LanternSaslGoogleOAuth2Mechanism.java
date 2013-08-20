@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.oauth;
 
 import java.io.IOException;
 import java.util.Collection;

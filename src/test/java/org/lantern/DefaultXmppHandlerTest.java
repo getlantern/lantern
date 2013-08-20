@@ -6,6 +6,7 @@ import org.jivesoftware.smack.SASLAuthentication;
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
+import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;

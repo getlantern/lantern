@@ -28,6 +28,7 @@ import org.lantern.http.PhotoServlet;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;

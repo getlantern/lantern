@@ -18,7 +18,7 @@ import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.event.Events;
 import org.lantern.http.OauthUtils;
-import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
+import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,7 +186,7 @@ public class DefaultModelUtils implements ModelUtils {
     }
 
     @Override
-    public GoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
+    public LanternGoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
         final Settings set = this.model.getSettings();
         if (LanternUtils.isDevMode()) {
             final File oauth = LanternClientConstants.TEST_PROPS;
@@ -206,7 +206,7 @@ public class DefaultModelUtils implements ModelUtils {
                 LOG.info("Not overwriting existing oauth file.");
             }
         }
-        return new GoogleOAuth2Credentials("anon@getlantern.org",
+        return new LanternGoogleOAuth2Credentials("anon@getlantern.org",
             set.getClientID(), set.getClientSecret(), 
             set.getAccessToken(), set.getRefreshToken(), 
             resource);
