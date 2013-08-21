@@ -124,15 +124,26 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == null) {
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((friend == null) ? 0 : friend.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
             return false;
-        }
-        if (!(other instanceof FriendNotificationDialog)) {
+        FriendNotificationDialog other = (FriendNotificationDialog) obj;
+        if (friend == null) {
+            if (other.friend != null)
+                return false;
+        } else if (!friend.equals(other.friend))
             return false;
-        }
-        FriendNotificationDialog o = (FriendNotificationDialog) other;
-        return o.friend.getEmail().equals(friend.getEmail());
+        return true;
     }
 
     @Subscribe
