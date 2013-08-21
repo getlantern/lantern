@@ -107,7 +107,7 @@ public class Version {
             }
             
             final String fullTag = StringUtils.substringAfter(version, "-");
-            tag = StringUtils.substringBefore(fullTag, "-SNAPSHOT");
+            tag = StringUtils.substringBefore(fullTag, "-");
 
             gitFull = LanternClientConstants.GIT_VERSION;
             // the first 7 chars are sufficient to uniquely identify a revision
