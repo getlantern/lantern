@@ -142,7 +142,13 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
             final SSLEngine engine = context.createSSLEngine();
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
-            engine.setEnabledCipherSuites(IceConfig.getCipherSuites());
+            final String[] suites = IceConfig.getCipherSuites();
+            if (suites != null && suites.length > 0) {
+                engine.setEnabledCipherSuites(suites);
+            } else {
+                // Can be null in tests.
+                log.warn("No cipher suites?");
+            }
             return engine;
         } catch (final Exception e) {
             throw new Error(
