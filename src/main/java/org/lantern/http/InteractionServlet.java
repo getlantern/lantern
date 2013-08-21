@@ -773,6 +773,7 @@ public class InteractionServlet extends HttpServlet {
         model.getSettings().setClientSecret(clientSecret);
         model.setSetupComplete(base.isSetupComplete());
         model.setShowVis(base.isShowVis());
+        model.setFriends(base.getFriends());
         model.clearNotifications();
         modelIo.write();
     }

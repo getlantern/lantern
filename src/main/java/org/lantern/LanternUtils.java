@@ -483,7 +483,7 @@ public class LanternUtils {
     }
 
     public static boolean isLanternHub(final String jabberid) {
-        final String userid = LanternXmppUtils.jidToUserId(jabberid);
+        final String userid = LanternXmppUtils.jidToEmail(jabberid);
         return LanternClientConstants.LANTERN_JID.equals(userid);
     }
 
