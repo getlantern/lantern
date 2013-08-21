@@ -79,6 +79,9 @@ public class GeoIpCompressorTest {
 
         @Override
         public boolean equals(Object other) {
+            if (other == null) {
+                return false;
+            }
             Block o = (Block) other;
             return o.startIp == startIp &&
                    o.endIp == endIp &&

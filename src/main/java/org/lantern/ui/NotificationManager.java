@@ -10,8 +10,11 @@ import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.lantern.state.Settings;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -25,6 +28,7 @@ public class NotificationManager {
     @Inject
     public NotificationManager(Settings settings) {
         this.settings = settings;
+        Events.register(this);
     }
 
     public synchronized void notify(final NotificationDialog notification) {
@@ -46,35 +50,7 @@ public class NotificationManager {
         doNotify(notification);
 
     }
-    /*
-    static public Rectangle getScreenBounds(Window wnd) {
-        Rectangle sb;
-        Insets si = getScreenInsets(wnd);
 
-        if (wnd == null) {
-            sb = Toolkit.getDefaultToolkit().getGraphicsConfiguration().getBounds();
-        } else {
-            sb = wnd.getGraphicsConfiguration().getBounds();
-        }
-
-        sb.x += si.left;
-        sb.width -= (si.left + si.right);
-        sb.y += si.top;
-        sb.height -= (si.top + si.bottom);
-        return sb;
-    }
-
-    static public Insets getScreenInsets(Window wnd) {
-        Insets si;
-
-        if (wnd == null) {
-            si = Toolkit.getDefaultToolkit().getScreenInsets(new Frame().getGraphicsConfiguration());
-        } else {
-            si = wnd.getToolkit().getScreenInsets(wnd.getGraphicsConfiguration());
-        }
-        return si;
-    }
-    */
     protected synchronized void doNotify(NotificationDialog notification) {
         //install the dialog in the shell
 
@@ -137,5 +113,17 @@ public class NotificationManager {
             }
         }
         notifications.remove(toRemove);
+    }
+
+    public void clear() {
+        for (NotificationDialog dialog : notifications) {
+            dialog.dispose();
+        }
+        notifications.clear();
+    }
+
+    @Subscribe
+    public void onReset(ResetEvent e) {
+        clear();
     }
 }
