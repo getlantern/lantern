@@ -49,6 +49,7 @@ var app = angular.module('app', [
     $rootScope.EXTERNAL_URL = EXTERNAL_URL;
     $rootScope.lanternUiVersion = LANTERNUI_VER.join('.');
     $rootScope.model = modelSrvc.model;
+    $rootScope.DEFAULT_AVATAR_URL = 'img/default-avatar.png';
 
     angular.forEach(ENUMS, function(val, key) {
       $rootScope[key] = val;

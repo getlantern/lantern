@@ -12,7 +12,7 @@
         <g id="{{ peer.peerid }}" class="peer"
           tooltip-html-unsafe="<div class=vis>
             <div class='{{peer.mode}} {{peer.type}}'>
-              <img class=picture src='{{peer.rosterEntry.picture || 'img/default-avatar.png'}}'>
+              <img class=picture src='{{peer.rosterEntry.picture || DEFAULT_AVATAR_URL}}'>
               <div class=headers>
                 <div class=header>{{peer.rosterEntry.name}}</div>
                 <div class=email>{{peer.rosterEntry.email}}</div>
@@ -46,7 +46,7 @@
           ng-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 5) }}"
           tooltip-html-unsafe="<div class=vis>
             <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
-              <img class=picture src='{{model.profile.picture || 'img/default-avatar.png'}}'>
+              <img class=picture src='{{model.profile.picture || DEFAULT_AVATAR_URL}}'>
               <div class=headers>
                 <div class=header>{{model.profile.name}}</div>
                 <div class=email>{{model.profile.email}}</div>
