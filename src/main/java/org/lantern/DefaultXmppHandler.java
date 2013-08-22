@@ -1302,7 +1302,14 @@ public class DefaultXmppHandler implements XmppHandler {
     private void sendTypedPacket(final String jid, final Type type) {
         final Presence packet = new Presence(type);
         packet.setTo(jid);
-        final XMPPConnection conn = this.client.get().getXmppConnection();
+        XmppP2PClient<FiveTuple> xmppP2PClient = this.client.get();
+        if (xmppP2PClient == null) {
+            throw new IllegalStateException("Can't send packets without a client");
+        }
+        final XMPPConnection conn = xmppP2PClient.getXmppConnection();
+        if (conn == null) {
+            throw new IllegalStateException("Can't send packets while offline");
+        }
         conn.sendPacket(packet);
     }
 
