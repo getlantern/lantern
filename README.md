@@ -105,10 +105,6 @@ Further Reading
 * https://groups.google.com/forum/#!forum/lantern-devel
 * https://groups.google.com/forum/#!forum/lantern-users-en
 
-You can also access JavaDocs and automatically generated reports on the Lantern 
-codebase at the following:
-
-* http://getlantern.github.com/lantern/
 
 Acknowledgements
 ----------------
