@@ -25,8 +25,8 @@
                   {{peer.bpsDn | prettyBps}} {{'DN' | i18n}}
                 </div>
                 <div class=bytes{{peer.bytesUpDn}}>
-                  {{peer.bytesUp | prettyBps}} {{'SENT' | i18n}},
-                  {{peer.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
+                  {{peer.bytesUp | prettyBytes}} {{'SENT' | i18n}},
+                  {{peer.bytesDn | prettyBytes}} {{'RECEIVED' | i18n}}
                 </div>
                 <div class=lastConnected>
                   {{!peer.connected && peer.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
@@ -59,8 +59,8 @@
                   {{model.transfers.bpsDn | prettyBps}} {{'DN' | i18n}}
                 </div>
                 <div class=bytes{{model.transfers.bytesUpDn}}>
-                  {{model.transfers.bytesUp | prettyBps}} {{'SENT' | i18n}},
-                  {{model.transfers.bytesDn | prettyBps}} {{'RECEIVED' | i18n}}
+                  {{model.transfers.bytesUp | prettyBytes}} {{'SENT' | i18n}},
+                  {{model.transfers.bytesDn | prettyBytes}} {{'RECEIVED' | i18n}}
                 </div>
                 <div class=lastConnected>
                   {{model.connectivity.lastConnected && ('LAST_CONNECTED' | i18n) || '' }}
