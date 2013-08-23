@@ -25,7 +25,6 @@ import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.PhotoServlet;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
@@ -55,7 +54,6 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
 import org.littleshoot.proxy.HttpRequestFilter;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,9 +186,9 @@ public class LanternModule extends AbstractModule {
     SystemTray provideSystemTray(final BrowserService browserService,
         final Model model) {
         if (SystemUtils.IS_OS_LINUX) {
-            return new AppIndicatorTray(browserService, model);
+            return new AppIndicatorTray(browserService);
         } else {
-            return new SystemTrayImpl(browserService, model);
+            return new SystemTrayImpl(browserService);
         }
     }
 
