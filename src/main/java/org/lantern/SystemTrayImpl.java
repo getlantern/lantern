@@ -305,7 +305,7 @@ public class SystemTrayImpl extends BaseSystemTray {
     @Override
     protected void changeIcon(final String fileName) {
         if (DisplayWrapper.getDisplay().isDisposed()) {
-            log.info("Ingoring call since display is disposed");
+            log.info("Ignoring call since display is disposed");
             return;
         }
         DisplayWrapper.getDisplay().asyncExec (new Runnable () {
