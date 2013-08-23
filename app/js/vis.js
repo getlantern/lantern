@@ -98,7 +98,6 @@ angular.module('app.vis', [])
       });
       
       scope.$watch('model.countries', function (newCountries, oldCountries) {
-        console.log("Countries changed");
         var changedCountriesSelector = "";
         var firstChangedCountry = true;
         var npeersOnlineByCountry = {};
@@ -123,7 +122,7 @@ angular.module('app.vis', [])
           // Country changed number of peers online, flag it
           if (npeersOnline !== oldNpeersOnline) {
             if (!firstChangedCountry) {
-              changedCountriesSelector += ",";
+              changedCountriesSelector += ", ";
             }
             changedCountriesSelector += "." + countryCode;
             firstChangedCountry = false;
@@ -191,14 +190,14 @@ angular.module('app.vis', [])
       
       var peersContainer = d3.select(element[0]);
       
-      scope.$watch('model.peers', function(peers) {
+      scope.$watch('model.peers', function(peers, oldPeers) {
         if (!peers) return;
       
         // Figure out our maxBps
         var maxBpsUpDn = 0;
-        _.each(peers, function (p) {
-          if (maxBpsUpDn < p.bpsUpDn)
-            maxBpsUpDn = p.bpsUpDn;
+        peers.forEach(function(peer) {
+          if (maxBpsUpDn < peer.bpsUpDn)
+            maxBpsUpDn = peer.bpsUpDn;
         });
         if (maxBpsUpDn !== connectionOpacityScale.domain()[1]) {
           connectionOpacityScale.domain([0, maxBpsUpDn]);
@@ -242,44 +241,70 @@ angular.module('app.vis', [])
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 8)
         });
         
-        // Handle animation of connecting/disconnecting peers
-        // Repopulate list of connected peers
-        var connectedPeers = [];
-        peers.forEach(function(peer) {
-          if (peer.connected) {
-            connectedPeers.push(peer);
-          }
-        });
-        
-        var allArcs = allPeers.selectAll("path.connection").data(function(peer) {
-          if (peer.connected) {
-            return [peer];
-          } else {
-            return [];
-          }
-        } , peerIdentifier);
-        var newlyConnectedArcs = allArcs.enter();
-        var disconnectedArcs = allArcs.exit();
-        
-        // Add arcs to new peers
-        newlyConnectedArcs.append("path").classed("connection", true).attr("stroke-opacity", function(peer) {
+        // Add arcs for new peers
+        newPeers.append("path")
+          .classed("connection", true)
+          .attr("id", function(peer) { return "connection_to_" + peerIdentifier(peer); })
+          .attr("stroke-opacity", function(peer) {
             return connectionOpacityScale(peer.bpsUpDn);
           })
           .attr("d", scope.pathConnection)
-          .transition().duration(500)
+        
+        // Animate connected/disconnected peers
+        var newlyConnectedPeersSelector = "";
+        var firstNewlyConnectedPeer = true;
+        var newlyDisconnectedPeersSelector = "";
+        var firstNewlyDisconnectedPeer = true;
+        var oldPeersById = {};
+        
+        if (oldPeers) {
+          oldPeers.forEach(function(oldPeer) {
+            oldPeersById[peerIdentifier(oldPeer)] = oldPeer;
+          });
+        }
+        
+        // Find out which peers have had status changes
+        peers.forEach(function(peer) {
+          var peerId = peerIdentifier(peer);
+          var oldPeer = oldPeersById[peerId];
+          if (peer.connected) {
+            if (!oldPeer || !oldPeer.connected) {
+              if (!firstNewlyConnectedPeer) {
+                newlyConnectedPeersSelector += ", ";
+              }
+              newlyConnectedPeersSelector += "#connection_to_" + peerId;
+              firstNewlyConnectedPeer = false;
+            }
+          } else {
+            if (!oldPeer || oldPeer.connected) {
+              if (!firstNewlyDisconnectedPeer) {
+                newlyDisconnectedPeersSelector += ", ";
+              }
+              newlyDisconnectedPeersSelector += "#connection_to_" + peerId;
+              firstNewlyDisconnectedPeer = false;
+            }
+          }
+        });
+        
+        if (newlyConnectedPeersSelector) {
+          peersContainer.selectAll(newlyConnectedPeersSelector)
+            .transition().duration(500)
+              .each('start', function() {
+                d3.select(this)
+                  .attr('stroke-dashoffset', getTotalLength)
+                  .attr('stroke-dasharray', getDashArray)
+              }).attr('stroke-dashoffset', 0);
+        }
+        
+        if (newlyDisconnectedPeersSelector) {
+          peersContainer.selectAll(newlyDisconnectedPeersSelector)
+            .transition().duration(500)
             .each('start', function() {
               d3.select(this)
-                .attr('stroke-dashoffset', getTotalLength)
+                .attr('stroke-dashoffset', 0)
                 .attr('stroke-dasharray', getDashArray)
-            }).attr('stroke-dashoffset', 0);
-        
-        disconnectedArcs.transition().duration(500)
-          .each('start', function() {
-            d3.select(this)
-              .attr('stroke-dashoffset', 0)
-              .attr('stroke-dasharray', getDashArray)
-          }).attr('stroke-dashoffset', getTotalLength)
-          .remove();
+            }).attr('stroke-dashoffset', getTotalLength);
+        }
         
         // Remove departed peers
         departedPeers.remove();
