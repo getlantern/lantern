@@ -24,5 +24,6 @@
     "commit": "117bbbc0408a5933f580c6fe7b8e977181d01199"
   },
   "_source": "git://github.com/angular-ui/ui-select2.git",
-  "_target": "0.0.2"
+  "_target": "0.0.2",
+  "_originalSource": "angular-ui-select2"
 }

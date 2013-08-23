@@ -19,5 +19,6 @@
     "commit": "34ba5a885fbe37cada1ca72522643203d5baa448"
   },
   "_source": "git://github.com/angular-ui/ui-utils.git",
-  "_target": "0.0.2"
+  "_target": "0.0.2",
+  "_originalSource": "angular-ui-utils"
 }

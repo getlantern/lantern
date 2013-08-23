@@ -18,5 +18,6 @@
     "commit": "7bca9d808b7c758ca981e6754c4089784bf9454f"
   },
   "_source": "git://github.com/dharmafly/jsonpatch.js.git",
-  "_target": "~1.0.0-rc1"
+  "_target": "~1.0.0-rc1",
+  "_originalSource": "jsonpatch"
 }
