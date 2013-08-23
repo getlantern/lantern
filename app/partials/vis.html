@@ -4,44 +4,7 @@
   <svg id="map" fullwindow>
     <!--path id="globe" globe /-->
     <g id="countries" countries />
-    <g id="peers" watch-connections >
-      <g ng-repeat="peer in model.peers | noNullIsland">
-        <path class="connection" ng-d="{{ pathConnection(peer) }}"
-              stroke-opacity="{{ connectionOpacityScale(peer.bpsUpDn) }}"
-              animate-connection />
-        <g id="{{ peer.peerid }}" class="peer"
-          tooltip-html-unsafe="<div class=vis>
-            <div class='{{peer.mode}} {{peer.type}}'>
-              <img class=picture src='{{peer.rosterEntry.picture || DEFAULT_AVATAR_URL}}'>
-              <div class=headers>
-                <div class=header>{{peer.rosterEntry.name}}</div>
-                <div class=email>{{peer.rosterEntry.email}}</div>
-                <div class='peerid ip'>{{peer.peerid}} ({{peer.ip}})</div>
-                <div class=type>{{peer.type && peer.mode && (((peer.type|upper)+(peer.mode|upper))|i18n) || ''}}</div>
-              </div>
-              <div class=stats>
-                <div class=bps{{peer.bpsUpDn}}>
-                  {{peer.bpsUp | prettyBps}} {{'UP' | i18n}},
-                  {{peer.bpsDn | prettyBps}} {{'DN' | i18n}}
-                </div>
-                <div class=bytes{{peer.bytesUpDn}}>
-                  {{peer.bytesUp | prettyBytes}} {{'SENT' | i18n}},
-                  {{peer.bytesDn | prettyBytes}} {{'RECEIVED' | i18n}}
-                </div>
-                <div class=lastConnected>
-                  {{!peer.connected && peer.lastConnected && 'LAST_CONNECTED' || '' | i18n }}
-                  <time>{{!peer.connected && (peer.lastConnected | date:'short') || ''}}</time>
-                </div>
-              </div>
-            </div>
-          </div>" tooltip-placement="mouse">
-          <path class="peer {{ peer.mode }} {{ peer.type }} {{peer.connected && 'connected' || ''}}"
-            ng-d="{{ path({type: 'Point', coordinates: [peer.lon, peer.lat]}) }}"/>
-          <path class="peer-hover-area"
-          ng-d="{{ path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 8) }}"/>
-        </g>
-      </g>
-    </g>
+    <g id="peers" peers></g>
     <path id="self" class="{{ model.settings.mode }}"
           ng-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 5) }}"
           tooltip-html-unsafe="<div class=vis>
