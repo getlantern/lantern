@@ -323,6 +323,10 @@ public class DefaultXmppHandler implements XmppHandler {
         if (client == null) {
             //no connection yet, so we'll just return; the connection
             //will be established when we can
+
+            Events.eventBus().post(
+                new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
+
             return;
         }
         XMPPConnection connection = client.getXmppConnection();
@@ -362,6 +366,10 @@ public class DefaultXmppHandler implements XmppHandler {
     private class Reconnector extends TimerTask {
         @Override
         public void run() {
+            //we're disconnected while we're waiting to reconnect
+            Events.eventBus().post(
+                new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
+
             reconnect();
         }
     }
