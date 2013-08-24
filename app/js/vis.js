@@ -77,6 +77,7 @@ angular.module('app.vis', [])
         unwatch();
       }, true);
 
+      // Set up the world map once and only once
       d3.json('data/world.topojson', function (error, world) {
         if (error) throw error;
         //XXX need to do something like this to use latest topojson:
@@ -97,6 +98,16 @@ angular.module('app.vis', [])
           });
       });
       
+      /*
+       * Every time that our list of countries changes, do the following:
+       * 
+       * - Iterate over all countries to fine the maximum number of peers online
+       *   (used for scaling opacity of countries)
+       * - Update the opacity for every country based on our new scale
+       * - For all countries whose number of online peers has changed, make the
+       *   country flash on screen for half a second (this is done in bulk to
+       *   all countries at once)
+       */
       scope.$watch('model.countries', function (newCountries, oldCountries) {
         var changedCountriesSelector = "";
         var firstChangedCountry = true;
@@ -190,6 +201,38 @@ angular.module('app.vis', [])
       
       var peersContainer = d3.select(element[0]);
       
+      /*
+       * Every time that our list of peers changes, we do the following:
+       * 
+       * For new peers only:
+       * 
+       * - Create an SVG group to contain everything related to that peer
+       * - Create another SVG group to contain their dot/tooltip
+       * - Add dots to show them on the map
+       * - Add a hover target around the dot that activates a tooltip
+       * - Bind those tooltips to the peer's data using Angular
+       * - Add an arc connecting the user's dot to the peer
+       * 
+       * For all peers:
+       * 
+       * - Adjust the position of the peer dots
+       * - Adjust the style of the peer dots based on whether or not the peer
+       *   is currently connected
+       * 
+       * For all connecting arcs:
+       * 
+       * - Adjust the path of the arc based on the peer's current position
+       * - If the peer has become connected, animate it to become visible
+       * - If the peer has become disconnected, animate it to become hidden
+       * - note: the animation is done in bulk for all connected/disconnected
+       *   arcs
+       * 
+       * For disappeared peers:
+       * 
+       * - Remove their group, which removes everything associated with that
+       *   peer
+       * 
+       */
       scope.$watch('model.peers', function(peers, oldPeers) {
         if (!peers) return;
       
@@ -247,8 +290,10 @@ angular.module('app.vis', [])
           .attr("id", function(peer) { return "connection_to_" + peerIdentifier(peer); })
           .attr("stroke-opacity", function(peer) {
             return connectionOpacityScale(peer.bpsUpDn);
-          })
-          .attr("d", scope.pathConnection)
+          });
+        
+        // Set paths for arcs for all peers
+        allPeers.select("path.connection").attr("d", scope.pathConnection)
         
         // Animate connected/disconnected peers
         var newlyConnectedPeersSelector = "";
