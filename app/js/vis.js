@@ -341,8 +341,8 @@ angular.module('app.vis', [])
               .each('start', function() {
                 d3.select(this)
                   .attr('stroke-dashoffset', getTotalLength)
-                  .attr('stroke-dasharray', getDashArray)
-              }).attr('stroke-dashoffset', 0);
+                  .attr('stroke-dasharray', getDashArray);
+              }).attr('stroke-dashoffset', 0)
         }
         
         if (newlyDisconnectedPeersSelector) {
@@ -351,8 +351,8 @@ angular.module('app.vis', [])
             .each('start', function() {
               d3.select(this)
                 .attr('stroke-dashoffset', 0)
-                .attr('stroke-dasharray', getDashArray)
-            }).attr('stroke-dashoffset', getTotalLength);
+                .attr('stroke-dasharray', getDashArray);
+            }).attr('stroke-dashoffset', getTotalLength)
         }
         
         // Remove departed peers
@@ -360,13 +360,25 @@ angular.module('app.vis', [])
       }
       
       // Handle model changes
-      scope.$watch('model.peers', renderPeers);
+      scope.$watch('model.peers', renderPeers, true);
       
       // Handle resize
       scope.$on("mapResized", function() {
-        // Whenever the map resizes, we re-render our peers as if starting from
-        // scratch, re-animating all the connections.
-        renderPeers(scope.model.peers, []);
+        // Whenever the map resizes, we need to re-render the peers and arcs
+        renderPeers(scope.model.peers, scope.model.peers);
+        
+        // The above render call left the arcs alone because there were no
+        // changes.  We now need to do some additional maintenance on the arcs.
+        
+        // First clear the stroke-dashoffset and stroke-dasharray for all connections
+        peersContainer.selectAll("path.connection")
+          .attr("stroke-dashoffset", null)
+          .attr("stroke-dasharray", null);
+        
+        // Then for connected connections, update their values
+        peersContainer.selectAll("path.connection.connected")
+          .attr("stroke-dashoffset", getTotalLength)
+          .attr("stroke-dasharray", getDashArray);
       });
     };
   });
