@@ -143,7 +143,7 @@ angular.module('app.vis', [])
         // Update opacity for all known countries
         strokeOpacityScale.domain([0, maxNpeersOnline]);
         d3.select(element[0]).selectAll("path.COUNTRY_KNOWN").attr('stroke-opacity', function(d) {
-          strokeOpacityScale(npeersOnlineByCountry[d.alpha2] || 0);
+          return strokeOpacityScale(npeersOnlineByCountry[d.alpha2] || 0);
         });
         
         // Flash update for changed countries
@@ -287,13 +287,14 @@ angular.module('app.vis', [])
         // Add arcs for new peers
         newPeers.append("path")
           .classed("connection", true)
-          .attr("id", function(peer) { return "connection_to_" + peerIdentifier(peer); })
-          .attr("stroke-opacity", function(peer) {
-            return connectionOpacityScale(peer.bpsUpDn);
-          });
+          .attr("id", function(peer) { return "connection_to_" + peerIdentifier(peer); });
         
         // Set paths for arcs for all peers
-        allPeers.select("path.connection").attr("d", scope.pathConnection)
+        allPeers.select("path.connection")
+          .attr("d", scope.pathConnection)
+          .attr("stroke-opacity", function(peer) {
+            return connectionOpacityScale(peer.bpsUpDn || 0);
+          });
         
         // Animate connected/disconnected peers
         var newlyConnectedPeersSelector = "";
