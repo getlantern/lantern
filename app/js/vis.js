@@ -11,6 +11,9 @@ angular.module('app.vis', [])
   .directive('resizable', function ($window) {
     return function (scope, element) {
       function notifyOfResize() {
+        var w = element.width(), h = element.height();
+        scope.projection.scale(max(w, h) / TWO_PI);
+        scope.projection.translate([w >> 1, round(0.56*h)]);
         scope.$broadcast("mapResized", element);
       }
       
@@ -55,9 +58,6 @@ angular.module('app.vis', [])
       
       // Handle resize
       scope.$on("mapResized", function(event, element) {
-        var w = element.width(), h = element.height();
-        scope.projection.scale(max(w, h) / TWO_PI);
-        scope.projection.translate([w >> 1, round(0.56*h)]);
         d3.selectAll('#countries path').attr('d', scope.path);
       });
 
