@@ -160,7 +160,8 @@ angular.module('app.vis', [])
       }, true);
     };
   })
-  .directive('peers', function ($compile) {
+  .directive('peers', function ($compile, $filter) {
+    var noNullIsland = $filter('noNullIsland');
     return function (scope, element) {
       // Template for our peer tooltips
       var peerTooltipTemplate = "<div class=vis> \
@@ -238,6 +239,10 @@ angular.module('app.vis', [])
        */
       function renderPeers(peers, oldPeers) {
         if (!peers) return;
+
+        // disregard peers on null island
+        peers = noNullIsland(peers);
+        oldPeers = noNullIsland(oldPeers);
       
         // Figure out our maxBps
         var maxBpsUpDn = 0;
