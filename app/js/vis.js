@@ -8,21 +8,16 @@ var PI = Math.PI,
     round = Math.round;
 
 angular.module('app.vis', [])
-  .directive('fullwindow', function ($window) {
+  .directive('resizable', function ($window) {
     return function (scope, element) {
-      function size() {
-        var w = element.width(), h = element.height();
-        scope.projection.scale(max(w, h) / TWO_PI);
-        scope.projection.translate([w >> 1, round(0.56*h)]);
+      function notifyOfResize() {
+        scope.$broadcast("mapResized", element);
       }
-      size();
+      
+      notifyOfResize();
+      
       angular.element($window).bind('resize', _.throttle(function () {
-        size();
-        d3.selectAll('#countries path').attr('d', scope.path);
-        d3.selectAll('path.connection')
-          .attr('stroke-dashoffset', null)
-          .attr('stroke-dasharray', null);
-        scope.$digest();
+        notifyOfResize();
       }, 500));
     };
   })
@@ -57,6 +52,14 @@ angular.module('app.vis', [])
       var maxNpeersOnline = 0,
           strokeOpacityScale = d3.scale.linear()
             .clamp(true).domain([0, 0]).range([0, 1]);
+      
+      // Handle resize
+      scope.$on("mapResized", function(event, element) {
+        var w = element.width(), h = element.height();
+        scope.projection.scale(max(w, h) / TWO_PI);
+        scope.projection.translate([w >> 1, round(0.56*h)]);
+        d3.selectAll('#countries path').attr('d', scope.path);
+      });
 
       // detect reset
       scope.$watch('model.setupComplete', function (newVal, oldVal) {
@@ -233,7 +236,7 @@ angular.module('app.vis', [])
        *   peer
        * 
        */
-      scope.$watch('model.peers', function(peers, oldPeers) {
+      function renderPeers(peers, oldPeers) {
         if (!peers) return;
       
         // Figure out our maxBps
@@ -354,10 +357,19 @@ angular.module('app.vis', [])
         
         // Remove departed peers
         departedPeers.remove();
-        
-      }, true);
+      }
+      
+      // Handle model changes
+      scope.$watch('model.peers', renderPeers);
+      
+      // Handle resize
+      scope.$on("mapResized", function() {
+        // Whenever the map resizes, we re-render our peers as if starting from
+        // scratch, re-animating all the connections.
+        renderPeers(scope.model.peers, []);
+      });
     };
-  })
+  });
 
 function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
