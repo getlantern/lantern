@@ -341,7 +341,8 @@ angular.module('app.vis', [])
               .each('start', function() {
                 d3.select(this)
                   .attr('stroke-dashoffset', getTotalLength)
-                  .attr('stroke-dasharray', getDashArray);
+                  .attr('stroke-dasharray', getDashArray)
+                  .classed('active', true);
               }).attr('stroke-dashoffset', 0)
         }
         
@@ -351,7 +352,8 @@ angular.module('app.vis', [])
             .each('start', function() {
               d3.select(this)
                 .attr('stroke-dashoffset', 0)
-                .attr('stroke-dasharray', getDashArray);
+                .attr('stroke-dasharray', getDashArray)
+                .classed('active', false);
             }).attr('stroke-dashoffset', getTotalLength)
         }
         
@@ -375,9 +377,9 @@ angular.module('app.vis', [])
           .attr("stroke-dashoffset", null)
           .attr("stroke-dasharray", null);
         
-        // Then for connected connections, update their values
-        peersContainer.selectAll("path.connection.connected")
-          .attr("stroke-dashoffset", getTotalLength)
+        // Then for active connections, update their values
+        peersContainer.selectAll("path.connection.active")
+          .attr("stroke-dashoffset", 0)
           .attr("stroke-dasharray", getDashArray);
       });
     };
