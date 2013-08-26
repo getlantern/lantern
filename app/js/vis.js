@@ -30,6 +30,13 @@ angular.module('app.vis', [])
       element.attr('d', d);
     };
   })
+  .directive('self', function () {
+    return function (scope, element) {
+      scope.$on('mapResized', function () {
+        scope.$digest();
+      });
+    };
+  })
   .directive('countries', function ($compile, $timeout) {
 
     function ttTmpl(alpha2) {
