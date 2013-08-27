@@ -10,18 +10,16 @@ var PI = Math.PI,
 angular.module('app.vis', [])
   .directive('resizable', function ($window) {
     return function (scope, element) {
-      function notifyOfResize() {
+      function size() {
         var w = element.width(), h = element.height();
         scope.projection.scale(max(w, h) / TWO_PI);
         scope.projection.translate([w >> 1, round(0.56*h)]);
-        scope.$broadcast("mapResized", element);
+        scope.$broadcast('mapResized', w, h);
       }
-      
-      notifyOfResize();
-      
-      angular.element($window).bind('resize', _.throttle(function () {
-        notifyOfResize();
-      }, 500));
+
+      size();
+
+      angular.element($window).bind('resize', _.throttle(size, 500));
     };
   })
   .directive('globe', function () {
@@ -68,9 +66,9 @@ angular.module('app.vis', [])
       var maxNpeersOnline = 0,
           strokeOpacityScale = d3.scale.linear()
             .clamp(true).domain([0, 0]).range([0, 1]);
-      
+
       // Handle resize
-      scope.$on("mapResized", function(event, element) {
+      scope.$on('mapResized', function () {
         d3.selectAll('#countries path').attr('d', scope.path);
       });
 
