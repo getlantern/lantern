@@ -644,7 +644,7 @@ return result == 0;</string>
     </applications>
   </installerGui>
   <mediaSets>
-    <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="Lantern-Installer" installDir="Wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
+    <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="Lantern-Installer" installDir="Wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="macosx-amd64-1.7.0_25" manualJREEntry="false" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/macosx-amd64-1.7.0_25.tar.gz" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="false" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude />
@@ -673,7 +673,7 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <unixInstaller name="Unix Installer" id="127" customizedId="" mediaFileName="lantern-installer" installDir="lantern-net-installer" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="">
+    <unixInstaller name="Unix Installer" id="127" customizedId="" mediaFileName="lantern-installer" installDir="lantern-net-installer" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="">
       <excludedLaunchers>
         <launcher id="25" />
       </excludedLaunchers>
