@@ -68,14 +68,10 @@ public class ChromeRunner {
             return "/usr/bin/chromium-browser";
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return findWindowsExe();
+        } else {
+            throw new UnsupportedOperationException(
+                    "Unsupported OS: "+SystemUtils.OS_NAME);
         }
-        /*
-         * Should be something like:
-         * 
-         * Windows XP    %HOMEPATH%\Local Settings\Application Data\Google\Chrome\Application\chrome.exe
-         * Windows Vista    C:\Users\%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe
-         */
-        throw new UnsupportedOperationException("This is an experimental feature!");
     }
     
     private String findWindowsExe() {//final String... opts) {
@@ -106,8 +102,10 @@ public class ChromeRunner {
                 return path;
             }
         }
-        throw new UnsupportedOperationException(
-            "Could not find Chrome on Windows!! Searched paths:\n"+paths);
+        final String msg = 
+                "Could not find Chrome on Windows!! Searched paths:\n"+paths;
+        log.error(msg);
+        throw new UnsupportedOperationException(msg);
     }
 
     public void open() throws IOException {
