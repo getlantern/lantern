@@ -83,6 +83,15 @@ public class ProxifierTest {
             public Friend makeFriend(String email) {
                 return null;
             }
+
+            @Override
+            public void addFriendedBy(String friendedBy) {
+
+            }
+
+            @Override
+            public void removedFriendedBy(String unfriendedBy) {
+            }
         };
     }
 }

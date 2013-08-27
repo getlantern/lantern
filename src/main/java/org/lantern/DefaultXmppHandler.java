@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -773,6 +774,7 @@ public class DefaultXmppHandler implements XmppHandler {
         handled |= handleProcessedInvites(json);
         handled |= handleFailedInvites(json);
         handled |= handleFriends(json);
+        handled |= handleFriendedBy(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -791,6 +793,33 @@ public class DefaultXmppHandler implements XmppHandler {
             sendToken();
         }
 
+    }
+
+    private boolean handleFriendedBy(JSONObject json) {
+        @SuppressWarnings("unchecked")
+        final List<String> friendUpdates = (List<String>) json.get(LanternConstants.FRIENDED_BY);
+        boolean anyUpdates = false;
+        if (friendUpdates != null) {
+            anyUpdates = true;
+            for (String friendedBy : friendUpdates) {
+                modelUtils.addFriendedBy(friendedBy);
+            }
+        }
+        @SuppressWarnings("unchecked")
+        final List<String> unfriendUpdates = (List<String>) json.get(LanternConstants.UNFRIENDED_BY);
+        if (unfriendUpdates != null) {
+            anyUpdates = true;
+            for (String unfriendedBy : unfriendUpdates) {
+                modelUtils.removedFriendedBy(unfriendedBy);
+            }
+        }
+        if (anyUpdates) {
+            Events.sync(SyncPath.FRIENDED_BY, model.getFriendedBy());
+            //the server could have sent the messages a short while ago;
+            long recently = new Date().getTime() - 60 * 1000;
+            model.setFriendedByLastUpdated(recently);
+        }
+        return anyUpdates;
     }
 
     private boolean handleFriends(JSONObject json) {
@@ -1002,6 +1031,9 @@ public class DefaultXmppHandler implements XmppHandler {
             forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
             friends.setNeedsSync(false);
         }
+
+        forHub.setProperty(LanternConstants.FRIENDED_BY_LAST_UPDATED,
+                model.getFriendedByLastUpdated());
 
         conn.sendPacket(forHub);
     }

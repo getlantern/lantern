@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -70,6 +71,14 @@ public class Model {
     private final Global global = new Global();
 
     private Friends friends = new Friends();
+
+    /**
+     * All of the friended-by stuff is owned by the controller; the
+     * client only updates it in response to controller messages
+     */
+    private List<FriendedBy> friendedBy = new ArrayList<FriendedBy>();
+
+    private long friendedByLastUpdated = 0;
 
     private Peers peerCollector = new Peers();
 
@@ -399,5 +408,49 @@ public class Model {
         String email = XmppUtils.jidToUser(from);
         Friend friend = friends.get(email);
         return friend != null && friend.getStatus() == Status.rejected;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public List<FriendedBy> getFriendedBy() {
+        return friendedBy;
+    }
+
+    public void setFriendedBy(List<FriendedBy> friendedBy) {
+        this.friendedBy = friendedBy;
+    }
+
+    @JsonView({Persistent.class})
+    public long getFriendedByLastUpdated() {
+        return friendedByLastUpdated;
+    }
+
+    public void setFriendedByLastUpdated(long friendedByLastUpdated) {
+        this.friendedByLastUpdated = friendedByLastUpdated;
+    }
+
+    public void removeFriendedBy(String unfriendedBy) {
+        synchronized(friendedBy) {
+            Iterator<FriendedBy> it = friendedBy.iterator();
+            while (it.hasNext()) {
+                FriendedBy existing = it.next();
+                if (existing.getEmail().equals(unfriendedBy)) {
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    public void addFriendedBy(FriendedBy newFriend) {
+        synchronized(friendedBy) {
+            Iterator<FriendedBy> it = friendedBy.iterator();
+            while (it.hasNext()) {
+                FriendedBy existing = it.next();
+                if (existing.getEmail().equals(newFriend)) {
+                    //exists
+                    return;
+                }
+            }
+            friendedBy.add(newFriend);
+        }
     }
 }

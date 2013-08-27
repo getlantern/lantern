@@ -246,4 +246,17 @@ public class DefaultModelUtils implements ModelUtils {
         }
         return friend;
     }
+
+    @Override
+    public void addFriendedBy(final String email) {
+        Roster roster = model.getRoster();
+        RosterEntry entry = roster.getEntry(email);
+        FriendedBy friendedBy = new FriendedBy(email, entry.getName());
+        model.addFriendedBy(friendedBy);
+    }
+
+    @Override
+    public void removedFriendedBy(final String unfriendedBy) {
+        model.removeFriendedBy(unfriendedBy);
+    }
 }
