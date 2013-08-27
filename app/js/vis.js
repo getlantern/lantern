@@ -19,7 +19,7 @@ angular.module('app.vis', [])
 
       size();
 
-      angular.element($window).bind('resize', _.throttle(size, 500));
+      angular.element($window).bind('resize', _.throttle(size, 500, {leading: false}));
     };
   })
   .directive('globe', function () {
