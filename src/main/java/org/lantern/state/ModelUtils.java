@@ -30,4 +30,8 @@ public interface ModelUtils {
     boolean isGet();
 
     public Friend makeFriend(String email);
+
+    void addFriendedBy(String friendedBy);
+
+    void removedFriendedBy(String unfriendedBy);
 }
