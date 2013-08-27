@@ -33,7 +33,13 @@ angular.module('app.vis', [])
   .directive('self', function () {
     return function (scope, element) {
       scope.$on('mapResized', function () {
-        scope.$digest();
+        try {
+          scope.$digest();
+        } catch (e) {
+          if (e.message !== '$digest already in progress') {
+            throw e;
+          }
+        }
       });
     };
   })
