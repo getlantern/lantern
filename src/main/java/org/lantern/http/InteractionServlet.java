@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -607,8 +606,11 @@ public class InteractionServlet extends HttpServlet {
         Friend friend = friends.get(email);
         if (friend == null || friend.getStatus() == Status.rejected) {
             friend = modelUtils.makeFriend(email);
-            if (status == Status.friend)
+            if (status == Status.friend) {
+                model.addNotification("An email will be sent to " + email + ".", MessageType.info, 30);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 inviteQueue.invite(friend);
+            }
         }
         friend.setStatus(status);
         friends.setNeedsSync(true);
