@@ -24,18 +24,18 @@
   "keywords": [
     "lantern"
   ],
-  "dependencies": [
-    "cookiejar",
-    "faye-websocket"
-  ],
-  "devDependencies": [
-    "karma",
-    "karma-ng-scenario"
-  ],
+  "dependencies": {
+    "faye": "0.8.9",
+    "sleep": "1.1.1"
+  },
+  "devDependencies": {
+    "karma": "0.10.1",
+    "karma-ng-scenario": "0.1.0"
+  },
   "analyze": false,
   "license": "GPLv3",
   "engines": {
-    "node": ">=0.8.x"
+    "node": "0.10.x"
   },
   "subdomain": "lantern-ui"
 }
