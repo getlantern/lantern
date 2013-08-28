@@ -604,10 +604,20 @@ public class InteractionServlet extends HttpServlet {
         final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
         Friends friends = model.getFriends();
         Friend friend = friends.get(email);
+        if (friend != null && friend.getStatus() == Status.friend) {
+          model.addNotification("You have already friended "+email+".",
+              MessageType.info, 30);
+          Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+          return;
+        }
         if (friend == null || friend.getStatus() == Status.rejected) {
             friend = modelUtils.makeFriend(email);
             if (status == Status.friend) {
-                model.addNotification("An email will be sent to " + email + ".", MessageType.info, 30);
+                model.addNotification("An email will be sent to "+email+" "+
+                    "with a notification that you friended them. "+
+                    "If they do not yet have a Lantern invite, they will "+
+                    "be invited when the network can accommodate them.",
+                    MessageType.info, 30);
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 inviteQueue.invite(friend);
             }
