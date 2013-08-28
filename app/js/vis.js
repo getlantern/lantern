@@ -211,7 +211,11 @@ angular.module('app.vis', [])
       
       // Peers are uniquely identified by their peerid.
       function peerIdentifier(peer) {
-        return peer.peerid;
+        return peer.peerid
+          .replace(/[.]/g, '_dot_')
+          .replace(/[@]/g, '_at_')
+          .replace(/[\/]/g, '_slash_')
+          .replace(/[^-_0-9a-zA-z]/g, '_');
       }
       
       var peersContainer = d3.select(element[0]);
@@ -359,7 +363,7 @@ angular.module('app.vis', [])
                   .attr('stroke-dashoffset', getTotalLength)
                   .attr('stroke-dasharray', getDashArray)
                   .classed('active', true);
-              }).attr('stroke-dashoffset', 0)
+              }).attr('stroke-dashoffset', 0);
         }
         
         if (newlyDisconnectedPeersSelector) {
@@ -370,7 +374,7 @@ angular.module('app.vis', [])
                 .attr('stroke-dashoffset', 0)
                 .attr('stroke-dasharray', getDashArray)
                 .classed('active', false);
-            }).attr('stroke-dashoffset', getTotalLength)
+            }).attr('stroke-dashoffset', getTotalLength);
         }
         
         // Remove departed peers
