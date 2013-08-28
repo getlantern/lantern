@@ -39,7 +39,7 @@ Install required dependencies (`sudo` as necessary):
 * note - for newer versions of bower you may need to run `bower update`
 * note - if you're asked to select a specific version of select2, choose `1) select2#c4529b8700fb1cc2de5e06b9177147581e0e69d5 which resolved to c4529b8700 and has lantern-ui as dependants`
 
-For working on the stylesheets:
+### For working on the stylesheets:
 
 * [ruby](http://www.ruby-lang.org/) (comes with OS X)
 
@@ -53,19 +53,17 @@ config file (`config/compass.rb`):
     $ scripts/start-compass.sh &
     >>> Compass is watching for changes. Press Ctrl-C to Stop.
 
+### For running the mock backend:
 
-Start up the Node.js mock server simulating the Lantern backend:
+* run `npm install` to fetch dependencies specified in package.json
 
-    $ scripts/web-server.js
+* run `scripts/web-server.js`
 
 The UI should now be available at
-[http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
-
-To skip the setup process and go straight to an already set up instance, run:
-
-    $ scripts/web-server.js --skip-setup
-
-You should then see something like this when you load the app:
+[http://localhost:8000/app/index.html](http://localhost:8000/app/index.html).
+To skip the setup process and go straight to an already set-up instance, run
+`scripts/web-server.js --skip-setup`. You should then see something like this
+when you open the app:
 
 ![screenshot-vis](./screenshots/vis.png)
 
