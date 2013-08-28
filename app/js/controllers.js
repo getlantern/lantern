@@ -274,7 +274,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
 
 function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
-      EMAIL = INPUT_PAT.EMAIL,
+      EMAIL = INPUT_PAT.EMAIL_INSIDE,
       prettyUserFltr = $filter('prettyUser'),
       i18nFltr = $filter('i18n');
 
@@ -349,7 +349,11 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     allowClear: true,
     data: [],
     createSearchChoice: function (input) {
-      return EMAIL.test(input) ? {id: input, text: input, email: input} : undefined;
+      var match = input.match(EMAIL);
+      if (match) {
+        match = match[0];
+        return {id: match, text: match, email: match};
+      }
     },
     formatNoMatches: function () {
       return i18nFltr('ENTER_VALID_EMAIL');
