@@ -185,6 +185,7 @@ public class DefaultPeerFactory implements PeerFactory {
         if (entry == null) {
             log.debug("Could not find match for type{}:\n{}", type, 
                     ThreadUtils.dumpStack());
+            log.debug("Roster is: {}", this.roster.getEntries());
         }
 
         final Peer existing = this.model.getPeerCollector().getPeer(fullJid);
