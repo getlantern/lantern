@@ -298,6 +298,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     $scope.interaction(INTERACTION.friend, {email: email}).then(
       function () {
         $scope.added = null;
+        $scope.$broadcast('addSuccess');
       },
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';

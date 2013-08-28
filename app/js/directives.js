@@ -11,8 +11,9 @@ var directives = angular.module('app.directives', [])
       });
     }
   })
-  // XXX hack to set focus to select2 element since ui-select2 provides no API for this
-  //     see https://github.com/angular-ui/ui-select2/issues/60
+  // directives to set focus to the select2 element when a value in the scope is truthy
+  // and when a specified message is broadcast (ui-select2 provides no API
+  // for this - see https://github.com/angular-ui/ui-select2/issues/60)
   .directive('select2FocusOn', function ($parse, $timeout) {
     return function(scope, element, attr) {
       var val = $parse(attr['select2FocusOn']);
@@ -22,6 +23,14 @@ var directives = angular.module('app.directives', [])
             element.select2('focus', true);
           }, 0);
         }
+      });
+    }
+  })
+  .directive('select2FocusOnBroadcast', function () {
+    return function(scope, element, attr) {
+      var msg = attr['select2FocusOnBroadcast'];
+      scope.$on(msg, function () {
+        element.select2('focus', true);
       });
     }
   });
