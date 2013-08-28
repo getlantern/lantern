@@ -14,6 +14,9 @@ var sleep = require('sleep'),
         MODE = ENUMS.MODE,
         OS = ENUMS.OS;
 
+var PEER_UPDATE_INTERVAL = 1000; // milliseconds
+var COUNTRIES_UPDATE_INTERVAL = 60000; // milliseconds
+
 function make_simple_scenario(state) {
   var patch = _.map(state, function(value, path) {
     return {op: 'add', path: path, value: value};
@@ -518,7 +521,7 @@ exports.SCENARIOS = {
                 }
 
                 return done();
-              }, 1000);
+              }, PEER_UPDATE_INTERVAL);
             }
     }
   },
@@ -557,7 +560,7 @@ exports.SCENARIOS = {
             updateCountry(country, update);
           }
           if (ncountries) this_.sync(update);
-        }, 60000);
+        }, COUNTRIES_UPDATE_INTERVAL);
 
         function updateCountry(country, update) {
           var stats = this_.model.countries[country],
