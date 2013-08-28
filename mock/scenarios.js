@@ -271,7 +271,7 @@ exports.SCENARIOS = {
       func: function() {
               var this_ = this,
                   testPeers = [{
-                    peerid: 'friend1-1',
+                    peerid: 'friend1-1 #!@./',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_friend1@example.com'}),
                     mode: 'give',
                     ip: '74.120.12.135',
@@ -280,7 +280,7 @@ exports.SCENARIOS = {
                     country: 'DE',
                     type: 'pc'
                   },{
-                    peerid: 'friend2-1',
+                    peerid: 'friend2-1 #!@./',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_friend2@example.com'}),
                     mode: 'get',
                     ip: '27.55.2.80',
@@ -289,7 +289,7 @@ exports.SCENARIOS = {
                     country: 'TH',
                     type: 'pc'
                   },{
-                    peerid: 'poweruser-1',
+                    peerid: 'poweruser-1 #!@./',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
                     ip: '93.182.129.82',
@@ -298,7 +298,7 @@ exports.SCENARIOS = {
                     country: 'SE',
                     type: 'cloud'
                   },{
-                    peerid: 'poweruser-2',
+                    peerid: 'poweruser-2 #!@./',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
                     ip: '123.456.789.123',
@@ -307,7 +307,7 @@ exports.SCENARIOS = {
                     country: 'US',
                     type: 'laeproxy'
                   },{
-                    peerid: 'poweruser-3',
+                    peerid: 'poweruser-3 #!@./',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'give',
                     ip: '195.27.40.32',
@@ -316,7 +316,7 @@ exports.SCENARIOS = {
                     country: 'GB',
                     type: 'cloud'
                   },{
-                    peerid: 'poweruser-4',
+                    peerid: 'poweruser-4 #!@./',
                     rosterEntry: _.find(this.model.roster, {email: 'lantern_power_user@example.com'}),
                     mode: 'get',
                     ip: '59.108.60.58',
@@ -325,7 +325,7 @@ exports.SCENARIOS = {
                     country: 'CN',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-1',
+                    peerid: 'friend-of-friend1-1 #!@./',
                     mode: 'get',
                     ip: '2.88.102.152',
                     lat: 26.3032,
@@ -333,7 +333,7 @@ exports.SCENARIOS = {
                     country: 'SA',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-2',
+                    peerid: 'friend-of-friend1-2 #!@./',
                     mode: 'give',
                     ip: '186.2.61.111',
                     lat: -16.5,
@@ -341,7 +341,7 @@ exports.SCENARIOS = {
                     country: 'BO',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-3',
+                    peerid: 'friend-of-friend1-3 #!@./',
                     mode: 'give',
                     ip: '187.137.225.219',
                     lat: 22.15,
@@ -349,7 +349,7 @@ exports.SCENARIOS = {
                     country: 'MX',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-4',
+                    peerid: 'friend-of-friend1-4 #!@./',
                     mode: 'get',
                     ip: '78.108.178.25',
                     lat: 49.75,
@@ -357,7 +357,7 @@ exports.SCENARIOS = {
                     country: 'CZ',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-5',
+                    peerid: 'friend-of-friend1-5 #!@./',
                     mode: 'get',
                     ip: '88.19.63.196',
                     lat: 37.3824,
@@ -365,7 +365,7 @@ exports.SCENARIOS = {
                     country: 'ES',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-6',
+                    peerid: 'friend-of-friend1-6 #!@./',
                     mode: 'give',
                     ip: '79.55.82.37',
                     lat: 39.2167,
@@ -373,7 +373,7 @@ exports.SCENARIOS = {
                     country: 'IT',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-7',
+                    peerid: 'friend-of-friend1-7 #!@./',
                     mode: 'get',
                     ip: '77.49.7.129',
                     lat: 37.9833,
@@ -381,7 +381,7 @@ exports.SCENARIOS = {
                     country: 'GR',
                     type: 'pc'
                   },{
-                    peerid: 'friend-of-friend1-8',
+                    peerid: 'friend-of-friend1-8 #!@./',
                     mode: 'give',
                     ip: '123.456.789.123',
                     lat: 39.0437,
@@ -389,7 +389,7 @@ exports.SCENARIOS = {
                     country: 'US',
                     type: 'cloud'
                   },{
-                    peerid: 'friend-of-friend1-9',
+                    peerid: 'friend-of-friend1-9 #!@./',
                     mode: 'give',
                     ip: '177.64.207.97',
                     lat: -5.7833,

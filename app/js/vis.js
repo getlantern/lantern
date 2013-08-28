@@ -211,11 +211,14 @@ angular.module('app.vis', [])
       
       // Peers are uniquely identified by their peerid.
       function peerIdentifier(peer) {
-        return peer.peerid
-          .replace(/[.]/g, '_dot_')
-          .replace(/[@]/g, '_at_')
-          .replace(/[\/]/g, '_slash_')
-          .replace(/[^-_0-9a-zA-z]/g, '_');
+        return peer.peerid;
+      }
+      
+      /**
+       * Return the CSS escaped version of the peer identifier
+       */
+      function escapedPeerIdentifier(peer) {
+        return cssesc(peerIdentifier(peer), {isIdentifier: true});
       }
       
       var peersContainer = d3.select(element[0]);
@@ -334,7 +337,7 @@ angular.module('app.vis', [])
         
         // Find out which peers have had status changes
         peers.forEach(function(peer) {
-          var peerId = peerIdentifier(peer);
+          var peerId = escapedPeerIdentifier(peer);
           var oldPeer = oldPeersById[peerId];
           if (peer.connected) {
             if (!oldPeer || !oldPeer.connected) {

@@ -260,7 +260,7 @@
 
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
         <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder | filter:friendFilter"
-          id="friendlist-{{friend.email|toClassOrID}}" class="entry status-{{ friend.status }}">
+          class="entry status-{{ friend.status }}">
           <div>
             <a class="reject" ng-click="friend.status != FRIEND_STATUS.pending && reject(friend.email)">×</a>
             <span class="vcard">
