@@ -143,17 +143,14 @@
     -webkit-appearance: searchfield-decoration
   &::-webkit-search-cancel-button
     -webkit-appearance: searchfield-cancel-button
-  cursor: default
-  opacity: 0
-  &:focus
-    cursor: text
-    opacity: 1
-  &.show
-    cursor: text
-    opacity: 1
+  &:focus, &:hover
+    opacity: 1 !important
+  &.empty
+    opacity: .5
 
 #friendsListSearch // override bootstrap
   +ctb-box-sizing(border-box)
+  +single-transition(opacity, 0.3s, ease)
   float: right
   width: 170px
   height: 1.5 * $baseLineHeight
@@ -163,6 +160,10 @@
     -webkit-appearance: searchfield-decoration
   &::-webkit-search-cancel-button
     -webkit-appearance: searchfield-cancel-button
+  &:focus, &:hover
+    opacity: 1 !important
+  &.empty
+    opacity: .5
 
 #lanternFriends
   min-height: 115px

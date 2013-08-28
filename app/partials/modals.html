@@ -188,14 +188,14 @@
         {{ 'DISABLE_PROXY_ALL' | i18n }}
       </a>
     </div>
-    <div ng-init="showSearchInput=true">
+    <div>
       <div id="proxiedSitesLabelAndSearchContainer">
         <label id="proxiedSitesLabel" for="proxiedSitesInput">
           {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
         </label>
         <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
             ng-disabled="model.settings.proxyAllSites"
-            ng-class="{show: showSearchInput}"
+            ng-class="{empty: !searchText}"
             placeholder="{{ 'SEARCH' | i18n }}">
       </div>
       <form name="proxiedSitesForm">
@@ -203,9 +203,8 @@
           ng-disabled="model.settings.proxyAllSites || updating"
           ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
           ui-validate="'validate($value)'" id="proxiedSitesInput"
-          ui-event="{focus: 'showSearchInput=true', blur: 'showSearchInput=false'}"
           dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
-        <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }}"
+        <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }} &quot;{{searchText}}&quot;"
           ng-show="!!searchText" readonly dir="ltr"></textarea>
       </form>
     </div>
@@ -256,9 +255,13 @@
 
       <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</p>
 
-      <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}" id="friendsListSearch">
+      <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
+      id="friendsListSearch" ng-class="{empty: !searchText}">
 
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
+        <li ng-show="searchText && (model.friends | notRejected | filter:friendFilter).length == 0">
+          <div class="indented gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>
+        </li>
         <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder | filter:friendFilter"
           class="entry status-{{ friend.status }}">
           <div>

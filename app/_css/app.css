@@ -7028,8 +7028,6 @@ textarea {
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
-  cursor: default;
-  opacity: 0;
 }
 #proxiedSitesSearch::-webkit-search-decoration {
   -webkit-appearance: searchfield-decoration;
@@ -7037,19 +7035,19 @@ textarea {
 #proxiedSitesSearch::-webkit-search-cancel-button {
   -webkit-appearance: searchfield-cancel-button;
 }
-#proxiedSitesSearch:focus {
-  cursor: text;
-  opacity: 1;
+#proxiedSitesSearch:focus, #proxiedSitesSearch:hover {
+  opacity: 1 !important;
 }
-#proxiedSitesSearch.show {
-  cursor: text;
-  opacity: 1;
+#proxiedSitesSearch.empty {
+  opacity: 0.5;
 }
 
 #friendsListSearch {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
   float: right;
   width: 170px;
   height: 27px;
@@ -7063,6 +7061,12 @@ textarea {
 }
 #friendsListSearch::-webkit-search-cancel-button {
   -webkit-appearance: searchfield-cancel-button;
+}
+#friendsListSearch:focus, #friendsListSearch:hover {
+  opacity: 1 !important;
+}
+#friendsListSearch.empty {
+  opacity: 0.5;
 }
 
 #lanternFriends {
