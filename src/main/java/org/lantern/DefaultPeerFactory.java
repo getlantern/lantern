@@ -24,6 +24,7 @@ import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounter;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,7 +181,11 @@ public class DefaultPeerFactory implements PeerFactory {
         // This is a peer we know very little about at this point, as we
         // haven't made any network connections with them.
         final LanternRosterEntry entry = rosterEntry(fullJid);
-        log.debug("Got roster entry: {}", entry);
+        log.debug("Got roster entry: {} for '{}'", entry, fullJid);
+        if (entry == null) {
+            log.debug("Could not find match for type{}:\n{}", type, 
+                    ThreadUtils.dumpStack());
+        }
 
         final Peer existing = this.model.getPeerCollector().getPeer(fullJid);
 
