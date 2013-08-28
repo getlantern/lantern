@@ -255,9 +255,12 @@
       </div>
 
       <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</p>
+
+      <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}" id="friendsListSearch">
+
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
-        <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder"
-            class="entry status-{{ friend.status }}">
+        <li ng-repeat="friend in model.friends | notRejected | orderBy:friendOrder | filter:friendFilter"
+          id="friendlist-{{friend.email|toClassOrID}}" class="entry status-{{ friend.status }}">
           <div>
             <a class="reject" ng-click="friend.status != FRIEND_STATUS.pending && reject(friend.email)">×</a>
             <span class="vcard">

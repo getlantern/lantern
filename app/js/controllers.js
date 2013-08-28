@@ -314,6 +314,15 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       });
   };
 
+  $scope.friendFilter = function (friend) {
+    if (!$scope.searchText ||
+        ~angular.lowercase(prettyUserFltr(friend))
+          .indexOf(angular.lowercase($scope.searchText))) {
+      return friend;
+    }
+    return false;
+  };
+
   $scope.friendOrder = function (friend) {
     // entries with status 'pending' come first, then 'friend', then other
     // within each group, entries with no name field come first

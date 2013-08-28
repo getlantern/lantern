@@ -148,10 +148,21 @@
   &:focus
     cursor: text
     opacity: 1
+  &.show
+    cursor: text
+    opacity: 1
 
-#proxiedSitesSearch.show
-  cursor: text
-  opacity: 1
+#friendsListSearch // override bootstrap
+  +ctb-box-sizing(border-box)
+  float: right
+  width: 170px
+  height: 1.5 * $baseLineHeight
+  margin: 20px 0 7px
+  +border-radius(18px)
+  &::-webkit-search-decoration
+    -webkit-appearance: searchfield-decoration
+  &::-webkit-search-cancel-button
+    -webkit-appearance: searchfield-cancel-button
 
 #lanternFriends
   min-height: 115px
@@ -159,12 +170,14 @@
     margin-top: 20px
 
 #currentFriendsHeading
-  +centered
-  margin: 15px 0 0 0
+  margin: 25px 0 0
+  float: left
+  font-size: 15px
 
 #currentFriends
   +no-bullets
-  max-height: 170px
+  clear: both
+  max-height: 120px
   overflow-y: scroll
   margin: 10px 0
   padding: 10px 0

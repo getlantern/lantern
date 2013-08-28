@@ -7041,10 +7041,28 @@ textarea {
   cursor: text;
   opacity: 1;
 }
-
 #proxiedSitesSearch.show {
   cursor: text;
   opacity: 1;
+}
+
+#friendsListSearch {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  float: right;
+  width: 170px;
+  height: 27px;
+  margin: 20px 0 7px;
+  -webkit-border-radius: 18px;
+  -moz-border-radius: 18px;
+  border-radius: 18px;
+}
+#friendsListSearch::-webkit-search-decoration {
+  -webkit-appearance: searchfield-decoration;
+}
+#friendsListSearch::-webkit-search-cancel-button {
+  -webkit-appearance: searchfield-cancel-button;
 }
 
 #lanternFriends {
@@ -7055,13 +7073,15 @@ textarea {
 }
 
 #currentFriendsHeading {
-  text-align: center;
-  margin: 15px 0 0 0;
+  margin: 25px 0 0;
+  float: left;
+  font-size: 15px;
 }
 
 #currentFriends {
   list-style: none;
-  max-height: 170px;
+  clear: both;
+  max-height: 120px;
   overflow-y: scroll;
   margin: 10px 0;
   padding: 10px 0;
