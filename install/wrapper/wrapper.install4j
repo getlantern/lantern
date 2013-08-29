@@ -272,9 +272,6 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="retryIfInterrupted">
-                        <boolean>false</boolean>
-                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.dmg</string>
                       </void>
@@ -290,9 +287,6 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="retryIfInterrupted">
-                        <boolean>false</boolean>
-                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.exe</string>
                       </void>
@@ -308,9 +302,6 @@
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="retryIfInterrupted">
-                        <boolean>false</boolean>
-                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
@@ -327,9 +318,6 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
-                      <void property="retryIfInterrupted">
-                        <boolean>false</boolean>
-                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
