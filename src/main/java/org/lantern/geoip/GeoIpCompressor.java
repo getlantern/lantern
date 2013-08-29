@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
+import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import com.sachingarg.CompressedOutputStream;
@@ -284,7 +285,7 @@ public class GeoIpCompressor {
         for (int i = 0; i < nCountries; ++i) {
             byte[] countryCodeBytes = new byte[2];
             inStream.read(countryCodeBytes);
-            String country = new String(countryCodeBytes);
+            String country = new String(countryCodeBytes, Charsets.UTF_8);
             countryIdToCountry.add(country);
         }
 
@@ -388,7 +389,7 @@ public class GeoIpCompressor {
         outStream.write(BitUtils.toByteArray(countryIdToCountry.size()));
         // write out the list of countries by id
         for (String country : countryIdToCountry) {
-            outStream.write(country.getBytes());
+            outStream.write(country.getBytes(Charsets.UTF_8));
         }
         LOG.debug("Bytes used after country: " + outStream.getByteCount());
 

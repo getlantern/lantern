@@ -205,7 +205,6 @@ public class InteractionServlet extends HttpServlet {
 
         if (inter == Interaction.URL) {
             final String url = JsonUtils.getValueFromJson("url", json);
-            final URL url_;
             if (!StringUtils.startsWith(url, "http://") &&
                 !StringUtils.startsWith(url, "https://")) {
                 log.error("http(s) url expected, got {}", url);
@@ -213,7 +212,7 @@ public class InteractionServlet extends HttpServlet {
                 return;
             }
             try {
-                url_ = new URL(url);
+                new URL(url);
             } catch (MalformedURLException e) {
                 log.error("invalid url: {}", url);
                 HttpUtils.sendClientError(resp, "invalid url");
