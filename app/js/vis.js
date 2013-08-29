@@ -337,14 +337,15 @@ angular.module('app.vis', [])
         
         // Find out which peers have had status changes
         peers.forEach(function(peer) {
-          var peerId = escapedPeerIdentifier(peer);
+          var peerId = peerIdentifier(peer);
+          var escapedPeerId = escapedPeerIdentifier(peer);
           var oldPeer = oldPeersById[peerId];
           if (peer.connected) {
             if (!oldPeer || !oldPeer.connected) {
               if (!firstNewlyConnectedPeer) {
                 newlyConnectedPeersSelector += ", ";
               }
-              newlyConnectedPeersSelector += "#connection_to_" + peerId;
+              newlyConnectedPeersSelector += "#connection_to_" + escapedPeerId;
               firstNewlyConnectedPeer = false;
             }
           } else {
@@ -352,7 +353,7 @@ angular.module('app.vis', [])
               if (!firstNewlyDisconnectedPeer) {
                 newlyDisconnectedPeersSelector += ", ";
               }
-              newlyDisconnectedPeersSelector += "#connection_to_" + peerId;
+              newlyDisconnectedPeersSelector += "#connection_to_" + escapedPeerId;
               firstNewlyDisconnectedPeer = false;
             }
           }
