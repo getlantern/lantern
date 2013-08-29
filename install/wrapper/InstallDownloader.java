@@ -66,6 +66,7 @@ public class InstallDownloader {
         //final File file = new File(fileName.substring(0, fileName.length()-5));
         log("NAME "+file.getName());
         log("SIZE: "+file.length());
+        log("EXISTS: "+file.isFile());
         InputStream is = null;
         try {
             is = new FileInputStream(file);
