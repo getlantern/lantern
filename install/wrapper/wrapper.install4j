@@ -268,7 +268,7 @@
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
@@ -283,7 +283,7 @@
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
@@ -298,7 +298,7 @@
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="88" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="88" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
@@ -314,7 +314,7 @@
                 <condition>final boolean is64Bit = System.getProperty("sun.arch.data.model").equals("64");
 return Util.isLinux() &amp;&amp; is64Bit;</condition>
               </action>
-              <action name="" id="90" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="90" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">

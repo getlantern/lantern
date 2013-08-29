@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -23,6 +25,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 public class InstallDownloader {
+    
+    private static final int MAX_SHA1_TRIES = 10;
     
     public static boolean verify(final File dir) throws IOException {
         log("Downloading from file: "+dir.getAbsolutePath());
@@ -44,7 +48,7 @@ public class InstallDownloader {
         }
         final String hash;
         try {
-            hash = downloadHash(fileName);
+            hash = downloadHash(fileName, 0);
         } catch (final Exception e) {
             log("Could not download hash!! "+e.getMessage());
             return false;
@@ -116,7 +120,8 @@ public class InstallDownloader {
         return new String(hexChars);
     }
 
-    private static String downloadHash(final String fileName) throws Exception {
+    private static String downloadHash(final String fileName, int tries) 
+            throws Exception {
         
         final String str = "https://s3.amazonaws.com/lantern/"+fileName;
         log("downloading: "+str);
@@ -137,12 +142,23 @@ public class InstallDownloader {
             }
             return sb.toString().trim();
         } catch (final IOException e) {
-            e.printStackTrace();
+            if (tries > MAX_SHA1_TRIES) {
+                log("Download failed after "+tries+" tries!!");
+                throw e;
+            } else {
+                log("Could not download? "+e.getMessage()+"\n"+dumpStack(e));
+                try {
+                    Thread.sleep(600);
+                } catch (final InterruptedException e1) {
+                }
+                downloadHash(fileName, tries++);
+            }
         } finally {
             if (is != null) {
                 try {is.close();} catch (IOException e) {}
             }
         }
+        log("Still could not download???");
         return "";
     }
 
@@ -226,6 +242,36 @@ public class InstallDownloader {
         "JFoEknD6Zo6EMze/VVMewpseiHUT4DvBn/gtXMhEc/87QQ5ml9u+r+9QT+UjdI5w\n"+
         "W4wWQZ5AWPUZmZ4Dl8XgUPtCeArv8R+9zQVMHQ==\n"+
         "-----END CERTIFICATE-----";
+    
+    private static String dumpStack() {
+        return dumpStack(new Exception("Stack Dump Generated Exception"));
+    }
+
+    /**
+     * Returns the stack trace as a string.
+     * 
+     * @param cause The thread to dump.
+     * @return The stack trace as a string.
+     */
+    private static String dumpStack(final Throwable cause) {
+        if (cause == null) {
+            return "Throwable was null";
+        }
+        final StringWriter sw = new StringWriter();
+        final PrintWriter s = new PrintWriter(sw);
+
+        // This is very close to what Thread.dumpStack does.
+        cause.printStackTrace(s);
+
+        final String stack = sw.toString();
+        try {
+            sw.close();
+        } catch (final IOException e) {
+            log("Could not close writer\n"+dumpStack(e));
+        }
+        s.close();
+        return stack;
+    }
     
     /*
     public static void main(final String[] args) {
