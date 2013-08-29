@@ -16,8 +16,8 @@ var DEFAULT_LANG = 'en_US',
     DEFAULT_DIRECTION = 'ltr',
     LANGS = {
       en_US: {dir: 'ltr', name: 'English'},
-      fa_IR: {dir: 'rtl', name: 'پارسی'}
-      //zh_CN: {dir: 'ltr', name: '中文'},
+      fa_IR: {dir: 'rtl', name: 'پارسی'},
+      zh_CN: {dir: 'ltr', name: '中文'}
       //ar: {dir: 'rtl', name: 'العربية'},
     },
     loc = typeof location == 'object' ? location : undefined,
