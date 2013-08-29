@@ -268,45 +268,54 @@
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.dmg</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest.dmg</string>
                       </void>
                     </object>
                   </java>
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.exe</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest.exe</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest.exe</string>
                       </void>
                     </object>
                   </java>
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="88" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="88" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest-64.deb</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest-64.deb</string>
                       </void>
                     </object>
                   </java>
@@ -314,15 +323,18 @@
                 <condition>final boolean is64Bit = System.getProperty("sun.arch.data.model").equals("64");
 return Util.isLinux() &amp;&amp; is64Bit;</condition>
               </action>
-              <action name="" id="90" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="90" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest-32.deb</string>
+                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest-32.deb</string>
                       </void>
                     </object>
                   </java>
@@ -644,7 +656,7 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <windows name="Windows" id="79" customizedId="" mediaFileName="Lantern-Installer" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/windows-x86-jre.tar.gz" manualJREEntry="true" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-jre.tar.gz" jreShared="false" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+    <windows name="Windows" id="79" customizedId="" mediaFileName="Lantern-Installer" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="../jres/windows-x86-jre.tar.gz" manualJREEntry="true" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-jre.tar.gz" jreShared="false" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="25" />
       </excludedLaunchers>
