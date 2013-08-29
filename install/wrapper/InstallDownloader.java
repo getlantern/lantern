@@ -130,6 +130,7 @@ public class InstallDownloader {
         conn.setConnectTimeout(200*1000);
         conn.setReadTimeout(200*1000);
         conn.setSSLSocketFactory(newAwsSocketFactory());
+        conn.setUseCaches(false);
         
         InputStream is = null;
         try {

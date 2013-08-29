@@ -276,7 +276,7 @@
                         <string>${installer:sys.userHome}/latest.dmg</string>
                       </void>
                       <void property="url">
-                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest.dmg</string>
+                        <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -291,7 +291,7 @@
                         <string>${installer:sys.userHome}/latest.exe</string>
                       </void>
                       <void property="url">
-                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest.exe</string>
+                        <string>https://s3.amazonaws.com/lantern/latest.exe</string>
                       </void>
                     </object>
                   </java>
@@ -306,7 +306,7 @@
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest-64.deb</string>
+                        <string>https://s3.amazonaws.com/lantern/latest-64.deb</string>
                       </void>
                     </object>
                   </java>
@@ -322,7 +322,7 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
                       <void property="url">
-                        <string>http://d3u9xt7t1vcoy6.cloudfront.net/latest-32.deb</string>
+                        <string>https://s3.amazonaws.com/lantern/latest-32.deb</string>
                       </void>
                     </object>
                   </java>
