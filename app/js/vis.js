@@ -420,7 +420,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
 
   $scope.path = function (d, pointRadius) {
     path.pointRadius(pointRadius || DEFAULT_POINT_RADIUS);
-    // https://bugs.webkit.org/show_bug.cgi?id=110691
+    // https://code.google.com/p/chromium/issues/detail?id=231626
     return path(d) || 'M0 0';
   };
 
