@@ -94,7 +94,7 @@ public class InstallDownloader {
         } catch (final NoSuchAlgorithmException e) {
             return "";
         }
-        final byte[] buffer = new byte[size];
+        final byte[] buffer = new byte[65536];
         int read;
         try {
             while ((read = is.read(buffer)) != -1) {

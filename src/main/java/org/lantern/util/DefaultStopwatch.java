@@ -1,10 +1,10 @@
 package org.lantern.util;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ class DefaultStopwatch implements Stopwatch, Comparable<DefaultStopwatch> {
     private final String name;
 
     DefaultStopwatch(final String loggerName) {
-        this(String.valueOf(new Random().nextInt()), loggerName);
+        this(String.valueOf(RandomUtils.nextInt()), loggerName);
     }
 
     DefaultStopwatch(final String id, final String loggerName) {
