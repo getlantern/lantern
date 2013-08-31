@@ -91,6 +91,9 @@ fi
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 
+test -f ./install/wrapper/InstallDownloader.class || die "Could not find InstallerDownloader class file?"
+file ./install/wrapper/InstallDownloader.class | grep 51 && die "InstallerDownloader.class was compiled with java7"
+
 install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
 
 echo "Moving back to $oldbranch"

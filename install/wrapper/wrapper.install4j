@@ -125,12 +125,6 @@
                       <void property="failIfNotRootUnix">
                         <boolean>true</boolean>
                       </void>
-                      <void property="obtainIfAdminMac">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="obtainIfNormalMac">
-                        <boolean>true</boolean>
-                      </void>
                       <void property="obtainIfNormalWin">
                         <boolean>true</boolean>
                       </void>
@@ -445,19 +439,10 @@ return verified;</string>
                           <string>${installer:sys.userHome}/lantern-install-log.txt</string>
                         </object>
                       </void>
-                      <void property="stderrRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
                           <string>${installer:sys.userHome}/lantern-install-log.txt</string>
                         </object>
-                      </void>
-                      <void property="stdoutRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
-                      <void property="wait">
-                        <boolean>true</boolean>
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
@@ -492,19 +477,10 @@ return verified;</string>
                           <string>${installer:sys.userHome}/lantern-install-log.txt</string>
                         </object>
                       </void>
-                      <void property="stderrRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
                           <string>${installer:sys.userHome}/lantern-install-log.txt</string>
                         </object>
-                      </void>
-                      <void property="stdoutRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
-                      <void property="wait">
-                        <boolean>true</boolean>
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
@@ -766,7 +742,7 @@ sudo ls -la</content>
     </unixInstaller>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="79" />
+    <mediaSet refId="26" />
   </buildIds>
   <buildOptions verbose="false" faster="false" disableSigning="false" debug="true" />
 </install4j>
