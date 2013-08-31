@@ -3,13 +3,13 @@ package org.lantern;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.Friend;
+import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
 import org.lantern.state.InviteQueue;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.SyncPath;
-import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,19 +36,25 @@ public class DefaultFriender implements Friender {
         this.modelUtils = modelUtils;
         this.inviteQueue = inviteQueue;
     }
-    
+
     @Override
-    public void removeFriend(String json) {
+    public void removeFriend(final String json) {
         final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
         setFriendStatus(email, Status.rejected);
+        
+        this.xmppHandler.unsubscribe(email);
+        this.xmppHandler.unsubscribed(email);
     }
 
     @Override
     public void addFriend(String json) {
         final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
+        addFriendByEmail(email);
+    }
+
+    private void addFriendByEmail(final String email) {
         setFriendStatus(email, Status.friend);
         
-
         try {
             //if they have requested a subscription to us, we'll accept it.
             this.xmppHandler.subscribed(email);
