@@ -99,6 +99,7 @@ public class LanternModule extends AbstractModule {
         bind(MessageService.class).to(SwtMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
 
+        bind(Friender.class).to(DefaultFriender.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
