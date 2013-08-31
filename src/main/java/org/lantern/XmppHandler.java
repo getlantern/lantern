@@ -59,9 +59,9 @@ public interface XmppHandler extends LanternService {
      *
      * @param friend The friend to send the invite to.
      * @param redo Whether we are retrying
-     * @return
+     * @return success or failure.
      */
-    boolean sendInvite(Friend friend, boolean redo);
+    boolean sendInvite(Friend friend, boolean redo, final boolean addToRoster);
 
     /**
      * Stop subscribing to the presence of another user.
