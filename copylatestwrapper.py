@@ -4,7 +4,7 @@ import sys
 import boto
 from boto.s3.key import Key
 
-if len(sys.argv) !== 2:
+if len(sys.argv) != 2:
   sys.exit("Usage: origin net-installer prefix expected, as in 'zodsmxt3'")
 
 latestprefix = str(sys.argv[1])
