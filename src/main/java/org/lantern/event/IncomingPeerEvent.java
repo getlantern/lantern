@@ -8,15 +8,9 @@ import org.lantern.util.LanternTrafficCounter;
 public class IncomingPeerEvent {
 
 
-    private final Channel channel;
-    private final LanternTrafficCounter trafficCounter;
     private final X509Certificate cert;
 
-    public IncomingPeerEvent(final Channel channel,
-            final LanternTrafficCounter trafficCounter,
-            final X509Certificate cert) {
-        this.channel = channel;
-        this.trafficCounter = trafficCounter;
+    public IncomingPeerEvent(final X509Certificate cert) {
         this.cert = cert;
     }
 

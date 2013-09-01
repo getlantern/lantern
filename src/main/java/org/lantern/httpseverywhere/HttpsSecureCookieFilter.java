@@ -1,10 +1,11 @@
 package org.lantern.httpseverywhere; 
 
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.HttpRequest;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
 

@@ -1,0 +1,57 @@
+package org.lantern.proxy;
+
+import io.netty.handler.codec.http.HttpRequest;
+
+import java.util.Collection;
+import java.util.Queue;
+
+import org.lantern.ProxyHolder;
+import org.lantern.ProxyTracker;
+import org.littleshoot.proxy.ChainedProxy;
+import org.littleshoot.proxy.ChainedProxyAdapter;
+import org.littleshoot.proxy.ChainedProxyManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+/**
+ * {@link ChainedProxyManager} that uses various downstream proxies to process
+ * requests from our local get mode user.
+ */
+@Singleton
+public class DispatchingChainedProxyManager implements ChainedProxyManager {
+    private static final Logger log = LoggerFactory
+            .getLogger(DispatchingChainedProxyManager.class);
+
+    private final ProxyTracker proxyTracker;
+
+    @Inject
+    public DispatchingChainedProxyManager(ProxyTracker proxyTracker) {
+        this.proxyTracker = proxyTracker;
+    }
+
+    @Override
+    public void lookupChainedProxies(HttpRequest httpRequest,
+            Queue<ChainedProxy> chainedProxies) {
+        Collection<ProxyHolder> proxyHolders = proxyTracker
+                .getAllProxiesInOrderOfFallbackPreference();
+
+        // Add all connected ProxyHolders to our queue of chained proxies
+        for (ProxyHolder proxyHolder : proxyHolders) {
+            if (proxyHolder.isConnected()) {
+                chainedProxies.add(proxyHolder);
+            }
+        }
+
+        if (proxyHolders.isEmpty()) {
+            log.debug("No connected proxies found!");
+        }
+
+        // Allow falling back to a direct connection if necessary
+        chainedProxies
+                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+    }
+
+}

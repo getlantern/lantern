@@ -1,5 +1,8 @@
 package org.lantern;
 
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
@@ -7,15 +10,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.ThreadNameDeterminer;
-import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
@@ -25,7 +19,6 @@ import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.PhotoServlet;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
@@ -36,6 +29,9 @@ import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.SecretServiceLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
+import org.lantern.proxy.CertTrackingSSLEngineSource;
+import org.lantern.proxy.DispatchingChainedProxyManager;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
@@ -50,13 +46,10 @@ import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwtMessageService;
-import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
-import org.littleshoot.proxy.HandshakeHandlerFactory;
-import org.littleshoot.proxy.HttpRequestFilter;
-import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
+import org.littleshoot.proxy.ChainedProxyManager;
+import org.littleshoot.proxy.SSLEngineSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,14 +76,9 @@ public class LanternModule extends AbstractModule {
         //install policy files before anything gets loaded
         LanternUtils.installPolicyFiles();
 
-        // Tweak Netty naming...
-        ThreadRenamingRunnable.setThreadNameDeterminer(
-                ThreadNameDeterminer.CURRENT);
-
         SASLAuthentication.registerSASLMechanism("X-OAUTH2",
             LanternSaslGoogleOAuth2Mechanism.class);
 
-        bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         bind(ClientStats.class).to(StatsTracker.class);
@@ -117,10 +105,7 @@ public class LanternModule extends AbstractModule {
         bind(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);
-        bind(GlobalLanternServerTrafficShapingHandler.class);
-        bind(HandshakeHandlerFactory.class).to(CertTrackingSslHandlerFactory.class);
         bind(SslHttpProxyServer.class);
-        bind(PlainTextRelayHttpProxyServer.class);
         bind(PhotoServlet.class);
         bind(LanternFeedback.class);
 
@@ -131,7 +116,7 @@ public class LanternModule extends AbstractModule {
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
-        bind(LanternHttpProxyServer.class);
+        bind(GetModeProxy.class);
         bind(StatsUpdater.class);
         bind(ConnectivityChecker.class);
         bind(InviteQueue.class);
@@ -139,6 +124,8 @@ public class LanternModule extends AbstractModule {
         bind(CountryService.class);
         //bind(SplashScreen.class);
         bind(NotificationManager.class);
+        bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
+        bind(SSLEngineSource.class).to(CertTrackingSSLEngineSource.class);
 
         try {
             copyFireFoxExtension();

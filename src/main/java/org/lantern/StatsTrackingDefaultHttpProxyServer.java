@@ -16,6 +16,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.Timer;
+import org.lantern.proxy.AbstractHttpProxyServerAdapter;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.littleshoot.proxy.ChainProxyManager;
 import org.littleshoot.proxy.DefaultProxyAuthorizationManager;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * DefaultHttpProxyServer is severely unfriendly to subclassing
  * so it is cargo culted in full with specific additions.
  */
-public abstract class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
+public abstract class StatsTrackingDefaultHttpProxyServer implements AbstractHttpProxyServerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

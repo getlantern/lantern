@@ -71,6 +71,7 @@ import org.lantern.cookie.StoredCookie;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -409,7 +410,7 @@ public class TestingUtils {
      * this mimics the portion of Launcher that starts the local browser proxy, 
      * stubbing out some things.
      */  
-    public static LanternHttpProxyServer startMockLanternHttpProxyServer(
+    public static GetModeProxy startMockLanternHttpProxyServer(
         int port, ProxyProvider pp, CookieTracker ct) throws Exception {
         
         ProxyStatusListener psl = new ProxyStatusListener() {

@@ -1,6 +1,7 @@
 package org.lantern; 
 
-import org.jboss.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
+
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.httpseverywhere.HttpsBestEffortCookieFilter;

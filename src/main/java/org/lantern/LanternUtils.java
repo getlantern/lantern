@@ -830,16 +830,12 @@ public class LanternUtils {
             PropertyUtils.setProperty(propObject, nextProp, value);
         }
 
-    public static boolean isLocalHost(final Channel channel) {
-        final InetSocketAddress remote =
-            (InetSocketAddress) channel.getRemoteAddress();
-        return remote.getAddress().isLoopbackAddress();
-    }
-
     public static boolean isLocalHost(final Socket sock) {
-        final InetSocketAddress remote =
-            (InetSocketAddress) sock.getRemoteSocketAddress();
-        return remote.getAddress().isLoopbackAddress();
+        return isLocalHost((InetSocketAddress) sock.getRemoteSocketAddress());
+    }
+    
+    public static boolean isLocalHost(final InetSocketAddress address) {
+        return address.getAddress().isLoopbackAddress();
     }
 
     /**

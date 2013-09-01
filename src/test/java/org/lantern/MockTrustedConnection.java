@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.io.IOException;
+
 import javax.net.SocketFactory;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -28,8 +29,10 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
 
 import static org.lantern.TestingUtils.*;
+
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.Peer;
 
 
@@ -45,7 +48,7 @@ class MockTrustedConnection extends MockConnection {
     ServerBootstrap peerServer;
     
     int localPort;    
-    LanternHttpProxyServer localProxy;    
+    GetModeProxy localProxy;    
 
     /*
     public MockTrustedConnection() throws Exception {

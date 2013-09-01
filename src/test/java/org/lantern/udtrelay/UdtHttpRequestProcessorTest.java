@@ -28,8 +28,6 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
-import org.lantern.CertTrackingSslHandlerFactory;
-import org.lantern.HttpProxyServer;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternKeyStoreManager;
@@ -41,6 +39,8 @@ import org.lantern.ProxyQueue;
 import org.lantern.ProxyTracker;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
 import org.lantern.UdtHttpRequestProcessor;
+import org.lantern.proxy.CertTrackingSSLEngineSource;
+import org.lantern.proxy.AbstractHttpProxyServerAdapter;
 import org.lantern.state.Peer.Type;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
@@ -73,7 +73,7 @@ public class UdtHttpRequestProcessorTest {
         final String dummyId = "test@gmail.com/-lan-22LJDEE";
         trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         final HandshakeHandlerFactory hhf = 
-                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore, ksm);
+                new CertTrackingSSLEngineSource(new HashedWheelTimer(), trustStore, ksm);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
@@ -137,7 +137,7 @@ public class UdtHttpRequestProcessorTest {
                 if (ssl) {
                     org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
-                    final HttpProxyServer server = 
+                    final AbstractHttpProxyServerAdapter server = 
                         new StatsTrackingDefaultHttpProxyServer(
                         new HttpResponseFilters() {
                             @Override

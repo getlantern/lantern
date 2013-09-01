@@ -14,8 +14,10 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 import static org.lantern.TestingUtils.*;
+
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.Peer;
 
 
@@ -31,7 +33,7 @@ class MockProxyConnection extends MockConnection {
     ServerBootstrap peerServer;
 
     int localPort;
-    LanternHttpProxyServer localProxy;
+    GetModeProxy localProxy;
 
     /*
     public MockProxyConnection() throws Exception {

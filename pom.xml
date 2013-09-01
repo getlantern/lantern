@@ -67,11 +67,6 @@
     </dependency>
 
     <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>4.0.0.CR3</version>
-    </dependency>
-    <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>kaleidoscope</artifactId>
       <version>1.0.0</version>
@@ -278,7 +273,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>0.5.3</version>
+      <version>1.0.0-beta1-SNAPSHOT</version>
     </dependency>
 
     <dependency>

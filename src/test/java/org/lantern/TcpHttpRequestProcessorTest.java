@@ -32,6 +32,8 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
+import org.lantern.proxy.CertTrackingSSLEngineSource;
+import org.lantern.proxy.AbstractHttpProxyServerAdapter;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
@@ -66,7 +68,7 @@ public class TcpHttpRequestProcessorTest {
         trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         
         final HandshakeHandlerFactory hhf = 
-            new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore, ksm);
+            new CertTrackingSSLEngineSource(new HashedWheelTimer(), trustStore, ksm);
         final PeerFactory peerFactory = new PeerFactory() {
 
             @Override
@@ -143,7 +145,7 @@ public class TcpHttpRequestProcessorTest {
                 if (ssl) {
                     final org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
-                    final HttpProxyServer server = 
+                    final AbstractHttpProxyServerAdapter server = 
                         new StatsTrackingDefaultHttpProxyServer(
                         new HttpResponseFilters() {
                             @Override

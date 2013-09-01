@@ -1,5 +1,8 @@
 package org.lantern;
 
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.util.Timer;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,8 +24,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.util.Timer;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
@@ -31,8 +32,6 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.lantern.util.Netty3LanternTrafficCounterHandler;
-import org.lantern.util.Netty4LanternTrafficCounterHandler;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -60,24 +59,12 @@ public class DefaultProxyTracker implements ProxyTracker {
      */
     ProxyQueue proxyQueue;
 
-    /** This is are presently not used */
-    private final ProxyQueue laeProxyQueue;
-
     /** Peer proxies that we can't directly connect to */
     private final PeerProxyQueue peerProxyQueue;
 
     private final Model model;
 
     private final PeerFactory peerFactory;
-
-    private final Timer timer;
-
-    private final Collection<Netty3LanternTrafficCounterHandler> netty3TrafficShapers =
-            new ArrayList<Netty3LanternTrafficCounterHandler>();
-
-    private final Collection<Netty4LanternTrafficCounterHandler> netty4TrafficShapers =
-            new ArrayList<Netty4LanternTrafficCounterHandler>();
-
 
     private static final ScheduledExecutorService netty4TrafficCounterExecutor =
             Threads.newScheduledThreadPool("Netty4-Traffic-Counter-");
@@ -101,14 +88,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Inject
     public DefaultProxyTracker(final Model model,
-        final PeerFactory peerFactory, final org.jboss.netty.util.Timer timer,
+        final PeerFactory peerFactory, 
         final XmppHandler xmppHandler) {
         proxyQueue = new ProxyQueue(model);
-        laeProxyQueue = new ProxyQueue(model);
         peerProxyQueue = new PeerProxyQueue(model);
         this.model = model;
         this.peerFactory = peerFactory;
-        this.timer = timer;
         this.xmppHandler = xmppHandler;
         
         proxyRetryTimer.schedule(new TimerTask() {
@@ -117,7 +102,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             public void run() {
                 restoreTimedInProxies(proxyQueue);
                 restoreTimedInProxies(peerProxyQueue);
-                restoreTimedInProxies(laeProxyQueue);
             }
         }, 10000, 4000);
 
@@ -207,7 +191,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void clear() {
         proxyQueue.clear();
         peerProxyQueue.clear();
-        laeProxyQueue.clear();
 
         // We need to add the fallback proxy back in.
         addFallbackProxies();
@@ -412,15 +395,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         onCouldNotConnect(ph, proxyQueue);
     }
 
-    @Override
-    public void onCouldNotConnectToLae(final ProxyHolder ph) {
-        log.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}",
-            ph.getFiveTuple());
-
-        // For now we assume this is because we've lost our connection.
-        onCouldNotConnect(ph, laeProxyQueue);
-    }
-
     private void onCouldNotConnect(final ProxyHolder proxyAddress,
         final ProxyQueue queue){
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
@@ -428,24 +402,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void onCouldNotConnectToPeer(final URI peerUri) {
-        peerProxyQueue.proxyFailed(peerUri);
-    }
-
-    @Override
-    public void onError(final URI peerUri) {
-        peerProxyQueue.proxyFailed(peerUri);
-    }
-
-    @Override
     public void removePeer(final URI uri) {
         log.debug("Removing peer by request: {}", uri);
         peerProxyQueue.removeProxy(uri);
-    }
-
-    @Override
-    public ProxyHolder getLaeProxy() {
-        return laeProxyQueue.getProxy();
     }
 
     @Override
@@ -459,7 +418,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (e.isConnected()) {
             log.debug("Restoring proxies: {}", proxyQueue);
             restoreRecentlyDeceasedProxies(proxyQueue);
-            restoreRecentlyDeceasedProxies(laeProxyQueue);
             restoreRecentlyDeceasedProxies(peerProxyQueue);
         } 
     }
@@ -481,30 +439,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void stop() {
-        for (final GlobalTrafficShapingHandler handler : this.netty3TrafficShapers) {
-            handler.releaseExternalResources();
-        }
     }
 
     @Subscribe
     public void onModeChanged(final ModeChangedEvent event) {
         log.debug("Received mode changed event: {}", event);
         start();
-    }
-
-    private Netty3LanternTrafficCounterHandler netty3TrafficCounter() {
-        final Netty3LanternTrafficCounterHandler handler =
-            new Netty3LanternTrafficCounterHandler(this.timer);
-        netty3TrafficShapers.add(handler);
-        return handler;
-    }
-
-    private Netty4LanternTrafficCounterHandler netty4TrafficCounter() {
-        final Netty4LanternTrafficCounterHandler handler =
-                new Netty4LanternTrafficCounterHandler(
-                        netty4TrafficCounterExecutor);
-        netty4TrafficShapers.add(handler);
-        return handler;
     }
 
     @Override
@@ -521,13 +461,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
         PeerProxyQueue(Model model) {
             super(model);
-        }
-
-        public void proxyFailed(URI peerUri) {
-            ProxyHolder proxy = peerProxyMap.get(peerUri);
-            if (proxy != null) {
-                proxyFailed(proxy);
-            }
         }
 
         public synchronized void removeProxy(URI uri) {

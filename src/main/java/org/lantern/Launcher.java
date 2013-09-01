@@ -49,6 +49,8 @@ import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.proxy.AbstractHttpProxyServerAdapter;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
@@ -66,6 +68,7 @@ import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
+import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,8 +99,8 @@ public class Launcher {
     
     private static Logger LOG;
     private boolean lanternStarted = false;
-    private LanternHttpProxyServer localProxy;
-    private PlainTextRelayHttpProxyServer plainTextAnsererRelayProxy;
+    private GetModeProxy localProxy;
+    private AbstractHttpProxyServerAdapter plainTextAnsererRelayProxy;
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
@@ -338,17 +341,19 @@ public class Launcher {
 
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        plainTextAnsererRelayProxy = instance(PlainTextRelayHttpProxyServer.class);
+        // This sets up the local proxy server for handling requests from the
+        // browser/local machine.
+        plainTextAnsererRelayProxy = new AbstractHttpProxyServerAdapter(
+                DefaultHttpProxyServer.bootstrap()
+                        .withPort(LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT)
+                        .build());
 
-        localProxy = instance(LanternHttpProxyServer.class);
+        localProxy = instance(GetModeProxy.class);
         internalState = instance(InternalState.class);
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
         proxyTracker = instance(ProxyTracker.class);
-
-        // We do this to make sure it's added to the shutdown list.
-        instance(GlobalLanternServerTrafficShapingHandler.class);
 
         LOG.debug("Processing command line options...");
         processCommandLineOptions(cmd);

@@ -47,13 +47,13 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
-import org.lantern.CertTrackingSslHandlerFactory;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.StatsTrackingDefaultHttpProxyServer;
+import org.lantern.proxy.CertTrackingSSLEngineSource;
 import org.lantern.util.Threads;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -81,7 +81,7 @@ public class UdtRelayTest {
         trustStore.addBase64Cert(new URI(dummyId), ksm.getBase64Cert(dummyId));
         
         final HandshakeHandlerFactory hhf = 
-                new CertTrackingSslHandlerFactory(new HashedWheelTimer(), trustStore, ksm);
+                new CertTrackingSSLEngineSource(new HashedWheelTimer(), trustStore, ksm);
         
         // Note that an internet connection is required to run this test.
         final int proxyPort = LanternUtils.randomPort();
@@ -129,7 +129,7 @@ public class UdtRelayTest {
                 if (ssl) {
                     org.jboss.netty.util.Timer timer = 
                         new org.jboss.netty.util.HashedWheelTimer();
-                    final org.lantern.HttpProxyServer server = 
+                    final org.lantern.proxy.AbstractHttpProxyServerAdapter server = 
                         new StatsTrackingDefaultHttpProxyServer(
                         new HttpResponseFilters() {
                             @Override

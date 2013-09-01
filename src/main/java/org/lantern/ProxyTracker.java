@@ -6,16 +6,14 @@ import java.net.URI;
 /**
  * Interface for all classes that keep track of proxies.
  */
-public interface ProxyTracker extends ProxyStatusListener, ProxyProvider, 
-    LanternService{
+public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
+        LanternService {
 
     boolean isEmpty();
 
     void clear();
 
     void clearPeerProxySet();
-
-    void addLaeProxy(String cur);
 
     void addProxy(URI jid, String hostPort);
 
@@ -26,9 +24,5 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
     void removePeer(URI uri);
 
     boolean hasJidProxy(URI uri);
-
-    void setSuccess(ProxyHolder proxyHolder);
-
-    void addProxyWithChecks(URI jid, ProxyQueue proxyQueue, ProxyHolder proxy);
 
 }

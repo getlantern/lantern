@@ -1,17 +1,24 @@
 package org.lantern;
 
+import static org.littleshoot.util.FiveTuple.Protocol.*;
+
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.net.ssl.SSLEngine;
+
 import org.lantern.state.Peer.Type;
 import org.lantern.util.LanternTrafficCounter;
+import org.littleshoot.proxy.ChainedProxy;
+import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
 
-public final class ProxyHolder implements Comparable<ProxyHolder> {
+public final class ProxyHolder implements Comparable<ProxyHolder>,
+        ChainedProxy {
 
     private final String id;
 
@@ -24,29 +31,33 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
     private final AtomicInteger failures = new AtomicInteger();
 
     private final Type type;
-    
+
     private final AtomicBoolean lastFailed = new AtomicBoolean(true);
+
+    private final LanternTrustStore lanternTrustStore;
 
     public ProxyHolder(final String id, final URI jid,
             final InetSocketAddress isa,
             final LanternTrafficCounter trafficShapingHandler,
-            final Type type) {
+            final Type type, final LanternTrustStore lanternTrustStore) {
         this.id = id;
         this.jid = jid;
         this.fiveTuple = new FiveTuple(null, isa, Protocol.TCP);
         this.trafficShapingHandler = trafficShapingHandler;
         this.type = type;
+        this.lanternTrustStore = lanternTrustStore;
     }
 
     public ProxyHolder(final String id, final URI jid,
             final FiveTuple tuple,
             final LanternTrafficCounter trafficShapingHandler,
-            final Type type) {
+            final Type type, LanternTrustStore lanternTrustStore) {
         this.id = id;
         this.jid = jid;
         this.fiveTuple = tuple;
         this.trafficShapingHandler = trafficShapingHandler;
         this.type = type;
+        this.lanternTrustStore = lanternTrustStore;
     }
 
     public String getId() {
@@ -61,16 +72,16 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
         return trafficShapingHandler;
     }
 
-
     @Override
     public String toString() {
         String timeOfDeathStr;
         if (timeOfDeath == -1) {
             timeOfDeathStr = " (alive)";
         } else {
-            timeOfDeathStr = "@" + new Date(timeOfDeath) + " retry at " + new Date(getRetryTime());
+            timeOfDeathStr = "@" + new Date(timeOfDeath) + " retry at "
+                    + new Date(getRetryTime());
         }
-        return "ProxyHolder [isa=" + getFiveTuple() + timeOfDeathStr  + "]";
+        return "ProxyHolder [isa=" + getFiveTuple() + timeOfDeathStr + "]";
     }
 
     @Override
@@ -78,7 +89,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
+        result = prime * result
+                + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
         return result;
     }
 
@@ -104,8 +116,9 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
         return true;
     }
 
-    /** Time that the proxy became unreachable, in millis since epoch, or -1
-     * for never
+    /**
+     * Time that the proxy became unreachable, in millis since epoch, or -1 for
+     * never
      * */
     public long getTimeOfDeath() {
         return timeOfDeath;
@@ -128,7 +141,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
         failures.incrementAndGet();
     }
 
-    public void addFailure() {
+    private void addFailure() {
         this.lastFailed.set(true);
         if (failures.get() == 0) {
             long now = new Date().getTime();
@@ -140,12 +153,12 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
 
     @Override
     public int compareTo(ProxyHolder o) {
-        return (int)(getRetryTime() - o.getRetryTime());
+        return (int) (getRetryTime() - o.getRetryTime());
     }
 
     public long getRetryTime() {
-        //exponential backoff - 5,10,20,40, etc seconds
-        return timeOfDeath + 1000 * 5 * (long)(Math.pow(2, failures.get()));
+        // exponential backoff - 5,10,20,40, etc seconds
+        return timeOfDeath + 1000 * 5 * (long) (Math.pow(2, failures.get()));
     }
 
     public URI getJid() {
@@ -159,16 +172,16 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
     public boolean isConnected() {
         return timeOfDeath <= 0;
     }
-    
+
     public void addSuccess() {
         lastFailed.set(false);
     }
-    
+
     /**
      * Returns whether the last attempt failed or succeeded.
      * 
-     * @return <code>true</code> if the last connection attempt failed, 
-     * otherwise <code>false</code>.
+     * @return <code>true</code> if the last connection attempt failed,
+     *         otherwise <code>false</code>.
      */
     public boolean lastFailed() {
         return lastFailed.get();
@@ -183,4 +196,63 @@ public final class ProxyHolder implements Comparable<ProxyHolder> {
         // TODO: Implement!
         return "";
     }
+
+    /***************************************************************************
+     * Implementation of the ChainedProxy interface
+     **************************************************************************/
+
+    /**
+     * We use the remote address of the {@link FiveTuple} as our chained proxy
+     * address.
+     */
+    @Override
+    public InetSocketAddress getChainedProxyAddress() {
+        return fiveTuple.getRemote();
+    }
+
+    /**
+     * If the protocol is UDP, we use the local address of the {@link FiveTuple}
+     * as our local address from which to connect to the chained proxy,
+     * otherwise we leave this null to let the connection proceed from whatever
+     * available port.
+     */
+    @Override
+    public InetSocketAddress getLocalAddress() {
+        return UDP == fiveTuple.getProtocol() ? fiveTuple.getLocal() : null;
+    }
+
+    /**
+     * For UDP connections, we tell the proxy to use
+     * {@link TransportProtocol#UDT}, otherwise we tell it to use
+     * {@link TransportProtocol#TCP}.
+     */
+    @Override
+    public TransportProtocol getTransportProtocol() {
+        return UDP == fiveTuple.getProtocol() ? TransportProtocol.UDT
+                : TransportProtocol.TCP;
+    }
+
+    /**
+     * All our connections to chained proxies require encryption.
+     */
+    @Override
+    public boolean requiresEncryption() {
+        return true;
+    }
+
+    @Override
+    public SSLEngine newSSLEngine() {
+        return lanternTrustStore.getSslContext().createSSLEngine();
+    }
+
+    @Override
+    public void connectionSucceeded() {
+        resetFailures();
+    }
+
+    @Override
+    public void connectionFailed(Throwable cause) {
+        addFailure();
+    }
+
 }

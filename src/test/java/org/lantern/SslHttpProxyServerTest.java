@@ -17,6 +17,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.junit.Test;
+import org.lantern.proxy.CertTrackingSSLEngineSource;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.littleshoot.proxy.HandshakeHandlerFactory;
@@ -36,7 +37,7 @@ public class SslHttpProxyServerTest {
         final String testId = "127.0.0.1";//"test@gmail.com/somejidresource";
         ts.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         final HandshakeHandlerFactory hhf = 
-            new CertTrackingSslHandlerFactory(new HashedWheelTimer(), ts, ksm);
+            new CertTrackingSSLEngineSource(new HashedWheelTimer(), ts, ksm);
         final int port = LanternUtils.randomPort();
         final Model model = new Model();
         model.getSettings().setServerPort(port);
