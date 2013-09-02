@@ -94,6 +94,31 @@ func TestSet_Remove_multiple(t *testing.T) {
 	}
 }
 
+func TestSet_Pop(t *testing.T) {
+	s := New()
+	s.Add(1)
+	s.Add(2)
+	s.Add("fatih")
+
+	a := s.Pop()
+	if s.Size() != 2 {
+		t.Error("Pop: set size should be two after popping out")
+	}
+
+	if s.Has(a) {
+		t.Error("Pop: returned item should not exist")
+	}
+
+	s.Pop()
+	s.Pop()
+	b := s.Pop()
+	if b != nil {
+		t.Error("Pop: should return nil because set is empty")
+	}
+
+	s.Pop() // try to remove something from a zero length set
+}
+
 func TestSet_Has(t *testing.T) {
 	s := New("1", "2", "3", "4")
 

@@ -58,6 +58,21 @@ func (s *Set) Remove(items ...interface{}) {
 	s.l.Unlock()
 }
 
+// Pop  deletes a and return an item from the set. The underlying Set s is
+// modified. If set is empty, nil is returned.
+func (s *Set) Pop() interface{} {
+	s.l.RLock()
+	for item := range s.m {
+		s.l.RUnlock()
+		s.l.Lock()
+		delete(s.m, item)
+		s.l.Unlock()
+		return item
+	}
+	s.l.RUnlock()
+	return nil
+}
+
 // Has looks for the existence of items passed. It returns false if nothing is
 // passed. For multiple items it returns true only if all of  the items exist.
 func (s *Set) Has(items ...interface{}) bool {
