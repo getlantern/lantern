@@ -46,6 +46,9 @@ set.Remove("frankfurt") // nothing happes if you remove a nonexisting item
 // remove multiple items
 set.Remove("barcelona", 3.14, "ankara")
 
+// removes an arbitary item and return it
+item := set.Pop()
+
 // create a new copy
 other := set.Copy() 
 
