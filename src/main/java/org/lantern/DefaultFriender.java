@@ -187,7 +187,7 @@ public class DefaultFriender implements Friender {
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(processed));
-            String email = br.readLine().trim();
+            String email = br.readLine();
             while (StringUtils.isNotBlank(email)) {
                 log.debug("Inviting {}", email);
                 if (!email.contains("@")) {
@@ -197,11 +197,11 @@ public class DefaultFriender implements Friender {
                 
                 if (email.startsWith("#")) {
                     log.debug("Email commented out: {}", email);
-                    email = br.readLine().trim();
+                    email = br.readLine();
                     continue;
                 }
                 
-                final Friend friend = modelUtils.makeFriend(email);
+                final Friend friend = modelUtils.makeFriend(email.trim());
                 model.addNotification("BULK-EMAIL: An email will be sent to "+email+" "+
                     "with a notification that you friended them. "+
                     "If they do not yet have a Lantern invite, they will "+
@@ -210,7 +210,7 @@ public class DefaultFriender implements Friender {
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 invite(friend, false);
                 
-                email = br.readLine().trim();
+                email = br.readLine();
                 
                 // Wait a bit between each one!
                 try {
