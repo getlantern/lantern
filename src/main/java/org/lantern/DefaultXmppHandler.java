@@ -57,6 +57,7 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.proxy.UDTServerFiveTupleListener;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
@@ -66,7 +67,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
-import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
@@ -190,6 +190,8 @@ public class DefaultXmppHandler implements XmppHandler {
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
     private final NotificationManager notificationManager;
+    
+    private final UDTServerFiveTupleListener udtFiveTupleListener;
 
     /**
      * Creates a new XMPP handler.
@@ -207,7 +209,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
         final UpnpService upnpService,
-        final NotificationManager notificationManager) {
+        final NotificationManager notificationManager,
+        final UDTServerFiveTupleListener udtFiveTupleListener) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -221,6 +224,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
         this.notificationManager = notificationManager;
+        this.udtFiveTupleListener = udtFiveTupleListener;
         Events.register(this);
         //setupJmx();
     }
@@ -564,7 +568,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 this.socketsUtil.newTlsSocketFactory(),
                 this.socketsUtil.newTlsServerSocketFactory(),
                 plainTextProxyRelayAddress, sessionListener, false,
-                new UdtRelayServerFiveTupleListener());
+                udtFiveTupleListener);
     }
 
     private void handleConnectionFailure() {

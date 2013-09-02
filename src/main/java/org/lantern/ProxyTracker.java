@@ -2,14 +2,12 @@ package org.lantern;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Collection;
 
 /**
  * Interface for all classes that keep track of proxies.
  */
-public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
-        LanternService {
-
-    boolean isEmpty();
+public interface ProxyTracker {
 
     void clear();
 
@@ -24,5 +22,27 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider,
     void removePeer(URI uri);
 
     boolean hasJidProxy(URI uri);
+
+    ProxyHolder getProxy();
+
+    ProxyHolder getJidProxy();
+
+    boolean hasProxy();
+
+    /**
+     * Return a collection of all proxies in order of preference for using them.
+     * 
+     * @return
+     */
+    Collection<ProxyHolder> getAllProxiesInOrderOfFallbackPreference();
+    
+    /**
+     * Called when a connection to a proxy fails.
+     * 
+     * @param proxyAddress The address of the proxy.
+     */
+    void onCouldNotConnect(ProxyHolder proxyAddress);
+
+    void onError(URI peerUri);
 
 }

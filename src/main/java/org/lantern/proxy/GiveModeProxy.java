@@ -1,6 +1,13 @@
 package org.lantern.proxy;
 
+import java.net.InetSocketAddress;
+
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
+
 import org.lantern.ClientStats;
+import org.lantern.event.Events;
+import org.lantern.event.IncomingPeerEvent;
 import org.lantern.state.Model;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.FlowContext;
@@ -51,6 +58,19 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             public void bytesSentToClient(FlowContext flowContext,
                     int numberOfBytes) {
                 stats.addUpBytesToPeers(numberOfBytes);
+            }
+
+            @Override
+            public void clientSSLHandshakeSucceeded(
+                    InetSocketAddress clientAddress, SSLSession sslSession) {
+                try {
+                    Events.asyncEventBus().post(
+                            new IncomingPeerEvent(clientAddress, sslSession
+                                    .getPeerCertificateChain()[0]));
+                } catch (SSLPeerUnverifiedException pue) {
+                    throw new Error(
+                            "If the SSL handshake succeeded, the peer should already be verified");
+                }
             }
         });
     }

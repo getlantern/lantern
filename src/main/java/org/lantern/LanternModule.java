@@ -32,6 +32,8 @@ import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.proxy.CertTrackingSSLEngineSource;
 import org.lantern.proxy.DispatchingChainedProxyManager;
 import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GiveModeProxy;
+import org.lantern.proxy.UDTServerFiveTupleListener;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
@@ -46,6 +48,7 @@ import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwtMessageService;
+import org.lantern.util.ByteCounter.ByteCounterCalculator;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -80,6 +83,7 @@ public class LanternModule extends AbstractModule {
             LanternSaslGoogleOAuth2Mechanism.class);
 
         bind(ModelUtils.class).to(DefaultModelUtils.class);
+        // TODO: what were we doing with this filter?
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         bind(ClientStats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);
@@ -105,7 +109,6 @@ public class LanternModule extends AbstractModule {
         bind(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);
-        bind(SslHttpProxyServer.class);
         bind(PhotoServlet.class);
         bind(LanternFeedback.class);
 
@@ -126,6 +129,10 @@ public class LanternModule extends AbstractModule {
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
         bind(SSLEngineSource.class).to(CertTrackingSSLEngineSource.class);
+        bind(GetModeProxy.class);
+        bind(GiveModeProxy.class);
+        bind(UDTServerFiveTupleListener.class);
+        bind(ByteCounterCalculator.class);
 
         try {
             copyFireFoxExtension();

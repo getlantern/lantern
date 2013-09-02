@@ -81,7 +81,8 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
         }
     }
 
-    private SSLEngine standardSslEngine(final TrustManager trustManager) {
+    private SSLEngine standardSslEngine(
+            final CertTrackingTrustManager trustManager) {
         log.debug("Using standard SSL context");
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
@@ -89,6 +90,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
                     .getKeyManagers(),
                     new TrustManager[] { trustManager }, null);
             final SSLEngine engine = context.createSSLEngine();
+            trustManager.setSslEngine(engine);
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
             final String[] suites = IceConfig.getCipherSuites();
@@ -108,6 +110,11 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
     private class CertTrackingTrustManager implements X509TrustManager {
 
         private final Logger loggger = LoggerFactory.getLogger(getClass());
+        private SSLEngine sslEngine;
+
+        public void setSslEngine(SSLEngine sslEngine) {
+            this.sslEngine = sslEngine;
+        }
 
         @Override
         public void checkClientTrusted(final X509Certificate[] chain,
@@ -122,10 +129,6 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
             }
 
             loggger.debug("Certificate trusted");
-            // We should already know about the peer at this point, and it's
-            // just
-            // a matter of correlating that peer with this certificate and
-            // connection.
         }
 
         @Override

@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.HttpRequest;
 
 import org.lantern.ClientStats;
 import org.lantern.LanternConstants;
+import org.lantern.ProxyHolder;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.FullFlowContext;
@@ -40,9 +41,12 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
             public void bytesSentToServer(FullFlowContext flowContext,
                     int numberOfBytes) {
                 stats.addUpBytesViaProxies(numberOfBytes);
-                if (flowContext.getChainedProxy() != null) {
+                ProxyHolder chainedProxy = (ProxyHolder) flowContext
+                        .getChainedProxy();
+                if (chainedProxy != null) {
                     stats.addBytesProxied(numberOfBytes,
                             flowContext.getClientAddress());
+                    chainedProxy.addBytesUp(numberOfBytes);
                 } else {
                     stats.addDirectBytes(numberOfBytes);
                 }
@@ -52,14 +56,16 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
             public void bytesReceivedFromServer(FullFlowContext flowContext,
                     int numberOfBytes) {
                 stats.addDownBytesViaProxies(numberOfBytes);
-                if (flowContext.getChainedProxy() != null) {
+                ProxyHolder chainedProxy = (ProxyHolder) flowContext
+                        .getChainedProxy();
+                if (chainedProxy != null) {
                     stats.addBytesProxied(numberOfBytes,
                             flowContext.getClientAddress());
+                    chainedProxy.addBytesDown(numberOfBytes);
                 } else {
                     stats.addDirectBytes(numberOfBytes);
                 }
             }
-
         });
     }
 }

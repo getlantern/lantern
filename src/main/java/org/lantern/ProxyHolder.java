@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
 
+import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.lantern.util.LanternTrafficCounter;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
@@ -20,44 +20,51 @@ import org.littleshoot.util.FiveTuple.Protocol;
 public final class ProxyHolder implements Comparable<ProxyHolder>,
         ChainedProxy {
 
+    private final ProxyTracker proxyTracker;
+
+    private final PeerFactory peerFactory;
+    
+    private final LanternTrustStore lanternTrustStore;
+    
     private final String id;
 
     private final URI jid;
 
     private final FiveTuple fiveTuple;
-    private final LanternTrafficCounter trafficShapingHandler;
-
+    
     private long timeOfDeath = -1;
     private final AtomicInteger failures = new AtomicInteger();
 
     private final Type type;
 
     private final AtomicBoolean lastFailed = new AtomicBoolean(true);
+    
+    private volatile Peer peer;
 
-    private final LanternTrustStore lanternTrustStore;
-
-    public ProxyHolder(final String id, final URI jid,
-            final InetSocketAddress isa,
-            final LanternTrafficCounter trafficShapingHandler,
-            final Type type, final LanternTrustStore lanternTrustStore) {
+    public ProxyHolder(final ProxyTracker proxyTracker,
+            final PeerFactory peerFactory,
+            final LanternTrustStore lanternTrustStore, final String id,
+            final URI jid, final InetSocketAddress isa, final Type type) {
+        this.proxyTracker = proxyTracker;
+        this.peerFactory = peerFactory;
+        this.lanternTrustStore = lanternTrustStore;
         this.id = id;
         this.jid = jid;
         this.fiveTuple = new FiveTuple(null, isa, Protocol.TCP);
-        this.trafficShapingHandler = trafficShapingHandler;
         this.type = type;
-        this.lanternTrustStore = lanternTrustStore;
     }
 
-    public ProxyHolder(final String id, final URI jid,
-            final FiveTuple tuple,
-            final LanternTrafficCounter trafficShapingHandler,
-            final Type type, LanternTrustStore lanternTrustStore) {
+    public ProxyHolder(final ProxyTracker proxyTracker,
+            final PeerFactory peerFactory,
+            final LanternTrustStore lanternTrustStore, final String id,
+            final URI jid, final FiveTuple tuple, final Type type) {
+        this.proxyTracker = proxyTracker;
+        this.peerFactory = peerFactory;
+        this.lanternTrustStore = lanternTrustStore;
         this.id = id;
         this.jid = jid;
         this.fiveTuple = tuple;
-        this.trafficShapingHandler = trafficShapingHandler;
         this.type = type;
-        this.lanternTrustStore = lanternTrustStore;
     }
 
     public String getId() {
@@ -67,9 +74,18 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
-
-    public LanternTrafficCounter getTrafficShapingHandler() {
-        return trafficShapingHandler;
+    
+    /**
+     * Get the {@link Peer} for this ProxyHolder, lazily looking it up from our
+     * {@link PeerFactory}.
+     * 
+     * @return
+     */
+    public Peer getPeer() {
+        if (peer == null) {
+            peer = peerFactory.peerForJid(jid);
+        }
+        return peer;
     }
 
     @Override
@@ -141,7 +157,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         failures.incrementAndGet();
     }
 
-    private void addFailure() {
+    public void addFailure() {
         this.lastFailed.set(true);
         if (failures.get() == 0) {
             long now = new Date().getTime();
@@ -252,7 +268,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionFailed(Throwable cause) {
-        addFailure();
+        proxyTracker.onCouldNotConnect(this);
     }
 
 }
