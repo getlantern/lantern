@@ -77,7 +77,6 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     @Override
                     public void bytesSentToClient(FlowContext flowContext,
                             int numberOfBytes) {
-                        System.out.println("Bytes sent to client: " + numberOfBytes);
                         stats.addUpBytesToPeers(numberOfBytes);
                         peerFor(flowContext).addBytesUp(numberOfBytes);
                     }
