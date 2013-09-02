@@ -31,7 +31,14 @@ public interface ProxyTracker extends LanternService {
      * @return
      */
     Collection<ProxyHolder> getAllProxiesInOrderOfFallbackPreference();
-    
+
+    /**
+     * Gets the first proxy in order of fallback preference.
+     * 
+     * @return
+     */
+    ProxyHolder firstProxy();
+
     /**
      * Called when a connection to a proxy fails.
      * 

@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -297,11 +298,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void restoreTimedInProxies(ProxyQueue queue) {
-        synchronized(queue) {
+        synchronized (queue) {
             long now = new Date().getTime();
             while (true) {
                 ProxyHolder proxy = queue.pausedProxies.peek();
-                if (proxy == null) 
+                if (proxy == null)
                     break;
                 if (now > proxy.getRetryTime()) {
                     log.debug("Attempting to restore timed-in proxy " + proxy);
@@ -315,16 +316,16 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addProxyWithChecks(final URI fullJid,
-        final ProxyQueue queue, final ProxyHolder ph) {
+            final ProxyQueue queue, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
-            //even with no tcp, we can still add JID proxies
+            // even with no tcp, we can still add JID proxies
             addJidProxy(fullJid);
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
         if (queue.contains(ph)) {
-            log.debug("We already know about proxy "+ph+" in {}", queue);
-            //but it might be disconnected
+            log.debug("We already know about proxy " + ph + " in {}", queue);
+            // but it might be disconnected
             if (!ph.lastFailed()) {
                 log.debug("Proxy considered connected");
                 return;
@@ -340,7 +341,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 final Socket sock = new Socket();
                 final InetSocketAddress remote = ph.getFiveTuple().getRemote();
                 try {
-                    sock.connect(remote, 60*1000);
+                    sock.connect(remote, 60 * 1000);
 
                     if (queue.add(ph)) {
                         log.debug("Added connected TCP proxy. "
@@ -352,14 +353,15 @@ public class DefaultProxyTracker implements ProxyTracker {
                     ph.addSuccess();
                     log.debug("Dispatching CONNECTED event");
                     Events.asyncEventBus().post(
-                        new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
+                            new ProxyConnectionEvent(
+                                    ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
-                    // This can happen if the user has subsequently gone 
+                    // This can happen if the user has subsequently gone
                     // offline, for example.
                     log.debug("Could not connect to: " + ph, e);
                     onCouldNotConnect(ph);
-                    
-                    // Try adding the proxy by it's JID! This can happen, for 
+
+                    // Try adding the proxy by it's JID! This can happen, for
                     // example, if we get a bogus port mapping.
                     addJidProxy(fullJid);
                 } finally {
@@ -382,12 +384,12 @@ public class DefaultProxyTracker implements ProxyTracker {
                 proxy.getFiveTuple());
         proxyQueue.proxyFailed(proxy);
     }
-    
+
     @Override
     public void onError(final URI peerUri) {
         peerProxyQueue.proxyFailed(peerUri);
     }
-    
+
     @Override
     public void removePeer(final URI uri) {
         log.debug("Removing peer by request: {}", uri);
@@ -438,6 +440,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         Collections.sort(result, PROXY_PRIORITIZER);
         return result;
+    }
+
+    @Override
+    public ProxyHolder firstProxy() {
+        Iterator<ProxyHolder> it = getAllProxiesInOrderOfFallbackPreference()
+                .iterator();
+        return it.hasNext() ? it.next() : null;
     }
 
     private void parseFallbackProxy() {
@@ -543,11 +552,11 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         }
     }
-    
+
     private class PeerProxyQueue extends ProxyQueue {
-        //this unfortunately duplicates the values of proxyMap
-        //but there doesn't seem to be an elegant way to handle
-        //this
+        // this unfortunately duplicates the values of proxyMap
+        // but there doesn't seem to be an elegant way to handle
+        // this
         private final HashMap<URI, ProxyHolder> peerProxyMap =
                 new HashMap<URI, ProxyHolder>();
 
@@ -587,8 +596,10 @@ public class DefaultProxyTracker implements ProxyTracker {
 
         @Override
         protected synchronized void reenqueueProxy(ProxyHolder proxy) {
-            // We handle p2p JIDs a little differently, as we can't make multiple
-            // connections from ephemeral local ports to the same remote endpoint
+            // We handle p2p JIDs a little differently, as we can't make
+            // multiple
+            // connections from ephemeral local ports to the same remote
+            // endpoint
             // because NAT traversal is local port-specific (at least in many
             // cases). So instead of always adding the proxy back to the end of
             // the queue, we add it using the full FiveTuple creation process

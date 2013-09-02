@@ -55,7 +55,7 @@ public class HttpClientFactory {
         if (this.proxyTracker == null) {
             return null;
         }
-        final ProxyHolder ph = proxyTracker.getAllProxiesInOrderOfFallbackPreference().iterator().next();
+        final ProxyHolder ph = proxyTracker.firstProxy();
         if (ph == null) {
             return null;
         }

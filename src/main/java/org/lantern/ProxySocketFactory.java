@@ -67,7 +67,7 @@ public class ProxySocketFactory extends SocketFactory {
 
     private Socket httpConnectSocket(final String host, final int port)
         throws IOException {
-        final ProxyHolder ph = proxyTracker.getAllProxiesInOrderOfFallbackPreference().iterator().next();
+        final ProxyHolder ph = proxyTracker.firstProxy();
         final InetSocketAddress isa = ph.getFiveTuple().getRemote();
         final String proxyHost = isa.getAddress().getHostAddress();
         final int proxyPort = isa.getPort();
