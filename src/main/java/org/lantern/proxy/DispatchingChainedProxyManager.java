@@ -50,8 +50,8 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
         }
 
         // Allow falling back to a direct connection if necessary
-//        chainedProxies
-//                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+        chainedProxies
+                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
     }
 
 }
