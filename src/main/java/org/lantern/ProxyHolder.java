@@ -23,22 +23,22 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     private final ProxyTracker proxyTracker;
 
     private final PeerFactory peerFactory;
-    
+
     private final LanternTrustStore lanternTrustStore;
-    
+
     private final String id;
 
     private final URI jid;
 
     private final FiveTuple fiveTuple;
-    
+
     private long timeOfDeath = -1;
     private final AtomicInteger failures = new AtomicInteger();
 
     private final Type type;
 
     private final AtomicBoolean lastFailed = new AtomicBoolean(true);
-    
+
     private volatile Peer peer;
 
     public ProxyHolder(final ProxyTracker proxyTracker,
@@ -74,7 +74,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
-    
+
     /**
      * Get the {@link Peer} for this ProxyHolder, lazily looking it up from our
      * {@link PeerFactory}.
@@ -212,7 +212,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         // TODO: Implement!
         return "";
     }
-    
+
     public boolean uses(Protocol protocol) {
         return fiveTuple.getProtocol() == protocol;
     }
@@ -268,11 +268,23 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     @Override
     public void connectionSucceeded() {
         resetFailures();
+        Peer peer = getPeer();
+        if (peer != null) {
+            peer.connected();
+        }
     }
 
     @Override
     public void connectionFailed(Throwable cause) {
         proxyTracker.onCouldNotConnect(this);
+    }
+
+    @Override
+    public void disconnected() {
+        Peer peer = getPeer();
+        if (peer != null) {
+            peer.disconnected();
+        }
     }
 
 }
