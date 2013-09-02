@@ -1,6 +1,6 @@
 package org.lantern.httpseverywhere;
 
-import org.jboss.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
 
 public class HttpsRule {
 

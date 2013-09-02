@@ -1,16 +1,18 @@
 package org.lantern.cookie; 
 
-import com.google.common.net.InetAddresses;
-import com.google.common.net.InternetDomainName;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpVersion;
+
 import java.net.IDN;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import org.jboss.netty.handler.codec.http.Cookie; 
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpVersion;
+
+import com.google.common.net.InetAddresses;
+import com.google.common.net.InternetDomainName;
 
 /**
  * Utilities related to browser-like cookie logic
@@ -337,12 +339,12 @@ public class CookieUtils {
      */ 
     public static HttpRequest copyHttpRequestInfo(HttpRequest toCopy) {
         final HttpVersion ver = toCopy.getProtocolVersion();
-        final HttpVersion verCopy = new HttpVersion(ver.getText(), ver.isKeepAliveDefault());
+        final HttpVersion verCopy = new HttpVersion(ver.text(), ver.isKeepAliveDefault());
         final DefaultHttpRequest request = new DefaultHttpRequest(verCopy, toCopy.getMethod(), toCopy.getUri());
         
         // copy request headers
-        for (String headerName : toCopy.getHeaderNames()) {
-            request.setHeader(headerName, toCopy.getHeaders(headerName));
+        for (String headerName : toCopy.headers().names()) {
+            request.headers().set(headerName, toCopy.headers().get(headerName));
         }
 
         return request;

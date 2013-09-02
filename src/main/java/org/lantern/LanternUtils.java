@@ -1,5 +1,10 @@
 package org.lantern;
 
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -21,7 +26,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.Policy;
 import java.security.SecureRandom;
@@ -49,14 +53,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMessage;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.lantern.state.StaticSettings;
@@ -64,7 +60,6 @@ import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.XmppUtils;
-import org.littleshoot.util.ByteBufferUtils;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -269,7 +264,7 @@ public class LanternUtils {
 
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
         final List<String> chunked =
-            m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
+            m.headers().getAll(HttpHeaders.Names.TRANSFER_ENCODING);
         if (chunked.isEmpty()) {
             return false;
         }
@@ -280,31 +275,6 @@ public class LanternUtils {
             }
         }
         return false;
-    }
-
-    /**
-     * We subclass here purely to expose the encoding method of the built-in
-     * request encoder.
-     */
-    private static final class RequestEncoder extends HttpRequestEncoder {
-        private ChannelBuffer encode(final HttpRequest request,
-            final Channel ch) throws Exception {
-            return (ChannelBuffer) super.encode(null, ch, request);
-        }
-    }
-
-    public static byte[] toByteBuffer(final HttpRequest request,
-        final ChannelHandlerContext ctx) throws Exception {
-        // We need to convert the Netty message to raw bytes for sending over
-        // the socket.
-        final RequestEncoder encoder = new RequestEncoder();
-        final ChannelBuffer cb = encoder.encode(request, ctx.getChannel());
-        return toRawBytes(cb);
-    }
-
-    public static byte[] toRawBytes(final ChannelBuffer cb) {
-        final ByteBuffer buf = cb.toByteBuffer();
-        return ByteBufferUtils.toRawBytes(buf);
     }
 
     public static Collection<String> toHttpsCandidates(final String uriStr) {

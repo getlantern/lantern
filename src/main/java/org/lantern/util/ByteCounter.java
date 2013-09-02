@@ -108,7 +108,7 @@ public class ByteCounter {
         /**
          * How frequently to calculate moving averages.
          */
-        private long calculationFrequencyInMillis = 5000;
+        private long calculationFrequencyInMillis = 1000;
         private ScheduledExecutorService executor;
 
         @Override

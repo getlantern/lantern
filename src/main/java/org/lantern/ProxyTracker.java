@@ -7,7 +7,7 @@ import java.util.Collection;
 /**
  * Interface for all classes that keep track of proxies.
  */
-public interface ProxyTracker {
+public interface ProxyTracker extends LanternService {
 
     void clear();
 
@@ -23,10 +23,6 @@ public interface ProxyTracker {
 
     boolean hasJidProxy(URI uri);
 
-    ProxyHolder getProxy();
-
-    ProxyHolder getJidProxy();
-
     boolean hasProxy();
 
     /**
@@ -39,7 +35,8 @@ public interface ProxyTracker {
     /**
      * Called when a connection to a proxy fails.
      * 
-     * @param proxyAddress The address of the proxy.
+     * @param proxyAddress
+     *            The address of the proxy.
      */
     void onCouldNotConnect(ProxyHolder proxyAddress);
 

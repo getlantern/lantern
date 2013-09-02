@@ -27,45 +27,51 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                 .bootstrap()
                 .withName("GetModeProxy")
                 .withPort(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT)
-                .withChainProxyManager(chainedProxyManager));
+                .withAllowLocalOnly(true)
+                .withListenOnAllAddresses(false)
+                .withChainProxyManager(chainedProxyManager)
 
-        // Keep ClientStats up to date using an ActivityTracker
-        server.addActivityTracker(new ActivityTrackerAdapter() {
-            @Override
-            public void requestSentToServer(FullFlowContext flowContext,
-                    HttpRequest httpRequest) {
-                stats.incrementProxiedRequests();
-            }
+                // Keep stats up to date
+                .plusActivityTracker(new ActivityTrackerAdapter() {
+                    @Override
+                    public void requestSentToServer(
+                            FullFlowContext flowContext,
+                            HttpRequest httpRequest) {
+                        if (flowContext.getChainedProxy() != null) {
+                            stats.incrementProxiedRequests();
+                        }
+                    }
 
-            @Override
-            public void bytesSentToServer(FullFlowContext flowContext,
-                    int numberOfBytes) {
-                stats.addUpBytesViaProxies(numberOfBytes);
-                ProxyHolder chainedProxy = (ProxyHolder) flowContext
-                        .getChainedProxy();
-                if (chainedProxy != null) {
-                    stats.addBytesProxied(numberOfBytes,
-                            flowContext.getClientAddress());
-                    chainedProxy.addBytesUp(numberOfBytes);
-                } else {
-                    stats.addDirectBytes(numberOfBytes);
-                }
-            }
+                    @Override
+                    public void bytesSentToServer(FullFlowContext flowContext,
+                            int numberOfBytes) {
+                        ProxyHolder chainedProxy = (ProxyHolder) flowContext
+                                .getChainedProxy();
+                        if (chainedProxy != null) {
+                            stats.addUpBytesViaProxies(numberOfBytes);
+                            stats.addBytesProxied(numberOfBytes,
+                                    flowContext.getClientAddress());
+                            chainedProxy.getPeer().addBytesUp(numberOfBytes);
+                        } else {
+                            stats.addDirectBytes(numberOfBytes);
+                        }
+                    }
 
-            @Override
-            public void bytesReceivedFromServer(FullFlowContext flowContext,
-                    int numberOfBytes) {
-                stats.addDownBytesViaProxies(numberOfBytes);
-                ProxyHolder chainedProxy = (ProxyHolder) flowContext
-                        .getChainedProxy();
-                if (chainedProxy != null) {
-                    stats.addBytesProxied(numberOfBytes,
-                            flowContext.getClientAddress());
-                    chainedProxy.addBytesDown(numberOfBytes);
-                } else {
-                    stats.addDirectBytes(numberOfBytes);
-                }
-            }
-        });
+                    @Override
+                    public void bytesReceivedFromServer(
+                            FullFlowContext flowContext,
+                            int numberOfBytes) {
+                        ProxyHolder chainedProxy = (ProxyHolder) flowContext
+                                .getChainedProxy();
+                        if (chainedProxy != null) {
+                            stats.addDownBytesViaProxies(numberOfBytes);
+                            stats.addBytesProxied(numberOfBytes,
+                                    flowContext.getClientAddress());
+                            chainedProxy.getPeer().addBytesDn(numberOfBytes);
+                        } else {
+                            stats.addDirectBytes(numberOfBytes);
+                        }
+                    }
+                }));
     }
 }

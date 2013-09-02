@@ -212,6 +212,10 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         // TODO: Implement!
         return "";
     }
+    
+    public boolean uses(Protocol protocol) {
+        return fiveTuple.getProtocol() == protocol;
+    }
 
     /***************************************************************************
      * Implementation of the ChainedProxy interface

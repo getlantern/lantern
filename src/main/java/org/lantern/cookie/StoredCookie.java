@@ -1,8 +1,9 @@
 package org.lantern.cookie;
 
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.DefaultCookie;
+
 import java.net.URI;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
 
 /** 
  * A Cookie with some extra details associated with 

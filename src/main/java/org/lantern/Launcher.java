@@ -49,8 +49,8 @@ import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.proxy.AbstractHttpProxyServerAdapter;
 import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
@@ -60,7 +60,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
-import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
 import org.lantern.util.StopwatchManager;
@@ -68,7 +67,6 @@ import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,14 +97,12 @@ public class Launcher {
     
     private static Logger LOG;
     private boolean lanternStarted = false;
-    private GetModeProxy localProxy;
-    private AbstractHttpProxyServerAdapter plainTextAnsererRelayProxy;
+    private GetModeProxy getModeProxy;
+    private GiveModeProxy giveModeProxy;
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
     private StatsUpdater statsUpdater;
-
-    private SslHttpProxyServer sslProxy;
 
     private LocalCipherProvider localCipherProvider;
 
@@ -339,16 +335,8 @@ public class Launcher {
 
         xmpp = instance(DefaultXmppHandler.class);
 
-        sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        // This sets up the local proxy server for handling requests from the
-        // browser/local machine.
-        plainTextAnsererRelayProxy = new AbstractHttpProxyServerAdapter(
-                DefaultHttpProxyServer.bootstrap()
-                        .withPort(LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT)
-                        .build());
 
-        localProxy = instance(GetModeProxy.class);
         internalState = instance(InternalState.class);
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
@@ -371,6 +359,9 @@ public class Launcher {
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
         
+        // Set up the give and get mode proxies
+        getModeProxy = instance(GetModeProxy.class);
+        giveModeProxy = instance(GiveModeProxy.class);
         
         startServices();
 
@@ -408,9 +399,8 @@ public class Launcher {
                     LOG.error("Could not start proxy tracker?", e);
                 }
                 xmpp.start();
-                sslProxy.start(false, false);
-                localProxy.start();
-                plainTextAnsererRelayProxy.start(true, false);
+                getModeProxy.start();
+                giveModeProxy.start();
 
                 syncService.start();
                 statsUpdater.start();

@@ -16,9 +16,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +37,7 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
+import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
@@ -52,7 +53,8 @@ import com.google.inject.Singleton;
  * Class for keeping track of all proxies we know about.
  */
 @Singleton
-public class DefaultProxyTracker implements ProxyTracker, LanternService {
+public class DefaultProxyTracker implements ProxyTracker {
+    private static final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -60,7 +62,6 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
             Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
 
     private final Map<URI, ProxyHolder> proxies = new ConcurrentHashMap<URI, ProxyHolder>();
-    private final Map<URI, ProxyHolder> peerProxies = new ConcurrentHashMap<URI, ProxyHolder>();
 
     private final Model model;
 
@@ -82,7 +83,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
     private int fallbackServerPort;
 
     private final java.util.Timer proxyRetryTimer = new java.util.Timer();
-    
+
     private final LanternTrustStore lanternTrustStore;
 
     @Inject
@@ -99,8 +100,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
 
             @Override
             public void run() {
-                restoreTimedInProxies(proxies);
-                restoreTimedInProxies(peerProxies);
+                restoreTimedInProxies();
             }
         }, 10000, 4000);
 
@@ -184,7 +184,6 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
     @Override
     public void clear() {
         proxies.clear();
-        peerProxies.clear();
 
         // We need to add the fallback proxy back in.
         addFallbackProxies();
@@ -192,7 +191,13 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
 
     @Override
     public void clearPeerProxySet() {
-        peerProxies.clear();
+        Iterator<Map.Entry<URI, ProxyHolder>> it = proxies.entrySet()
+                .iterator();
+        while (it.hasNext()) {
+            if (it.next().getValue().uses(UDP)) {
+                it.remove();
+            }
+        }
     }
 
     @Override
@@ -221,14 +226,15 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
             return;
         }
 
-        addProxyWithChecks(fullJid, proxies,
+        addProxyWithChecks(fullJid,
                 new ProxyHolder(this, peerFactory, lanternTrustStore, host,
                         fullJid, isa, type));
     }
 
     @Override
     public boolean hasJidProxy(final URI uri) {
-        return peerProxies.containsKey(uri);
+        ProxyHolder proxy = proxies.get(uri);
+        return proxy != null && proxy.uses(UDP);
     }
 
     @Override
@@ -263,7 +269,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
 
                     peerFactory.onOutgoingConnection(peerUri, remote, Type.pc);
 
-                    peerProxies.put(peerUri, ph);
+                    proxies.put(peerUri, ph);
 
                     Events.eventBus().post(
                             new ProxyConnectionEvent(
@@ -276,45 +282,40 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
         });
     }
 
-    private void restoreRecentlyDeceasedProxies(Map<URI, ProxyHolder> map) {
-        for (ProxyHolder proxy : proxies.values()) {
-            if (now > proxy.getRetryTime()) {
-                log.debug("Attempting to restore timed-in proxy " + proxy);
-                addProxyWithChecks(proxy.getJid(), map, proxy);
-            }
-        }
-            while (true) {
-                final ProxyHolder proxy = queue.pausedProxies.poll();
-                if (proxy == null) {
-                    log.debug("No proxy!");
-                    break;
+    private void restoreRecentlyDeceasedProxies() {
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies.values()) {
+                if (proxy.getFailures() == 1) {
+                    log.debug("Attempting to restore timed-in proxy " + proxy);
+                    addProxyWithChecks(proxy.getJid(), proxy);
                 }
-                log.debug("Attempting to restore" + proxy);
-                addProxyWithChecks(proxy.getJid(), map, proxy);
             }
         }
     }
 
-    private void restoreTimedInProxies(Map<URI, ProxyHolder> map) {
-        long now = new Date().getTime();
-        for (ProxyHolder proxy : proxies.values()) {
-            if (now > proxy.getRetryTime()) {
-                log.debug("Attempting to restore timed-in proxy " + proxy);
-                addProxyWithChecks(proxy.getJid(), map, proxy);
+    private void restoreTimedInProxies() {
+        synchronized (proxies) {
+            long now = new Date().getTime();
+            for (ProxyHolder proxy : proxies.values()) {
+                if (!proxy.isConnected() && now > proxy.getRetryTime()) {
+                    log.debug("Attempting to restore timed-in proxy " + proxy);
+                    addProxyWithChecks(proxy.getJid(), proxy);
+                }
             }
         }
     }
 
-    private void addProxyWithChecks(final URI fullJid,
-            final Map<URI, ProxyHolder> map, final ProxyHolder ph) {
+    private void addProxyWithChecks(final URI fullJid, final ProxyHolder ph) {
+        log.debug("Adding proxy: {}", ph);
         if (!this.model.getSettings().isTcp()) {
             // even with no tcp, we can still add JID proxies
             addJidProxy(fullJid);
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
-        if (map.containsKey(ph)) {
-            log.debug("We already know about proxy " + ph + " in {}", map);
+        ProxyHolder existingProxy = proxies.get(fullJid);
+        if (existingProxy != null && existingProxy.uses(TCP)) {
+            log.debug("We already know about proxy " + ph + " in {}", proxies);
             // but it might be disconnected
             if (!ph.lastFailed()) {
                 log.debug("Proxy considered connected");
@@ -322,7 +323,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
             }
         }
 
-        log.debug("Trying to add proxy {} to map {}", ph, map);
+        log.debug("Trying to add proxy {} to map {}", ph, proxies);
 
         proxyCheckThreadPool.submit(new Runnable() {
 
@@ -333,9 +334,9 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
                 try {
                     sock.connect(remote, 60 * 1000);
 
-                    if (map.put(fullJid, ph) == null) {
+                    if (proxies.put(fullJid, ph) == null) {
                         log.debug("Added connected TCP proxy. "
-                                + "Map is now: {}", map);
+                                + "proxies is now: {}", proxies);
                         peerFactory.onOutgoingConnection(fullJid, remote,
                                 ph.getType());
                     }
@@ -362,7 +363,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
     }
 
     @Override
-    public void onCouldNotConnect(final ProxyHolder ph) {
+    public void onCouldNotConnect(final ProxyHolder proxy) {
         // This can happen in several scenarios. First, it can happen if you've
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
@@ -371,46 +372,46 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
         // We should remove the proxy here but should certainly keep it on disk
         // so we can try to connect to it in the future.
         log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}",
-                ph.getFiveTuple());
-
-        onCouldNotConnect(ph, proxyQueue);
+                proxy.getFiveTuple());
+        proxyFailed(proxy);
     }
-
-    private void onCouldNotConnect(final ProxyHolder proxyAddress,
-            final ProxyQueue queue) {
-        log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
-        queue.proxyFailed(proxyAddress);
+    
+    @Override
+    public void onError(final URI peerUri) {
+        ProxyHolder proxy = proxies.get(peerUri);
+        if (proxy != null) {
+            proxyFailed(proxy);
+        }
+    }
+    
+    private void proxyFailed(ProxyHolder proxy) {
+        proxy.addFailure();
+        Events.sync(SyncPath.CONNECTIVITY_NPROXIES, proxies.size());
     }
 
     @Override
     public void removePeer(final URI uri) {
         log.debug("Removing peer by request: {}", uri);
-        peerProxyQueue.removeProxy(uri);
-    }
-
-    @Override
-    public ProxyHolder getProxy() {
-        return proxyQueue.getProxy();
+        proxies.remove(uri);
     }
 
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
         log.debug("Got connectivity changed event: {}", e);
         if (e.isConnected()) {
-            log.debug("Restoring proxies: {}", proxyQueue);
-            restoreRecentlyDeceasedProxies(proxyQueue);
-            restoreRecentlyDeceasedProxies(peerProxyQueue);
+            log.debug("Restoring proxies: {}", proxies);
+            restoreRecentlyDeceasedProxies();
         }
     }
 
     @Override
-    public ProxyHolder getJidProxy() {
-        return peerProxyQueue.getProxy();
-    }
-
-    @Override
     public boolean hasProxy() {
-        return !proxyQueue.isEmpty();
+        for (ProxyHolder proxy : proxies.values()) {
+            if (proxy.isConnected()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Subscribe
@@ -427,16 +428,16 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
         log.debug("Received mode changed event: {}", event);
         start();
     }
-    
+
     @Override
     public Collection<ProxyHolder> getAllProxiesInOrderOfFallbackPreference() {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
-        for (ProxyHolder proxy : proxies) {
+        for (ProxyHolder proxy : proxies.values()) {
             if (proxy.isConnected()) {
                 result.add(proxy);
             }
         }
-        Collections.sort(result);
+        Collections.sort(result, PROXY_PRIORITIZER);
         return result;
     }
 
@@ -513,7 +514,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
      * <li>Prioritize proxies that have proxied the fewest bytes</li>
      * </ol>
      */
-    private class ProxyPrioritizer implements Comparator<ProxyHolder> {
+    private static class ProxyPrioritizer implements Comparator<ProxyHolder> {
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
             Protocol protocolA = a.getFiveTuple().getProtocol();
@@ -523,7 +524,7 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
             } else if (protocolB == TCP && protocolA != TCP) {
                 return 1;
             }
-            
+
             Type typeA = a.getType();
             Type typeB = b.getType();
             if (typeA == pc && typeB != pc) {
@@ -531,12 +532,12 @@ public class DefaultProxyTracker implements ProxyTracker, LanternService {
             } else if (typeB == pc && typeA != pc) {
                 return 1;
             }
-                        
+
             long bytesProxiedA = a.getPeer().getBytesUpDn();
             long bytesProxiedB = a.getPeer().getBytesUpDn();
             if (bytesProxiedA < bytesProxiedB) {
                 return -1;
-            } else if (bytesProxiedB > bytesProxiedA){
+            } else if (bytesProxiedB > bytesProxiedA) {
                 return 1;
             } else {
                 return 0;

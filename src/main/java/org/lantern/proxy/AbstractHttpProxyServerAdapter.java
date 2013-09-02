@@ -21,7 +21,7 @@ public abstract class AbstractHttpProxyServerAdapter implements LanternService {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         server = bootstrap.start();
     }
 

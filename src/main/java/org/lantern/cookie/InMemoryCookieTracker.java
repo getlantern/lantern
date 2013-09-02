@@ -1,17 +1,19 @@
 package org.lantern.cookie;
 
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.HttpRequest;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.ConcurrentNavigableMap; 
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.jboss.netty.handler.codec.http.Cookie; 
-import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -480,7 +482,7 @@ public class InMemoryCookieTracker implements CookieTracker {
                 return v;
             }
 
-            v = a.getMaxAge() - b.getMaxAge();
+            v = a.getMaxAge() > b.getMaxAge() ? 1 : a.getMaxAge() < b.getMaxAge() ? -1 : 0;
             if (v != 0) {
                 return v;
             }

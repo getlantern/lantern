@@ -83,8 +83,6 @@ public class LanternModule extends AbstractModule {
             LanternSaslGoogleOAuth2Mechanism.class);
 
         bind(ModelUtils.class).to(DefaultModelUtils.class);
-        // TODO: what were we doing with this filter?
-        bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         bind(ClientStats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
@@ -189,11 +187,6 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    ChannelGroup provideChannelGroup() {
-        return new DefaultChannelGroup("LanternChannelGroup");
-    }
-
-    @Provides @Singleton
     Timer provideTimer() {
         return new Timer("Lantern-Timer", true);
     }
@@ -225,30 +218,6 @@ public class LanternModule extends AbstractModule {
 
         return lcp;
     }
-
-
-    @Provides @Singleton
-    ServerSocketChannelFactory provideServerSocketChannelFactory() {
-        return new NioServerSocketChannelFactory(
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Server-Boss-Thread-%d").setDaemon(true).build()),
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
-    }
-
-    @Provides @Singleton
-    ClientSocketChannelFactory provideClientSocketChannelFactory() {
-        return new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Client-Boss-Thread-%d").setDaemon(true).build()),
-            Executors.newCachedThreadPool(
-                new ThreadFactoryBuilder().setNameFormat(
-                    "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
-    }
-
 
     /**
      * Copies our FireFox extension to the appropriate place.
