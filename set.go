@@ -58,7 +58,7 @@ func (s *Set) Remove(items ...interface{}) {
 	s.l.Unlock()
 }
 
-// Pop  deletes a and return an item from the set. The underlying Set s is
+// Pop  deletes and return an item from the set. The underlying Set s is
 // modified. If set is empty, nil is returned.
 func (s *Set) Pop() interface{} {
 	s.l.RLock()
