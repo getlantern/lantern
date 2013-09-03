@@ -50,8 +50,11 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
         }
 
         // Allow falling back to a direct connection if necessary
-        chainedProxies
-                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+        // OX: I'm turning this off for testing, and maybe even longer, since
+        // the folks that need Lantern don't necessarily have the luxury of
+        // falling back to a direct connection
+//        chainedProxies
+//                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
     }
 
 }

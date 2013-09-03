@@ -55,7 +55,10 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                             FlowContext flowContext,
                             int numberOfBytes) {
                         stats.addDownBytesFromPeers(numberOfBytes);
-                        peerFor(flowContext).addBytesDn(numberOfBytes);
+                        Peer peer = peerFor(flowContext);
+                        if (peer != null) {
+                            peer.addBytesDn(numberOfBytes);
+                        }
                     }
 
                     @Override
@@ -75,7 +78,10 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     public void bytesSentToClient(FlowContext flowContext,
                             int numberOfBytes) {
                         stats.addUpBytesToPeers(numberOfBytes);
-                        peerFor(flowContext).addBytesUp(numberOfBytes);
+                        Peer peer = peerFor(flowContext);
+                        if (peer != null) {
+                            peer.addBytesUp(numberOfBytes);
+                        }
                     }
 
                     @Override
@@ -89,7 +95,10 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     public void clientSSLHandshakeSucceeded(
                             InetSocketAddress clientAddress,
                             SSLSession sslSession) {
-                        peerFor(sslSession).connected();
+                        Peer peer = peerFor(sslSession);
+                        if (peer != null) {
+                            peer.connected();
+                        }
                     }
 
                     private Peer peerFor(FlowContext flowContext) {
