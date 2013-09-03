@@ -183,7 +183,9 @@ public class DefaultPeerFactory implements PeerFactory {
         final LanternRosterEntry entry = rosterEntry(fullJid);
         log.debug("Got roster entry: {} for '{}'", entry, fullJid);
         if (entry == null) {
-            log.debug("Could not find match for type{}:\n{}", type, 
+            // This will happen for cloud "peers" and kscope peers but otherwise
+            // all peers should be on your roster.
+            log.debug("Could not find match for type '{}':\n{}", type, 
                     ThreadUtils.dumpStack());
             log.debug("Roster is: {}", this.roster.getEntries());
         }
