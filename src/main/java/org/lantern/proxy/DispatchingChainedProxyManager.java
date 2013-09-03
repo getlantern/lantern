@@ -8,7 +8,6 @@ import java.util.Queue;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DispatchingChainedProxyManager implements ChainedProxyManager {
-    private static final Logger log = LoggerFactory
+    private static final Logger LOG = LoggerFactory
             .getLogger(DispatchingChainedProxyManager.class);
 
     private final ProxyTracker proxyTracker;
@@ -36,25 +35,32 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
     public void lookupChainedProxies(HttpRequest httpRequest,
             Queue<ChainedProxy> chainedProxies) {
         Collection<ProxyHolder> proxyHolders = proxyTracker
-                .getAllProxiesInOrderOfFallbackPreference();
+                .getConnectedProxiesInOrderOfFallbackPreference();
 
         // Add all connected ProxyHolders to our queue of chained proxies
-        for (ProxyHolder proxyHolder : proxyHolders) {
-            if (proxyHolder.isConnected()) {
-                chainedProxies.add(proxyHolder);
-            }
+        chainedProxies.addAll(proxyHolders);
+        
+        if (chainedProxies.isEmpty()) {
+            LOG.debug("No connected proxies found!");
         }
-
-        if (proxyHolders.isEmpty()) {
-            log.debug("No connected proxies found!");
-        }
-
+        
         // Allow falling back to a direct connection if necessary
         // OX: I'm turning this off for testing, and maybe even longer, since
         // the folks that need Lantern don't necessarily have the luxury of
         // falling back to a direct connection
 //        chainedProxies
 //                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+        
+        logFallbackOrder(proxyHolders);
+    }
+    
+    private void logFallbackOrder(Collection<ProxyHolder> proxyHolders) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Proxy Fallback Order:");
+            for (ProxyHolder proxy : proxyHolders) {
+                LOG.debug("{} {}", proxy.getJid(), proxy.getFiveTuple());
+            }
+        }
     }
 
 }

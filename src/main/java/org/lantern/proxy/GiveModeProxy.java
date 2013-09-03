@@ -38,6 +38,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 .withPort(model.getSettings().getServerPort())
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
+                // TODO: need to use a different SSLEngineSource if we're a
+                // fallback proxy since we want to allow anyone to connect
                 .withSSLEngineSource(sslEngineSource)
 
                 // Use a filter to deny requests to non-public ips

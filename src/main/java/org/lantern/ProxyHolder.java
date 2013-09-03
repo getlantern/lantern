@@ -213,8 +213,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return "";
     }
 
-    public boolean uses(Protocol protocol) {
-        return fiveTuple.getProtocol() == protocol;
+    public boolean isPeerProxy() {
+        return fiveTuple.getProtocol() == UDP;
     }
 
     /***************************************************************************
@@ -276,6 +276,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionFailed(Throwable cause) {
+        System.out.println("Uh oh");
+        cause.printStackTrace();
         proxyTracker.onCouldNotConnect(this);
     }
 
@@ -286,5 +288,4 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
             peer.disconnected();
         }
     }
-
 }

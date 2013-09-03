@@ -46,7 +46,7 @@ public class DefaultProxyTrackerTest {
                 peerFactory, xmppHandler, lanternTrustStore);
 
         //proxy queue initially empty
-        ProxyHolder proxy = tracker.firstProxy();
+        ProxyHolder proxy = tracker.firstConnectedProxy();
         assertNull(proxy);
 
         Miniproxy miniproxy1 = new Miniproxy(55021);
@@ -67,14 +67,14 @@ public class DefaultProxyTrackerTest {
         //now let's force the proxy to fail.
         //miniproxy1.pause();
 
-        proxy = tracker.firstProxy();
+        proxy = tracker.firstConnectedProxy();
         // first, we need to clear out the old proxy from the list, by having it
         // fail.
         tracker.onCouldNotConnect(proxy);
         //now wait for the miniproxy to stop accepting.
         Thread.sleep(10);
 
-        proxy = tracker.firstProxy();
+        proxy = tracker.firstConnectedProxy();
         assertNull(proxy);
 
         // now bring miniproxy1 back up
@@ -86,12 +86,12 @@ public class DefaultProxyTrackerTest {
         Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
         Thread.sleep(10);
 
-        proxy = tracker.firstProxy();
+        proxy = tracker.firstConnectedProxy();
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
         Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
-        tracker.firstProxy();
+        tracker.firstConnectedProxy();
         Thread.sleep(10);
 
         // with multiple proxies, we get a different proxy for each getProxy()
@@ -114,12 +114,12 @@ public class DefaultProxyTrackerTest {
     private ProxyHolder waitForProxy(DefaultProxyTracker tracker) 
         throws Exception {
         synchronized (this) {
-            final ProxyHolder proxy = tracker.firstProxy();
+            final ProxyHolder proxy = tracker.firstConnectedProxy();
             if (proxy != null) {
                 return proxy;
             }
             this.wait(6000);
-            return tracker.firstProxy();
+            return tracker.firstConnectedProxy();
         }
     }
 

@@ -26,18 +26,19 @@ public interface ProxyTracker extends LanternService {
     boolean hasProxy();
 
     /**
-     * Return a collection of all proxies in order of preference for using them.
+     * Return a collection of all connected proxies in order of preference for
+     * using them.
      * 
      * @return
      */
-    Collection<ProxyHolder> getAllProxiesInOrderOfFallbackPreference();
+    Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference();
 
     /**
      * Gets the first proxy in order of fallback preference.
      * 
      * @return
      */
-    ProxyHolder firstProxy();
+    ProxyHolder firstConnectedProxy();
 
     /**
      * Called when a connection to a proxy fails.

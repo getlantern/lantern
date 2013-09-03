@@ -53,12 +53,12 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public Collection<ProxyHolder> getAllProxiesInOrderOfFallbackPreference() {
+    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
         return new ArrayList<ProxyHolder>();
     }
 
     @Override
-    public ProxyHolder firstProxy() {
+    public ProxyHolder firstConnectedProxy() {
         return null;
     }
 
