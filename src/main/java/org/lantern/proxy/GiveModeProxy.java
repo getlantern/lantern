@@ -4,13 +4,10 @@ import io.netty.handler.codec.http.HttpRequest;
 
 import java.net.InetSocketAddress;
 
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
 import org.lantern.ClientStats;
 import org.lantern.PeerFactory;
-import org.lantern.event.Events;
-import org.lantern.event.IncomingPeerEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
@@ -82,25 +79,26 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     }
 
                     @Override
+                    public void clientDisconnected(
+                            InetSocketAddress clientAddress,
+                            SSLSession sslSession) {
+                        peerFor(sslSession).disconnected();
+                    }
+
+                    @Override
                     public void clientSSLHandshakeSucceeded(
                             InetSocketAddress clientAddress,
                             SSLSession sslSession) {
-                        try {
-                            Events.asyncEventBus()
-                                    .post(
-                                            new IncomingPeerEvent(
-                                                    clientAddress,
-                                                    sslSession
-                                                            .getPeerCertificateChain()[0]));
-                        } catch (SSLPeerUnverifiedException pue) {
-                            throw new Error(
-                                    "If the SSL handshake succeeded, the peer should already be verified");
-                        }
+                        peerFor(sslSession).connected();
                     }
 
                     private Peer peerFor(FlowContext flowContext) {
                         return peerFactory.peerForSession(flowContext
                                 .getClientSSLSession());
+                    }
+
+                    private Peer peerFor(SSLSession sslSession) {
+                        return peerFactory.peerForSession(sslSession);
                     }
                 }));
     }
