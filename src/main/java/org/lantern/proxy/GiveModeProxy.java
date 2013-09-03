@@ -88,7 +88,10 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     public void clientDisconnected(
                             InetSocketAddress clientAddress,
                             SSLSession sslSession) {
-                        peerFor(sslSession).disconnected();
+                        Peer peer = peerFor(sslSession);
+                        if (peer != null) {
+                            peer.disconnected();
+                        }
                     }
 
                     @Override
