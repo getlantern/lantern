@@ -42,8 +42,4 @@ public class Peers {
     public Peer getPeer(final URI userId) {
         return this.peers.get(userId);
     }
-    
-    public boolean hasPeer(final URI userId) {
-        return this.peers.containsKey(userId);
-    }
 }

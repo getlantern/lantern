@@ -90,7 +90,6 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
                     .getKeyManagers(),
                     new TrustManager[] { trustManager }, null);
             final SSLEngine engine = context.createSSLEngine();
-            trustManager.setSslEngine(engine);
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
             final String[] suites = IceConfig.getCipherSuites();
@@ -110,11 +109,6 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
     private class CertTrackingTrustManager implements X509TrustManager {
 
         private final Logger loggger = LoggerFactory.getLogger(getClass());
-        private SSLEngine sslEngine;
-
-        public void setSslEngine(SSLEngine sslEngine) {
-            this.sslEngine = sslEngine;
-        }
 
         @Override
         public void checkClientTrusted(final X509Certificate[] chain,

@@ -6,6 +6,7 @@ import org.lantern.ClientStats;
 import org.lantern.LanternConstants;
 import org.lantern.ProxyHolder;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
+import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
@@ -37,7 +38,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                     public void requestSentToServer(
                             FullFlowContext flowContext,
                             HttpRequest httpRequest) {
-                        if (flowContext.getChainedProxy() != null) {
+                        if (proxyFor(flowContext) != null) {
                             stats.incrementProxiedRequests();
                         }
                     }
@@ -45,13 +46,12 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                     @Override
                     public void bytesSentToServer(FullFlowContext flowContext,
                             int numberOfBytes) {
-                        ProxyHolder chainedProxy = (ProxyHolder) flowContext
-                                .getChainedProxy();
-                        if (chainedProxy != null) {
+                        ProxyHolder proxy = proxyFor(flowContext);
+                        if (proxy != null) {
                             stats.addUpBytesViaProxies(numberOfBytes);
                             stats.addBytesProxied(numberOfBytes,
                                     flowContext.getClientAddress());
-                            chainedProxy.getPeer().addBytesUp(numberOfBytes);
+                            proxy.getPeer().addBytesUp(numberOfBytes);
                         } else {
                             stats.addDirectBytes(numberOfBytes);
                         }
@@ -61,15 +61,24 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                     public void bytesReceivedFromServer(
                             FullFlowContext flowContext,
                             int numberOfBytes) {
-                        ProxyHolder chainedProxy = (ProxyHolder) flowContext
-                                .getChainedProxy();
-                        if (chainedProxy != null) {
+                        ProxyHolder proxy = proxyFor(flowContext);
+                        if (proxy != null) {
                             stats.addDownBytesViaProxies(numberOfBytes);
                             stats.addBytesProxied(numberOfBytes,
                                     flowContext.getClientAddress());
-                            chainedProxy.getPeer().addBytesDn(numberOfBytes);
+                            proxy.getPeer().addBytesDn(numberOfBytes);
                         } else {
                             stats.addDirectBytes(numberOfBytes);
+                        }
+                    }
+
+                    ProxyHolder proxyFor(FullFlowContext flowContext) {
+                        ChainedProxy chainedProxy = flowContext
+                                .getChainedProxy();
+                        if (chainedProxy instanceof ProxyHolder) {
+                            return (ProxyHolder) chainedProxy;
+                        } else {
+                            return null;
                         }
                     }
                 }));

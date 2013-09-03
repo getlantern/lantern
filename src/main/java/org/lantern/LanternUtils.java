@@ -1,10 +1,5 @@
 package org.lantern;
 
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -250,32 +245,9 @@ public class LanternUtils {
             throw new RuntimeException("No UTF-8?", e);
         }
     }
-
-    /**
-     * This is the local proxy port data is relayed to on the "server" side
-     * of P2P connections.
-     *
-     * NOT IN CONSTANTS BECAUSE LanternUtils INITIALIZES THE LOGGER, WHICH
-     * CAN'T HAPPEN IN CONSTANTS DUE TO THE CONFIGURATION SEQUENCE IN
-     * PRODUCTION.
-     */
+    
     public static final int PLAINTEXT_LOCALHOST_PROXY_PORT =
-        LanternUtils.randomPort();
-
-    public static boolean isTransferEncodingChunked(final HttpMessage m) {
-        final List<String> chunked =
-            m.headers().getAll(HttpHeaders.Names.TRANSFER_ENCODING);
-        if (chunked.isEmpty()) {
-            return false;
-        }
-
-        for (String v: chunked) {
-            if (v.equalsIgnoreCase(HttpHeaders.Values.CHUNKED)) {
-                return true;
-            }
-        }
-        return false;
-    }
+            LanternUtils.randomPort();
 
     public static Collection<String> toHttpsCandidates(final String uriStr) {
         final Collection<String> segments = new LinkedHashSet<String>();
@@ -854,10 +826,6 @@ public class LanternUtils {
         if (file.isFile() && !file.delete()) {
             LOG.error("Could not delete file {}!!", file);
         }
-    }
-
-    public static boolean isConnect(final HttpRequest request) {
-        return request.getMethod() == HttpMethod.CONNECT;
     }
 
     public static InetSocketAddress isa(final String host, final int port) {

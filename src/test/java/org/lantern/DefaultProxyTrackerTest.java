@@ -1,10 +1,8 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import io.netty.util.Timer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,7 +10,6 @@ import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
-import org.jboss.netty.util.Timer;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
@@ -44,11 +41,12 @@ public class DefaultProxyTrackerTest {
         PeerFactory peerFactory = mock(PeerFactory.class);
         Timer timer = mock(Timer.class);
         DefaultXmppHandler xmppHandler = mock(DefaultXmppHandler.class);
+        LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, timer, xmppHandler);
+                peerFactory, xmppHandler, lanternTrustStore);
 
         //proxy queue initially empty
-        ProxyHolder proxy = tracker.getProxy();
+        ProxyHolder proxy = tracker.firstProxy();
         assertNull(proxy);
 
         Miniproxy miniproxy1 = new Miniproxy(55021);
@@ -69,14 +67,14 @@ public class DefaultProxyTrackerTest {
         //now let's force the proxy to fail.
         //miniproxy1.pause();
 
-        proxy = tracker.getProxy();
+        proxy = tracker.firstProxy();
         // first, we need to clear out the old proxy from the list, by having it
         // fail.
         tracker.onCouldNotConnect(proxy);
         //now wait for the miniproxy to stop accepting.
         Thread.sleep(10);
 
-        proxy = tracker.getProxy();
+        proxy = tracker.firstProxy();
         assertNull(proxy);
 
         // now bring miniproxy1 back up
@@ -88,12 +86,12 @@ public class DefaultProxyTrackerTest {
         Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
         Thread.sleep(10);
 
-        proxy = tracker.getProxy();
+        proxy = tracker.firstProxy();
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
         Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
-        tracker.getProxy();
+        tracker.firstProxy();
         Thread.sleep(10);
 
         // with multiple proxies, we get a different proxy for each getProxy()
@@ -116,12 +114,12 @@ public class DefaultProxyTrackerTest {
     private ProxyHolder waitForProxy(DefaultProxyTracker tracker) 
         throws Exception {
         synchronized (this) {
-            final ProxyHolder proxy = tracker.getProxy();
+            final ProxyHolder proxy = tracker.firstProxy();
             if (proxy != null) {
                 return proxy;
             }
             this.wait(6000);
-            return tracker.getProxy();
+            return tracker.firstProxy();
         }
     }
 

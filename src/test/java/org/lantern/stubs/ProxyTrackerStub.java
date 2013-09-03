@@ -2,48 +2,13 @@ package org.lantern.stubs;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.lantern.ProxyHolder;
-import org.lantern.ProxyQueue;
 import org.lantern.ProxyTracker;
 
 public class ProxyTrackerStub implements ProxyTracker {
-
-    @Override
-    public void onCouldNotConnect(ProxyHolder proxyAddress) {
-    }
-
-    @Override
-    public void onCouldNotConnectToPeer(URI peerUri) {
-    }
-
-    @Override
-    public void onError(URI peerUri) {
-    }
-
-    @Override
-    public void onCouldNotConnectToLae(ProxyHolder proxyAddress) {
-    }
-
-    @Override
-    public ProxyHolder getLaeProxy() {
-        return null;
-    }
-
-    @Override
-    public ProxyHolder getProxy() {
-        return null;
-    }
-
-    @Override
-    public ProxyHolder getJidProxy() {
-        return null;
-    }
-
-    @Override
-    public boolean hasProxy() {
-        return false;
-    }
 
     @Override
     public void start() throws Exception {
@@ -54,20 +19,11 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public boolean isEmpty() {
-        return false;
-    }
-
-    @Override
     public void clear() {
     }
 
     @Override
     public void clearPeerProxySet() {
-    }
-
-    @Override
-    public void addLaeProxy(String cur) {
     }
 
     @Override
@@ -92,10 +48,26 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public void setSuccess(ProxyHolder proxyHolder) {}
+    public boolean hasProxy() {
+        return false;
+    }
 
     @Override
-    public void addProxyWithChecks(URI jid, ProxyQueue proxyQueue,
-            ProxyHolder proxy) {}
+    public Collection<ProxyHolder> getAllProxiesInOrderOfFallbackPreference() {
+        return new ArrayList<ProxyHolder>();
+    }
+
+    @Override
+    public ProxyHolder firstProxy() {
+        return null;
+    }
+
+    @Override
+    public void onCouldNotConnect(ProxyHolder proxyAddress) {
+    }
+
+    @Override
+    public void onError(URI peerUri) {
+    }
 
 }

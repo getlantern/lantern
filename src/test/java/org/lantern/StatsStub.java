@@ -1,6 +1,6 @@
 package org.lantern;
 
-import org.jboss.netty.channel.Channel;
+import java.net.InetSocketAddress;
 
 public class StatsStub implements ClientStats {
 
@@ -215,7 +215,7 @@ public class StatsStub implements ClientStats {
     }
 
     @Override
-    public void addBytesProxied(long bytes, Channel channel) {
+    public void addBytesProxied(long bytes, InetSocketAddress address) {
         // TODO Auto-generated method stub
 
     }
