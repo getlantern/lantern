@@ -8,7 +8,7 @@ public class Global {
     private final NUsers nusers = new NUsers();
     private final NPeers npeers = new NPeers();
 
-    private int bytesEver;
+    private long bytesEver;
     private int bps;
 
     public NPeers getNpeers() {
@@ -19,11 +19,11 @@ public class Global {
         return nusers;
     }
 
-    public int getBytesEver() {
+    public long getBytesEver() {
         return bytesEver;
     }
 
-    public void setBytesEver(int bytesEver) {
+    public void setBytesEver(long bytesEver) {
         this.bytesEver = bytesEver;
     }
 

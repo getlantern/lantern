@@ -15,7 +15,7 @@ import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.lantern.util.ByteCounter;
+import org.lantern.util.Counter;
 
 /**
  * Class containing data for an individual peer, including active connections,
@@ -23,6 +23,8 @@ import org.lantern.util.ByteCounter;
  */
 @Keep
 public class Peer {
+    private static final long AVERAGE_BPS_PERIOD = 1000;
+    private static final long AVERAGE_BPS_LOOK_BACK = 2000;
 
     private String peerid = "";
 
@@ -58,11 +60,11 @@ public class Peer {
 
     private long bytesUp;
     
-    private ByteCounter bytesUpCounter = new ByteCounter();
+    private Counter bytesUpCounter = new Counter();
     
     private long bytesDn;
     
-    private ByteCounter bytesDnCounter = new ByteCounter();
+    private Counter bytesDnCounter = new Counter();
     
     private String version = "";
 
@@ -186,12 +188,16 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBpsUp() {
-        return bytesUpCounter.getCurrentBytesPerSecond();
+        return bytesUpCounter.getAverageRateOver(
+                AVERAGE_BPS_PERIOD,
+                AVERAGE_BPS_LOOK_BACK);
     }
 
     @JsonView({Run.class})
     public long getBpsDown() {
-        return bytesDnCounter.getCurrentBytesPerSecond();
+        return bytesDnCounter.getAverageRateOver(
+                AVERAGE_BPS_PERIOD,
+                AVERAGE_BPS_LOOK_BACK);
     }
 
     @JsonView({Run.class})
@@ -200,7 +206,7 @@ public class Peer {
     }
 
     public long getBytesUp() {
-        return this.bytesUp + this.bytesUpCounter.getTotalBytes();
+        return this.bytesUp + this.bytesUpCounter.getTotal();
     }
 
     public void setBytesUp(long bytesUp) {
@@ -212,7 +218,7 @@ public class Peer {
     }
 
     public long getBytesDn() {
-        return this.bytesDn + this.bytesDnCounter.getTotalBytes();
+        return this.bytesDn + this.bytesDnCounter.getTotal();
     }
 
     public void setBytesDn(long bytesDn) {
@@ -225,7 +231,7 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBytesUpDn() {
-        return bytesDnCounter.getTotalBytes() + bytesUpCounter.getTotalBytes();
+        return bytesDnCounter.getTotal() + bytesUpCounter.getTotal();
     }
 
     @JsonView({Run.class})

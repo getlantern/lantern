@@ -44,7 +44,7 @@ import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwtMessageService;
-import org.lantern.util.ByteCounter.ByteCounterCalculator;
+import org.lantern.util.Counter.CounterSnapshotter;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -125,7 +125,7 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);
         bind(UDTServerFiveTupleListener.class);
-        bind(ByteCounterCalculator.class);
+        bind(CounterSnapshotter.class);
 
         try {
             copyFireFoxExtension();
