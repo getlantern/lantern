@@ -23,9 +23,6 @@ import org.lantern.util.Counter;
  */
 @Keep
 public class Peer {
-    private static final long AVERAGE_BPS_PERIOD = 1000;
-    private static final long AVERAGE_BPS_LOOK_BACK = 2000;
-
     private String peerid = "";
 
     private String country = "";
@@ -60,11 +57,11 @@ public class Peer {
 
     private long bytesUp;
     
-    private Counter bytesUpCounter = new Counter();
+    private Counter bytesUpCounter = Counter.averageOverOneSecond();
     
     private long bytesDn;
     
-    private Counter bytesDnCounter = new Counter();
+    private Counter bytesDnCounter = Counter.averageOverOneSecond();
     
     private String version = "";
 
@@ -188,16 +185,12 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBpsUp() {
-        return bytesUpCounter.getAverageRateOver(
-                AVERAGE_BPS_PERIOD,
-                AVERAGE_BPS_LOOK_BACK);
+        return bytesUpCounter.getRate();
     }
 
     @JsonView({Run.class})
     public long getBpsDown() {
-        return bytesDnCounter.getAverageRateOver(
-                AVERAGE_BPS_PERIOD,
-                AVERAGE_BPS_LOOK_BACK);
+        return bytesDnCounter.getRate();
     }
 
     @JsonView({Run.class})

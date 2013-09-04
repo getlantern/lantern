@@ -8,46 +8,50 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.lantern.LanternService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Counts stuff, including keeping a total count as well as providing the
- * ability to calculate a moving average.
+ * Counts stuff, including keeping a {@link #getTotal()} and a
+ * {@link #getRate()} which is a moving average over
+ * {@link #movingAverageWindowInMillis}.
  * </p>
  * 
  * <p>
- * The moving average is calculated using a bounded list of periodic snapshots.
- * </p>
- * 
- * <p>
- * Note - for the moving average to get calculated, you need to start a
- * {@link CounterSnapshotter}.
+ * To minimize overhead, moving rates are calculated approximately 10 times a
+ * second, which means that they don't always reflect the most recent data
+ * reported to {@link #add(long)}.
  * </p>
  */
 public class Counter {
-    private static final Queue<WeakReference<Counter>> ALL_BYTES_COUNTERS = new ConcurrentLinkedQueue<WeakReference<Counter>>();
+    private static final Logger LOG = LoggerFactory.getLogger(Counter.class);
 
-    private final long maximumHistoryAgeInMillis;
+    private static final Queue<WeakReference<Counter>> ALL_BYTES_COUNTERS = new ConcurrentLinkedQueue<WeakReference<Counter>>();
+    private static final int RATE_CALCULATION_INTERVAL_IN_MILLIS = 100;
+
+    private final long movingAverageWindowInMillis;
     private final AtomicLong total = new AtomicLong(0);
+    private final AtomicLong rate = new AtomicLong(0);
     private volatile Snapshot latestSnapshot = new Snapshot();
 
     /**
-     * Create a counter that keeps a history (for running averages) up to the
-     * given age.
+     * Create a counter that keeps a moving average over the given window.
      * 
-     * @param maximumHistoryAgeInMillis
+     * @param movingAverageWindowInMillis
      */
-    public Counter(long maximumHistoryAgeInMillis) {
-        this.maximumHistoryAgeInMillis = maximumHistoryAgeInMillis;
+    public Counter(long movingAverageWindowInMillis) {
+        this.movingAverageWindowInMillis = movingAverageWindowInMillis;
         ALL_BYTES_COUNTERS.add(new WeakReference<Counter>(this));
     }
 
     /**
-     * Create a counter that keeps 1 minute worth of history.
+     * Creates a {@link Counter} that maintains a 1-second moving average.
+     * 
+     * @return
      */
-    public Counter() {
-        this(60000);
+    public static Counter averageOverOneSecond() {
+        return new Counter(1000);
     }
 
     /**
@@ -69,51 +73,42 @@ public class Counter {
     }
 
     /**
-     * Get the average rate over the given period of time
+     * Gets the most recently computed rate averaged over a moving window of
+     * {@link #movingAverageWindowInMillis}.
      * 
-     * @param ratePeriodInMillis
-     *            the period for calculating the rate (e.g. every second)
-     * @return timeInMillis how far back to look starting from now
+     * @return
      */
-    public long getAverageRateOver(long ratePeriodInMillis, long timeInMillis) {
-        long now = System.currentTimeMillis();
-        long cutoff = now - timeInMillis;
-        long currentTotal = total.get();
-        long previousTotal = currentTotal;
-        long previousTimestamp = now;
-
-        // Find the oldest total that we can from the available snapshots
-        Snapshot snapshot = latestSnapshot;
-        while (snapshot != null) {
-            if (snapshot.timestamp < cutoff) {
-                break;
-            }
-            previousTotal = snapshot.total;
-            previousTimestamp = snapshot.timestamp;
-            snapshot = snapshot.prior;
-        }
-
-        double timeDelta = now - previousTimestamp;
-        if (timeDelta == 0) {
-            return 0;
-        }
-
-        double delta = currentTotal - previousTotal;
-        return (long) (delta * ratePeriodInMillis / timeDelta);
+    public long getRate() {
+        return rate.get();
     }
 
-    void snapshot() {
+    private void calculateRate() {
         latestSnapshot = new Snapshot(latestSnapshot, total.get());
-        // Prune snapshots older than our configured maximum history age
-        long cutoff = latestSnapshot.timestamp - maximumHistoryAgeInMillis;
+
+        // Find the oldest snapshot within our moving window
+        long cutoff = latestSnapshot.timestamp - movingAverageWindowInMillis;
+        Snapshot oldestSnapshot = latestSnapshot;
         Snapshot laterSnapshot = latestSnapshot;
         Snapshot snapshot;
         while ((snapshot = laterSnapshot.prior) != null) {
             if (snapshot.timestamp < cutoff) {
+                // We've moved past our moving window
+                // Prune the snapshot
                 laterSnapshot.prior = null;
+                // Stop processing
                 break;
             }
+            oldestSnapshot = snapshot;
             laterSnapshot = snapshot;
+        }
+
+        // Calculate rate
+        double timeDelta = latestSnapshot.timestamp - oldestSnapshot.timestamp;
+        if (timeDelta == 0) {
+            rate.set(0);
+        } else {
+            double delta = latestSnapshot.total - oldestSnapshot.total;
+            rate.set((long) (delta * movingAverageWindowInMillis / timeDelta));
         }
     }
 
@@ -135,38 +130,38 @@ public class Counter {
         }
     }
 
-    /*
-     * <p>Takes snapshots for all {@link Counter}s.</p>
-     */
-    public static class CounterSnapshotter implements LanternService {
-        /**
-         * How frequently to snapshot
-         */
-        private long snapshotFrequencyInMillis = 100;
-        private ScheduledExecutorService executor;
-
-        @Override
-        public void start() throws Exception {
-            executor = Executors.newSingleThreadScheduledExecutor();
-            executor.scheduleAtFixedRate(
-                    new Runnable() {
-                        @Override
-                        public void run() {
+    static {
+        // Periodically calculate rate for all Counters
+        final ScheduledExecutorService executor = Executors
+                .newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
                             for (WeakReference<Counter> counterRef : Counter.ALL_BYTES_COUNTERS) {
                                 Counter counter = counterRef.get();
-                                if (counter != null) {
-                                    counter.snapshot();
+                                try {
+                                    if (counter != null) {
+                                        counter.calculateRate();
+                                    }
+                                } catch (Exception e) {
+                                    LOG.error(
+                                            "Unable to calculate rate for: {}",
+                                            counter, e);
                                 }
                             }
+                        } catch (Exception e) {
+                            LOG.error("Unable to calculate rates", e);
                         }
-                    }, snapshotFrequencyInMillis,
-                    snapshotFrequencyInMillis,
-                    TimeUnit.MILLISECONDS);
-        }
-
-        @Override
-        public void stop() {
-            executor.shutdownNow();
-        }
+                    }
+                }, RATE_CALCULATION_INTERVAL_IN_MILLIS,
+                RATE_CALCULATION_INTERVAL_IN_MILLIS,
+                TimeUnit.MILLISECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                executor.shutdownNow();
+            }
+        }));
     }
 }
