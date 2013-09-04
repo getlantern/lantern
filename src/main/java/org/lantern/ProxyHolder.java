@@ -276,8 +276,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionFailed(Throwable cause) {
-        System.out.println("Uh oh");
-        cause.printStackTrace();
         proxyTracker.onCouldNotConnect(this);
     }
 

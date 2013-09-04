@@ -259,7 +259,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void addJidProxy(final URI peerUri) {
-        log.debug("Considering peer proxy");
+        log.debug("Considering peer proxy: {}", peerUri);
         if (this.model.getSettings().getMode() == Mode.give) {
             log.debug("Not adding JID proxy in give mode");
             return;
@@ -316,7 +316,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addProxyWithChecks(final URI fullJid, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
-            // even with no tcp, we can still add JID proxies
+            log.debug("Even with no tcp, we can still add JID proxies");
             addJidProxy(fullJid);
             log.debug("Not checking proxy when not running with TCP");
             return;
@@ -515,7 +515,7 @@ public class DefaultProxyTracker implements ProxyTracker {
      * <ol>
      * <li>Prioritize TCP over UDP</li>
      * <li>Prioritize other Lanterns over fallback proxies</li>
-     * <li>Prioritize proxies that have proxied the fewest bytes</li>
+     * <li>Prioritize proxies to whom we've connected least recently (round robin)</li>
      * </ol>
      */
     private static class ProxyPrioritizer implements Comparator<ProxyHolder> {
@@ -537,11 +537,11 @@ public class DefaultProxyTracker implements ProxyTracker {
                 return 1;
             }
 
-            long bytesProxiedA = a.getPeer().getBytesUpDn();
-            long bytesProxiedB = a.getPeer().getBytesUpDn();
-            if (bytesProxiedA < bytesProxiedB) {
+            long numberOfSocketsA = a.getPeer().getNSockets();
+            long numberOfSocketsB = b.getPeer().getNSockets();
+            if (numberOfSocketsA < numberOfSocketsB) {
                 return -1;
-            } else if (bytesProxiedB > bytesProxiedA) {
+            } else if (numberOfSocketsB > numberOfSocketsA) {
                 return 1;
             } else {
                 return 0;
