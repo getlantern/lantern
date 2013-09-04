@@ -15,7 +15,6 @@ angular.module('app.vis', [])
         scope.projection.scale(max(w, h) / TWO_PI);
         scope.projection.translate([w >> 1, round(0.56*h)]);
         scope.$broadcast('mapResized', w, h);
-        console.log("Scale", scope.projection.scale());
       }
 
       size();
