@@ -425,16 +425,19 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
   };
 
   $scope.pathConnection = function (peer) {
+    var MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS = 30;
+    
     var pSelf = projection([model.location.lon, model.location.lat]),
         pPeer = projection([peer.lon, peer.lat]),
         xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1];
     
     var distanceBetweenPeers = Math.sqrt(Math.pow(xS - xP, 2) + Math.pow(yS - yP, 2));
-    if (distanceBetweenPeers < 30) {
+    30
+    if (distanceBetweenPeers < MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS) {
       // Peer and self are very close, draw a loopy arc
-      var xC1 = Math.min(xS, xP) - 20;
-      var xC2 = Math.max(xS, xP) + 20;
-      var yC = Math.max(yS, yP) + 30;
+      var xC1 = Math.min(xS, xP) - MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS * 2 / 3;
+      var xC2 = Math.max(xS, xP) + MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS * 2 / 3;
+      var yC = Math.max(yS, yP) + MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS;
       return 'M'+xS+','+yS+' C '+xC1+','+yC+' '+xC2+','+yC+' '+xP+','+yP;
     } else {
       // Peer and self are at different positions, draw arc between them
