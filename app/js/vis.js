@@ -206,7 +206,7 @@ angular.module('app.vis', [])
         .clamp(true).domain([0, 0]).range([0, .9]);
       
       // Functions for calculating arc dimensions
-      function getTotalLength(d) { return this.getTotalLength(); }
+      function getTotalLength(d) { return this.getTotalLength() || 0.0000001; }
       function getDashArray(d) { var l = this.getTotalLength(); return l+' '+l; }
       
       // Peers are uniquely identified by their peerid.
@@ -427,11 +427,22 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
   $scope.pathConnection = function (peer) {
     var pSelf = projection([model.location.lon, model.location.lat]),
         pPeer = projection([peer.lon, peer.lat]),
-        xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1],
-        controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
-        xC = controlPoint[0], yC = controlPoint[1];
-    return $scope.inGiveMode ?
-      'M'+xP+','+yP+' Q '+xC+','+yC+' '+xS+','+yS :
-      'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
+        xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1];
+    
+    var distanceBetweenPeers = Math.sqrt(Math.pow(xS - xP, 2) + Math.pow(yS - yP, 2));
+    if (distanceBetweenPeers < 30) {
+      // Peer and self are very close, draw a loopy arc
+      var xC1 = Math.min(xS, xP) - 20;
+      var xC2 = Math.max(xS, xP) + 20;
+      var yC = Math.max(yS, yP) + 30;
+      return 'M'+xS+','+yS+' C '+xC1+','+yC+' '+xC2+','+yC+' '+xP+','+yP;
+    } else {
+      // Peer and self are at different positions, draw arc between them
+      var controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
+          xC = controlPoint[0], yC = controlPoint[1];
+      return $scope.inGiveMode ?
+          'M'+xP+','+yP+' Q '+xC+','+yC+' '+xS+','+yS :
+          'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
+    }
   };
 }
