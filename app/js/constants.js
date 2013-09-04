@@ -43,12 +43,12 @@ var DEFAULT_LANG = 'en_US',
     EXTERNAL_URL = {
       rally: 'https://rally.org/lantern/donate',
       cloudServers: 'https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Servers',
-      helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       homepage: 'https://www.getlantern.org/',
       userForums: 'https://groups.google.com/group/lantern-users-en', // XXX may not be in user's language, but there should be links forums in other languages on the landing page
       docs: 'https://github.com/getlantern/lantern/wiki',
-      contributing: 'https://github.com/getlantern/lantern/wiki/Contributing',
+      getInvolved: 'https://github.com/getlantern/lantern/wiki/Get-Involved',
+      proxiedSitesSharing: 'https://github.com/getlantern/lantern/wiki/Proxied-sites-configuration#sharing',
       developers: 'https://github.com/getlantern/lantern'
     },
     // enums
