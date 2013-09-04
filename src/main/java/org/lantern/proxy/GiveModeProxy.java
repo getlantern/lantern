@@ -107,12 +107,12 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     }
 
                     private Peer peerFor(FlowContext flowContext) {
-                        return peerFactory.peerForSession(flowContext
-                                .getClientSSLSession());
+                        return peerFor(flowContext.getClientSSLSession());
                     }
 
                     private Peer peerFor(SSLSession sslSession) {
-                        return peerFactory.peerForSession(sslSession);
+                        return sslSession != null ? peerFactory
+                                .peerForSession(sslSession) : null;
                     }
                 }));
     }
