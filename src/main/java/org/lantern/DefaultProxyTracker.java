@@ -513,14 +513,23 @@ public class DefaultProxyTracker implements ProxyTracker {
      * </p>
      * 
      * <ol>
+     * <li>Prioritize proxies that are on the local network</li>
      * <li>Prioritize TCP over UDP</li>
      * <li>Prioritize other Lanterns over fallback proxies</li>
-     * <li>Prioritize proxies to whom we've connected least recently (round robin)</li>
+     * <li>Prioritize proxies to whom we have fewer open sockets</li>
      * </ol>
      */
     private static class ProxyPrioritizer implements Comparator<ProxyHolder> {
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
+            // Prioritize proxies on local network
+            if (a.isOnLocalNetwork() && !b.isOnLocalNetwork()) {
+                return -1;
+            } else if (b.isOnLocalNetwork() && !a.isOnLocalNetwork()) {
+                return 1;
+            }
+            
+            // Prioritize TCP over UDP
             Protocol protocolA = a.getFiveTuple().getProtocol();
             Protocol protocolB = b.getFiveTuple().getProtocol();
             if (protocolA == TCP && protocolB != TCP) {
@@ -529,6 +538,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 return 1;
             }
 
+            // Prioritize other Lanterns over fallback proxies
             Type typeA = a.getType();
             Type typeB = b.getType();
             if (typeA == pc && typeB != pc) {
@@ -537,6 +547,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 return 1;
             }
 
+            // Prioritize based on least number of open sockets
             long numberOfSocketsA = a.getPeer().getNSockets();
             long numberOfSocketsB = b.getPeer().getNSockets();
             if (numberOfSocketsA < numberOfSocketsB) {

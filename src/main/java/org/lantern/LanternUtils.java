@@ -246,9 +246,6 @@ public class LanternUtils {
         }
     }
     
-    public static final int PLAINTEXT_LOCALHOST_PROXY_PORT =
-            LanternUtils.randomPort();
-
     public static Collection<String> toHttpsCandidates(final String uriStr) {
         final Collection<String> segments = new LinkedHashSet<String>();
         try {

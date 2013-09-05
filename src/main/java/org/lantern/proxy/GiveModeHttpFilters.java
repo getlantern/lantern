@@ -50,8 +50,8 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
                 // want to allow proxies to inadvertantly expose
                 // internal network services.
                 LOG.warn(
-                        "Request for non-public resource: {} on address: {}\n full request headers: {}",
-                        originalRequest.getUri(), ia, originalRequest.headers());
+                        "Request for non-public resource: {} on address: {}\n full request : {}",
+                        originalRequest.getUri(), ia, originalRequest);
                 return forbidden();
             }
         } catch (final UnknownHostException uhe) {

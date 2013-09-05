@@ -454,9 +454,8 @@ public class DefaultXmppHandler implements XmppHandler {
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with credentials...");
         this.closedBetaEvent = null;
-        final InetSocketAddress plainTextProxyRelayAddress =
-            LanternUtils.isa("127.0.0.1",
-                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
+        // This address doesn't appear to be used anywhere, setting to null
+        final InetSocketAddress plainTextProxyRelayAddress = null;
 
         if (this.client.get() == null) {
             makeClient(plainTextProxyRelayAddress);

@@ -8,6 +8,7 @@ import java.util.Queue;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.littleshoot.proxy.ChainedProxy;
+import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +46,8 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
         }
         
         // Allow falling back to a direct connection if necessary
-        // OX: I'm turning this off for testing, and maybe even longer, since
-        // the folks that need Lantern don't necessarily have the luxury of
-        // falling back to a direct connection
-//        chainedProxies
-//                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+        chainedProxies
+                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
         
         logFallbackOrder(proxyHolders);
     }
