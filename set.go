@@ -216,7 +216,7 @@ func (s *Set) Intersection(t *Set) *Set {
 	return u
 }
 
-// Intersection returns a new set which contains items which are both s but not in t.
+// Different returns a new set which contains items which are in s but not in t.
 func (s *Set) Difference(t *Set) *Set {
 	u := s.Copy()
 	u.Separate(t)
@@ -259,4 +259,37 @@ func (s *Set) IntSlice() []int {
 		slice = append(slice, v)
 	}
 	return slice
+}
+
+// Union is the merger of multiple sets. It returns a new set with the
+// element in combined in all sets that are passed. Unlike the Union() method
+// you can use this function seperatly with multiple sets. If no items are
+// passed an empty set is returned.
+func Union(sets ...*Set) *Set {
+	u := New()
+	for _, set := range sets {
+		set.l.RLock()
+		for item := range set.m {
+			u.m[item] = keyExists
+		}
+		set.l.RUnlock()
+	}
+
+	return u
+}
+
+// Difference returns a new set which contains items which are in in the first
+// set but not in the others. Unlike the Difference() method you can use this
+// function seperatly with multiple sets. If no items are passed an empty set
+// is returned.
+func Difference(sets ...*Set) *Set {
+	if len(sets) == 0 {
+		return New()
+	}
+
+	s := sets[0].Copy()
+	for _, set := range sets[1:] {
+		s.Separate(set) // seperate is thread safe
+	}
+	return s
 }
