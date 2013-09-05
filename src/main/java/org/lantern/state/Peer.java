@@ -268,7 +268,7 @@ public class Peer {
         if (lastConnected == 0) {
             return null;
         }
-        return FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss").format(
+        return FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ssZ").format(
             lastConnected);
     }
     
