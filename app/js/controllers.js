@@ -275,8 +275,13 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
 function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
-      prettyUserFltr = $filter('prettyUser'),
-      i18nFltr = $filter('i18n');
+      dateFltr = $filter('date'),
+      filterFltr = $filter('filter'),
+      i18nFltr = $filter('i18n'),
+      notRejectedFltr = $filter('notRejected'),
+      orderByFltr = $filter('orderBy'),
+      prettyBpsFltr = $filter('prettyBps'),
+      prettyUserFltr = $filter('prettyUser');
 
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
@@ -314,16 +319,58 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       });
   };
 
-  $scope.friendFilter = function (friend) {
+  function updateDisplayedFriends() {
+    $scope.displayedFriends =
+      orderByFltr(
+        filterFltr(
+          notRejectedFltr(
+            filterFltr(
+              model.friends,
+              matchSearchText)),
+          addConnectedStatus),
+        friendOrder);
+  }
+  $scope.$watch('model.friends', updateDisplayedFriends, true);
+  $scope.$watch('searchText', updateDisplayedFriends, true);
+
+  function matchSearchText(friend) {
     if (!$scope.searchText ||
         ~angular.lowercase(prettyUserFltr(friend))
           .indexOf(angular.lowercase($scope.searchText))) {
       return friend;
     }
     return false;
-  };
+  }
 
-  $scope.friendOrder = function (friend) {
+  function addConnectedStatus(friend) {
+    // XXX should use a better id than email
+    var peers = _.filter(model.peers, {rosterEntry: {email: friend.email}});
+    if (peers.length) {
+      var bpsUpDnSum = _.reduce(peers, function(sum, peer){return sum+(peer.bpsUpDn||0);}, 0);
+      if (bpsUpDnSum) {
+        friend.connectedStatus = prettyBpsFltr(bpsUpDnSum)+' '+i18nFltr('TRANSFERRING_NOW');
+      } else {
+        if (_.any(peers, 'connected')) {
+          friend.connectedStatus = i18nFltr('CONNECTED');
+        } else {
+          var lastConnected = _.reduce(peers, function (mostRecent, peer) {
+              return mostRecent >= (peer.lastConnected || '') ? mostRecent : peer.lastConnected;
+            },
+            '');
+          if (lastConnected) {
+            friend.connectedStatus = i18nFltr('LAST_CONNECTED')+' '+dateFltr(lastConnected, 'short');
+          } else {
+            friend.connectedStatus = i18nFltr('NOT_YET_CONNECTED');
+          }
+        }
+      }
+    } else {
+      friend.connectedStatus = i18nFltr('NOT_YET_CONNECTED');
+    }
+    return friend;
+  }
+
+  function friendOrder(friend) {
     // entries with status 'pending' come first, then 'friend', then other
     // within each group, entries with no name field come first
     // ('-' < '0' < 'A' < 'a')
@@ -336,7 +383,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       default:
         return '2' + s;
     }
-  };
+  }
 
   $scope.$watch('contactCompletions', function (contactCompletions) {
     var data = _.map(contactCompletions, function (c) {

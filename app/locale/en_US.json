@@ -53,6 +53,7 @@
   "CONFIGURING": "Configuring...",
   "CONNECTING": "Connecting...",
   "CONNECTED": "Connected",
+  "NOT_YET_CONNECTED": "Not yet connected",
   "CONNECTING_TITLE": "Connecting...",
   "NOT_INVITED_TITLE": "User Not Invited",
   "NOT_INVITED_PROMPT": "The user you tried has not been invited to join Lantern yet.",
