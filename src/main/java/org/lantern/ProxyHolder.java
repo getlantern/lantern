@@ -12,7 +12,6 @@ import javax.net.ssl.SSLEngine;
 
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.lantern.util.Network;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
@@ -42,8 +41,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private volatile Peer peer;
 
-    private final boolean isOnLocalNetwork;
-
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore, final String id,
@@ -63,8 +60,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         this.jid = jid;
         this.fiveTuple = tuple;
         this.type = type;
-        this.isOnLocalNetwork = Network.isOnLocalNetwork(tuple.getRemote()
-                .getAddress());
     }
 
     public String getId() {
@@ -86,14 +81,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
             peer = peerFactory.peerForJid(jid);
         }
         return peer;
-    }
-    
-    /**
-     * Indicates whether or not this Proxy is running on the local network.
-     * @return
-     */
-    public boolean isOnLocalNetwork() {
-        return isOnLocalNetwork;
     }
 
     @Override

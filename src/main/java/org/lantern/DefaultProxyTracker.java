@@ -513,7 +513,6 @@ public class DefaultProxyTracker implements ProxyTracker {
      * </p>
      * 
      * <ol>
-     * <li>Prioritize proxies that are on the local network</li>
      * <li>Prioritize TCP over UDP</li>
      * <li>Prioritize other Lanterns over fallback proxies</li>
      * <li>Prioritize proxies to whom we have fewer open sockets</li>
@@ -522,13 +521,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     private static class ProxyPrioritizer implements Comparator<ProxyHolder> {
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
-            // Prioritize proxies on local network
-            if (a.isOnLocalNetwork() && !b.isOnLocalNetwork()) {
-                return -1;
-            } else if (b.isOnLocalNetwork() && !a.isOnLocalNetwork()) {
-                return 1;
-            }
-            
             // Prioritize TCP over UDP
             Protocol protocolA = a.getFiveTuple().getProtocol();
             Protocol protocolB = b.getFiveTuple().getProtocol();

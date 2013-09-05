@@ -23,7 +23,6 @@ import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.util.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,11 +137,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
         if (ad != null) {
             log.debug("Adding proxy... {}", ad);
-            if (Network.isOnLocalNetwork(ad.getLocalAddress())) {
-                log.debug("Proxy is on our local network");
-                this.proxyTracker.addProxy(jid, 
-                        LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
-            } else if (ad.hasMappedEndpoint()) {
+            if (ad.hasMappedEndpoint()) {
                 log.debug("Proxy is on on a remote network at a known port");
                 this.proxyTracker.addProxy(jid, 
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
