@@ -521,6 +521,15 @@ public class DefaultProxyTracker implements ProxyTracker {
     private static class ProxyPrioritizer implements Comparator<ProxyHolder> {
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
+            // Put lanternfriend at the bottom of the list
+            boolean aIsLanternFriend = a.getJid().toString().toLowerCase().contains("lanternfriend");
+            boolean bIsLanternFriend = b.getJid().toString().toLowerCase().contains("lanternfriend");
+            if (aIsLanternFriend && !bIsLanternFriend) {
+                return 1;
+            } else if (bIsLanternFriend && !aIsLanternFriend) {
+                return -1;
+            }
+            
             // Prioritize TCP over UDP
             Protocol protocolA = a.getFiveTuple().getProtocol();
             Protocol protocolB = b.getFiveTuple().getProtocol();

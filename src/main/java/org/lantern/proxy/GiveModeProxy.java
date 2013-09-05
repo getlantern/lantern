@@ -17,6 +17,8 @@ import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.SSLEngineSource;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -26,6 +28,8 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
+    private static final Logger LOG = LoggerFactory.getLogger(GiveModeProxy.class);
+    
     @Inject
     public GiveModeProxy(
             final ClientStats stats,
@@ -60,6 +64,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         Peer peer = peerFor(flowContext);
                         if (peer != null) {
                             peer.addBytesDn(numberOfBytes);
+                        } else {
+                            LOG.warn("No peer found for ssl session: " + flowContext.getClientSSLSession());
                         }
                     }
 
@@ -83,6 +89,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         Peer peer = peerFor(flowContext);
                         if (peer != null) {
                             peer.addBytesUp(numberOfBytes);
+                        } else {
+                            LOG.warn("No peer found for ssl session: " + flowContext.getClientSSLSession());
                         }
                     }
 
@@ -93,6 +101,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         Peer peer = peerFor(sslSession);
                         if (peer != null) {
                             peer.disconnected();
+                        } else {
+                            LOG.warn("No peer found for ssl session: " + sslSession);
                         }
                     }
 
@@ -103,6 +113,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         Peer peer = peerFor(sslSession);
                         if (peer != null) {
                             peer.connected();
+                        } else {
+                            LOG.warn("No peer found for ssl session: " + sslSession);
                         }
                     }
 
