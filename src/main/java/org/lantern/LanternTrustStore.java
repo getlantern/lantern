@@ -202,6 +202,11 @@ public class LanternTrustStore {
             cert.getIssuerDN().getName().substring(3).toLowerCase();
         log.debug("Looking for alias {}", alias);
         try {
+            log.debug("All aliases");
+            Enumeration<String> aliases = this.trustStore.aliases();
+            while (aliases.hasMoreElements()) {
+                log.debug(aliases.nextElement());
+            }
             final Certificate existingCert = this.trustStore.getCertificate(alias);
             log.debug("Existing certificate: {}", (existingCert));
             return existingCert != null && existingCert.equals(cert);
