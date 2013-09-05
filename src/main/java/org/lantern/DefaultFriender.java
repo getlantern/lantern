@@ -51,7 +51,7 @@ public class DefaultFriender implements Friender {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(20000);
+                    Thread.sleep(40000);
                 } catch (final InterruptedException e) {
                 }
                 checkForBulkInvites();
