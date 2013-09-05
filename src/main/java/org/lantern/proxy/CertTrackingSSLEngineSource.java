@@ -114,7 +114,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
         public void checkClientTrusted(final X509Certificate[] chain,
                 String arg1)
                 throws CertificateException {
-            loggger.debug("Checking client trusted...");
+            loggger.debug("Checking client trusted... {}", chain);
             final X509Certificate cert = chain[0];
             if (!LanternUtils.isFallbackProxy() &&
                     !trustStore.containsCertificate(cert)) {
