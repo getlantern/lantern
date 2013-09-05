@@ -286,6 +286,9 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.lanternFriends;
+    if ($scope.show) {
+      updateDisplayedFriends();
+    }
   });
 
   $scope.$watch('added', function (added) {
@@ -320,6 +323,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   };
 
   function updateDisplayedFriends() {
+    if (!$scope.show) return;
     $scope.displayedFriends =
       orderByFltr(
         filterFltr(
