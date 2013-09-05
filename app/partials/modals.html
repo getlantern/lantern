@@ -283,8 +283,14 @@
           <div class="pending" ng-show="friend.status == FRIEND_STATUS.pending">
             {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
           </div>
-          <div ng-hide="friend.status == FRIEND_STATUS.pending" class="indented small gray">
-            {{friend.connectedStatus}}
+          <div ng-hide="friend.status == FRIEND_STATUS.pending" class="friendConnectedStatus {{friend.connectedStatus}}">
+            <div ng-switch="friend.connectedStatus">
+            <span ng-switch-when="transferringNow">{{friend.bpsUpDnSum | prettyBps}} {{'TRANSFERRING_NOW'|i18n}}</span>
+            <span ng-switch-when="connected">{{'CONNECTED'|i18n}}</span>
+            <span ng-switch-when="lastConnected">{{'LAST_CONNECTED'|i18n}} {{friend.lastConnected|date:'short'}}</span>
+            <span ng-switch-when="notYetConnected">{{'NOT_YET_CONNECTED'|i18n}}</span>
+            <span ng-switch-default>{{'UNKNOWN_CONNECTED_STATUS'|i18n}}</span><!-- should not get here -->
+          </div>
           </div>
         </li>
       </ul>

@@ -169,6 +169,21 @@
   min-height: 115px
   .addFriendsControls
     margin-top: 20px
+  .friendConnectedStatus
+    +smaller
+    margin: 2px 0 0 14px
+    body.getMode &.transferringNow
+      +give-colored
+    body.getMode &.connected
+      +give-colored-alt
+    body.giveMode &.transferringNow
+      +get-colored
+    body.giveMode &.connected
+      +get-colored-alt
+    &.lastConnected
+      +grayDark
+    &.notYetConnected
+      +gray
 
 #currentFriendsHeading
   margin: 25px 0 0

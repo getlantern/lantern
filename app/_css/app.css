@@ -7075,6 +7075,28 @@ textarea {
 #lanternFriends .addFriendsControls {
   margin-top: 20px;
 }
+#lanternFriends .friendConnectedStatus {
+  font-size: 10.5px;
+  margin: 2px 0 0 14px;
+}
+body.getMode #lanternFriends .friendConnectedStatus.transferringNow {
+  color: #83c95a;
+}
+body.getMode #lanternFriends .friendConnectedStatus.connected {
+  color: #528e2f;
+}
+body.giveMode #lanternFriends .friendConnectedStatus.transferringNow {
+  color: #ffcc66;
+}
+body.giveMode #lanternFriends .friendConnectedStatus.connected {
+  color: #cc8800;
+}
+#lanternFriends .friendConnectedStatus.lastConnected {
+  color: #555555;
+}
+#lanternFriends .friendConnectedStatus.notYetConnected {
+  color: #999999;
+}
 
 #currentFriendsHeading {
   margin: 25px 0 0;

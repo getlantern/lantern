@@ -351,26 +351,26 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     // XXX should use a better id than email
     var peers = _.filter(model.peers, {rosterEntry: {email: friend.email}});
     if (peers.length) {
-      var bpsUpDnSum = _.reduce(peers, function(sum, peer){return sum+(peer.bpsUpDn||0);}, 0);
-      if (bpsUpDnSum) {
-        friend.connectedStatus = prettyBpsFltr(bpsUpDnSum)+' '+i18nFltr('TRANSFERRING_NOW');
+      friend.bpsUpDnSum = _.reduce(peers, function(sum, peer){return sum+(peer.bpsUpDn||0);}, 0);
+      if (friend.bpsUpDnSum) {
+        friend.connectedStatus = 'transferringNow';
       } else {
         if (_.any(peers, 'connected')) {
-          friend.connectedStatus = i18nFltr('CONNECTED');
+          friend.connectedStatus = 'connected';
         } else {
-          var lastConnected = _.reduce(peers, function (mostRecent, peer) {
+          friend.lastConnected = _.reduce(peers, function (mostRecent, peer) {
               return mostRecent >= (peer.lastConnected || '') ? mostRecent : peer.lastConnected;
             },
             '');
-          if (lastConnected) {
-            friend.connectedStatus = i18nFltr('LAST_CONNECTED')+' '+dateFltr(lastConnected, 'short');
+          if (friend.lastConnected) {
+            friend.connectedStatus = 'lastConnected';
           } else {
-            friend.connectedStatus = i18nFltr('NOT_YET_CONNECTED');
+            friend.connectedStatus = 'notYetConnected';
           }
         }
       }
     } else {
-      friend.connectedStatus = i18nFltr('NOT_YET_CONNECTED');
+      friend.connectedStatus = 'notYetConnected';
     }
     return friend;
   }

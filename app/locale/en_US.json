@@ -54,6 +54,7 @@
   "CONNECTING": "Connecting...",
   "CONNECTED": "Connected",
   "NOT_YET_CONNECTED": "Not yet connected",
+  "UNKNOWN_CONNECTED_STATUS": "Unknown connected status",
   "CONNECTING_TITLE": "Connecting...",
   "NOT_INVITED_TITLE": "User Not Invited",
   "NOT_INVITED_PROMPT": "The user you tried has not been invited to join Lantern yet.",
