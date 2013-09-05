@@ -330,6 +330,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
           addConnectedStatus),
         friendOrder);
   }
+  $scope.$watch('model.peers', updateDisplayedFriends, true);
   $scope.$watch('model.friends', updateDisplayedFriends, true);
   $scope.$watch('searchText', updateDisplayedFriends, true);
 
