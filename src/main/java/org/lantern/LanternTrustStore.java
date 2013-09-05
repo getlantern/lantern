@@ -203,6 +203,7 @@ public class LanternTrustStore {
         log.debug("Looking for alias {}", alias);
         try {
             final Certificate existingCert = this.trustStore.getCertificate(alias);
+            log.debug("Existing certificate: {}", (existingCert));
             return existingCert != null && existingCert.equals(cert);
         } catch (final KeyStoreException e) {
             log.warn("Exception accessing keystore", e);
