@@ -145,11 +145,11 @@ c := goset.New("5", "6", "7")
 
 
 // creates a new set with items in a, b and c
-[1 2 3 4 5 6 7]
+// [1 2 3 4 5 6 7]
 u := goset.Union(a, b, c)
 
 // creates a new set with items in a but not in b and c
-[1 2]
+// [1 2]
 u := goset.Difference(a, b, c)
 ```
 
