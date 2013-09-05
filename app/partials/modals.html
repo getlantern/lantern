@@ -208,6 +208,12 @@
           ng-show="!!searchText" readonly dir="ltr"></textarea>
       </form>
     </div>
+    <div class="more-info">
+      {{ 'PROXIED_SITES_WIKI_TIP' | i18n }}
+      <a ng-click="openExternal(EXTERNAL_URL.proxiedSitesWiki)">
+        {{ 'PROXIED_SITES_WIKI_LINK_TEXT' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+      {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | i18n }}
+    </div>
     <!-- XXX https://github.com/getlantern/lantern/issues/465#issuecomment-14825659
          uncomment this out once it's actually true:
     <div class="tip" ui-toggle="!model.settings.proxyAllSites">
@@ -362,8 +368,8 @@
       <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea>
       <p class="contributing-prompt">
         {{ 'VIEW_THE' | i18n }}
-        <a ng-click="openExternal(EXTERNAL_URL.contributing)">{{ 'CONTRIBUTING' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-        {{ 'CONTRIBUTING_CONTINUED' | i18n }}
+        <a ng-click="openExternal(EXTERNAL_URL.getInvolved)">{{ 'GET_INVOLVED' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'GET_INVOLVED_CONTINUED' | i18n }}
       </p>
     </div>
     <div>
@@ -437,8 +443,8 @@
       </span>
       <small>
         {{ 'OR' | i18n }}
-        <a class="always-underlined" ng-click="openExternal(EXTERNAL_URL.contributing)">
-          {{ 'VIEW_WAYS_TO_CONTRIBUTE' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+        <a class="always-underlined" ng-click="openExternal(EXTERNAL_URL.getInvolved)">
+          {{ 'VIEW_WAYS_TO_GET_INVOLVED' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
       </small>
     </p>
   </div>
