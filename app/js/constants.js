@@ -48,7 +48,7 @@ var DEFAULT_LANG = 'en_US',
       userForums: 'https://groups.google.com/group/lantern-users-en', // XXX may not be in user's language, but there should be links forums in other languages on the landing page
       docs: 'https://github.com/getlantern/lantern/wiki',
       getInvolved: 'https://github.com/getlantern/lantern/wiki/Get-Involved',
-      proxiedSitesSharing: 'https://github.com/getlantern/lantern/wiki/Proxied-sites-configuration#sharing',
+      proxiedSitesWiki: 'https://github.com/getlantern/lantern-proxied-sites-lists/wiki',
       developers: 'https://github.com/getlantern/lantern'
     },
     // enums

@@ -208,12 +208,11 @@
           ng-show="!!searchText" readonly dir="ltr"></textarea>
       </form>
     </div>
-    <div>
-      <i class="icon-info-sign"></i>
-      {{ 'PROXIED_SITES_SHARE_TIP' | i18n }}
-      <a ng-click="openExternal(EXTERNAL_URL.proxiedSitesSharing)">
-        {{ 'PROXIED_SITES_SHARE_LINK_TEXT' | i18n }}<sup><i class="icon-external-link"></i></sup>
-      </a>
+    <div class="more-info">
+      {{ 'PROXIED_SITES_WIKI_TIP' | i18n }}
+      <a ng-click="openExternal(EXTERNAL_URL.proxiedSitesWiki)">
+        {{ 'PROXIED_SITES_WIKI_LINK_TEXT' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+      {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | i18n }}
     </div>
     <!-- XXX https://github.com/getlantern/lantern/issues/465#issuecomment-14825659
          uncomment this out once it's actually true:
