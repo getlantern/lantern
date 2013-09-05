@@ -396,6 +396,30 @@ exports.SCENARIOS = {
                     lon: -35.2167,
                     country: 'BR',
                     type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-10 #!@./',
+                    mode: 'get',
+                    ip: '178.65.208.98',
+                    lat:40.7089,
+                    lon:-74.0012,
+                    country:'US',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-11 #!@./',
+                    mode: 'get',
+                    ip: '178.65.208.98',
+                    lat:42.3581,
+                    lon:-71.0636,
+                    country:'US',
+                    type: 'pc'
+                  },{
+                    peerid: 'friend-of-friend1-12 #!@./',
+                    mode: 'get',
+                    ip: '179.66.209.99',
+                    lat:44.8544,
+                    lon:-63.1992,
+                    country:'CA',
+                    type: 'pc'
                   }];
               _.each(testPeers, function(peer) {
                 _.merge(peer, {bytesUp: 0, bytesDn: 0, lastConnected: new Date().toJSON()});

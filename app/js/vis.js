@@ -432,13 +432,27 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiS
         xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1];
     
     var distanceBetweenPeers = Math.sqrt(Math.pow(xS - xP, 2) + Math.pow(yS - yP, 2));
-    30
+    var xL, xR, yL, yR;
+    
     if (distanceBetweenPeers < MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS) {
       // Peer and self are very close, draw a loopy arc
-      var xC1 = Math.min(xS, xP) - MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS * 2 / 3;
-      var xC2 = Math.max(xS, xP) + MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS * 2 / 3;
-      var yC = Math.max(yS, yP) + MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS;
-      return 'M'+xS+','+yS+' C '+xC1+','+yC+' '+xC2+','+yC+' '+xP+','+yP;
+      // Make sure that the arc's line doesn't cross itself by ordering the
+      // peers from left to right
+      if (xS < xP) {
+        xL = xS;
+        yL = yS;
+        xR = xP;
+        yR = yP;
+      } else {
+        xL = xP;
+        yL = yP;
+        xR = xS;
+        yR = yS;
+      }
+      var xC1 = Math.min(xL, xR) - MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS * 2 / 3;
+      var xC2 = Math.max(xL, xR) + MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS * 2 / 3;
+      var yC = Math.max(yL, yR) + MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS;
+      return 'M'+xL+','+yL+' C '+xC1+','+yC+' '+xC2+','+yC+' '+xR+','+yR;
     } else {
       // Peer and self are at different positions, draw arc between them
       var controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*0.3],
