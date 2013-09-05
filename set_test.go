@@ -409,16 +409,16 @@ func Test_Union(t *testing.T) {
 }
 
 func Test_Difference(t *testing.T) {
-	s := New("1", "2", "3", "7")
-	r := New("2", "3", "5")
-	x := New("7")
+	s := New("1", "2", "3")
+	r := New("3", "4", "5")
+	x := New("5", "6", "7")
 	u := Difference(s, r, x)
 
-	if u.Size() != 1 {
+	if u.Size() != 2 {
 		t.Error("Difference: the set doesn't have all items in it.")
 	}
 
-	if !u.Has("1") {
+	if !u.Has("1", "2") {
 		t.Error("Difference: items are not availabile in the set.")
 	}
 
@@ -428,7 +428,7 @@ func Test_Difference(t *testing.T) {
 	}
 
 	z := Difference(s)
-	if z.Size() != 4 {
-		t.Error("Difference: size should be zero")
+	if z.Size() != 3 {
+		t.Error("Difference: size should be four")
 	}
 }

@@ -136,6 +136,23 @@ a.Separate(b)
 
 ```
 
+#### Multiple Set Operations
+
+```go
+a := goset.New("1", "2", "3")
+b := goset.New("3", "4", "5")
+c := goset.New("5", "6", "7")
+
+
+// creates a new set with items in a, b and c
+[1 2 3 4 5 6 7]
+u := goset.Union(a, b, c)
+
+// creates a new set with items in a but not in b and c
+[1 2]
+u := goset.Difference(a, b, c)
+```
+
 #### Helper methods
 
 The Slice functions below are a convenient way to extract or convert your Set data
