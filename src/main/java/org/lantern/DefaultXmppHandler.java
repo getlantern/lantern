@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,11 +27,23 @@ import javax.management.ObjectName;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
@@ -86,6 +99,7 @@ import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -446,7 +460,7 @@ public class DefaultXmppHandler implements XmppHandler {
     /**
      * Connect to Google Talk's XMPP servers using the supplied XmppCredentials
      */
-    public void connect(final XmppCredentials credentials)
+    private void connect(final XmppCredentials credentials)
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with credentials...");
         this.closedBetaEvent = null;
@@ -998,12 +1012,57 @@ public class DefaultXmppHandler implements XmppHandler {
 
         final Friends friends = model.getFriends();
         if (friends.needsSync()) {
-            String friendsJson = JsonUtils.jsonify(friends);
-            forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
-            friends.setNeedsSync(false);
+            postFriends(friends);
         }
 
         conn.sendPacket(forHub);
+    }
+
+    private void postFriends(Friends friends) {
+        LOG.info("Posting friends: {}", friends);
+        final String friendsJson = JsonUtils.jsonify(friends);
+        
+        syncFriends(friendsJson);
+        friends.setNeedsSync(false);
+    }
+    
+    private void syncFriends(final String friendsJson) {
+        
+        final HttpClient httpClient = new DefaultHttpClient();
+        final String endpoint =
+            "https://lantern-controller-afisk.appspot.com/_ah/api/friends/v1/friends";
+        final String accessToken = this.model.getSettings().getAccessToken();
+        final HttpPost post = new HttpPost(endpoint);
+        post.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
+
+        final List<? extends NameValuePair> nvps = Arrays.asList(
+            new BasicNameValuePair("friendsJson", friendsJson)
+            );
+        final HttpEntity requestEntity =
+            new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
+        
+        post.setEntity(requestEntity);
+        try {
+            LOG.debug("About to execute get!");
+            final HttpResponse response = httpClient.execute(post);
+            final StatusLine line = response.getStatusLine();
+            LOG.debug("Got response status: {}", line);
+            final HttpEntity entity = response.getEntity();
+            final String body = IOUtils.toString(entity.getContent());
+            EntityUtils.consume(entity);
+            LOG.debug("GOT RESPONSE BODY FOR FRIENDS!!!:\n"+body);
+
+            final int code = line.getStatusCode();
+            if (code < 200 || code > 299) {
+                LOG.error("OAuth error?\n"+line);
+                return;
+            }
+            return;
+        } catch (final IOException e) {
+            LOG.warn("Could not connect to Google?", e);
+        } finally {
+            post.reset();
+        }
     }
 
     @Subscribe
@@ -1200,7 +1259,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
         if (StringUtils.isBlank(this.hubAddress)) {
             LOG.info("Blank hub address when sending invite?");
-            return true;
+            return false;
         }
 
         final Set<String> invited = roster.getInvited();
