@@ -37,6 +37,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -1030,7 +1031,7 @@ public class DefaultXmppHandler implements XmppHandler {
         
         final HttpClient httpClient = new DefaultHttpClient();
         final String endpoint =
-            "https://lantern-controller-afisk.appspot.com/_ah/api/friends/v1/friends";
+            "https://"+LanternClientConstants.CONTROLLER_URL+"/_ah/api/friends/v1/friends";
         final String accessToken = this.model.getSettings().getAccessToken();
         final HttpPost post = new HttpPost(endpoint);
         post.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
@@ -1038,10 +1039,14 @@ public class DefaultXmppHandler implements XmppHandler {
         final List<? extends NameValuePair> nvps = Arrays.asList(
             new BasicNameValuePair("friendsJson", friendsJson)
             );
-        final HttpEntity requestEntity =
-            new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
         
-        post.setEntity(requestEntity);
+        final MultipartEntity me = new MultipartEntity();
+        //final HttpEntity requestEntity =
+         //   new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
+        //me
+            
+        
+        //post.setEntity(requestEntity);
         try {
             LOG.debug("About to execute get!");
             final HttpResponse response = httpClient.execute(post);
