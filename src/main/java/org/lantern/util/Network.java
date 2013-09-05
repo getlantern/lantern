@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.BitSet;
 import java.util.Enumeration;
 
@@ -14,8 +13,6 @@ public class Network {
      * 
      * @param address
      * @return
-     * @throws SocketException
-     * @throws UnknownHostException
      */
     public static boolean isOnLocalNetwork(InetAddress address) {
         try {
@@ -44,6 +41,12 @@ public class Network {
         }
     }
 
+    /**
+     * Determine whether the given address is on our local network.
+     * 
+     * @param address
+     * @return
+     */
     public static boolean isOnLocalNetwork(String address) {
         try {
             return isOnLocalNetwork(InetAddress.getByName(address));
@@ -53,9 +56,8 @@ public class Network {
     }
 
     /**
-     * Based on
-     * http://stackoverflow.com/questions/8555847/test-with-java-if-two-
-     * ips-are-in-the-same-network.
+     * Determine if two addresses are on the same IPv4 network as defined by the
+     * given networkPrefixLength.
      * 
      * @param address1
      * @param address2
