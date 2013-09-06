@@ -4,20 +4,15 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
 import org.lantern.linux.Gobject;
 import org.lantern.linux.Gtk;
-import org.lantern.state.Mode;
-import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.sun.jna.Native;
@@ -26,30 +21,19 @@ import com.sun.jna.Pointer;
 
 /**
  * Class for handling all system tray interactions.
- * specialization for using app indicators in ubuntu. 
+ * specialization for using app indicators in ubuntu.
  */
 @Singleton
-public class AppIndicatorTray implements SystemTray {
+public class AppIndicatorTray extends BaseSystemTray implements SystemTray {
 
     private static final Logger LOG = LoggerFactory.getLogger(AppIndicatorTray.class);
-
-    private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
-    private final static String LABEL_CONNECTING = "Lantern: Connecting...";
-    private final static String LABEL_CONNECTED = "Lantern: Connected";
-    private final static String LABEL_DISCONNECTING = "Lantern: Disconnecting...";
-    
-    // could be changed to red/yellow/green
-    private final static String ICON_DISCONNECTED  = "16off.png";
-    private final static String ICON_CONNECTING    = "16off.png"; 
-    private final static String ICON_CONNECTED     = "16on.png";
-    private final static String ICON_DISCONNECTING = "16off.png"; 
 
     private static Glib libglib = null;
     private static Gobject libgobject = null;
     private static Gtk libgtk = null;
 
     private static AppIndicator libappindicator = null;
-    
+
     static {
         if (SystemUtils.IS_OS_LINUX) {
             try {
@@ -64,7 +48,7 @@ public class AppIndicatorTray implements SystemTray {
             }
         }
     }
-    
+
     @Override
     public boolean isSupported() {
         return (libglib != null && libgtk != null && libappindicator != null);
@@ -77,7 +61,7 @@ public class AppIndicatorTray implements SystemTray {
 
     private AppIndicator.AppIndicatorInstanceStruct appIndicator;
     private Pointer menu;
-    
+
     private Pointer connectionStatusItem;
     private Pointer dashboardItem;
     private Pointer updateItem;
@@ -97,15 +81,12 @@ public class AppIndicatorTray implements SystemTray {
 
     private final BrowserService browserService;
 
-    private final Model model;
-
     @Inject
-    public AppIndicatorTray(final BrowserService jettyLauncher, 
-        final Model model) {
+    public AppIndicatorTray(final BrowserService jettyLauncher) {
+        super();
         this.browserService = jettyLauncher;
-        this.model = model;
     }
-    
+
 
     @Override
     public void start() {
@@ -114,7 +95,7 @@ public class AppIndicatorTray implements SystemTray {
 
     @Override
     public void stop() {
-        
+
     }
 
     @Override
@@ -127,14 +108,14 @@ public class AppIndicatorTray implements SystemTray {
             System.exit(0);
             // could signal to open dashboard
         }*/
-        
+
         menu = libgtk.gtk_menu_new();
-        
+
         connectionStatusItem = libgtk.gtk_menu_item_new_with_label(LABEL_DISCONNECTED);
         libgtk.gtk_widget_set_sensitive(connectionStatusItem, Gtk.FALSE);
         libgtk.gtk_menu_shell_append(menu, connectionStatusItem);
         libgtk.gtk_widget_show_all(connectionStatusItem);
-        
+
         dashboardItem = libgtk.gtk_menu_item_new_with_label("Show Lantern"); // XXX i18n
         dashboardItemCallback = new Gobject.GCallback() {
             @Override
@@ -146,9 +127,9 @@ public class AppIndicatorTray implements SystemTray {
         libgobject.g_signal_connect_data(dashboardItem, "activate", dashboardItemCallback,null, null, 0);
         libgtk.gtk_menu_shell_append(menu, dashboardItem);
         libgtk.gtk_widget_show_all(dashboardItem);
-        
+
         //updateItem = Gtk.gtk_menu_item_new_with_label();
-        
+
         quitItem = libgtk.gtk_menu_item_new_with_label("Quit Lantern"); // XXX i18n
         quitItemCallback = new Gobject.GCallback() {
             @Override
@@ -160,19 +141,19 @@ public class AppIndicatorTray implements SystemTray {
         libgobject.g_signal_connect_data(quitItem, "activate", quitItemCallback,null, null, 0);
         libgtk.gtk_menu_shell_append(menu, quitItem);
         libgtk.gtk_widget_show_all(quitItem);
-        
+
         appIndicator = libappindicator.app_indicator_new(
             "lantern", "indicator-messages-new",
             AppIndicator.CATEGORY_APPLICATION_STATUS);
-        
-        /* XXX basically a hack -- we should subclass the AppIndicator 
+
+        /* XXX basically a hack -- we should subclass the AppIndicator
            type and override the fallback entry in the 'vtable', instead we just
-           hack the app indicator class itself. Not an issue unless we need other 
-           appindicators. 
+           hack the app indicator class itself. Not an issue unless we need other
+           appindicators.
         */
-        AppIndicator.AppIndicatorClassStruct aiclass = 
+        AppIndicator.AppIndicatorClassStruct aiclass =
             new AppIndicator.AppIndicatorClassStruct(appIndicator.parent.g_type_instance.g_class);
-        
+
         AppIndicator.Fallback replacementFallback = new AppIndicator.Fallback() {
             @Override
             public Pointer callback(
@@ -186,10 +167,11 @@ public class AppIndicatorTray implements SystemTray {
         aiclass.write();
 
         libappindicator.app_indicator_set_menu(appIndicator, menu);
-        
-        changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
+
+        changeIcon(ICON_DISCONNECTED);
+        changeLabel(LABEL_DISCONNECTED);
         libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
-    
+
         Events.register(this);
         this.active = true;
     }
@@ -222,16 +204,16 @@ public class AppIndicatorTray implements SystemTray {
         //this.xmppHandler.disconnect();
         System.exit(0);
     }
-    
+
     @Override
-    public void addUpdate(final Map<String, Object> data) { 
+    public void addUpdate(final Map<String, Object> data) {
         LOG.info("Adding update data: {}", data);
         if (this.updateData != null && this.updateData.equals(data)) {
             LOG.info("Ignoring duplicate update data");
             return;
         }
         this.updateData = data;
-        final String label = I18n.tr("Update to Lantern ") + 
+        final String label = I18n.tr("Update to Lantern ") +
             data.get(LanternConstants.UPDATE_VERSION_KEY);
         updateItem = libgtk.gtk_menu_item_new_with_label(label);
         updateItemCallback = new Gobject.GCallback() {
@@ -252,62 +234,13 @@ public class AppIndicatorTray implements SystemTray {
         return isSupported() && this.active;
     }
 
-    @Subscribe
-    public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
-        final ConnectivityStatus cs = csce.getConnectivityStatus();
-        LOG.debug("Got connectivity state changed {}", cs);
-        onConnectivityStatus(cs);
-    }
-    
-    @Subscribe
-    public void onGoogleTalkState(final GoogleTalkStateEvent event) {
-        if (model.getSettings().getMode() == Mode.get) {
-            LOG.debug("Not linking Google Talk state to connectivity " +
-                "state in get mode");
-            return;
-        }
-        final GoogleTalkState state = event.getState();
-        final ConnectivityStatus cs;
-        switch (state) {
-            case connected:
-                cs = ConnectivityStatus.CONNECTED;
-                break;
-            case notConnected:
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-            case LOGIN_FAILED:
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-            case connecting:
-                cs = ConnectivityStatus.CONNECTING;
-                break;
-            default:
-                LOG.error("Should never get here...");
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-        }
-        onConnectivityStatus(cs);
-    }
-
-    private void onConnectivityStatus(final ConnectivityStatus cs) {
-        switch (cs) {
-        case DISCONNECTED: {
-            changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
-            break;
-        }
-        case CONNECTING: {
-            changeIcon(ICON_CONNECTING, LABEL_CONNECTING);
-            break;
-        }
-        case CONNECTED: {
-            changeIcon(ICON_CONNECTED, LABEL_CONNECTED);
-            break;
-        }
-        }
-    }
-
-    private void changeIcon(final String fileName, final String label) {
+    @Override
+    protected void changeIcon(final String fileName) {
         libappindicator.app_indicator_set_icon_full(appIndicator, iconPath(fileName), "Lantern");
+    }
+
+    @Override
+    protected void changeLabel(final String label) {
         libgtk.gtk_menu_item_set_label(connectionStatusItem, label);
     }
 

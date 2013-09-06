@@ -23,4 +23,8 @@ public class GoogleTalkStateEvent {
         return jid;
     }
 
+    @Override
+    public String toString() {
+        return "GoogleTalkStateEvent(" + jid + ", " + state + ")";
+    }
 }

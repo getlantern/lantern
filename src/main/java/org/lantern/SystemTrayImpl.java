@@ -22,12 +22,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.lantern.event.Events;
-import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
-import org.lantern.state.Mode;
-import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +35,7 @@ import com.google.inject.Singleton;
  * Class for handling all system tray interactions.
  */
 @Singleton
-public class SystemTrayImpl implements SystemTray {
+public class SystemTrayImpl extends BaseSystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
@@ -50,33 +46,19 @@ public class SystemTrayImpl implements SystemTray {
     private Map<String, Object> updateData;
     private boolean active = false;
 
-    private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
-    private final static String LABEL_CONNECTING = "Lantern: Connecting...";
-    private final static String LABEL_CONNECTED = "Lantern: Connected";
-    private final static String LABEL_DISCONNECTING = "Lantern: Disconnecting...";
-    
-    // could be changed to red/yellow/green
-    private final static String ICON_DISCONNECTED  = "16off.png";
-    private final static String ICON_CONNECTING    = "16off.png"; 
-    private final static String ICON_CONNECTED     = "16on.png";
-    private final static String ICON_DISCONNECTING = "16off.png";
-    //private final XmppHandler handler;
     private final BrowserService browserService;
-    private final Model model;
     private String connectionStatusText;
     private Image trayItemImage;
-    
+
     /**
      * Creates a new system tray handler class.
-     * 
-     * @param display The SWT display. 
+     *
+     * @param display The SWT display.
      */
     @Inject
-    public SystemTrayImpl(final BrowserService browserService,
-            final Model model) {
+    public SystemTrayImpl(final BrowserService browserService) {
+        super();
         this.browserService = browserService;
-        this.model = model;
-        Events.register(this);
     }
 
     @Override
@@ -118,10 +100,10 @@ public class SystemTrayImpl implements SystemTray {
         log.debug("Creating shell");
         this.shell = new Shell(DisplayWrapper.getDisplay());
         log.debug("Created shell");
-        
+
         createTrayInternal();
     }
-    
+
     private void createTrayInternal() {
         final Tray tray = DisplayWrapper.getDisplay().getSystemTray ();
         if (tray == null) {
@@ -131,7 +113,7 @@ public class SystemTrayImpl implements SystemTray {
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
                 I18n.tr("Lantern ")+LanternClientConstants.VERSION);
-            
+
             // Another thread could have set the tray item image before the
             // tray item was created.
             if (this.trayItemImage != null) {
@@ -151,10 +133,10 @@ public class SystemTrayImpl implements SystemTray {
             });
 
             this.menu = new Menu (shell, SWT.POP_UP);
-            
+
             this.connectionStatusItem = new MenuItem(menu, SWT.PUSH);
-            
-            // Other threads can set the label before we've constructed the 
+
+            // Other threads can set the label before we've constructed the
             // menu item, so check for it.
             if (StringUtils.isNotBlank(connectionStatusText)) {
                 connectionStatusItem.setText(connectionStatusText);
@@ -162,7 +144,7 @@ public class SystemTrayImpl implements SystemTray {
                 connectionStatusItem.setText(LABEL_DISCONNECTED); // XXX i18n
             }
             connectionStatusItem.setEnabled(false);
-            
+
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
             dashboardItem.setText("Show Lantern"); // XXX i18n
             dashboardItem.addListener (SWT.Selection, new Listener () {
@@ -172,17 +154,17 @@ public class SystemTrayImpl implements SystemTray {
                     browserService.reopenBrowser();
                 }
             });
-            
+
             new MenuItem(menu, SWT.SEPARATOR);
-            
+
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
             quitItem.setText("Quit Lantern"); // XXX i18n
-            
+
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     log.debug("Got exit call");
-                    
+
                     // This tells things like the Proxifier to stop proxying.
                     Events.eventBus().post(new QuitEvent());
                     DisplayWrapper.getDisplay().dispose();
@@ -198,7 +180,7 @@ public class SystemTrayImpl implements SystemTray {
                     menu.setVisible (true);
                 }
             });
-            
+
             final String imageName;
             if (SystemUtils.IS_OS_MAC_OSX) {
                 imageName = ICON_DISCONNECTED;
@@ -207,7 +189,7 @@ public class SystemTrayImpl implements SystemTray {
             }
             final Image image = newImage(imageName, 16, 16);
             setImage(image);
-            
+
             if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX) {
                 this.trayItem.addSelectionListener(new SelectionListener() {
                     @Override
@@ -215,7 +197,7 @@ public class SystemTrayImpl implements SystemTray {
                         log.debug("opening dashboard");
                         browserService.reopenBrowser();
                     }
-                    
+
                     @Override
                     public void widgetDefaultSelected(SelectionEvent se) {
                         log.debug("default selection event unhandled");
@@ -240,12 +222,12 @@ public class SystemTrayImpl implements SystemTray {
             }
         });
     }
-    
+
     private void setStatusLabel(final String status) {
         DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
-                // XXX i18n 
+                // XXX i18n
                 if (connectionStatusItem == null) {
                     connectionStatusText = status;
                 } else {
@@ -309,70 +291,10 @@ public class SystemTrayImpl implements SystemTray {
             }
         });
     }
-    
+
     @Subscribe
     public void onUpdate(final UpdateEvent update) {
         addUpdate(update.getData());
-    }
-
-    @Subscribe
-    public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
-        final ConnectivityStatus cs = csce.getConnectivityStatus();
-        log.debug("Received connectivity state changed: {}", cs);
-        if (!this.model.getSettings().isUiEnabled()) {
-            log.info("Ignoring event with UI disabled");
-            return;
-        }
-        onConnectivityStatus(cs);
-    }
-
-    @Subscribe
-    public void onGoogleTalkState(final GoogleTalkStateEvent event) {
-        if (model.getSettings().getMode() == Mode.get) {
-            log.debug("Not linking Google Talk state to connectivity " +
-                "state in get mode");
-            return;
-        }
-        final GoogleTalkState state = event.getState();
-        final ConnectivityStatus cs;
-        switch (state) {
-            case connected:
-                cs = ConnectivityStatus.CONNECTED;
-                break;
-            case notConnected:
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-            case LOGIN_FAILED:
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-            case connecting:
-                cs = ConnectivityStatus.CONNECTING;
-                break;
-            default:
-                log.error("Should never get here...");
-                cs = ConnectivityStatus.DISCONNECTED;
-                break;
-        }
-        onConnectivityStatus(cs);
-    }
-
-    private void onConnectivityStatus(final ConnectivityStatus cs) {
-        switch (cs) {
-        case DISCONNECTED:
-            changeIcon(ICON_DISCONNECTED);
-            changeStatusLabel(LABEL_DISCONNECTED);
-            break;
-        case CONNECTED:
-            changeIcon(ICON_CONNECTED);
-            changeStatusLabel(LABEL_CONNECTED);
-            break;
-        case CONNECTING:
-            changeIcon(ICON_CONNECTING);
-            changeStatusLabel(LABEL_CONNECTING);
-            break;
-        default:
-            break;
-        }
     }
 
     @Override
@@ -380,9 +302,10 @@ public class SystemTrayImpl implements SystemTray {
         return this.active;
     }
 
-    private void changeIcon(final String fileName) {
+    @Override
+    protected void changeIcon(final String fileName) {
         if (DisplayWrapper.getDisplay().isDisposed()) {
-            log.info("Ingoring call since display is disposed");
+            log.info("Ignoring call since display is disposed");
             return;
         }
         DisplayWrapper.getDisplay().asyncExec (new Runnable () {
@@ -396,8 +319,9 @@ public class SystemTrayImpl implements SystemTray {
             }
         });
     }
-    
-    private void changeStatusLabel(final String status) {
+
+    @Override
+    protected void changeLabel(final String status) {
         if (DisplayWrapper.getDisplay().isDisposed()) {
             log.info("Ingoring call since display is disposed");
             return;
