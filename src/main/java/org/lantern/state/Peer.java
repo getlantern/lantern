@@ -248,7 +248,7 @@ public class Peer {
         if (lastConnected == 0) {
             return null;
         }
-        return FastDateFormat.getInstance("yyyy-MM-dd' 'HH:mm:ss").format(
+        return FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ssZ").format(
             lastConnected);
     }
     
@@ -281,7 +281,7 @@ public class Peer {
     }
 
     @JsonSerialize(include=Inclusion.NON_NULL)
-    @JsonView({Run.class})
+    //@JsonView({Run.class})
     public LanternRosterEntry getRosterEntry() {
         return rosterEntry;
     }

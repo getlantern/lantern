@@ -33,7 +33,6 @@ import org.lantern.proxy.UDTServerFiveTupleListener;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
-import org.lantern.state.InviteQueue;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
@@ -83,6 +82,7 @@ public class LanternModule extends AbstractModule {
         bind(MessageService.class).to(SwtMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
 
+        bind(Friender.class).to(DefaultFriender.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
@@ -114,7 +114,6 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(StatsUpdater.class);
         bind(ConnectivityChecker.class);
-        bind(InviteQueue.class);
         bind(GeoIp.class);
         bind(CountryService.class);
         //bind(SplashScreen.class);

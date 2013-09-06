@@ -23,21 +23,16 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.Censored;
 import org.lantern.ConnectivityChangedEvent;
+import org.lantern.Friender;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
 import org.lantern.LanternUtils;
 import org.lantern.SecurityUtils;
-import org.lantern.XmppHandler;
 import org.lantern.event.Events;
-import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
-import org.lantern.state.Friend;
-import org.lantern.state.Friend.Status;
-import org.lantern.state.Friends;
 import org.lantern.state.InternalState;
-import org.lantern.state.InviteQueue;
 import org.lantern.state.JsonModelModifier;
 import org.lantern.state.LocationChangedEvent;
 import org.lantern.state.Modal;
@@ -45,7 +40,6 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
-import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
@@ -112,32 +106,26 @@ public class InteractionServlet extends HttpServlet {
 
     private final ModelIo modelIo;
 
-    private final ModelUtils modelUtils;
-
-    private final XmppHandler xmppHandler;
-
     private final Censored censored;
 
     private final LanternFeedback lanternFeedback;
 
-    private final InviteQueue inviteQueue;
+    private final Friender friender;
 
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
-        final ModelIo modelIo, final XmppHandler xmppHandler,
+        final ModelIo modelIo, 
         final Censored censored, final LanternFeedback lanternFeedback,
-        final InviteQueue inviteQueue, final ModelUtils modelUtils) {
+        final Friender friender) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
         this.modelIo = modelIo;
-        this.xmppHandler = xmppHandler;
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
-        this.inviteQueue = inviteQueue;
-        this.modelUtils = modelUtils;
+        this.friender = friender;
         Events.register(this);
     }
 
@@ -325,10 +313,10 @@ public class InteractionServlet extends HttpServlet {
             this.internalState.setCompletedTo(Modal.lanternFriends);
             switch (inter) {
             case FRIEND:
-                addFriend(json);
+                this.friender.addFriend(json);
                 break;
             case REJECT:
-                removeFriend(json);
+                this.friender.removeFriend(json);
                 break;
             case CONTINUE:
                 // This dialog always passes continue as of this writing and
@@ -597,55 +585,6 @@ public class InteractionServlet extends HttpServlet {
             log.error("No matching modal for {}", modal);
         }
         this.modelIo.write();
-    }
-
-    private void setFriendStatus(String json, Status status) {
-        final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
-        Friends friends = model.getFriends();
-        Friend friend = friends.get(email);
-        if (friend != null && friend.getStatus() == Status.friend) {
-          model.addNotification("You have already friended "+email+".",
-              MessageType.info, 30);
-          Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-          return;
-        }
-        if (friend == null || friend.getStatus() == Status.rejected) {
-            friend = modelUtils.makeFriend(email);
-            if (status == Status.friend) {
-                model.addNotification("An email will be sent to "+email+" "+
-                    "with a notification that you friended them. "+
-                    "If they do not yet have a Lantern invite, they will "+
-                    "be invited when the network can accommodate them.",
-                    MessageType.info, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-                inviteQueue.invite(friend);
-            }
-        }
-        friend.setStatus(status);
-        friends.setNeedsSync(true);
-        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
-    }
-
-    private void removeFriend(String json) {
-        setFriendStatus(json, Status.rejected);
-    }
-
-    private void addFriend(String json) {
-        setFriendStatus(json, Status.friend);
-        final String email = JsonUtils.getValueFromJson("email", json).toLowerCase();
-
-        try {
-            //if they have requested a subscription to us, we'll accept it.
-            this.xmppHandler.subscribed(email);
-
-            // We also automatically subscribe to them in turn so we know about
-            // their presence.
-            this.xmppHandler.subscribe(email);
-        } catch (IllegalStateException e) {
-            log.info("IllegalStateException while friending (you are probably offline)", e);
-            return;
-        }
     }
 
     private void backupSettings() {

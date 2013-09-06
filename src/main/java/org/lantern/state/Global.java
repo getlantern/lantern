@@ -23,7 +23,7 @@ public class Global {
         return bytesEver;
     }
 
-    public void setBytesEver(long bytesEver) {
+    public void setBytesEver(final long bytesEver) {
         this.bytesEver = bytesEver;
     }
 

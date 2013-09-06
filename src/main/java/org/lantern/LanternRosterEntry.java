@@ -25,11 +25,15 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private VCard vcard;
 
-    private final boolean autosub;
+    private boolean autosub;
 
-    private final int sortKey;
+    private int sortKey;
 
-    private final String user;
+    private String user;
+    
+    public LanternRosterEntry() {
+        // Empty constructor for jackson deserialization.
+    }
 
     public LanternRosterEntry(final RosterEntry entry) {
         this.user = entry.getUser();

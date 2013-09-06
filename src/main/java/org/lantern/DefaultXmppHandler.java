@@ -950,7 +950,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Subscribe
-    public void onFriendsStatusChanged(FriendStatusChangedEvent e) {
+    public void onFriendsStatusChanged(final FriendStatusChangedEvent e) {
         updatePresence();
     }
 
@@ -964,7 +964,7 @@ public class DefaultXmppHandler implements XmppHandler {
      */
     private void updatePresence() {
         if (!isLoggedIn()) {
-            LOG.info("Not updating presence when we're not connected");
+            LOG.debug("Not updating presence when we're not connected");
             return;
         }
 
@@ -974,7 +974,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
 
-        LOG.info("Sending presence available");
+        LOG.debug("Sending presence available");
 
         // OK, this is bizarre. For whatever reason, we **have** to send the
         // following packet in order to get presence events from our peers.
@@ -999,7 +999,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("No new stats to report");
         }
 
-        Friends friends = model.getFriends();
+        final Friends friends = model.getFriends();
         if (friends.needsSync()) {
             String friendsJson = JsonUtils.jsonify(friends);
             forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
@@ -1195,7 +1195,8 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public boolean sendInvite(final Friend friend, boolean redo) {
+    public boolean sendInvite(final Friend friend, boolean redo, 
+            final boolean addToRoster) {
         LOG.info("Sending invite");
 
         String email = friend.getEmail();

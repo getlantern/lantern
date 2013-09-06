@@ -3,11 +3,9 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0-beta3-SNAPSHOT</version>
-  <name>Lantern Censorship Circumvention Tool</name>
-  <description>
-    Lantern is a peer-to-peer and trust-network-based tool for circumventing censors.
-  </description>
+  <version>1.0.0-beta4-SNAPSHOT</version>
+  <name>Lantern</name>
+  <description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
   <url>https://github.com/getlantern/lantern</url>
 
   <properties>
