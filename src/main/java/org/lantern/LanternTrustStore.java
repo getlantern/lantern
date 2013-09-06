@@ -210,7 +210,7 @@ public class LanternTrustStore {
                 }
             }
             final Certificate existingCert = this.trustStore.getCertificate(alias);
-            log.debug("Existing certificate: {}", (existingCert));
+            log.trace("Existing certificate: {}", (existingCert));
             return existingCert != null && existingCert.equals(cert);
         } catch (final KeyStoreException e) {
             log.warn("Exception accessing keystore", e);
