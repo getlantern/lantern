@@ -535,29 +535,29 @@ public class DefaultProxyTracker implements ProxyTracker {
      * </p>
      * 
      * <ol>
-     * <li>Prioritize TCP over UDP</li>
      * <li>Prioritize other Lanterns over fallback proxies</li>
+     * <li>Prioritize TCP over UDP</li>
      * <li>Prioritize proxies to whom we have fewer open sockets</li>
      * </ol>
      */
     private static class ProxyPrioritizer implements Comparator<ProxyHolder> {
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
-            // Prioritize TCP over UDP
-            Protocol protocolA = a.getFiveTuple().getProtocol();
-            Protocol protocolB = b.getFiveTuple().getProtocol();
-            if (protocolA == TCP && protocolB != TCP) {
-                return -1;
-            } else if (protocolB == TCP && protocolA != TCP) {
-                return 1;
-            }
-
             // Prioritize other Lanterns over fallback proxies
             Type typeA = a.getType();
             Type typeB = b.getType();
             if (typeA == pc && typeB != pc) {
                 return -1;
             } else if (typeB == pc && typeA != pc) {
+                return 1;
+            }
+
+            // Prioritize TCP over UDP
+            Protocol protocolA = a.getFiveTuple().getProtocol();
+            Protocol protocolB = b.getFiveTuple().getProtocol();
+            if (protocolA == TCP && protocolB != TCP) {
+                return -1;
+            } else if (protocolB == TCP && protocolA != TCP) {
                 return 1;
             }
 
