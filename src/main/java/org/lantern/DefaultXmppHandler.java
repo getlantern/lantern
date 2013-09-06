@@ -1136,7 +1136,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Base 64 cert: {}", base64Cert);
 
         if (StringUtils.isNotBlank(base64Cert)) {
-            LOG.debug("Got certificate for {}:\n{}", uri, 
+            LOG.trace("Got certificate for {}:\n{}", uri, 
                 new String(Base64.decodeBase64(base64Cert),
                     LanternConstants.UTF8).replaceAll("\u0007", "[bell]")); // don't ring any bells
             // Add the peer if we're able to add the cert.
