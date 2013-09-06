@@ -324,7 +324,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (proxies.containsKey(ph.getFiveTuple())) {
             log.debug("We already know about proxy " + ph);
             // but it might be disconnected
-            if (!ph.lastFailed()) {
+            if (ph.isConnected()) {
                 log.debug("Proxy considered connected");
                 return;
             }

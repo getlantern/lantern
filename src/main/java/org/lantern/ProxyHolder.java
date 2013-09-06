@@ -154,12 +154,11 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     public void addFailure() {
         this.lastFailed.set(true);
-        if (failures.get() == 0) {
+        if (isConnected()) {
             long now = new Date().getTime();
             setTimeOfDeath(now);
         }
         incrementFailures();
-
     }
 
     @Override
