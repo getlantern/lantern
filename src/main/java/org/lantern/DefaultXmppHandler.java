@@ -38,6 +38,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -83,6 +85,7 @@ import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
+import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -206,12 +209,13 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final NotificationManager notificationManager;
 
+    private HttpClientFactory httpClientFactory;
+
     /**
      * Creates a new XMPP handler.
      */
     @Inject
     public DefaultXmppHandler(final Model model,
-        //final PeerProxyManager trustedPeerProxyManager,
         final Timer updateTimer, final ClientStats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
@@ -222,7 +226,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
         final UpnpService upnpService,
-        final NotificationManager notificationManager) {
+        final NotificationManager notificationManager,
+        final HttpClientFactory httpClientFactory) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -236,6 +241,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
         this.notificationManager = notificationManager;
+        this.httpClientFactory = httpClientFactory;
         Events.register(this);
         //setupJmx();
     }
@@ -1013,25 +1019,20 @@ public class DefaultXmppHandler implements XmppHandler {
 
         final Friends friends = model.getFriends();
         if (friends.needsSync()) {
-            postFriends(friends);
+            syncFriends(friends);
         }
 
         conn.sendPacket(forHub);
     }
 
-    private void postFriends(Friends friends) {
-        LOG.info("Posting friends: {}", friends);
+    private void syncFriends(final Friends friends) {
+        LOG.info("Syncing friends: {}", friends);
         final String friendsJson = JsonUtils.jsonify(friends);
-        
-        syncFriends(friendsJson);
-        friends.setNeedsSync(false);
-    }
-    
-    private void syncFriends(final String friendsJson) {
-        
-        final HttpClient httpClient = new DefaultHttpClient();
+        final HttpClient httpClient = this.httpClientFactory.newProxiedClient();
         final String endpoint =
-            "https://"+LanternClientConstants.CONTROLLER_URL+"/_ah/api/friends/v1/friends";
+            LanternClientConstants.CONTROLLER_URL+"/_ah/api/friends/v1/friends";
+        
+        LOG.debug("Posting to endpoint: "+endpoint);
         final String accessToken = this.model.getSettings().getAccessToken();
         final HttpPost post = new HttpPost(endpoint);
         post.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
@@ -1039,14 +1040,11 @@ public class DefaultXmppHandler implements XmppHandler {
         final List<? extends NameValuePair> nvps = Arrays.asList(
             new BasicNameValuePair("friendsJson", friendsJson)
             );
+
+        final HttpEntity requestEntity =
+            new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
         
-        final MultipartEntity me = new MultipartEntity();
-        //final HttpEntity requestEntity =
-         //   new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
-        //me
-            
-        
-        //post.setEntity(requestEntity);
+        post.setEntity(requestEntity);
         try {
             LOG.debug("About to execute get!");
             final HttpResponse response = httpClient.execute(post);
@@ -1056,7 +1054,7 @@ public class DefaultXmppHandler implements XmppHandler {
             final String body = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
             LOG.debug("GOT RESPONSE BODY FOR FRIENDS!!!:\n"+body);
-
+            friends.setNeedsSync(false);
             final int code = line.getStatusCode();
             if (code < 200 || code > 299) {
                 LOG.error("OAuth error?\n"+line);
