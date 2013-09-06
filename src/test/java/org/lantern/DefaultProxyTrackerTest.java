@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.state.Model;
+import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
 
 import com.google.common.eventbus.Subscribe;
@@ -38,7 +39,7 @@ public class DefaultProxyTrackerTest {
         //assume that we are connected to the Internet
         model.getConnectivity().setInternet(true);
 
-        PeerFactory peerFactory = mock(PeerFactory.class);
+        PeerFactory peerFactory = new PeerFactoryStub();
         Timer timer = mock(Timer.class);
         DefaultXmppHandler xmppHandler = mock(DefaultXmppHandler.class);
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
@@ -94,12 +95,13 @@ public class DefaultProxyTrackerTest {
         tracker.firstConnectedProxy();
         Thread.sleep(10);
 
-        // with multiple proxies, we get a different proxy for each getProxy()
-        // call
+        // Proxies are round-robined based on the number of connected sockets
         tracker.addProxy(new URI("proxy2@example.com"), "127.0.0.1:55022");
         Thread.sleep(100);
         ProxyHolder proxy1 = waitForProxy(tracker);
         System.err.println(proxy1);
+        // Simulate a successful connection to proxy1 to bump its socket count 
+        proxy1.connectionSucceeded();
         ProxyHolder proxy2 = waitForProxy(tracker);
         System.err.println(proxy2);
         assertNotNull(proxy1);

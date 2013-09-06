@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
@@ -32,7 +33,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final FiveTuple fiveTuple;
 
-    private long timeOfDeath = -1;
+    private final AtomicLong timeOfDeath = new AtomicLong(-1);
     private final AtomicInteger failures = new AtomicInteger();
 
     private final Type type;
@@ -85,6 +86,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public String toString() {
+        long timeOfDeath = this.timeOfDeath.get();
         String timeOfDeathStr;
         if (timeOfDeath == -1) {
             timeOfDeathStr = " (alive)";
@@ -132,11 +134,11 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      * never
      * */
     public long getTimeOfDeath() {
-        return timeOfDeath;
+        return timeOfDeath.get();
     }
 
     public void setTimeOfDeath(long timeOfDeath) {
-        this.timeOfDeath = timeOfDeath;
+        this.timeOfDeath.set(timeOfDeath);
     }
 
     public int getFailures() {
@@ -168,7 +170,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     public long getRetryTime() {
         // exponential backoff - 5,10,20,40, etc seconds
-        return timeOfDeath + 1000 * 5 * (long) (Math.pow(2, failures.get()));
+        return timeOfDeath.get() + 1000 * 5 * (long) (Math.pow(2, failures.get()));
     }
 
     public URI getJid() {
@@ -180,11 +182,12 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     public boolean isConnected() {
-        return timeOfDeath <= 0;
+        return timeOfDeath.get() <= 0;
     }
 
     public void addSuccess() {
         lastFailed.set(false);
+        timeOfDeath.set(-1);
     }
 
     /**

@@ -56,6 +56,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
+    private static final long RECENTLY_DECEASED_CUTOFF_IN_MILLIS = 10000;
     private static final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -307,6 +308,27 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (ProxyHolder proxy : proxies.values()) {
             if (!proxy.isConnected() && now > proxy.getRetryTime()) {
                 log.debug("Attempting to restore timed-in proxy " + proxy);
+                addProxyWithChecks(proxy.getJid(), proxy);
+            } else {
+                break;
+            }
+        }
+    }
+    
+    @Subscribe
+    public void onConnectivityChanged(ConnectivityChangedEvent e) {
+        log.debug("Got connectivity changed event: {}", e);
+        if (e.isConnected()) {
+            restoreRecentlyDeceasedProxies();
+        }
+    }
+    
+    private void restoreRecentlyDeceasedProxies() {
+        long now = new Date().getTime();
+        for (ProxyHolder proxy : proxies.values()) {
+            long timeSinceDeath = now - proxy.getTimeOfDeath();
+            if (!proxy.isConnected() && timeSinceDeath < RECENTLY_DECEASED_CUTOFF_IN_MILLIS) {
+                log.debug("Attempting to restore recently deceased proxy " + proxy);
                 addProxyWithChecks(proxy.getJid(), proxy);
             } else {
                 break;
