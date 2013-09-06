@@ -5,6 +5,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -133,7 +134,14 @@ public class Counter {
     static {
         // Periodically calculate rate for all Counters
         final ScheduledExecutorService executor = Executors
-                .newSingleThreadScheduledExecutor();
+                .newSingleThreadScheduledExecutor(new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        Thread thread = new Thread(r, "Counter-Calculator");
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                });
         executor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override
@@ -158,10 +166,5 @@ public class Counter {
                 }, RATE_CALCULATION_INTERVAL_IN_MILLIS,
                 RATE_CALCULATION_INTERVAL_IN_MILLIS,
                 TimeUnit.MILLISECONDS);
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
-                executor.shutdownNow();
-            }
-        }));
     }
 }
