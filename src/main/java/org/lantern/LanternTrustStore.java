@@ -48,7 +48,7 @@ public class LanternTrustStore {
     private final static Logger log = 
         LoggerFactory.getLogger(LanternTrustStore.class);
     
-    private static final int SSL_ENGINE_BANK_SIZE = 100;
+    private static final int SSL_ENGINE_BANK_SIZE = 500;
     private static final long SSL_ENGINE_BANK_REFILL_INTERVAL_IN_MILLIS = 100;
     
     private final AtomicReference<SSLContext> sslContextRef = 
