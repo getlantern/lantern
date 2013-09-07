@@ -4,6 +4,7 @@ import java.net.Socket;
 
 import org.lastbamboo.common.offer.answer.OfferAnswer;
 import org.lastbamboo.common.offer.answer.OfferAnswerListener;
+import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class UDTServerFiveTupleListener
     public void onUdpSocket(final FiveTuple sock) {
         log.info("Received inbound P2P UDT connection from: {}", sock);
         giveModeProxy.getServer().clone()
+                .withTransportProtocol(TransportProtocol.UDT)
                 .withAddress(sock.getLocal())
                 .start();
         // note - we don't need to hang on to the clone because it will

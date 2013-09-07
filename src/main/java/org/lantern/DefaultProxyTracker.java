@@ -141,7 +141,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             if (peer.isMapped()) {
                 final String id = peer.getPeerid();
                 if (!id.contains(fallbackServerHost)) {
-                    addProxy(LanternUtils.newURI(peer.getPeerid()),
+                    addProxyWithKnownTCPPort(LanternUtils.newURI(peer.getPeerid()),
                             new InetSocketAddress(peer.getIp(), peer.getPort()));
                 }
             }
@@ -217,7 +217,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void addProxy(final URI fullJid, final InetSocketAddress isa) {
+    public void addProxyWithKnownTCPPort(final URI fullJid, final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
         addProxy(fullJid, isa.getAddress().getHostAddress(), isa.getPort(),
                 Type.pc);
@@ -239,7 +239,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public boolean hasJidProxy(final URI uri) {
         for (ProxyHolder proxy : proxies.values()) {
-            if (proxy.getJid().equals(uri) && proxy.isPeerProxy()) {
+            if (proxy.getJid().equals(uri) && proxy.hasMappedTCPPort()) {
                 return true;
             }
         }
@@ -252,14 +252,14 @@ public class DefaultProxyTracker implements ProxyTracker {
         Iterator<ProxyHolder> it = proxies.values().iterator();
         while (it.hasNext()) {
             ProxyHolder proxy = it.next();
-            if (proxy.getJid().equals(uri) && proxy.isPeerProxy()) {
+            if (proxy.getJid().equals(uri) && proxy.hasMappedTCPPort()) {
                 it.remove();
             }
         }
     }
 
     @Override
-    public void addJidProxy(final URI peerUri) {
+    public void addProxyUsingNATTraversal(final URI peerUri) {
         log.debug("Considering peer proxy: {}", peerUri);
         if (this.model.getSettings().getMode() == Mode.give) {
             log.debug("Not adding JID proxy in give mode");
@@ -339,7 +339,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void addProxyWithChecks(final URI fullJid, final ProxyHolder ph) {
         if (!this.model.getSettings().isTcp()) {
             log.debug("Even with no tcp, we can still add JID proxies");
-            addJidProxy(fullJid);
+            addProxyUsingNATTraversal(fullJid);
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
@@ -384,7 +384,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     // Try adding the proxy by it's JID! This can happen, for
                     // example, if we get a bogus port mapping.
-                    addJidProxy(fullJid);
+                    addProxyUsingNATTraversal(fullJid);
                 } finally {
                     IOUtils.closeQuietly(sock);
                 }

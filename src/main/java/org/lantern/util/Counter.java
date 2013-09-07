@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class Counter {
     private static final Logger LOG = LoggerFactory.getLogger(Counter.class);
 
-    private static final Queue<WeakReference<Counter>> ALL_BYTES_COUNTERS = new ConcurrentLinkedQueue<WeakReference<Counter>>();
+    private static final Queue<WeakReference<Counter>> ALL_COUNTERS = new ConcurrentLinkedQueue<WeakReference<Counter>>();
     private static final int RATE_CALCULATION_INTERVAL_IN_MILLIS = 100;
 
     private final long movingAverageWindowInMillis;
@@ -43,7 +43,7 @@ public class Counter {
      */
     public Counter(long movingAverageWindowInMillis) {
         this.movingAverageWindowInMillis = movingAverageWindowInMillis;
-        ALL_BYTES_COUNTERS.add(new WeakReference<Counter>(this));
+        ALL_COUNTERS.add(new WeakReference<Counter>(this));
     }
 
     /**
@@ -147,7 +147,7 @@ public class Counter {
                     @Override
                     public void run() {
                         try {
-                            for (WeakReference<Counter> counterRef : Counter.ALL_BYTES_COUNTERS) {
+                            for (WeakReference<Counter> counterRef : Counter.ALL_COUNTERS) {
                                 Counter counter = counterRef.get();
                                 try {
                                     if (counter != null) {

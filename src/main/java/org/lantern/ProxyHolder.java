@@ -38,8 +38,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final Type type;
 
-    private final AtomicBoolean lastFailed = new AtomicBoolean(true);
-
     private volatile Peer peer;
 
     public ProxyHolder(final ProxyTracker proxyTracker,
@@ -155,7 +153,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     public void addFailure() {
-        this.lastFailed.set(true);
         if (isConnected()) {
             long now = new Date().getTime();
             setTimeOfDeath(now);
@@ -186,18 +183,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     public void addSuccess() {
-        lastFailed.set(false);
         timeOfDeath.set(-1);
-    }
-
-    /**
-     * Returns whether the last attempt failed or succeeded.
-     * 
-     * @return <code>true</code> if the last connection attempt failed,
-     *         otherwise <code>false</code>.
-     */
-    public boolean lastFailed() {
-        return lastFailed.get();
     }
 
     public String getProxyUsername() {
@@ -210,7 +196,11 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return "";
     }
 
-    public boolean isPeerProxy() {
+    /**
+     * 
+     * @return
+     */
+    public boolean hasMappedTCPPort() {
         return fiveTuple.getProtocol() == UDP;
     }
 

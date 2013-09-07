@@ -31,11 +31,11 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public void addProxy(URI jid, InetSocketAddress iae) {
+    public void addProxyWithKnownTCPPort(URI jid, InetSocketAddress iae) {
     }
 
     @Override
-    public void addJidProxy(URI jid) {
+    public void addProxyUsingNATTraversal(URI jid) {
     }
 
     @Override

@@ -15,9 +15,15 @@ public interface ProxyTracker extends LanternService {
 
     void addProxy(URI jid, String hostPort);
 
-    void addProxy(URI jid, InetSocketAddress iae);
+    /**
+     * This ads a proxy with a known TCP port.
+     * 
+     * @param jid
+     * @param iae
+     */
+    void addProxyWithKnownTCPPort(URI jid, InetSocketAddress iae);
 
-    void addJidProxy(URI jid);
+    void addProxyUsingNATTraversal(URI jid);
 
     void removePeer(URI uri);
 

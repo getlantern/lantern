@@ -139,16 +139,16 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             log.debug("Adding proxy... {}", ad);
             if (ad.hasMappedEndpoint()) {
                 log.debug("Proxy is on on a remote network at a known port");
-                this.proxyTracker.addProxy(jid, 
+                this.proxyTracker.addProxyWithKnownTCPPort(jid, 
                         LanternUtils.isa(ad.getAddress(), ad.getPort()));
             } else {
                 log.debug("Proxy's exact location unknown, adding as JID peer");
-                this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
+                this.proxyTracker.addProxyUsingNATTraversal(LanternUtils.newURI(ad.getJid()));
             }
             
             // Also add the local network advertisement in case they're on
             // the local network.
-            this.proxyTracker.addProxy(jid, 
+            this.proxyTracker.addProxyWithKnownTCPPort(jid, 
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             processedAds.add(ad);
         } else {
@@ -165,7 +165,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
                 } else {
                     log.debug("No kscope ad for cert in give mode, as expected");
                 }
-                this.proxyTracker.addJidProxy(jid);
+                this.proxyTracker.addProxyUsingNATTraversal(jid);
             }
         }
     }

@@ -38,8 +38,6 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 .withPort(model.getSettings().getServerPort())
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
-                // TODO: need to use a different SSLEngineSource if we're a
-                // fallback proxy since we want to allow anyone to connect
                 .withSSLEngineSource(sslEngineSource)
 
                 // Use a filter to deny requests to non-public ips
@@ -87,22 +85,22 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     }
 
                     @Override
-                    public void clientDisconnected(
-                            InetSocketAddress clientAddress,
-                            SSLSession sslSession) {
-                        Peer peer = peerFor(sslSession);
-                        if (peer != null) {
-                            peer.disconnected();
-                        }
-                    }
-
-                    @Override
                     public void clientSSLHandshakeSucceeded(
                             InetSocketAddress clientAddress,
                             SSLSession sslSession) {
                         Peer peer = peerFor(sslSession);
                         if (peer != null) {
                             peer.connected();
+                        }
+                    }
+
+                    @Override
+                    public void clientDisconnected(
+                            InetSocketAddress clientAddress,
+                            SSLSession sslSession) {
+                        Peer peer = peerFor(sslSession);
+                        if (peer != null) {
+                            peer.disconnected();
                         }
                     }
 
