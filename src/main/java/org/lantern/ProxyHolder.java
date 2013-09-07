@@ -5,6 +5,8 @@ import static org.littleshoot.util.FiveTuple.Protocol.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Date;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -167,7 +169,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     public long getRetryTime() {
         // exponential backoff - 5,10,20,40, etc seconds
-        return timeOfDeath.get() + 1000 * 5 * (long) (Math.pow(2, failures.get()));
+        return timeOfDeath.get() + 1000 * 5
+                * (long) (Math.pow(2, failures.get()));
     }
 
     public URI getJid() {
@@ -202,6 +205,27 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      */
     public boolean hasMappedTCPPort() {
         return fiveTuple.getProtocol() == UDP;
+    }
+
+    /**
+     * Fills our bank of {@link SSLEngine}s up to the given size limit.
+     * 
+     * @param sizeLimit
+     */
+    public void fillSSLEngineBank(int sizeLimit) {
+        // In order to avoid race conditions whereby the trust store doesn't
+        // have our cert yet, we don't fill the bank until after we've gotten
+        // our first request for an SSLEngine.
+        if (sslEngineHasBeenRequested.get()) {
+            int numberToFill = sizeLimit - sslEngineBank.size();
+            for (int i = 0; i < numberToFill; i++) {
+                sslEngineBank.add(createSSLEngine());
+            }
+        }
+    }
+
+    private SSLEngine createSSLEngine() {
+        return lanternTrustStore.getSslContext().createSSLEngine();
     }
 
     /***************************************************************************
@@ -249,7 +273,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public SSLEngine newSSLEngine() {
-        return lanternTrustStore.getSslContext().createSSLEngine();
+        return lanternTrustStore.newSSLEngine();
     }
 
     @Override

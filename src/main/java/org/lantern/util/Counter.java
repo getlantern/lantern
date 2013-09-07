@@ -3,9 +3,7 @@ package org.lantern.util;
 import java.lang.ref.WeakReference;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -133,15 +131,8 @@ public class Counter {
 
     static {
         // Periodically calculate rate for all Counters
-        final ScheduledExecutorService executor = Executors
-                .newSingleThreadScheduledExecutor(new ThreadFactory() {
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        Thread thread = new Thread(r, "Counter-Calculator");
-                        thread.setDaemon(true);
-                        return thread;
-                    }
-                });
+        ScheduledExecutorService executor = Threads
+                .newSingleThreadedScheduledExecutor("Counter-Calculator");
         executor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override

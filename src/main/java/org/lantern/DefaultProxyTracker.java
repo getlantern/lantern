@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -88,8 +87,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private int fallbackServerPort;
 
-    private final ScheduledExecutorService proxyRetryService = Executors
-            .newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService proxyRetryService = Threads
+            .newSingleThreadedScheduledExecutor("Proxy-Retry");
 
     private final LanternTrustStore lanternTrustStore;
 
@@ -103,6 +102,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.xmppHandler = xmppHandler;
         this.lanternTrustStore = lanternTrustStore;
 
+        // Periodically restore timed in proxies
         proxyRetryService.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
@@ -141,7 +141,8 @@ public class DefaultProxyTracker implements ProxyTracker {
             if (peer.isMapped()) {
                 final String id = peer.getPeerid();
                 if (!id.contains(fallbackServerHost)) {
-                    addProxyWithKnownTCPPort(LanternUtils.newURI(peer.getPeerid()),
+                    addProxyWithKnownTCPPort(
+                            LanternUtils.newURI(peer.getPeerid()),
                             new InetSocketAddress(peer.getIp(), peer.getPort()));
                 }
             }
@@ -217,7 +218,8 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void addProxyWithKnownTCPPort(final URI fullJid, final InetSocketAddress isa) {
+    public void addProxyWithKnownTCPPort(final URI fullJid,
+            final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
         addProxy(fullJid, isa.getAddress().getHostAddress(), isa.getPort(),
                 Type.pc);
@@ -314,7 +316,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         }
     }
-    
+
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
         log.debug("Got connectivity changed event: {}", e);
@@ -322,13 +324,15 @@ public class DefaultProxyTracker implements ProxyTracker {
             restoreRecentlyDeceasedProxies();
         }
     }
-    
+
     private void restoreRecentlyDeceasedProxies() {
         long now = new Date().getTime();
         for (ProxyHolder proxy : proxies.values()) {
             long timeSinceDeath = now - proxy.getTimeOfDeath();
-            if (!proxy.isConnected() && timeSinceDeath < RECENTLY_DECEASED_CUTOFF_IN_MILLIS) {
-                log.debug("Attempting to restore recently deceased proxy " + proxy);
+            if (!proxy.isConnected()
+                    && timeSinceDeath < RECENTLY_DECEASED_CUTOFF_IN_MILLIS) {
+                log.debug("Attempting to restore recently deceased proxy "
+                        + proxy);
                 addProxyWithChecks(proxy.getJid(), proxy);
             } else {
                 break;

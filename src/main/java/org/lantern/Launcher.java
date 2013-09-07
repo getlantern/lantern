@@ -368,11 +368,13 @@ public class Launcher {
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
-        if (display != null) {
-            while (!display.isDisposed ()) {
-                if (!display.readAndDispatch ()) display.sleep ();
-            }
-        }
+        // OX: YourKit was reporting deadlocks here.  This seems like a
+        // potentially expensive busy loop
+//        if (display != null) {
+//            while (!display.isDisposed ()) {
+//                if (!display.readAndDispatch ()) display.sleep ();
+//            }
+//        }
     }
 
     /**
