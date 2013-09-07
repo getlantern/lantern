@@ -150,7 +150,7 @@ public class LanternTrustStore {
     }
 
     public void addBase64Cert(final URI jid, final String base64Cert) {
-        log.debug("Adding base 64 cert for {} to trust store: {}", jid, base64Cert);
+        log.debug("Adding base 64 cert for {} to trust store", jid);
         Events.asyncEventBus().post(new PeerCertEvent(jid, base64Cert));
 
         final byte[] decoded = Base64.decodeBase64(base64Cert);
