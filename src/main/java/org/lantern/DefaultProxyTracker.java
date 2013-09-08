@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -349,8 +350,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         // We've seen this in weird cases in the field -- might as well 
         // program defensively here.
-        if (ph.getFiveTuple().getRemote().getAddress().isLoopbackAddress()) {
-            log.warn("Can't connect to loopback address...");
+        InetAddress remoteAddress = ph.getFiveTuple().getRemote().getAddress();
+        if (remoteAddress.isLoopbackAddress() || remoteAddress.isAnyLocalAddress()) {
+            log.warn("Can't connect to loopback nor 0.0.0.0 address...");
             return;
         }
         if (proxies.containsKey(ph.getFiveTuple())) {

@@ -12,10 +12,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLContext;
@@ -26,7 +22,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.lantern.event.Events;
 import org.lantern.event.PeerCertEvent;
-import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,30 +54,11 @@ public class LanternTrustStore {
 
     private TrustManagerFactory tmf;
     
-    /**
-     * Because creating an {@link SSLEngine} introduces considerable latency to
-     * the connect flow, we create these ahead of time and store them in a bank.
-     */
-    private final Queue<SSLEngine> sslEngineBank = new ConcurrentLinkedQueue<SSLEngine>();
-
     @Inject
     public LanternTrustStore(final LanternKeyStoreManager ksm) {
         this.ksm = ksm;
         this.trustStore = blankTrustStore();
         this.tmf = initTrustManagerFactory();
-        
-     // Periodically have all ProxyHolders fill their SSLEngine banks
-        ScheduledExecutorService executor = Threads
-                .newSingleThreadedScheduledExecutor("Counter-Calculator");
-        executor.scheduleAtFixedRate(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        fillSSLEngineBank();
-                    }
-                }, SSL_ENGINE_BANK_REFILL_INTERVAL_IN_MILLIS,
-                SSL_ENGINE_BANK_REFILL_INTERVAL_IN_MILLIS,
-                TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -92,7 +68,6 @@ public class LanternTrustStore {
      * SSL context from scratch for each new outgoing socket.
      */
     private void onTrustStoreChanged() {
-        this.sslEngineBank.clear();
         this.tmf = initTrustManagerFactory();
         this.sslContextRef.set(provideSslContext());
     }
@@ -195,13 +170,7 @@ public class LanternTrustStore {
      * For performance, these are created eagerly ahead of time.
      */
     public SSLEngine newSSLEngine() {
-        // Try to get an engine from our bank
-        SSLEngine sslEngine = sslEngineBank.poll();
-        if (sslEngine == null) {
-            // We didn't get an engine, create it now
-            sslEngine = createSSLEngine();
-        }
-        return sslEngine;
+        return createSSLEngine();
     }
 
     private SSLContext provideSslContext() {
@@ -222,13 +191,6 @@ public class LanternTrustStore {
         return getSslContext().createSSLEngine();
     }
     
-    private void fillSSLEngineBank() {
-        int numberToFill = SSL_ENGINE_BANK_SIZE - sslEngineBank.size();
-        for (int i = 0; i < numberToFill; i++) {
-            sslEngineBank.add(createSSLEngine());
-        }
-    }
-
     public void deleteCert(final String alias) {
         try {
             this.trustStore.deleteEntry(alias);
