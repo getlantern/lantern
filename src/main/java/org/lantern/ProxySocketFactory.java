@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
@@ -30,14 +29,16 @@ import com.google.inject.Singleton;
 @Singleton
 public class ProxySocketFactory extends SocketFactory {
 
-    private final SSLSocketFactory socketFactory;
+    //private final SSLSocketFactory socketFactory;
     private final ProxyTracker proxyTracker;
+    private final LanternSocketsUtil socketsUtil;
 
     @Inject
     public ProxySocketFactory(final LanternSocketsUtil socketsUtil, 
             final ProxyTracker proxyTracker) {
+        this.socketsUtil = socketsUtil;
         this.proxyTracker = proxyTracker;
-        this.socketFactory = socketsUtil.newTlsSocketFactory();
+        //this.socketFactory = socketsUtil.newTlsSocketFactory();
     }
 
     @Override
@@ -71,7 +72,8 @@ public class ProxySocketFactory extends SocketFactory {
         final InetSocketAddress isa = ph.getFiveTuple().getRemote();
         final String proxyHost = isa.getAddress().getHostAddress();
         final int proxyPort = isa.getPort();
-        final Socket sock = this.socketFactory.createSocket();
+        //final Socket sock = this.socketFactory.createSocket();
+        final Socket sock = socketsUtil.newTlsSocketFactoryJavaCipherSuites().createSocket();
         sock.connect(new InetSocketAddress(proxyHost, proxyPort), 50 * 1000);
         final String url = "CONNECT " + host + ":" + port;
         String proxyLine;
