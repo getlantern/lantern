@@ -74,6 +74,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
             serverContext.init(kmf.getKeyManagers(), null, null);
             final SSLEngine engine = serverContext.createSSLEngine();
             engine.setUseClientMode(false);
+            configureCipherSuites(engine);
             return engine;
         } catch (final Exception e) {
             throw new Error(
@@ -92,17 +93,21 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
             final SSLEngine engine = context.createSSLEngine();
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
-            final String[] suites = IceConfig.getCipherSuites();
-            if (suites != null && suites.length > 0) {
-                engine.setEnabledCipherSuites(suites);
-            } else {
-                // Can be null in tests.
-                log.warn("No cipher suites?");
-            }
+            configureCipherSuites(engine);
             return engine;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
+        }
+    }
+
+    private void configureCipherSuites(final SSLEngine engine) {
+        final String[] suites = IceConfig.getCipherSuites();
+        if (suites != null && suites.length > 0) {
+            engine.setEnabledCipherSuites(suites);
+        } else {
+            // Can be null in tests.
+            log.warn("No cipher suites?");
         }
     }
 
