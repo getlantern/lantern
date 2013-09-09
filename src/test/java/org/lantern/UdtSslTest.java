@@ -66,7 +66,7 @@ public class UdtSslTest {
         //final Socket sock = new Socket(myHost, SERVER_PORT);
         
         final SSLSocketFactory sslSocketFactory = 
-                util.newTlsSocketFactory();
+                util.newTlsSocketFactoryJavaCipherSuites();
             //(SSLSocketFactory)SSLSocketFactory.getDefault();
         final SSLSocket sslSocket =
             (SSLSocket)sslSocketFactory.createSocket(sock, 
@@ -126,7 +126,7 @@ public class UdtSslTest {
     protected void accept(final ServerSocket server, 
         final LanternSocketsUtil util) throws Exception {
         final Socket socket = server.accept();
-        final SSLSocketFactory sslSocketFactory = util.newTlsSocketFactory();
+        final SSLSocketFactory sslSocketFactory = util.newTlsSocketFactoryJavaCipherSuites();
         //final ServerSocket server = factory.createServerSocket();
         //server.bind(new InetSocketAddress(SERVER_PORT));
         

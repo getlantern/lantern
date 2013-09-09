@@ -26,7 +26,8 @@ public class SslHttpProxyServerTest {
 
     @Test
     public void test() throws Exception {
-        //Launcher.configureCipherSuites();
+        Launcher.configureCipherSuites();
+        //LanternUtils.setFallbackProxy();
         //System.setProperty("javax.net.debug", "ssl");
         org.jboss.netty.util.Timer timer = 
             new org.jboss.netty.util.HashedWheelTimer();
@@ -40,9 +41,6 @@ public class SslHttpProxyServerTest {
         final int port = LanternUtils.randomPort();
         final Model model = new Model();
         model.getSettings().setServerPort(port);
-        //final PeerFactory peerFactory = new Pee
-        //final GlobalLanternServerTrafficShapingHandler trafficHandler =
-        //        new GlobalLanternServerTrafficShapingHandler(timer, peerFactory);
         
         final SslHttpProxyServer server = 
             new SslHttpProxyServer(

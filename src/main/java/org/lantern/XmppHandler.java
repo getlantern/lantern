@@ -96,4 +96,6 @@ public interface XmppHandler extends LanternService {
     MappedServerSocket getMappedServer();
 
     void sendPacket(Packet packet);
+    
+    ProxyTracker getProxyTracker();
 }

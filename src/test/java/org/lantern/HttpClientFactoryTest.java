@@ -19,10 +19,12 @@ import java.util.zip.GZIPOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
@@ -34,6 +36,38 @@ import org.mockito.stubbing.Answer;
 
 public class HttpClientFactoryTest {
 
+    @Test
+    public void testFallbackProxyConnection() throws Exception {
+        //System.setProperty("javax.net.debug", "all");
+        //System.setProperty("javax.net.debug", "ssl");
+        
+        Launcher.configureCipherSuites();
+        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        final LanternSocketsUtil socketsUtil =
+            new LanternSocketsUtil(null, trustStore);
+        
+        final Censored censored = new DefaultCensored();
+        final HttpClientFactory factory = 
+                new HttpClientFactory(socketsUtil, censored, null);
+        
+        final HttpHost proxy = new HttpHost("54.254.96.14", 16589, "https");
+        
+        final HttpClient httpClient = factory.newClient(proxy, true);
+
+        final HttpHead head = new HttpHead("https://www.google.com");
+        
+        //log.debug("About to execute get!");
+        final HttpResponse response = httpClient.execute(head);
+        final StatusLine line = response.getStatusLine();
+        final int code = line.getStatusCode();
+        if (code < 200 || code > 299) {
+            //log.error("Head request failed?\n"+line);
+            fail("Could not proxy");
+        }
+        head.reset();
+    }
+    
     /**
      * We've seen issues with HttpClient redirects from HTTPS sites to HTTP
      * sites. In practice though it shouldn't really affect us because none

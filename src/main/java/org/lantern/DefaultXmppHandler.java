@@ -557,7 +557,7 @@ public class DefaultXmppHandler implements XmppHandler {
         return P2PEndpoints.newXmppP2PHttpClient(
                 "shoot", natPmpService,
                 this.upnpService, this.mappedServer,
-                this.socketsUtil.newTlsSocketFactory(),
+                this.socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 this.socketsUtil.newTlsServerSocketFactory(),
                 plainTextProxyRelayAddress, sessionListener, false,
                 new UdtRelayServerFiveTupleListener());
@@ -1413,5 +1413,10 @@ public class DefaultXmppHandler implements XmppHandler {
         pres.setProperty(LanternConstants.REFRESH_TOKEN,
                          this.model.getSettings().getRefreshToken());
         sendPresence(pres, "SendToken-Thread");
+    }
+
+    @Override
+    public ProxyTracker getProxyTracker() {
+        return proxyTracker;
     }
 }
