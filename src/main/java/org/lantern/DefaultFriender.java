@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -67,10 +68,10 @@ public class DefaultFriender implements Friender {
     public void onP2PConnectionEvent(P2PConnectionEvent e) {
         if (e.isConnected()) {
             // resend invites
-            Friends friends = model.getFriends();
-            ArrayList<String> pendingInvites = new ArrayList<String>(
+            final Friends friends = model.getFriends();
+            final Collection<String> pendingInvites = new ArrayList<String>(
                     model.getPendingInvites());
-            for (String email : pendingInvites) {
+            for (final String email : pendingInvites) {
                 log.info("Resending pending invite to {}", email);
                 Friend friend = friends.get(email);
                 xmppHandler.sendInvite(friend, true, true);
@@ -80,15 +81,24 @@ public class DefaultFriender implements Friender {
     }
 
     private void invite(final Friend friend, final boolean addToRoster) {
-        String email = friend.getEmail();
+        final String email = friend.getEmail();
         try {
-            if (xmppHandler.sendInvite(friend, false, addToRoster)) {
-                // we need to mark this email as pending, in case
-                // our invite gets lost.
-                model.addPendingInvite(email);
-            }
-        } catch (Exception e) {
-            log.debug("failed to send invite: ", e);
+            xmppHandler.sendInvite(friend, false, addToRoster);
+            // we need to mark this email as pending, in case
+            // our invite gets lost.
+            model.addPendingInvite(email);
+            model.addNotification("An email will be sent to "+email+" "+
+                "with a notification that you friended them. "+
+                "If they do not yet have a Lantern invite, they will "+
+                "be invited when the network can accommodate them.",
+                MessageType.info, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+        } catch (final Throwable e) {
+            log.error("failed to send invite: ", e);
+            model.addNotification("Failed to successfully become Lantern " +
+                "friends with '"+email+"'. The cause was described as '"+e.getMessage()+"'.",
+                MessageType.error, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
             model.addPendingInvite(email);
         }
         Events.sync(SyncPath.FRIENDS, model.getFriends().getFriends());
@@ -128,7 +138,10 @@ public class DefaultFriender implements Friender {
             } catch (final IllegalStateException e) {
                 log.error("IllegalStateException while friending " +
                     "(you are probably offline)", e);
-                return;
+                model.addNotification("Error subscribing to friend: "+email+
+                    ". Could you have lost your Internet connection?",
+                    MessageType.error, 30);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
             }
         }
     }
@@ -146,12 +159,6 @@ public class DefaultFriender implements Friender {
         if (friend == null || friend.getStatus() == Status.rejected) {
             friend = modelUtils.makeFriend(email);
             if (status == Status.friend) {
-                model.addNotification("An email will be sent to "+email+" "+
-                    "with a notification that you friended them. "+
-                    "If they do not yet have a Lantern invite, they will "+
-                    "be invited when the network can accommodate them.",
-                    MessageType.info, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 invite(friend, true);
             }
         }

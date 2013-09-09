@@ -1187,16 +1187,28 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public boolean sendInvite(final Friend friend, boolean redo, 
+    public void sendInvite(final Friend friend, boolean redo, 
             final boolean addToRoster) {
         LOG.debug("Sending invite");
 
-        String email = friend.getEmail();
+        final String email = friend.getEmail();
 
         final Set<String> invited = roster.getInvited();
         if ((!redo) && invited.contains(email)) {
             LOG.info("Already invited: {}", email);
-            return false;
+            model.addNotification("You appear to have already sent a Lantern invitation to '"+email+"'",
+                MessageType.info, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            return;
+        }
+        if (!isLoggedIn()) {
+            LOG.info("Not logged in!");
+            model.addNotification("Cannot send invite because we appear to no " +
+                "longer be logged in to Google Talk. Are you still connected " +
+                "to the Internet?",
+                MessageType.error, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            return;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
@@ -1232,7 +1244,6 @@ public class DefaultXmppHandler implements XmppHandler {
         sendPresence(pres, "Invite-Thread");
 
         addToRoster(email);
-        return true;
     }
 
     private void sendPresence(final Presence pres, final String threadName) {
