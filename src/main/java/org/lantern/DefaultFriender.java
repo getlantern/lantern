@@ -80,7 +80,8 @@ public class DefaultFriender implements Friender {
 
     }
 
-    private void invite(final Friend friend, final boolean addToRoster) {
+    private void invite(final Friend friend, final boolean addToRoster) 
+            throws IOException {
         final String email = friend.getEmail();
         try {
             xmppHandler.sendInvite(friend, false, addToRoster);
@@ -100,8 +101,8 @@ public class DefaultFriender implements Friender {
                 MessageType.error, 30);
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
             model.addPendingInvite(email);
+            throw new IOException("Invite failed", e);
         }
-        Events.sync(SyncPath.FRIENDS, model.getFriends().getFriends());
 
     }
 
@@ -143,7 +144,11 @@ public class DefaultFriender implements Friender {
         // If the friend previously didn't exist or was rejected, friend them.
         if (friend == null || friend.getStatus() == Status.rejected) {
             friend = modelUtils.makeFriend(email);
-            invite(friend, true);
+            try {
+                invite(friend, true);
+            } catch (final IOException e) {
+                return;
+            }
         }
         sync(friend, Status.friend);
         
@@ -222,7 +227,6 @@ public class DefaultFriender implements Friender {
                     MessageType.info, 5);
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 invite(friend, false);
-                
                 email = br.readLine();
                 
                 // Wait a bit between each one!
