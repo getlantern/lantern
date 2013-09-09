@@ -17,6 +17,7 @@ import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.state.Model;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.NetworkUtils;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -96,7 +97,8 @@ public class DefaultProxyTrackerTest {
         tracker.firstConnectedProxy();
         Thread.sleep(10);
 
-        // Proxies are round-robined based on the number of connected sockets
+        // with multiple proxies, we get a different proxy for each getProxy()
+        // call
         tracker.addProxy(new URI("proxy2@example.com"), new InetSocketAddress("127.0.0.1", 55022));
         Thread.sleep(100);
         ProxyHolder proxy1 = waitForProxy(tracker);
