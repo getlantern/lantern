@@ -137,8 +137,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private String lastJson = "";
 
-    private String hubAddress;
-
     private GoogleTalkState state;
 
     private final NatPmpService natPmpService;
@@ -150,8 +148,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private final Object closedBetaLock = new Object();
 
     private MappedServerSocket mappedServer;
-
-    //private final PeerProxyManager trustedPeerProxyManager;
 
     private final Timer timer;
 
@@ -745,7 +741,7 @@ public class DefaultXmppHandler implements XmppHandler {
         Events.eventBus().post(
             new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
 
-        proxyTracker.clearPeerProxySet();
+        this.proxyTracker.clearPeerProxySet();
         this.closedBetaEvent = null;
 
         // This is mostly logged for debugging thorny shutdown issues...
@@ -759,9 +755,8 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.sync(SyncPath.CONNECTIVITY_LANTERN_CONTROLLER, true);
         }
         LOG.debug("Lantern controlling agent response");
-        this.hubAddress = msg.getFrom();
         final String to = XmppUtils.jidToUser(msg.getTo());
-        LOG.debug("Set hub address to: {}", hubAddress);
+        LOG.debug("Set hub address to: {}", LanternClientConstants.LANTERN_JID);
         final String body = msg.getBody();
         LOG.debug("Hub message body: {}", body);
         final Object obj = JSONValue.parse(body);
@@ -1194,18 +1189,13 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public boolean sendInvite(final Friend friend, boolean redo, 
             final boolean addToRoster) {
-        LOG.info("Sending invite");
+        LOG.debug("Sending invite");
 
         String email = friend.getEmail();
 
-        if (StringUtils.isBlank(this.hubAddress)) {
-            LOG.info("Blank hub address when sending invite?");
-            return true;
-        }
-
         final Set<String> invited = roster.getInvited();
         if ((!redo) && invited.contains(email)) {
-            LOG.info("Already invited");
+            LOG.info("Already invited: {}", email);
             return false;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
