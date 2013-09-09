@@ -112,7 +112,12 @@ public class DefaultFriender implements Friender {
     }
 
     private void removeFriendByEmail(final String email) {
-        setFriendStatus(email, Status.rejected);
+        final Friends friends = model.getFriends();
+        final Friend friend = friends.get(email);
+        sync(friend, Status.rejected);
+        model.addNotification("You have successfully rejected '"+email+"'.",
+            MessageType.info, 30);
+        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
     private String email(final String json) {
@@ -125,7 +130,22 @@ public class DefaultFriender implements Friender {
     }
 
     private void addFriendByEmail(final String email, final boolean subscribe) {
-        setFriendStatus(email, Status.friend);
+        final Friends friends = model.getFriends();
+        Friend friend = friends.get(email);
+        if (friend != null && friend.getStatus() == Status.friend) {
+            log.debug("Already friends with {}", email);
+            model.addNotification("You have already friended "+email+".",
+              MessageType.info, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            return;
+        }
+        
+        // If the friend previously didn't exist or was rejected, friend them.
+        if (friend == null || friend.getStatus() == Status.rejected) {
+            friend = modelUtils.makeFriend(email);
+            invite(friend, true);
+        }
+        sync(friend, Status.friend);
         
         if (subscribe) {
             try {
@@ -146,22 +166,8 @@ public class DefaultFriender implements Friender {
         }
     }
 
-    private void setFriendStatus(final String email, final Status status) {
+    private void sync(final Friend friend, final Status status) {
         final Friends friends = model.getFriends();
-        Friend friend = friends.get(email);
-        if (friend != null && friend.getStatus() == Status.friend) {
-            log.debug("Already friends with {}", email);
-            model.addNotification("You have already friended "+email+".",
-              MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-            return;
-        }
-        if (friend == null || friend.getStatus() == Status.rejected) {
-            friend = modelUtils.makeFriend(email);
-            if (status == Status.friend) {
-                invite(friend, true);
-            }
-        }
         friend.setStatus(status);
         friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
