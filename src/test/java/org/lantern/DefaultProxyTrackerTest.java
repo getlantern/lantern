@@ -18,6 +18,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.state.Model;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.NetworkUtils;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -60,7 +61,8 @@ public class DefaultProxyTrackerTest {
         LanternUtils.waitForServer(miniproxy2.port, 4000);
 
 
-        tracker.addProxy(new URI("proxy1@example.com"), "127.0.0.1:55021");
+        tracker.addProxy(new URI("proxy1@example.com"), 
+            NetworkUtils.getLocalHost().getHostAddress()+":55021");
         proxy = waitForProxy(tracker);
         
         assertEquals(55021, getProxyPort(proxy));
@@ -98,7 +100,8 @@ public class DefaultProxyTrackerTest {
 
         // with multiple proxies, we get a different proxy for each getProxy()
         // call
-        tracker.addProxy(new URI("proxy2@example.com"), "127.0.0.1:55022");
+        tracker.addProxy(new URI("proxy2@example.com"), 
+            NetworkUtils.getLocalHost().getHostAddress()+":55022");
         Thread.sleep(100);
         ProxyHolder proxy1 = waitForProxy(tracker);
         System.err.println(proxy1);
