@@ -40,18 +40,14 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
 
         // Add all connected ProxyHolders to our queue of chained proxies
         chainedProxies.addAll(proxyHolders);
-        
-        if (chainedProxies.isEmpty()) {
-            LOG.debug("No connected proxies found!");
-        }
-        
+
         // Allow falling back to a direct connection if necessary
         chainedProxies
                 .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
-        
+
         logFallbackOrder(proxyHolders);
     }
-    
+
     private void logFallbackOrder(Collection<ProxyHolder> proxyHolders) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Proxy Fallback Order:");

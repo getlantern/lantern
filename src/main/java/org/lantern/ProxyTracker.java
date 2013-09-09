@@ -13,21 +13,33 @@ public interface ProxyTracker extends LanternService {
 
     void clearPeerProxySet();
 
-    void addProxy(URI jid, String hostPort);
-
     /**
-     * This ads a proxy with a known TCP port.
+     * Adds a proxy for the given JabberID at the given address. If the
+     * <code>address</code> isn't given, we will attempt to do a NAT Traversal
+     * to find an address for the given Jabber ID.
      * 
      * @param jid
-     * @param iae
+     *            Jabber ID for the peer
+     * @param address
+     *            (optional) address at which we expect the proxy to be
+     *            listening
      */
-    void addProxyWithKnownTCPPort(URI jid, InetSocketAddress iae);
+    void addProxy(URI jid, InetSocketAddress address);
 
-    void addProxyUsingNATTraversal(URI jid);
+    /**
+     * Adds a proxy for the given JabberID at an unknown address. We will
+     * attempt to do a NAT Traversal to find an address for the given Jabber ID.
+     * 
+     * @param jid
+     */
+    void addProxy(URI jid);
 
-    void removePeer(URI uri);
-
-    boolean hasJidProxy(URI uri);
+    /**
+     * Remove the NAT traversed proxy for the peer identified by the given URI.
+     * 
+     * @param uri
+     */
+    void removeNATTraversedProxy(URI uri);
 
     boolean hasProxy();
 

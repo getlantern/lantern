@@ -875,6 +875,7 @@ public class Launcher {
     public static final String OPTION_ANON_PEERS ="disable-anon-peers";
     public static final String OPTION_LAE = "disable-lae";
     public static final String OPTION_CENTRAL = "disable-central";
+    public static final String OPTION_UDP_PROXY_PRIORITY = "udp-proxy-priority";
     public static final String OPTION_UDP = "disable-udp";
     public static final String OPTION_TCP = "disable-tcp";
     public static final String OPTION_USER = "user";
@@ -890,7 +891,7 @@ public class Launcher {
     public static final String OPTION_CONTROLLER_ID = "controller-id";
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
-
+    
     private static Options buildOptions() {
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
@@ -915,6 +916,8 @@ public class Launcher {
             "disable use of app engine proxies.");
         options.addOption(null, OPTION_CENTRAL, false,
             "disable use of centralized proxies.");
+        options.addOption(null, OPTION_UDP_PROXY_PRIORITY, true,
+                "set the priority of UDP proxies relative to TCP, one of 'lower', 'same', or 'higher', defaults to 'lower'");
         options.addOption(null, OPTION_UDP, false,
             "disable UDP for peer-to-peer connections.");
         options.addOption(null, OPTION_TCP, false,
@@ -983,7 +986,8 @@ public class Launcher {
         set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
         set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
         set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
-
+        set.setUdpProxyPriority(cmd.getOptionValue(OPTION_UDP_PROXY_PRIORITY, "lower").toUpperCase());
+        
         final boolean tcp = parseOptionDefaultTrue(cmd, OPTION_TCP);
         final boolean udp = parseOptionDefaultTrue(cmd, OPTION_UDP);
         IceConfig.setTcp(tcp);

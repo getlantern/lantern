@@ -43,9 +43,6 @@ public class LanternTrustStore {
     private final static Logger log = 
         LoggerFactory.getLogger(LanternTrustStore.class);
     
-    private static final int SSL_ENGINE_BANK_SIZE = 500;
-    private static final long SSL_ENGINE_BANK_REFILL_INTERVAL_IN_MILLIS = 100;
-    
     private final AtomicReference<SSLContext> sslContextRef = 
             new AtomicReference<SSLContext>();
     private final LanternKeyStoreManager ksm;
@@ -170,7 +167,7 @@ public class LanternTrustStore {
      * For performance, these are created eagerly ahead of time.
      */
     public SSLEngine newSSLEngine() {
-        return createSSLEngine();
+        return getSslContext().createSSLEngine();
     }
 
     private SSLContext provideSslContext() {
@@ -185,10 +182,6 @@ public class LanternTrustStore {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
         }
-    }
-    
-    private SSLEngine createSSLEngine() {
-        return getSslContext().createSSLEngine();
     }
     
     public void deleteCert(final String alias) {
