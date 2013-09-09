@@ -143,32 +143,32 @@ public class DefaultFriender implements Friender {
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (friend == null || friend.getStatus() == Status.rejected) {
-            friend = modelUtils.makeFriend(email);
             try {
                 invite(friend, true);
             } catch (final IOException e) {
                 return;
             }
+            if (subscribe) {
+                try {
+                    //if they have requested a subscription to us, we'll accept it.
+                    this.xmppHandler.subscribed(email);
+        
+                    // We also automatically subscribe to them in turn so we 
+                    // know about their presence.
+                    this.xmppHandler.subscribe(email);
+                    return;
+                } catch (final IllegalStateException e) {
+                    log.error("IllegalStateException while friending " +
+                        "(you are probably offline)", e);
+                    model.addNotification("Error subscribing to friend: "+email+
+                        ". Could you have lost your Internet connection?",
+                        MessageType.error, 30);
+                    Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                }
+            }
+            friend = modelUtils.makeFriend(email);
         }
         sync(friend, Status.friend);
-        
-        if (subscribe) {
-            try {
-                //if they have requested a subscription to us, we'll accept it.
-                this.xmppHandler.subscribed(email);
-    
-                // We also automatically subscribe to them in turn so we know about
-                // their presence.
-                this.xmppHandler.subscribe(email);
-            } catch (final IllegalStateException e) {
-                log.error("IllegalStateException while friending " +
-                    "(you are probably offline)", e);
-                model.addNotification("Error subscribing to friend: "+email+
-                    ". Could you have lost your Internet connection?",
-                    MessageType.error, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-            }
-        }
     }
 
     private void sync(final Friend friend, final Status status) {
