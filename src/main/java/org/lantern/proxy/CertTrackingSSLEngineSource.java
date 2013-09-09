@@ -2,8 +2,13 @@ package org.lantern.proxy;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -34,6 +39,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final LanternTrustStore trustStore;
     private final LanternKeyStoreManager keyStoreManager;
+    private volatile SSLContext serverContext;
 
     @Inject
     public CertTrackingSSLEngineSource(
@@ -54,6 +60,21 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
 
     private SSLEngine fallbackProxySslEngine() {
         log.debug("Using fallback proxy context");
+        if (this.serverContext == null) {
+            this.serverContext = buildFallbackServerContext();
+        }
+        try {
+            final SSLEngine engine = this.serverContext.createSSLEngine();
+            engine.setUseClientMode(false);
+            configureCipherSuites(engine);
+            return engine;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the server-side SSLContext", e);
+        }
+    }
+
+    private SSLContext buildFallbackServerContext() {
         final String PASS = "Be Your Own Lantern";
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
@@ -68,17 +89,23 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
             kmf.init(ks, PASS.toCharArray());
 
             // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
+            final SSLContext context = SSLContext.getInstance("TLS");
 
             // NO CLIENT AUTH!!
-            serverContext.init(kmf.getKeyManagers(), null, null);
-            final SSLEngine engine = serverContext.createSSLEngine();
-            engine.setUseClientMode(false);
-            configureCipherSuites(engine);
-            return engine;
-        } catch (final Exception e) {
-            throw new Error(
-                    "Failed to initialize the server-side SSLContext", e);
+            context.init(kmf.getKeyManagers(), null, null);
+            return context;
+        } catch (final KeyStoreException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (CertificateException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (IOException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (UnrecoverableKeyException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (KeyManagementException e) {
+            throw new Error("Could not load fallback ssl context", e);
         }
     }
 

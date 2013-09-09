@@ -55,7 +55,7 @@ public class LanternSocketsUtilTest {
         Thread.yield();
         
         try {
-            testClient(util.newTlsSocketFactory(), data);
+            testClient(util.newTlsSocketFactoryJavaCipherSuites(), data);
         } catch (Exception e) {
             fail("Should have connected no problem!!\n"+ThreadUtils.dumpStack(e));
         }

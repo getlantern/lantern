@@ -141,10 +141,12 @@ public class LanternSocketsUtil {
      * 
      * @return A socket factory with the most up to date trust store data.
      */
+    /*
     public SSLSocketFactory newTlsSocketFactory() {
         log.debug("Creating TLS socket factory");
         return newTlsSocketFactory(IceConfig.getCipherSuites());
     }
+    */
 
     public SSLSocketFactory newTlsSocketFactory(final String[] cipherSuites) {
         log.debug("Creating TLS socket factory");
