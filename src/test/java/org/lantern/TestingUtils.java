@@ -224,10 +224,14 @@ public class TestingUtils {
 
         NotificationManager notificationManager = mock(NotificationManager.class);
 
+        
+        final HttpClientFactory httpClientFactory = 
+                new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
+        
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
-            notificationManager);
+            notificationManager, httpClientFactory);
         return xmppHandler;
     }
 
