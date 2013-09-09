@@ -7,9 +7,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
+ * <p>
  * This test demonstrates the issue seen described in <a href=
  * "http://stackoverflow.com/questions/16191236/tomcat-startup-fails-due-to-java-net-socketexception-invalid-argument-on-mac-o"
  * >this StackOverflow entry</a>.
+ * </p>
+ * 
+ * <p>
+ * This test fails when running with Oracle Java 7 on OS X 10.8.4. It succeeds
+ * when running on the Apple supplied Java 6 on OS X 10.8.4.
+ * </p>
  */
 public class SelectBrokenOnOSX {
     public static void main(String[] args) throws Exception {
@@ -56,8 +63,7 @@ public class SelectBrokenOnOSX {
         out.close();
         in.close();
         socket.close();
-        
+
         System.out.println("done");
     }
-
 }
