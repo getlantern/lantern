@@ -189,6 +189,7 @@ public class Roster implements RosterListener {
     }
 
     private void sendKscopeAdToAllPeers() {
+        log.debug("Sending KScope ads to all peers");
         final Collection<LanternRosterEntry> entries = getEntries();
         for (final LanternRosterEntry lre : entries) {
             if (!lre.isAvailable()) {
