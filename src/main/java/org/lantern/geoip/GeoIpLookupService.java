@@ -131,8 +131,8 @@ public class GeoIpLookupService {
             inStream = GeoIpLookupService.class.getResourceAsStream("geoip.db");
 
             if (inStream == null) {
-                LOG.error("Failed to load geoip.db.  All geo ip lookups will fail.");
-                final File local = new File("src/main/resources/geoip.db");
+                LOG.error("Failed to load geoip.db...loading local file.");
+                final File local = new File("src/main/resources/org/lantern/geoip/geoip.db");
                 inStream = new FileInputStream(local);
                 dataLoaded = true;
             }
@@ -145,7 +145,7 @@ public class GeoIpLookupService {
                 throw new RuntimeException(e);
             } 
         } catch (final FileNotFoundException e) {
-            LOG.error("Could not find local geoip.dd?", e);
+            LOG.error("Could not find local geoip.db?", e);
         } finally {
             IOUtils.closeQuietly(inStream);
         }
