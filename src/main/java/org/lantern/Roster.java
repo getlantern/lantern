@@ -388,6 +388,9 @@ public class Roster implements RosterListener {
 
     private void fullRosterSync() {
         updateIndex();
+        if (model.getSettings().getMode() == Mode.give) {
+            sendKscopeAdToAllPeers();
+        }
         Events.syncRoster(this);
     }
 

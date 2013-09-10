@@ -1356,29 +1356,6 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
 
-    private void setupJmx() {
-        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            final Class<? extends Object> clazz = getClass();
-            final String pack = clazz.getPackage().getName();
-            final String oName =
-                pack+":type="+clazz.getSimpleName()+"-"+clazz.getSimpleName();
-            LOG.debug("Registering MBean with name: {}", oName);
-            final ObjectName mxBeanName = new ObjectName(oName);
-            if(!mbs.isRegistered(mxBeanName)) {
-                mbs.registerMBean(this, mxBeanName);
-            }
-        } catch (final MalformedObjectNameException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final InstanceAlreadyExistsException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final MBeanRegistrationException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final NotCompliantMBeanException e) {
-            LOG.error("Could not set up JMX", e);
-        }
-    }
-
     @Subscribe
     public void onReset(final ResetEvent event) {
         disconnect();

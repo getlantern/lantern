@@ -97,6 +97,6 @@ public class HttpClientFactory {
         
         httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(2,true));
         httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);
-        httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 0);
+        httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
     }
 }

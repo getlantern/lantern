@@ -11,7 +11,6 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
-import org.apache.http.params.CoreConnectionPNames;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.XMPPException;
@@ -137,8 +136,7 @@ public class LanternSaslGoogleOAuth2Mechanism extends SASLMechanism {
         try {
             refreshed = refreshAccessToken(new ApacheHttpTransport(directClient));
         } catch (final IOException e) {
-            log.warn("Socket timeout: {}", directClient.getParams().getParameter(CoreConnectionPNames.SO_TIMEOUT));
-                    log.debug("Could not refresh token directly", e);
+            log.debug("Could not refresh token directly", e);
         }
         while (!refreshed) {
             final HttpHost proxy = httpClientFactory.newProxy();

@@ -149,16 +149,19 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void addProxy(URI jid) {
-        this.addProxy(jid, null);
+        this.addProxy(jid, (ProxyHolder) null);
     }
 
-    private void addProxy(final URI jid, final InetSocketAddress address,
-            final Type type) {
+    private void addProxy(URI jid, InetSocketAddress address, Type type) {
         boolean canAddAsTCP = address != null && address.getPort() > 0
                 && this.model.getSettings().isTcp();
-        if (canAddAsTCP) {
-            addTCPProxy(jid, new ProxyHolder(this, peerFactory,
-                    lanternTrustStore, jid, address, type));
+        addProxy(jid, canAddAsTCP ? new ProxyHolder(this, peerFactory,
+                lanternTrustStore, jid, address, type) : null);
+    }
+
+    private void addProxy(URI jid, ProxyHolder proxyHolder) {
+        if (proxyHolder != null) {
+            addTCPProxy(jid, proxyHolder, true);
         } else {
             addNATTraversedUDPProxy(jid);
         }
@@ -169,27 +172,21 @@ public class DefaultProxyTracker implements ProxyTracker {
      * 
      * @param jid
      * @param ph
+     * @param allowFallbackToNATTraversal
      */
-    private void addTCPProxy(final URI jid, final ProxyHolder ph) {
+    private void addTCPProxy(final URI jid, final ProxyHolder ph,
+            final boolean allowFallbackToNATTraversal) {
+        LOG.info("Adding TCP proxy {}", ph);
+        
         // We've seen this in weird cases in the field -- might as well
         // program defensively here.
         InetAddress remoteAddress = ph.getFiveTuple().getRemote().getAddress();
         if (remoteAddress.isLoopbackAddress()
                 || remoteAddress.isAnyLocalAddress()) {
-            LOG.warn("Can't connect to loopback nor 0.0.0.0 address...");
+            LOG.warn("Can connect to neither loopback nor 0.0.0.0 address...");
             return;
         }
-        if (proxies.containsKey(ph.getFiveTuple())) {
-            LOG.debug("We already know about proxy " + ph);
-            // but it might be disconnected
-            if (ph.isConnected()) {
-                LOG.debug("Proxy considered connected");
-                return;
-            }
-        }
-
-        LOG.debug("Trying to add proxy {}");
-
+        
         proxyCheckThreadPool.submit(new Runnable() {
 
             @Override
@@ -218,9 +215,11 @@ public class DefaultProxyTracker implements ProxyTracker {
                     LOG.debug("Could not connect to {} {}", jid, ph, e);
                     onCouldNotConnect(ph);
 
-                    // Try adding the proxy by it's JID! This can happen, for
-                    // example, if we get a bogus port mapping.
-                    addNATTraversedUDPProxy(jid);
+                    if (allowFallbackToNATTraversal) {
+                        // Try adding the proxy by it's JID! This can happen,
+                        // for example, if we get a bogus port mapping.
+                        addNATTraversedUDPProxy(jid);
+                    }
                 } finally {
                     IOUtils.closeQuietly(sock);
                 }
@@ -235,7 +234,7 @@ public class DefaultProxyTracker implements ProxyTracker {
      * @param jid
      */
     private void addNATTraversedUDPProxy(final URI jid) {
-        LOG.debug("Considering peer proxy: {}", jid);
+        LOG.debug("Considering NAT traversed proxy for: {}", jid);
         final HashMap<URI, AtomicInteger> peerFailureCount =
                 new HashMap<URI, AtomicInteger>();
         if (hasConnectedNATTraversedProxy(jid)) {
@@ -291,11 +290,11 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void removeNATTraversedProxy(final URI uri) {
-        LOG.debug("Removing peer by request: {}", uri);
         Iterator<ProxyHolder> it = proxies.values().iterator();
         while (it.hasNext()) {
             ProxyHolder proxy = it.next();
             if (proxy.getJid().equals(uri) && proxy.isNATTraversed()) {
+                LOG.debug("Removing peer by request: {}", uri);
                 it.remove();
             }
         }
@@ -306,7 +305,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (ProxyHolder proxy : proxies.values()) {
             if (!proxy.isConnected() && now > proxy.getRetryTime()) {
                 LOG.debug("Attempting to restore timed-in proxy " + proxy);
-                addTCPProxy(proxy.getJid(), proxy);
+                addTCPProxy(proxy.getJid(), proxy, false);
             } else {
                 break;
             }
@@ -329,7 +328,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     && timeSinceDeath < RECENTLY_DECEASED_CUTOFF_IN_MILLIS) {
                 LOG.debug("Attempting to restore recently deceased proxy "
                         + proxy);
-                addTCPProxy(proxy.getJid(), proxy);
+                addTCPProxy(proxy.getJid(), proxy, false);
             } else {
                 break;
             }

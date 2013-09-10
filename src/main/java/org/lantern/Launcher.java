@@ -370,11 +370,11 @@ public class Launcher {
         // where we're not launching a browser.
         // OX: YourKit was reporting deadlocks here.  This seems like a
         // potentially expensive busy loop
-//        if (display != null) {
-//            while (!display.isDisposed ()) {
-//                if (!display.readAndDispatch ()) display.sleep ();
-//            }
-//        }
+        if (display != null) {
+            while (!display.isDisposed ()) {
+                if (!display.readAndDispatch ()) display.sleep ();
+            }
+        }
     }
 
     /**

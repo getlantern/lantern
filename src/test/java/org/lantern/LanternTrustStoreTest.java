@@ -96,7 +96,7 @@ public class LanternTrustStoreTest {
         final HttpClient client = new DefaultHttpClient();
         client.getConnectionManager().getSchemeRegistry().register(sch);
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 20000);
-        //client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 
         final String[] success = {"talk.google.com",
             "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com"}; //"www.exceptional.io",
