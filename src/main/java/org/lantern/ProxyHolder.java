@@ -26,8 +26,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final LanternTrustStore lanternTrustStore;
 
-    private final String id;
-
     private final URI jid;
 
     private final FiveTuple fiveTuple;
@@ -41,27 +39,24 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore, final String id,
-            final URI jid, final InetSocketAddress isa, final Type type) {
-        this(proxyTracker, peerFactory, lanternTrustStore, id, jid,
+            final LanternTrustStore lanternTrustStore, 
+            final URI jid, final InetSocketAddress isa,
+            final Type type) {
+        this(proxyTracker, peerFactory, lanternTrustStore, jid,
                 new FiveTuple(null, isa, Protocol.TCP), type);
     }
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore, final String id,
-            final URI jid, final FiveTuple tuple, final Type type) {
+            final LanternTrustStore lanternTrustStore,
+            final URI jid, final FiveTuple tuple,
+            final Type type) {
         this.proxyTracker = proxyTracker;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
-        this.id = id;
         this.jid = jid;
         this.fiveTuple = tuple;
         this.type = type;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public FiveTuple getFiveTuple() {
@@ -98,7 +93,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
         return result;
@@ -113,11 +107,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         if (getClass() != obj.getClass())
             return false;
         ProxyHolder other = (ProxyHolder) obj;
-        if (getId() == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
-            return false;
         if (fiveTuple == null) {
             if (other.fiveTuple != null)
                 return false;
@@ -200,12 +189,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      * 
      * @return
      */
-    public boolean hasMappedTCPPort() {
+    public boolean isNATTraversed() {
         return fiveTuple.getProtocol() == UDP;
-    }
-
-    private SSLEngine createSSLEngine() {
-        return lanternTrustStore.getSslContext().createSSLEngine();
     }
 
     /***************************************************************************

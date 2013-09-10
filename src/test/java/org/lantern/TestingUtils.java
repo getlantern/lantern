@@ -115,7 +115,7 @@ public class TestingUtils {
                 }
                 return new ProxyHolder(
                         this, peerFactory, trustStore,
-                        "", uri, tuple, Type.cloud);
+                        uri, tuple, Type.cloud);
             }
         };
     }

@@ -27,24 +27,19 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public void addProxy(URI jid, String hostPort) {
+    public void addProxy(URI jid) {
+        // TODO Auto-generated method stub
+
     }
 
     @Override
-    public void addProxyWithKnownTCPPort(URI jid, InetSocketAddress iae) {
+    public void addProxy(URI jid, InetSocketAddress address) {
+        // TODO Auto-generated method stub
+
     }
 
     @Override
-    public void addProxyUsingNATTraversal(URI jid) {
-    }
-
-    @Override
-    public void removePeer(URI uri) {
-    }
-
-    @Override
-    public boolean hasJidProxy(URI uri) {
-        return false;
+    public void removeNATTraversedProxy(URI uri) {
     }
 
     @Override

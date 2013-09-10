@@ -1032,7 +1032,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         else {
             LOG.info("Removing JID for peer '"+from);
-            this.proxyTracker.removePeer(uri);
+            this.proxyTracker.removeNATTraversedProxy(uri);
         }
     }
 
@@ -1353,29 +1353,6 @@ public class DefaultXmppHandler implements XmppHandler {
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
             }
-        }
-    }
-
-    private void setupJmx() {
-        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            final Class<? extends Object> clazz = getClass();
-            final String pack = clazz.getPackage().getName();
-            final String oName =
-                pack+":type="+clazz.getSimpleName()+"-"+clazz.getSimpleName();
-            LOG.debug("Registering MBean with name: {}", oName);
-            final ObjectName mxBeanName = new ObjectName(oName);
-            if(!mbs.isRegistered(mxBeanName)) {
-                mbs.registerMBean(this, mxBeanName);
-            }
-        } catch (final MalformedObjectNameException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final InstanceAlreadyExistsException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final MBeanRegistrationException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final NotCompliantMBeanException e) {
-            LOG.error("Could not set up JMX", e);
         }
     }
 

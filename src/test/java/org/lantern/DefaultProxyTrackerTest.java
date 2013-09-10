@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import io.netty.util.Timer;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
@@ -16,6 +17,7 @@ import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.state.Model;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.NetworkUtils;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -59,7 +61,7 @@ public class DefaultProxyTrackerTest {
         LanternUtils.waitForServer(miniproxy2.port, 4000);
 
 
-        tracker.addProxy(new URI("proxy1@example.com"), "127.0.0.1:55021");
+        tracker.addProxy(new URI("proxy1@example.com"), new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 55021));
         proxy = waitForProxy(tracker);
         
         assertEquals(55021, getProxyPort(proxy));
@@ -95,8 +97,9 @@ public class DefaultProxyTrackerTest {
         tracker.firstConnectedProxy();
         Thread.sleep(10);
 
-        // Proxies are round-robined based on the number of connected sockets
-        tracker.addProxy(new URI("proxy2@example.com"), "127.0.0.1:55022");
+        // with multiple proxies, we get a different proxy for each getProxy()
+        // call
+        tracker.addProxy(new URI("proxy2@example.com"), new InetSocketAddress("127.0.0.1", 55022));
         Thread.sleep(100);
         ProxyHolder proxy1 = waitForProxy(tracker);
         System.err.println(proxy1);
