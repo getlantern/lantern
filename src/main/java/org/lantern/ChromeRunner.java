@@ -125,7 +125,7 @@ public class ChromeRunner {
             }
         }
         final String endpoint = StaticSettings.getLocalEndpoint(port, prefix);
-        log.debug("Opening browser to: {}", endpoint);
+        log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
         commands.add(executable);

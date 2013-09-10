@@ -1,13 +1,14 @@
 package org.lantern;
 
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.annotation.Keep;
 import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
@@ -202,7 +203,7 @@ public class Whitelist {
         log.debug("Checking whitelist for request");
         final String uri = request.getUri();
         log.debug("URI is: {}", uri);
-        final String referer = request.getHeader(HttpHeaders.Names.REFERER);
+        final String referer = request.headers().get(HttpHeaders.Names.REFERER);
         return isWhitelisted(referer) || isWhitelisted(uri);
     }
 

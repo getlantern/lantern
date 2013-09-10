@@ -21,7 +21,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
+public class LanternKeyStoreManager implements LanternService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -180,7 +179,6 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
         }
     }
 
-    @Override
     public String getBase64Cert(final String id) {
         // The keystore file itself is created lazily, so make sure we have it
         // before proceeding here.
@@ -198,7 +196,6 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
         }
     }
 
-    @Override
     public InputStream keyStoreAsInputStream() {
         // The keystore file itself is created lazily, so make sure we have it
         // before proceeding here.
@@ -211,12 +208,10 @@ public class LanternKeyStoreManager implements KeyStoreManager, LanternService {
         }
     }
 
-    @Override
     public char[] getCertificatePassword() {
         return PASS.toCharArray();
     }
 
-    @Override
     public char[] getKeyStorePassword() {
         return PASS.toCharArray();
     }

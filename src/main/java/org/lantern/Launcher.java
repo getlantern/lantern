@@ -49,6 +49,8 @@ import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
@@ -58,7 +60,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
-import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
 import org.lantern.util.StopwatchManager;
@@ -96,14 +97,12 @@ public class Launcher {
     
     private static Logger LOG;
     private boolean lanternStarted = false;
-    private LanternHttpProxyServer localProxy;
-    private PlainTextRelayHttpProxyServer plainTextAnsererRelayProxy;
+    private GetModeProxy getModeProxy;
+    private GiveModeProxy giveModeProxy;
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
     private StatsUpdater statsUpdater;
-
-    private SslHttpProxyServer sslProxy;
 
     private LocalCipherProvider localCipherProvider;
 
@@ -336,19 +335,13 @@ public class Launcher {
 
         xmpp = instance(DefaultXmppHandler.class);
 
-        sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
-        plainTextAnsererRelayProxy = instance(PlainTextRelayHttpProxyServer.class);
 
-        localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
         proxyTracker = instance(ProxyTracker.class);
-
-        // We do this to make sure it's added to the shutdown list.
-        instance(GlobalLanternServerTrafficShapingHandler.class);
 
         LOG.debug("Processing command line options...");
         processCommandLineOptions(cmd);
@@ -366,12 +359,17 @@ public class Launcher {
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
         }
         
+        // Set up the give and get mode proxies
+        getModeProxy = instance(GetModeProxy.class);
+        giveModeProxy = instance(GiveModeProxy.class);
         
         startServices();
 
 
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
+        // OX: YourKit was reporting deadlocks here.  This seems like a
+        // potentially expensive busy loop
         if (display != null) {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
@@ -403,9 +401,8 @@ public class Launcher {
                     LOG.error("Could not start proxy tracker?", e);
                 }
                 xmpp.start();
-                sslProxy.start(false, false);
-                localProxy.start();
-                plainTextAnsererRelayProxy.start(true, false);
+                getModeProxy.start();
+                giveModeProxy.start();
 
                 syncService.start();
                 statsUpdater.start();
@@ -878,6 +875,7 @@ public class Launcher {
     public static final String OPTION_ANON_PEERS ="disable-anon-peers";
     public static final String OPTION_LAE = "disable-lae";
     public static final String OPTION_CENTRAL = "disable-central";
+    public static final String OPTION_UDP_PROXY_PRIORITY = "udp-proxy-priority";
     public static final String OPTION_UDP = "disable-udp";
     public static final String OPTION_TCP = "disable-tcp";
     public static final String OPTION_USER = "user";
@@ -893,7 +891,7 @@ public class Launcher {
     public static final String OPTION_CONTROLLER_ID = "controller-id";
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
-
+    
     private static Options buildOptions() {
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
@@ -918,6 +916,8 @@ public class Launcher {
             "disable use of app engine proxies.");
         options.addOption(null, OPTION_CENTRAL, false,
             "disable use of centralized proxies.");
+        options.addOption(null, OPTION_UDP_PROXY_PRIORITY, true,
+                "set the priority of UDP proxies relative to TCP, one of 'lower', 'same', or 'higher', defaults to 'lower'");
         options.addOption(null, OPTION_UDP, false,
             "disable UDP for peer-to-peer connections.");
         options.addOption(null, OPTION_TCP, false,
@@ -986,7 +986,8 @@ public class Launcher {
         set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
         set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
         set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
-
+        set.setUdpProxyPriority(cmd.getOptionValue(OPTION_UDP_PROXY_PRIORITY, "lower").toUpperCase());
+        
         final boolean tcp = parseOptionDefaultTrue(cmd, OPTION_TCP);
         final boolean udp = parseOptionDefaultTrue(cmd, OPTION_UDP);
         IceConfig.setTcp(tcp);
