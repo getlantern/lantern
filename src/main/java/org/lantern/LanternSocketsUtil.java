@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,11 +15,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
 import org.lastbamboo.common.offer.answer.IceConfig;
-import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,7 +218,7 @@ public class LanternSocketsUtil {
             }
 
             private void configure(final SSLSocket sock) {
-                sock.setNeedClientAuth(true);
+                sock.setUseClientMode(true);
                 if (cipherSuites != null && cipherSuites.length > 0) {
                     sock.setEnabledCipherSuites(cipherSuites);
                 }
@@ -234,49 +229,5 @@ public class LanternSocketsUtil {
     private SSLSocketFactory sf() {
         return trustStore.getSslContext().getSocketFactory();
     }
-
-    public void startReading(final Socket sock, final Channel channel,
-        final boolean recordStats) {
-        final Runnable runner = new Runnable() {
-            @Override
-            public void run() {
-                final byte[] buffer = new byte[4096];
-                int n = 0;
-                try {
-                    log.debug("READING FROM SOCKET: {}", sock);
-                    if (sock.isClosed()) {
-                        log.error("SOCKET IS CLOSED");
-                        ProxyUtils.closeOnFlush(channel);
-                        return;
-                    }
-                    final InputStream is = sock.getInputStream();
-                    while (-1 != (n = is.read(buffer))) {
-                        //log.info("Writing response data: {}", new String(buffer, 0, n));
-                        // We need to make a copy of the buffer here because
-                        // the writes are asynchronous, so the bytes can
-                        // otherwise get scrambled.
-                        final ChannelBuffer buf =
-                            ChannelBuffers.copiedBuffer(buffer, 0, n);
-                        channel.write(buf);
-                        if (recordStats) {
-                            stats.addDownBytesFromPeers(n);
-                        }
-
-                    }
-                    ProxyUtils.closeOnFlush(channel);
-
-                } catch (final IOException e) {
-                    log.info("Exception relaying peer data back to browser", e);
-                    ProxyUtils.closeOnFlush(channel);
-
-                    // The other side probably just closed the connection!!
-
-                    //channel.close();
-                    //proxyStatusListener.onError(peerUri);
-
-                }
-            }
-        };
-        threadPool.execute(runner);
-    }
+    
 }

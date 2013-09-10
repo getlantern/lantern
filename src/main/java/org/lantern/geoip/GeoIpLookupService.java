@@ -4,6 +4,9 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -11,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.lantern.GeoData;
 import org.littleshoot.util.BitUtils;
 import org.slf4j.Logger;
@@ -121,27 +125,29 @@ public class GeoIpLookupService {
 
     private void loadDataInternal() {
         final GeoIpCompressor compressor = new GeoIpCompressor();
-        InputStream inStream = GeoIpLookupService.class
-                .getResourceAsStream("geoip.db");
-
-        if (inStream == null) {
-            LOG.error("Failed to load geoip.db.  All geo ip lookups will fail.");
-            dataLoaded = true;
-            throw new Error("No geoip database at geoip.db?");
-        }
-
-        inStream = new BufferedInputStream(inStream);
-
+        
+        InputStream inStream = null;
         try {
-            compressor.readCompressedData(inStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                inStream.close();
-            } catch (IOException e) {
-                LOG.info("Failed to close stream", e);
+            inStream = GeoIpLookupService.class.getResourceAsStream("geoip.db");
+
+            if (inStream == null) {
+                LOG.error("Failed to load geoip.db...loading local file.");
+                final File local = new File("src/main/resources/org/lantern/geoip/geoip.db");
+                inStream = new FileInputStream(local);
+                dataLoaded = true;
             }
+    
+            inStream = new BufferedInputStream(inStream);
+    
+            try {
+                compressor.readCompressedData(inStream);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } 
+        } catch (final FileNotFoundException e) {
+            LOG.error("Could not find local geoip.db?", e);
+        } finally {
+            IOUtils.closeQuietly(inStream);
         }
 
         // convert to searchable form

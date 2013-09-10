@@ -1,5 +1,7 @@
 package org.lantern.http;
 
+import io.netty.handler.codec.http.HttpHeaders;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;

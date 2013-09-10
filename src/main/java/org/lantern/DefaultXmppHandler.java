@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -17,12 +16,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -57,6 +50,7 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
@@ -66,7 +60,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
-import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
@@ -186,6 +179,8 @@ public class DefaultXmppHandler implements XmppHandler {
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
     private final NotificationManager notificationManager;
+    
+    private final UdtServerFiveTupleListener udtFiveTupleListener;
 
     /**
      * Creates a new XMPP handler.
@@ -203,7 +198,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
         final UpnpService upnpService,
-        final NotificationManager notificationManager) {
+        final NotificationManager notificationManager,
+        final UdtServerFiveTupleListener udtFiveTupleListener) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -217,6 +213,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
         this.notificationManager = notificationManager;
+        this.udtFiveTupleListener = udtFiveTupleListener;
         Events.register(this);
         //setupJmx();
     }
@@ -446,9 +443,8 @@ public class DefaultXmppHandler implements XmppHandler {
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with credentials...");
         this.closedBetaEvent = null;
-        final InetSocketAddress plainTextProxyRelayAddress =
-            LanternUtils.isa("127.0.0.1",
-                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
+        // This address doesn't appear to be used anywhere, setting to null
+        final InetSocketAddress plainTextProxyRelayAddress = null;
 
         if (this.client.get() == null) {
             makeClient(plainTextProxyRelayAddress);
@@ -560,7 +556,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 this.socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 this.socketsUtil.newTlsServerSocketFactory(),
                 plainTextProxyRelayAddress, sessionListener, false,
-                new UdtRelayServerFiveTupleListener());
+                udtFiveTupleListener);
     }
 
     private void handleConnectionFailure() {
@@ -1029,7 +1025,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         else {
             LOG.info("Removing JID for peer '"+from);
-            this.proxyTracker.removePeer(uri);
+            this.proxyTracker.removeNatTraversedProxy(uri);
         }
     }
 
@@ -1128,7 +1124,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Base 64 cert: {}", base64Cert);
 
         if (StringUtils.isNotBlank(base64Cert)) {
-            LOG.debug("Got certificate:\n"+
+            LOG.trace("Got certificate for {}:\n{}", uri, 
                 new String(Base64.decodeBase64(base64Cert),
                     LanternConstants.UTF8).replaceAll("\u0007", "[bell]")); // don't ring any bells
             // Add the peer if we're able to add the cert.
@@ -1350,29 +1346,6 @@ public class DefaultXmppHandler implements XmppHandler {
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
             }
-        }
-    }
-
-    private void setupJmx() {
-        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            final Class<? extends Object> clazz = getClass();
-            final String pack = clazz.getPackage().getName();
-            final String oName =
-                pack+":type="+clazz.getSimpleName()+"-"+clazz.getSimpleName();
-            LOG.debug("Registering MBean with name: {}", oName);
-            final ObjectName mxBeanName = new ObjectName(oName);
-            if(!mbs.isRegistered(mxBeanName)) {
-                mbs.registerMBean(this, mxBeanName);
-            }
-        } catch (final MalformedObjectNameException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final InstanceAlreadyExistsException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final MBeanRegistrationException e) {
-            LOG.error("Could not set up JMX", e);
-        } catch (final NotCompliantMBeanException e) {
-            LOG.error("Could not set up JMX", e);
         }
     }
 
