@@ -39,7 +39,7 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public void removeNATTraversedProxy(URI uri) {
+    public void removeNatTraversedProxy(URI uri) {
     }
 
     @Override

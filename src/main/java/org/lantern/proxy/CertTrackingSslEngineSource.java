@@ -22,7 +22,7 @@ import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lastbamboo.common.offer.answer.IceConfig;
-import org.littleshoot.proxy.SSLEngineSource;
+import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,19 +30,19 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * This {@link SSLEngineSource} creates {@link SSLEngine}s that authenticates
+ * This {@link SslEngineSource} creates {@link SSLEngine}s that authenticates
  * peers based on their client certificates and only allows trusted peers.
  */
 @Singleton
-public class CertTrackingSSLEngineSource implements SSLEngineSource {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
+public class CertTrackingSslEngineSource implements SslEngineSource {
+    private static final Logger LOG = LoggerFactory.getLogger(CertTrackingSslEngineSource.class);
+    
     private final LanternTrustStore trustStore;
     private final LanternKeyStoreManager keyStoreManager;
     private volatile SSLContext serverContext;
 
     @Inject
-    public CertTrackingSSLEngineSource(
+    public CertTrackingSslEngineSource(
             final LanternTrustStore trustStore,
             final LanternKeyStoreManager keyStoreManager) {
         this.trustStore = trustStore;
@@ -50,7 +50,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
     }
 
     @Override
-    public SSLEngine newSSLEngine() {
+    public SSLEngine newSslEngine() {
         if (LanternUtils.isFallbackProxy()) {
             return fallbackProxySslEngine();
         } else {
@@ -59,7 +59,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
     }
 
     private SSLEngine fallbackProxySslEngine() {
-        log.debug("Using fallback proxy context");
+        LOG.debug("Using fallback proxy context");
         if (this.serverContext == null) {
             this.serverContext = buildFallbackServerContext();
         }
@@ -111,7 +111,7 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
 
     private SSLEngine standardSslEngine(
             final CertTrackingTrustManager trustManager) {
-        log.debug("Using standard SSL context");
+        LOG.debug("Using standard SSL context");
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
             context.init(this.keyStoreManager.getKeyManagerFactory()
@@ -134,27 +134,27 @@ public class CertTrackingSSLEngineSource implements SSLEngineSource {
             engine.setEnabledCipherSuites(suites);
         } else {
             // Can be null in tests.
-            log.warn("No cipher suites?");
+            LOG.warn("No cipher suites?");
         }
     }
 
     private class CertTrackingTrustManager implements X509TrustManager {
 
-        private final Logger loggger = LoggerFactory.getLogger(getClass());
+        private final Logger log = LoggerFactory.getLogger(getClass());
 
         @Override
         public void checkClientTrusted(final X509Certificate[] chain,
                 String arg1)
                 throws CertificateException {
-            loggger.debug("Checking client trusted... {}", chain);
+            log.debug("Checking client trusted... {}", chain);
             final X509Certificate cert = chain[0];
             if (!LanternUtils.isFallbackProxy() &&
                     !trustStore.containsCertificate(cert)) {
-                loggger.warn("Certificate is not trusted!!");
+                log.warn("Certificate is not trusted!!");
                 throw new CertificateException("not trusted");
             }
 
-            loggger.debug("Certificate trusted");
+            log.debug("Certificate trusted");
         }
 
         @Override

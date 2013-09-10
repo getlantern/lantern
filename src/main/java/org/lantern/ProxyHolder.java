@@ -189,7 +189,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      * 
      * @return
      */
-    public boolean isNATTraversed() {
+    public boolean isNatTraversed() {
         return fiveTuple.getProtocol() == UDP;
     }
 
@@ -237,7 +237,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     }
 
     @Override
-    public SSLEngine newSSLEngine() {
+    public SSLEngine newSslEngine() {
         return lanternTrustStore.newSSLEngine();
     }
 

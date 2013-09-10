@@ -26,7 +26,7 @@ import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
-import org.lantern.proxy.UDTServerFiveTupleListener;
+import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -186,7 +186,7 @@ public class TestingUtils {
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
-            notificationManager, new UDTServerFiveTupleListener(null));
+            notificationManager, new UdtServerFiveTupleListener(null));
         return xmppHandler;
     }
 

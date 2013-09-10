@@ -77,8 +77,8 @@ public class DefaultProxyTracker implements ProxyTracker {
      * this to implement a back-off strategy that keeps us from too frequently
      * trying to NAT traverse to the same peers.
      */
-    private final Map<URI, ScheduledNATTraversal> natTraversalSchedule =
-            new ConcurrentHashMap<URI, ScheduledNATTraversal>();
+    private final Map<URI, ScheduledNatTraversal> natTraversalSchedule =
+            new ConcurrentHashMap<URI, ScheduledNatTraversal>();
 
     private final Model model;
 
@@ -171,9 +171,9 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addProxy(URI jid, ProxyHolder proxyHolder) {
         if (proxyHolder != null) {
-            addTCPProxy(jid, proxyHolder, true);
+            addTcpProxy(jid, proxyHolder, true);
         } else {
-            addNATTraversedUDPProxy(jid, true);
+            addNattedProxy(jid, true);
         }
     }
 
@@ -182,10 +182,10 @@ public class DefaultProxyTracker implements ProxyTracker {
      * 
      * @param jid
      * @param ph
-     * @param allowFallbackToNATTraversal
+     * @param allowFallbackToNatTTraversal
      */
-    private void addTCPProxy(final URI jid, final ProxyHolder ph,
-            final boolean allowFallbackToNATTraversal) {
+    private void addTcpProxy(final URI jid, final ProxyHolder ph,
+            final boolean allowFallbackToNatTTraversal) {
         LOG.info("Adding TCP proxy {} {}", jid, ph);
 
         // We've seen this in weird cases in the field -- might as well
@@ -225,10 +225,10 @@ public class DefaultProxyTracker implements ProxyTracker {
                     LOG.debug("Could not connect to {} {}", jid, ph, e);
                     onCouldNotConnect(ph);
 
-                    if (allowFallbackToNATTraversal) {
+                    if (allowFallbackToNatTTraversal) {
                         // Try adding the proxy by it's JID! This can happen,
                         // for example, if we get a bogus port mapping.
-                        addNATTraversedUDPProxy(jid, true);
+                        addNattedProxy(jid, true);
                     }
                 } finally {
                     IOUtils.closeQuietly(sock);
@@ -246,13 +246,17 @@ public class DefaultProxyTracker implements ProxyTracker {
      *            whether or not to adhere to the schedule set in
      *            {@link #natTraversalSchedule}
      */
-    private void addNATTraversedUDPProxy(final URI jid,
+    private void addNattedProxy(final URI jid,
             final boolean adhereToSchedule) {
-        LOG.debug("Considering NAT traversed proxy for: {}", jid);
+        if (true) {
+            LOG.debug("NAT traversal is currently disabled;");
+            return;
+        }
+        LOG.debug("Considering NAT traversal to proxy for: {}", jid);
         final HashMap<URI, AtomicInteger> peerFailureCount =
                 new HashMap<URI, AtomicInteger>();
 
-        if (hasConnectedNATTraversedProxy(jid)) {
+        if (hasConnectedNatTraversedProxy(jid)) {
             LOG.debug(
                     "Already have connected NAT traversed proxy for {}, declining to add",
                     jid);
@@ -260,7 +264,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
 
         if (adhereToSchedule) {
-            if (!scheduleAllowsNATTraversal(jid)) {
+            if (!scheduleAllowsNatTraversal(jid)) {
                 LOG.debug(
                         "Skipping NAT traversal for {} before scheduled time",
                         jid);
@@ -291,7 +295,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     proxies.put(tuple, ph);
 
-                    resetNATTraversalScheduleFor(jid);
+                    resetNatTraversalScheduleFor(jid);
 
                     Events.eventBus().post(
                             new ProxyConnectionEvent(
@@ -299,46 +303,46 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                 } catch (final IOException e) {
                     LOG.info("Could not create peer socket", e);
-                    scheduleNextAllowedNATTraversalFor(jid);
+                    scheduleNextAllowedNatTraversalFor(jid);
                 }
             }
         });
     }
 
-    private boolean scheduleAllowsNATTraversal(URI jid) {
+    private boolean scheduleAllowsNatTraversal(URI jid) {
         synchronized (natTraversalSchedule) {
-            ScheduledNATTraversal scheduled = natTraversalSchedule.get(jid);
+            ScheduledNatTraversal scheduled = natTraversalSchedule.get(jid);
             return scheduled == null || scheduled.scheduledTime <= System
                     .currentTimeMillis();
         }
     }
 
-    private void resetNATTraversalScheduleFor(URI jid) {
+    private void resetNatTraversalScheduleFor(URI jid) {
         synchronized (natTraversalSchedule) {
             natTraversalSchedule.remove(jid);
         }
     }
 
-    private void scheduleNextAllowedNATTraversalFor(URI jid) {
+    private void scheduleNextAllowedNatTraversalFor(URI jid) {
         synchronized (natTraversalSchedule) {
-            ScheduledNATTraversal scheduled = natTraversalSchedule
+            ScheduledNatTraversal scheduled = natTraversalSchedule
                     .get(jid);
-            ScheduledNATTraversal nextScheduled;
+            ScheduledNatTraversal nextScheduled;
             if (scheduled == null) {
-                nextScheduled = new ScheduledNATTraversal(
+                nextScheduled = new ScheduledNatTraversal(
                         NAT_TRAVERSAL_INITIAL_DELAY);
             } else {
                 // Back off by a factor of 2
-                nextScheduled = new ScheduledNATTraversal(
+                nextScheduled = new ScheduledNatTraversal(
                         scheduled.delay * 2);
             }
             natTraversalSchedule.put(jid, nextScheduled);
         }
     }
 
-    private boolean hasConnectedNATTraversedProxy(final URI jid) {
+    private boolean hasConnectedNatTraversedProxy(final URI jid) {
         for (ProxyHolder proxy : proxies.values()) {
-            if (proxy.getJid().equals(jid) && proxy.isNATTraversed()
+            if (proxy.getJid().equals(jid) && proxy.isNatTraversed()
                     && proxy.isConnected()) {
                 return true;
             }
@@ -347,11 +351,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void removeNATTraversedProxy(final URI uri) {
+    public void removeNatTraversedProxy(final URI uri) {
         Iterator<ProxyHolder> it = proxies.values().iterator();
         while (it.hasNext()) {
             ProxyHolder proxy = it.next();
-            if (proxy.getJid().equals(uri) && proxy.isNATTraversed()) {
+            if (proxy.getJid().equals(uri) && proxy.isNatTraversed()) {
                 LOG.debug("Removing peer by request: {}", uri);
                 it.remove();
             }
@@ -363,10 +367,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (ProxyHolder proxy : proxies.values()) {
             if (!proxy.isConnected() && now > proxy.getRetryTime()) {
                 LOG.debug("Attempting to restore timed-in proxy " + proxy);
-                if (proxy.isNATTraversed()) {
-                    addNATTraversedUDPProxy(proxy.getJid(), false);
+                if (proxy.isNatTraversed()) {
+                    addNattedProxy(proxy.getJid(), false);
                 } else {
-                    addTCPProxy(proxy.getJid(), proxy, false);
+                    addTcpProxy(proxy.getJid(), proxy, false);
                 }
             } else {
                 break;
@@ -390,7 +394,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     && timeSinceDeath < RECENTLY_DECEASED_CUTOFF_IN_MILLIS) {
                 LOG.debug("Attempting to restore recently deceased proxy "
                         + proxy);
-                addTCPProxy(proxy.getJid(), proxy, false);
+                addTcpProxy(proxy.getJid(), proxy, false);
             } else {
                 break;
             }
@@ -651,11 +655,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    private static class ScheduledNATTraversal {
+    private static class ScheduledNatTraversal {
         private long scheduledTime;
         private long delay;
 
-        public ScheduledNATTraversal(long delay) {
+        public ScheduledNatTraversal(long delay) {
             super();
             this.scheduledTime = System.currentTimeMillis() + delay;
             this.delay = delay;

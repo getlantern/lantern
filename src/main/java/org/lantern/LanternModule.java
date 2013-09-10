@@ -25,11 +25,11 @@ import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.SecretServiceLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
-import org.lantern.proxy.CertTrackingSSLEngineSource;
+import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.DispatchingChainedProxyManager;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
-import org.lantern.proxy.UDTServerFiveTupleListener;
+import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
@@ -46,7 +46,7 @@ import org.lantern.ui.SwtMessageService;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.SSLEngineSource;
+import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,10 +119,10 @@ public class LanternModule extends AbstractModule {
         //bind(SplashScreen.class);
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
-        bind(SSLEngineSource.class).to(CertTrackingSSLEngineSource.class);
+        bind(SslEngineSource.class).to(CertTrackingSslEngineSource.class);
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);
-        bind(UDTServerFiveTupleListener.class);
+        bind(UdtServerFiveTupleListener.class);
 
         try {
             copyFireFoxExtension();

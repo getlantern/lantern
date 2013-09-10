@@ -18,16 +18,16 @@ import com.google.inject.Singleton;
  * plus protocol)
  */
 @Singleton
-public class UDTServerFiveTupleListener
+public class UdtServerFiveTupleListener
         implements OfferAnswerListener<FiveTuple> {
 
     private static final Logger log = LoggerFactory
-            .getLogger(UDTServerFiveTupleListener.class);
+            .getLogger(UdtServerFiveTupleListener.class);
 
     private GiveModeProxy giveModeProxy;
 
     @Inject
-    public UDTServerFiveTupleListener(GiveModeProxy giveModeProxy) {
+    public UdtServerFiveTupleListener(GiveModeProxy giveModeProxy) {
         this.giveModeProxy = giveModeProxy;
     }
 

@@ -15,7 +15,7 @@ import org.littleshoot.proxy.FlowContext;
 import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
-import org.littleshoot.proxy.SSLEngineSource;
+import org.littleshoot.proxy.SslEngineSource;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 import com.google.inject.Inject;
@@ -30,7 +30,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
     public GiveModeProxy(
             final ClientStats stats,
             final Model model,
-            final SSLEngineSource sslEngineSource,
+            final SslEngineSource sslEngineSource,
             final PeerFactory peerFactory) {
         super(DefaultHttpProxyServer
                 .bootstrap()
@@ -38,7 +38,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 .withPort(model.getSettings().getServerPort())
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
-                .withSSLEngineSource(sslEngineSource)
+                .withSslEngineSource(sslEngineSource)
 
                 // Use a filter to deny requests to non-public ips
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
@@ -105,7 +105,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     }
 
                     private Peer peerFor(FlowContext flowContext) {
-                        return peerFor(flowContext.getClientSSLSession());
+                        return peerFor(flowContext.getClientSslSession());
                     }
 
                     private Peer peerFor(SSLSession sslSession) {

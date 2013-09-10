@@ -13,7 +13,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.lantern.proxy.CertTrackingSSLEngineSource;
+import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.littleshoot.proxy.HttpProxyServer;
@@ -34,7 +34,7 @@ public class SslHttpProxyServerTest {
         final LanternTrustStore ts = new LanternTrustStore(ksm);
         final String testId = "127.0.0.1";// "test@gmail.com/somejidresource";
         ts.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
-        CertTrackingSSLEngineSource cses = new CertTrackingSSLEngineSource(ts,
+        CertTrackingSslEngineSource cses = new CertTrackingSslEngineSource(ts,
                 ksm);
         final int port = LanternUtils.randomPort();
         final Model model = new Model();
@@ -42,7 +42,7 @@ public class SslHttpProxyServerTest {
 
         final HttpProxyServer server = DefaultHttpProxyServer.bootstrap()
                 .withPort(port)
-                .withSSLEngineSource(cses)
+                .withSslEngineSource(cses)
                 .withAllowLocalOnly(true)
                 .withListenOnAllAddresses(true)
                 .start();

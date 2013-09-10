@@ -50,7 +50,7 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.proxy.UDTServerFiveTupleListener;
+import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
@@ -180,7 +180,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final NotificationManager notificationManager;
     
-    private final UDTServerFiveTupleListener udtFiveTupleListener;
+    private final UdtServerFiveTupleListener udtFiveTupleListener;
 
     /**
      * Creates a new XMPP handler.
@@ -199,7 +199,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final NatPmpService natPmpService,
         final UpnpService upnpService,
         final NotificationManager notificationManager,
-        final UDTServerFiveTupleListener udtFiveTupleListener) {
+        final UdtServerFiveTupleListener udtFiveTupleListener) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -1025,7 +1025,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         else {
             LOG.info("Removing JID for peer '"+from);
-            this.proxyTracker.removeNATTraversedProxy(uri);
+            this.proxyTracker.removeNatTraversedProxy(uri);
         }
     }
 
