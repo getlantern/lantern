@@ -1028,7 +1028,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void syncFriends(final Friends friends) {
         LOG.info("Syncing friends: {}", friends);
         final String friendsJson = JsonUtils.jsonify(friends);
-        final HttpClient httpClient = this.httpClientFactory.newProxiedClient();
+        final HttpClient httpClient = this.httpClientFactory.newClient();
         final String endpoint =
             LanternClientConstants.CONTROLLER_URL+"/_ah/api/friends/v1/friends";
         
@@ -1037,9 +1037,15 @@ public class DefaultXmppHandler implements XmppHandler {
         final HttpPost post = new HttpPost(endpoint);
         post.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
 
+        final byte[] raw = LanternUtils.compress(friendsJson);
+        final String base64 = Base64.encodeBase64String(raw);
+        
+        fjkdafjdka
         final List<? extends NameValuePair> nvps = Arrays.asList(
             new BasicNameValuePair("friendsJson", friendsJson)
             );
+        
+       
 
         final HttpEntity requestEntity =
             new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
