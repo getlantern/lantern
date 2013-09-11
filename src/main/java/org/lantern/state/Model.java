@@ -69,7 +69,7 @@ public class Model {
 
     private final Global global = new Global();
 
-    private Friends friends = new Friends();
+    private FriendsHandler friends = new FriendsHandler();
 
     private Peers peerCollector = new Peers();
 
@@ -234,11 +234,11 @@ public class Model {
         return global;
     }
 
-    public Friends getFriends() {
+    public FriendsHandler getFriends() {
         return friends;
     }
 
-    public void setFriends(Friends friends) {
+    public void setFriends(FriendsHandler friends) {
         this.friends = friends;
     }
 
@@ -360,7 +360,7 @@ public class Model {
     }
 
     public boolean isFriend(String from) {
-        Friends friends = getFriends();
+        FriendsHandler friends = getFriends();
         String email = XmppUtils.jidToUser(from);
         Friend friend = friends.get(email);
         return friend != null && friend.getStatus() == Status.friend;
@@ -395,7 +395,7 @@ public class Model {
     }
 
     public boolean isRejected(String from) {
-        Friends friends = getFriends();
+        FriendsHandler friends = getFriends();
         String email = XmppUtils.jidToUser(from);
         Friend friend = friends.get(email);
         return friend != null && friend.getStatus() == Status.rejected;

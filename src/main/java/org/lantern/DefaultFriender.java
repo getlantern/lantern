@@ -13,7 +13,7 @@ import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
-import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
@@ -67,7 +67,7 @@ public class DefaultFriender implements Friender {
     public void onP2PConnectionEvent(P2PConnectionEvent e) {
         if (e.isConnected()) {
             // resend invites
-            Friends friends = model.getFriends();
+            FriendsHandler friends = model.getFriends();
             ArrayList<String> pendingInvites = new ArrayList<String>(
                     model.getPendingInvites());
             for (String email : pendingInvites) {
@@ -134,8 +134,9 @@ public class DefaultFriender implements Friender {
     }
 
     private void setFriendStatus(final String email, final Status status) {
-        final Friends friends = model.getFriends();
+        final FriendsHandler friends = model.getFriends();
         Friend friend = friends.get(email);
+        log.debug("Got friend: {}", friend);
         if (friend != null && friend.getStatus() == Status.friend) {
             log.debug("Already friends with {}", email);
             model.addNotification("You have already friended "+email+".",
@@ -144,6 +145,7 @@ public class DefaultFriender implements Friender {
             return;
         }
         if (friend == null || friend.getStatus() == Status.rejected) {
+            log.debug("Making friends...");
             friend = modelUtils.makeFriend(email);
             if (status == Status.friend) {
                 model.addNotification("An email will be sent to "+email+" "+
@@ -153,8 +155,11 @@ public class DefaultFriender implements Friender {
                     MessageType.info, 30);
                 Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 invite(friend, true);
+            } else {
+                log.debug("Status is: "+status);
             }
         }
+        log.debug("Cleaning up...");
         friend.setStatus(status);
         friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));

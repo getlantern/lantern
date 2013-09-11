@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -11,6 +12,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +28,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferFactory;
@@ -69,6 +79,7 @@ import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.StoredCookie;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.http.OauthUtils;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.state.DefaultModelUtils;
@@ -124,7 +135,9 @@ public class TestingUtils {
     }
 
     public static Model newModel() {
-        return new Model(newCountryService());
+        final Model model = new Model(newCountryService());
+        model.getSettings().setRefreshToken(getRefreshToken());
+        return model;
     }
     
     public static CountryService newCountryService() {
@@ -132,17 +145,15 @@ public class TestingUtils {
         return new CountryService(censored);
     }
 
-    public static XmppHandler newXmppHandler() {
+    public static XmppHandler newXmppHandler() throws IOException {
         final Censored censored = new DefaultCensored();
         final Model mod = new Model(new CountryService(censored));
         final Settings set = mod.getSettings();
-        set.setAccessToken(getAccessToken());
+        set.setAccessToken(accessToken());
         set.setRefreshToken(getRefreshToken());
         set.setUseGoogleOAuth2(true);
         return newXmppHandler(censored, mod);
     }
-    
-    
 
     public static ProxyTracker newProxyTracker() {
         return new ProxyTrackerStub() {
@@ -559,4 +570,9 @@ public class TestingUtils {
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager(temp);
         return ksm;
     }
+
+    public static String accessToken() throws IOException {
+        final HttpClient httpClient = new DefaultHttpClient();
+        return OauthUtils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
+    }    
 }

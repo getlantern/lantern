@@ -13,9 +13,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
-import org.lantern.state.Friend;
+import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend.Status;
-import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +26,11 @@ public class FriendNotificationDialog extends NotificationDialog {
     private final Logger log =
         LoggerFactory.getLogger(LanternUtils.class);
 
-    private final Friends friends;
-    private final Friend friend;
+    private final FriendsHandler friends;
+    private final ClientFriend friend;
 
     public FriendNotificationDialog(NotificationManager manager,
-            Friends friends, Friend friend) {
+            FriendsHandler friends, ClientFriend friend) {
         super(manager);
         this.friends = friends;
         this.friend = friend;

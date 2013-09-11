@@ -20,7 +20,7 @@ import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
-import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
@@ -121,7 +121,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     }
 
     private boolean isUntrusted(final String jid) {
-        Friends friends = model.getFriends();
+        FriendsHandler friends = model.getFriends();
         String email = LanternXmppUtils.jidToEmail(jid);
         Friend friend = friends.get(email);
         if (friend != null && friend.getStatus() == Status.rejected) {

@@ -22,7 +22,14 @@ import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+import com.google.api.client.auth.oauth2.RefreshTokenRequest;
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.inject.Inject;
 
 /**
@@ -232,11 +239,11 @@ public class DefaultModelUtils implements ModelUtils {
 
 
     @Override
-    public Friend makeFriend(String email) {
-        Friends friends = model.getFriends();
-        Friend friend = friends.get(email);
+    public ClientFriend makeFriend(String email) {
+        FriendsHandler friends = model.getFriends();
+        ClientFriend friend = friends.get(email);
         if (friend == null) {
-            friend = new Friend(email);
+            friend = new ClientFriend(email);
             Roster roster = model.getRoster();
             final RosterEntry entry = roster.getEntry(email);
             if (entry != null) {

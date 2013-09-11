@@ -6,7 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,26 +26,11 @@ import javax.management.ObjectName;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.ByteArrayBody;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
@@ -73,10 +57,12 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
@@ -103,7 +89,6 @@ import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -817,7 +802,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private boolean handleFriends(JSONObject json) {
         @SuppressWarnings("unchecked")
         final List<Object> friendUpdates = (List<Object>) json.get(LanternConstants.FRIENDS);
-        Friends friends = model.getFriends();
+        FriendsHandler friends = model.getFriends();
         if (friendUpdates == null) {
             return false;
         }
@@ -831,7 +816,7 @@ public class DefaultXmppHandler implements XmppHandler {
             Long nextQuery = (Long) friendJson.get("nextQuery");
             Long lastUpdated = (Long) friendJson.get("lastUpdated");
 
-            Friend friend = new Friend(email, status, name, nextQuery,
+            ClientFriend friend = new ClientFriend(email, status, name, nextQuery,
                     lastUpdated);
 
             // we need to check if we have had a more-recent update of this
@@ -1017,61 +1002,14 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("No new stats to report");
         }
 
-        final Friends friends = model.getFriends();
+        final FriendsHandler friends = model.getFriends();
         if (friends.needsSync()) {
-            syncFriends(friends);
+            String friendsJson = JsonUtils.jsonify(friends);
+            forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
+            friends.setNeedsSync(false);
         }
 
         conn.sendPacket(forHub);
-    }
-
-    private void syncFriends(final Friends friends) {
-        LOG.info("Syncing friends: {}", friends);
-        final String friendsJson = JsonUtils.jsonify(friends);
-        final HttpClient httpClient = this.httpClientFactory.newClient();
-        final String endpoint =
-            LanternClientConstants.CONTROLLER_URL+"/_ah/api/friends/v1/friends";
-        
-        LOG.debug("Posting to endpoint: "+endpoint);
-        final String accessToken = this.model.getSettings().getAccessToken();
-        final HttpPost post = new HttpPost(endpoint);
-        post.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
-
-        final byte[] raw = LanternUtils.compress(friendsJson);
-        final String base64 = Base64.encodeBase64String(raw);
-        
-        fjkdafjdka
-        final List<? extends NameValuePair> nvps = Arrays.asList(
-            new BasicNameValuePair("friendsJson", friendsJson)
-            );
-        
-       
-
-        final HttpEntity requestEntity =
-            new UrlEncodedFormEntity(nvps, Charsets.UTF_8);
-        
-        post.setEntity(requestEntity);
-        try {
-            LOG.debug("About to execute get!");
-            final HttpResponse response = httpClient.execute(post);
-            final StatusLine line = response.getStatusLine();
-            LOG.debug("Got response status: {}", line);
-            final HttpEntity entity = response.getEntity();
-            final String body = IOUtils.toString(entity.getContent());
-            EntityUtils.consume(entity);
-            LOG.debug("GOT RESPONSE BODY FOR FRIENDS!!!:\n"+body);
-            friends.setNeedsSync(false);
-            final int code = line.getStatusCode();
-            if (code < 200 || code > 299) {
-                LOG.error("OAuth error?\n"+line);
-                return;
-            }
-            return;
-        } catch (final IOException e) {
-            LOG.warn("Could not connect to Google?", e);
-        } finally {
-            post.reset();
-        }
     }
 
     @Subscribe
@@ -1458,8 +1396,8 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         String email = XmppUtils.jidToUser(from);
-        Friends friends = model.getFriends();
-        Friend friend = modelUtils.makeFriend(email);
+        FriendsHandler friends = model.getFriends();
+        ClientFriend friend = modelUtils.makeFriend(email);
         if (email.equals(model.getProfile().getEmail())) {
             //we'll assume that a user already trusts themselves
             if (friend.getStatus() != Status.friend) {

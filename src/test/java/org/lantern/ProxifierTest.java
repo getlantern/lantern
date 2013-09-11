@@ -3,7 +3,7 @@ package org.lantern;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Test;
 import org.lantern.oauth.LanternGoogleOAuth2Credentials;
-import org.lantern.state.Friend;
+import org.lantern.state.ClientFriend;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 
@@ -80,7 +80,7 @@ public class ProxifierTest {
             }
 
             @Override
-            public Friend makeFriend(String email) {
+            public ClientFriend makeFriend(String email) {
                 return null;
             }
         };

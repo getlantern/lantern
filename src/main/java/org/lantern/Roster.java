@@ -29,14 +29,16 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
-import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +109,7 @@ public class Roster implements RosterListener {
                 final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
 
-                Friends friends = model.getFriends();
+                FriendsHandler friends = model.getFriends();
 
                 HashSet<String> alreadyOnRoster = new HashSet<String>(unordered.size());
                 for (final RosterEntry entry : unordered) {
@@ -352,7 +354,17 @@ public class Roster implements RosterListener {
 
     public void addIncomingSubscriptionRequest(final Presence pres) {
         log.debug("Fetching vcard");
-        this.model.getFriends().setPendingSubscriptionRequest(pres.getFrom());
+        //this.model.getFriends().setPendingSubscriptionRequest(pres.getFrom());
+        final FriendsHandler friends = this.model.getFriends();
+        final Friend friend = friends.get(XmppUtils.jidToUser(pres.getFrom()));
+        if (friend != null) {
+            friend.setPendingSubscriptionRequest(true);
+        } else {
+            final ClientFriend newFriend = new ClientFriend(pres.getFrom());
+            newFriend.setPendingSubscriptionRequest(true);
+            friends.add(newFriend);
+        }
+        
         syncFriends();
     }
 
@@ -365,7 +377,7 @@ public class Roster implements RosterListener {
     @Override
     public void entriesAdded(final Collection<String> addresses) {
         log.debug("Adding {} entries to roster", addresses.size());
-        Friends friends = model.getFriends();
+        FriendsHandler friends = model.getFriends();
         for (final String address : addresses) {
             final RosterEntry entry = smackRoster.getEntry(address);
             if (entry == null) {
