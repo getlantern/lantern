@@ -148,7 +148,8 @@ public class LanternClientConstants {
     }
 
     static {
-        setControllerId("lantern-controller-afisk");//"lanternctrl");
+        //setControllerId("lantern-controller-afisk");
+        setControllerId("lanternctrl");
     }
 
     public static long getRecentProxyTimeout() {
