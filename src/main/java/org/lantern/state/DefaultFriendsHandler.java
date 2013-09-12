@@ -5,9 +5,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
-import org.lantern.JsonUtils;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
@@ -22,7 +23,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+/**
+ * Class for dealing with all friends processing, including calling the remote
+ * API, managing local copies of friends, etc.
+ */
+@Singleton
 public class DefaultFriendsHandler implements FriendsHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -36,6 +43,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private final XmppHandler xmppHandler;
 
     private final ModelUtils modelUtils;
+    
+    private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
 
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
@@ -44,19 +53,36 @@ public class DefaultFriendsHandler implements FriendsHandler {
         this.api = api;
         this.xmppHandler = xmppHandler;
         this.modelUtils = modelUtils;
-        Events.register(this);
+        
+        // If we already have a refresh token, just use it to load friends.
+        // Otherwise register for refresh token events.
+        if (StringUtils.isNotBlank(model.getSettings().getRefreshToken())) {
+            loadFriends();
+        } else {
+            Events.register(this);
+        }
     }
 
     @Subscribe
-    public void loadFriends(final RefreshTokenEvent refresh) {
+    public void onRefreshToken(final RefreshTokenEvent refresh) {
+        loadFriends();
+    }
+    
+    public void loadFriends() {
+        if (this.friendsLoaded.getAndSet(true)) {
+            return;
+        }
         final Runnable runner = new Runnable() {
             @Override
             public void run() {
+                log.debug("Loading friends");
                 try {
                     final List<ClientFriend> serverFriends = api.listFriends();
+                    log.debug("All friends from server: {}", serverFriends);
                     for (final ClientFriend friend : serverFriends) {
                         add(friend);
                     }
+                    log.debug("Finished loading friends");
                 } catch (final IOException e) {
                     log.error("Could not list friends?");
                 }
@@ -74,6 +100,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
     
     private void addFriend(final String email, final boolean subscribe) {
+        log.debug("Adding friend...");
         final Friend existingFriend = get(email);
         if (existingFriend != null && existingFriend.getStatus() == Status.friend) {
             log.debug("Already friends with {}", email);
@@ -87,6 +114,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (existingFriend == null || existingFriend.getStatus() == Status.rejected) {
+            log.debug("Adding or fetching friend...");
             final ClientFriend temp = addOrFetchFriend(email);
             try {
                 friend = this.api.insertFriend(temp);
@@ -129,6 +157,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     private void sync(final Friend friend, final Status status) {
+        log.debug("Syncing friend");
         friend.setStatus(status);
         //friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
@@ -167,6 +196,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     }
     
+    @Override
     public ClientFriend addOrFetchFriend(final String email) {
         ClientFriend friend = get(email);
         if (friend == null) {
@@ -192,6 +222,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     public void add(final ClientFriend friend) {
+        log.debug("Adding friend: {}", friend);
         friends.put(friend.getEmail().toLowerCase(), friend);
     }
 
