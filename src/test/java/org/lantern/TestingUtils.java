@@ -78,11 +78,14 @@ import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.StoredCookie;
+import org.lantern.endpoints.FriendApi;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.OauthUtils;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer.Type;
@@ -193,7 +196,13 @@ public class TestingUtils {
         
         final ModelUtils modelUtils = new DefaultModelUtils(model);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
-        final Roster roster = new Roster(routingTable, model, censored);
+        
+        final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+        final OauthUtils oauth = new OauthUtils(httpClientFactory, model);
+        final FriendApi api = new FriendApi(oauth);
+        
+        final FriendsHandler friendsHandler = new DefaultFriendsHandler(model, api, null, modelUtils);
+        final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
         
@@ -204,7 +213,7 @@ public class TestingUtils {
             new DefaultProxyTracker(model, peerFactory, timer, null);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                null, model);
+                null, model, friendsHandler);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}
@@ -236,13 +245,13 @@ public class TestingUtils {
         NotificationManager notificationManager = mock(NotificationManager.class);
 
         
-        final HttpClientFactory httpClientFactory = 
-                new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
+        //final HttpClientFactory httpClientFactory = 
+                //new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
         
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
-            notificationManager, httpClientFactory);
+            notificationManager, friendsHandler);
         return xmppHandler;
     }
 

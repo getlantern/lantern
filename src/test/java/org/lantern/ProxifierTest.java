@@ -3,7 +3,6 @@ package org.lantern;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Test;
 import org.lantern.oauth.LanternGoogleOAuth2Credentials;
-import org.lantern.state.ClientFriend;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 
@@ -77,11 +76,6 @@ public class ProxifierTest {
             public boolean isGet() {
                 // TODO Auto-generated method stub
                 return false;
-            }
-
-            @Override
-            public ClientFriend makeFriend(String email) {
-                return null;
             }
         };
     }

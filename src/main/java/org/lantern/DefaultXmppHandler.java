@@ -189,7 +189,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private final NotificationManager notificationManager;
 
 
-    private FriendsHandler friendsHandler;
+    private final FriendsHandler friendsHandler;
 
     /**
      * Creates a new XMPP handler.

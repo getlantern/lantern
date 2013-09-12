@@ -23,7 +23,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.Censored;
 import org.lantern.ConnectivityChangedEvent;
-import org.lantern.Friender;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
@@ -32,6 +31,7 @@ import org.lantern.SecurityUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Connectivity;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
 import org.lantern.state.LocationChangedEvent;
@@ -110,7 +110,7 @@ public class InteractionServlet extends HttpServlet {
 
     private final LanternFeedback lanternFeedback;
 
-    private final Friender friender;
+    private final FriendsHandler friender;
 
     @Inject
     public InteractionServlet(final Model model,
@@ -118,7 +118,7 @@ public class InteractionServlet extends HttpServlet {
         final InternalState internalState,
         final ModelIo modelIo, 
         final Censored censored, final LanternFeedback lanternFeedback,
-        final Friender friender) {
+        final FriendsHandler friender) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -313,10 +313,10 @@ public class InteractionServlet extends HttpServlet {
             this.internalState.setCompletedTo(Modal.lanternFriends);
             switch (inter) {
             case FRIEND:
-                this.friender.addFriend(json);
+                this.friender.addFriend(email(json));
                 break;
             case REJECT:
-                this.friender.removeFriend(json);
+                this.friender.removeFriend(email(json));
                 break;
             case CONTINUE:
                 // This dialog always passes continue as of this writing and
@@ -586,6 +586,10 @@ public class InteractionServlet extends HttpServlet {
         }
         this.modelIo.write();
     }
+    
+    private String email(final String json) {
+        return JsonUtils.getValueFromJson("email", json).toLowerCase();
+    }
 
     private void backupSettings() {
         try {
@@ -723,7 +727,7 @@ public class InteractionServlet extends HttpServlet {
         model.getSettings().setClientSecret(clientSecret);
         model.setSetupComplete(base.isSetupComplete());
         model.setShowVis(base.isShowVis());
-        model.setFriends(base.getFriends());
+        //model.setFriends(base.getFriends());
         model.clearNotifications();
         modelIo.write();
     }

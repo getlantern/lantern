@@ -48,7 +48,7 @@ public class ModelIoTest {
         model = io.get();
         system = model.getSystem();
         connectivity = model.getConnectivity();
-        assertEquals(1, model.getFriends().getFriends().size());
+        //assertEquals(1, model.getFriends().getFriends().size());
 
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());

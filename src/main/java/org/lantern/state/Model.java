@@ -24,9 +24,7 @@ import org.lantern.RosterSerializer;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SetupCompleteEvent;
-import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +67,7 @@ public class Model {
 
     private final Global global = new Global();
 
-    private DefaultFriendsHandler friends = new DefaultFriendsHandler();
+    //private DefaultFriendsHandler friends = new DefaultFriendsHandler();
 
     private Peers peerCollector = new Peers();
 

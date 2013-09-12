@@ -29,9 +29,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
-import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
-import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -39,7 +37,6 @@ import org.lantern.state.Model.Persistent;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -356,17 +353,8 @@ public class Roster implements RosterListener {
     }
 
     public void addIncomingSubscriptionRequest(final Presence pres) {
-        log.debug("Fetching vcard");
-        //this.model.getFriends().setPendingSubscriptionRequest(pres.getFrom());
-        final Friend friend = friendsHandler.get(XmppUtils.jidToUser(pres.getFrom()));
-        if (friend != null) {
-            friend.setPendingSubscriptionRequest(true);
-        } else {
-            final ClientFriend newFriend = new ClientFriend(pres.getFrom());
-            newFriend.setPendingSubscriptionRequest(true);
-            friendsHandler.add(newFriend);
-        }
-        
+        log.debug("Adding subscription request");
+        this.friendsHandler.addIncomingSubscriptionRequest(pres.getFrom());
         syncFriends();
     }
 
@@ -387,8 +375,7 @@ public class Roster implements RosterListener {
                 continue;
             }
             addEntry(new LanternRosterEntry(entry), false);
-            Friend friend = friendsHandler.get(address);
-            friend.setName(entry.getName());
+            friendsHandler.updateName(address, entry.getName());
             processRosterEntryPresences(entry);
         }
         fullRosterSync();

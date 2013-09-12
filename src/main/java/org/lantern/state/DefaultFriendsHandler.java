@@ -7,22 +7,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jivesoftware.smack.RosterEntry;
-import org.lantern.Friender;
 import org.lantern.JsonUtils;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
-public class DefaultFriendsHandler implements Friender, FriendsHandler {
+public class DefaultFriendsHandler implements FriendsHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -43,11 +44,11 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
         this.api = api;
         this.xmppHandler = xmppHandler;
         this.modelUtils = modelUtils;
-        loadFriends();
+        Events.register(this);
     }
 
-    
-    private void loadFriends() {
+    @Subscribe
+    public void loadFriends(final RefreshTokenEvent refresh) {
         final Runnable runner = new Runnable() {
             @Override
             public void run() {
@@ -56,7 +57,7 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
                     for (final ClientFriend friend : serverFriends) {
                         add(friend);
                     }
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     log.error("Could not list friends?");
                 }
             }
@@ -65,11 +66,10 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
         t.setDaemon(true);
         t.start();
     }
-    
 
     @Override
-    public void addFriend(final String json) {
-        final String email = email(json);
+    public void addFriend(final String email) {
+        //final String email = email(json);
         addFriend(email, true);
     }
     
@@ -109,7 +109,7 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
         // Otherwise, it's an existing friend that's likely pending.
         sync(friend, Status.friend);
         
-        if (subscribe) {
+        if (subscribe && this.xmppHandler != null) {
             try {
                 //if they have requested a subscription to us, we'll accept it.
                 this.xmppHandler.subscribed(email);
@@ -138,8 +138,14 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
     private void invite(final Friend friend, final boolean addToRoster) 
             throws IOException {
         final String email = friend.getEmail();
+        
+        // Can be null for testing...
+        if (this.xmppHandler == null) {
+            log.error("Null XMPP handler");
+            return;
+        }
         try {
-            xmppHandler.sendInvite(friend, false, addToRoster);
+            this.xmppHandler.sendInvite(friend, false, addToRoster);
             // we need to mark this email as pending, in case
             // our invite gets lost.
             model.addPendingInvite(email);
@@ -176,16 +182,11 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
     }
 
     @Override
-    public void removeFriend(final String json) {
+    public void removeFriend(final String email) {
         
     }
 
-    
-    private String email(final String json) {
-        return JsonUtils.getValueFromJson("email", json).toLowerCase();
-    }
-    
-    
+    @Override
     public Collection<ClientFriend> getFriends() {
         return vals(friends);
     }
@@ -263,6 +264,19 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
             return;
         }
         friend.setStatus(status);
+        update(friend);
+    }
+
+
+    @Override
+    public void setPendingSubscriptionRequest(final Friend friend, 
+            final boolean subscribe) {
+        friend.setPendingSubscriptionRequest(subscribe);
+        update(friend);
+    }
+
+
+    private void update(final Friend friend) {
         try {
             this.api.updateFriend(friend);
         } catch (final IOException e) {
@@ -270,6 +284,29 @@ public class DefaultFriendsHandler implements Friender, FriendsHandler {
             model.addNotification("Could not update friend status for '"+friend.getEmail()+"'.",
                 MessageType.info, 30);
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+        }
+    }
+    
+    @Override
+    public void addIncomingSubscriptionRequest(final String from) {
+        log.debug("Adding subscription request");
+        final Friend friend = get(from);
+        if (friend != null) {
+            setPendingSubscriptionRequest(friend, true);
+        } else {
+            final ClientFriend newFriend = new ClientFriend(from);
+            newFriend.setPendingSubscriptionRequest(true);
+            add(newFriend);
+        }
+    }
+
+
+    @Override
+    public void updateName(String address, String name) {
+        final Friend friend = get(address);
+        if (friend != null && !name.equals(friend.getName())) {
+            friend.setName(name);
+            update(friend);
         }
     }
 }

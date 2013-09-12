@@ -39,6 +39,7 @@ import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
@@ -97,7 +98,7 @@ public class LanternModule extends AbstractModule {
         bind(MessageService.class).to(SwtMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
 
-        bind(Friender.class).to(DefaultFriendsHandler.class);
+        bind(FriendsHandler.class).to(DefaultFriendsHandler.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
