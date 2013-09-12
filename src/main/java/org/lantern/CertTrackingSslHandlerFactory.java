@@ -2,12 +2,18 @@ package org.lantern;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -60,6 +66,8 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
     private final Timer timer;
 
     private final LanternKeyStoreManager keyStoreManager;
+
+    private SSLContext serverContext;
     
     @Inject
     public CertTrackingSslHandlerFactory(final Timer timer,
@@ -106,6 +114,21 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
     
     private SSLEngine fallbackProxySslEngine() {
         log.debug("Using fallback proxy context");
+        if (this.serverContext == null) {
+            this.serverContext = buildFallbackServerContext();
+        }
+        try {
+            final SSLEngine engine = this.serverContext.createSSLEngine();
+            engine.setUseClientMode(false);
+            configureCipherSuites(engine);
+            return engine;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the server-side SSLContext", e);
+        }
+    }
+
+    private SSLContext buildFallbackServerContext() {
         final String PASS = "Be Your Own Lantern";
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
@@ -120,16 +143,23 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
             kmf.init(ks, PASS.toCharArray());
 
             // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
+            final SSLContext context = SSLContext.getInstance("TLS");
             
             // NO CLIENT AUTH!!
-            serverContext.init(kmf.getKeyManagers(), null, null);
-            final SSLEngine engine = serverContext.createSSLEngine();
-            engine.setUseClientMode(false);
-            return engine;
-        } catch (final Exception e) {
-            throw new Error(
-                    "Failed to initialize the server-side SSLContext", e);
+            context.init(kmf.getKeyManagers(), null, null);
+            return context;
+        } catch (final KeyStoreException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (CertificateException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (IOException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (UnrecoverableKeyException e) {
+            throw new Error("Could not load fallback ssl context", e);
+        } catch (KeyManagementException e) {
+            throw new Error("Could not load fallback ssl context", e);
         }
     }
 
@@ -142,17 +172,22 @@ public class CertTrackingSslHandlerFactory implements HandshakeHandlerFactory,
             final SSLEngine engine = context.createSSLEngine();
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
-            final String[] suites = IceConfig.getCipherSuites();
-            if (suites != null && suites.length > 0) {
-                engine.setEnabledCipherSuites(suites);
-            } else {
-                // Can be null in tests.
-                log.warn("No cipher suites?");
-            }
+            configureCipherSuites(engine);
             return engine;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
+        }
+    }
+
+    private void configureCipherSuites(final SSLEngine engine) {
+        final String[] suites = IceConfig.getCipherSuites();
+        if (suites != null && suites.length > 0) {
+            log.debug("Setting cipher suites to {}", Arrays.asList(suites));
+            engine.setEnabledCipherSuites(suites);
+        } else {
+            // Can be null in tests.
+            log.warn("No cipher suites?");
         }
     }
 

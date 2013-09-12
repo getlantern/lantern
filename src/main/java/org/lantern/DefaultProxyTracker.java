@@ -350,6 +350,12 @@ public class DefaultProxyTracker implements ProxyTracker {
             log.debug("Not checking proxy when not running with TCP");
             return;
         }
+        // We've seen this in weird cases in the field -- might as well 
+        // program defensively here.
+        if (ph.getFiveTuple().getRemote().getAddress().isLoopbackAddress()) {
+            log.warn("Can't connect to loopback address...");
+            return;
+        }
         if (queue.contains(ph)) {
             log.debug("We already know about proxy "+ph+" in {}", queue);
             //but it might be disconnected

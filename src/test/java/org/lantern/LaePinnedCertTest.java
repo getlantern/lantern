@@ -29,7 +29,7 @@ public class LaePinnedCertTest {
         final LanternSocketsUtil socketsUtil = 
             new LanternSocketsUtil(null, trustStore);
         
-        final SSLSocketFactory tls = socketsUtil.newTlsSocketFactory();
+        final SSLSocketFactory tls = socketsUtil.newTlsSocketFactoryJavaCipherSuites();
         final SSLSocket sock = (SSLSocket) tls.createSocket();
         
         final AtomicBoolean completed = new AtomicBoolean(false);
