@@ -61,6 +61,7 @@ import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
+import org.lantern.state.Friends;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -70,6 +71,7 @@ import org.lantern.state.SyncPath;
 import org.lantern.udtrelay.UdtRelayServerFiveTupleListener;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
+import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -188,8 +190,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final NotificationManager notificationManager;
 
-
-    private FriendsHandler friendsHandler;
+    private HttpClientFactory httpClientFactory;
 
     /**
      * Creates a new XMPP handler.
@@ -207,7 +208,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final NatPmpService natPmpService,
         final UpnpService upnpService,
         final NotificationManager notificationManager,
-        final FriendsHandler friendsHandler) {
+        final HttpClientFactory httpClientFactory) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -221,7 +222,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
         this.notificationManager = notificationManager;
-        this.friendsHandler = friendsHandler;
+        this.httpClientFactory = httpClientFactory;
         Events.register(this);
         //setupJmx();
     }
@@ -772,7 +773,7 @@ public class DefaultXmppHandler implements XmppHandler {
         handled |= handleUpdate(json);
         handled |= handleProcessedInvites(json);
         handled |= handleFailedInvites(json);
-        //handled |= handleFriends(json);
+        handled |= handleFriends(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -793,7 +794,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     }
 
-    /*
     private boolean handleFriends(JSONObject json) {
         @SuppressWarnings("unchecked")
         final List<Object> friendUpdates = (List<Object>) json.get(LanternConstants.FRIENDS);
@@ -832,7 +832,6 @@ public class DefaultXmppHandler implements XmppHandler {
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
         return true;
     }
-    */
 
     private boolean handleFailedInvites(final JSONObject json) {
         //list of invites that the server has given up on processing
@@ -998,14 +997,12 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("No new stats to report");
         }
 
-        /*
         final FriendsHandler friends = model.getFriends();
         if (friends.needsSync()) {
             String friendsJson = JsonUtils.jsonify(friends);
             forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
             friends.setNeedsSync(false);
         }
-        */
 
         conn.sendPacket(forHub);
     }
@@ -1049,7 +1046,7 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 LOG.debug("Handling INFO request from {}", from);
-                if (!this.friendsHandler.isRejected(from)) {
+                if (!model.isRejected(from)) {
                     processInfoData(msg);
                 } else {
                     LOG.debug("Not processing message from rejected friend {}", 
@@ -1059,14 +1056,14 @@ public class DefaultXmppHandler implements XmppHandler {
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
                 LOG.debug("Handling INFO response from {}", from);
-                if (!this.friendsHandler.isRejected(from)) {
+                if (!model.isRejected(from)) {
                     processInfoData(msg);
                 }
                 break;
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
                 //only process kscope ads delivered by friends
-                if (this.friendsHandler.isFriend(from)) {
+                if (model.isFriend(from)) {
                     LOG.debug("Handling KSCOPE ADVERTISEMENT");
                     final String payload =
                             (String) msg.getProperty(
@@ -1200,7 +1197,16 @@ public class DefaultXmppHandler implements XmppHandler {
             final boolean addToRoster) {
         LOG.debug("Sending invite");
 
+<<<<<<< HEAD
+        String email = friend.getEmail();
+
+        if (StringUtils.isBlank(this.hubAddress)) {
+            LOG.info("Blank hub address when sending invite?");
+            return false;
+        }
+=======
         final String email = friend.getEmail();
+>>>>>>> master
 
         final Set<String> invited = roster.getInvited();
         if ((!redo) && invited.contains(email)) {
@@ -1400,26 +1406,28 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         String email = XmppUtils.jidToUser(from);
-        ClientFriend friend = this.friendsHandler.addOrFetchFriend(email);
+        FriendsHandler friends = model.getFriends();
+        ClientFriend friend = modelUtils.makeFriend(email);
         if (email.equals(model.getProfile().getEmail())) {
             //we'll assume that a user already trusts themselves
             if (friend.getStatus() != Status.friend) {
                 subscribe(email);
                 subscribed(email);
-                this.friendsHandler.setStatus(friend, Status.friend);
+                friend.setStatus(Status.friend);
                 Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-                Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
+                friends.setNeedsSync(true);
+                Events.sync(SyncPath.FRIENDS, friends.getFriends());
             }
             return;
         } else {
             //sync this new friend so it appears in the friends modal
-            Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
+            Events.sync(SyncPath.FRIENDS, friends.getFriends());
         }
         Settings settings = model.getSettings();
         if (friend.shouldNotifyAgain() && settings.isShowFriendPrompts()
                 && model.isSetupComplete()) {
-            final FriendNotificationDialog notification = 
-                new FriendNotificationDialog(notificationManager, this.friendsHandler, friend);
+            FriendNotificationDialog notification;
+            notification = new FriendNotificationDialog(notificationManager, friends, friend);
             notificationManager.notify(notification);
         }
     }

@@ -14,7 +14,7 @@ import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.Friend;
 import org.lantern.state.Friend.Status;
-import org.lantern.state.DefaultFriendsHandler;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
@@ -68,8 +68,13 @@ public class DefaultFriender implements Friender {
     public void onP2PConnectionEvent(P2PConnectionEvent e) {
         if (e.isConnected()) {
             // resend invites
-            final DefaultFriendsHandler friends = model.getFriends();
+<<<<<<< HEAD
+            FriendsHandler friends = model.getFriends();
+            ArrayList<String> pendingInvites = new ArrayList<String>(
+=======
+            final Friends friends = model.getFriends();
             final Collection<String> pendingInvites = new ArrayList<String>(
+>>>>>>> master
                     model.getPendingInvites());
             for (final String email : pendingInvites) {
                 log.info("Resending pending invite to {}", email);
@@ -113,7 +118,7 @@ public class DefaultFriender implements Friender {
     }
 
     private void removeFriendByEmail(final String email) {
-        final DefaultFriendsHandler friends = model.getFriends();
+        final Friends friends = model.getFriends();
         final Friend friend = friends.get(email);
         sync(friend, Status.rejected);
         model.addNotification("You have successfully rejected '"+email+"'.",
@@ -131,7 +136,7 @@ public class DefaultFriender implements Friender {
     }
 
     private void addFriendByEmail(final String email, final boolean subscribe) {
-        final DefaultFriendsHandler friends = model.getFriends();
+        final Friends friends = model.getFriends();
         Friend friend = friends.get(email);
         if (friend != null && friend.getStatus() == Status.friend) {
             log.debug("Already friends with {}", email);
@@ -143,7 +148,7 @@ public class DefaultFriender implements Friender {
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (friend == null || friend.getStatus() == Status.rejected) {
-            friend = modelUtils.addOrFetchFriend(email);
+            friend = modelUtils.makeFriend(email);
             try {
                 invite(friend, true);
             } catch (final IOException e) {
@@ -171,8 +176,38 @@ public class DefaultFriender implements Friender {
         }
     }
 
+<<<<<<< HEAD
+    private void setFriendStatus(final String email, final Status status) {
+        final FriendsHandler friends = model.getFriends();
+        Friend friend = friends.get(email);
+        log.debug("Got friend: {}", friend);
+        if (friend != null && friend.getStatus() == Status.friend) {
+            log.debug("Already friends with {}", email);
+            model.addNotification("You have already friended "+email+".",
+              MessageType.info, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            return;
+        }
+        if (friend == null || friend.getStatus() == Status.rejected) {
+            log.debug("Making friends...");
+            friend = modelUtils.makeFriend(email);
+            if (status == Status.friend) {
+                model.addNotification("An email will be sent to "+email+" "+
+                    "with a notification that you friended them. "+
+                    "If they do not yet have a Lantern invite, they will "+
+                    "be invited when the network can accommodate them.",
+                    MessageType.info, 30);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                invite(friend, true);
+            } else {
+                log.debug("Status is: "+status);
+            }
+        }
+        log.debug("Cleaning up...");
+=======
     private void sync(final Friend friend, final Status status) {
-        final DefaultFriendsHandler friends = model.getFriends();
+        final Friends friends = model.getFriends();
+>>>>>>> master
         friend.setStatus(status);
         friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
@@ -219,7 +254,7 @@ public class DefaultFriender implements Friender {
                     continue;
                 }
                 
-                final Friend friend = modelUtils.addOrFetchFriend(email.trim());
+                final Friend friend = modelUtils.makeFriend(email.trim());
                 model.addNotification("BULK-EMAIL: An email will be sent to "+email+" "+
                     "with a notification that you friended them. "+
                     "If they do not yet have a Lantern invite, they will "+

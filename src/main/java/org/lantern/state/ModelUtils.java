@@ -29,5 +29,4 @@ public interface ModelUtils {
 
     boolean isGet();
 
-    public ClientFriend makeFriend(String email);
 }

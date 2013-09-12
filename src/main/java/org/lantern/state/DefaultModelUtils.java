@@ -236,21 +236,4 @@ public class DefaultModelUtils implements ModelUtils {
     public boolean isGet() {
         return this.model.getSettings().getMode() == Mode.get;
     }
-
-
-    @Override
-    public ClientFriend makeFriend(String email) {
-        FriendsHandler friends = model.getFriends();
-        ClientFriend friend = friends.get(email);
-        if (friend == null) {
-            friend = new ClientFriend(email);
-            Roster roster = model.getRoster();
-            final RosterEntry entry = roster.getEntry(email);
-            if (entry != null) {
-                friend.setName(entry.getName());
-            }
-            friends.add(friend);
-        }
-        return friend;
-    }
 }

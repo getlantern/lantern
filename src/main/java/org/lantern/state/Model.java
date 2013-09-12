@@ -69,7 +69,7 @@ public class Model {
 
     private final Global global = new Global();
 
-    private FriendsHandler friends = new FriendsHandler();
+    private DefaultFriendsHandler friends = new DefaultFriendsHandler();
 
     private Peers peerCollector = new Peers();
 
@@ -234,6 +234,8 @@ public class Model {
         return global;
     }
 
+    /*
+    @JsonIgnore
     public FriendsHandler getFriends() {
         return friends;
     }
@@ -241,6 +243,7 @@ public class Model {
     public void setFriends(FriendsHandler friends) {
         this.friends = friends;
     }
+    */
 
     @JsonView({Persistent.class})
     public Peers getPeerCollector() {
@@ -359,13 +362,6 @@ public class Model {
         this.countryService = countryService;
     }
 
-    public boolean isFriend(String from) {
-        FriendsHandler friends = getFriends();
-        String email = XmppUtils.jidToUser(from);
-        Friend friend = friends.get(email);
-        return friend != null && friend.getStatus() == Status.friend;
-    }
-
     @JsonView({Persistent.class})
     public boolean isWelcomeMessageShown() {
         return welcomeMessageShown;
@@ -392,12 +388,5 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
-    }
-
-    public boolean isRejected(String from) {
-        FriendsHandler friends = getFriends();
-        String email = XmppUtils.jidToUser(from);
-        Friend friend = friends.get(email);
-        return friend != null && friend.getStatus() == Status.rejected;
     }
 }

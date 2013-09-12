@@ -98,10 +98,10 @@ public class FriendNotificationDialog extends NotificationDialog {
     protected void later() {
         long tomorrow = System.currentTimeMillis() + 1000 * 86400;
         friend.setNextQuery(tomorrow);
-        friend.setStatus(Status.pending);
+        //friend.setStatus(Status.pending);
+        this.friends.setStatus(friend, Status.pending);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        friends.add(friend);
-        friends.setNeedsSync(true);
+        //friends.addOrUpdate(friend);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
         dialog.dispose();
     }
@@ -114,11 +114,11 @@ public class FriendNotificationDialog extends NotificationDialog {
         setFriendStatus(Status.friend);
     }
 
-    private void setFriendStatus(Status status) {
-        friend.setStatus(status);
+    private void setFriendStatus(final Status status) {
+        this.friends.setStatus(friend, status);
+        //friend.setStatus(status);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        friends.add(friend);
-        friends.setNeedsSync(true);
+        //friends.addOrUpdate(friend);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
         dialog.dispose();
     }

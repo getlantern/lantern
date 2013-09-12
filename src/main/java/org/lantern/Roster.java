@@ -31,6 +31,7 @@ import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
+import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -77,16 +78,20 @@ public class Roster implements RosterListener {
     private XmppHandler xmppHandler;
 
     private final Censored censored;
+
+    private final FriendsHandler friendsHandler;
     
     /**
      * Creates a new roster.
      */
     @Inject
     public Roster(final RandomRoutingTable routingTable, 
-            final Model model, final Censored censored) {
+            final Model model, final Censored censored, 
+            final FriendsHandler friendsHandler) {
         this.kscopeRoutingTable = routingTable;
         this.model = model;
         this.censored = censored;
+        this.friendsHandler = friendsHandler;
         model.setRoster(this);
         Events.register(this);
     }
@@ -109,9 +114,7 @@ public class Roster implements RosterListener {
                 final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
 
-                FriendsHandler friends = model.getFriends();
-
-                HashSet<String> alreadyOnRoster = new HashSet<String>(unordered.size());
+                final Set<String> alreadyOnRoster = new HashSet<String>(unordered.size());
                 for (final RosterEntry entry : unordered) {
                     log.debug("START {} ***********************", entry.getUser());
                     final LanternRosterEntry lre = new LanternRosterEntry(entry);
@@ -121,7 +124,7 @@ public class Roster implements RosterListener {
                     alreadyOnRoster.add(email);
                     log.debug("STATUS OF {}: {}", entry.getUser(), entry.getStatus());
                     if (entry.getStatus() == ItemStatus.SUBSCRIPTION_PENDING) {
-                        if (model.isFriend(email)) {
+                        if (friendsHandler.isFriend(email)) {
                             xmppHandler.subscribed(email);
                         } else {
                             log.debug("Not sending subscribed message to "
@@ -131,7 +134,7 @@ public class Roster implements RosterListener {
                     log.debug("END {} ***********************\n\n", entry.getUser());
                 }
 
-                for (Friend friend : friends.getFriends()) {
+                for (Friend friend : friendsHandler.getFriends()) {
                     if (!alreadyOnRoster.contains(friend.getEmail())) {
                         //we have a friend who is not yet on our roster.
                         xmppHandler.subscribe(friend.getEmail());
@@ -158,7 +161,7 @@ public class Roster implements RosterListener {
         if (LanternUtils.isLanternHub(from)) {
             log.debug("Got Lantern hub presence");
         } else if (LanternXmppUtils.isLanternJid(from)) {
-            if (model.isFriend(from)) {
+            if (friendsHandler.isFriend(from)) {
                 Events.eventBus().post(new UpdatePresenceEvent(presence));
                 if (presence.isAvailable()) {
                     sendKscope(from);
@@ -196,7 +199,7 @@ public class Roster implements RosterListener {
             if (!lre.isAvailable()) {
                 log.debug("Entry not listed as available {}", lre.getUser());
             }
-            if (model.isFriend(lre.getEmail())) {
+            if (friendsHandler.isFriend(lre.getEmail())) {
                 sendKscope(lre.getUser());
             } else {
                 log.debug("Not sending kscope ad to non-friend: {}", 
@@ -355,14 +358,13 @@ public class Roster implements RosterListener {
     public void addIncomingSubscriptionRequest(final Presence pres) {
         log.debug("Fetching vcard");
         //this.model.getFriends().setPendingSubscriptionRequest(pres.getFrom());
-        final FriendsHandler friends = this.model.getFriends();
-        final Friend friend = friends.get(XmppUtils.jidToUser(pres.getFrom()));
+        final Friend friend = friendsHandler.get(XmppUtils.jidToUser(pres.getFrom()));
         if (friend != null) {
             friend.setPendingSubscriptionRequest(true);
         } else {
             final ClientFriend newFriend = new ClientFriend(pres.getFrom());
             newFriend.setPendingSubscriptionRequest(true);
-            friends.add(newFriend);
+            friendsHandler.add(newFriend);
         }
         
         syncFriends();
@@ -371,13 +373,12 @@ public class Roster implements RosterListener {
 
     private void syncFriends() {
         Events.syncAdd(SyncPath.FRIENDS.getPath(),
-            this.model.getFriends().getFriends());
+                friendsHandler.getFriends());
     }
 
     @Override
     public void entriesAdded(final Collection<String> addresses) {
         log.debug("Adding {} entries to roster", addresses.size());
-        FriendsHandler friends = model.getFriends();
         for (final String address : addresses) {
             final RosterEntry entry = smackRoster.getEntry(address);
             if (entry == null) {
@@ -386,12 +387,12 @@ public class Roster implements RosterListener {
                 continue;
             }
             addEntry(new LanternRosterEntry(entry), false);
-            Friend friend = friends.get(address);
+            Friend friend = friendsHandler.get(address);
             friend.setName(entry.getName());
             processRosterEntryPresences(entry);
         }
         fullRosterSync();
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
+        Events.sync(SyncPath.FRIENDS, friendsHandler.getFriends());
     }
 
     public RosterEntry getEntry(String email) {

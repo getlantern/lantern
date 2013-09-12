@@ -36,6 +36,7 @@ import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.SecretServiceLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
+import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelService;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.Model;
@@ -96,7 +97,7 @@ public class LanternModule extends AbstractModule {
         bind(MessageService.class).to(SwtMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
 
-        bind(Friender.class).to(DefaultFriender.class);
+        bind(Friender.class).to(DefaultFriendsHandler.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
