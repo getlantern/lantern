@@ -143,6 +143,7 @@ public class DefaultFriender implements Friender {
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (friend == null || friend.getStatus() == Status.rejected) {
+            friend = modelUtils.makeFriend(email);
             try {
                 invite(friend, true);
             } catch (final IOException e) {
@@ -166,7 +167,6 @@ public class DefaultFriender implements Friender {
                     Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 }
             }
-            friend = modelUtils.makeFriend(email);
         }
         sync(friend, Status.friend);
     }
