@@ -785,8 +785,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
-        if ((Boolean) json.get(LanternConstants.NEED_REFRESH_TOKEN)
-            == Boolean.TRUE) {
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
             sendToken();
         }
 
