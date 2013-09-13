@@ -1,13 +1,19 @@
 package org.lantern.state;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
@@ -22,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -61,6 +68,20 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } else {
             Events.register(this);
         }
+        final Runnable runner = new Runnable() {
+            
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(40000);
+                } catch (final InterruptedException e) {
+                }
+                checkForBulkInvites();
+            }
+        };
+        final Thread t = new Thread(runner, "Bulk-Invites-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 
     @Subscribe
@@ -198,6 +219,12 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Override
     public ClientFriend addOrFetchFriend(final String email) {
+        final ClientFriend friend = makeFriend(email);
+        add(friend);
+        return friend;
+    }
+    
+    private ClientFriend makeFriend(final String email) {
         ClientFriend friend = get(email);
         if (friend == null) {
             friend = new ClientFriend(email);
@@ -206,7 +233,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
             if (entry != null) {
                 friend.setName(entry.getName());
             }
-            add(friend);
         }
         return friend;
     }
@@ -338,6 +364,69 @@ public class DefaultFriendsHandler implements FriendsHandler {
         if (friend != null && !name.equals(friend.getName())) {
             friend.setName(name);
             update(friend);
+        }
+    }
+    
+    /**
+     * See if there's a bulk invite file to process, and process it if so.
+     */
+    private void checkForBulkInvites() {
+        final File file = new File(SystemUtils.USER_HOME, 
+            "lantern-bulk-friends.txt");
+        if (!file.isFile()) {
+            return;
+        }
+        final File processed = 
+            new File(file.getParentFile(), file.getName()+".processed");
+        
+        try {
+            Files.move(file, processed);
+        } catch (final IOException e) {
+            log.error("Could not move bulk invites file?", e);
+            return;
+        }
+        
+        if (!this.xmppHandler.isLoggedIn()) {
+            log.debug("Not logged in?");
+            return;
+        }
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            String email = br.readLine();
+            while (StringUtils.isNotBlank(email)) {
+                log.debug("Inviting {}", email);
+                if (!email.contains("@")) {
+                    log.error("Not an email: {}", email);
+                    break;
+                }
+                
+                if (email.startsWith("#")) {
+                    log.debug("Email commented out: {}", email);
+                    email = br.readLine();
+                    continue;
+                }
+                
+                final Friend friend = makeFriend(email.trim());
+                model.addNotification("BULK-EMAIL: An email will be sent to "+email+" "+
+                    "with a notification that you friended them. "+
+                    "If they do not yet have a Lantern invite, they will "+
+                    "be invited when the network can accommodate them.",
+                    MessageType.info, 5);
+                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                invite(friend, false);
+                email = br.readLine();
+                
+                // Wait a bit between each one!
+                try {
+                    Thread.sleep(6000);
+                } catch (InterruptedException e) {
+                }
+            }
+        } catch (final IOException e) {
+            log.error("Could not find file?", e);
+        } finally {
+            IOUtils.closeQuietly(br);
         }
     }
 }
