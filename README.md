@@ -116,5 +116,3 @@ The Lantern team is very grateful for the support from a number of software vend
 would particularly like to acknowledge the great support from YourKit, who provides us
 with their excellent profiler. Check it out at 
 http://www.yourkit.com/java/profiler/index.jsp!
-
-**Quick update**
