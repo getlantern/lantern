@@ -191,6 +191,7 @@ public class Roster implements RosterListener {
     }
 
     private void sendKscopeAdToAllPeers() {
+        log.debug("Sending KScope ads to all peers");
         final Collection<LanternRosterEntry> entries = getEntries();
         for (final LanternRosterEntry lre : entries) {
             if (!lre.isAvailable()) {
@@ -383,7 +384,10 @@ public class Roster implements RosterListener {
     }
 
     public RosterEntry getEntry(String email) {
-        return smackRoster.getEntry(email);
+        if (this.smackRoster != null) {
+            return smackRoster.getEntry(email);
+        }
+        return null;
     }
 
     private void fullRosterSync() {

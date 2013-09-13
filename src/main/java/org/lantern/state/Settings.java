@@ -68,6 +68,8 @@ public class Settings {
     private Set<String> stunServers = new HashSet<String>();
 
     private int serverPort = LanternUtils.randomPort();
+    
+    private UDPProxyPriority udpProxyPriority = UDPProxyPriority.LOWER;
 
     /**
      * Indicates whether use of keychains is enabled.
@@ -346,6 +348,19 @@ public class Settings {
 
     public void setUdp(boolean udp) {
         this.udp = udp;
+    }
+    
+    @JsonIgnore
+    public void setUdpProxyPriority(String priorityString) {
+        try {
+            this.udpProxyPriority = UDPProxyPriority.valueOf(priorityString);
+        } catch (Exception e) {
+            log.warn("Invalid proxy priority specified");
+        }
+    }
+    
+    public UDPProxyPriority getUdpProxyPriority() {
+        return udpProxyPriority;
     }
 
     public boolean isShowFriendPrompts() {

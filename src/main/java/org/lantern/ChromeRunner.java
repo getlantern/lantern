@@ -65,7 +65,10 @@ public class ChromeRunner {
             final String path1 = "/usr/bin/google-chrome";
             final File opt1 = new File(path1);
             if (opt1.isFile() && opt1.canExecute()) return path1;
-            return "/usr/bin/chromium-browser";
+            final String path2 = "/usr/bin/chromium-browser";
+            final File opt2 = new File(path1);
+            if (opt2.isFile() && opt2.canExecute()) return path2;
+            throw new UnsupportedOperationException("Could not find chrome");
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return findWindowsExe();
         } else {
@@ -125,7 +128,7 @@ public class ChromeRunner {
             }
         }
         final String endpoint = StaticSettings.getLocalEndpoint(port, prefix);
-        log.debug("Opening browser to: {}", endpoint);
+        log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
         commands.add(executable);

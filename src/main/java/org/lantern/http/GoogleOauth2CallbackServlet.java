@@ -1,5 +1,7 @@
 package org.lantern.http;
 
+import io.netty.handler.codec.http.HttpHeaders;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +26,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.LanternConstants;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier.ProxyConfigurationError;

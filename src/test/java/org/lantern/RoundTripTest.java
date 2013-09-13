@@ -1,10 +1,7 @@
 package org.lantern;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.DefaultChannelFuture;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 
 /**
  * a class that represents a round trip communication with 
@@ -18,8 +15,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
  * if needed.
  */
 public abstract class RoundTripTest {
-
-    public ChannelFuture result;
 
      // these are captured by running the test for further inspection/use
     public HttpRequest request;
@@ -37,7 +32,7 @@ public abstract class RoundTripTest {
      * the channel is provided as a convenience, but it is not necessary to 
      * write the response to the channel only return it.
      */ 
-    public abstract HttpResponse createResponse(HttpRequest request, Channel origin) throws Exception;
+    public abstract HttpResponse createResponse(HttpRequest request) throws Exception;
 
     /**
      * inspect the HttpResponse that was returned as result of the 
@@ -51,8 +46,7 @@ public abstract class RoundTripTest {
     /**
      * destroy any state associated with the test and prepare to re-run 
      */
-    public void reset(Channel channel) {
-        result = new DefaultChannelFuture(channel, true);
+    public void reset() {
         request = null;
         response = null;
     }

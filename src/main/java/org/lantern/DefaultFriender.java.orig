@@ -2,8 +2,9 @@ package org.lantern;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -154,26 +155,26 @@ public class DefaultFriender implements Friender {
             } catch (final IOException e) {
                 return;
             }
-        }
-        sync(friend, Status.friend);
+            if (subscribe) {
+                try {
+                    //if they have requested a subscription to us, we'll accept it.
+                    this.xmppHandler.subscribed(email);
         
-        if (subscribe) {
-            try {
-                //if they have requested a subscription to us, we'll accept it.
-                this.xmppHandler.subscribed(email);
-    
-                // We also automatically subscribe to them in turn so we know about
-                // their presence.
-                this.xmppHandler.subscribe(email);
-            } catch (final IllegalStateException e) {
-                log.error("IllegalStateException while friending " +
-                    "(you are probably offline)", e);
-                model.addNotification("Error subscribing to friend: "+email+
-                    ". Could you have lost your Internet connection?",
-                    MessageType.error, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                    // We also automatically subscribe to them in turn so we 
+                    // know about their presence.
+                    this.xmppHandler.subscribe(email);
+                    return;
+                } catch (final IllegalStateException e) {
+                    log.error("IllegalStateException while friending " +
+                        "(you are probably offline)", e);
+                    model.addNotification("Error subscribing to friend: "+email+
+                        ". Could you have lost your Internet connection?",
+                        MessageType.error, 30);
+                    Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                }
             }
         }
+        sync(friend, Status.friend);
     }
 
 <<<<<<< HEAD
@@ -239,7 +240,7 @@ public class DefaultFriender implements Friender {
         }
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(processed));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String email = br.readLine();
             while (StringUtils.isNotBlank(email)) {
                 log.debug("Inviting {}", email);

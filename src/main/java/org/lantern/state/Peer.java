@@ -2,19 +2,20 @@ package org.lantern.state;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.LanternClientConstants;
 import org.lantern.LanternRosterEntry;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.lantern.util.LanternTrafficCounter;
+import org.lantern.util.Counter;
 
 /**
  * Class containing data for an individual peer, including active connections,
@@ -22,7 +23,6 @@ import org.lantern.util.LanternTrafficCounter;
  */
 @Keep
 public class Peer {
-
     private String peerid = "";
 
     private String country = "";
@@ -55,19 +55,25 @@ public class Peer {
     
     private boolean incoming;
 
-    private LanternTrafficCounter trafficCounter;
-    
     private long bytesUp;
+    
+    private Counter bytesUpCounter = Counter.averageOverOneSecond();
     
     private long bytesDn;
     
+    private Counter bytesDnCounter = Counter.averageOverOneSecond();
+    
     private String version = "";
-
-    private long lastConnectedLong;
 
     private LanternRosterEntry rosterEntry;
 
     private int port;
+    
+    private AtomicInteger numberOfOpenConnections = new AtomicInteger();
+    
+    private AtomicLong lastConnected = new AtomicLong(0L);
+    
+    private long lastConnectedLong;
     
     public Peer() {
         
@@ -77,7 +83,6 @@ public class Peer {
         final boolean mapped, final double latitude,
         final double longitude, final Type type,
         final String ip, final int port, final Mode mode, final boolean incoming,
-        final LanternTrafficCounter trafficCounter,
         final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;
         this.lat = latitude;
@@ -90,7 +95,6 @@ public class Peer {
         this.incoming = incoming;
         this.type = type.toString();
         this.country = countryCode.toUpperCase(Locale.US);
-        this.trafficCounter = trafficCounter;
         
         // Peers are online when constructed this way (because we presumably 
         // just received some type of message from them).
@@ -168,15 +172,8 @@ public class Peer {
 
     @JsonView({Run.class})
     public boolean isConnected() {
-        if (this.trafficCounter == null) {
-            return false;
-        }
-        if (!this.trafficCounter.isConnected()) {
-            return getBpsUpDn() > 0L;
-        }
-        return true;
+        return numberOfOpenConnections.get() > 0;
     }
-
 
     public boolean isIncoming() {
         return incoming;
@@ -188,20 +185,12 @@ public class Peer {
 
     @JsonView({Run.class})
     public long getBpsUp() {
-        if (this.trafficCounter != null) {
-            return trafficCounter.getCurrentWrittenBytes() * 
-                LanternClientConstants.SYNC_INTERVAL_SECONDS;
-        }
-        return 0L;
+        return bytesUpCounter.getRate();
     }
 
     @JsonView({Run.class})
     public long getBpsDown() {
-        if (this.trafficCounter != null) {
-            return trafficCounter.getCurrentReadBytes() * 
-                LanternClientConstants.SYNC_INTERVAL_SECONDS;
-        }
-        return 0L;
+        return bytesDnCounter.getRate();
     }
 
     @JsonView({Run.class})
@@ -210,55 +199,46 @@ public class Peer {
     }
 
     public long getBytesUp() {
-        if (this.trafficCounter != null) {
-            return bytesUp + 
-                //trafficCounter.getTrafficCounter().getCumulativeWrittenBytes();
-            trafficCounter.getCumulativeWrittenBytes();
-        }
-        return this.bytesUp;
+        return this.bytesUp + this.bytesUpCounter.getTotal();
     }
 
     public void setBytesUp(long bytesUp) {
         this.bytesUp = bytesUp;
     }
+    
+    public void addBytesUp(long numberOfBytes) {
+        this.bytesUpCounter.add(numberOfBytes);
+    }
 
     public long getBytesDn() {
-        if (this.trafficCounter != null) {
-            return bytesDn + 
-                //trafficCounter.getTrafficCounter().getCumulativeReadBytes();
-            trafficCounter.getCumulativeReadBytes();
-        }
-        return this.bytesDn;
+        return this.bytesDn + this.bytesDnCounter.getTotal();
     }
 
     public void setBytesDn(long bytesDn) {
         this.bytesDn = bytesDn;
     }
+    
+    public void addBytesDn(long numberOfBytes) {
+        this.bytesDnCounter.add(numberOfBytes);
+    }
 
     @JsonView({Run.class})
     public long getBytesUpDn() {
-        if (this.trafficCounter != null) {
-            return getBytesUp() + getBytesDn();
-        }
-        return 0L;
-    }
-
-    @JsonIgnore
-    public LanternTrafficCounter getTrafficCounter() {
-        return trafficCounter;
-    }
-
-    public void setTrafficCounter(
-        final LanternTrafficCounter trafficCounter) {
-        this.trafficCounter = trafficCounter;
+        return bytesDnCounter.getTotal() + bytesUpCounter.getTotal();
     }
 
     @JsonView({Run.class})
     public int getNSockets() {
-        if (this.trafficCounter != null) {
-            return trafficCounter.getNumSockets();
-        }
-        return 0;
+        return numberOfOpenConnections.get();
+    }
+    
+    public void connected() {
+        numberOfOpenConnections.incrementAndGet();
+        lastConnected.set(System.currentTimeMillis());
+    }
+    
+    public void disconnected() {
+        numberOfOpenConnections.decrementAndGet();
     }
     
     @JsonView({Run.class})
@@ -274,13 +254,9 @@ public class Peer {
     
     @JsonView({Persistent.class})
     public long getLastConnectedLong() {
-        if (this.trafficCounter != null) {
-            final long last = trafficCounter.getLastConnected();
-            
-            // Only use the counter data if it has connected.
-            if (last > 0L) return last;
-        }
-        return this.lastConnectedLong;
+        long result = lastConnected.get();
+        if (result == 0l) result = lastConnectedLong;
+        return result;
     }
     
     public void setLastConnectedLong(final long lastConnectedLong) {
@@ -319,10 +295,10 @@ public class Peer {
         return "Peer [peerid=" + peerid + ", country=" + country + ", lat="
                 + lat + ", lon=" + lon + ", type=" + type + ", online="
                 + online + ", mapped=" + mapped + ", ip=" + ip + ", mode="
-                + mode + ", incoming=" + incoming + ", trafficCounter="
-                + trafficCounter + ", bytesUp=" + bytesUp + ", bytesDn="
-                + bytesDn + ", version=" + version + ", lastConnectedLong="
-                + lastConnectedLong + ", rosterEntry=" + rosterEntry + "]";
+                + mode + ", incoming=" + incoming + ", bytesUp=" + bytesUp
+                + ", bytesDn=" + bytesDn + ", version=" + version
+                + ", lastConnectedLong=" + lastConnectedLong + ", rosterEntry="
+                + rosterEntry + "]";
     }
 
     public int getPort() {

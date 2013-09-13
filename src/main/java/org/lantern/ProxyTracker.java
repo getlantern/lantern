@@ -2,33 +2,70 @@ package org.lantern;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Collection;
 
 /**
  * Interface for all classes that keep track of proxies.
  */
-public interface ProxyTracker extends ProxyStatusListener, ProxyProvider, 
-    LanternService{
-
-    boolean isEmpty();
+public interface ProxyTracker extends LanternService {
 
     void clear();
 
     void clearPeerProxySet();
 
-    void addLaeProxy(String cur);
+    /**
+     * Adds a proxy for the given JabberID at the given address. If the
+     * <code>address</code> isn't given, we will attempt to do a NAT Traversal
+     * to find an address for the given Jabber ID.
+     * 
+     * @param jid
+     *            Jabber ID for the peer
+     * @param address
+     *            (optional) address at which we expect the proxy to be
+     *            listening
+     */
+    void addProxy(URI jid, InetSocketAddress address);
 
-    void addProxy(URI jid, String hostPort);
+    /**
+     * Adds a proxy for the given JabberID at an unknown address. We will
+     * attempt to do a NAT Traversal to find an address for the given Jabber ID.
+     * 
+     * @param jid
+     */
+    void addProxy(URI jid);
 
-    void addProxy(URI jid, InetSocketAddress iae);
+    /**
+     * Remove the NAT traversed proxy for the peer identified by the given URI.
+     * 
+     * @param uri
+     */
+    void removeNatTraversedProxy(URI uri);
 
-    void addJidProxy(URI jid);
+    boolean hasProxy();
 
-    void removePeer(URI uri);
+    /**
+     * Return a collection of all connected proxies in order of preference for
+     * using them.
+     * 
+     * @return
+     */
+    Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference();
 
-    boolean hasJidProxy(URI uri);
+    /**
+     * Gets the first proxy in order of fallback preference.
+     * 
+     * @return
+     */
+    ProxyHolder firstConnectedProxy();
 
-    void setSuccess(ProxyHolder proxyHolder);
+    /**
+     * Called when a connection to a proxy fails.
+     * 
+     * @param proxyAddress
+     *            The address of the proxy.
+     */
+    void onCouldNotConnect(ProxyHolder proxyAddress);
 
-    void addProxyWithChecks(URI jid, ProxyQueue proxyQueue, ProxyHolder proxy);
+    void onError(URI peerUri);
 
 }

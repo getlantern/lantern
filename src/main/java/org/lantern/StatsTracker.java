@@ -3,20 +3,19 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONObject;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.LocationChangedEvent;
+import org.lantern.util.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,6 @@ import com.google.inject.Singleton;
 @Keep
 @Singleton
 public class StatsTracker implements ClientStats {
-
     private final static Logger log =
         LoggerFactory.getLogger(StatsTracker.class);
 
@@ -46,32 +44,22 @@ public class StatsTracker implements ClientStats {
         new ConcurrentHashMap<String, CountryData>();
     
     /** 
-     * getXYZBytesPerSecond calls will be calculated using a moving 
-     * window average of size DATA_RATE_SECONDS.
-     */ 
-    public static final int DATA_RATE_SECONDS = 1;
-    private static final long ONE_SECOND = 1000;
-    private static final long ONE_MINUTE = 60*ONE_SECOND;
-    private static final long ONE_HOUR = 60*ONE_MINUTE;
-    private static final long ONE_DAY = 24*ONE_HOUR;
-
-    /** 
      * 1-second time-buckets for i/o bytes - DATA_RATE_SECONDS+1 seconds 
      * prior only looking to track average up/down rates for the moment
      * could be adjusted to track more etc.
      */
-    private static final TimeSeries1D upBytesPerSecondViaProxies
-        = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
-    private static final TimeSeries1D downBytesPerSecondViaProxies
-        = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
-    private static final TimeSeries1D upBytesPerSecondForPeers
-        = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
-    private static final TimeSeries1D downBytesPerSecondForPeers
-        = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
-    private static final TimeSeries1D upBytesPerSecondToPeers
-        = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
-    private static final TimeSeries1D downBytesPerSecondFromPeers
-        = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
+    private static volatile Counter upBytesPerSecondViaProxies = Counter
+            .averageOverOneSecond();
+    private static volatile Counter downBytesPerSecondViaProxies = Counter
+            .averageOverOneSecond();
+    private static volatile Counter upBytesPerSecondForPeers = Counter
+            .averageOverOneSecond();
+    private static volatile Counter downBytesPerSecondForPeers = Counter
+            .averageOverOneSecond();
+    private static volatile Counter upBytesPerSecondToPeers = Counter
+            .averageOverOneSecond();
+    private static volatile Counter downBytesPerSecondFromPeers = Counter
+            .averageOverOneSecond();
     
     private boolean upnp;
     
@@ -110,12 +98,12 @@ public class StatsTracker implements ClientStats {
     }
     
     public void resetUserStats() {
-        upBytesPerSecondViaProxies.reset();
-        downBytesPerSecondViaProxies.reset();
-        upBytesPerSecondForPeers.reset();
-        downBytesPerSecondForPeers.reset();
-        upBytesPerSecondToPeers.reset();
-        downBytesPerSecondFromPeers.reset();
+        upBytesPerSecondViaProxies  = Counter.averageOverOneSecond();
+        downBytesPerSecondViaProxies = Counter.averageOverOneSecond();
+        upBytesPerSecondForPeers = Counter.averageOverOneSecond();
+        downBytesPerSecondForPeers = Counter.averageOverOneSecond();
+        upBytesPerSecondToPeers = Counter.averageOverOneSecond();
+        downBytesPerSecondFromPeers = Counter.averageOverOneSecond();
         //peersPerSecond.reset();
         // others?
     }
@@ -136,32 +124,32 @@ public class StatsTracker implements ClientStats {
     
     @Override
     public long getUpBytesThisRunForPeers() {
-        return upBytesPerSecondForPeers.lifetimeTotal();
+        return upBytesPerSecondForPeers.getTotal();
     }
     
     @Override
     public long getUpBytesThisRunViaProxies() {
-        return upBytesPerSecondViaProxies.lifetimeTotal();
+        return upBytesPerSecondViaProxies.getTotal();
     }
 
     @Override
     public long getUpBytesThisRunToPeers() {
-        return upBytesPerSecondToPeers.lifetimeTotal();
+        return upBytesPerSecondToPeers.getTotal();
     }
     
     @Override
     public long getDownBytesThisRunForPeers() {
-        return downBytesPerSecondForPeers.lifetimeTotal();
+        return downBytesPerSecondForPeers.getTotal();
     }
 
     @Override
     public long getDownBytesThisRunViaProxies() {
-        return downBytesPerSecondViaProxies.lifetimeTotal();
+        return downBytesPerSecondViaProxies.getTotal();
     }
 
     @Override
     public long getDownBytesThisRunFromPeers() {
-        return downBytesPerSecondFromPeers.lifetimeTotal();
+        return downBytesPerSecondFromPeers.getTotal();
     }
     
     @Override
@@ -208,68 +196,43 @@ public class StatsTracker implements ClientStats {
         return getBytesPerSecond(upBytesPerSecondToPeers);
     }
     
-    public static long getBytesPerSecond(final TimeSeries1D ts) {
-        long now = System.currentTimeMillis();
-        // prior second to the one we're still accumulating 
-        long windowEnd = ((now / ONE_SECOND) * ONE_SECOND) - 1;
-        // second DATA_RATE_SECONDS before that
-        long windowStart = windowEnd - (ONE_SECOND*DATA_RATE_SECONDS);
-        // take the average
-        return (long) (ts.windowAverage(windowStart, windowEnd) + 0.5);
+    public static long getBytesPerSecond(final Counter counter) {
+        return counter.getRate();
     }
     
-    /**
-     * request bytes this lantern proxy sent to other lanterns for proxying
-     */
     @Override
     public void addUpBytesViaProxies(final long bp) {
-        upBytesPerSecondViaProxies.addData(bp);
+        upBytesPerSecondViaProxies.add(bp);
         log.debug("upBytesPerSecondViaProxies += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
-    /**
-     * response bytes downloaded by Peers for this lantern
-     */
     @Override
     public void addDownBytesViaProxies(final long bp) {
-        downBytesPerSecondViaProxies.addData(bp);
+        downBytesPerSecondViaProxies.add(bp);
         log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
     }
 
-    /**
-     * bytes sent upstream on behalf of another lantern by this
-     * lantern
-     */
     @Override
     public void addUpBytesForPeers(final long bp) {
-        upBytesPerSecondForPeers.addData(bp);
+        upBytesPerSecondForPeers.add(bp);
         log.debug("upBytesPerSecondForPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
     
-    /**
-     * bytes downloaded on behalf of another lantern by this lantern
-     */
     @Override
     public void addDownBytesForPeers(final long bp) {
-        downBytesPerSecondForPeers.addData(bp);
+        downBytesPerSecondForPeers.add(bp);
         log.debug("downBytesPerSecondForPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
     
-    /**
-     * request bytes sent by peers to this lantern
-     */
     @Override
     public void addDownBytesFromPeers(final long bp) {
-        downBytesPerSecondFromPeers.addData(bp);
+        downBytesPerSecondFromPeers.add(bp);
         log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
     
-    /** 
-     * reply bytes send to peers by this lantern
-     */
     @Override
     public void addUpBytesToPeers(final long bp) {
-        upBytesPerSecondToPeers.addData(bp);
+        upBytesPerSecondToPeers.add(bp);
         log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
@@ -309,29 +272,16 @@ public class StatsTracker implements ClientStats {
     
 
     @Override
-    public void addBytesProxied(final long bp, final Channel channel) {
+    public void addBytesProxied(final long bp, final InetSocketAddress address) {
         totalBytesProxied.addAndGet(bp);
-        if (LanternUtils.isLocalHost(channel)) {
+        if (LanternUtils.isLocalHost(address)) {
             return;
         }
         try {
-            final CountryData cd = toCountryData(channel);
+            final CountryData cd = toCountryData(address);
             cd.bytes += bp;
         } catch (final IOException e) {
-            log.warn("No CountryData for {} Not adding bytes proxied.", channel, e);
-        }
-    }
-
-    public void addBytesProxied(final long bp, final Socket sock) {
-        totalBytesProxied.addAndGet(bp);
-        if (LanternUtils.isLocalHost(sock)) {
-            return;
-        }
-        try {
-            final CountryData cd = toCountryData(sock);
-            cd.bytes += bp;
-        } catch (final IOException e) {
-            log.warn("No CountryData for {} Not adding bytes proxied.", e);
+            log.warn("No CountryData for {} Not adding bytes proxied.", address, e);
         }
     }
 
@@ -355,19 +305,6 @@ public class StatsTracker implements ClientStats {
         return natpmp;
     }
 
-    private CountryData toCountryData(final Channel channel) throws IOException {
-        final InetSocketAddress isa = 
-            (InetSocketAddress) channel.getRemoteAddress();
-        return toCountryData(isa);
-    }
-    
-    
-    private CountryData toCountryData(final Socket sock) throws IOException {
-        final InetSocketAddress isa = 
-            (InetSocketAddress)sock.getRemoteSocketAddress();
-        return toCountryData(isa);
-    }
-    
     private CountryData toCountryData(final InetSocketAddress isa) 
         throws IOException {
         if (isa == null) {

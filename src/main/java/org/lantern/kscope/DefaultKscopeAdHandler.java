@@ -1,5 +1,6 @@
 package org.lantern.kscope;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
@@ -126,35 +127,18 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         
         final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
         if (ad != null) {
-            log.debug("Adding proxy...");
-            if (ad.hasMappedEndpoint()) {
-                this.proxyTracker.addProxy(jid, 
-                        LanternUtils.isa(ad.getAddress(), ad.getPort()));
-            } else {
-                this.proxyTracker.addJidProxy(LanternUtils.newURI(ad.getJid()));
-            }
-            
+            log.debug("Adding proxy... {}", ad);
+            InetSocketAddress address = ad.hasMappedEndpoint() ?
+                    LanternUtils.isa(ad.getAddress(), ad.getPort()) :
+                    null;
+            this.proxyTracker.addProxy(jid, address);
             // Also add the local network advertisement in case they're on
             // the local network.
             this.proxyTracker.addProxy(jid, 
                 LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
             processedAds.add(ad);
         } else {
-            if (this.proxyTracker.hasJidProxy(jid)) {
-                log.debug("Ignoring cert from peer we already have: {}", jid);
-                return;
-            } else {
-                // This could happen if we negotiated certs in some way other 
-                // than in response to a kscope ad, such as for peers from the 
-                // controller or just peers from the roster who we haven't 
-                // exchanged ads with yet.
-                if (this.model.getSettings().getMode() == Mode.get) {
-                    log.error("No associated ad for certificate!!");
-                } else {
-                    log.debug("No kscope ad for cert in give mode, as expected");
-                }
-                this.proxyTracker.addJidProxy(jid);
-            }
+            this.proxyTracker.addProxy(jid);
         }
     }
 

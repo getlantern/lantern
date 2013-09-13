@@ -2,14 +2,22 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import org.jivesoftware.smack.SASLAuthentication;
 import org.junit.Test;
+import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
+import org.lantern.util.HttpClientFactory;
 
 public class GoogleTalkTest {
     
     @Test
     public void testGoogleTalk() throws Exception {
+        
+        SASLAuthentication.registerSASLMechanism("X-OAUTH2",
+                LanternSaslGoogleOAuth2Mechanism.class);
+        final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+        LanternSaslGoogleOAuth2Mechanism.setHttpClientFactory(httpClientFactory);
         
         Launcher.configureCipherSuites();
         final Censored censored = new DefaultCensored();

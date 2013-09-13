@@ -50,5 +50,10 @@ public class Threads {
         final String name) {
         return Executors.newScheduledThreadPool(4, newDaemonThreadFactory(name));
     }
+    
+    public static ScheduledExecutorService newSingleThreadedScheduledExecutor(
+            String name) {
+        return Executors.newSingleThreadScheduledExecutor(newDaemonThreadFactory(name));
+    }
 
 }

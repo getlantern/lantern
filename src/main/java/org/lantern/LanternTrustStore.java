@@ -15,6 +15,7 @@ import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.codec.binary.Base64;
@@ -41,7 +42,7 @@ public class LanternTrustStore {
 
     private final static Logger log = 
         LoggerFactory.getLogger(LanternTrustStore.class);
-
+    
     private final AtomicReference<SSLContext> sslContextRef = 
             new AtomicReference<SSLContext>();
     private final LanternKeyStoreManager ksm;
@@ -49,7 +50,7 @@ public class LanternTrustStore {
     private final KeyStore trustStore;
 
     private TrustManagerFactory tmf;
-
+    
     @Inject
     public LanternTrustStore(final LanternKeyStoreManager ksm) {
         this.ksm = ksm;
@@ -161,6 +162,14 @@ public class LanternTrustStore {
         }
         return sslContextRef.get();
     }
+    
+    /**
+     * Return an new/unused {@link SSLEngine} reflecting our {@link SSLContext}.
+     * For performance, these are created eagerly ahead of time.
+     */
+    public SSLEngine newSSLEngine() {
+        return getSslContext().createSSLEngine();
+    }
 
     private SSLContext provideSslContext() {
         try {
@@ -175,7 +184,7 @@ public class LanternTrustStore {
                     "Failed to initialize the client-side SSLContext", e);
         }
     }
-
+    
     public void deleteCert(final String alias) {
         try {
             this.trustStore.deleteEntry(alias);
@@ -203,8 +212,16 @@ public class LanternTrustStore {
             cert.getIssuerDN().getName().substring(3).toLowerCase();
         log.debug("Looking for alias {}", alias);
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("All aliases");
+                Enumeration<String> aliases = this.trustStore.aliases();
+                while (aliases.hasMoreElements()) {
+                    log.debug(aliases.nextElement());
+                }
+            }
             final Certificate existingCert = this.trustStore.getCertificate(alias);
-            return existingCert.equals(cert);
+            log.trace("Existing certificate: {}", (existingCert));
+            return existingCert != null && existingCert.equals(cert);
         } catch (final KeyStoreException e) {
             log.warn("Exception accessing keystore", e);
             return false;

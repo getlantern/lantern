@@ -28,7 +28,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
-import org.lantern.util.GlobalLanternServerTrafficShapingHandler;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -96,12 +95,6 @@ public class TestUtils {
 
     private static HttpClientFactory httpClientFactory;
 
-    private static SslHttpProxyServer sslHttpProxyServer;
-
-    private static GlobalLanternServerTrafficShapingHandler globalTraffic;
-
-    private static TransfersIo transfersIo;
-
     private static CountryService countryService;
 
     private static GeoIpLookupService geoIpLookupService;
@@ -168,9 +161,7 @@ public class TestUtils {
         trustStore = instance(LanternTrustStore.class);
         
         httpClientFactory = instance(HttpClientFactory.class);
-        sslHttpProxyServer = instance(SslHttpProxyServer.class);
-        globalTraffic = instance(GlobalLanternServerTrafficShapingHandler.class);
-
+        
         geoIpLookupService = instance(GeoIpLookupService.class);
         countryService = instance(CountryService.class);
 
@@ -434,16 +425,6 @@ public class TestUtils {
     public static HttpClientFactory getHttpClientFactory() {
         if (!loaded) load();
         return httpClientFactory;
-    }
-
-    public static SslHttpProxyServer getSslHttpProxyServer() {
-        if (!loaded) load();
-        return sslHttpProxyServer;
-    }
-
-    public static GlobalLanternServerTrafficShapingHandler getGlobalTraffic() {
-        if (!loaded) load();
-        return globalTraffic;
     }
 
     public static CountryService getCountryService() {

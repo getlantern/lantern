@@ -123,6 +123,13 @@ public class FriendNotificationDialog extends NotificationDialog {
         dialog.dispose();
     }
 
+    @Subscribe
+    public void onFriendStatusChanged(FriendStatusChangedEvent e) {
+        if (e.getFriend().getEmail().equals(friend.getEmail())) {
+            dialog.dispose();
+        }
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -137,6 +144,8 @@ public class FriendNotificationDialog extends NotificationDialog {
             return true;
         if (obj == null)
             return false;
+        if (getClass() != obj.getClass())
+            return false;
         FriendNotificationDialog other = (FriendNotificationDialog) obj;
         if (friend == null) {
             if (other.friend != null)
@@ -144,12 +153,5 @@ public class FriendNotificationDialog extends NotificationDialog {
         } else if (!friend.equals(other.friend))
             return false;
         return true;
-    }
-
-    @Subscribe
-    public void onFriendStatusChanged(FriendStatusChangedEvent e) {
-        if (e.getFriend().getEmail().equals(friend.getEmail())) {
-            dialog.dispose();
-        }
     }
 }

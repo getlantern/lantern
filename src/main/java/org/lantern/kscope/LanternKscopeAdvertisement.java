@@ -198,4 +198,13 @@ public class LanternKscopeAdvertisement {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "LanternKscopeAdvertisement [jid=" + jid + ", ttl=" + ttl
+                + ", address=" + address + ", port=" + port + ", version="
+                + version + ", localAddress=" + localAddress + ", localPort="
+                + localPort + ", lanternVersion=" + lanternVersion + "]";
+    }
+    
 }
