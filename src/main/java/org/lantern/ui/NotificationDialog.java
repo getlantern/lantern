@@ -14,7 +14,7 @@ public class NotificationDialog {
     public static final int WIDTH = 320;
     public static final int HEIGHT = 120;
 
-    JWindow dialog;
+    protected JWindow dialog;
 
     public NotificationDialog(final NotificationManager manager) {
         if (LanternUtils.isTesting()) {
