@@ -123,6 +123,10 @@ public class OauthUtils {
             LOG.debug("Making oauth call with fallback...");
             
             final String refreshToken = model.getSettings().getRefreshToken();
+            if (StringUtils.isBlank(refreshToken)) {
+                LOG.error("No refresh token!");
+                throw new NullPointerException("No refresh token!");
+            }
             
             final HttpClient directClient =  httpClientFactory.newDirectClient();
             final Collection<HttpHost> usedHosts = new HashSet<HttpHost>();
@@ -264,7 +268,7 @@ public class OauthUtils {
             EntityUtils.consume(entity);
             
             if (code < 200 || code > 299) {
-                throw new IOException("Bad response code: "+code);
+                throw new IOException("Bad response code: "+code+"\n"+body);
             }
             return body;
         } catch (final IOException e) {

@@ -24,10 +24,8 @@ import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.DefaultFriendsHandler;
-import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
-import org.lantern.state.ModelUtils;
 import org.lantern.util.HttpClientFactory;
 
 import com.google.common.eventbus.Subscribe;
@@ -41,12 +39,12 @@ public class RosterTest {
         Events.register(this);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         final Model model = new Model();
-        final ModelUtils modelUtils = new DefaultModelUtils(model);
         final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
         final OauthUtils oauth = new OauthUtils(httpClientFactory, model);
         final FriendApi api = new FriendApi(oauth);
         final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
-        final FriendsHandler friendHandler = new DefaultFriendsHandler(model, api, xmppHandler, modelUtils);
+        final FriendsHandler friendHandler = 
+                new DefaultFriendsHandler(model, api, xmppHandler);
         final Roster roster =
             new Roster(routingTable, model, new TestCensored(), friendHandler);
 

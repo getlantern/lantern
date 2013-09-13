@@ -5,8 +5,6 @@ import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -153,14 +151,13 @@ public class TestingUtils {
         final FriendApi api = new FriendApi(oauth);
         
         final FriendsHandler friendsHandler = 
-                new DefaultFriendsHandler(model, api, null, modelUtils);
+                new DefaultFriendsHandler(model, api, null);
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
         
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
-        final Timer timer = new HashedWheelTimer();
         final ProxyTracker proxyTracker = 
             new DefaultProxyTracker(model, peerFactory, null, trustStore);
         final KscopeAdHandler kscopeAdHandler = 

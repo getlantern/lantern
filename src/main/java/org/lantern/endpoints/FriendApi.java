@@ -63,10 +63,10 @@ public class FriendApi {
      * @return The entity with primary key id.
      * @throws IOException If there's an error making the call to the server.
      */
-    public Friend getFriend(final long id) throws IOException {
+    public ClientFriend getFriend(final long id) throws IOException {
         final String url = BASE+"get/"+id;
         final String content = this.oauth.getRequest(url);
-        final Friend read = mapper.readValue(content, ClientFriend.class);
+        final ClientFriend read = mapper.readValue(content, ClientFriend.class);
         return read;
     }
 
@@ -78,11 +78,11 @@ public class FriendApi {
      * @return The inserted entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public Friend insertFriend(final Friend friend) throws IOException {
+    public ClientFriend insertFriend(final Friend friend) throws IOException {
         final String url = BASE+"insert";
         final String json = JsonUtils.jsonify(friend);
         final String content = this.oauth.postRequest(url, json);
-        final Friend read = mapper.readValue(content, ClientFriend.class);
+        final ClientFriend read = mapper.readValue(content, ClientFriend.class);
         return read;
     }
 
@@ -93,7 +93,7 @@ public class FriendApi {
      * @return The updated entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public Friend updateFriend(final Friend friend) throws IOException {
+    public ClientFriend updateFriend(final Friend friend) throws IOException {
         final String url = BASE+"update";
         final String json = JsonUtils.jsonify(friend);
         final String content = this.oauth.postRequest(url, json);

@@ -49,17 +49,14 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final XmppHandler xmppHandler;
 
-    private final ModelUtils modelUtils;
-    
     private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
 
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
-            final XmppHandler xmppHandler, final ModelUtils modelUtils) {
+            final XmppHandler xmppHandler) {
         this.model = model;
         this.api = api;
         this.xmppHandler = xmppHandler;
-        this.modelUtils = modelUtils;
         
         // If we already have a refresh token, just use it to load friends.
         // Otherwise register for refresh token events.
@@ -68,20 +65,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } else {
             Events.register(this);
         }
-        final Runnable runner = new Runnable() {
-            
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(40000);
-                } catch (final InterruptedException e) {
-                }
-                checkForBulkInvites();
-            }
-        };
-        final Thread t = new Thread(runner, "Bulk-Invites-Thread");
-        t.setDaemon(true);
-        t.start();
+        handleBulkInvites();
     }
 
     @Subscribe
@@ -122,7 +106,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     private void addFriend(final String email, final boolean subscribe) {
         log.debug("Adding friend...");
-        final Friend existingFriend = get(email);
+        final ClientFriend existingFriend = get(email);
         if (existingFriend != null && existingFriend.getStatus() == Status.friend) {
             log.debug("Already friends with {}", email);
             model.addNotification("You have already friended "+email+".",
@@ -131,14 +115,20 @@ public class DefaultFriendsHandler implements FriendsHandler {
             return;
         }
         
-        final Friend friend;
+        final ClientFriend friend;
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (existingFriend == null || existingFriend.getStatus() == Status.rejected) {
             log.debug("Adding or fetching friend...");
-            final ClientFriend temp = addOrFetchFriend(email);
+            
+            // We want our local copy of friends to always reflect the server,
+            // along with e-tags and everything else, so we always use the 
+            // server version.
+            final ClientFriend temp = makeFriend(email);
+            temp.setStatus(Status.friend);
             try {
                 friend = this.api.insertFriend(temp);
+                add(friend);
             } catch (final IOException e) {
                 model.addNotification("Error adding friend '"+email+
                     "'. Do you still have an Internet connection?",
@@ -179,7 +169,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private void sync(final Friend friend, final Status status) {
         log.debug("Syncing friend");
-        friend.setStatus(status);
+        //friend.setStatus(status);
         //friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         Events.sync(SyncPath.FRIENDS, getFriends());
@@ -239,7 +229,22 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     @Override
     public void removeFriend(final String email) {
-        
+        final ClientFriend friend = get(email);
+        if (friend == null) {
+            log.warn("Null friend?");
+            return;
+        }
+        long id = friend.getId();
+        try {
+            this.api.removeFriend(id);
+            friends.remove(email.toLowerCase());
+            sync(friend, Status.rejected);
+            model.addNotification("You have successfully rejected '"+email+"'.",
+                MessageType.info, 30);
+            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+        } catch (final IOException e) {
+            log.warn("Could not remove friend?");
+        }
     }
 
     @Override
@@ -365,6 +370,23 @@ public class DefaultFriendsHandler implements FriendsHandler {
             friend.setName(name);
             update(friend);
         }
+    }
+
+    private void handleBulkInvites() {
+        final Runnable runner = new Runnable() {
+            
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(40000);
+                } catch (final InterruptedException e) {
+                }
+                checkForBulkInvites();
+            }
+        };
+        final Thread t = new Thread(runner, "Bulk-Invites-Thread");
+        t.setDaemon(true);
+        t.start();
     }
     
     /**
