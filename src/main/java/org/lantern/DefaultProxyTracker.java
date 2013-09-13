@@ -193,7 +193,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         InetAddress remoteAddress = ph.getFiveTuple().getRemote().getAddress();
         if (remoteAddress.isLoopbackAddress()
                 || remoteAddress.isAnyLocalAddress()) {
-            LOG.warn("Can connect to neither loopback nor 0.0.0.0 address...");
+            LOG.warn("Can connect to neither loopback nor 0.0.0.0 address {}", 
+                remoteAddress);
             return;
         }
 

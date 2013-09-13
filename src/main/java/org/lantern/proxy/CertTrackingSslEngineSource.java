@@ -18,6 +18,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.io.IOUtils;
 import org.lantern.LanternKeyStoreManager;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
@@ -76,11 +77,12 @@ public class CertTrackingSslEngineSource implements SslEngineSource {
 
     private SSLContext buildFallbackServerContext() {
         final String PASS = "Be Your Own Lantern";
+        InputStream is = null;
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
 
             final File keystore = new File(LanternUtils.getKeystorePath());
-            final InputStream is = new FileInputStream(keystore);
+            is = new FileInputStream(keystore);
             ks.load(is, PASS.toCharArray());
 
             // Set up key manager factory to use our key store
@@ -106,6 +108,8 @@ public class CertTrackingSslEngineSource implements SslEngineSource {
             throw new Error("Could not load fallback ssl context", e);
         } catch (KeyManagementException e) {
             throw new Error("Could not load fallback ssl context", e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
     }
 

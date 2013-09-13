@@ -3,7 +3,7 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0-beta4-SNAPSHOT</version>
+  <version>1.0.0-beta5-SNAPSHOT</version>
   <name>Lantern</name>
   <description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
   <url>https://github.com/getlantern/lantern</url>
@@ -431,11 +431,10 @@
         <version>2.0</version>
       </plugin>
 
-<!--
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
-        <version>0.7</version>
+        <version>0.8</version>
         <configuration>
           <message>Building site for ${project.version}</message>
         </configuration>
@@ -448,7 +447,6 @@
           </execution>
         </executions>
       </plugin>
--->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

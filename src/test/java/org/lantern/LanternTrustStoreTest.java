@@ -134,6 +134,7 @@ public class LanternTrustStoreTest {
         // THIS IS EXTREMELY IMPORTANT AS LANTERN RELIES ON THIS FOR ALL
         // P2P CONNECTIONS!!
         trustStore.deleteCert("equifaxsecureca");
+        trustStore.deleteCert("equifaxsecureca2");
 
         final String[] noLongerSuccess = {"talk.google.com"};
 

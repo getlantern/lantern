@@ -714,7 +714,15 @@ public class DefaultXmppHandler implements XmppHandler {
         final Collection<InetSocketAddress> googleStunServers) {
         final Set<String> strings = new HashSet<String>();
         for (final InetSocketAddress isa : googleStunServers) {
-            strings.add(isa.getAddress().getHostAddress()+":"+isa.getPort());
+            // If we get an unresolved name, isa.getAddress() will return
+            // null. We don't just call getHostName because that will trigger
+            // a reverse DNS lookup if it is resolved. Finally, getHostString
+            // is only available in Java 7.
+            if (!isa.isUnresolved()) {
+                strings.add(isa.getAddress().getHostAddress()+":"+isa.getPort());
+            } else {
+                strings.add(isa.getHostName()+":"+isa.getPort());
+            }
         }
         return strings;
     }
@@ -777,8 +785,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
-        if ((Boolean) json.get(LanternConstants.NEED_REFRESH_TOKEN)
-            == Boolean.TRUE) {
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
             sendToken();
         }
 

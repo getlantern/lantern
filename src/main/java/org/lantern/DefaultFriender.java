@@ -2,8 +2,9 @@ package org.lantern;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -143,6 +144,7 @@ public class DefaultFriender implements Friender {
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (friend == null || friend.getStatus() == Status.rejected) {
+            friend = modelUtils.makeFriend(email);
             try {
                 invite(friend, true);
             } catch (final IOException e) {
@@ -166,7 +168,6 @@ public class DefaultFriender implements Friender {
                     Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
                 }
             }
-            friend = modelUtils.makeFriend(email);
         }
         sync(friend, Status.friend);
     }
@@ -204,7 +205,7 @@ public class DefaultFriender implements Friender {
         }
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(processed));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String email = br.readLine();
             while (StringUtils.isNotBlank(email)) {
                 log.debug("Inviting {}", email);
