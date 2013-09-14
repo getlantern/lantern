@@ -636,7 +636,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 final Presence pres, final String from, final Type type) {
             switch (type) {
             case available:
-                peerAvailable(from);
+                peerAvailable(from, pres);
                 return;
             case error:
                 LOG.warn("Got error packet!! {}", pack.toXML());
@@ -665,8 +665,7 @@ public class DefaultXmppHandler implements XmppHandler {
             case subscribed:
                 break;
             case unavailable:
-                // TODO: We should remove the peer from our proxy
-                // lists!!
+                peerUnavailable(from, pres);
                 return;
             case unsubscribe:
                 // The user is unsubscribing from us, so we will no longer be
@@ -1375,12 +1374,23 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.get().getXmppConnection().sendPacket(packet);
     }
 
-    private void peerAvailable(final String from) {
+    private void peerUnavailable(final String from, final Presence pres) {
+        final String email = XmppUtils.jidToUser(from);
+        final ClientFriend friend = this.friendsHandler.addOrFetchFriend(email);
+        friend.setLoggedIn(false);
+        friend.setMode(pres.getMode());
+        Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
+    }
+    
+    private void peerAvailable(final String from, final Presence pres) {
         if (!LanternXmppUtils.isLanternJid(from)) {
             return;
         }
-        String email = XmppUtils.jidToUser(from);
-        ClientFriend friend = this.friendsHandler.addOrFetchFriend(email);
+        LOG.debug("Got peer available...");
+        final String email = XmppUtils.jidToUser(from);
+        final ClientFriend friend = this.friendsHandler.addOrFetchFriend(email);
+        friend.setLoggedIn(true);
+        friend.setMode(pres.getMode());
         if (email.equals(model.getProfile().getEmail())) {
             //we'll assume that a user already trusts themselves
             if (friend.getStatus() != Status.friend) {

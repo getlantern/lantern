@@ -29,17 +29,21 @@ public class ClientFriend implements Friend {
     private boolean pendingSubscriptionRequest;
 
     private Long lastUpdated = System.currentTimeMillis();
+    
+    private boolean loggedIn;
+    
+    private org.jivesoftware.smack.packet.Presence.Mode mode;
 
     public ClientFriend() {
     }
 
-    public ClientFriend(String email) {
-        this.email = email;
+    public ClientFriend(final String email) {
+        this.email = email.toLowerCase();
     }
 
     public ClientFriend(String email, Status status, String name,
             long nextQuery, Long lastUpdated) {
-        this.email = email;
+        this.email = email.toLowerCase();
         this.status = status;
         this.name = name;
         this.nextQuery = nextQuery;
@@ -134,6 +138,46 @@ public class ClientFriend implements Friend {
     @Override
     public void setLastUpdated(long lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+    
+    /**
+     * Whether or not this peer is online in the sense of logged in to the 
+     * XMPP server.
+     * 
+     * @return Whether the user is logged in to the XMPP server.
+     */
+    @JsonIgnore
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    /**
+     * Sets whether or not this peer is online in the sense of logged in to the 
+     * XMPP server.
+     * 
+     * @param loggedIn Whether the user is logged in to the XMPP server.
+     */
+    public void setLoggedIn(final boolean loggedIn) {
+        this.loggedIn = loggedIn;
+    }
+
+    /**
+     * Gets the users presence mode, such as available, away, dnd, etc.
+     * 
+     * @return The user's presence mode.
+     */
+    @JsonIgnore
+    public org.jivesoftware.smack.packet.Presence.Mode getMode() {
+        return mode;
+    }
+
+    /**
+     * Sets the users presence mode, such as available, away, dnd, etc.
+     * 
+     * @param mode The user's presence mode.
+     */
+    public void setMode(final org.jivesoftware.smack.packet.Presence.Mode mode) {
+        this.mode = mode;
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.lantern.event.RefreshTokenEvent;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,6 +143,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 return;
             }
         } else {
+            log.debug("Friend is existing friend....");
             friend = existingFriend;
         }
         
@@ -211,6 +213,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     public ClientFriend addOrFetchFriend(final String email) {
         final ClientFriend friend = makeFriend(email);
         add(friend);
+        sync(friend, friend.getStatus());
         return friend;
     }
     
