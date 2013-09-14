@@ -54,14 +54,11 @@ import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
-import org.lantern.state.Friend.Status;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
-import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -179,8 +176,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private final ExecutorService xmppProcessors =
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
-    private final NotificationManager notificationManager;
-    
     private final UdtServerFiveTupleListener udtFiveTupleListener;
 
 
@@ -216,7 +211,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.kscopeAdHandler = kscopeAdHandler;
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
-        this.notificationManager = notificationManager;
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
         Events.register(this);
@@ -1375,8 +1369,18 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void peerUnavailable(final String from, final Presence pres) {
+        if (!LanternXmppUtils.isLanternJid(from)) {
+            return;
+        }
         final String email = XmppUtils.jidToUser(from);
-        final ClientFriend friend = this.friendsHandler.addOrFetchFriend(email);
+        final ClientFriend friend = this.friendsHandler.getFriend(email);
+        if (friend == null) {
+            // Some error occurred!
+            return;
+        }
+        
+        // We don't track logged in or mode separately on our server since
+        // XMPP takes care of it - that's why we don't update the server here.
         friend.setLoggedIn(false);
         friend.setMode(pres.getMode());
         Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
@@ -1388,30 +1392,8 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.debug("Got peer available...");
         final String email = XmppUtils.jidToUser(from);
-        final ClientFriend friend = this.friendsHandler.addOrFetchFriend(email);
-        friend.setLoggedIn(true);
-        friend.setMode(pres.getMode());
-        if (email.equals(model.getProfile().getEmail())) {
-            //we'll assume that a user already trusts themselves
-            if (friend.getStatus() != Status.friend) {
-                subscribe(email);
-                subscribed(email);
-                this.friendsHandler.setStatus(friend, Status.friend);
-                Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-                Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
-            }
-            return;
-        } else {
-            //sync this new friend so it appears in the friends modal
-            Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
-        }
-        Settings settings = model.getSettings();
-        if (friend.shouldNotifyAgain() && settings.isShowFriendPrompts()
-                && model.isSetupComplete()) {
-            final FriendNotificationDialog notification = 
-                new FriendNotificationDialog(notificationManager, this.friendsHandler, friend);
-            notificationManager.notify(notification);
-        }
+        this.friendsHandler.peerRunningLantern(email, pres);
+
     }
 
     private void sendToken() {

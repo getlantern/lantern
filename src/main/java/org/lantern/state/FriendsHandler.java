@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.util.Collection;
 
+import org.jivesoftware.smack.packet.Presence;
 import org.lantern.state.Friend.Status;
 
 public interface FriendsHandler {
@@ -16,7 +17,7 @@ public interface FriendsHandler {
 
     Collection<ClientFriend> getFriends();
 
-    ClientFriend addOrFetchFriend(String email);
+    void peerRunningLantern(String email, Presence pres);
 
     void setStatus(Friend friend, Status status);
 
@@ -25,5 +26,7 @@ public interface FriendsHandler {
     void addIncomingSubscriptionRequest(String from);
 
     void updateName(String address, String name);
+
+    ClientFriend getFriend(String email);
 
 }

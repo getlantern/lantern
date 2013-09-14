@@ -146,7 +146,6 @@ public class ClientFriend implements Friend {
      * 
      * @return Whether the user is logged in to the XMPP server.
      */
-    @JsonIgnore
     public boolean isLoggedIn() {
         return loggedIn;
     }
@@ -166,7 +165,6 @@ public class ClientFriend implements Friend {
      * 
      * @return The user's presence mode.
      */
-    @JsonIgnore
     public org.jivesoftware.smack.packet.Presence.Mode getMode() {
         return mode;
     }
