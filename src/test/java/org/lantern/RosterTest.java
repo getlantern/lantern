@@ -44,7 +44,7 @@ public class RosterTest {
         final FriendApi api = new FriendApi(oauth);
         final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
         final FriendsHandler friendHandler = 
-                new DefaultFriendsHandler(model, api, xmppHandler);
+                new DefaultFriendsHandler(model, api, xmppHandler, null);
         final Roster roster =
             new Roster(routingTable, model, new TestCensored(), friendHandler);
 

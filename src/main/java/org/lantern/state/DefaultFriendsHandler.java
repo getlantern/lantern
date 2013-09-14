@@ -6,15 +6,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
@@ -338,6 +334,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
         final Settings settings = model.getSettings();
         if (friend.shouldNotifyAgain() && settings.isShowFriendPrompts()
                 && model.isSetupComplete()) {
+            if (this.notificationManager == null) {
+                log.debug("Null notification dialog -- testing?");
+                return;
+            }
             final FriendNotificationDialog notification = 
                 new FriendNotificationDialog(notificationManager, this, friend);
             notificationManager.notify(notification);

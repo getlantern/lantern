@@ -151,7 +151,7 @@ public class TestingUtils {
         final FriendApi api = new FriendApi(oauth);
         
         final FriendsHandler friendsHandler = 
-                new DefaultFriendsHandler(model, api, null);
+                new DefaultFriendsHandler(model, api, null, null);
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
