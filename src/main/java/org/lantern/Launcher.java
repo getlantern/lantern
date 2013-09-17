@@ -533,6 +533,7 @@ public class Launcher {
     public static void configureCipherSuites() {
         Security.addProvider(new BouncyCastleProvider());
         if (!LanternUtils.isUnlimitedKeyStrength()) {
+            /*
             if (LanternUtils.isDevMode()) {
                 System.err.println("PLEASE INSTALL UNLIMITED STRENGTH POLICY FILES WITH ONE OF THE FOLLOWING:\n" +
                     "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
@@ -547,10 +548,11 @@ public class Launcher {
                     System.exit(1);
                 }
             }
+            */
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
                 log("No policy files on non-Vista machine!!");
             }
-            log("Reverting to weaker ciphers on Vista");
+            log("Reverting to weaker ciphers");
             log("Look in "+ new File(SystemUtils.JAVA_HOME, "lib/security").getAbsolutePath());
             IceConfig.setCipherSuites(new String[] {
                     CIPHER_SUITE_LOW_BIT
