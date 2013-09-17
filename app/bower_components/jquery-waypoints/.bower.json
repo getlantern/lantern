@@ -1,0 +1,14 @@
+{
+  "name": "jquery-waypoints",
+  "homepage": "https://github.com/imakewebthings/jquery-waypoints",
+  "version": "2.0.3",
+  "_release": "2.0.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.0.3",
+    "commit": "aa31522976ba87030e0366cc1f209d1d3781810c"
+  },
+  "_source": "git://github.com/imakewebthings/jquery-waypoints.git",
+  "_target": "~v2.0.3",
+  "_originalSource": "jquery-waypoints"
+}

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>Dial Controls with jQuery Waypoints</title>
+	<meta name="description" content="An example of dial controls using the jQuery Waypoints plugin">
+	<meta name="viewport" content="width=480">
+
+	<link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono|Lato:400,700|PT+Serif:700' rel='stylesheet' type='text/css'>
+	<style type="text/css">
+		* {
+			margin:0;
+			padding:0;
+		}
+
+		body {
+			font-size:16px;
+			line-height:1.5;
+			color:#6a6272;
+      background:#d5c5e5;
+      padding-bottom:16px;
+      font-family:"Lato", sans-serif;
+		}
+
+		.inner {
+			width:460px;
+			padding:0 10px;
+			margin:0 auto;
+		}
+
+		h1, h2, h3, h4 {
+      font-family:"PT Serif", serif;
+      font-weight:normal;
+    }
+
+		h1 {
+			font-size:53px;
+      color:#444a50;
+		}
+
+		h2 {
+      text-align:center;
+      background:#6a6272;
+      color:#eae2f2;
+      font-size:24px;
+    }
+
+		pre {
+      white-space:pre-wrap;
+      font-size:14px;
+      background:#fff;
+      padding:10px;
+    }
+
+		.header {
+			margin-bottom:24px;
+		}
+
+		.dials {
+			overflow:hidden;
+		}
+
+		.dial {
+			float:left;
+			width:140px;
+			margin-left:20px;
+			position:relative;
+		}
+
+		.dial.first {
+			margin-left:0;
+		}
+
+		.dial h3 {
+			font-weight:bold;
+			margin:0;
+		}
+
+		.dial ul {
+			background:#fff;
+			border:1px solid #eae2f2;
+			padding:25px 0 114px 0;
+			height:1px;
+			overflow-y:scroll;
+			margin:0;
+		}
+
+		.dial ul:before {
+			content:"";
+			border:10px solid #555;
+			width:1px;
+			height:1px;
+			display:block;
+			position:absolute;
+			bottom:105px;
+			left:0;
+			z-index:3;
+			border-top-color:transparent;
+			border-right-color:transparent;
+			border-bottom-color:transparent;
+		}
+
+		.dial li {
+			height:20px;
+			line-height:20px;
+			padding:10px 10px 10px 20px;
+			border-bottom:1px solid #ddd;
+			font-size:20px;
+		}
+
+		.dial li:first-child {
+			border-top:1px solid #ddd;
+		}
+
+		.text-color-dial li {
+			color:#fff;
+		}
+
+		li[data-value="8px"] {
+			font-size:8px;
+		}
+		li[data-value="9px"] {
+			font-size:9px;
+		}
+		li[data-value="10px"] {
+			font-size:10px;
+		}
+		li[data-value="11px"] {
+			font-size:11px;
+		}
+		li[data-value="12px"] {
+			font-size:12px;
+		}
+		li[data-value="13px"] {
+			font-size:13px;
+		}
+		li[data-value="14px"] {
+			font-size:14px;
+		}
+		li[data-value="#000"] {
+			background:#000;
+		}
+		li[data-value="#222"] {
+			background:#222;
+		}
+		li[data-value="#444"] {
+			background:#444;
+		}
+		li[data-value="#666"] {
+			background:#666;
+		}
+		li[data-value="#888"] {
+			background:#888;
+		}
+		li[data-value="#aaa"] {
+			background:#aaa;
+		}
+
+		.indicator {
+			position:absolute;
+			bottom:115px;
+			left:0;
+			height:1px;
+			width:120px;
+			background:red;
+		}
+
+		#example-target {
+			margin-top:32px;
+		}
+	</style>
+</head>
+<body>
+
+<div class="header inner">
+	<h1>jQuery Waypoints</h1>
+	<h2>Dial Controls</h2>
+</div>
+
+<div class="inner">
+	<div class="dials">
+		<div data-property="font-size" class="dial first">
+			<h3>Font Size:</h3>
+			<ul>
+				<li data-value="8px">8px</li>
+				<li data-value="9px">9px</li>
+				<li data-value="10px">10px</li>
+				<li data-value="11px">11px</li>
+				<li data-value="12px">12px</li>
+				<li data-value="13px">13px</li>
+				<li data-value="14px">14px</li>
+			</ul>
+			<div class="indicator"></div>
+		</div>
+		
+		<div data-property="line-height" class="dial">
+			<h3>Line Height:</h3>
+			<ul>
+				<li data-value=".75">.75</li>
+				<li data-value="1.0">1.0</li>
+				<li data-value="1.25">1.25</li>
+				<li data-value="1.5">1.5</li>
+				<li data-value="1.75">1.75</li>
+				<li data-value="2.0">2.0</li>
+				<li data-value="2.25">2.25</li>
+				<li data-value="2.5">2.5</li>
+			</ul>
+			<div class="indicator"></div>
+		</div>
+		
+		<div data-property="color" class="dial text-color-dial">
+			<h3>Text Color:</h3>
+			<ul>
+				<li data-value="#000">#000</li>
+				<li data-value="#222">#222</li>
+				<li data-value="#444">#444</li>
+				<li data-value="#666">#666</li>
+				<li data-value="#888">#888</li>
+				<li data-value="#aaa">#aaa</li>
+			</ul>
+			<div class="indicator"></div>
+		</div>
+	</div>
+
+	<pre id="example-target"><code>$('.dial li').waypoint( function(direction) {
+  var $active = $(this);
+  var property, value;
+
+  /* The waypoint is triggered at the top of each list item representing a dial section. When triggering in the down direction we want to use the dial section the waypoint is attached to. But in the up direction we want to use the previous dial section. */
+  if (direction === "up") {
+    $active = $active.prev();
+  }
+
+  /* If we triggered in the up direction and the result from 'prev' came back with an empty set of elements, it means we were on the first element in the list, and we should just use the original element. */
+  if (!$active.length) {
+    $active = $(this);
+  }
+
+  /* The property the dial controls is a data attribute on the ul. */
+  property = $active.closest('.dial').data('property');
+
+  /* The value for that property is a data attribute on each li. */
+  value = $active.data('value');
+	
+  $('#example-target').css(property, value);
+}, {
+  context: 'ul' // Make the scroll context the nearest ul.
+});</code></pre>
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+<script src="../../waypoints.js"></script>
+
+<script type="text/javascript">
+$(function() {
+	$('.dial li').waypoint(function(direction) {
+		var $active = $(this);
+		var property, value;
+
+		/* The waypoint is triggered at the top of each list item representing
+		   a dial section. When triggering in the down direction we want to use
+		   the dial section the waypoint is attached to. But in the up direction
+		   we want to use the previous dial section. */
+		if (direction === "up") {
+			$active = $active.prev();
+		}
+
+		/* If we triggered in the up direction and the result from 'prev' came
+		   back with an empty set of elements, it means we were on the first
+		   element in the list, and we should just use the original element. */
+		if (!$active.length) {
+			$active = $(this);
+		}
+
+		/* The property the dial controls is a data attribute on the ul. */
+		property = $active.closest('.dial').data('property');
+
+		/* The value for that property is a data attribute on each li. */
+		value = $active.data('value');
+		
+		$('#example-target').css(property, value);
+	}, {
+		context: 'ul' // Make the scroll context the nearest ul.
+	});
+
+	$('.dial ul').animate({ scrollTop: 145}, 750, 'swing');
+});
+</script>
+
+</body>
+</html>

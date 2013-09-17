@@ -1,0 +1,19 @@
+{
+  "name": "jquery-waypoints",
+  "version": "2.0.3",
+  "author": "Caleb Troughton <caleb@imakewebthings.com>",
+  "description": "A jQuery plugin that makes it easy to execute a function whenever you scroll to an element.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imakewebthings/jquery-waypoints.git"
+  },
+  "keywords": [
+    "jquery",
+    "scroll"
+  ],
+  "devDependencies": {
+    "coffee-script": "1.6.2",
+    "uglify-js" :  "2.2.5"
+  },  
+  "license": "MIT"
+}

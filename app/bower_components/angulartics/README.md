@@ -1,70 +1,73 @@
 angulartics
 ===========
 
-Vendor-agnostic analytics for AngularJS applications.
-
-[http://luisfarzati.github.io/angulartics](http://luisfarzati.github.io/angulartics "http://luisfarzati.github.io/angulartics")
+Vendor-agnostic analytics for AngularJS applications. [luisfarzati.github.io/angulartics](http://luisfarzati.github.io/angulartics "Go to the website")
 
 # Minimal setup
 
-## Setup with Google Analytics ##
+## for Google Analytics ##
 
-    angular.module('myApp', ['angulartics', 'angulartics.ga'])
+    angular.module('myApp', ['angulartics', 'angulartics.google.analytics'])
 
-You also need to embed the JS code provided by Google Analytics:
+Delete the automatic pageview tracking line in the snippet code provided by Google Analytics:
 
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-    
-      ga('create', 'UA-10255892-8', 'luisfarzati.github.io');
+      ...
+      ga('create', '{YOUR GA CODE}', '{YOUR DOMAIN}');
       ga('send', 'pageview'); // <-- DELETE THIS LINE!
     </script>
     
-Done. All navigation done across your application pages (ng-views) will be automatically tracked as pageviews.
+Done. Open your app, browse across the different routes and check [the realtime GA dashboard](http://google.com/analytics/web) to see the hits. 
 
-## Setup with Kissmetrics ##
+## for other providers
 
-    angular.module('myApp', ['angulartics', 'angulartics.km'])
+[Browse the website for detailed instructions.](http://luisfarzati.github.io/angulartics)
 
-You also need to embed the JS code provided by Kissmetrics:
+## Supported providers
 
-	<script type="text/javascript">
-	  var _kmq = _kmq || [];
-	  var _kmk = _kmk || 'a41242214c6f8c693b4c8a59fa8f981e13549deb';
-	  function _kms(u){
-	    setTimeout(function(){
-	      var d = document, f = d.getElementsByTagName('script')[0],
-	      s = d.createElement('script');
-	      s.type = 'text/javascript'; s.async = true; s.src = u;
-	      f.parentNode.insertBefore(s, f);
-	    }, 1);
-	  }
-	  _kms('//i.kissmetrics.com/i.js');
-	  _kms('//doug1izaerwt3.cloudfront.net/' + _kmk + '.1.js');
-	</script>
+* Google Analytics
+* Kissmetrics
+* Mixpanel
+* Chartbeat
+* Segment.io
 
-Done. All navigation done across your application pages (ng-views) will be automatically tracked as pageviews (actually, as events named "Pageview"; their API doesn't seem to support pageview tracking programatically).
+If there's no Angulartics plugin for your analytics vendor of choice, please feel free to write yours and PR' it! Here's how to do it.
 
-## Are there any additional providers?
+## Creating your own vendor plugin ##
 
-Not yet. I'll be adding support for more providers in short-term, and your contribution is most welcomed :) If there's no Angulartics plugin for your analytics vendor of choice, please feel free to write yours and PR' it!  
+It's very easy to write your own plugin. First, create your module and inject `$analyticsProvider`:
 
-# Playing around 
+	angular.module('angulartics.myplugin', ['angulartics'])
+	  .config(['$analyticsProvider', function ($analyticsProvider) {
+
+The module name can be anything of course, but it would be convenient to follow the style `angulartics.{vendorname}`.
+
+Next, you register either the page track function, event track function, or both. You do it by calling the `registerPageTrack` and `registerEventTrack` methods. Let's take a look at page tracking first:
+
+    $analyticsProvider.registerPageTrack(function (path) {
+		// your implementation here
+	}
+
+By calling `registerPageTrack`, you tell Angulartics to invoke your function on `$routeChangeSuccess`. Angulartics will send the new path as an argument.
+
+    $analyticsProvider.registerEventTrack(function (action, properties) {
+		// your implementation here
+
+This is very similar to page tracking. Angulartics will invoke your function every time the event (`analytics-on` attribute) is fired, passing the action (`analytics-event` attribute) and an object composed of any `analytics-*` attributes you put in the element.
+
+Check out the bundled plugins as reference. If you still have any questions, feel free to email me or post an issue at GitHub!
+
+# Playing around
 
 ## Disabling virtual pageview tracking
 
 If you want to keep pageview tracking for its traditional meaning (whole page visits only), set virtualPageviews to false:
 
-	angular.module('myApp', ['angulartics', 'angulartics.ga'])
-	.config(function($analyticsProvider) {
+	module.config(function ($analyticsProvider) {
 		$analyticsProvider.virtualPageviews(false);     
 
 ## Programmatic tracking
 
-Use the $analytics service to emit pageview and event tracking:
+Use the `$analytics` service to emit pageview and event tracking:
 
 	module.controller('SampleCtrl', function($analytics) {
 		// emit pageview beacon with path /my/url
@@ -76,7 +79,7 @@ Use the $analytics service to emit pageview and event tracking:
 		// emit event track (with category and label properties for GA)
 	    $analytics.eventTrack('eventName', { 
 	      category: 'category', label: 'label'
-    }); 
+        }); 
 
 ## Declarative tracking
 

@@ -1,0 +1,43 @@
+{
+  "name": "angulartics",
+  "description": "Vendor-agnostic web analytics for AngularJS applications",
+  "version": "0.8.5",
+  "filename": "./src/angulartics.min.js",
+  "homepage": "http://luisfarzati.github.io/angulartics",
+  "author": {
+    "name": "Luis Farzati",
+    "email": "lfarzati@gmail.com",
+    "url": "http://github.com/luisfarzati"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/luisfarzati/angulartics.git"
+  },
+  "keywords": [
+    "angular",
+    "analytics",
+    "tracking",
+    "google analytics",
+    "mixpanel",
+    "kissmetrics",
+    "chartbeat",
+    "segment.io",
+    "page tracking",
+    "event tracking",
+    "scroll tracking"
+  ],
+  "bugs": {
+    "url": "http://github.com/luisfarzati/angulartics/issues"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-karma": "latest",
+    "grunt-contrib-jshint": "latest",
+    "grunt-contrib-concat": "latest",
+    "grunt-contrib-uglify": "latest",
+    "grunt-contrib-clean": "latest",
+    "phantomjs": "latest"
+  }
+}

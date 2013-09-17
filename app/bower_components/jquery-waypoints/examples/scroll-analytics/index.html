@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>Scroll Analytics with jQuery Waypoints</title>
+	<meta name="description" content="An example of how to use the jQuery Waypoints plugin to track ad views more accurately and respond to engaged users when they reach the end of content">
+	<meta name="viewport" content="width=480">
+
+	<link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono|Lato:400,700|PT+Serif:700' rel='stylesheet' type='text/css'>
+	<style type="text/css">
+		* {
+			margin:0;
+			padding:0;
+		}
+
+		body {
+			font-size:16px;
+			line-height:1.5;
+			color:#6a6272;
+      background:#d5c5e5;
+      padding-bottom:16px;
+      font-family:"Lato", sans-serif;
+		}
+
+		.inner {
+			width:460px;
+			padding:0 10px;
+			margin:0 auto;
+		}
+
+		h1, h2, h3, h4 {
+      font-family:"PT Serif", serif;
+      font-weight:normal;
+    }
+
+    h1 {
+      font-size:53px;
+      color:#444a50;
+    }
+
+    h2 {
+      text-align:center;
+      background:#6a6272;
+      color:#eae2f2;
+      font-size:24px;
+    }
+
+		h3 {
+			font-size:24px;
+		}
+
+		.header {
+			margin-bottom:32px;
+		}
+
+		#lcol {
+			float:left;
+			width:300px;
+		}
+
+		#rcol {
+			float:right;
+			width:120px;
+		}
+
+		#rcol h2 {
+			font-weight:bold;
+		}
+
+		#rcol ul {
+			list-style:disc;
+			margin:8px 0 24px 24px;
+		}
+
+		#rcol p {
+			font-size:12px;
+		}
+
+		.ad-unit {
+			padding:10px;
+			margin:16px 0;
+			border:1px solid #444a50;
+			text-transform:uppercase;
+			color:#eae2f2;
+			text-align:center;
+			height:40px;
+			line-height:40px;
+			background:#6a6272;
+		}
+
+		.ad-unit.active {
+			background:#444a50;
+		}
+
+		#rcol .ad-unit {
+			line-height:1.5;
+			height:50px;
+			padding:100px 0;
+		}
+
+		#rcol .ad-unit.short {
+			padding:25px 0;
+		}
+
+		.popup {
+			position:absolute;
+			background:#eae2f2;
+			font-size:11px;
+			padding:20px 5px 5px 5px;
+			border-radius-:5px 5px 0 0;
+		}
+
+		#article-finished {
+			position:fixed;
+			bottom:0px;
+			right:0px;
+			width:400px;
+			padding-top:5px;
+			-webkit-transition:right 700ms ease-in-out;
+			-moz-transition:right 700ms ease-in-out;
+			-o-transition:right 700ms ease-in-out;
+			-ms-transition:right 700ms ease-in-out;
+			transition:right 700ms ease-in-out;
+		}
+
+		#article-finished.hiding {
+			right:-420px;
+		}
+
+		#article-finished a {
+			color:#444a50;
+			text-decoration:underline;
+		}
+
+		.close {
+			background:#444a50;
+			color:#fff;
+			position:absolute;
+			right:3px;
+			top:3px;
+			height:14px;
+			line-height:14px;
+			text-align:center;
+			width:14px;
+			display:block;
+			text-decoration:none;
+			font-size:8px;
+			border-radius:4px;
+		}
+	</style>
+</head>
+<body>
+
+<div class="header inner">
+	<h1>jQuery Waypoints</h1>
+	<h2>Scroll Analytics</h2>
+</div>
+
+<div class="inner">
+	<div id="lcol">
+		<h3>Lorem Ipsum</h3>
+		
+		<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut mi eros, commodo vel porttitor vitae, facilisis eu quam. Suspendisse elementum nibh vel velit bibendum vitae accumsan sem pellentesque. Aliquam quis nisl in felis elementum facilisis. Suspendisse potenti. Suspendisse vel ligula erat, mollis sagittis tortor. Vestibulum lobortis rutrum sapien, id sodales leo hendrerit in. Nullam at risus et lectus mattis elementum. Aliquam porta dignissim leo id iaculis. Donec id magna turpis. Morbi convallis lacus gravida velit condimentum suscipit. Nunc dui ipsum, congue sit amet euismod in, aliquet quis mauris. Mauris quis libero a diam egestas gravida. Phasellus bibendum, sem quis vulputate consectetur, quam nulla feugiat sem, eu sodales mi velit a tellus.</p>
+
+		<p>Sed posuere pellentesque consequat. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Ut non faucibus lorem. Curabitur condimentum viverra lorem, eu suscipit mi vehicula ac. Mauris mattis, purus at vehicula ultricies, dolor quam tempus eros, in eleifend neque nulla at urna. Duis consequat faucibus pellentesque. Nulla facilisi. Maecenas id pellentesque sapien. Sed lobortis lectus vel nibh semper placerat. Pellentesque non diam lectus.</p>
+
+		<p>Suspendisse pellentesque tempor est a cursus. Aliquam molestie, neque vitae ullamcorper dictum, velit mi varius justo, id blandit mauris dui a felis. Curabitur tortor arcu, ornare in tempor sit amet, varius ac elit. Nullam eleifend cursus consectetur.</p>
+		
+		<div class="ad-unit" data-analyticsid="8675309">I&rsquo;m an ad! (ID:8675309)</div>
+		
+		<p>Proin enim odio, vulputate non lacinia ut, iaculis et nisl. Sed bibendum, nulla vitae vestibulum tempor, urna nisi ullamcorper tortor, ut lacinia elit sapien sit amet metus. Duis congue sollicitudin elit, egestas porta ante pharetra id. Fusce dictum fermentum eros vitae interdum. In a justo nunc. Phasellus vel mi ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus ac turpis in mauris posuere eleifend.</p>
+		
+		<p>Praesent congue vehicula laoreet. Pellentesque quis purus et felis condimentum suscipit.</p>
+
+		<p>Nulla ultrices pulvinar quam, et hendrerit turpis rutrum nec. Maecenas tortor ligula, ultricies eget sagittis fringilla, malesuada eu risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempor, eros et aliquet congue, nunc nunc accumsan leo, sit amet ultrices magna sapien sit amet libero. Nunc iaculis diam non odio imperdiet nec aliquam sapien aliquet. Donec vulputate mi nec metus vehicula nec pretium orci accumsan. Cras non ante metus, eu interdum nulla. Morbi porttitor commodo varius. Integer vel nisi sit amet enim pellentesque convallis.</p>
+			
+		<p>Sed vitae libero sem. Morbi vel tincidunt libero. Quisque suscipit adipiscing mauris eget vestibulum. Mauris euismod ante nec felis varius ultricies. Nam lacinia blandit hendrerit. Sed mattis tortor vitae tellus sodales tincidunt. Nulla tellus eros, fringilla nec posuere tincidunt, semper a odio. Mauris justo neque, placerat ac dictum lobortis, tempor vel arcu. Quisque a mi at lacus vestibulum placerat a eu leo. Sed pharetra metus vitae nisi molestie aliquam. Curabitur feugiat aliquet lorem et suscipit.</p>
+		
+		<div class="ad-unit" data-analyticsid="5551234">I&rsquo;m an ad! (ID:5551234)</div>
+		
+		<p>Fusce tincidunt tincidunt elit vitae pulvinar. Ut id magna ut massa faucibus vehicula. Nunc rutrum eros quis nunc hendrerit porta. Nullam porttitor eleifend mauris, eget interdum velit rutrum egestas. Sed iaculis eros at mauris ultricies fermentum. Duis nec nunc ut leo cursus luctus eget ac nisl. Sed condimentum euismod nulla, ut auctor lectus fringilla sit amet. Proin ac magna eros, nec euismod nibh. Integer tellus velit, accumsan ut vulputate quis, vehicula sit amet urna. Aliquam ornare libero vitae ipsum pellentesque quis consequat mi varius. Aliquam a urna a nunc tristique volutpat. Nulla eu mi sit amet dolor dapibus bibendum. Aenean commodo, enim non tristique ultrices, nisi dolor rhoncus metus, ac porta tortor felis at quam. Donec a dui felis. Etiam id aliquam tortor.</p>
+		
+		<p>Suspendisse a rutrum purus.</p>
+		
+		<p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec in quam metus, sed pharetra nisi. Nunc lacinia arcu eget eros molestie blandit.</p>
+
+		<p>Ut at sem ut nibh molestie tempus. Nunc volutpat malesuada massa, vel auctor odio consequat consectetur. Suspendisse scelerisque nunc non quam suscipit vestibulum. Aliquam eu turpis sem, non ultrices tellus. Pellentesque vel velit lectus, a imperdiet arcu. Vivamus et turpis in libero consectetur gravida non id massa. Morbi ut urna mi. Phasellus pellentesque congue porttitor.</p>
+		
+		<p>Vivamus eu dolor urna, vel malesuada orci. Vivamus pellentesque tellus non tortor scelerisque consequat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque lacinia nibh consequat purus lobortis pretium. Sed lobortis fringilla auctor. Aliquam erat volutpat. Maecenas mollis lorem quis mauris pharetra non posuere dui luctus.</p>
+
+		<p>Fusce tempor magna et metus rutrum volutpat. In pellentesque enim nec augue pretium egestas. Pellentesque viverra mauris eget enim rutrum sagittis vulputate ligula lobortis. Integer bibendum porttitor turpis at adipiscing. Nulla vulputate, ligula id adipiscing pharetra, lectus magna varius elit.</p>
+		
+		<p>A feugiat nisi nulla ut lorem. Etiam eu dui vitae erat molestie dignissim lacinia ac quam. Cras bibendum consequat risus sed tristique. Morbi mattis ultrices eros id iaculis. Maecenas vel euismod tellus. Aenean aliquet rhoncus quam ut gravida. Sed faucibus metus tellus, vitae suscipit neque. Morbi et odio vitae sem tempor eleifend. Praesent sagittis, magna sit amet commodo convallis, nibh lectus blandit sapien, vel congue lorem purus vitae magna. Curabitur velit metus, lacinia eu rhoncus at, facilisis eget est. Curabitur metus augue, ultricies id vehicula eget, tempor dignissim ipsum.</p>
+	</div>
+	
+	<div id="rcol">
+		<div class="ad-unit short" data-analyticsid="21">I&rsquo;m an ad! (ID:21)</div>
+		
+		<h4>Related Posts</h4>
+		<ul>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+			<li>Lorem</li>
+		</ul>
+		
+		<p>A feugiat nisi nulla ut lorem. Etiam eu dui vitae erat molestie dignissim lacinia ac quam. Cras bibendum consequat risus sed tristique. Morbi mattis ultrices eros id iaculis. Maecenas vel euismod tellus. Aenean aliquet rhoncus quam ut gravida. Sed faucibus metus tellus, vitae suscipit neque. Morbi et odio vitae sem tempor eleifend. Praesent sagittis, magna sit amet commodo convallis, nibh lectus blandit sapien, vel congue lorem purus vitae magna. Curabitur velit metus, lacinia eu rhoncus at, facilisis eget est. Curabitur metus augue, ultricies id vehicula eget, tempor dignissim ipsum.</p>
+		
+		<div class="ad-unit" data-analyticsid="12345">I&rsquo;m an ad! (ID:12345)</div>
+	</div>
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+<script src="../../waypoints.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('body').append($("<div class='popup hiding' id='article-finished'>You have finished reading the article.  Instead of this popup we could track a custom analytics event or show links to related articles the user may be interested in reading. (<a href='http://www.nytimes.com/2011/02/16/technology/16dell.html?ref=technology' target='_blank'>New York Times Online articles</a> do this.)</div>"));
+	
+	function recordAdEvent(trackid) {
+		var el = ($("div[data-analyticsid='"+trackid+"']")),
+		popup = $("<div class='popup'>This ad came into your viewport.  Instead of a popup we would track a custom analytics event with this ad&rsquo;s ID: "+trackid+".  Beats using pageviews to track ad views.</div>"),
+		close = $("<a href='#' class='close'>X</a>");
+		
+		el.addClass('active');
+		popup.append(close);
+		$('body').append(popup);
+		popup.css('width', el.outerWidth() - 10);
+		popup.css({
+			'top': el.offset().top - popup.outerHeight(),
+			'left': el.offset().left
+		});
+		close.click(function(event) {
+			$(this).parent().remove();
+			el.removeClass('active');
+			event.preventDefault();
+		});
+	}
+	
+	$('.ad-unit').waypoint(function() {
+		recordAdEvent($(this).data('analyticsid'));
+	}, {
+		triggerOnce: true,
+		offset: 'bottom-in-view'
+	});
+	
+	$('#lcol').waypoint(function(direction) {
+		$('#article-finished').toggleClass('hiding', direction === "up");
+	}, {
+		offset: function() {
+			return $.waypoints('viewportHeight') - $(this).height() + 100;
+		}
+	});
+});
+</script>
+
+</body>
+</html>

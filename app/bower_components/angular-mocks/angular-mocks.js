@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.7
+ * @license AngularJS v1.0.8
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  *
@@ -29,7 +29,7 @@ angular.mock = {};
  * that there are several helper methods available which can be used in tests.
  */
 angular.mock.$BrowserProvider = function() {
-  this.$get = function(){
+  this.$get = function() {
     return new angular.mock.$Browser();
   };
 };
@@ -412,7 +412,7 @@ angular.mock.$LogProvider = function() {
 (function() {
   var R_ISO8061_STR = /^(\d{4})-?(\d\d)-?(\d\d)(?:T(\d\d)(?:\:?(\d\d)(?:\:?(\d\d)(?:\.(\d{3}))?)?)?(Z|([+-])(\d\d):?(\d\d)))?$/;
 
-  function jsonStringToDate(string){
+  function jsonStringToDate(string) {
     var match;
     if (match = string.match(R_ISO8061_STR)) {
       var date = new Date(0),
@@ -773,75 +773,100 @@ angular.mock.dump = function(object) {
  *
  *
  * # Unit testing with mock $httpBackend
+ * The following code shows how to setup and use the mock backend in unit testing a controller.
+ * First we create the controller under test
  *
- * <pre>
-   // controller
-   function MyController($scope, $http) {
-     $http.get('/auth.py').success(function(data) {
-       $scope.user = data;
-     });
+  <pre>
+  // The controller code
+  function MyController($scope, $http) {
+    var authToken;
 
-     this.saveMessage = function(message) {
-       $scope.status = 'Saving...';
-       $http.post('/add-msg.py', message).success(function(response) {
-         $scope.status = '';
-       }).error(function() {
-         $scope.status = 'ERROR!';
+    $http.get('/auth.py').success(function(data, status, headers) {
+      authToken = headers('A-Token');
+      $scope.user = data;
+    });
+
+    $scope.saveMessage = function(message) {
+      var headers = { 'Authorization': authToken };
+      $scope.status = 'Saving...';
+
+      $http.post('/add-msg.py', message, { headers: headers } ).success(function(response) {
+        $scope.status = '';
+      }).error(function() {
+        $scope.status = 'ERROR!';
+      });
+    };
+  }
+  </pre>
+ *
+ * Now we setup the mock backend and create the test specs.
+ *
+  <pre>
+    // testing controller
+    describe('MyController', function() {
+       var $httpBackend, $rootScope, createController;
+
+       beforeEach(inject(function($injector) {
+         // Set up the mock http service responses
+         $httpBackend = $injector.get('$httpBackend');
+         // backend definition common for all tests
+         $httpBackend.when('GET', '/auth.py').respond({userId: 'userX'}, {'A-Token': 'xxx'});
+
+         // Get hold of a scope (i.e. the root scope)
+         $rootScope = $injector.get('$rootScope');
+         // The $controller service is used to create instances of controllers
+         var $controller = $injector.get('$controller');
+
+         createController = function() {
+           return $controller('MyController', {'$scope' : $rootScope });
+         };
+       }));
+
+
+       afterEach(function() {
+         $httpBackend.verifyNoOutstandingExpectation();
+         $httpBackend.verifyNoOutstandingRequest();
        });
-     };
-   }
-
-   // testing controller
-   var $httpBackend;
-
-   beforeEach(inject(function($injector) {
-     $httpBackend = $injector.get('$httpBackend');
-
-     // backend definition common for all tests
-     $httpBackend.when('GET', '/auth.py').respond({userId: 'userX'}, {'A-Token': 'xxx'});
-   }));
 
 
-   afterEach(function() {
-     $httpBackend.verifyNoOutstandingExpectation();
-     $httpBackend.verifyNoOutstandingRequest();
-   });
+       it('should fetch authentication token', function() {
+         $httpBackend.expectGET('/auth.py');
+         var controller = createController();
+         $httpBackend.flush();
+       });
 
 
-   it('should fetch authentication token', function() {
-     $httpBackend.expectGET('/auth.py');
-     var controller = scope.$new(MyController);
-     $httpBackend.flush();
-   });
+       it('should send msg to server', function() {
+         var controller = createController();
+         $httpBackend.flush();
+
+         // now you don’t care about the authentication, but
+         // the controller will still send the request and
+         // $httpBackend will respond without you having to
+         // specify the expectation and response for this request
+
+         $httpBackend.expectPOST('/add-msg.py', 'message content').respond(201, '');
+         $rootScope.saveMessage('message content');
+         expect($rootScope.status).toBe('Saving...');
+         $httpBackend.flush();
+         expect($rootScope.status).toBe('');
+       });
 
 
-   it('should send msg to server', function() {
-     // now you don’t care about the authentication, but
-     // the controller will still send the request and
-     // $httpBackend will respond without you having to
-     // specify the expectation and response for this request
-     $httpBackend.expectPOST('/add-msg.py', 'message content').respond(201, '');
+       it('should send auth header', function() {
+         var controller = createController();
+         $httpBackend.flush();
 
-     var controller = scope.$new(MyController);
-     $httpBackend.flush();
-     controller.saveMessage('message content');
-     expect(controller.status).toBe('Saving...');
-     $httpBackend.flush();
-     expect(controller.status).toBe('');
-   });
+         $httpBackend.expectPOST('/add-msg.py', undefined, function(headers) {
+           // check if the header was send, if it wasn't the expectation won't
+           // match the request and the test will fail
+           return headers['Authorization'] == 'xxx';
+         }).respond(201, '');
 
-
-   it('should send auth header', function() {
-     $httpBackend.expectPOST('/add-msg.py', undefined, function(headers) {
-       // check if the header was send, if it wasn't the expectation won't
-       // match the request and the test will fail
-       return headers['Authorization'] == 'xxx';
-     }).respond(201, '');
-
-     var controller = scope.$new(MyController);
-     controller.saveMessage('whatever');
-     $httpBackend.flush();
-   });
+         $rootScope.saveMessage('whatever');
+         $httpBackend.flush();
+       });
+    });
    </pre>
  */
 angular.mock.$HttpBackendProvider = function() {
@@ -1063,7 +1088,9 @@ function createHttpBackendMock($delegate, $browser) {
    *
    * @param {string} method HTTP method.
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {(Object|function(Object))=} headers HTTP headers or function that receives http header
    *   object and returns true if the headers match the current expectation.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
@@ -1132,7 +1159,9 @@ function createHttpBackendMock($delegate, $browser) {
    * Creates a new request expectation for POST requests. For more info see `expect()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    *   request is handled.
@@ -1146,7 +1175,9 @@ function createHttpBackendMock($delegate, $browser) {
    * Creates a new request expectation for PUT requests. For more info see `expect()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    *   request is handled.
@@ -1160,7 +1191,9 @@ function createHttpBackendMock($delegate, $browser) {
    * Creates a new request expectation for PATCH requests. For more info see `expect()`.
    *
    * @param {string|RegExp} url HTTP url.
-   * @param {(string|RegExp)=} data HTTP request body.
+   * @param {(string|RegExp|function(string)|Object)=} data HTTP request body or function that
+   *  receives data string and returns true if the data is as expected, or Object if request body
+   *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
    *   request is handled.
@@ -1220,7 +1253,7 @@ function createHttpBackendMock($delegate, $browser) {
    * "afterEach" clause.
    *
    * <pre>
-   *   afterEach($httpBackend.verifyExpectations);
+   *   afterEach($httpBackend.verifyNoOutstandingExpectation);
    * </pre>
    */
   $httpBackend.verifyNoOutstandingExpectation = function() {
@@ -1413,8 +1446,8 @@ angular.module('ngMock', ['ng']).provider({
   $rootElement: angular.mock.$RootElementProvider
 }).config(function($provide) {
   $provide.decorator('$timeout', function($delegate, $browser) {
-    $delegate.flush = function() {
-      $browser.defer.flush();
+    $delegate.flush = function(delay) {
+      $browser.defer.flush(delay);
     };
     return $delegate;
   });
@@ -1472,7 +1505,7 @@ angular.module('ngMockE2E', ['ng']).config(function($provide) {
  *
  *     // adds a new phone to the phones array
  *     $httpBackend.whenPOST('/phones').respond(function(method, url, data) {
- *       phones.push(angular.fromJSON(data));
+ *       phones.push(angular.fromJson(data));
  *     });
  *     $httpBackend.whenGET(/^\/templates\//).passThrough();
  *     //...
@@ -1616,22 +1649,6 @@ angular.mock.clearDataCache = function() {
   }
 };
 
-
-window.jstestdriver && (function(window) {
-  /**
-   * Global method to output any number of objects into JSTD console. Useful for debugging.
-   */
-  window.dump = function() {
-    var args = [];
-    angular.forEach(arguments, function(arg) {
-      args.push(angular.mock.dump(arg));
-    });
-    jstestdriver.console.log.apply(jstestdriver.console, args);
-    if (window.console) {
-      window.console.log.apply(window.console, args);
-    }
-  };
-})(window);
 
 
 window.jasmine && (function(window) {

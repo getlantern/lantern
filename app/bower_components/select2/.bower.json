@@ -1,5 +1,6 @@
 {
   "name": "select2",
+  "version": "3.4.3",
   "main": [
     "select2.js",
     "select2.css",
@@ -11,12 +12,13 @@
     "jquery": ">= 1.7.1"
   },
   "homepage": "https://github.com/ivaynberg/select2",
-  "_release": "c4529b8700",
+  "_release": "3.4.3",
   "_resolution": {
-    "type": "commit",
-    "commit": "c4529b8700fb1cc2de5e06b9177147581e0e69d5"
+    "type": "version",
+    "tag": "3.4.3",
+    "commit": "2ae4df9d48a2613bdf8081974815e72996f32b3b"
   },
   "_source": "git://github.com/ivaynberg/select2.git",
-  "_target": "c4529b8700fb1cc2de5e06b9177147581e0e69d5",
-  "_originalSource": "ivaynberg/select2"
+  "_target": "~3.4",
+  "_originalSource": "select2"
 }

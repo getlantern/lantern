@@ -1,5 +1,5 @@
 var sleep = require('sleep'),
-    _ = require('../app/bower_components/lodash/lodash.js')._,
+    _ = require('../app/bower_components/lodash/dist/lodash.js')._,
     helpers = require('../app/js/helpers.js'),
       makeLogger = helpers.makeLogger,
         log = makeLogger('scenarios'),

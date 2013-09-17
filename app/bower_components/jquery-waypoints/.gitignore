@@ -1,0 +1,5 @@
+.sass-cache
+.DS_Store
+/style.scss
+*.gz
+node_modules

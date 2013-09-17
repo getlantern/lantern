@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf8">
+	<title>Scrolling sample | Angulartics</title>
+	<link rel="stylesheet" href="//bootswatch.com/cosmo/bootstrap.min.css">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+	<script src="../src/angulartics.js"></script>
+	<script src="../src/angulartics-scroll.js"></script>
+</head>
+<body ng-app="sample" style="padding-top:100px">
+
+<div class="navbar navbar-default navbar-fixed-top">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="#/">My App</a>
+	</div>
+	<div>
+		<ul class="nav navbar-nav">
+			<li><a href="#first">First</a></li>
+			<li><a href="#second">Second</a></li>
+			<li><a href="#third">Third</a></li>
+			<li><a href="#tenth">Tenth</a></li>
+		</ul>
+		<ul class="nav navbar-nav navbar-right">
+			<li><p id="notifier" class="navbar-text" style="display:none;background-color:darkorange;padding:6px;margin:8px"></p></li>
+		</ul>
+	</div>
+</div>
+
+<div class="container">
+<section id="first" analytics-on="scrollby" scrollby-offset="15%" scrollby-trigger-once scrollby-continuous>
+<h2>First</h2><p><blockquote>Cras eget nisl sed velit eleifend ultrices at vitae dolor. Ut at elementum libero, viverra lacinia nisl. Sed aliquam nulla ac suscipit faucibus. Fusce et purus nisl. Vivamus molestie nisi eu nulla fermentum luctus. Quisque cursus, nibh nec vestibulum condimentum, turpis orci tincidunt ante, eu faucibus lorem urna id arcu. Mauris volutpat velit nec eros facilisis, eu porttitor erat scelerisque. Praesent accumsan velit vitae tellus venenatis dapibus. Nulla vitae consequat tellus, eu scelerisque dui. Proin turpis justo, gravida quis elit a, ultricies gravida dui. Nulla facilisi. Sed nec pellentesque ligula.</blockquote></p>
+</section>
+
+<section id="second" analytics-on="scrollby" scrollby-offset="15%" scrollby-trigger-once="false">
+<h2>Second <small>(triggers multiple times)</small></h2><p><blockquote>Sed porta, odio sit amet sagittis varius, tellus mauris faucibus velit, sed posuere leo nunc ac lorem. Duis risus purus, consequat vitae pharetra et, auctor faucibus neque. Ut ac faucibus erat. Proin consectetur tempor quam non gravida. Suspendisse cursus mollis dolor, a elementum tellus eleifend at. Nunc ac felis sit amet nibh ultricies feugiat at ac felis. Fusce dignissim purus ornare tristique mollis. Phasellus elementum at libero in molestie. Sed eget luctus purus. Ut vulputate massa eget dictum accumsan. Maecenas semper augue a felis fringilla vehicula. Cras fringilla felis mauris, ac vehicula erat congue a. Mauris eget urna libero. Maecenas ac risus at elit sodales tempus. Nam varius consequat hendrerit.</blockquote></p>
+</section>
+
+<section id="third" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Third</h2><p><blockquote>Integer vel nisi id nulla rutrum hendrerit et vitae risus. Nam sit amet ipsum orci. Ut nec leo eu sapien posuere pharetra et ut nibh. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque accumsan eros ligula, in eleifend nisl ornare nec. Vestibulum massa lacus, gravida at facilisis vel, consequat vel orci. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sed condimentum mi. Curabitur in neque semper, volutpat turpis non, iaculis quam. Maecenas id lectus non nulla euismod tempor. Nulla eu magna ut justo congue rutrum. Nunc vel felis eleifend, feugiat enim quis, tempus augue. Quisque in varius erat, eget feugiat augue. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris feugiat justo at nulla commodo vestibulum.</blockquote></p>
+</section>
+
+<section id="fourth" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Fourth</h2><p><blockquote>Aenean ac pharetra ligula, id viverra purus. In malesuada odio ac lacinia consequat. Ut lobortis, nisl id fermentum vehicula, lorem diam ultricies velit, sed suscipit nisl risus et magna. Cras porttitor nisl eget nulla venenatis ultrices. Praesent sed pellentesque neque. Duis rhoncus purus sit amet elit bibendum, tincidunt facilisis mauris sagittis. Aenean quis tristique lectus, sed scelerisque diam. Nam tempus elementum orci, quis pulvinar nisl rutrum eget. Curabitur ornare tristique justo, in faucibus massa venenatis eu. Vestibulum eget lacus vitae lectus tincidunt sollicitudin. Suspendisse pellentesque tincidunt leo quis egestas. Aenean tellus lacus, aliquam vitae arcu eu, scelerisque tristique eros.</blockquote></p>
+</section>
+
+<section id="fifth" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Fifth</h2><p><blockquote>Phasellus nec leo risus. Proin feugiat massa sit amet aliquam scelerisque. Aenean porta nec ante in auctor. Pellentesque eget egestas leo. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi dignissim lobortis urna, non molestie magna lacinia ac. In id tellus ultrices, tempor libero at, porttitor neque. Donec et lobortis lacus, at ornare eros. Curabitur ac vulputate augue. Mauris vitae mi justo. Sed velit erat, volutpat a libero ut, luctus molestie metus. Duis elementum tellus sed rhoncus lacinia. Nam pharetra lacus placerat mollis accumsan. Duis consectetur orci eu arcu ultricies luctus. Morbi ipsum augue, hendrerit id viverra vitae, sagittis quis dolor.</blockquote></p>
+</section>
+
+<section id="sixth" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Sixth</h2><p><blockquote>Nam neque sem, tempor non elementum non, suscipit vitae magna. Nulla congue euismod facilisis. Curabitur at tortor augue. Praesent nec interdum mauris. Vivamus tristique placerat tellus, sed venenatis felis placerat ac. Mauris ultrices dolor quis massa pulvinar rhoncus. Pellentesque condimentum augue risus, sed lacinia dolor dictum ut.</blockquote></p>
+</section>
+
+<section id="seventh" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Seventh</h2><p><blockquote>Pellentesque metus nisl, eleifend a est in, ullamcorper suscipit enim. Vestibulum consequat sapien eu quam consectetur interdum. Vestibulum ut convallis ligula. Ut suscipit metus sed diam blandit, et gravida velit posuere. Curabitur posuere arcu nibh, ac rutrum mauris ornare ac. Donec orci nisl, tempor ac ligula et, accumsan pretium purus. Nam aliquam magna nec diam sodales placerat. Nunc odio nunc, pretium lacinia neque eget, lacinia porttitor risus. In ut felis ac erat elementum consequat at ut dolor.</blockquote></p>
+</section>
+
+<section id="eighth" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Eighth</h2><p><blockquote>Curabitur eget tincidunt ipsum. Nam cursus leo sed commodo pretium. Morbi commodo lectus gravida erat feugiat venenatis. Vivamus pulvinar nulla sit amet diam luctus tristique. Donec eget elit non dui aliquam euismod. Vivamus id scelerisque urna, et feugiat elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nunc ultricies nisl felis, eget laoreet justo ultrices at. Donec interdum neque at urna posuere fermentum ac in metus. Pellentesque eu tellus tortor. Donec consectetur metus purus, vitae scelerisque velit dapibus imperdiet. Quisque at consectetur odio, eu venenatis lectus. Aenean suscipit felis vitae cursus vestibulum. Curabitur odio ligula, dapibus a diam dignissim, pellentesque gravida dui. Nunc vehicula orci quam, ac viverra velit tempor id.</blockquote></p>
+</section>
+
+<section id="ninth" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Ninth</h2><p><blockquote>Cras mollis leo ut diam commodo, eu venenatis lectus scelerisque. In at nisi vitae lorem tristique iaculis id nec libero. Pellentesque dictum lobortis blandit. Maecenas malesuada leo bibendum ante pharetra tristique. Nullam urna arcu, gravida sed turpis consequat, vestibulum vehicula enim. Mauris at facilisis leo. Donec placerat nisl tortor, non mattis elit facilisis sit amet. Sed dolor lectus, tincidunt at tortor ut, hendrerit pharetra felis. Suspendisse potenti. Proin in viverra nibh, ut congue odio. Praesent accumsan, eros sit amet varius tincidunt, velit leo tempus nisl, sit amet hendrerit nisi orci sed massa. Sed nec cursus justo. Maecenas malesuada, enim sit amet dapibus viverra, nisi lectus consequat tellus, pellentesque mollis augue augue sit amet dolor. Suspendisse dignissim rhoncus lectus nec laoreet. Ut laoreet turpis lobortis mauris facilisis, sed vestibulum erat accumsan. Nulla facilisi.</blockquote></p>
+</section>
+
+<section id="tenth" analytics-on="scrollby" scrollby-offset="15%">
+<h2>Tenth</h2><p><blockquote>Vestibulum porttitor dolor in ligula sollicitudin, a hendrerit lorem tincidunt. Donec erat lectus, malesuada ac justo non, sollicitudin rutrum justo. Maecenas euismod at nisi quis semper. Quisque sed odio dictum, rutrum leo et, pellentesque nulla. Nam semper velit enim, vitae bibendum ipsum viverra in. In et dapibus massa. Integer rutrum nibh urna, ultricies varius mauris ultricies nec. In eget ultricies metus. Curabitur eu cursus nunc. Etiam vitae eleifend lorem. Duis eleifend orci massa, interdum dapibus nunc adipiscing vitae.</blockquote></p>
+</section>
+
+<script>
+	angular.module('sample', ['angulartics', 'angulartics.scroll'])
+	.config(function ($routeProvider, $analyticsProvider) {
+	  $analyticsProvider.registerEventTrack(function (eventName, properties) {
+	  	$('#notifier').text('hit: '+eventName).show().delay(1000).fadeOut(1000);
+	  });
+	})
+	.controller('SampleCtrl', function () {});
+</script>
+</body>
+</html>
