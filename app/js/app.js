@@ -110,7 +110,7 @@ var app = angular.module('app', [
           country;
       if (countries) {
         for (countryCode in countries) {
-          var country = countries[countryCode];
+          country = countries[countryCode];
           if (country.nusers) {
             ever += country.nusers.ever || 0;
             online += country.nusers.online || 0;
@@ -121,7 +121,7 @@ var app = angular.module('app', [
           ever: ever,
           online: online
       };
-    });
+    }, true);
 
     function updateContactCompletions() {
       var roster = model.roster;
