@@ -5,7 +5,7 @@ module.exports = function (config) {
     files: [
       'app/bower_components/jquery/jquery.js',
       'app/bower_components/angular/angular.js',
-      'app/bower_components/lodash/lodash.js',
+      'app/bower_components/lodash/dist/lodash.js',
       'app/bower_components/jsonpatch/jsonpatch.min.js',
 
       'app/js/*.js',
