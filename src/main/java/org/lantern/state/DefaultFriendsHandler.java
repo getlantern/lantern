@@ -6,11 +6,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
@@ -24,21 +28,18 @@ import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.RefreshTokenEvent;
+import org.lantern.event.UiLoadedEvent;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
+import org.lantern.util.Threads;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -51,17 +52,16 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final Map<String, ClientFriend> friends =
-        new ConcurrentHashMap<String, ClientFriend>();
-    
     private final FriendApi api;
     private final Model model;
 
     private final XmppHandler xmppHandler;
 
     private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
-
+    
     private final NotificationManager notificationManager;
+
+    private Future<Map<String, ClientFriend>> loadedFriends;
 
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
@@ -87,34 +87,52 @@ public class DefaultFriendsHandler implements FriendsHandler {
         loadFriends();
     }
     
+    @Subscribe
+    public void uiLoaded(final UiLoadedEvent event) {
+        log.debug("Responding to UI loaded event");
+        
+        // This is necessary because we may have loaded the friends before
+        // the UI is ready to process them, in which case syncing friends will
+        // have no effect. 
+        Events.sync(SyncPath.FRIENDS, getFriends());
+    }
+    
     public void loadFriends() {
         if (this.friendsLoaded.getAndSet(true)) {
             return;
         }
-        final Runnable runner = new Runnable() {
+        final ExecutorService friendsLoader = 
+                Executors.newSingleThreadExecutor(
+                        Threads.newDaemonThreadFactory("Friend-Loader"));
+        
+        // We make this a future because we only want to manage friends based
+        // on the server's copy. So any local changes wait for that copy to
+        // be resolved before manipulating friends.
+        loadedFriends = friendsLoader.submit(new Callable<Map<String, ClientFriend>>() {
             @Override
-            public void run() {
+            public Map<String, ClientFriend> call() throws IOException {
                 log.debug("Loading friends");
+                final Map<String, ClientFriend> tempFriends =
+                        new ConcurrentHashMap<String, ClientFriend>();
                 try {
                     final List<ClientFriend> serverFriends = api.listFriends();
                     log.debug("All friends from server: {}", serverFriends);
                     for (final ClientFriend friend : serverFriends) {
-                        add(friend);
+                        tempFriends.put(friend.getEmail().toLowerCase(), friend);
                     }
                     log.debug("Finished loading friends");
+                    Events.sync(SyncPath.FRIENDS, vals(tempFriends)); 
+                    return tempFriends;
                 } catch (final IOException e) {
-                    log.error("Could not list friends?");
+                    log.error("Could not list friends?", e);
+                    throw e;
                 }
             }
-        };
-        final Thread t = new Thread(runner, "Friends-Fetching-Thread");
-        t.setDaemon(true);
-        t.start();
+        });
     }
 
     @Override
     public void addFriend(final String email) {
-        //final String email = email(json);
         addFriend(email, true);
     }
     
@@ -136,30 +154,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
             switch (friend.getStatus()) {
             case friend:
                 log.debug("Already friends with {}", email);
-                model.addNotification("You have already friended "+email+".",
-                  MessageType.info, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                info("You have already friended "+email+".");
                 return;
             case pending:
                 // Fall through -- handled in the same way as rejected.
             case rejected:
                 friend.setStatus(Status.friend);
+                update(friend);
                 try {
-                    this.api.updateFriend(friend);
-                    try {
-                        invite(friend, true);
-                    } catch (final IOException e) {
-                        model.addNotification("Error inviting friend '"+email+
-                            "'. Do you still have an Internet connection?",
-                            MessageType.error, 30);
-                        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-                    }
+                    invite(friend, true);
                 } catch (final IOException e) {
-                    model.addNotification("Error adding friend '"+email+
-                        "'. Do you still have an Internet connection?",
-                        MessageType.error, 30);
-                    Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                    log.error("Could not invite?", e);
+                    warn("Error inviting friend '"+email+
+                        "'. Do you still have an Internet connection?");
                 }
+
                 break;
             default:
                 break;
@@ -170,11 +179,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
         sync(friend);
         
         if (subscribe) {
-            subscribeAndSubscribed(email);
+            subscribe(email);
         }
     }
 
-    private void subscribeAndSubscribed(final String email) {
+    private void subscribe(final String email) {
         if (this.xmppHandler != null) {
             try {
                 //if they have requested a subscription to us, we'll accept it.
@@ -184,12 +193,26 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // their presence.
                 this.xmppHandler.subscribe(email);
             } catch (final IllegalStateException e) {
-                log.error("IllegalStateException while friending " +
-                    "(you are probably offline)", e);
-                model.addNotification("Error subscribing to friend: "+email+
-                    ". Could you have lost your Internet connection?",
-                    MessageType.error, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                error("Error subscribing to friend: "+email+
+                    ". Could you have lost your Internet connection?", e);
+            }
+        } else {
+            log.warn("No XMPP handler? Testing?");
+        }
+    }
+    
+    private void unsubscribe(final String email) {
+        if (this.xmppHandler != null) {
+            try {
+                //if they have requested a subscription to us, we'll accept it.
+                this.xmppHandler.unsubscribed(email);
+    
+                // We also automatically subscribe to them in turn so we know about
+                // their presence.
+                this.xmppHandler.unsubscribe(email);
+            } catch (final IllegalStateException e) {
+                error("Error subscribing to friend: "+email+
+                    ". Could you have lost your Internet connection?", e);
             }
         } else {
             log.warn("No XMPP handler? Testing?");
@@ -208,17 +231,13 @@ public class DefaultFriendsHandler implements FriendsHandler {
             try {
                 invite(friend, true);
             } catch (final IOException e) {
-                model.addNotification("Error inviting friend '"+email+
-                    "'. Do you still have an Internet connection?",
-                    MessageType.error, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                error("Error inviting friend '"+email+
+                    "'. Do you still have an Internet connection?", e);
             }
             return friend;
         } catch (final IOException e) {
-            model.addNotification("Error adding friend '"+email+
-                "'. Do you still have an Internet connection?",
-                MessageType.error, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            error("Error adding friend '"+email+
+                "'. Do you still have an Internet connection?", e);
         }
         return null;
 
@@ -243,70 +262,83 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         try {
             this.xmppHandler.sendInvite(friend, false, addToRoster);
-            // we need to mark this email as pending, in case
-            // our invite gets lost.
-            model.addPendingInvite(email);
-            model.addNotification("An email will be sent to "+email+" "+
+            info("An email will be sent to "+email+" "+
                 "with a notification that you friended them. "+
                 "If they do not yet have a Lantern invite, they will "+
-                "be invited when the network can accommodate them.",
-                MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                "be invited when the network can accommodate them.");
         } catch (final Throwable e) {
             log.error("failed to send invite: ", e);
-            model.addNotification("Failed to successfully become Lantern " +
+            error("Failed to successfully become Lantern " +
                 "friends with '"+email+"'. The cause was described as '"+e.getMessage()+"'.",
-                MessageType.error, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-            model.addPendingInvite(email);
+                e);
             throw new IOException("Invite failed", e);
         }
-
     }
     
-    private ListeningExecutorService service = 
-            MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
-    
-    
-    private final ConcurrentHashMap<String, ListenableFuture<ClientFriend>> pendingUpdates = 
-            new ConcurrentHashMap<String, ListenableFuture<ClientFriend>>();
+    private final ExecutorService service = Executors.newSingleThreadExecutor(
+            Threads.newDaemonThreadFactory("Peer-Running-Updater"));
     
     @Override
     public void peerRunningLantern(final String email, 
             final Presence pres) {
+        log.debug("Adding peer running lantern...");
+        service.submit(new Runnable () {
+
+            @Override
+            public void run() {
+                handlePeer(email, pres);
+            }
+        });
+    }
+    
+    /**
+     * Handles a peer presence -- should only be called from an executor where
+     * all peer presence events are queued in order.
+     * 
+     * @param email The email address of the peer
+     * @param pres The presence event
+     */
+    private void handlePeer(final String email, final Presence pres) {
         final ClientFriend existing = getFriend(email);
         if (existing != null) {
             log.debug("We already know about the peer...");
+            
+            // Here we just update the peer with the live presence information.
             if (pres.isAvailable()) {
                 existing.setLoggedIn(true);
             } else {
                 existing.setLoggedIn(false);
             }
             existing.setMode(pres.getMode());
-            return;
+            if (isFriend(existing) || isRejected(existing)) {
+                log.debug("Peer is a friend or rejected, not adding a notification");
+                return;
+            } else {
+                log.debug("Adding notification!");
+                friendNotification(existing);
+                return;
+            }
+        } else {
+            log.debug("Processing presence for peer we don't know about: "+email);
+            presenceForNewPeer(email, pres);
         }
-        if (pendingUpdates.containsKey(email)) {
-            log.debug("Already a pending insert for {}", email);
-            final ListenableFuture<ClientFriend> future = pendingUpdates.get(email);
-            
-            
-            Futures.addCallback(future, new FutureCallback<ClientFriend>() {
-                @Override
-                public void onSuccess(final ClientFriend result) {
-                }
+    }
 
-                @Override
-                public void onFailure(Throwable t) {
-                }
-            });
+    private void presenceForNewPeer(final String email, final Presence pres) {
+        final ClientFriend friend = new ClientFriend(email);
+        
+        // If it's a presence notification from ourselves in another Lantern
+        // instance, make extra sure we're subscribed to each other and are
+        // friends.
+        if (email.equals(model.getProfile().getEmail())) {
+            //we'll assume that a user already trusts themselves
+            if (friend.getStatus() != Status.friend) {
+                friend.setStatus(Status.friend);
+                subscribe(email);
+            }
             return;
         }
-        
-        // We actually update the server here because we've received a presence
-        // notification from a peer running lantern, so we want to record that
-        // for future sessions because we might not see them running Lantern
-        // right away again.
-        final ClientFriend friend = new ClientFriend(email);
+
         final Roster roster = model.getRoster();
         final RosterEntry entry = roster.getEntry(email);
         if (entry != null) {
@@ -319,52 +351,35 @@ public class DefaultFriendsHandler implements FriendsHandler {
             friend.setLoggedIn(false);
         }
         friend.setMode(pres.getMode());
+        friendNotification(friend);
         
-        // If it's a presence notification from ourselves in another Lantern
-        // instance, make extra sure we're subscribed to each other and are
-        // friends.
-        if (email.equals(model.getProfile().getEmail())) {
-            //we'll assume that a user already trusts themselves
-            if (friend.getStatus() != Status.friend) {
-                friend.setStatus(Status.friend);
-                subscribeAndSubscribed(email);
-            }
-            return;
-        }
+        // We actually update the server here because we've received a 
+        // presence notification from a peer running lantern, so we want to
+        // record that for future sessions because we might not see them
+        // running Lantern right away again.
+        update(friend);
+    }
+
+    private void friendNotification(final ClientFriend friend) {
         final Settings settings = model.getSettings();
         if (friend.shouldNotifyAgain() && settings.isShowFriendPrompts()
                 && model.isSetupComplete()) {
-            if (this.notificationManager == null) {
+            if (notificationManager == null) {
                 log.debug("Null notification dialog -- testing?");
                 return;
             }
+            log.debug("Notifying");
             final FriendNotificationDialog notification = 
-                new FriendNotificationDialog(notificationManager, this, friend);
-            notificationManager.notify(notification);
+                new FriendNotificationDialog(notificationManager, 
+                    DefaultFriendsHandler.this, friend);
+            notificationManager.addNotification(notification);
         }
-        
-        final ListenableFuture<ClientFriend> submitted = 
-                service.submit(new Callable<ClientFriend> () {
-
-            @Override
-            public ClientFriend call() throws Exception {
-                try {
-                    // We only actually insert friends that are also inserted on
-                    // the server.
-                    final ClientFriend inserted = api.updateFriend(friend);
-                    add(inserted);
-                    Events.sync(SyncPath.FRIENDS, getFriends());
-                    return inserted;
-                } catch (final IOException e) {
-                    log.warn("Could not add friend to server?");
-                }
-                return null;
-            }
-            
-        });
-        pendingUpdates.put(email, submitted);
     }
-    
+
+    private void put(final ClientFriend friend) {
+        friends().put(friend.getEmail(), friend);
+    }
+
     private ClientFriend makeFriend(final String email) {
         ClientFriend friend = getFriend(email);
         if (friend == null) {
@@ -379,29 +394,34 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     @Override
-    public void removeFriend(final String email) {
+    public void removeFriend(final String mixedCase) {
+        final String email = mixedCase.toLowerCase();
         final ClientFriend friend = getFriend(email);
         if (friend == null) {
             log.warn("Null friend?");
             return;
         }
-        long id = friend.getId();
+        
         try {
-            this.api.removeFriend(id);
-            friends.remove(email.toLowerCase());
             friend.setStatus(Status.rejected);
+            final ClientFriend updated = this.api.updateFriend(friend);
+            friends().put(email, updated);
             sync(friend);
-            model.addNotification("You have successfully rejected '"+email+"'.",
-                MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            info("You have successfully rejected '"+email+"'.");
         } catch (final IOException e) {
-            log.warn("Could not remove friend?");
+            log.warn("Could not remove friend?", e);
+            warn("There was an error removing '"+email+"'.");
         }
+        
+        // TODO: We should really also unsubscribe from them here and
+        // should not allow them to subscribe to us **only if Lantern was the
+        // one that originally managed the subscriptions.**
+        unsubscribe(friend.getEmail());
     }
 
     @Override
     public Collection<ClientFriend> getFriends() {
-        return vals(friends);
+        return vals(friends());
     }
 
     public void add(final ClientFriend friend) {
@@ -410,11 +430,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
             log.warn("Adding friend that's not added to the server?");
             return;
         }
-        friends.put(friend.getEmail().toLowerCase(), friend);
+        friends().put(friend.getEmail().toLowerCase(), friend);
     }
 
     public void remove(final String email) {
-        friends.remove(email.toLowerCase());
+        friends().remove(email.toLowerCase());
     }
 
     private Collection<ClientFriend> vals(final Map<String, ClientFriend> map) {
@@ -424,49 +444,52 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     public void clear() {
-        friends.clear();
+        friends().clear();
+    }
+
+    private Map<String, ClientFriend> friends() {
+        try {
+            final Map<String, ClientFriend> friends = loadedFriends.get();
+            return friends;
+        } catch (final InterruptedException e) {
+            log.warn("Could not get friends?", e);
+            return new HashMap<String, ClientFriend>();
+        } catch (final ExecutionException e) {
+            log.warn("Could not get friends?", e);
+            return new HashMap<String, ClientFriend>();
+        }
     }
 
     @Override
     public ClientFriend getFriend(final String email) {
-        return friends.get(email.toLowerCase());
-    }
-
-    public void setStatus(final String email, final Status status) {
-        final Friend friend = getFriend(email.toLowerCase());
-        if (friend == null) {
-            log.error("Could not locate friend at: "+email);
-            return;
-        }
-        setStatus(friend, status);
-        /*
-        if (friend.getStatus() != Status.friend) {
-            friend.setStatus(status);
-            try {
-                this.api.updateFriend(friend);
-            } catch (IOException e) {
-                model.addNotification("Could not update friend status for '"+email+"'.",
-                    MessageType.info, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-            }
-        }
-        */
+        return friends().get(email.toLowerCase());
     }
     
+    @Override
     public boolean isFriend(final String from) {
         final String email = XmppUtils.jidToUser(from);
-        final Friend friend = getFriend(email);
+        final ClientFriend friend = getFriend(email);
+        return isFriend(friend);
+    }
+    
+    private boolean isFriend(final Friend friend) {
         return friend != null && friend.getStatus() == Status.friend;
     }
     
+    @Override
     public boolean isRejected(final String from) {
         final String email = XmppUtils.jidToUser(from);
-        final Friend friend = getFriend(email);
+        final ClientFriend friend = getFriend(email);
+        return isRejected(friend);
+    }
+    
+    
+    private boolean isRejected(final ClientFriend friend) {
         return friend != null && friend.getStatus() == Status.rejected;
     }
 
     @Override
-    public void setStatus(final Friend friend, final Status status) {
+    public void setStatus(final ClientFriend friend, final Status status) {
         if (friend.getStatus() == status) {
             log.debug("No change in status -- ignoring call");
             return;
@@ -477,28 +500,27 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
 
     @Override
-    public void setPendingSubscriptionRequest(final Friend friend, 
+    public void setPendingSubscriptionRequest(final ClientFriend friend, 
             final boolean subscribe) {
         friend.setPendingSubscriptionRequest(subscribe);
         update(friend);
     }
 
 
-    private void update(final Friend friend) {
+    private void update(final ClientFriend friend) {
         try {
             this.api.updateFriend(friend);
+            put(friend);
         } catch (final IOException e) {
             log.error("Could not update friend?", e);
-            model.addNotification("Could not update friend status for '"+friend.getEmail()+"'.",
-                MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            warn("Could not update friend status for '"+friend.getEmail()+"'.");
         }
     }
     
     @Override
     public void addIncomingSubscriptionRequest(final String from) {
         log.debug("Adding subscription request");
-        final Friend friend = getFriend(from);
+        final ClientFriend friend = getFriend(from);
         if (friend != null) {
             setPendingSubscriptionRequest(friend, true);
         } else {
@@ -511,7 +533,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     @Override
     public void updateName(String address, String name) {
-        final Friend friend = getFriend(address);
+        final ClientFriend friend = getFriend(address);
         if (friend != null && !name.equals(friend.getName())) {
             friend.setName(name);
             update(friend);
@@ -533,6 +555,25 @@ public class DefaultFriendsHandler implements FriendsHandler {
         final Thread t = new Thread(runner, "Bulk-Invites-Thread");
         t.setDaemon(true);
         t.start();
+    }
+    
+
+    private void info(final String msg) {
+        msg(msg, MessageType.info);
+    }
+    
+    private void warn(final String msg) {
+        msg(msg, MessageType.warning);
+    }
+    
+    private void error(final String msg, final Throwable t) {
+        log.error(msg, t);
+        msg(msg, MessageType.error);
+    }
+    
+    private void msg(final String msg, final MessageType type) {
+        model.addNotification(msg, type, 30);
+        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
     
     /**

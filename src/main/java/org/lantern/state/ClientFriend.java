@@ -90,17 +90,14 @@ public class ClientFriend implements Friend {
         this.nextQuery = nextQuery;
     }
 
-    @Override
     public void setPendingSubscriptionRequest(boolean pending) {
         pendingSubscriptionRequest = pending;
     }
 
-    @Override
     public boolean isPendingSubscriptionRequest() {
         return pendingSubscriptionRequest;
     }
 
-    @Override
     @JsonIgnore
     public boolean shouldNotifyAgain() {
         if (status == Status.pending) {

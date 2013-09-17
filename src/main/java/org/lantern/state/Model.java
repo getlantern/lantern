@@ -2,9 +2,7 @@ package org.lantern.state;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -95,17 +93,7 @@ public class Model {
         this.countryService = countryService;
     }
 
-    /**
-     * invites sent to the server but not acknowledged
-     */
-    @JsonView({Persistent.class})
-    private List<String> pendingInvites = new ArrayList<String>();
-
     private String instanceId;
-
-    public List<String> getPendingInvites() {
-        return pendingInvites;
-    }
 
     @JsonView({Run.class})
     private Transfers getTransfers() {
@@ -337,18 +325,6 @@ public class Model {
 
     public void setXsrfToken(String token) {
         xsrfToken = token;
-    }
-
-    public void setPendingInvites(List<String> pendingInvites) {
-        this.pendingInvites = pendingInvites;
-    }
-
-    public void addPendingInvite(String email) {
-        pendingInvites.add(email);
-    }
-
-    public void removePendingInvite(String email) {
-        pendingInvites.remove(email);
     }
 
     @JsonIgnore

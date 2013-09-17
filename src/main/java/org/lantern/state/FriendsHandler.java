@@ -19,9 +19,9 @@ public interface FriendsHandler {
 
     void peerRunningLantern(String email, Presence pres);
 
-    void setStatus(Friend friend, Status status);
+    void setStatus(ClientFriend friend, Status status);
 
-    void setPendingSubscriptionRequest(Friend friend, boolean subscribe);
+    void setPendingSubscriptionRequest(ClientFriend friend, boolean subscribe);
 
     void addIncomingSubscriptionRequest(String from);
 

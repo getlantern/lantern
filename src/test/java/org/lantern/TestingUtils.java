@@ -1,6 +1,5 @@
 package org.lantern;
 
-import static org.mockito.Mockito.mock;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -38,7 +37,6 @@ import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
 import org.lantern.stubs.PeerFactoryStub;
 import org.lantern.stubs.ProxyTrackerStub;
-import org.lantern.ui.NotificationManager;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -191,16 +189,10 @@ public class TestingUtils {
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
 
-        NotificationManager notificationManager = mock(NotificationManager.class);
-
-        
-        //final HttpClientFactory httpClientFactory = 
-                //new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
-        
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
-            notificationManager, new UdtServerFiveTupleListener(null),
+            new UdtServerFiveTupleListener(null),
             friendsHandler);
         return xmppHandler;
     }

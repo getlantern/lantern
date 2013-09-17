@@ -8,7 +8,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -59,7 +58,6 @@ import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.state.SyncPath;
-import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -178,7 +176,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final UdtServerFiveTupleListener udtFiveTupleListener;
 
-
     private final FriendsHandler friendsHandler;
 
     /**
@@ -196,7 +193,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
         final UpnpService upnpService,
-        final NotificationManager notificationManager,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler) {
         this.model = model;
@@ -767,9 +763,6 @@ public class DefaultXmppHandler implements XmppHandler {
         boolean handled = false;
         handled |= handleSetDelay(json);
         handled |= handleUpdate(json);
-        handled |= handleProcessedInvites(json);
-        handled |= handleFailedInvites(json);
-        //handled |= handleFriends(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -786,88 +779,6 @@ public class DefaultXmppHandler implements XmppHandler {
         if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
             sendToken();
         }
-
-    }
-
-    /*
-    private boolean handleFriends(JSONObject json) {
-        @SuppressWarnings("unchecked")
-        final List<Object> friendUpdates = (List<Object>) json.get(LanternConstants.FRIENDS);
-        FriendsHandler friends = model.getFriends();
-        if (friendUpdates == null) {
-            return false;
-        }
-        LOG.info("Handling friends update from server");
-        for (Object friendObj : friendUpdates) {
-            JSONObject friendJson = (JSONObject) friendObj;
-
-            String email = (String) friendJson.get("email");
-            Status status = Status.valueOf((String) friendJson.get("status"));
-            String name = (String) friendJson.get("name");
-            Long nextQuery = (Long) friendJson.get("nextQuery");
-            Long lastUpdated = (Long) friendJson.get("lastUpdated");
-
-            ClientFriend friend = new ClientFriend(email, status, name, nextQuery,
-                    lastUpdated);
-
-            // we need to check if we have had a more-recent update of this
-            // friend.
-            // that could happen if we had made some local changes while waiting
-            // to hear back from the XMPP server. It's not very likely.
-            Friend old = friends.get(email);
-            if (old != null && old.getLastUpdated() > lastUpdated &&
-                    old.getStatus() != Status.pending) {
-                friends.setNeedsSync(true);
-            } else {
-                if (old == null || old.getStatus() != friend.getStatus()) {
-                    Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-                }
-                friends.add(friend);
-            }
-        }
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
-        return true;
-    }
-    */
-
-    private boolean handleFailedInvites(final JSONObject json) {
-        //list of invites that the server has given up on processing
-        //perhaps because you are out of invites.
-        @SuppressWarnings("unchecked")
-        final List<Object> failedInvites = (List<Object>) json.get(LanternConstants.FAILED_INVITES_KEY);
-        LOG.info("Failed invites: " + failedInvites);
-        if (failedInvites == null) {
-            return false;
-        }
-        for (Object inviteObj : failedInvites) {
-            JSONObject invite = (JSONObject) inviteObj;
-            String invitee = (String) invite.get(LanternConstants.INVITED_EMAIL);
-            if (!model.getPendingInvites().contains(invitee)) {
-                // we already notified about this one
-                continue;
-            }
-            String reason = (String) invite
-                    .get(LanternConstants.INVITE_FAILED_REASON);
-            LOG.info("Failed invite to " + invitee + " because " + reason);
-            model.removePendingInvite(invitee);
-            String message = "Invite to " + invitee + " failed: " + reason;
-            model.addNotification(message, MessageType.error);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-        }
-        return true;
-    }
-
-    private boolean handleProcessedInvites(final JSONObject json) {
-        //list of invites that the server has processed
-        @SuppressWarnings("unchecked")
-        final List<Object> invited = (List<Object>) json.get(LanternConstants.INVITED_KEY);
-        if (invited == null) {
-            return false;
-        }
-        for (Object invite : invited) {
-            model.removePendingInvite((String) invite);
-        }
-        return true;
     }
 
     @SuppressWarnings("unchecked")
