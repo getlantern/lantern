@@ -238,4 +238,40 @@ public class StatsStub implements ClientStats {
         return null;
     }
 
+    @Override
+    public double getProcessCpuUsage() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public double getSystemCpuUsage() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public double getSystemLoadAverage() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public double getMemoryUsageInBytes() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public long getNumberOfOpenFileDescriptors() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public void updateSystemStatistics() {
+        // TODO Auto-generated method stub
+
+    }
+
 }

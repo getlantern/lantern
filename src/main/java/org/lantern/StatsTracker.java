@@ -1,6 +1,10 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
@@ -70,6 +74,16 @@ public class StatsTracker implements ClientStats {
     private final CountryService countryService;
 
     private String countryCode;
+
+    private double processCpuUsage;
+
+    private double systemCpuUsage;
+
+    private double systemLoadAverage;
+
+    private double memoryUsageInBytes;
+
+    private long numberOfOpenFileDescriptors;
 
     @Inject
     public StatsTracker(final GeoIpLookupService lookupService,
@@ -303,6 +317,73 @@ public class StatsTracker implements ClientStats {
     @Override
     public boolean isNatpmp() {
         return natpmp;
+    }
+
+    @Override
+    public double getProcessCpuUsage() {
+        return processCpuUsage;
+    }
+
+    @Override
+    public double getSystemCpuUsage() {
+        return systemCpuUsage;
+    }
+
+    @Override
+    public double getSystemLoadAverage() {
+        return systemLoadAverage;
+    }
+
+    @Override
+    public double getMemoryUsageInBytes() {
+        return memoryUsageInBytes;
+    }
+
+    @Override
+    public long getNumberOfOpenFileDescriptors() {
+        return numberOfOpenFileDescriptors;
+    }
+
+    @Override
+    public void updateSystemStatistics() {
+        // Below courtesy of:
+        // http://stackoverflow.com/questions/10999076/programmatically-print-the-heap-usage-that-is-typically-printed-on-jvm-exit-when
+        MemoryUsage mu = ManagementFactory.getMemoryMXBean()
+                .getHeapMemoryUsage();
+        MemoryUsage muNH = ManagementFactory.getMemoryMXBean()
+                .getNonHeapMemoryUsage();
+        this.memoryUsageInBytes = mu.getCommitted() + muNH.getCommitted();
+
+        // Below courtesy of:
+        // http://neopatel.blogspot.com/2011/05/java-count-open-file-handles.html
+        OperatingSystemMXBean osStats = ManagementFactory
+                .getOperatingSystemMXBean();
+        this.systemLoadAverage = osStats.getSystemLoadAverage();
+        if (osStats.getClass().getName()
+                .equals("com.sun.management.UnixOperatingSystem")) {
+            this.processCpuUsage = getSystemStat(osStats, "getProcessCpuLoad");
+            this.systemCpuUsage = getSystemStat(osStats, "getSystemCpuLoad");
+            this.numberOfOpenFileDescriptors = getSystemStat(osStats, "getOpenFileDescriptorCount");
+        }
+    }
+
+    private <T extends Number> T getSystemStat(OperatingSystemMXBean osStats, String name) {
+        Method method = null;
+        boolean originalAccessible = false;
+
+        try {
+            method = osStats.getClass().getDeclaredMethod(name);
+            originalAccessible = method.isAccessible();
+            method.setAccessible(true);
+            return (T) method.invoke(osStats);
+        } catch (Exception e) {
+            log.debug("Unable to get system stat: {}", name, e);
+            return (T) (Number) 0;
+        } finally {
+            if (method != null) {
+                method.setAccessible(originalAccessible);
+            }
+        }
     }
 
     private CountryData toCountryData(final InetSocketAddress isa) 
