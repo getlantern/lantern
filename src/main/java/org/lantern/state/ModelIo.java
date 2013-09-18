@@ -55,7 +55,7 @@ public class ModelIo extends Storage<Model> {
     @Override
     public Model read() {
         try {
-            Model read = super.read();
+            final Model read = super.read();
             read.setCountryService(countryService);
             if (!LanternUtils.persistCredentials()) {
                 if (read.getModal() != Modal.welcome) {
@@ -81,13 +81,13 @@ public class ModelIo extends Storage<Model> {
                 read.setModal(Modal.none);
             }
             return read;
-        } catch (ModelReadFailedException e) {
-            log.info("Failed to read model", e);
+        } catch (final ModelReadFailedException e) {
+            log.error("Failed to read model", e);
             Model blank = blank();
             blank.setModal(Modal.settingsLoadFailure);
             return blank;
-        } catch (Exception e) {
-            log.info("Failed to read model for some other reason", e);
+        } catch (final Exception e) {
+            log.error("Failed to read model for some other reason", e);
             Model blank = blank();
             return blank;
         }

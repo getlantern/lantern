@@ -8,7 +8,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -51,17 +50,14 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.proxy.UdtServerFiveTupleListener;
+import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Friend;
-import org.lantern.state.Friend.Status;
-import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Notification.MessageType;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
-import org.lantern.ui.FriendNotificationDialog;
-import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -178,16 +174,15 @@ public class DefaultXmppHandler implements XmppHandler {
     private final ExecutorService xmppProcessors =
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
-    private final NotificationManager notificationManager;
-    
     private final UdtServerFiveTupleListener udtFiveTupleListener;
+
+    private final FriendsHandler friendsHandler;
 
     /**
      * Creates a new XMPP handler.
      */
     @Inject
     public DefaultXmppHandler(final Model model,
-        //final PeerProxyManager trustedPeerProxyManager,
         final Timer updateTimer, final ClientStats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
@@ -198,8 +193,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
         final UpnpService upnpService,
-        final NotificationManager notificationManager,
-        final UdtServerFiveTupleListener udtFiveTupleListener) {
+        final UdtServerFiveTupleListener udtFiveTupleListener,
+        final FriendsHandler friendsHandler) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -212,8 +207,8 @@ public class DefaultXmppHandler implements XmppHandler {
         this.kscopeAdHandler = kscopeAdHandler;
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
-        this.notificationManager = notificationManager;
         this.udtFiveTupleListener = udtFiveTupleListener;
+        this.friendsHandler = friendsHandler;
         Events.register(this);
         //setupJmx();
     }
@@ -439,7 +434,7 @@ public class DefaultXmppHandler implements XmppHandler {
     /**
      * Connect to Google Talk's XMPP servers using the supplied XmppCredentials
      */
-    public void connect(final XmppCredentials credentials)
+    private void connect(final XmppCredentials credentials)
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with credentials...");
         this.closedBetaEvent = null;
@@ -631,7 +626,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 final Presence pres, final String from, final Type type) {
             switch (type) {
             case available:
-                peerAvailable(from);
+                peerAvailable(from, pres);
                 return;
             case error:
                 LOG.warn("Got error packet!! {}", pack.toXML());
@@ -660,8 +655,7 @@ public class DefaultXmppHandler implements XmppHandler {
             case subscribed:
                 break;
             case unavailable:
-                // TODO: We should remove the peer from our proxy
-                // lists!!
+                peerUnavailable(from, pres);
                 return;
             case unsubscribe:
                 // The user is unsubscribing from us, so we will no longer be
@@ -769,9 +763,6 @@ public class DefaultXmppHandler implements XmppHandler {
         boolean handled = false;
         handled |= handleSetDelay(json);
         handled |= handleUpdate(json);
-        handled |= handleProcessedInvites(json);
-        handled |= handleFailedInvites(json);
-        handled |= handleFriends(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -788,86 +779,6 @@ public class DefaultXmppHandler implements XmppHandler {
         if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
             sendToken();
         }
-
-    }
-
-    private boolean handleFriends(JSONObject json) {
-        @SuppressWarnings("unchecked")
-        final List<Object> friendUpdates = (List<Object>) json.get(LanternConstants.FRIENDS);
-        Friends friends = model.getFriends();
-        if (friendUpdates == null) {
-            return false;
-        }
-        LOG.info("Handling friends update from server");
-        for (Object friendObj : friendUpdates) {
-            JSONObject friendJson = (JSONObject) friendObj;
-
-            String email = (String) friendJson.get("email");
-            Status status = Status.valueOf((String) friendJson.get("status"));
-            String name = (String) friendJson.get("name");
-            Long nextQuery = (Long) friendJson.get("nextQuery");
-            Long lastUpdated = (Long) friendJson.get("lastUpdated");
-
-            Friend friend = new Friend(email, status, name, nextQuery,
-                    lastUpdated);
-
-            // we need to check if we have had a more-recent update of this
-            // friend.
-            // that could happen if we had made some local changes while waiting
-            // to hear back from the XMPP server. It's not very likely.
-            Friend old = friends.get(email);
-            if (old != null && old.getLastUpdated() > lastUpdated &&
-                    old.getStatus() != Status.pending) {
-                friends.setNeedsSync(true);
-            } else {
-                if (old == null || old.getStatus() != friend.getStatus()) {
-                    Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-                }
-                friends.add(friend);
-            }
-        }
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
-        return true;
-    }
-
-    private boolean handleFailedInvites(final JSONObject json) {
-        //list of invites that the server has given up on processing
-        //perhaps because you are out of invites.
-        @SuppressWarnings("unchecked")
-        final List<Object> failedInvites = (List<Object>) json.get(LanternConstants.FAILED_INVITES_KEY);
-        LOG.info("Failed invites: " + failedInvites);
-        if (failedInvites == null) {
-            return false;
-        }
-        for (Object inviteObj : failedInvites) {
-            JSONObject invite = (JSONObject) inviteObj;
-            String invitee = (String) invite.get(LanternConstants.INVITED_EMAIL);
-            if (!model.getPendingInvites().contains(invitee)) {
-                // we already notified about this one
-                continue;
-            }
-            String reason = (String) invite
-                    .get(LanternConstants.INVITE_FAILED_REASON);
-            LOG.info("Failed invite to " + invitee + " because " + reason);
-            model.removePendingInvite(invitee);
-            String message = "Invite to " + invitee + " failed: " + reason;
-            model.addNotification(message, MessageType.error);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-        }
-        return true;
-    }
-
-    private boolean handleProcessedInvites(final JSONObject json) {
-        //list of invites that the server has processed
-        @SuppressWarnings("unchecked")
-        final List<Object> invited = (List<Object>) json.get(LanternConstants.INVITED_KEY);
-        if (invited == null) {
-            return false;
-        }
-        for (Object invite : invited) {
-            model.removePendingInvite((String) invite);
-        }
-        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -994,12 +905,14 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("No new stats to report");
         }
 
-        final Friends friends = model.getFriends();
+        /*
+        final FriendsHandler friends = model.getFriends();
         if (friends.needsSync()) {
             String friendsJson = JsonUtils.jsonify(friends);
             forHub.setProperty(LanternConstants.FRIENDS, friendsJson);
             friends.setNeedsSync(false);
         }
+        */
 
         conn.sendPacket(forHub);
     }
@@ -1043,7 +956,7 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 LOG.debug("Handling INFO request from {}", from);
-                if (!model.isRejected(from)) {
+                if (!this.friendsHandler.isRejected(from)) {
                     processInfoData(msg);
                 } else {
                     LOG.debug("Not processing message from rejected friend {}", 
@@ -1053,14 +966,14 @@ public class DefaultXmppHandler implements XmppHandler {
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
                 LOG.debug("Handling INFO response from {}", from);
-                if (!model.isRejected(from)) {
+                if (!this.friendsHandler.isRejected(from)) {
                     processInfoData(msg);
                 }
                 break;
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
                 //only process kscope ads delivered by friends
-                if (model.isFriend(from)) {
+                if (this.friendsHandler.isFriend(from)) {
                     LOG.debug("Handling KSCOPE ADVERTISEMENT");
                     final String payload =
                             (String) msg.getProperty(
@@ -1366,35 +1279,32 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.get().getXmppConnection().sendPacket(packet);
     }
 
-    private void peerAvailable(final String from) {
+    private void peerUnavailable(final String from, final Presence pres) {
         if (!LanternXmppUtils.isLanternJid(from)) {
             return;
         }
-        String email = XmppUtils.jidToUser(from);
-        Friends friends = model.getFriends();
-        Friend friend = modelUtils.makeFriend(email);
-        if (email.equals(model.getProfile().getEmail())) {
-            //we'll assume that a user already trusts themselves
-            if (friend.getStatus() != Status.friend) {
-                subscribe(email);
-                subscribed(email);
-                friend.setStatus(Status.friend);
-                Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-                friends.setNeedsSync(true);
-                Events.sync(SyncPath.FRIENDS, friends.getFriends());
-            }
+        final String email = XmppUtils.jidToUser(from);
+        final ClientFriend friend = this.friendsHandler.getFriend(email);
+        if (friend == null) {
+            // Some error occurred!
             return;
-        } else {
-            //sync this new friend so it appears in the friends modal
-            Events.sync(SyncPath.FRIENDS, friends.getFriends());
         }
-        Settings settings = model.getSettings();
-        if (friend.shouldNotifyAgain() && settings.isShowFriendPrompts()
-                && model.isSetupComplete()) {
-            FriendNotificationDialog notification;
-            notification = new FriendNotificationDialog(notificationManager, friends, friend);
-            notificationManager.notify(notification);
+        
+        // We don't track logged in or mode separately on our server since
+        // XMPP takes care of it - that's why we don't update the server here.
+        friend.setLoggedIn(false);
+        friend.setMode(pres.getMode());
+        Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
+    }
+    
+    private void peerAvailable(final String from, final Presence pres) {
+        if (!LanternXmppUtils.isLanternJid(from)) {
+            return;
         }
+        LOG.debug("Got peer available...");
+        final String email = XmppUtils.jidToUser(from);
+        this.friendsHandler.peerRunningLantern(email, pres);
+
     }
 
     private void sendToken() {

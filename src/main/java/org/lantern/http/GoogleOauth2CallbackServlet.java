@@ -32,6 +32,7 @@ import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
@@ -224,6 +225,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.model.getSettings().setUseGoogleOAuth2(true);
 
         this.modelIo.write();
+        Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
 
         // We kick this off on another thread, as otherwise it would be
         // a Jetty thread, and we're about to kill the server. When the

@@ -18,6 +18,7 @@ import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.event.SyncType;
+import org.lantern.event.UiLoadedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +107,7 @@ public class SyncService implements LanternService {
             public void run() {
                 log.info("Syncing with frontend...");
                 delegateSync(SyncPath.ALL, model);
+                Events.asyncEventBus().post(new UiLoadedEvent());
             }
 
         }, "CometD-Sync-OnConnect-Thread");
