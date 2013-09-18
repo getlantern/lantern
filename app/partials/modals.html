@@ -262,7 +262,7 @@
       <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</p>
 
       <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
-      id="friendsListSearch" ng-class="{empty: !searchText}">
+      id="friendsListSearch" ng-class="{empty: !searchText}" ng-show="nfriends || npending">
 
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
         <li ng-show="searchText && displayedFriends.length == 0">
