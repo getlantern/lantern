@@ -139,8 +139,6 @@ public class LanternClientConstants {
     
     public static String CONTROLLER_URL;
 
-    private static long recentProxyTimeout = 60 * 1000;
-
     public static void setControllerId(final String id) {
         LANTERN_JID = id + "@appspot.com";
         CONTROLLER_URL = "https://" + id + ".appspot.com";
@@ -150,14 +148,6 @@ public class LanternClientConstants {
     static {
         //setControllerId("lantern-controller-afisk");
         setControllerId("lanternctrl");
-    }
-
-    public static long getRecentProxyTimeout() {
-        return recentProxyTimeout;
-    }
-
-    public static void setRecentProxyTimeout(long timeout) {
-        recentProxyTimeout  = timeout;
     }
 
     public static boolean isDevMode() {
