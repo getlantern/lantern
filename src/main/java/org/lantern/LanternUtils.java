@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPOutputStream;
 
 import javax.crypto.Cipher;
 import javax.net.ssl.SSLSocket;
@@ -1032,4 +1034,23 @@ public class LanternUtils {
             LOG.error("Could not run copyPolicy.exe", e);
         }
     }
+    
+    public static byte[] compress(final String str) {
+        if (StringUtils.isBlank(str)) {
+            throw new IllegalArgumentException("can compress empty string!");
+        }
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        GZIPOutputStream gzip = null;
+        try {
+            gzip = new GZIPOutputStream(baos);
+            gzip.write(str.getBytes("UTF-8"));
+            gzip.close();
+            return baos.toByteArray();
+        } catch (final IOException e) {
+            LOG.error("Could not write to byte array?", e);
+            throw new Error("Could not write to byte array?", e);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+     }
 }

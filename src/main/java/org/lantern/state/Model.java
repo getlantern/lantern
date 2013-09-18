@@ -2,9 +2,7 @@ package org.lantern.state;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,9 +22,7 @@ import org.lantern.RosterSerializer;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SetupCompleteEvent;
-import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +65,7 @@ public class Model {
 
     private final Global global = new Global();
 
-    private Friends friends = new Friends();
+    //private DefaultFriendsHandler friends = new DefaultFriendsHandler();
 
     private Peers peerCollector = new Peers();
 
@@ -97,17 +93,7 @@ public class Model {
         this.countryService = countryService;
     }
 
-    /**
-     * invites sent to the server but not acknowledged
-     */
-    @JsonView({Persistent.class})
-    private List<String> pendingInvites = new ArrayList<String>();
-
     private String instanceId;
-
-    public List<String> getPendingInvites() {
-        return pendingInvites;
-    }
 
     @JsonView({Run.class})
     private Transfers getTransfers() {
@@ -234,13 +220,16 @@ public class Model {
         return global;
     }
 
-    public Friends getFriends() {
+    /*
+    @JsonIgnore
+    public FriendsHandler getFriends() {
         return friends;
     }
 
-    public void setFriends(Friends friends) {
+    public void setFriends(FriendsHandler friends) {
         this.friends = friends;
     }
+    */
 
     @JsonView({Persistent.class})
     public Peers getPeerCollector() {
@@ -338,18 +327,6 @@ public class Model {
         xsrfToken = token;
     }
 
-    public void setPendingInvites(List<String> pendingInvites) {
-        this.pendingInvites = pendingInvites;
-    }
-
-    public void addPendingInvite(String email) {
-        pendingInvites.add(email);
-    }
-
-    public void removePendingInvite(String email) {
-        pendingInvites.remove(email);
-    }
-
     @JsonIgnore
     public CountryService getCountryService() {
         return countryService;
@@ -357,13 +334,6 @@ public class Model {
 
     public void setCountryService(CountryService countryService) {
         this.countryService = countryService;
-    }
-
-    public boolean isFriend(String from) {
-        Friends friends = getFriends();
-        String email = XmppUtils.jidToUser(from);
-        Friend friend = friends.get(email);
-        return friend != null && friend.getStatus() == Status.friend;
     }
 
     @JsonView({Persistent.class})
@@ -392,12 +362,5 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
-    }
-
-    public boolean isRejected(String from) {
-        Friends friends = getFriends();
-        String email = XmppUtils.jidToUser(from);
-        Friend friend = friends.get(email);
-        return friend != null && friend.getStatus() == Status.rejected;
     }
 }

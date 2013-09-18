@@ -13,6 +13,8 @@ import java.util.List;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -21,9 +23,13 @@ import com.google.inject.Singleton;
 @Singleton
 public class NotificationManager {
 
-    List<NotificationDialog> notifications = new ArrayList<NotificationDialog>();
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private final List<NotificationDialog> notifications = 
+            new ArrayList<NotificationDialog>();
     private final Settings settings;
-    public static final int MAX_NOTIFICATIONS = 3;
+    
+    private static final int MAX_NOTIFICATIONS = 3;
 
     @Inject
     public NotificationManager(Settings settings) {
@@ -31,12 +37,14 @@ public class NotificationManager {
         Events.register(this);
     }
 
-    public synchronized void notify(final NotificationDialog notification) {
+    public synchronized void addNotification(
+        final NotificationDialog notification) {
         if (!settings.isUiEnabled()) {
             //no UI, no notifications
             return;
         }
         if (notifications.size() > MAX_NOTIFICATIONS ) {
+            log.debug("Not notifying -- over maximum notifications");
             return;
         }
 

@@ -26,7 +26,7 @@ public class GoogleTalkTest {
         final org.lantern.state.Settings settings = model.getSettings();
         
         settings.setMode(Mode.get);
-        settings.setAccessToken(TestingUtils.getAccessToken());
+        settings.setAccessToken(TestingUtils.accessToken());
         settings.setRefreshToken(TestingUtils.getRefreshToken());
         settings.setUseGoogleOAuth2(true);
         settings.setMode(Mode.give);

@@ -19,9 +19,14 @@ import org.jivesoftware.smack.packet.Presence.Type;
 import org.junit.Test;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
+import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
+import org.lantern.http.OauthUtils;
+import org.lantern.state.DefaultFriendsHandler;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
+import org.lantern.util.HttpClientFactory;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -34,8 +39,14 @@ public class RosterTest {
         Events.register(this);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         final Model model = new Model();
+        final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+        final OauthUtils oauth = new OauthUtils(httpClientFactory, model);
+        final FriendApi api = new FriendApi(oauth);
+        final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
+        final FriendsHandler friendHandler = 
+                new DefaultFriendsHandler(model, api, xmppHandler, null);
         final Roster roster =
-            new Roster(routingTable, model, new TestCensored());
+            new Roster(routingTable, model, new TestCensored(), friendHandler);
 
         final String url = "http://127.0.0.1:2174/photo/";
         final Map<String, LanternRosterEntry> entries = 
