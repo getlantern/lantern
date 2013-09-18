@@ -61,6 +61,15 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     private final NotificationManager notificationManager;
 
+    /**
+     * The following is necessary because we need both the UI to be loaded 
+     * (so we can push server-side friends to the frontend) as well the refresh
+     * token to be loaded (so we can make oauth requests) before we can load
+     * the friends.
+     */
+    private AtomicBoolean uiLoaded = new AtomicBoolean(false);
+    private AtomicBoolean refreshLoaded = new AtomicBoolean(false);
+    
     private Future<Map<String, ClientFriend>> loadedFriends;
 
     @Inject
@@ -81,23 +90,29 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         handleBulkInvites();
     }
-
+    
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refresh) {
-        loadFriends();
+        refreshLoaded.set(true);
+        if (uiLoaded.get()) {
+            loadFriends();
+        }
     }
     
     @Subscribe
     public void uiLoaded(final UiLoadedEvent event) {
         log.debug("Responding to UI loaded event");
+        uiLoaded.set(true);
         
-        // This is necessary because we may have loaded the friends before
-        // the UI is ready to process them, in which case syncing friends will
-        // have no effect. 
-        Events.sync(SyncPath.FRIENDS, getFriends());
+        if (refreshLoaded.get()) {
+            // This is necessary because we may have loaded the friends before
+            // the UI is ready to process them, in which case syncing friends 
+            // will have no effect. 
+            Events.sync(SyncPath.FRIENDS, getFriends());
+        }
     }
     
-    public void loadFriends() {
+    private void loadFriends() {
         if (this.friendsLoaded.getAndSet(true)) {
             return;
         }

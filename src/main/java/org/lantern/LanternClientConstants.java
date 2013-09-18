@@ -58,7 +58,7 @@ public class LanternClientConstants {
         new File(System.getProperty("user.home"), ".lantern");
 
     public static final File DEFAULT_MODEL_FILE =
-            new File(CONFIG_DIR, "model-0.0.4");
+            new File(CONFIG_DIR, "model-0.0.3");
 
     public static final File DEFAULT_TRANSFERS_FILE =
             new File(CONFIG_DIR, "transfers");
@@ -148,8 +148,8 @@ public class LanternClientConstants {
     }
 
     static {
-        setControllerId("lantern-controller-afisk");
-        //setControllerId("lanternctrl");
+        //setControllerId("lantern-controller-afisk");
+        setControllerId("lanternctrl");
     }
 
     public static long getRecentProxyTimeout() {
