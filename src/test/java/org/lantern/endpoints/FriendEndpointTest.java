@@ -44,11 +44,11 @@ public class FriendEndpointTest {
         
         final Friend inserted = api.insertFriend(friend);
         
-        final String updatedName = "brand new name";
-        inserted.setName(updatedName);
+        final String updatedName = "brandnew@email.com";
+        inserted.setEmail(updatedName);
         final Friend updated = api.updateFriend(inserted);
         
-        assertEquals(updatedName, updated.getName());
+        assertEquals(updatedName, updated.getEmail());
         
         final List<ClientFriend> newList = api.listFriends();
         for (final ClientFriend f : newList) {
