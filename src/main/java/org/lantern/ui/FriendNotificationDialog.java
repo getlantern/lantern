@@ -1,7 +1,8 @@
 package org.lantern.ui;
 
 import java.awt.Color;
-import java.awt.Dimension;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JEditorPane;
@@ -9,6 +10,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
@@ -16,6 +18,8 @@ import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.FriendsHandler;
+import org.lantern.state.Model;
+import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +33,17 @@ public class FriendNotificationDialog extends NotificationDialog {
     private final FriendsHandler friends;
     private final ClientFriend friend;
 
+    private final String name;
+
+    private final String email;
+
     public FriendNotificationDialog(NotificationManager manager,
             FriendsHandler friends, ClientFriend friend) {
         super(manager);
         this.friends = friends;
         this.friend = friend;
+        this.name = friend.getName();
+        this.email = friend.getEmail();
         Events.register(this);
         layout();
     }
@@ -46,12 +56,7 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     protected void doLayout() {
-        final String name = friend.getName();
-        final String email = friend.getEmail();
-        final String text = "<html><div style=\"width:%dpx; padding: 5px;\">"
-                + "%s is running Lantern.  Do you want to add %s as your Lantern friend?<br>"
-                + "<a href=\"yes\">Trust</a> &nbsp;&nbsp;<a href=\"no\">Don't trust</a>&nbsp;&nbsp; <a href=\"later\">Ask again tomorrow</a>"
-                + "</div></html>";
+        final String text = loadText();
         final String displayName;
         final String displayEmail;
         if (StringUtils.isEmpty(name)) {
@@ -59,13 +64,14 @@ public class FriendNotificationDialog extends NotificationDialog {
             displayEmail = email;
         } else {
             displayName = name;
-            displayEmail = name + " &lt;" + email + "&gt;";
+            displayEmail = name + " (" + email + ")";
         }
-        final String popupHtml = String.format(text, WIDTH, displayEmail,
-                displayName);
 
-        dialog.setMaximumSize(new Dimension(WIDTH, HEIGHT));
-        dialog.setBackground(new Color(255, 255, 255, ALPHA));
+        final String cssurl = StaticSettings.getLocalEndpoint() + "/_css/app.css"; 
+        final String iconurl = StaticSettings.getLocalEndpoint() + "/img/favicon.png";
+        final String popupHtml = String.format(text, cssurl, iconurl, displayEmail);
+
+        dialog.setBackground(new Color(200, 200, 200, ALPHA));
         final JEditorPane pane = new JEditorPane("text/html", popupHtml);
         pane.setEditable(false);
         pane.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -76,9 +82,9 @@ public class FriendNotificationDialog extends NotificationDialog {
             public void hyperlinkUpdate(HyperlinkEvent e) {
                 if (HyperlinkEvent.EventType.ACTIVATED == e.getEventType()) {
                     String url = e.getDescription().toString();
-                    if (url.equals("yes")) {
+                    if (url.equals("friend")) {
                         yes();
-                    } else if (url.equals("no")) {
+                    } else if (url.equals("decline")) {
                         no();
                     } else if (url.equals("later")) {
                         later();
@@ -93,17 +99,32 @@ public class FriendNotificationDialog extends NotificationDialog {
         pane.addHyperlinkListener(l);
         dialog.add(pane);
         dialog.pack();
+        //dialog.setVisible(true);
+    }
+
+    private String loadText() {
+        InputStream is = null;
+        try {
+            is = getClass().getClassLoader().getResourceAsStream("friendsuggestion.html");
+            return IOUtils.toString(is);
+        } catch (IOException e) {
+            throw new Error("Could not load friend suggestion?", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
     }
 
     protected void later() {
+        dialog.dispose();
         long tomorrow = System.currentTimeMillis() + 1000 * 86400;
         friend.setNextQuery(tomorrow);
         //friend.setStatus(Status.pending);
-        this.friends.setStatus(friend, Status.pending);
+        if (this.friends != null) {
+            this.friends.setStatus(friend, Status.pending);
+        }
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
         //friends.addOrUpdate(friend);
         Events.sync(SyncPath.FRIENDS, friends.getFriends());
-        dialog.dispose();
     }
 
     protected void no() {
@@ -154,4 +175,14 @@ public class FriendNotificationDialog extends NotificationDialog {
             return false;
         return true;
     }
+    
+    /*
+    public static void main(final String... args) {
+        final NotificationManager manager = new NotificationManager(new Model().getSettings());
+        final ClientFriend fr = new ClientFriend("tom.preston-werner@gmail.com");
+        fr.setName("Tom Preston-Werner");
+        final FriendNotificationDialog fnd = new FriendNotificationDialog(manager, null, fr);
+        
+    }
+    */
 }

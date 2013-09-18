@@ -431,7 +431,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // TODO: We should really also unsubscribe from them here and
         // should not allow them to subscribe to us **only if Lantern was the
         // one that originally managed the subscriptions.**
-        unsubscribe(friend.getEmail());
+        //unsubscribe(friend.getEmail());
     }
 
     @Override

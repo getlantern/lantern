@@ -12,7 +12,7 @@ public class NotificationDialog {
 
     public static final int ALPHA = 240;
     public static final int WIDTH = 320;
-    public static final int HEIGHT = 120;
+    public static final int HEIGHT = 320;
 
     protected JWindow dialog;
 
