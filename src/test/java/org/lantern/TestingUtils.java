@@ -1,12 +1,9 @@
 package org.lantern;
 
-import static org.mockito.Mockito.*;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,20 +18,25 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
+import org.lantern.endpoints.FriendApi;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.http.OauthUtils;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.proxy.UdtServerFiveTupleListener;
+import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
 import org.lantern.stubs.PeerFactoryStub;
 import org.lantern.stubs.ProxyTrackerStub;
-import org.lantern.ui.NotificationManager;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -77,7 +79,9 @@ public class TestingUtils {
     }
 
     public static Model newModel() {
-        return new Model(newCountryService());
+        final Model model = new Model(newCountryService());
+        model.getSettings().setRefreshToken(getRefreshToken());
+        return model;
     }
     
     public static CountryService newCountryService() {
@@ -85,17 +89,15 @@ public class TestingUtils {
         return new CountryService(censored);
     }
 
-    public static XmppHandler newXmppHandler() {
+    public static XmppHandler newXmppHandler() throws IOException {
         final Censored censored = new DefaultCensored();
         final Model mod = new Model(new CountryService(censored));
         final Settings set = mod.getSettings();
-        set.setAccessToken(getAccessToken());
+        set.setAccessToken(accessToken());
         set.setRefreshToken(getRefreshToken());
         set.setUseGoogleOAuth2(true);
         return newXmppHandler(censored, mod);
     }
-    
-    
 
     public static ProxyTracker newProxyTracker() {
         final PeerFactory peerFactory = new PeerFactoryStub();
@@ -141,18 +143,24 @@ public class TestingUtils {
         
         final ModelUtils modelUtils = new DefaultModelUtils(model);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
-        final Roster roster = new Roster(routingTable, model, censored);
+        
+        final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+        final OauthUtils oauth = new OauthUtils(httpClientFactory, model);
+        final FriendApi api = new FriendApi(oauth);
+        
+        final FriendsHandler friendsHandler = 
+                new DefaultFriendsHandler(model, api, null, null);
+        final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
         
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
-        final Timer timer = new HashedWheelTimer();
         final ProxyTracker proxyTracker = 
             new DefaultProxyTracker(model, peerFactory, null, trustStore);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                null, model);
+                null, model, friendsHandler);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}
@@ -181,12 +189,11 @@ public class TestingUtils {
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
 
-        NotificationManager notificationManager = mock(NotificationManager.class);
-
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
-            notificationManager, new UdtServerFiveTupleListener(null));
+            new UdtServerFiveTupleListener(null),
+            friendsHandler);
         return xmppHandler;
     }
 
@@ -240,4 +247,9 @@ public class TestingUtils {
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager(temp);
         return ksm;
     }
+
+    public static String accessToken() throws IOException {
+        final HttpClient httpClient = new DefaultHttpClient();
+        return OauthUtils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
+    }    
 }

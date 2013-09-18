@@ -4,17 +4,13 @@ import org.lantern.state.Friend;
 
 public class FriendStatusChangedEvent {
 
-    private Friend friend;
+    private final Friend friend;
 
-    public FriendStatusChangedEvent(Friend friend) {
-        this.setFriend(friend);
+    public FriendStatusChangedEvent(final Friend friend) {
+        this.friend = friend;
     }
 
     public Friend getFriend() {
         return friend;
-    }
-
-    public void setFriend(Friend friend) {
-        this.friend = friend;
     }
 }

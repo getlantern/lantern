@@ -14,14 +14,12 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
-import org.lantern.LanternXmppUtils;
 import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
-import org.lantern.state.Friend;
-import org.lantern.state.Friend.Status;
-import org.lantern.state.Friends;
+import org.lantern.state.FriendsHandler;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,17 +46,20 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
     private final Model model;
+    private final FriendsHandler friendsHandler;
     
     @Inject
     public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
         final LanternTrustStore trustStore,
         final RandomRoutingTable routingTable,
-        final XmppHandler xmppHandler, final Model model) {
+        final XmppHandler xmppHandler, final Model model,
+        final FriendsHandler friendsHandler) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.xmppHandler = xmppHandler;
         this.model = model;
+        this.friendsHandler = friendsHandler;
     }
 
     @Override
@@ -74,11 +75,11 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         //(they might have been relayed via untrusted sources in the middle,
         //but there is nothing we can do about that)
 
-        if (isUntrusted(ad.getJid())) {
+        if (!this.friendsHandler.isFriend(ad.getJid())) {
             return false;
         }
 
-        if (isUntrusted(from)) {
+        if (this.friendsHandler.isRejected(from)) {
             return false;
         }
 
@@ -118,16 +119,6 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         
         tgn.sendAdvertisement(message, nextNid, relayAd.getTtl()); 
         return true;
-    }
-
-    private boolean isUntrusted(final String jid) {
-        Friends friends = model.getFriends();
-        String email = LanternXmppUtils.jidToEmail(jid);
-        Friend friend = friends.get(email);
-        if (friend != null && friend.getStatus() == Status.rejected) {
-            return true;
-        }
-        return false;
     }
 
     @Override
