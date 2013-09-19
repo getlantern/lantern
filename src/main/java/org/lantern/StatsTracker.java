@@ -361,9 +361,9 @@ public class StatsTracker implements ClientStats {
         this.systemLoadAverage = osStats.getSystemLoadAverage();
         if (osStats.getClass().getName()
                 .equals("com.sun.management.UnixOperatingSystem")) {
-            this.processCpuUsage = getSystemStat(osStats, "getProcessCpuLoad");
-            this.systemCpuUsage = getSystemStat(osStats, "getSystemCpuLoad");
-            this.numberOfOpenFileDescriptors = getSystemStat(osStats, "getOpenFileDescriptorCount");
+            this.processCpuUsage = (Double) getSystemStat(osStats, "getProcessCpuLoad");
+            this.systemCpuUsage = (Double) getSystemStat(osStats, "getSystemCpuLoad");
+            this.numberOfOpenFileDescriptors = (Long) getSystemStat(osStats, "getOpenFileDescriptorCount");
         }
     }
 
