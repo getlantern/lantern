@@ -68,18 +68,17 @@ angular.module('app.filters', [])
       }
 
       // replace these array fields with their lengths
-      _.each(['/roster', '/settings/proxiedSites', '/friends/current', '/friends/pending'], function(path) {
+      _.each(['/roster', '/settings/proxiedSites', '/friends'], function(path) {
         var len = (getByPath(state, path) || []).length;
         if (len) applyPatch(state, [{op: 'replace', path: path, value: len}]);
       });
 
       var peers = getByPath(state, '/peers');
-      if (peers) {
-        peers = _.map(peers, function(peer) {
-          return _.omit(peer, 'email', 'peerid', 'ip', 'lat', 'lon');
-        });
-        applyPatch(state, [{op: 'replace', path: '/peers', value: peers}]);
-      }
+      _.each(peers, function (peer) {
+        if (peer.rosterEntry) {
+          peer.rosterEntry = true;
+        }
+      });
 
       return state;
     };
