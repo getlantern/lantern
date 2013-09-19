@@ -55,7 +55,7 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
-    <div id="waiting" ng-show="modelSrvc.sane && !cometdConnected">
+    <div id="waiting" ng-show="!cometdConnected">
       <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
       <img src="img/spinner.gif">
     </div>
