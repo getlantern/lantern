@@ -116,8 +116,6 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     protected void later() {
         dialog.dispose();
-        long tomorrow = System.currentTimeMillis() + 1000 * 86400;
-        friend.setNextQuery(tomorrow);
         //friend.setStatus(Status.pending);
         if (this.friends != null) {
             this.friends.setStatus(friend, Status.pending);

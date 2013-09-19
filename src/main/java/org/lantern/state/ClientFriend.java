@@ -60,10 +60,12 @@ public class ClientFriend implements Friend {
         this.email = email;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
@@ -76,16 +78,6 @@ public class ClientFriend implements Friend {
     @Override
     public void setStatus(Status status) {
         this.status = status;
-    }
-    
-    @Override
-    public long getNextQuery() {
-        return nextQuery;
-    }
-
-    @Override
-    public void setNextQuery(long nextQuery) {
-        this.nextQuery = nextQuery;
     }
 
     public void setPendingSubscriptionRequest(boolean pending) {
