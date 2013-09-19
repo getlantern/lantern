@@ -95,9 +95,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refresh) {
         refreshLoaded.set(true);
-        if (uiLoaded.get()) {
-            loadFriends();
-        }
+        loadFriends();
     }
     
     @Subscribe
