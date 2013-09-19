@@ -7329,8 +7329,12 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   margin-top: 3px;
 }
 
+#settings dt {
+  width: 130px;
+}
 #settings dd {
-  margin-bottom: 24.5px;
+  margin: 0 0 24.5px 160px;
+  width: 300px;
 }
 #settings dd label {
   font-size: 13.3px;

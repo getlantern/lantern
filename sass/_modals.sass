@@ -279,9 +279,15 @@
     margin-left: -15px
     margin-top: 3px
 
+
 #settings
+  $dt_width: 130px
+  $dd_margin_left: $dt_width + 30px
+  dt
+    width: $dt_width
   dd
-    margin-bottom: $baseFontSize * 1.75
+    margin: 0 0 $baseFontSize * 1.75 $dd_margin_left
+    width: 300px
     label
       +small
   details, .details
