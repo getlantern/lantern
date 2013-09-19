@@ -1,18 +1,22 @@
-@font-face
-  font-family: 'Droid Sans Mono'
-  font-style: normal
-  font-weight: 400
-  src: font-url('DroidSansMono.ttf')
+@import compass/css3
 
-@font-face
-  font-family: 'Roboto'
-  font-style: normal
-  font-weight: 400
-  src: font-url('Roboto-Regular.ttf')
++font-face('Droid Sans Mono', font-url('DroidSansMono.ttf'))
 
-@font-face
-  font-family: 'LigatureSymbols'
-  src: font-url('LigatureSymbols-2.11.eot')
-  src: font-url('LigatureSymbols-2.11.eot?#iefix') format('embedded-opentype'), font-url('LigatureSymbols-2.11.woff') format('woff'), font-url('LigatureSymbols-2.11.ttf') format('truetype'), font-url('LigatureSymbols-2.11.svg#LigatureSymbols') format('svg')
-  font-weight: normal
-  font-style: normal
++font-face('Roboto Thin', font-url('Roboto-Thin.ttf'), false, normal, normal)
++font-face('Roboto Thin', font-url('Roboto-ThinItalic.ttf'), false, normal, italic)
+
++font-face('Roboto Light', font-url('Roboto-Light.ttf'), false, normal, normal)
++font-face('Roboto Light', font-url('Roboto-LightItalic.ttf'), false, normal, italic)
+
++font-face('Roboto', font-url('Roboto-Regular.ttf'), false, normal, normal)
++font-face('Roboto', font-url('Roboto-Italic.ttf'), false, normal, italic)
++font-face('Roboto', font-url('Roboto-Bold.ttf'), false, bold, normal)
++font-face('Roboto', font-url('Roboto-BoldItalic.ttf'), false, bold, italic)
+
++font-face('Roboto Medium', font-url('Roboto-Medium.ttf'), false, normal, normal)
++font-face('Roboto Medium', font-url('Roboto-MediumItalic.ttf'), false, normal, italic)
+
++font-face('Roboto Black', font-url('Roboto-Black.ttf'), false, normal, normal)
++font-face('Roboto Black', font-url('Roboto-BlackItalic.ttf'), false, normal, italic)
+
++font-face('LigatureSymbols', font-files('LigatureSymbols-2.11.woff', 'LigatureSymbols-2.11.eot', 'LigatureSymbols-2.11.ttf', 'LigatureSymbols-2.11.svg'), false, normal, normal)

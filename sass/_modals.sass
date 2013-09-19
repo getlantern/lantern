@@ -66,11 +66,10 @@
 
 #welcome
   +centered
+  +light
   background-color: rgba(0, 0, 0, .3)
   color: #fff
-  .modal-body
-    font-size: $baseFontSize * 1.25
-    font-weight: 200
+  font-size: $baseFontSize * 1.25
   .beta
     +smaller
     +bold
@@ -82,7 +81,7 @@
   .internetRequired
     +pulsing
     +yellow-colored
-    font-weight: 400
+    +light
     font-size: $baseFontSize
     padding-top: 12px
   button
@@ -112,8 +111,6 @@
     height: 150px
     +ctb-font-family-monospace
     font-size: $baseFontSize - 1
-  .tip
-    font-size: $baseFontSize * .8
   .error
     +centered
     +error-colored
@@ -135,7 +132,7 @@
   +ctb-box-sizing(border-box)
   +single-transition(opacity, 0.3s, ease)
   float: right
-  width: 130px
+  width: 120px
   height: 1.5 * $baseLineHeight
   margin: -3px 0 10px
   +border-radius(18px)
@@ -315,7 +312,7 @@
 #latestDetails
   summary
     +indented
-    font-weight: bold
+    +bold
     text-transform: capitalize
   dt
     text-transform: capitalize

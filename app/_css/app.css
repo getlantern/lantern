@@ -1,21 +1,95 @@
 @font-face {
   font-family: "Droid Sans Mono";
-  font-style: normal;
-  font-weight: 400;
   src: url('../font/DroidSansMono.ttf');
 }
 
 @font-face {
-  font-family: "Roboto";
+  font-family: "Roboto Thin";
+  src: url('../font/Roboto-Thin.ttf');
+  font-weight: normal;
   font-style: normal;
-  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Roboto Thin";
+  src: url('../font/Roboto-ThinItalic.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Roboto Light";
+  src: url('../font/Roboto-Light.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Roboto Light";
+  src: url('../font/Roboto-LightItalic.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Roboto";
   src: url('../font/Roboto-Regular.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url('../font/Roboto-Italic.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url('../font/Roboto-Bold.ttf');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url('../font/Roboto-BoldItalic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Roboto Medium";
+  src: url('../font/Roboto-Medium.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Roboto Medium";
+  src: url('../font/Roboto-MediumItalic.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Roboto Black";
+  src: url('../font/Roboto-Black.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Roboto Black";
+  src: url('../font/Roboto-BlackItalic.ttf');
+  font-weight: normal;
+  font-style: italic;
 }
 
 @font-face {
   font-family: "LigatureSymbols";
-  src: url('../font/LigatureSymbols-2.11.eot');
-  src: url('../font/LigatureSymbols-2.11.eot?#iefix') format("embedded-opentype"), url('../font/LigatureSymbols-2.11.woff') format("woff"), url('../font/LigatureSymbols-2.11.ttf') format("truetype"), url('../font/LigatureSymbols-2.11.svg#LigatureSymbols') format("svg");
+  src: url('../font/LigatureSymbols-2.11.woff') format('woff'), url('../font/LigatureSymbols-2.11.eot') format('embedded-opentype'), url('../font/LigatureSymbols-2.11.ttf') format('truetype'), url('../font/LigatureSymbols-2.11.svg') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -6411,7 +6485,7 @@ body {
 }
 
 small {
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 
 i.icon-external-link {
@@ -6497,7 +6571,7 @@ label.checkbox.inline, label.radio.inline {
 }
 
 .small {
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 
 .smaller {
@@ -6520,8 +6594,24 @@ label.checkbox.inline, label.radio.inline {
   color: #555555;
 }
 
+.thin {
+  font-family: "Roboto Thin";
+}
+
+.light {
+  font-family: "Roboto Light";
+}
+
 .bold {
   font-weight: bold;
+}
+
+.bolder {
+  font-family: "Roboto Medium";
+}
+
+.boldest {
+  font-family: "Roboto Black";
 }
 
 .tooltip {
@@ -6730,6 +6820,9 @@ textarea {
   display: -moz-inline-stack;
   display: inline-block;
   vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
   font-weight: bold;
   font-size: 12px;
   background: radial-gradient(1px -11px, circle, #ffffff 8%, #ff0000 26px);
@@ -6859,7 +6952,7 @@ textarea {
 
 .control-extra {
   margin-left: 30px;
-  font-size: 11.9px;
+  font-size: 13.3px;
   color: #999999;
 }
 
@@ -6867,7 +6960,7 @@ textarea {
   margin: 15px 30px 0 30px;
 }
 .notify * {
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 
 #langchooser {
@@ -6891,6 +6984,7 @@ textarea {
   padding: 0;
   border: 0;
   overflow: hidden;
+  *zoom: 1;
   background-color: #fff343;
   padding: 3px 9px;
 }
@@ -6926,12 +7020,10 @@ textarea {
 
 #welcome {
   text-align: center;
+  font-family: "Roboto Light";
   background-color: rgba(0, 0, 0, 0.3);
   color: white;
-}
-#welcome .modal-body {
   font-size: 17.5px;
-  font-weight: 200;
 }
 #welcome .beta {
   font-size: 10.5px;
@@ -6950,7 +7042,7 @@ textarea {
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-timing-function: linear;
   color: #fff343;
-  font-weight: 400;
+  font-family: "Roboto Light";
   font-size: 14px;
   padding-top: 12px;
 }
@@ -6966,7 +7058,7 @@ textarea {
 
 #authorize .prompt-extra {
   margin: 10px 0 15px 30px;
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 
 #proxiedSites .warning {
@@ -6986,9 +7078,6 @@ textarea {
   font-family: "Droid Sans Mono";
   font-size: 13px;
 }
-#proxiedSites .tip {
-  font-size: 11.2px;
-}
 #proxiedSites .error {
   text-align: center;
   color: #b94a48 !important;
@@ -6999,6 +7088,9 @@ textarea {
   display: -moz-inline-stack;
   display: inline-block;
   vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
   padding: 2px 4px;
   margin: 0;
   max-width: 200px;
@@ -7022,7 +7114,7 @@ textarea {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
   float: right;
-  width: 130px;
+  width: 120px;
   height: 27px;
   margin: -3px 0 10px;
   -webkit-border-radius: 18px;
@@ -7192,6 +7284,9 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   display: -moz-inline-stack;
   display: inline-block;
   vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
   text-align: left;
   white-space: normal;
   width: 200px;
@@ -7215,7 +7310,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 }
 .contactList-horizontal .fn {
   font-weight: bold;
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 .contactList-horizontal .btn-mini {
   padding: 0 3px;
@@ -7239,13 +7334,13 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   margin-bottom: 24.5px;
 }
 #settings dd label {
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 #settings details, #settings .details {
   margin-top: 9px;
 }
 #settings .summary {
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 #settings .collapsible {
   margin-left: 20px;
@@ -7294,21 +7389,21 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 }
 
 #changes {
-  font-size: 11.9px;
+  font-size: 13.3px;
   max-height: 200px;
   overflow: auto;
   margin-left: 0;
 }
 
 .modal-header.about {
-  font-size: 11.9px;
+  font-size: 13.3px;
   text-align: center;
   margin: 0;
   border-bottom: none;
 }
 
 #about {
-  font-size: 11.9px;
+  font-size: 13.3px;
 }
 #about > div:not(:first-child) {
   margin-top: 10px;
@@ -7331,7 +7426,7 @@ textarea.report {
 }
 
 #contact textarea.report {
-  font-size: 11.9px;
+  font-size: 13.3px;
   height: 175px;
   margin-top: 24px;
 }
@@ -7361,10 +7456,13 @@ textarea.report {
   display: -moz-inline-stack;
   display: inline-block;
   vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
 }
 
 #bpsUpDn {
-  font-size: 11.9px;
+  font-size: 13.3px;
   float: right;
 }
 #bpsUpDn > div {
@@ -7546,7 +7644,7 @@ g.transferring .connection {
   left: 0;
   z-index: 1051;
   text-align: center;
-  font-size: 11.9px;
+  font-size: 13.3px;
   text-shadow: black 1px 1px 1px;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
