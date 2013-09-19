@@ -371,9 +371,12 @@ public class Launcher {
         // OX: YourKit was reporting deadlocks here.  This seems like a
         // potentially expensive busy loop
         if (display != null) {
+            LOG.debug("Looping on display");
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
+        } else {
+            LOG.debug("No display?");
         }
     }
 
