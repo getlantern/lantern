@@ -649,8 +649,9 @@ public class DefaultXmppHandler implements XmppHandler {
                 // mark that we owe this user a reply, so that if we do decide to
                 // friend the user, we can approve the request.
 
-                roster.addIncomingSubscriptionRequest(pres);
 
+                LOG.debug("Adding subscription request");
+                friendsHandler.addIncomingSubscriptionRequest(pres.getFrom());
                 break;
             case subscribed:
                 break;

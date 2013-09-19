@@ -122,7 +122,7 @@ public class ClientFriend implements Friend {
 
     @Override
     public void setUserEmail(final String email) {
-        this.userEmail = email;
+        this.userEmail = email.toLowerCase();
     }
 
     @Override

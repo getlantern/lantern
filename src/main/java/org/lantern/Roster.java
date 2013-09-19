@@ -353,18 +353,6 @@ public class Roster implements RosterListener {
         }
     }
 
-    public void addIncomingSubscriptionRequest(final Presence pres) {
-        log.debug("Adding subscription request");
-        this.friendsHandler.addIncomingSubscriptionRequest(pres.getFrom());
-        syncFriends();
-    }
-
-
-    private void syncFriends() {
-        Events.syncAdd(SyncPath.FRIENDS.getPath(),
-                friendsHandler.getFriends());
-    }
-
     @Override
     public void entriesAdded(final Collection<String> addresses) {
         log.debug("Adding {} entries to roster", addresses.size());

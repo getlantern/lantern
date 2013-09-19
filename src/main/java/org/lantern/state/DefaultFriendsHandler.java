@@ -543,6 +543,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             newFriend.setPendingSubscriptionRequest(true);
             add(newFriend);
         }
+        Events.syncAdd(SyncPath.FRIENDS.getPath(), getFriends());
     }
 
 
