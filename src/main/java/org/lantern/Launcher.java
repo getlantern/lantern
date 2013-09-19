@@ -891,6 +891,7 @@ public class Launcher {
     public static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
     public static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
     public static final String OPTION_CONTROLLER_ID = "controller-id";
+    public static final String OPTION_INSTANCE_ID = "instance-id";
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
     
@@ -944,6 +945,8 @@ public class Launcher {
             "read Google OAuth2 user credentials from the file specified");
         options.addOption(null, OPTION_CONTROLLER_ID, true,
             "GAE id of the lantern-controller");
+        options.addOption(null, OPTION_INSTANCE_ID, true,
+            "Identifier for this instance in the lantern-controller");
         options.addOption(null, OPTION_AS_FALLBACK, false,
             "Run as fallback proxy");
         options.addOption(null, OPTION_KEYSTORE, true,
@@ -958,6 +961,11 @@ public class Launcher {
         if (cmd.hasOption(ctrlOpt)) {
             LanternClientConstants.setControllerId(
                 cmd.getOptionValue(ctrlOpt));
+        }
+
+        final String insOpt = OPTION_INSTANCE_ID;
+        if (cmd.hasOption(insOpt)) {
+            model.setInstanceId(cmd.getOptionValue(insOpt));
         }
 
         final String fbOpt = OPTION_AS_FALLBACK;
