@@ -52,7 +52,7 @@ public class FriendEndpointTest {
         
         final List<ClientFriend> newList = api.listFriends();
         for (final ClientFriend f : newList) {
-            assertEquals(updatedName, f.getName());
+            assertEquals(updatedName, f.getEmail());
             
             final Long id = f.getId();
             final Friend get = api.getFriend(id);
