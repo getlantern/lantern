@@ -7697,8 +7697,12 @@ g.transferring .connection {
   font-size: 22px;
   vertical-align: middle;
 }
-#global-nav button.active {
+#global-nav button.active, #global-nav button.active:hover {
   z-index: 1051 !important;
+  background-color: white;
+}
+#global-nav button.active i.lsf-icon, #global-nav button.active:hover i.lsf-icon {
+  color: black;
 }
 #global-nav button.ng-disabled {
   color: #333333;

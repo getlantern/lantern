@@ -38,8 +38,13 @@ $globalNavPosBottom: 15px
       line-height: 17px
       font-size: 22px
       vertical-align: middle
-  button.active
+  button.active, button.active:hover
     z-index: $zindexModal + 1 !important
+    background-color: #fff
+    //outline: 5px auto -webkit-focus-ring-color
+    //outline-offset: -2px
+    i.lsf-icon
+      color: #000
   button.ng-disabled
     color: $grayDark
   .lsf-icon:before
