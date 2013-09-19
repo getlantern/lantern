@@ -27,6 +27,8 @@ public abstract class AbstractHttpProxyServerAdapter implements LanternService {
 
     @Override
     public void stop() {
-        server.stop();
+        if (server != null) {
+            server.stop();
+        }
     }
 }
