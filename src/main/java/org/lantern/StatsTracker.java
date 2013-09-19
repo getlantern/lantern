@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.lang.management.OperatingSystemMXBean;
@@ -291,12 +290,8 @@ public class StatsTracker implements ClientStats {
         if (LanternUtils.isLocalHost(address)) {
             return;
         }
-        try {
-            final CountryData cd = toCountryData(address);
-            cd.bytes += bp;
-        } catch (final IOException e) {
-            log.warn("No CountryData for {} Not adding bytes proxied.", address, e);
-        }
+        final CountryData cd = toCountryData(address);
+        cd.bytes += bp;
     }
 
     @Override
@@ -361,33 +356,42 @@ public class StatsTracker implements ClientStats {
         this.systemLoadAverage = osStats.getSystemLoadAverage();
         if (osStats.getClass().getName()
                 .equals("com.sun.management.UnixOperatingSystem")) {
-            this.processCpuUsage = (Double) getSystemStat(osStats, "getProcessCpuLoad");
-            this.systemCpuUsage = (Double) getSystemStat(osStats, "getSystemCpuLoad");
-            this.numberOfOpenFileDescriptors = (Long) getSystemStat(osStats, "getOpenFileDescriptorCount");
+            this.processCpuUsage = getSystemStatDouble(osStats, "getProcessCpuLoad");
+            this.systemCpuUsage = getSystemStatDouble(osStats, "getSystemCpuLoad");
+            this.numberOfOpenFileDescriptors = getSystemStatLong(osStats, "getOpenFileDescriptorCount");
         }
     }
 
-    private <T extends Number> T getSystemStat(OperatingSystemMXBean osStats, String name) {
-        Method method = null;
-        boolean originalAccessible = false;
-
+    private Double getSystemStatDouble(final OperatingSystemMXBean osStats, 
+            final String name) {
         try {
-            method = osStats.getClass().getDeclaredMethod(name);
-            originalAccessible = method.isAccessible();
-            method.setAccessible(true);
-            return (T) method.invoke(osStats);
-        } catch (Exception e) {
+            return getSystemStat(osStats, name);
+        } catch (final Exception e) {
             log.debug("Unable to get system stat: {}", name, e);
-            return (T) (Number) 0;
-        } finally {
-            if (method != null) {
-                method.setAccessible(originalAccessible);
-            }
+            return 0.0;
         }
     }
+    
+    private Long getSystemStatLong(final OperatingSystemMXBean osStats, 
+            final String name) {
+        try {
+            return getSystemStat(osStats, name);
+        } catch (final Exception e) {
+            log.debug("Unable to get system stat: {}", name, e);
+            return 0L;
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private <T extends Number> T getSystemStat(
+            final OperatingSystemMXBean osStats, 
+            final String name) throws Exception {
+        final  Method method = osStats.getClass().getDeclaredMethod(name);
+        method.setAccessible(true);
+        return (T) method.invoke(osStats);
+    }
 
-    private CountryData toCountryData(final InetSocketAddress isa) 
-        throws IOException {
+    private CountryData toCountryData(final InetSocketAddress isa) {
         if (isa == null) {
             return null;
         }
