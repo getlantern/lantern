@@ -283,7 +283,7 @@ public class Roster implements RosterListener {
      */
     public void addEntry(final LanternRosterEntry entry,
         final boolean updateIndex) {
-        if (LanternUtils.isNotJid(entry.getEmail())) {
+        if (LanternUtils.isAnonymizedGoogleTalkAddress(entry.getEmail())) {
             log.debug("Adding entry for {}", entry);
             putNewElement(entry, updateIndex);
         } else {

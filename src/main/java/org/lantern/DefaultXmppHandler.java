@@ -1140,7 +1140,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // In theory we might be able to use the Google Plus API to get
         // actual e-mail addresses -- see:
         // https://github.com/getlantern/lantern/issues/432
-        if (LanternUtils.isNotJid(email)) {
+        if (LanternUtils.isAnonymizedGoogleTalkAddress(email)) {
             pres.setProperty(LanternConstants.INVITED_EMAIL, email);
         } else {
             pres.setProperty(LanternConstants.INVITED_EMAIL, "");

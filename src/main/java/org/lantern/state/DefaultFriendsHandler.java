@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
+import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
@@ -534,11 +535,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Override
     public void addIncomingSubscriptionRequest(final String from) {
-        log.debug("Adding subscription request");
+        log.debug("Adding subscription request from: {}", from);
+        if (LanternUtils.isAnonymizedGoogleTalkAddress(from)) {
+            // This was a subscription request between these users from outside
+            // Lantern of the form:
+            // 0po8orrkoxnba3oobvgvyd70ne@public.talk.google.com
+            // We just ignore it.
+            log.debug("Ignoring request");
+            return;
+        }
         final ClientFriend friend = getFriend(from);
         if (friend != null) {
             setPendingSubscriptionRequest(friend, true);
         } else {
+            // This subscription request is from someone we don't know, and it
+            // may not even be from lantern.
             final ClientFriend newFriend = new ClientFriend(from);
             newFriend.setPendingSubscriptionRequest(true);
             add(newFriend);

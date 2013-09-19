@@ -653,7 +653,7 @@ public class LanternUtils {
         return XmppUtils.jidToUser(jid);
     }
 
-    public static boolean isNotJid(final String email) {
+    public static boolean isAnonymizedGoogleTalkAddress(final String email) {
         final boolean isEmail = !email.contains(".talk.google.com");
         /*
         if (isEmail) {

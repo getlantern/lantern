@@ -58,13 +58,13 @@ public class LanternUtilsTest {
     @Test
     public void testIsJid() throws Exception {
         String id = "2bgg8h04men25@id.talk.google.com";
-        assertTrue(!LanternUtils.isNotJid(id));
+        assertTrue(!LanternUtils.isAnonymizedGoogleTalkAddress(id));
 
         id = "2bgg8h04men25@public.talk.google.com";
-        assertTrue(!LanternUtils.isNotJid(id));
+        assertTrue(!LanternUtils.isAnonymizedGoogleTalkAddress(id));
 
         id = "testuser@gmail.com";
-        assertTrue(LanternUtils.isNotJid(id));
+        assertTrue(LanternUtils.isAnonymizedGoogleTalkAddress(id));
     }
 
     @Test
