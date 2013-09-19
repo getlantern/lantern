@@ -66,7 +66,7 @@
   <div class="modal-body" id="welcome">
     <div class="logo">
       <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
-      <div class="beta">{{ 'BETA' | i18n }}</div>
+      <div class="beta">{{ 'BETA' | i18n }}</div><!-- XXX remove this when we graduate from beta -->
     </div>
     <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
     <div ng-show="model.connectivity.internet">
@@ -110,10 +110,11 @@
       <a ng-click="helpExpanded=!helpExpanded" class="more-info">{{ 'MORE_INFO' | i18n }}</a>
     </div>
     <div class="prompt-extra" collapse="!helpExpanded">
-      <p>{{ 'AUTHORIZE_TIP_GTALK' | i18n }}</p>
-      <p>{{ 'EMAIL_USE' | i18n }}</p>
-      <p>{{ 'DIRECT_FROM_GOOGLE' | i18n }}</p>
+      <p ng-bind-html="'AUTHORIZE_EXTRA' | i18n"></p>
+      <p ng-bind-html="'EMAIL_USE' | i18n"></p>
+      <p ng-bind-html="'DIRECT_FROM_GOOGLE' | i18n"></p>
     </div>
+    <p class="small gray indented">{{ 'INVITE_EMAIL' | i18n }}</p><!-- XXX remove this when we go to open beta -->
   </div>
   <div class="modal-footer">
     <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}" focus-on="show">
@@ -180,50 +181,49 @@
     </h3>
   </div>
   <div class="modal-body" id="proxiedSites">
-    <div class="prompt small">{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
-    <div class="warning noHeightWhenHidden" ui-toggle="model.settings.proxyAllSites">
-      <i class="icon icon-warning-sign"></i>
-      {{ 'PROXYING_ALL_WARNING' | i18n }}
-      <a ng-click="changeSetting(SETTING.proxyAllSites, false)">
-        {{ 'DISABLE_PROXY_ALL' | i18n }}
-      </a>
-    </div>
-    <div>
-      <div id="proxiedSitesLabelAndSearchContainer">
-        <label id="proxiedSitesLabel" for="proxiedSitesInput">
-          {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
-        </label>
-        <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
-            ng-disabled="model.settings.proxyAllSites"
-            ng-class="{empty: !searchText}"
-            placeholder="{{ 'SEARCH' | i18n }}">
+
+    <div class="warning" ng-show="model.settings.proxyAllSites">
+      <div style="margin-bottom: 8px">
+        <i class="icon icon-warning-sign"></i>
+        <span ng-bind-html="'PROXYING_ALL_WARNING' | i18n"></span>
       </div>
-      <form name="proxiedSitesForm">
-        <textarea ng-model="input" name="input" placeholder="example.com" required
-          ng-disabled="model.settings.proxyAllSites || updating"
-          ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
-          ui-validate="'validate($value)'" id="proxiedSitesInput"
-          dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
-        <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }} &quot;{{searchText}}&quot;"
-          ng-show="!!searchText" readonly dir="ltr"></textarea>
-      </form>
+      <div class="small" ng-bind-html="'PROXYING_ALL_WARNING_EXPLANATION' | i18n"></div>
+      <div style="margin-top: 14px">
+        <a class="btn btn-warning btn-small" ng-click="changeSetting(SETTING.proxyAllSites, false)">
+          {{ 'DISABLE_PROXY_ALL' | i18n }}
+        </a>
+      </div>
     </div>
-    <div class="more-info">
-      {{ 'PROXIED_SITES_WIKI_TIP' | i18n }}
-      <a ng-click="openExternal(EXTERNAL_URL.proxiedSitesWiki)">
-        {{ 'PROXIED_SITES_WIKI_LINK_TEXT' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-      {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | i18n }}
-    </div>
-    <!-- XXX https://github.com/getlantern/lantern/issues/465#issuecomment-14825659
-         uncomment this out once it's actually true:
-    <div class="tip" ui-toggle="!model.settings.proxyAllSites">
-      <i class="icon-info-sign"></i>
-      {{ 'PROXIED_SITES_TIP' | i18n }}
-    </div>
-    -->
-    <div class="error" ui-toggle="errorLabelKey">
-      {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
-      <pre class="errorCause" ng-show="!!errorCause">{{ errorCause }}</pre>
+
+    <div ng-hide="model.settings.proxyAllSites">
+      <p>{{ 'CONFIGURE_PROXIED_SITES' | i18n }}</p>
+      <div>
+        <div id="proxiedSitesLabelAndSearchContainer">
+          <div class="smaller pull-left">{{ 'ENTER_PROXIED_SITES_TIP' | i18n }}</div>
+          <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
+              ng-class="{empty: !searchText}"
+              placeholder="{{ 'SEARCH' | i18n }}">
+        </div>
+        <form name="proxiedSitesForm">
+          <textarea ng-model="input" name="input" placeholder="example.com" required
+            ng-disabled="updating"
+            ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
+            ui-validate="'validate($value)'" id="proxiedSitesInput"
+            dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
+          <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }} &quot;{{searchText}}&quot;"
+            ng-show="!!searchText" readonly dir="ltr"></textarea>
+        </form>
+      </div>
+      <p class="smaller">
+        <strong>{{'TIP'|i18n}}</strong> {{ 'PROXIED_SITES_WIKI_TIP' | i18n }}
+        <a ng-click="openExternal(EXTERNAL_URL.proxiedSitesWiki)">
+          {{ 'PROXIED_SITES_WIKI_LINK_TEXT' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | i18n }}
+      </p>
+      <div class="error" ui-toggle="errorLabelKey">
+        {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
+        <pre class="errorCause" ng-show="!!errorCause">{{ errorCause }}</pre>
+      </div>
     </div>
   </div>
   <div class="modal-footer">
@@ -243,11 +243,11 @@
   </div>
   <div class="modal-body" id="lanternFriends">
     <div>
-      <p>{{ 'LANTERN_FRIENDS_PROMPT' | i18n }}</p>
-      <p class="small">
-        {{ 'LANTERN_FRIENDS_EXP_INTRO' | i18n }}
-        {{ inGiveMode && 'LANTERN_FRIENDS_EXP_GIVE' || 'LANTERN_FRIENDS_EXP_GET'  | i18n }}
+      <p>
+        <strong>{{ 'LANTERN_FRIENDS_PROMPT' | i18n }}</strong>
+        <small ng-bind-html="'LANTERN_FRIENDS_EXP_INTRO' | i18n"></small>
       </p>
+      <p class="small bold">{{ inGiveMode && 'LANTERN_FRIENDS_EXP_GIVE' || 'LANTERN_FRIENDS_EXP_GET'  | i18n }}</p>
     </div>
 
     <div class="addFriendsControls">
@@ -372,8 +372,8 @@
   </div>
   <div class="modal-body" id="about" dir="ltr">
     <div>
-      {{ 'BETA' | i18n }}
-      <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea>
+      <strong>{{ 'BETA' | i18n }}</strong>
+      <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea><!-- XXX remove this when we graduate from beta -->
       <p class="contributing-prompt">
         {{ 'VIEW_THE' | i18n }}
         <a ng-click="openExternal(EXTERNAL_URL.getInvolved)">{{ 'GET_INVOLVED' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
@@ -381,15 +381,15 @@
       </p>
     </div>
     <div>
-      {{ 'PRIVACY' | i18n }}
+      <strong>{{ 'PRIVACY' | i18n }}</strong>
       <textarea readonly rows="3">{{ 'PRIVACY_STATEMENT' | i18n }}</textarea>
     </div>
     <div>
-      {{ 'LICENSE' | i18n }}
+      <strong>{{ 'LICENSE' | i18n }}</strong>
       <textarea readonly rows="3">{{ 'LICENSE_STATEMENT' | i18n }}</textarea>
     </div>
     <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
-    <div class="smaller gray centered">{{ 'COPYRIGHT' | i18n }}</div>
+    <div class="smaller centered light">{{ 'COPYRIGHT' | i18n }}</div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
@@ -419,7 +419,7 @@
       {{ 'VERSION' | i18n }} {{ model.version.installed | version }},
       {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate }}.</time></p><!-- XXX i18n -->
     <br>
-    <p class="indented">{{ 'UPDATE_PROMPT' | i18n }}</p>
+    <p class="indented bold">{{ 'UPDATE_PROMPT' | i18n }}</p>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.close)"
@@ -473,7 +473,7 @@
       <dt>{{ 'APP' | i18n }}</dt>
       <dd id="app-settings">
         <label class="checkbox">
-          <input type="checkbox" ng-model="runAtSystemStart"
+          <input type="checkbox" ng-model="runAtSystemStart" focus-on="show"
                  ng-click="changeSetting(SETTING.runAtSystemStart, runAtSystemStart)">
           {{ 'AUTO_START' | i18n }}
         </label>
@@ -563,7 +563,7 @@
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET_ELLIPSIS' | i18n }}
     </button>
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)" focus-on="show">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>
 

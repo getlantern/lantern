@@ -6484,8 +6484,16 @@ body {
   overflow: hidden;
 }
 
-small {
+small, .small {
   font-size: 13.3px;
+}
+
+.smaller {
+  font-size: 11.9px;
+}
+
+.bigger {
+  font-size: 14.7px;
 }
 
 i.icon-external-link {
@@ -6521,12 +6529,12 @@ i[class*=icon] {
 }
 
 .more-info {
-  font-size: 10.5px;
+  font-size: 11.9px;
   margin-left: 2px;
 }
 
 details *:not(summary) {
-  font-size: 10.5px;
+  font-size: 11.9px;
 }
 details > *:not(summary) {
   margin-left: 20px;
@@ -6568,14 +6576,6 @@ label.checkbox.inline, label.radio.inline {
 
 .indented {
   margin-left: 20px;
-}
-
-.small {
-  font-size: 13.3px;
-}
-
-.smaller {
-  font-size: 10.5px;
 }
 
 .centered {
@@ -7020,13 +7020,13 @@ textarea {
 
 #welcome {
   text-align: center;
-  font-family: "Roboto Light";
+  font-family: "Roboto Thin";
   background-color: rgba(0, 0, 0, 0.3);
   color: white;
   font-size: 17.5px;
 }
 #welcome .beta {
-  font-size: 10.5px;
+  font-size: 11.9px;
   font-weight: bold;
   position: absolute;
   right: 40px;
@@ -7057,20 +7057,21 @@ textarea {
 }
 
 #authorize .prompt-extra {
-  margin: 10px 0 15px 30px;
-  font-size: 13.3px;
+  font-size: 11.9px;
+  margin: 10px 30px 15px;
 }
 
 #proxiedSites .warning {
+  border: 1px dotted #c09853;
+  border-radius: 8px;
+  padding: 10px;
   text-align: center;
   font-size: 15.4px;
-  margin: 28px 0 14px;
+  margin: 14px 0;
+  background: #eeeeee;
 }
-#proxiedSites .warning i, #proxiedSites .warning a {
+#proxiedSites .warning i {
   color: #c09853 !important;
-}
-#proxiedSites .warning a {
-  text-decoration: underline;
 }
 #proxiedSites textarea {
   width: 100%;
@@ -7103,10 +7104,6 @@ textarea {
   margin-top: 28px;
 }
 
-#proxiedSitesLabel {
-  float: left;
-}
-
 #proxiedSitesSearch {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -7114,7 +7111,7 @@ textarea {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
   float: right;
-  width: 120px;
+  width: 230px;
   height: 27px;
   margin: -3px 0 10px;
   -webkit-border-radius: 18px;
@@ -7141,9 +7138,9 @@ textarea {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
   float: right;
-  width: 170px;
+  width: 230px;
   height: 27px;
-  margin: 20px 0 7px;
+  margin: 35px 0 7px;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
@@ -7168,7 +7165,7 @@ textarea {
   margin-top: 20px;
 }
 #lanternFriends .friendConnectedStatus {
-  font-size: 10.5px;
+  font-size: 11.9px;
   margin: 2px 0 0 14px;
 }
 body.getMode #lanternFriends .friendConnectedStatus.transferringNow {
@@ -7191,9 +7188,11 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 }
 
 #currentFriendsHeading {
-  margin: 25px 0 0;
+  font-weight: bold;
+  margin: 40px 0 0 13px;
+  padding: 0 5px 2px;
+  border-bottom: 1px solid #dddddd;
   float: left;
-  font-size: 15px;
 }
 
 #currentFriends {
@@ -7242,7 +7241,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   float: right;
 }
 #currentFriends .pending {
-  font-size: 10.5px;
+  font-size: 11.9px;
   text-align: center;
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
@@ -7315,7 +7314,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 .contactList-horizontal .btn-mini {
   padding: 0 3px;
   line-height: 1.4;
-  font-size: 10.5px;
+  font-size: 11.9px;
 }
 
 #finished-autoReport {
@@ -7323,7 +7322,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   color: #666666;
 }
 #finished-autoReport label {
-  font-size: 10.5px;
+  font-size: 11.9px;
 }
 #finished-autoReport input[type=checkbox] {
   margin-left: -15px;
@@ -7346,7 +7345,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   margin-left: 20px;
 }
 #settings .collapsible * {
-  font-size: 10.5px;
+  font-size: 11.9px;
 }
 #settings .pacUrl {
   margin-left: 12px;
@@ -7355,7 +7354,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 #autoreport-warning {
   margin-left: 20px;
   color: #c09853 !important;
-  font-size: 10.5px;
+  font-size: 11.9px;
   margin-top: 3px;
 }
 
@@ -7409,18 +7408,23 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   margin-top: 10px;
 }
 #about .contributing-prompt {
-  font-size: 10.5px;
   text-align: center;
   font-weight: bold;
+  font-size: 14px;
+  padding: 3px 0;
+  border-top: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
+  margin: 5px 25px 20px;
 }
 #about textarea {
+  font-family: "Roboto Light";
+  font-size: 11.9px;
   width: 100%;
-  font-size: 10.5px;
 }
 
 textarea.report {
   font-family: "Droid Sans Mono";
-  font-size: 10.5px;
+  font-size: 11.9px;
   width: 100%;
   height: 125px;
 }
@@ -7609,21 +7613,21 @@ g.transferring .connection {
   color: green !important;
 }
 .tooltip .vis .type {
-  font-size: 10.5px;
+  font-size: 11.9px;
 }
 .tooltip .vis .peerid, .tooltip .vis .id {
-  font-size: 10.5px;
+  font-size: 11.9px;
   color: #dddddd;
 }
 .tooltip .vis .stats {
-  font-size: 10.5px;
+  font-size: 11.9px;
   clear: both;
 }
 .tooltip .vis .bps0, .tooltip .vis .bytes0 {
   color: #999999;
 }
 .tooltip .vis .lastConnected {
-  font-size: 10.5px;
+  font-size: 11.9px;
   color: #999999;
 }
 .tooltip .vis .nusers {
@@ -7668,7 +7672,7 @@ g.transferring .connection {
 }
 
 #noproxies {
-  font-size: 10.5px;
+  font-size: 11.9px;
   line-height: 14px;
 }
 
@@ -7717,7 +7721,7 @@ body.giveMode #npending {
 }
 
 #appInfo {
-  font-size: 10.5px;
+  font-size: 11.9px;
   z-index: 1051;
   color: white;
 }
@@ -7768,7 +7772,7 @@ body.giveMode #npending {
   bottom: 6px;
   left: 22px;
   z-index: 1051;
-  font-size: 10.5px;
+  font-size: 11.9px;
   color: #fff343;
   font-weight: 300;
   text-shadow: 0 1px 0 black;
@@ -7798,7 +7802,7 @@ body.giveMode #npending {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
-  font-size: 10.5px;
+  font-size: 11.9px;
   font-family: "Droid Sans Mono";
   width: 500px;
   height: 500px;

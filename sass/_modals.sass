@@ -66,7 +66,7 @@
 
 #welcome
   +centered
-  +light
+  +thin
   background-color: rgba(0, 0, 0, .3)
   color: #fff
   font-size: $baseFontSize * 1.25
@@ -94,18 +94,20 @@
 
 #authorize
   .prompt-extra
-    margin: 10px 0 15px 30px
-    +small
+    +smaller
+    margin: 10px 30px 15px
 
 #proxiedSites
   .warning
+    border: 1px dotted $warningText
+    border-radius: 8px
+    padding: 10px
     text-align: center
     font-size: $baseFontSize * 1.1
-    margin: $baseFontSize * 2 0 $baseFontSize
-    & i, & a
+    margin: $baseFontSize 0
+    background: #eee
+    i
       +warning-colored
-    & a
-      text-decoration: underline
   textarea
     width: 100%
     height: 150px
@@ -125,14 +127,11 @@
 #proxiedSitesLabelAndSearchContainer
   margin-top: $baseFontSize * 2
 
-#proxiedSitesLabel
-  float: left
-
 #proxiedSitesSearch // override bootstrap
   +ctb-box-sizing(border-box)
   +single-transition(opacity, 0.3s, ease)
   float: right
-  width: 120px
+  width: 230px
   height: 1.5 * $baseLineHeight
   margin: -3px 0 10px
   +border-radius(18px)
@@ -149,9 +148,9 @@
   +ctb-box-sizing(border-box)
   +single-transition(opacity, 0.3s, ease)
   float: right
-  width: 170px
+  width: 230px
   height: 1.5 * $baseLineHeight
-  margin: 20px 0 7px
+  margin: 35px 0 7px
   +border-radius(18px)
   &::-webkit-search-decoration
     -webkit-appearance: searchfield-decoration
@@ -183,9 +182,11 @@
       +gray
 
 #currentFriendsHeading
-  margin: 25px 0 0
+  +bold
+  margin: 40px 0 0 13px
+  padding: 0 5px 2px
+  border-bottom: 1px solid #ddd
   float: left
-  font-size: 15px
 
 #currentFriends
   +no-bullets
@@ -339,12 +340,17 @@
   > div:not(:first-child)
     margin-top: 10px
   .contributing-prompt
-    +smaller
     +centered
     +bold
+    +base-size
+    padding: 3px 0
+    border-top: 1px solid #ddd
+    border-bottom: 1px solid #ddd
+    margin: 5px 25px 20px
   textarea
-    width: 100%
+    +light
     +smaller
+    width: 100%
 
 textarea.report
   +monofont
