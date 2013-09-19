@@ -94,8 +94,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refresh) {
-        refreshLoaded.set(true);
         loadFriends();
+        refreshLoaded.set(true);
     }
     
     @Subscribe
@@ -107,6 +107,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             // This is necessary because we may have loaded the friends before
             // the UI is ready to process them, in which case syncing friends 
             // will have no effect. 
+            log.debug("Handling UI loaded...");
             Events.sync(SyncPath.FRIENDS, getFriends());
         }
     }
