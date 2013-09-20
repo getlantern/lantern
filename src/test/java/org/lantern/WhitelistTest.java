@@ -66,7 +66,7 @@ public class WhitelistTest {
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
         final ModelIo modelIo = new ModelIo(randFile, fileService, null,
-                countryService);
+                countryService, null);
         return modelIo;
     }
 

@@ -2,10 +2,12 @@ package org.lantern.state;
 
 import java.io.File;
 
+import org.apache.commons.cli.CommandLine;
 import org.lantern.Country;
 import org.lantern.CountryService;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.lantern.Launcher;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
@@ -19,15 +21,17 @@ public class ModelIo extends Storage<Model> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final CountryService countryService;
+    private final CommandLine commandLine;
 
     /**
      * Creates a new instance with all the default operations.
      */
     @Inject
     public ModelIo(final EncryptedFileService encryptedFileService,
-            Transfers transfers, final CountryService countryService) {
+            final Transfers transfers, final CountryService countryService,
+            final CommandLine commandLine) {
         this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService,
-                transfers, countryService);
+                transfers, countryService, commandLine);
     }
 
     /**
@@ -36,12 +40,14 @@ public class ModelIo extends Storage<Model> {
      *
      * @param modelFile
      *            The file where settings are stored.
+     * @param commandLine The command line arguments. 
      */
     public ModelIo(final File modelFile,
             final EncryptedFileService encryptedFileService, Transfers transfers,
-            final CountryService countryService) {
+            final CountryService countryService, final CommandLine commandLine) {
         super(encryptedFileService, modelFile, Model.class);
         this.countryService = countryService;
+        this.commandLine = commandLine;
         obj = read();
         obj.setTransfers(transfers);
         log.info("Loaded module");
@@ -80,6 +86,7 @@ public class ModelIo extends Storage<Model> {
             if (!isCensored && read.getModal() == Modal.giveModeForbidden) {
                 read.setModal(Modal.none);
             }
+            setServerPort(this.commandLine, read);
             return read;
         } catch (final ModelReadFailedException e) {
             log.error("Failed to read model", e);
@@ -91,6 +98,36 @@ public class ModelIo extends Storage<Model> {
             Model blank = blank();
             return blank;
         }
+    }
+    
+    /**
+     * We need to make sure to set the server port before anything is 
+     * injected -- otherwise we run the risk of running on a completely 
+     * different port than what is passed on the command line!
+     * 
+     * @param cmd The command line.
+     * @param read The model
+     */
+    private void setServerPort(final CommandLine cmd, final Model read) {
+        if (cmd == null) {
+            // Can be true for testing.
+            log.error("No command line?");
+        }
+        final Settings set = read.getSettings();
+        if (cmd.hasOption(Launcher.OPTION_SERVER_PORT)) {
+            final String serverPortStr =
+                cmd.getOptionValue(Launcher.OPTION_SERVER_PORT);
+            log.debug("Using command-line proxy port: "+serverPortStr);
+            final int serverPort = Integer.parseInt(serverPortStr);
+            set.setServerPort(serverPort);
+        } else {
+            final int existing = set.getServerPort();
+            if (existing < 1024) {
+                log.debug("Using random give mode proxy port...");
+                set.setServerPort(LanternUtils.randomPort());
+            }
+        }
+        log.info("Running give mode proxy on port: {}", set.getServerPort());
     }
 
     @Override

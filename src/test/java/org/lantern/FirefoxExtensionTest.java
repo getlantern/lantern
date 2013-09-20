@@ -12,7 +12,7 @@ public class FirefoxExtensionTest {
 
     @Test public void testCopy() throws Exception {
         final String extName = "lantern@getlantern.org";
-        final LanternModule module = new LanternModule();
+        final LanternModule module = new LanternModule(TestingUtils.newCommandLine());
         final File dest = new File(module.getExtensionDir(), extName);
 
         FileUtils.deleteDirectory(dest);

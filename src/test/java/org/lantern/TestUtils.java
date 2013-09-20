@@ -126,10 +126,15 @@ public class TestUtils {
         }
     }
     public static void load() {
-        load(false);
+        try {
+            load(false);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
-    public static void load(final boolean start) {
+    public static void load(final boolean start) throws Exception {
         if (loaded) {
             LOG.warn("ALREADY LOADED. HOW THE HECK DOES SUREFIRE CLASSLOADING WORK?");
             if (!started) {
@@ -195,8 +200,9 @@ public class TestUtils {
 
         @Inject
         public TestModelIo(EncryptedFileService encryptedFileService,
-                Transfers transfers, CountryService countryService) {
-            super(file, encryptedFileService, transfers, countryService);
+                Transfers transfers, CountryService countryService) throws Exception {
+            super(file, encryptedFileService, transfers, countryService,
+                    TestingUtils.newCommandLine());
         }
 
         @Override
@@ -205,8 +211,8 @@ public class TestUtils {
         }
     }
 
-    public static Module newTestLanternModule() {
-        final LanternModule lm = new LanternModule();
+    public static LanternModule newTestLanternModule() throws Exception {
+        final LanternModule lm = new LanternModule(TestingUtils.newCommandLine());
         lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
         lm.setEncryptedFileService(new UnencryptedFileService());
         lm.setGeoIpLookupService(new GeoIpLookupService(false));
@@ -237,7 +243,8 @@ public class TestUtils {
                 return 0;
             }
         });
-        return Modules.override(lm).with(new TestModule());
+        //return Modules.override(lm).with(new TestModule());
+        return lm;
     }
 
     protected static class TestModule implements Module {

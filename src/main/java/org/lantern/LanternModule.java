@@ -68,6 +68,11 @@ public class LanternModule extends AbstractModule {
 
     private UpnpService upnpService;
     private GeoIpLookupService geoIpLookupService;
+    private final org.apache.commons.cli.CommandLine commandLine;
+    
+    public LanternModule(final org.apache.commons.cli.CommandLine cmd) {
+        this.commandLine = cmd;
+    }
 
     @Override
     protected void configure() {
@@ -131,6 +136,11 @@ public class LanternModule extends AbstractModule {
         } catch (final IOException e) {
             log.error("Could not copy FireFox extension?", e);
         }
+    }
+    
+    @Provides @Singleton
+    public org.apache.commons.cli.CommandLine commandLine() {
+        return this.commandLine;
     }
 
     @Provides @Singleton

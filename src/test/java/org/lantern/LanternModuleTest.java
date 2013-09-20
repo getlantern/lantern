@@ -8,6 +8,7 @@ import java.security.GeneralSecurityException;
 
 import javax.crypto.Cipher;
 
+import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
 import org.lantern.TestUtils.TestModule;
 import org.lantern.http.JettyLauncher;
@@ -27,8 +28,9 @@ import com.google.inject.util.Modules;
 public class LanternModuleTest {
 
     @Test
-    public void test() {
-        final LanternModule lm = new LanternModule();
+    public void test() throws Exception {
+        final CommandLine cmd = TestingUtils.newCommandLine();
+        final LanternModule lm = new LanternModule(cmd);
         
         lm.setLocalCipherProvider(new LocalCipherProvider() {
 

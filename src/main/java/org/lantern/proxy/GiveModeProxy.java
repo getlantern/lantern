@@ -17,6 +17,8 @@ import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.SslEngineSource;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -26,6 +28,9 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     @Inject
     public GiveModeProxy(
             final ClientStats stats,
@@ -113,5 +118,6 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                                 .peerForSession(sslSession) : null;
                     }
                 }));
+        log.info("Creating give mode proxy on port: {}", model.getSettings().getServerPort());
     }
 }

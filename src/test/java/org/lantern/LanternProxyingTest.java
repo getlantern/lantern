@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -44,11 +45,12 @@ public class LanternProxyingTest {
                 "--access-tok", TestUtils.getAccessToken(), 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
-        final Module lm = TestUtils.newTestLanternModule();
+        final CommandLine cmd = TestingUtils.newCommandLine(args);
+        final LanternModule lm = new LanternModule(cmd);
 
-        final Launcher launcher = new Launcher(lm, args);
+        final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();
-        launcher.run();
+        launcher.launch();
         launcher.model.setSetupComplete(true);
         
         final Injector injector = launcher.getInjector();

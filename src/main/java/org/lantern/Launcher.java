@@ -137,19 +137,15 @@ public class Launcher {
 
     private InternalState internalState;
 
-    private final String[] commandLineArgs;
+    //private final String[] commandLineArgs;
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
-    private final Module lanternModule;
+    private final LanternModule lanternModule;
     //private SplashScreen splashScreen;
 
     private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
-
-    public Launcher(final String... args) {
-        this(new LanternModule(), args);
-    }
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -158,9 +154,8 @@ public class Launcher {
      * @param lm The {@link LanternModule} to use.
      * @param args Command line arguments.
      */
-    public Launcher(final Module lm, final String[] args) {
+    public Launcher(final LanternModule lm) {
         this.lanternModule = lm;
-        this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -168,15 +163,6 @@ public class Launcher {
                 handleError(e, false);
             }
         });
-    }
-
-    public void run() {
-        LOG = LoggerFactory.getLogger(Launcher.class);
-        try {
-            launch(this.commandLineArgs);
-        } catch (final Throwable t) {
-            handleError(t, true);
-        }
     }
 
     /**
@@ -194,22 +180,12 @@ public class Launcher {
      * @param args Any command line arguments.
      */
     public static void main(final boolean configureLogger, final String... args) {
-        final Launcher launcher = new Launcher(args);
-        if (configureLogger) {
-            launcher.configureDefaultLogger();
-        }
-        launcher.run();
-    }
-
-    private void launch(final String... args) {
-        LOG.info("Starting Lantern...");
         final Stopwatch earlyWatch = 
             StopwatchManager.getStopwatch("pre-instance-creation", 
                 STOPWATCH_LOG, STOPWATCH_GROUP);
         earlyWatch.start();
         // first apply any command line settings
         final Options options = buildOptions();
-
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -223,6 +199,7 @@ public class Launcher {
             return;
         }
 
+
         if (cmd.hasOption(OPTION_HELP)) {
             printHelp(options, null);
             return;
@@ -231,20 +208,32 @@ public class Launcher {
             return;
         }
         earlyWatch.stop();
-        
+        final LanternModule lm = new LanternModule(cmd);
+        final Launcher launcher = new Launcher(lm);
+        if (configureLogger) {
+            launcher.configureDefaultLogger();
+        }
+        launcher.launch();
+    }
+
+    void launch() {
+        LOG = LoggerFactory.getLogger(Launcher.class);
+        LOG.info("Starting Lantern...");
+
         final Stopwatch injectorWatch = 
             StopwatchManager.getStopwatch("Guice-Injector", 
                 STOPWATCH_LOG, STOPWATCH_GROUP);
         injectorWatch.start();
         injector = Guice.createInjector(this.lanternModule);
         injectorWatch.stop();
-        
         LOG.debug("Creating display...");
 
         final Stopwatch preInstanceWatch = 
             StopwatchManager.getStopwatch("Pre-Instance-Creation", 
                 STOPWATCH_LOG, STOPWATCH_GROUP);
         preInstanceWatch.start();
+        
+        final CommandLine cmd = this.lanternModule.commandLine();
         // There are four cases here:
         // 1) We're just starting normally
         // 2) We're running with UI disabled (such as from a server), in
@@ -361,6 +350,8 @@ public class Launcher {
         
         // Set up the give and get mode proxies
         getModeProxy = instance(GetModeProxy.class);
+        
+        LOG.info("Creating give mode proxy...");
         giveModeProxy = instance(GiveModeProxy.class);
         
         startServices();
@@ -716,7 +707,7 @@ public class Launcher {
         }
     }
 
-    private void printHelp(Options options, String errorMessage) {
+    private static void printHelp(Options options, String errorMessage) {
         if (errorMessage != null) {
             LOG.error(errorMessage);
             System.err.println(errorMessage);
@@ -726,7 +717,7 @@ public class Launcher {
         formatter.printHelp("lantern", options);
     }
 
-    private void printVersion() {
+    private static void printVersion() {
         System.out.println("Lantern version "+LanternClientConstants.VERSION);
     }
 
@@ -740,6 +731,7 @@ public class Launcher {
             System.out.println("Not on main line...");
             configureProductionLogger();
         }
+        System.err.println("CONFIGURED LOGGER");
     }
 
     private void configureProductionLogger() {
@@ -898,7 +890,7 @@ public class Launcher {
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
     
-    private static Options buildOptions() {
+    public static Options buildOptions() {
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
             "run without a graphical user interface.");
@@ -1041,22 +1033,6 @@ public class Launcher {
         }
 
         LOG.info("Running API on port: {}", StaticSettings.getApiPort());
-
-        if (cmd.hasOption(OPTION_SERVER_PORT)) {
-            final String serverPortStr =
-                cmd.getOptionValue(OPTION_SERVER_PORT);
-            LOG.debug("Using command-line proxy port: "+serverPortStr);
-            final int serverPort = Integer.parseInt(serverPortStr);
-            set.setServerPort(serverPort);
-        } else {
-            final int existing = set.getServerPort();
-            if (existing < 1024) {
-                LOG.debug("Using random give mode proxy port...");
-                set.setServerPort(LanternUtils.randomPort());
-            }
-        }
-        LOG.info("Running give mode proxy on port: {}", set.getServerPort());
-
         if (cmd.hasOption(OPTION_LAUNCHD)) {
             LOG.debug("Running from launchd or launchd set on command line");
             model.setLaunchd(true);

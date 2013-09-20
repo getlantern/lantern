@@ -14,6 +14,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Properties;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -251,5 +256,19 @@ public class TestingUtils {
     public static String accessToken() throws IOException {
         final HttpClient httpClient = new DefaultHttpClient();
         return OauthUtils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
+    }
+
+    public static CommandLine newCommandLine() throws Exception {
+        return newCommandLine(new String[]{});
+    }
+
+    public static CommandLine newCommandLine(final String[] args) throws Exception {
+        final Options options = Launcher.buildOptions();
+        final CommandLineParser parser = new PosixParser();
+        final CommandLine cmd = parser.parse(options, args);
+        if (cmd.getArgs().length > 0) {
+            throw new UnrecognizedOptionException("Extra arguments were provided");
+        }
+        return cmd;
     }    
 }

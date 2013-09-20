@@ -24,6 +24,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -163,15 +169,28 @@ public class Diagnostics {
                 "--access-tok", access, 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
-        final Module lm = new LanternModule();
+        final Options options = Launcher.buildOptions();
+        final CommandLineParser parser = new PosixParser();
+        final CommandLine cmd;
+        try {
+            cmd = parser.parse(options, args);
+            if (cmd.getArgs().length > 0) {
+                throw new UnrecognizedOptionException("Extra arguments were provided");
+            }
+        }
+        catch (final ParseException e) {
+            return;
+        }
+
+        final LanternModule lm = new LanternModule(cmd);
 
         output("Creating lantern module...");
-        final Launcher launcher = new Launcher(lm, args);
+        final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();
         
         output("Running Lantern. This will include logging in to Google Talk " +
             "and may take awhile...");
-        launcher.run();
+        launcher.launch();
         launcher.model.setSetupComplete(true);
         output("Setup complete...");
         output("Created Lantern...");
