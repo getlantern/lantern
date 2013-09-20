@@ -171,10 +171,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return timeOfDeath.get() <= 0;
     }
 
-    public void addSuccess() {
-        timeOfDeath.set(-1);
-    }
-
     public String getProxyUsername() {
         // TODO: Implement!
         return "";
