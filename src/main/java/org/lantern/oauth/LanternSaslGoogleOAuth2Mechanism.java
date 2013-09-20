@@ -51,8 +51,7 @@ public class LanternSaslGoogleOAuth2Mechanism extends SASLMechanism {
     @Override
     public void authenticate(String username, String host, CallbackHandler cbh) 
         throws IOException, XMPPException {
-
-        log.debug("Authenticating..."+ThreadUtils.dumpStack());
+        log.debug("Authenticating...");
         
         //Set the authenticationID as the username, since they must be the same
         //in this case.
