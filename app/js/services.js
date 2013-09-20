@@ -3,7 +3,7 @@
 angular.module('app.services', [])
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
-  .value('logWhiteList', /.*Ctrl|.*Srvc/)
+  .value('logWhiteList', /.*Ctrl|.*Srvc|.*Mgr/)
   .factory('logFactory', function($log, $window, logWhiteList) {
     // XXX can take out on upgrade to angular 1.1 which added $log.debug
     if (!$log.debug) {
@@ -210,6 +210,50 @@ angular.module('app.services', [])
   // XXX shared global state object
   .service('state', function() {
     return {};
+  })
+  .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, logFactory, modelSrvc) {
+    var log = logFactory('gaMgr'),
+        model = modelSrvc.model;
+
+    function stopTracking() {
+      log.debug('disabling analytics');
+      //trackPageView('end'); // force the current session to end with this hit
+      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
+    }
+
+    function startTracking() {
+      log.debug('enabling analytics');
+      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = false;
+      trackPageView('start');
+    }
+
+    // start out with google analytics disabled
+    // https://developers.google.com/analytics/devguides/collection/analyticsjs/advanced#optout
+    stopTracking();
+
+    // but get a tracker set up and ready for use if analytics become enabled
+    // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
+    ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
+    ga('set', {
+      anonymizeIp: true,
+      forceSSL: true,
+      location: 'http://lantern-ui/',
+      hostname: 'lantern-ui',
+      title: 'lantern-ui'
+    });
+
+    function trackPageView(sessionControl) {
+      var page = model.modal || '/'; // XXX make sure real backend sets modal to '' and not 'none'
+      ga('set', 'page', page);
+      ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
+      log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
+    }
+
+    return {
+      stopTracking: stopTracking,
+      startTracking: startTracking,
+      trackPageView: trackPageView
+    };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {
     return {

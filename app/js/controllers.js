@@ -107,12 +107,18 @@ function NotInvitedCtrl($scope, MODAL) {
   });
 }
 
-function FinishedCtrl($scope, MODAL) {
+function FinishedCtrl($scope, MODAL, gaMgr) {
   $scope.autoReport = true;
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.finished;
   });
+  $scope.finish = function () {
+    if ($scope.autoReport) {
+      gaMgr.startTracking();
+    }
+    $scope.interaction(INTERACTION.continue);
+  };
 }
 
 function SettingsCtrl($scope, MODAL) {

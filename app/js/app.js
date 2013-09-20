@@ -21,6 +21,7 @@ var app = angular.module('app', [
   // angulartics config
   .config(function ($analyticsProvider) {
     // turn off automatic tracking
+    $analyticsProvider.firstPageview(false);
     $analyticsProvider.virtualPageviews(false);
   })
   // angular ui bootstrap config
@@ -41,7 +42,7 @@ var app = angular.module('app', [
   .value('ui.config', {
     animate: 'ui-hide',
   })
-  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, modelSrvc, ENUMS, EXTERNAL_URL, GOOGLE_ANALYTICS_WEBPROP_ID, GOOGLE_ANALYTICS_DISABLE_KEY, LANTERNUI_VER, MODAL) {
+  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, MODAL) {
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
         i18nFltr = $filter('i18n'),
@@ -50,9 +51,6 @@ var app = angular.module('app', [
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
 
-    // start out with analytics disabled
-    // https://developers.google.com/analytics/devguides/collection/analyticsjs/advanced#optout
-    $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
 
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
@@ -67,46 +65,20 @@ var app = angular.module('app', [
       $rootScope[key] = val;
     });
 
-    var gaCreated = false;
-    function trackPageView(sessionControl) {
-      if (!gaCreated) {
-        // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
-        ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
-        ga('set', 'anonymizeIp', true);
-        ga('set', 'forceSSL', true);
-        ga('set', 'location', 'http://lantern-ui/');
-        ga('set', 'hostname', 'lantern-ui');
-        ga('set', 'title', 'lantern-ui');
-        gaCreated = true;
-      }
-      var page = MODAL[model.modal] || '/';
-      ga('set', 'page', page);
-      ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
-      $log.debug('[Analytics]', sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
-    }
-
-    function stopTracking() {
-      //trackPageView('end'); // force the current session to end with this hit
-      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
-    }
-
-    function startTracking() {
-      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = false;
-      trackPageView('start');
-    }
-
     $rootScope.$watch('model.settings.autoReport', function (autoReport, autoReportOld) {
       if (!model.setupComplete) return;
       if (!autoReport && autoReportOld) {
-        stopTracking();
+        gaMgr.stopTracking();
       } else if (autoReport && !autoReportOld) {
-        startTracking();
+        gaMgr.startTracking();
       }
     });
 
-    $rootScope.$watch('model.modal', function (modal) {
-      if (!model.setupComplete || !model.settings.autoReport) return;
-      trackPageView('start');
+    $rootScope.$watch('model.modal', function (modal, modalOld) {
+      if (!model.setupComplete || !model.settings.autoReport || angular.isUndefined(modalOld)) {
+        return;
+      }
+      gaMgr.trackPageView('start');
     });
 
     $rootScope.$watch('model.notifications', function (notifications) {
@@ -205,12 +177,12 @@ var app = angular.module('app', [
     };
 
     $rootScope.interaction = function (interactionid, extra) {
+      var stopTracking = interactionid === INTERACTION.reset && model.modal === MODAL.confirmReset;
       return apiSrvc.interaction(interactionid, extra)
         .success(function(data, status, headers, config) {
           $log.debug('interaction(', interactionid, extra || '', ') successful');
-          if (model.settings.autoReport &&
-              interactionid === INTERACTION.reset && model.modal === MODAL.confirmReset) {
-            stopTracking();
+          if (stopTracking) {
+            gaMgr.stopTracking();
           }
         })
         .error(function(data, status, headers, config) {
