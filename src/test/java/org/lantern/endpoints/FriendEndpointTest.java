@@ -61,6 +61,8 @@ public class FriendEndpointTest {
             api.removeFriend(id);
         }
         
+        // Give the db a chance to sync.
+        Thread.sleep(400);
         final List<ClientFriend> empty = api.listFriends();
         assertEquals(0, empty.size());
     }
