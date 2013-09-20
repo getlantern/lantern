@@ -356,7 +356,6 @@ public class Launcher {
         
         startServices();
 
-
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
         // OX: YourKit was reporting deadlocks here.  This seems like a
@@ -368,6 +367,11 @@ public class Launcher {
             }
         } else {
             LOG.debug("No display?");
+            try {
+                wait();
+            } catch (final InterruptedException e) {
+                LOG.debug("Interrupted");
+            }
         }
     }
 
