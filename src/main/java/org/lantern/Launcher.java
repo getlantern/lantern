@@ -75,7 +75,6 @@ import com.barchart.udt.ResourceUDT;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 
 /**
  * Launches a new Lantern HTTP proxy.
@@ -367,10 +366,12 @@ public class Launcher {
             }
         } else {
             LOG.debug("No display?");
-            try {
-                wait();
-            } catch (final InterruptedException e) {
-                LOG.debug("Interrupted");
+            synchronized (this) {
+                try {
+                    wait();
+                } catch (final InterruptedException e) {
+                    LOG.debug("Interrupted");
+                }
             }
         }
     }
