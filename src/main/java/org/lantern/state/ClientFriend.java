@@ -13,7 +13,7 @@ public class ClientFriend implements Friend {
 
     private String name = "";
     
-    private String userEmail;
+    private String userEmail = "";
 
     private Status status = Status.pending;
 
