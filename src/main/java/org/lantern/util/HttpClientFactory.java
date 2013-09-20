@@ -14,7 +14,6 @@ import org.lantern.Censored;
 import org.lantern.LanternSocketsUtil;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
-import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,6 @@ public class HttpClientFactory {
         this.socketsUtil = socketsUtil;
         this.censored = censored;
         this.proxyTracker = proxyTracker;
-        LanternSaslGoogleOAuth2Mechanism.setHttpClientFactory(this);
     }
 
     public HttpClient newProxiedClient() {

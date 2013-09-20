@@ -1,9 +1,10 @@
 package org.lantern.oauth;
 
 import java.io.IOException;
+
 import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.TextInputCallback;
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.TextInputCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
 import org.apache.commons.lang.StringUtils;
@@ -15,7 +16,6 @@ import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class LanternGoogleOAuth2Credentials implements XmppCredentials, CallbackHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -26,15 +26,6 @@ public class LanternGoogleOAuth2Credentials implements XmppCredentials, Callback
     private final String clientSecret;
     private final String accessToken;
     private final String refreshToken;
-
-    public LanternGoogleOAuth2Credentials(final String username,
-                                   final String clientID,
-                                   final String clientSecret,
-                                   final String accessToken,
-                                   final String refreshToken) {
-        this(username, clientID, clientSecret, accessToken,
-             refreshToken, "SHOOT-");
-    }
 
     public LanternGoogleOAuth2Credentials(final String username,
                                    final String clientID,
@@ -88,13 +79,13 @@ public class LanternGoogleOAuth2Credentials implements XmppCredentials, Callback
                 final TextInputCallback ticb = (TextInputCallback)cb;
                 final String prompt = ticb.getPrompt();
                 log.info("Got prompt: {}", prompt);
-                if (prompt == "clientID") {
+                if ("clientID".equals(prompt)) {
                     ticb.setText(clientID);
-                } else if (prompt == "clientSecret") {
+                } else if ("clientSecret".equals(prompt)) {
                     ticb.setText(clientSecret);
-                } else if (prompt == "accessToken") {
+                } else if ("accessToken".equals(prompt)) {
                     ticb.setText(accessToken);
-                } else if (prompt == "refreshToken") {
+                } else if ("refreshToken".equals(prompt)) {
                     ticb.setText(refreshToken);
                 } else {
                     throw new UnsupportedCallbackException(ticb, "Unrecognized prompt: " + ticb.getPrompt());

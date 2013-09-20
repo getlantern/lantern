@@ -20,6 +20,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.lantern.TokenResponseEvent;
 import org.lantern.event.Events;
+import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
@@ -69,6 +70,7 @@ public class OauthUtils {
             final Model model) {
         this.httpClientFactory = httpClientFactory;
         this.model = model;
+        LanternSaslGoogleOAuth2Mechanism.setOauthUtils(this);
     }
 
     /**
@@ -120,7 +122,7 @@ public class OauthUtils {
          * both direct attempts and fallback proxy attempts.
          */
         public T execute() throws IOException {
-            LOG.debug("Making oauth call with fallback...");
+            LOG.debug("Making oauth call -- will use fallback if necessary...");
             
             final String refreshToken = model.getSettings().getRefreshToken();
             if (StringUtils.isBlank(refreshToken)) {
@@ -142,6 +144,7 @@ public class OauthUtils {
             final int maxAttempts = 4;
             int attempts = 0;
             while (attempts < maxAttempts) {
+                LOG.debug("Attempting calls with fallback...");
                 final HttpHost proxy = httpClientFactory.newProxy();
                 if (usedHosts.contains(proxy)) {
                     break;
