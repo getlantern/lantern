@@ -24,9 +24,9 @@ public class LanternTrustGraphNode extends TrustGraphNode {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public static final int IDEAL_REACH      = 500; // aka "r"
-    public static final int MAX_ROUTE_LENGTH =  10; // aka "w_max"
-    public static final int MIN_ROUTE_LENGTH =   7; // aka "w_min"
+    private static final int IDEAL_REACH      = 80; // aka "r"
+    private static final int MAX_ROUTE_LENGTH =  4; // aka "w_max"
+    private static final int MIN_ROUTE_LENGTH =   2; // aka "w_min"
 
     private final XmppHandler handler;
 

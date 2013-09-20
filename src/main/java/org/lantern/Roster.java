@@ -253,8 +253,15 @@ public class Roster implements RosterListener {
                 LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
         );
 
-        log.debug("Sending ad to newly online roster entry {}.", id);
-        tgn.sendAdvertisement(message, id, ad.getTtl());
+        final int ttl;
+        if (!LanternUtils.isFallbackProxy()) {
+            log.debug("Sending ad to newly online roster entry {}.", id);
+            ttl = ad.getTtl();
+        } else {
+            log.debug("Reducing TTL for fallback proxies");
+            ttl = 0;
+        }
+        tgn.sendAdvertisement(message, id, ttl);
     }
 
     private void onPresence(final Presence pres, final boolean sync,

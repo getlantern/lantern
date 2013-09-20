@@ -19,7 +19,6 @@ import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.state.FriendsHandler;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +78,10 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             return false;
         }
 
+        // If the connection we received the kscope add on is rejected, ignore
+        // the add.
         if (this.friendsHandler.isRejected(from)) {
+            log.debug("Ignoring kscope add from rejected contact");
             return false;
         }
 
