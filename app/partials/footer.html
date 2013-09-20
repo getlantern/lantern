@@ -10,7 +10,7 @@
       <a class="always-underlined warning-colored" ng-click="interaction(INTERACTION.sponsor)">{{ 'SPONSOR_NOW' | i18n }}</a>
       -->
     </div>
-    <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
+    <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies != 0">
       {{ 'NUSERS_ONLINE' | i18n:nusersAcrossCountries.online }} ·
       {{ 'NUSERS_EVER' | i18n:nusersAcrossCountries.ever }} ·
       {{ model.global.bytesEver | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
