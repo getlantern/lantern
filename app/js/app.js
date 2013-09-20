@@ -86,7 +86,7 @@ var app = angular.module('app', [
     }
 
     function stopTracking() {
-      trackPageView('end'); // force the current session to end with this hit
+      //trackPageView('end'); // force the current session to end with this hit
       $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
     }
 
