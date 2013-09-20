@@ -239,7 +239,7 @@ angular.module('app.services', [])
     });
 
     function trackPageView(sessionControl) {
-      var page = model.modal || '/'; // XXX make sure real backend sets modal to '' and not 'none'
+      var page = model.modal || '/';
       ga('set', 'page', page);
       ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
       log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
