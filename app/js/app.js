@@ -161,20 +161,20 @@ var app = angular.module('app', [
       var roster = model.roster;
       if (!roster) return;
       var completions = {};
-      for (var i=0, l=model.friends.length, ii=model.friends[i]; ii; ii=model.friends[++i]) {
-        if (ii.status !== FRIEND_STATUS.friend) {
-          completions[ii.email] = ii;
+      _.each(model.friends, function (friend) {
+        if (friend.status !== FRIEND_STATUS.friend) {
+          completions[friend.email] = friend;
         }
-      }
+      });
       if ($rootScope.friendsByEmail) {
-        for (var i=0, l=roster.length, ii=roster[i]; ii; ii=roster[++i]) {
-          var email = ii.email, friend = email && $rootScope.friendsByEmail[email];
+        _.each(roster, function (contact) {
+          var email = contact.email, friend = email && $rootScope.friendsByEmail[email];
           if (email && (!friend || friend.status !== FRIEND_STATUS.friend)) {
             // if an entry for this email was added in the previous loop, we want
             // this entry to overwrite it since the roster object has more data
-            completions[ii.email] = ii;
+            completions[contact.email] = contact;
           }
-        }
+        });
       }
       completions = _.sortBy(completions, function (i) { return prettyUserFltr(i); }); // XXX sort by contact frequency instead
       $rootScope.contactCompletions = completions;
