@@ -7242,7 +7242,7 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   text-decoration: none;
 }
 #currentFriends .entry:hover {
-  background-color: #ffffd7;
+  background-color: #ffffd7 !important;
   border-top: 1px solid #dddddd;
   border-bottom: 1px solid #dddddd;
   color: black;
