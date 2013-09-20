@@ -949,7 +949,9 @@ public class LanternUtils {
             policies.add(path + ":" + StaticSettings.getApiPort());
         }
         String localhost = StringUtils.join(policies, " ");
-        resp.addHeader("Content-Security-Policy", "default-src " + localhost + " 'unsafe-inline' 'unsafe-eval'; img-src data:// " + localhost);
+        resp.addHeader("Content-Security-Policy",
+            "default-src " + localhost + " 'unsafe-inline' 'unsafe-eval'; " +
+            "img-src data:// https://www.google-analytics.com " + localhost);
     }
 
     /**
