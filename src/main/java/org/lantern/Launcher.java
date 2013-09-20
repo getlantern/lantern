@@ -366,6 +366,9 @@ public class Launcher {
             }
         } else {
             LOG.debug("No display?");
+            
+            // We just wait here because depending on the OS and what threads
+            // happen to have 
             synchronized (this) {
                 try {
                     wait();
@@ -714,7 +717,6 @@ public class Launcher {
 
     private static void printHelp(Options options, String errorMessage) {
         if (errorMessage != null) {
-            LOG.error(errorMessage);
             System.err.println(errorMessage);
         }
 
