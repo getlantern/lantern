@@ -38,7 +38,7 @@ public class FriendNotificationDialog extends NotificationDialog {
     private final String email;
 
     public FriendNotificationDialog(NotificationManager manager,
-            FriendsHandler friends, ClientFriend friend) {
+            FriendsHandler friends, final ClientFriend friend) {
         super(manager);
         this.friends = friends;
         this.friend = friend;
@@ -115,6 +115,8 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     protected void later() {
+        final long tomorrow = System.currentTimeMillis() + 1000 * 86400;
+        friend.setNextQuery(tomorrow);
         dialog.dispose();
         //friend.setStatus(Status.pending);
         if (this.friends != null) {

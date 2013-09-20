@@ -127,6 +127,10 @@ public class ClientFriend implements Friend {
         this.lastUpdated = lastUpdated;
     }
     
+    public void setNextQuery(final long nextQuery) {
+        this.nextQuery = nextQuery;
+    }
+    
     /**
      * Whether or not this peer is online in the sense of logged in to the 
      * XMPP server.
