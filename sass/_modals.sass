@@ -165,21 +165,35 @@
   min-height: 115px
   .addFriendsControls
     margin-top: 20px
+  .coloredByConnectedStatus
+    +single-transition(all, 0.3s, ease)
+    body.getMode &.transferringNow
+      background-color: #fffced
+      .friendConnectedStatus
+        color: #f7b636
+    body.getMode &.connected
+      background-color: #fffced
+      .friendConnectedStatus
+        +get-colored-alt
+    body.giveMode &.transferringNow
+      background-color: #e5ffe0
+      .friendConnectedStatus
+        +give-colored
+    body.giveMode &.connected
+      background-color: #e5ffe0
+      .friendConnectedStatus
+        +give-colored-alt
+    &.lastConnected
+      .friendConnectedStatus
+        +grayDark
+    &.notYetConnected:not(.status-pending)
+      background-color: #f5f5f5
+      .friendConnectedStatus
+        +gray
   .friendConnectedStatus
     +smaller
+    +thin
     margin: 2px 0 0 14px
-    body.getMode &.transferringNow
-      +give-colored
-    body.getMode &.connected
-      +give-colored-alt
-    body.giveMode &.transferringNow
-      +get-colored
-    body.giveMode &.connected
-      +get-colored-alt
-    &.lastConnected
-      +grayDark
-    &.notYetConnected
-      +gray
 
 #currentFriendsHeading
   +bold
@@ -190,13 +204,16 @@
 
 #currentFriends
   +no-bullets
+  //background: #f5f5f5
+  background: #fff
   clear: both
-  max-height: 120px
+  max-height: 200px
   overflow-y: scroll
   margin: 10px 0
-  padding: 10px 0
+  padding: 0
   .entry
     padding: 5px
+    border: 1px solid #fff
     color: $grayLight
     .reject
       display: inline-block
@@ -205,8 +222,10 @@
       color: $grayLight
       text-decoration: none
     &:hover
+      background-color: #ffffd7
+      border-top: 1px solid #ddd
+      border-bottom: 1px solid #ddd
       color: #000
-      background: #fff
       .reject
         opacity: 1
         &:hover
@@ -221,6 +240,7 @@
     display: inline-block
     float: right
   .pending
+    +thin
     +smaller
     +centered
     +single-transition(all, 0.3s, ease)

@@ -7164,27 +7164,47 @@ textarea {
 #lanternFriends .addFriendsControls {
   margin-top: 20px;
 }
-#lanternFriends .friendConnectedStatus {
-  font-size: 11.9px;
-  margin: 2px 0 0 14px;
+#lanternFriends .coloredByConnectedStatus {
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
-body.getMode #lanternFriends .friendConnectedStatus.transferringNow {
-  color: #83c95a;
+body.getMode #lanternFriends .coloredByConnectedStatus.transferringNow {
+  background-color: #fffced;
 }
-body.getMode #lanternFriends .friendConnectedStatus.connected {
-  color: #528e2f;
+body.getMode #lanternFriends .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
+  color: #f7b636;
 }
-body.giveMode #lanternFriends .friendConnectedStatus.transferringNow {
-  color: #ffcc66;
+body.getMode #lanternFriends .coloredByConnectedStatus.connected {
+  background-color: #fffced;
 }
-body.giveMode #lanternFriends .friendConnectedStatus.connected {
+body.getMode #lanternFriends .coloredByConnectedStatus.connected .friendConnectedStatus {
   color: #cc8800;
 }
-#lanternFriends .friendConnectedStatus.lastConnected {
+body.giveMode #lanternFriends .coloredByConnectedStatus.transferringNow {
+  background-color: #e5ffe0;
+}
+body.giveMode #lanternFriends .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
+  color: #83c95a;
+}
+body.giveMode #lanternFriends .coloredByConnectedStatus.connected {
+  background-color: #e5ffe0;
+}
+body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnectedStatus {
+  color: #528e2f;
+}
+#lanternFriends .coloredByConnectedStatus.lastConnected .friendConnectedStatus {
   color: #555555;
 }
-#lanternFriends .friendConnectedStatus.notYetConnected {
+#lanternFriends .coloredByConnectedStatus.notYetConnected:not(.status-pending) {
+  background-color: whitesmoke;
+}
+#lanternFriends .coloredByConnectedStatus.notYetConnected:not(.status-pending) .friendConnectedStatus {
   color: #999999;
+}
+#lanternFriends .friendConnectedStatus {
+  font-size: 11.9px;
+  font-family: "Roboto Thin";
+  margin: 2px 0 0 14px;
 }
 
 #currentFriendsHeading {
@@ -7197,11 +7217,12 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 
 #currentFriends {
   list-style: none;
+  background: white;
   clear: both;
-  max-height: 120px;
+  max-height: 200px;
   overflow-y: scroll;
   margin: 10px 0;
-  padding: 10px 0;
+  padding: 0;
 }
 #currentFriends li {
   list-style-image: none;
@@ -7210,6 +7231,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
 }
 #currentFriends .entry {
   padding: 5px;
+  border: 1px solid white;
   color: #999999;
 }
 #currentFriends .entry .reject {
@@ -7220,8 +7242,10 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   text-decoration: none;
 }
 #currentFriends .entry:hover {
+  background-color: #ffffd7;
+  border-top: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
   color: black;
-  background: white;
 }
 #currentFriends .entry:hover .reject {
   opacity: 1;
@@ -7241,6 +7265,7 @@ body.giveMode #lanternFriends .friendConnectedStatus.connected {
   float: right;
 }
 #currentFriends .pending {
+  font-family: "Roboto Thin";
   font-size: 11.9px;
   text-align: center;
   -webkit-transition: all 0.3s ease;
