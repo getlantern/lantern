@@ -20,6 +20,7 @@ var DEFAULT_LANG = 'en_US',
       zh_CN: {dir: 'ltr', name: '中文'}
       //ar: {dir: 'rtl', name: 'العربية'},
     },
+    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-2',
     loc = typeof location == 'object' ? location : undefined,
     // this allows the real backend to mount the entire app under a random path
     // for security while the mock backend can always use '/app':
@@ -165,6 +166,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('CONNECTIVITY', CONNECTIVITY)
     .constant('GTALK_STATUS', GTALK_STATUS)
     // frontend-only
+    .constant('GOOGLE_ANALYTICS_WEBPROP_ID', GOOGLE_ANALYTICS_WEBPROP_ID)
     .constant('LANTERNUI_VER', window.LANTERNUI_VER) // set in version.js
     .constant('REQUIRED_API_VER', REQUIRED_API_VER)
     .constant('API_URL_PREFIX', API_URL_PREFIX);

@@ -9,6 +9,8 @@ var app = angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
+  'angulartics',
+  'angulartics.google.analytics',
   'ui.event',
   'ui.if',
   'ui.showhide',
@@ -16,6 +18,11 @@ var app = angular.module('app', [
   'ui.validate',
   'ui.bootstrap'
   ])
+  // angulartics config
+  .config(function ($analyticsProvider) {
+    // turn off automatic tracking
+    $analyticsProvider.virtualPageviews(false);
+  })
   // angular ui bootstrap config
   .config(function($dialogProvider) {
     $dialogProvider.options({
@@ -34,25 +41,52 @@ var app = angular.module('app', [
   .value('ui.config', {
     animate: 'ui-hide',
   })
-  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER) {
+  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, modelSrvc, ENUMS, EXTERNAL_URL, GOOGLE_ANALYTICS_WEBPROP_ID, LANTERNUI_VER, MODAL) {
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
         i18nFltr = $filter('i18n'),
         jsonFltr = $filter('json'),
+        model = modelSrvc.model,
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
 
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
-    $window.model = modelSrvc.model;
+    $window.model = model;
 
     $rootScope.EXTERNAL_URL = EXTERNAL_URL;
     $rootScope.lanternUiVersion = LANTERNUI_VER.join('.');
-    $rootScope.model = modelSrvc.model;
+    $rootScope.model = model;
     $rootScope.DEFAULT_AVATAR_URL = 'img/default-avatar.png';
 
     angular.forEach(ENUMS, function(val, key) {
       $rootScope[key] = val;
+    });
+
+    var gaCreated = false;
+    $rootScope.trackPageView = function (sessionControl) {
+      if (!gaCreated) {
+        // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
+        ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
+        ga('set', 'anonymizeIp', true);
+        ga('set', 'forceSSL', true);
+        ga('set', 'location', 'http://lantern-ui/');
+        ga('set', 'hostname', 'lantern-ui');
+        ga('set', 'page', '/');
+        ga('set', 'title', 'lantern-ui');
+        gaCreated = true;
+      }
+      ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
+      $log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview');
+    };
+
+    $rootScope.$watch('model.settings.autoReport', function (autoReport, autoReportOld) {
+      if (!model.setupComplete) return;
+      if (!autoReport && autoReportOld) {
+        $rootScope.trackPageView('end'); // force the current session to end with this hit
+      } else if (autoReport && !autoReportOld) {
+        $rootScope.trackPageView();
+      }
     });
 
     $rootScope.$watch('model.notifications', function (notifications) {
@@ -154,6 +188,9 @@ var app = angular.module('app', [
       return apiSrvc.interaction(interactionid, extra)
         .success(function(data, status, headers, config) {
           $log.debug('interaction(', interactionid, extra || '', ') successful');
+          if (interactionid === INTERACTION.reset && model.modal === MODAL.confirmReset) {
+            $rootScope.trackPageView('end'); // force the current session to end with this hit
+          }
         })
         .error(function(data, status, headers, config) {
           $log.error('interaction(', interactionid, extra, ') failed');

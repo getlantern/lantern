@@ -113,6 +113,13 @@ function FinishedCtrl($scope, MODAL) {
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.finished;
   });
+  $scope.finish = function () {
+    $scope.interaction(INTERACTION.continue).then(function () {
+      if ($scope.autoReport) {
+        $scope.trackPageView();
+      }
+    });
+  };
 }
 
 function SettingsCtrl($scope, MODAL) {
