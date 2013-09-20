@@ -364,7 +364,7 @@ public class Launcher {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
-        } else {
+        } else if (!SystemUtils.IS_OS_MAC_OSX) {
             LOG.debug("No display?");
             
             // We just wait here because depending on the OS and what threads
