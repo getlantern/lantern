@@ -1156,6 +1156,8 @@ public class DefaultXmppHandler implements XmppHandler {
                 pres.setProperty(LanternConstants.INVITEE_NAME, name);
             }
         }
+        pres.setProperty(LanternConstants.INVITER_NAME, 
+                this.model.getProfile().getName());
 
         invited.add(email);
 
