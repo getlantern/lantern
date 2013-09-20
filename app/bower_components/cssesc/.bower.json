@@ -22,7 +22,6 @@
     "commit": "ba7c1c82d4a35f0a43224c94b187e01c312a0d64"
   },
   "_source": "git://github.com/mathiasbynens/cssesc.git",
-  "_target": "~0.1.0",
-  "_originalSource": "cssesc",
-  "_direct": true
+  "_target": "0.1.0",
+  "_originalSource": "cssesc"
 }

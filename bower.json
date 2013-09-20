@@ -4,7 +4,7 @@
   "dependencies": {
     "angular": "1.0.8",
     "angular-sanitize": "1.0.8",
-    "angular-translate": "0.9.4",
+    "angular-translate": "1.1.0",
     "angular-ui-select2": "0.0.2",
     "angular-ui-utils": "0.0.2",
     "angulartics": "0.8.5",
