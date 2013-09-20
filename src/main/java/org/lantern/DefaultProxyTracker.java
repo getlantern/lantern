@@ -55,7 +55,6 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
-    private static final long RECENTLY_DECEASED_CUTOFF_IN_MILLIS = 10000;
     private static final long NAT_TRAVERSAL_INITIAL_DELAY = 5000;
 
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
@@ -193,8 +192,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         InetAddress remoteAddress = ph.getFiveTuple().getRemote().getAddress();
         if (remoteAddress.isLoopbackAddress()
                 || remoteAddress.isAnyLocalAddress()) {
-            LOG.warn("Can connect to neither loopback nor 0.0.0.0 address {}", 
-                remoteAddress);
+            LOG.warn("Can connect to neither loopback nor 0.0.0.0 address {}",
+                    remoteAddress);
             return;
         }
 
@@ -215,7 +214,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                                 ph.getType());
                     }
 
-                    ph.addSuccess();
+                    ph.resetFailures();
                     LOG.debug("Dispatching CONNECTED event");
                     Events.asyncEventBus().post(
                             new ProxyConnectionEvent(
@@ -383,18 +382,15 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
         LOG.debug("Got connectivity changed event: {}", e);
         if (e.isConnected()) {
-            restoreRecentlyDeceasedProxies();
+            restoreDeceasedProxies();
         }
     }
 
-    private void restoreRecentlyDeceasedProxies() {
+    private void restoreDeceasedProxies() {
         long now = new Date().getTime();
         for (ProxyHolder proxy : proxies.values()) {
-            long timeSinceDeath = now - proxy.getTimeOfDeath();
-            if (!proxy.isConnected()
-                    && timeSinceDeath < RECENTLY_DECEASED_CUTOFF_IN_MILLIS) {
-                LOG.debug("Attempting to restore recently deceased proxy "
-                        + proxy);
+            if (!proxy.isConnected()) {
+                LOG.debug("Attempting to restore deceased proxy " + proxy);
                 addTcpProxy(proxy.getJid(), proxy, false);
             } else {
                 break;
