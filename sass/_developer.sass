@@ -9,7 +9,7 @@
 $marginBot: 20px
 
 #dev-label
-  +position(false, false, $marginBot - 14px, 22px)
+  +position(false, false, $marginBot - 14px, 33px)
   +aboveModal
   +smaller
   color: $devModeColor
@@ -34,4 +34,25 @@ $marginBot: 20px
   +monofont
   +size(500px, 500px)
   overflow: auto
-  background-color: #f5f5f5
+  background-color: lighten($devModeColor, 30%)
+
+#langchooser
+  +position(false, false, 36px, 50px)
+  +aboveModal
+  +border-radius(5px)
+  +no-bullets
+  font-size: $baseFontSize * .8
+  background-color: lighten($devModeColor, 30%)
+  padding: 5px 0
+  a
+    display: block
+    text-decoration: none
+    padding: 3px 34px 3px 16px
+    color: #000
+  li
+    &:hover
+      color: #fff
+      background-color: #8af
+    &.active
+      +bold
+      background-color: darken(#8af, 10%)

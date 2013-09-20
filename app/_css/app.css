@@ -6963,61 +6963,6 @@ textarea {
   font-size: 13.3px;
 }
 
-#langchooser {
-  opacity: 0.5;
-  -webkit-transition: opacity 0.5s ease;
-  transition: opacity 0.5s ease;
-  position: absolute;
-  bottom: 20px;
-  left: 80px;
-  font-size: 11.2px;
-  z-index: 1051;
-}
-#langchooser:hover {
-  opacity: 1;
-}
-#langchooser ul {
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  overflow: hidden;
-  *zoom: 1;
-  background-color: #fff343;
-  padding: 3px 9px;
-}
-#langchooser ul li {
-  list-style-image: none;
-  list-style-type: none;
-  margin-left: 0;
-  white-space: nowrap;
-  display: inline;
-  float: left;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-#langchooser ul li:first-child, #langchooser ul li.first {
-  padding-left: 0;
-}
-#langchooser ul li:last-child {
-  padding-right: 0;
-}
-#langchooser ul li.last {
-  padding-right: 0;
-}
-#langchooser ul li a {
-  color: #666666;
-}
-#langchooser ul li.active a {
-  color: black;
-}
-#langchooser ul li.active a:hover {
-  text-decoration: none;
-  cursor: default;
-}
-
 #welcome {
   text-align: center;
   font-family: "Roboto Thin";
@@ -7803,7 +7748,7 @@ body.giveMode #npending {
 #dev-label {
   position: absolute;
   bottom: 6px;
-  left: 22px;
+  left: 33px;
   z-index: 1051;
   font-size: 11.9px;
   color: #fff343;
@@ -7840,5 +7785,38 @@ body.giveMode #npending {
   width: 500px;
   height: 500px;
   overflow: auto;
-  background-color: whitesmoke;
+  background-color: #fffddc;
+}
+
+#langchooser {
+  position: absolute;
+  bottom: 36px;
+  left: 50px;
+  z-index: 1051;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  list-style: none;
+  font-size: 11.2px;
+  background-color: #fffddc;
+  padding: 5px 0;
+}
+#langchooser li {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: 0;
+}
+#langchooser a {
+  display: block;
+  text-decoration: none;
+  padding: 3px 34px 3px 16px;
+  color: black;
+}
+#langchooser li:hover {
+  color: white;
+  background-color: #88aaff;
+}
+#langchooser li.active {
+  font-weight: bold;
+  background-color: #5586ff;
 }

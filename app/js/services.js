@@ -207,10 +207,6 @@ angular.module('app.services', [])
       sane: true
     };
   })
-  // XXX shared global state object
-  .service('state', function() {
-    return {};
-  })
   .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, logFactory, modelSrvc) {
     var log = logFactory('gaMgr'),
         model = modelSrvc.model;
