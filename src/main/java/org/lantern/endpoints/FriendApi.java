@@ -7,7 +7,7 @@ import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
-import org.lantern.http.OauthUtils;
+import org.lantern.oauth.OauthUtils;
 import org.lantern.state.ClientFriends;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;

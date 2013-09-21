@@ -48,6 +48,8 @@ public class Settings {
     private String clientSecret;
     private String accessToken;
     private String refreshToken;
+    
+    private long expiryTime;
 
     private Set<String> inClosedBeta = new HashSet<String>();
 
@@ -217,6 +219,19 @@ public class Settings {
         return refreshToken;
     }
 
+    @JsonView({Persistent.class})
+    public long getExpiryTime() {
+        return expiryTime;
+    }
+
+    /**
+     * This is the access token expiry time.
+     * 
+     * @param expiryTime The access token expiry time.
+     */
+    public void setExpiryTime(final long expiryTime) {
+        this.expiryTime = expiryTime;
+    }
 
     @JsonView({Persistent.class})
     public Set<String> getInClosedBeta() {

@@ -32,6 +32,7 @@ import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
+import org.lantern.oauth.OauthUtils;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;

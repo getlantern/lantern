@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.JettyLauncher;
-import org.lantern.http.OauthUtils;
+import org.lantern.oauth.OauthUtils;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;

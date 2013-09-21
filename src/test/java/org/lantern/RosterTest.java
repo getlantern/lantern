@@ -22,7 +22,8 @@ import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
-import org.lantern.http.OauthUtils;
+import org.lantern.oauth.OauthUtils;
+import org.lantern.oauth.RefreshToken;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
@@ -40,7 +41,8 @@ public class RosterTest {
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         final Model model = new Model();
         final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
-        final OauthUtils oauth = new OauthUtils(httpClientFactory, model);
+        final OauthUtils oauth = 
+                new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth);
         final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
         final FriendsHandler friendHandler = 

@@ -4,8 +4,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.jivesoftware.smack.SASLAuthentication;
 import org.junit.Test;
-import org.lantern.http.OauthUtils;
 import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
+import org.lantern.oauth.OauthUtils;
+import org.lantern.oauth.RefreshToken;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
@@ -19,13 +20,14 @@ public class GoogleTalkTest {
                 LanternSaslGoogleOAuth2Mechanism.class);
         final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
         //LanternSaslGoogleOAuth2Mechanism.setHttpClientFactory(httpClientFactory);
-        final OauthUtils oauth = new OauthUtils(httpClientFactory, new Model());
-        LanternSaslGoogleOAuth2Mechanism.setOauthUtils(oauth);
-        
-        Launcher.configureCipherSuites();
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
         final Model model = new Model(countryService);
+        final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
+        LanternSaslGoogleOAuth2Mechanism.setOauthUtils(oauth);
+        
+        Launcher.configureCipherSuites();
+
         final org.lantern.state.Settings settings = model.getSettings();
         
         settings.setMode(Mode.get);

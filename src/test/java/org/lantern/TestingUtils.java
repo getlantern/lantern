@@ -29,14 +29,16 @@ import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.http.OauthUtils;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.oauth.OauthUtils;
+import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
@@ -150,7 +152,7 @@ public class TestingUtils {
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         
         final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
-        final OauthUtils oauth = new OauthUtils(httpClientFactory, model);
+        final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth);
         
         final FriendsHandler friendsHandler = 
@@ -255,7 +257,13 @@ public class TestingUtils {
 
     public static String accessToken() throws IOException {
         final HttpClient httpClient = new DefaultHttpClient();
-        return OauthUtils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
+        final OauthUtils utils = newOauthUtils();
+        return utils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
+    }
+
+    private static OauthUtils newOauthUtils() {
+        final Model mod = new Model();
+        return new OauthUtils(newHttClientFactory(), mod, new RefreshToken(mod));
     }
 
     public static CommandLine newCommandLine() throws Exception {
@@ -270,5 +278,5 @@ public class TestingUtils {
             throw new UnrecognizedOptionException("Extra arguments were provided");
         }
         return cmd;
-    }    
+    }
 }

@@ -17,8 +17,8 @@ import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.event.Events;
-import org.lantern.http.OauthUtils;
 import org.lantern.oauth.LanternGoogleOAuth2Credentials;
+import org.lantern.oauth.OauthUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

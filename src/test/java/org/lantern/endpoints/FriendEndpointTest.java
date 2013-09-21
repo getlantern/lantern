@@ -7,7 +7,8 @@ import java.util.List;
 import org.junit.Test;
 import org.lantern.TestingUtils;
 import org.lantern.endpoints.FriendApi;
-import org.lantern.http.OauthUtils;
+import org.lantern.oauth.OauthUtils;
+import org.lantern.oauth.RefreshToken;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
 import org.lantern.state.Model;
@@ -25,7 +26,7 @@ public class FriendEndpointTest {
         final HttpClientFactory httpClientFactory = 
                 TestingUtils.newHttClientFactory();
         final Model model = TestingUtils.newModel();
-        final OauthUtils utils = new OauthUtils(httpClientFactory, model);
+        final OauthUtils utils = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(utils);
         
         final ClientFriend friend = new ClientFriend();
