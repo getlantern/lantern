@@ -93,7 +93,7 @@ public class DefaultXmppHandler implements XmppHandler {
         new AtomicReference<XmppP2PClient<FiveTuple>>();
 
     static {
-        SmackConfiguration.setPacketReplyTimeout(30 * 1000);
+        SmackConfiguration.setPacketReplyTimeout(60 * 1000);
     }
 
     private volatile long lastInfoMessageScheduled = 0L;
@@ -280,13 +280,13 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.info("Connected to internet: {}", e);
         LOG.info("Logged in? {}", this.isLoggedIn());
-        XmppP2PClient<FiveTuple> client = this.client.get();
-        if (client == null) {
+        XmppP2PClient<FiveTuple> xmpp = this.client.get();
+        if (xmpp == null) {
             LOG.debug("No client?");
             return; //this is probably at startup
         }
 
-        final XMPPConnection conn = client.getXmppConnection();
+        final XMPPConnection conn = xmpp.getXmppConnection();
         if (e.isIpChanged()) {
             //definitely need to reconnect here
             reconnect();
