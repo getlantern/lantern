@@ -34,8 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FallbackProxyTest {
 
-    private  Logger log = 
-            LoggerFactory.getLogger(LanternSocketsUtilTest.class);
+    private Logger log = LoggerFactory.getLogger(getClass());
     private static final int SERVER_PORT = LanternUtils.randomPort();
 
 

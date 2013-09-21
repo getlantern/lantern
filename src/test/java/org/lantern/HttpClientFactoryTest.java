@@ -24,14 +24,19 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.lantern.util.HttpClientFactory;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpClientFactoryTest {
 
+    private Logger log = LoggerFactory.getLogger(getClass());
+    
     @Test
     public void testFallbackProxyConnection() throws Exception {
         //System.setProperty("javax.net.debug", "all");
@@ -50,10 +55,13 @@ public class HttpClientFactoryTest {
         final HttpHost proxy = new HttpHost("54.254.96.14", 16589, "https");
         
         final HttpClient httpClient = factory.newClient(proxy, true);
+        
+        httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
+        httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 8000);
 
         final HttpHead head = new HttpHead("https://www.google.com");
         
-        //log.debug("About to execute get!");
+        log.debug("About to execute get!");
         final HttpResponse response = httpClient.execute(head);
         final StatusLine line = response.getStatusLine();
         final int code = line.getStatusCode();
