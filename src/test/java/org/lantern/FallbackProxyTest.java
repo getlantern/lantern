@@ -20,11 +20,14 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.lantern.TestCategories.TrustStoreTests;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.Model;
 import org.lantern.util.LanternHostNameVerifier;
 import org.littleshoot.proxy.SslEngineSource;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +35,7 @@ import org.slf4j.LoggerFactory;
  * Tests running a fallback proxy based on the current code base with a client
  * that hits that proxy.
  */
+@Category(TrustStoreTests.class)
 public class FallbackProxyTest {
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -79,7 +83,7 @@ public class FallbackProxyTest {
             // typical set of suites, and the server can choose.
             final SSLSocketFactory client = util.newTlsSocketFactoryJavaCipherSuites();
             
-            final HttpHost proxy = new HttpHost("192.168.112.1", SERVER_PORT, "https");
+            final HttpHost proxy = new HttpHost(NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, "https");
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
             
             final org.apache.http.conn.ssl.SSLSocketFactory socketFactory = 
@@ -94,7 +98,7 @@ public class FallbackProxyTest {
             // request.
             hitSite(httpClient, "https://www.wikipedia.org");
         } finally {
-            give.stop();
+            //give.stop();
         }
     }
 
