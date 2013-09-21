@@ -68,7 +68,9 @@ public class Events {
      * @param model The state model.
      */
     public static void syncModal(final Model model) {
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
+        final Modal modal = model.getModal();
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL,
+            modal == Modal.none ? "" : modal));
     }
 
     /**
