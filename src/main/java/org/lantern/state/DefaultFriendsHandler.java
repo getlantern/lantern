@@ -396,7 +396,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     private void put(final ClientFriend friend) {
-        friends().put(friend.getEmail(), friend);
+        friends().put(friend.getEmail().toLowerCase(), friend);
     }
 
     private ClientFriend makeFriend(final String email) {
@@ -562,7 +562,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
 
     @Override
-    public void updateName(String address, String name) {
+    public void updateName(final String address, final String name) {
         final ClientFriend friend = getFriend(address);
         if (friend != null && !name.equals(friend.getName())) {
             friend.setName(name);
@@ -667,5 +667,15 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } finally {
             IOUtils.closeQuietly(br);
         }
+    }
+
+    @Override
+    public void syncFriends() {
+        final Collection<ClientFriend> fr = getFriends();
+        if (fr.isEmpty()) {
+            log.warn("Syncing empty friends!!!");
+            return;
+        }
+        Events.sync(SyncPath.FRIENDS, fr);
     }
 }

@@ -1298,7 +1298,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // XMPP takes care of it - that's why we don't update the server here.
         friend.setLoggedIn(false);
         friend.setMode(pres.getMode());
-        Events.sync(SyncPath.FRIENDS, this.friendsHandler.getFriends());
+        this.friendsHandler.syncFriends();
     }
     
     private void peerAvailable(final String from, final Presence pres) {

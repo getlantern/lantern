@@ -18,9 +18,7 @@ import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.FriendsHandler;
-import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
-import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +28,7 @@ public class FriendNotificationDialog extends NotificationDialog {
     private final Logger log =
         LoggerFactory.getLogger(LanternUtils.class);
 
-    private final FriendsHandler friends;
+    private final FriendsHandler friendsHandler;
     private final ClientFriend friend;
 
     private final String name;
@@ -40,7 +38,7 @@ public class FriendNotificationDialog extends NotificationDialog {
     public FriendNotificationDialog(NotificationManager manager,
             FriendsHandler friends, final ClientFriend friend) {
         super(manager);
-        this.friends = friends;
+        this.friendsHandler = friends;
         this.friend = friend;
         this.name = friend.getName();
         this.email = friend.getEmail();
@@ -118,13 +116,13 @@ public class FriendNotificationDialog extends NotificationDialog {
         final long tomorrow = System.currentTimeMillis() + 1000 * 86400;
         friend.setNextQuery(tomorrow);
         dialog.dispose();
-        //friend.setStatus(Status.pending);
-        if (this.friends != null) {
-            this.friends.setStatus(friend, Status.pending);
+        
+        // Can be null for testing.
+        if (this.friendsHandler != null) {
+            this.friendsHandler.setStatus(friend, Status.pending);
         }
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        //friends.addOrUpdate(friend);
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
+        this.friendsHandler.syncFriends();
     }
 
     protected void no() {
@@ -136,16 +134,17 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     private void setFriendStatus(final Status status) {
-        this.friends.setStatus(friend, status);
-        //friend.setStatus(status);
-        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        //friends.addOrUpdate(friend);
-        Events.sync(SyncPath.FRIENDS, friends.getFriends());
         dialog.dispose();
+        this.friendsHandler.setStatus(friend, status);
+        
+        // This is necessary to sync up the user's interaction with the 
+        // dialog with the state of the friend in the friends modal.
+        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
+        friendsHandler.syncFriends();
     }
 
     @Subscribe
-    public void onFriendStatusChanged(FriendStatusChangedEvent e) {
+    public void onFriendStatusChanged(final FriendStatusChangedEvent e) {
         if (e.getFriend().getEmail().equals(friend.getEmail())) {
             dialog.dispose();
         }

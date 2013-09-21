@@ -375,7 +375,7 @@ public class Roster implements RosterListener {
             processRosterEntryPresences(entry);
         }
         fullRosterSync();
-        Events.sync(SyncPath.FRIENDS, friendsHandler.getFriends());
+        friendsHandler.syncFriends();
     }
 
     public RosterEntry getEntry(String email) {

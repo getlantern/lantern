@@ -12,6 +12,8 @@ import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
+import org.lantern.util.Stopwatch;
+import org.lantern.util.StopwatchManager;
 
 /**
  * Tests for the friends syncing REST API.
@@ -31,7 +33,19 @@ public class FriendEndpointTest {
         friend.setName("Tester");
         api.insertFriend(friend);
         
-        final List<ClientFriend> friends = api.listFriends();
+        final Stopwatch friendsWatch = 
+            StopwatchManager.getStopwatch("friends-api", 
+                "org.lantern", "listFriends");
+        
+        List<ClientFriend> friends = null;
+        for (int i = 0; i < 10; i++) {
+            friendsWatch.start();
+            friends = api.listFriends();
+            friendsWatch.stop();
+            friendsWatch.logSummary();
+        }
+        friendsWatch.logSummary();
+        StopwatchManager.logSummaries("org.lantern");
         
         for (final ClientFriend f : friends) {
             final Long id = f.getId();

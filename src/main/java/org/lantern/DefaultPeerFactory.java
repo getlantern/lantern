@@ -24,7 +24,6 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,8 +172,7 @@ public class DefaultPeerFactory implements PeerFactory {
         if (entry == null) {
             // This will happen for cloud "peers" and kscope peers but otherwise
             // all peers should be on your roster.
-            log.debug("Could not find match for type '{}':\n{}", type, 
-                    ThreadUtils.dumpStack());
+            log.debug("Could not find match for type '{}'", type);
             log.debug("Roster is: {}", this.roster.getEntries());
         }
 

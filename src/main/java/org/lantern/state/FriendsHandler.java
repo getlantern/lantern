@@ -29,4 +29,6 @@ public interface FriendsHandler {
 
     ClientFriend getFriend(String email);
 
+    void syncFriends();
+
 }
