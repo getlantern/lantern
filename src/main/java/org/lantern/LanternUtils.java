@@ -78,7 +78,6 @@ public class LanternUtils {
 
     private static String keystorePath = "<UNSET>";
 
-    
     private static final Properties privateProps = new Properties();
     private static final File privatePropsFile;
 
@@ -679,12 +678,16 @@ public class LanternUtils {
     }
 
     public static boolean waitForServer(final int port, final int millis) {
+        return waitForServer("127.0.0.1", port, millis);
+    }
+    
+    public static boolean waitForServer(final String host, final int port, final int millis) {
         final long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < millis) {
             final Socket sock = new Socket();
             try {
                 final SocketAddress isa =
-                    new InetSocketAddress("127.0.0.1", port);
+                    new InetSocketAddress(host, port);
                 sock.connect(isa, 2000);
                 sock.close();
                 return true;
@@ -700,13 +703,6 @@ public class LanternUtils {
             "Maybe couldn't bind?");
         return false;
     }
-
-    /*
-    public static boolean isLanternMessage(final Presence pres) {
-        final Object prop = pres.getProperty(XmppMessageConstants.PROFILE);
-        return prop != null;
-    }
-    */
 
     /**
      * Determines whether or not oauth data should be persisted to disk. It is
@@ -970,11 +966,11 @@ public class LanternUtils {
         amFallbackProxy = true;
     }
 
-    public static String getKeystorePath() {
+    public static String getFallbackKeystorePath() {
         return keystorePath;
     }
 
-    public static void setKeystorePath(final String path) {
+    public static void setFallbackKeystorePath(final String path) {
         LOG.info("Setting keystorePath to '" + path + "'");
         keystorePath = path;
     }

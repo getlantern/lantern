@@ -121,6 +121,13 @@ public class LanternTrustStore {
         final Certificate cert = cf.generateCertificate(bis);
         ks.setCertificateEntry(alias, cert);
     }
+    
+    public void addCert(final String alias, final String pemCert) 
+                throws CertificateException, KeyStoreException {
+        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        addCert(this.trustStore, cf, alias, pemCert);
+        onTrustStoreChanged();
+    }
 
     public void addBase64Cert(final URI jid, final String base64Cert) {
         log.debug("Adding base 64 cert for {} to trust store", jid);
@@ -160,7 +167,9 @@ public class LanternTrustStore {
         if (this.sslContextRef.get() == null) {
             this.sslContextRef.set(provideSslContext());
         }
-        return sslContextRef.get();
+        final SSLContext context = sslContextRef.get();
+        log.debug("Returning context: {}", context);
+        return context;
     }
     
     /**
@@ -180,6 +189,7 @@ public class LanternTrustStore {
                 this.tmf.getTrustManagers(), null);
             return context;
         } catch (final Exception e) {
+            log.error("Failed to initialize the client-side SSLContext", e);
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
         }

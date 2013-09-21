@@ -112,6 +112,7 @@ public class ModelIo extends Storage<Model> {
         if (cmd == null) {
             // Can be true for testing.
             log.error("No command line?");
+            return;
         }
         final Settings set = read.getSettings();
         if (cmd.hasOption(Launcher.OPTION_SERVER_PORT)) {
@@ -128,6 +129,11 @@ public class ModelIo extends Storage<Model> {
             }
         }
         log.info("Running give mode proxy on port: {}", set.getServerPort());
+        
+
+        if (cmd.hasOption(Launcher.OPTION_KEYSTORE)) {
+            LanternUtils.setFallbackKeystorePath(cmd.getOptionValue(Launcher.OPTION_KEYSTORE));
+        }
     }
 
     @Override

@@ -975,11 +975,6 @@ public class Launcher {
             LanternUtils.setFallbackProxy();
         }
 
-        final String ksOpt = OPTION_KEYSTORE;
-        if (cmd.hasOption(ksOpt)) {
-            LanternUtils.setKeystorePath(cmd.getOptionValue(ksOpt));
-        }
-
         final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
         if (cmd.hasOption(secOpt)) {
             modelUtils.loadOAuth2ClientSecretsFile(
