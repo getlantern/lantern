@@ -62,36 +62,40 @@ public class FallbackProxyTest {
         // running in production except it uses a different keystore, so 
         // will send different keys to the client side (see comments above on 
         // using a test keystore).
-        startGiveModeProxy(trustStore, ksm);
+        final GiveModeProxy give = startGiveModeProxy(trustStore, ksm);
         
-        log.debug("Connecting on port: {}", SERVER_PORT);
-        if (!LanternUtils.waitForServer(
-                InetAddress.getLocalHost().getHostAddress(), SERVER_PORT, 4000)) {
-            fail("Could not get server on expected port?");
+        try {
+            log.debug("Connecting on port: {}", SERVER_PORT);
+            if (!LanternUtils.waitForServer(
+                    InetAddress.getLocalHost().getHostAddress(), SERVER_PORT, 4000)) {
+                fail("Could not get server on expected port?");
+            }
+            
+            final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+            
+            final DefaultHttpClient httpClient = new DefaultHttpClient();
+            
+            // We prefer this one because this way the client can advertise a more
+            // typical set of suites, and the server can choose.
+            final SSLSocketFactory client = util.newTlsSocketFactoryJavaCipherSuites();
+            
+            final HttpHost proxy = new HttpHost("192.168.112.1", SERVER_PORT, "https");
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            
+            final org.apache.http.conn.ssl.SSLSocketFactory socketFactory = 
+                new org.apache.http.conn.ssl.SSLSocketFactory(client, 
+                    new LanternHostNameVerifier(proxy));
+            final Scheme sch = new Scheme("https", 443, socketFactory);
+            httpClient.getConnectionManager().getSchemeRegistry().register(sch);
+            
+            hitSite(httpClient, "https://www.google.com");
+            
+            // Just make sure there's nothing that pops up with making a second
+            // request.
+            hitSite(httpClient, "https://www.wikipedia.org");
+        } finally {
+            give.stop();
         }
-        
-        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
-        
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
-        
-        // We prefer this one because this way the client can advertise a more
-        // typical set of suites, and the server can choose.
-        final SSLSocketFactory client = util.newTlsSocketFactoryJavaCipherSuites();
-        
-        final HttpHost proxy = new HttpHost("192.168.112.1", SERVER_PORT, "https");
-        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-        
-        final org.apache.http.conn.ssl.SSLSocketFactory socketFactory = 
-            new org.apache.http.conn.ssl.SSLSocketFactory(client, 
-                new LanternHostNameVerifier(proxy));
-        final Scheme sch = new Scheme("https", 443, socketFactory);
-        httpClient.getConnectionManager().getSchemeRegistry().register(sch);
-        
-        hitSite(httpClient, "https://www.google.com");
-        
-        // Just make sure there's nothing that pops up with making a second
-        // request.
-        hitSite(httpClient, "https://www.wikipedia.org");
     }
 
     private final String LITTLEPROXY_TEST = 
@@ -157,7 +161,7 @@ public class FallbackProxyTest {
         }
     }
 
-    private void startGiveModeProxy(final LanternTrustStore trustStore, 
+    private GiveModeProxy startGiveModeProxy(final LanternTrustStore trustStore, 
             final LanternKeyStoreManager keyStoreManager) {
         LanternUtils.setFallbackProxy();
         final Model model = new Model();
@@ -170,6 +174,6 @@ public class FallbackProxyTest {
                 new GiveModeProxy(stats, model, sslEngineSource, peerFactory);
         
         proxy.start();
-        
+        return proxy;
     }
 }
