@@ -17,6 +17,7 @@ import org.lantern.event.RefreshTokenEvent;
 import org.lantern.event.SystemProxyChangedEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,9 +210,6 @@ public class Settings {
 
     public void setRefreshToken(final String refreshToken) {
         this.refreshToken = refreshToken;
-        if (StringUtils.isNotBlank(refreshToken)) {
-            Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
-        }
     }
 
     @JsonView({Persistent.class})

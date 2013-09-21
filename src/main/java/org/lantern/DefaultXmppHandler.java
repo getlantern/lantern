@@ -1146,8 +1146,13 @@ public class DefaultXmppHandler implements XmppHandler {
             pres.setProperty(LanternConstants.INVITED_EMAIL, "");
         }
 
-        pres.setProperty(LanternConstants.REFRESH_TOKEN,
-                         this.model.getSettings().getRefreshToken());
+        final String refresh = this.model.getSettings().getRefreshToken();
+        LOG.debug("Sending refresh token: {}", refresh);
+        
+        if (StringUtils.isBlank(refresh)) {
+            LOG.warn("Refresh token is blank");
+        }
+        pres.setProperty(LanternConstants.REFRESH_TOKEN, refresh);
 
         final RosterEntry entry = rost.getEntry(email);
         if (entry != null) {

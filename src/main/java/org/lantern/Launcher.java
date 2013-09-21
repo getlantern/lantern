@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.exceptional4j.HttpStrategy;
@@ -1011,11 +1012,14 @@ public class Launcher {
         }
         */
 
-        if (cmd.hasOption(OPTION_REFRESH_TOK)) {
-            set.setRefreshToken(cmd.getOptionValue(OPTION_REFRESH_TOK));
-        }
         if (cmd.hasOption(OPTION_ACCESS_TOK)) {
             set.setAccessToken(cmd.getOptionValue(OPTION_ACCESS_TOK));
+        }
+        
+        if (cmd.hasOption(OPTION_REFRESH_TOK)) {
+            final String refresh = cmd.getOptionValue(OPTION_REFRESH_TOK);
+            set.setRefreshToken(refresh);
+            Events.asyncEventBus().post(new RefreshTokenEvent(refresh));
         }
         // option to disable use of keychains in local privacy
         if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {

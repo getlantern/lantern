@@ -42,13 +42,17 @@ public class ModelIoTest {
         if ("en".equalsIgnoreCase(SystemUtils.USER_LANGUAGE)) {
             assertEquals("en", system.getLang());
         }
+        
+        model.getSettings().setRefreshToken("refreshToken");
         io.write();
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null,
                 countryService, TestingUtils.newCommandLine());
-        model = io.get();
-        system = model.getSystem();
-        connectivity = model.getConnectivity();
+        final Model model2 = io.get();
+        system = model2.getSystem();
+        connectivity = model2.getConnectivity();
+        final String tok = model2.getSettings().getRefreshToken();
+        assertEquals("refreshToken", tok);
         //assertEquals(1, model.getFriends().getFriends().size());
 
         // The user's IP address should not persist to disk

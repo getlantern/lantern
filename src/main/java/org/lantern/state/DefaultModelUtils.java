@@ -17,6 +17,7 @@ import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.event.Events;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.lantern.oauth.OauthUtils;
 import org.slf4j.Logger;
@@ -185,6 +186,7 @@ public class DefaultModelUtils implements ModelUtils {
                 this.model.getSettings().setAccessToken(accessToken);
                 this.model.getSettings().setRefreshToken(refreshToken);
                 this.model.getSettings().setUseGoogleOAuth2(true);
+                Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
             }
         } catch (final IOException e) {
             LOG.error("Failed to read file \"{}\"", filename);

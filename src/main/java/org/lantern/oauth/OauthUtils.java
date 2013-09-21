@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -19,6 +20,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.lantern.TokenResponseEvent;
 import org.lantern.event.Events;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.Settings;
@@ -219,9 +221,23 @@ public class OauthUtils {
             
             //LOG.info("Got response: {}", response);
             final Settings set = this.model.getSettings();
-            set.setAccessToken(response.getAccessToken());
-            set.setRefreshToken(response.getRefreshToken());
+            final String accessTok = response.getAccessToken();
+            if (StringUtils.isNotBlank(accessTok)) {
+                set.setAccessToken(accessTok);
+            } else {
+                LOG.warn("Blank access token?");
+            }
+            
             set.setExpiryTime(nextExpiryTime);
+            set.setUseGoogleOAuth2(true);
+            // If the server sent us a new refresh token, store it.
+            final String tok = response.getRefreshToken();
+            if (StringUtils.isNotBlank(tok)) {
+                set.setRefreshToken(tok);
+                Events.asyncEventBus().post(new RefreshTokenEvent(refresh));
+            } 
+            
+            // Could be null for testing.
             if (this.modelIo != null) {
                 this.modelIo.write();
             }
