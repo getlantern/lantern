@@ -1,4 +1,4 @@
-package org.lantern.http;
+package org.lantern.oauth;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -20,8 +19,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.lantern.TokenResponseEvent;
 import org.lantern.event.Events;
-import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
+import org.lantern.state.Settings;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,7 @@ public class OauthUtils {
     public static final String REDIRECT_URL =
         "http://localhost:7777/oauth2callback";
     
-    private static long nextExpiryTime = System.currentTimeMillis();
+    private long nextExpiryTime = System.currentTimeMillis();
     private final Model model;
     
     private static TokenResponse lastResponse;
@@ -64,12 +64,25 @@ public class OauthUtils {
     private final HttpClientFactory httpClientFactory;
 
     private static GoogleClientSecrets secrets = null;
+
+    private final RefreshToken refreshToken;
+
+    private final ModelIo modelIo;
+    
+    public OauthUtils(final HttpClientFactory httpClientFactory, 
+            final Model model, final RefreshToken refreshToken) {
+        this(httpClientFactory, model, refreshToken, null); 
+    }
     
     @Inject
     public OauthUtils(final HttpClientFactory httpClientFactory, 
-            final Model model) {
+            final Model model, final RefreshToken refreshToken,
+            final ModelIo modelIo) {
         this.httpClientFactory = httpClientFactory;
         this.model = model;
+        this.refreshToken = refreshToken;
+        this.modelIo = modelIo;
+        this.nextExpiryTime = model.getSettings().getExpiryTime();
         LanternSaslGoogleOAuth2Mechanism.setOauthUtils(this);
     }
 
@@ -92,8 +105,8 @@ public class OauthUtils {
 
             @Override
             public TokenResponse call(final HttpClient client, 
-                    final String refreshToken) throws IOException {
-                return oauthTokens(client, refreshToken);
+                    final String refresh) throws IOException {
+                return oauthTokens(client, refresh);
             }
         };
         return func.execute();
@@ -109,7 +122,7 @@ public class OauthUtils {
      */
     private abstract class HttpFallbackFunc<T> {
         
-        public abstract T call(final HttpClient client, final String refreshToken) 
+        public abstract T call(final HttpClient client, final String refresh) 
                 throws IOException;
         
         /**
@@ -124,17 +137,14 @@ public class OauthUtils {
         public T execute() throws IOException {
             LOG.debug("Making oauth call -- will use fallback if necessary...");
             
-            final String refreshToken = model.getSettings().getRefreshToken();
-            if (StringUtils.isBlank(refreshToken)) {
-                LOG.error("No refresh token!");
-                throw new NullPointerException("No refresh token!");
-            }
+            // Note this call will block until a refresh token is available!
+            final String refresh = refreshToken.refreshToken();
             
             final HttpClient directClient =  httpClientFactory.newDirectClient();
             final Collection<HttpHost> usedHosts = new HashSet<HttpHost>();
             
             try {
-                return call(directClient, refreshToken);
+                return call(directClient, refresh);
             } catch (final IOException e) {
                 LOG.debug("Could not execute call directly", e);
             }
@@ -154,7 +164,7 @@ public class OauthUtils {
                     httpClientFactory.newClient(proxy, true);
                 try {
                     //return oauthTokens(proxiedClient, refreshToken);
-                    return call(proxiedClient, refreshToken);
+                    return call(proxiedClient, refresh);
                 } catch (final IOException e) {
                     LOG.debug("Could not execute call even with fallback at {}", 
                             proxy.getHostName(), e);
@@ -173,18 +183,18 @@ public class OauthUtils {
         }
     }
     
-    public static TokenResponse oauthTokens(final HttpClient httpClient, 
-            final String refreshToken) 
+    public TokenResponse oauthTokens(final HttpClient httpClient, 
+            final String refresh) 
             throws IOException {
         LOG.debug("Obtaining access token...");
         if (lastResponse != null) {
             LOG.debug("We have a cached response...");
             final long now = System.currentTimeMillis();
             if (now < nextExpiryTime) {
-                LOG.debug("Returning cached token");
+                LOG.debug("Access token hasn't expired yet");
                 return lastResponse;
             } else {
-                LOG.debug(now +" greater than " + nextExpiryTime);
+                LOG.debug("Access token expired!");
             }
         }
         final ApacheHttpTransport httpTransport = 
@@ -195,7 +205,7 @@ public class OauthUtils {
             final TokenResponse response =
                 new RefreshTokenRequest(httpTransport, 
                     new JacksonFactory(), new GenericUrl(
-                        "https://accounts.google.com/o/oauth2/token"), refreshToken)
+                        "https://accounts.google.com/o/oauth2/token"), refresh)
                     .setClientAuthentication(new ClientParametersAuthentication(
                             installed.getClientId(), 
                             installed.getClientSecret()))
@@ -207,7 +217,14 @@ public class OauthUtils {
                 ((expiry-10) * 1000);
             LOG.debug("Next expiry: "+nextExpiryTime);
             
-            LOG.info("Got response: {}", response);
+            //LOG.info("Got response: {}", response);
+            final Settings set = this.model.getSettings();
+            set.setAccessToken(response.getAccessToken());
+            set.setRefreshToken(response.getRefreshToken());
+            set.setExpiryTime(nextExpiryTime);
+            if (this.modelIo != null) {
+                this.modelIo.write();
+            }
             lastResponse = response;
             return lastResponse;
         } catch (final TokenResponseException e) {
@@ -241,7 +258,7 @@ public class OauthUtils {
         final HttpFallbackFunc<String> func = new HttpFallbackFunc<String>() {
 
             @Override
-            public String call(final HttpClient client, final String refreshToken)
+            public String call(final HttpClient client, final String refresh)
                     throws IOException {
                 return httpRequest(client, request);
             }
@@ -290,13 +307,8 @@ public class OauthUtils {
     }
 
     public String accessToken(final HttpClient httpClient) throws IOException {
-        final String refresh = this.model.getSettings().getRefreshToken();
-        if (StringUtils.isBlank(refresh)) {
-            LOG.error("Can't call Oauth APIs without refresh token! " +
-                "Should be set earlier");
-            throw new Error("No refresh token set");
-        }
-        return OauthUtils.oauthTokens(httpClient, refresh).getAccessToken();
+        final String refresh = this.refreshToken.refreshToken();
+        return oauthTokens(httpClient, refresh).getAccessToken();
     } 
     
     public static synchronized GoogleClientSecrets loadClientSecrets() throws IOException {

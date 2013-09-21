@@ -7,8 +7,8 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
@@ -25,8 +25,9 @@ public class NotificationManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final List<NotificationDialog> notifications = 
-            new ArrayList<NotificationDialog>();
+    private final Collection<NotificationDialog> notifications =
+            new LinkedHashSet<NotificationDialog>();
+    
     private final Settings settings;
     
     private static final int MAX_NOTIFICATIONS = 3;
@@ -36,23 +37,29 @@ public class NotificationManager {
         this.settings = settings;
         Events.register(this);
     }
-
-    public synchronized void addNotification(
-        final NotificationDialog notification) {
+    
+    public synchronized boolean shouldNotify() {
         if (!settings.isUiEnabled()) {
-            //no UI, no notifications
-            return;
+            return false;
         }
         if (notifications.size() > MAX_NOTIFICATIONS ) {
             log.debug("Not notifying -- over maximum notifications");
+            return false;
+        }
+        
+        return true;
+    }
+
+    public synchronized void addNotification(
+        final NotificationDialog notification) {
+        if (!shouldNotify()) {
+            //no UI, no notifications
             return;
         }
 
-        for (NotificationDialog dialog : notifications) {
-            if (dialog.equals(notification)) {
-                //already have a dialog for this friend
-                return;
-            }
+        if (this.notifications.contains(notification)) {
+            log.debug("We already have this notification");
+            return;
         }
 
         doNotify(notification);
@@ -108,15 +115,14 @@ public class NotificationManager {
         return clientArea;
     }
 
-    public void remove(NotificationDialog toRemove) {
+    public void remove(final NotificationDialog toRemove) {
         boolean later = false;
-        for (int i = 0; i < notifications.size(); ++i) {
-            NotificationDialog notification = notifications.get(i);
+        for (final NotificationDialog nd : notifications) {
             if (later) {
-                Point location = notification.dialog.getLocation();
-                int height = notification.dialog.getSize().height;
-                notification.dialog.setLocation(location.x, location.y + height);
-            } else if (notification == toRemove) {
+                Point location = nd.dialog.getLocation();
+                int height = nd.dialog.getSize().height;
+                nd.dialog.setLocation(location.x, location.y + height);
+            } else if (nd == toRemove) {
                 later = true;
             }
         }

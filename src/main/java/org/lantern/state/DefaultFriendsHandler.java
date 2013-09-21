@@ -94,6 +94,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refresh) {
+        log.debug("Got refresh token -- loading friends");
         loadFriends();
         refreshLoaded.set(true);
     }
@@ -114,6 +115,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     private void loadFriends() {
         if (this.friendsLoaded.getAndSet(true)) {
+            log.debug("Friends already loaded...");
             return;
         }
         final ExecutorService friendsLoader = 
@@ -329,7 +331,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 log.debug("Peer is a friend or rejected, not adding a notification");
                 return;
             } else {
-                log.debug("Adding notification!");
+                log.debug("Potentially adding notification...");
                 friendNotification(existing);
                 return;
             }
@@ -385,6 +387,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 && model.isSetupComplete()) {
             if (notificationManager == null) {
                 log.debug("Null notification dialog -- testing?");
+                return;
+            }
+            if (!notificationManager.shouldNotify()) {
+                log.debug("Not notifying");
                 return;
             }
             log.debug("Notifying");
