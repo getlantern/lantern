@@ -20,7 +20,6 @@
   <div id="appInfo">
     {{ 'LANTERN' | i18n }}
     {{ model.version.installed | version:true }}
-    {{ mockBackend && '(mock backend)' || model.dev && '(dev mode)' || '' }}
     <span ng-show="model.version.updateAvailable" class="update-available">
       · <i class="icon-exclamation-sign"></i>
       <a ng-click="interaction(INTERACTION.updateAvailable)">Update available</a>
