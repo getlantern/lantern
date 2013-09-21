@@ -250,6 +250,15 @@ public class DefaultFriendsHandler implements FriendsHandler {
             } catch (final IOException e) {
                 error("Error inviting friend '"+email+
                     "'. Do you still have an Internet connection?", e);
+                
+                // We treat this as all or nothing -- if a friend isn't 
+                // invited successfully, remove them.
+                try {
+                    this.api.removeFriend(friend.getId());
+                } catch (final IOException ioe) {
+                    error("Error removing friend '"+email+
+                        "'. Do you still have an Internet connection?", ioe);
+                }
             }
             return friend;
         } catch (final IOException e) {
