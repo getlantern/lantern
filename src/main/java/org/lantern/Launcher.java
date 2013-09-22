@@ -974,7 +974,7 @@ public class Launcher {
 
         final String fbOpt = OPTION_AS_FALLBACK;
         if (cmd.hasOption(fbOpt)) {
-            LanternUtils.setFallbackProxy();
+            LanternUtils.setFallbackProxy(true);
         }
 
         final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;

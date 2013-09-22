@@ -12,6 +12,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.state.Model;
@@ -21,14 +22,17 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 public class SslHttpProxyServerTest {
 
+    // Just make sure all statics are in the state we're trying to test.
+    @BeforeClass 
+    public static void setUpClass() {  
+        LanternUtils.setFallbackProxy(false);
+    }
+    
     @Test
     public void test() throws Exception {
         //System.setProperty("java.net.preferIPv4Stack", "true");
         Launcher.configureCipherSuites();
-        // LanternUtils.setFallbackProxy();
-        System.setProperty("javax.net.debug", "ssl");
-        org.jboss.netty.util.Timer timer =
-                new org.jboss.netty.util.HashedWheelTimer();
+        //System.setProperty("javax.net.debug", "ssl");
 
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore ts = new LanternTrustStore(ksm);

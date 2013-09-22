@@ -3,6 +3,7 @@ package org.lantern;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
@@ -14,14 +15,15 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.lantern.TestCategories.TrustStoreTests;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.Model;
@@ -35,24 +37,38 @@ import org.slf4j.LoggerFactory;
  * Tests running a fallback proxy based on the current code base with a client
  * that hits that proxy.
  */
-@Category(TrustStoreTests.class)
 public class FallbackProxyTest {
 
     private Logger log = LoggerFactory.getLogger(getClass());
     private static final int SERVER_PORT = LanternUtils.randomPort();
 
+    private static String originalFallbackKeystorePath;
+    
+    // We have to make sure to clean up the keystore path to avoid affecting
+    // other tests when tests are run together.
+    @BeforeClass 
+    public static void setUpClass() {  
+        originalFallbackKeystorePath =
+                LanternUtils.getFallbackKeystorePath();
+        // This is the keystore that's used on the server side -- a test 
+        // dummy of littleproxy_keystore.jks that's used in production.
+        LanternUtils.setFallbackKeystorePath("src/test/resources/test.jks");
+    }
+
+    @AfterClass 
+    public static void tearDownClass() { 
+        LanternUtils.setFallbackKeystorePath(originalFallbackKeystorePath);
+        LanternUtils.setFallbackProxy(false);
+    }
 
     @Test
     public void testFallback() throws Exception {
         //System.setProperty("javax.net.debug", "all");
-        //System.setProperty("javax.net.debug", "ssl");
+        System.setProperty("javax.net.debug", "ssl");
         Launcher.configureCipherSuites();
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         ksm.start();
         
-        // This is the keystore that's used on the server side -- a test 
-        // dummy of littleproxy_keystore.jks that's used in production.
-        LanternUtils.setFallbackKeystorePath("src/test/resources/test.jks");
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
 
         final String testId = "test@gmail.com/somejidresource";
@@ -82,6 +98,7 @@ public class FallbackProxyTest {
             // We prefer this one because this way the client can advertise a more
             // typical set of suites, and the server can choose.
             final SSLSocketFactory client = util.newTlsSocketFactoryJavaCipherSuites();
+            //final SSLSocketFactory client = util.newTlsSocketFactory(IceConfig.getCipherSuites());
             
             final HttpHost proxy = new HttpHost(NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, "https");
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
@@ -98,7 +115,7 @@ public class FallbackProxyTest {
             // request.
             hitSite(httpClient, "https://www.wikipedia.org");
         } finally {
-            //give.stop();
+            give.stop();
         }
     }
 
@@ -141,8 +158,7 @@ public class FallbackProxyTest {
     }
 
 
-    private void hitSite(DefaultHttpClient httpClient, final String url) 
-            throws Exception {
+    private void hitSite(DefaultHttpClient httpClient, final String url)  {
         final HttpGet get = new HttpGet(url);
         
         try {
@@ -160,6 +176,12 @@ public class FallbackProxyTest {
                 log.error("OAuth error?\n"+line);
                 fail("Could not get response?");
             }
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         } finally {
             get.reset();
         }
@@ -167,7 +189,7 @@ public class FallbackProxyTest {
 
     private GiveModeProxy startGiveModeProxy(final LanternTrustStore trustStore, 
             final LanternKeyStoreManager keyStoreManager) {
-        LanternUtils.setFallbackProxy();
+        LanternUtils.setFallbackProxy(true);
         final Model model = new Model();
         model.getSettings().setServerPort(SERVER_PORT);
         final SslEngineSource sslEngineSource = 

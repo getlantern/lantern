@@ -960,10 +960,10 @@ public class LanternUtils {
         return amFallbackProxy;
     }
 
-    public static void setFallbackProxy() {
+    public static void setFallbackProxy(final boolean fallbackProxy) {
         // To check whether this is set in time for it to be picked up.
         LOG.info("I am a fallback proxy");
-        amFallbackProxy = true;
+        amFallbackProxy = fallbackProxy;
     }
 
     public static String getFallbackKeystorePath() {
