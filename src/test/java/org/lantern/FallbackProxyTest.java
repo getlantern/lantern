@@ -24,8 +24,6 @@ import org.apache.http.util.EntityUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.lantern.TestCategories.FailingTests;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.Model;
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
  * Tests running a fallback proxy based on the current code base with a client
  * that hits that proxy.
  */
-@Category(FailingTests.class)
 public class FallbackProxyTest {
 
     private Logger log = LoggerFactory.getLogger(getClass());
