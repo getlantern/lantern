@@ -345,9 +345,10 @@ public class InteractionServlet extends HttpServlet {
             case RETRY:
                 Events.syncModal(model, Modal.authorize);
                 break;
-            case REQUESTINVITE:
-                Events.syncModal(model, Modal.requestInvite);
-                break;
+            // not currently implemented:
+            //case REQUESTINVITE:
+            //    Events.syncModal(model, Modal.requestInvite);
+            //    break;
             default:
                 log.error("Unexpected interaction: " + inter);
                 break;

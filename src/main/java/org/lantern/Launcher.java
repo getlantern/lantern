@@ -703,6 +703,7 @@ public class Launcher {
                         LOG.debug("Bad credentials");
                     } catch (final NotInClosedBetaException e) {
                         LOG.warn("Not in closed beta!!");
+                        internalState.setNotInvited(true);
                     }
                 }
             };

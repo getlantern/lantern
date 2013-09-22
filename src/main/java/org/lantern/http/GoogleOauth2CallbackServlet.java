@@ -239,6 +239,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     xmppHandler.connect();
                     log.debug("Setting gtalk authorized");
                     model.getConnectivity().setGtalkAuthorized(true);
+                    internalState.setNotInvited(false);
                     internalState.setModalCompleted(Modal.authorize);
                     internalState.advanceModal(null);
                 } catch (final CredentialException e) {
@@ -246,6 +247,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     Events.syncModal(model, Modal.authorize);
                 } catch (final NotInClosedBetaException e) {
                     log.info("This user is not invited");
+                    internalState.setNotInvited(true);
                     Events.syncModal(model, Modal.notInvited);
                 } catch (final IOException e) {
                     log.info("We can't connect (internet connection died?).  Retry.", e);

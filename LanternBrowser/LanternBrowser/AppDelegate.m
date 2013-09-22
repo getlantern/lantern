@@ -13,8 +13,8 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     [self.webView setPreferencesIdentifier:@"Lantern"];
-    WebPreferences *prefs = [self.webView preferences];
-    [prefs setPrivateBrowsingEnabled:YES];
+    //WebPreferences *prefs = [self.webView preferences];
+    //[prefs setPrivateBrowsingEnabled:YES];
     NSArray *arguments = [[NSProcessInfo processInfo] arguments];
     NSString *url = [arguments objectAtIndex:1];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];

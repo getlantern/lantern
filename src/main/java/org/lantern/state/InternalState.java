@@ -35,6 +35,8 @@ public class InternalState {
 
     private final Model model;
 
+    private boolean notInvited = false;
+
     public Modal getLastModal() {
         return this.lastModal;
     }
@@ -120,5 +122,14 @@ public class InternalState {
     @Subscribe
     public void onReset(final ResetEvent re) {
         modalsCompleted.clear();
+        setNotInvited(false);
     }
+
+	public boolean isNotInvited() {
+		return notInvited;
+	}
+
+	public void setNotInvited(boolean notInvited) {
+		this.notInvited = notInvited;
+	}
 }
