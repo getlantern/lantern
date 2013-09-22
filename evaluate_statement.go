@@ -190,12 +190,6 @@ resultBreak:
 				break
 			}
 		}
-		if test != nil {
-			if !self.GetValue(self.evaluate(test)).isTrue() {
-				// Stahp: for (...; false; ...) ...
-				break
-			}
-		}
 		for _, node := range body {
 			value := self.evaluate(node)
 			switch value.evaluateBreakContinue(labelSet) {

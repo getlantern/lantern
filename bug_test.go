@@ -247,3 +247,26 @@ func Test_issue24(t *testing.T) {
 		}
 	}
 }
+
+func Test_issue39(t *testing.T) {
+	Terst(t)
+	test := runTest()
+
+	test(`
+		var a = 0, b = [], x = function() {
+			if (a < 10) return ++a;
+			return undefined;
+		}
+		for (var i; (i = x());) b.push(i);
+		b
+	`, "1,2,3,4,5,6,7,8,9,10")
+
+	test(`
+		var a = ["foo", "bar", "baz", "qux"];
+		var b = [];
+		for (var x; (x = a.shift());) {
+			b.push(x);
+		}
+		b;
+	`, "foo,bar,baz,qux")
+}
