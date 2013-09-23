@@ -16,10 +16,13 @@ import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ProxyHolder implements Comparable<ProxyHolder>,
         ChainedProxy {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ProxyHolder.class);
     private final ProxyTracker proxyTracker;
 
     private final PeerFactory peerFactory;
@@ -248,6 +251,10 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionFailed(Throwable cause) {
+        // TODO: For some reason the stack trace we get here just includes
+        // the message -- we really need the full stack along with causes.
+        LOG.info("Could not connect to proxy at ip: "+
+                this.fiveTuple.getRemote(), cause);
         proxyTracker.onCouldNotConnect(this);
     }
 
