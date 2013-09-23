@@ -51,6 +51,8 @@ public class FriendEndpointTest {
         for (final ClientFriend f : friends) {
             final Long id = f.getId();
             api.removeFriend(id);
+            // Give the db a chance to sync.
+            Thread.sleep(100);
         }
         
         final List<ClientFriend> postDelete = api.listFriends();
@@ -74,10 +76,10 @@ public class FriendEndpointTest {
             assertEquals(id, get.getId());
             
             api.removeFriend(id);
+            // Give the db a chance to sync.
+            Thread.sleep(100);
         }
         
-        // Give the db a chance to sync.
-        Thread.sleep(400);
         final List<ClientFriend> empty = api.listFriends();
         assertEquals(0, empty.size());
     }
