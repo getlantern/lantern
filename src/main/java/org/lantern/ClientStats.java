@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.lantern.proxy.GetModeProxy;
@@ -62,6 +63,21 @@ public interface ClientStats extends Stats {
      *            geolocation
      */
     void addBytesProxied(long bytes, InetSocketAddress localProxyAddress);
+
+    /**
+     * Record that we've proxied traffic for the given {@link InetAddress}.
+     * 
+     * @param address
+     */
+    void addProxiedClientAddress(InetAddress address);
+
+    /**
+     * Gives a count of the # of distinct {@link InetAddress}es for which we've
+     * proxied data.
+     * 
+     * @return
+     */
+    long getCountOfDistinctProxiedClientAddresses();
 
     void resetCumulativeStats();
 

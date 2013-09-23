@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class StatsStub implements ClientStats {
@@ -218,6 +219,18 @@ public class StatsStub implements ClientStats {
     public void addBytesProxied(long bytes, InetSocketAddress address) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public void addProxiedClientAddress(InetAddress address) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public long getCountOfDistinctProxiedClientAddresses() {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
     @Override

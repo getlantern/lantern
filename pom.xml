@@ -353,7 +353,7 @@
     <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>lantern-common</artifactId>
-      <version>0.0.18</version>
+      <version>0.0.19-SNAPSHOT</version>
     </dependency>
     <dependency>
     	<groupId>org.bitbucket.thealchemist</groupId>

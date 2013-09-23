@@ -28,9 +28,9 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     @Inject
     public GiveModeProxy(
             final ClientStats stats,
@@ -97,6 +97,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         if (peer != null) {
                             peer.connected();
                         }
+                        stats.addProxiedClientAddress(clientAddress
+                                .getAddress());
                     }
 
                     @Override
@@ -118,7 +120,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                                 .peerForSession(sslSession) : null;
                     }
                 }));
-        log.info("Creating give mode proxy on port: {}", 
+        log.info("Creating give mode proxy on port: {}",
                 model.getSettings().getServerPort());
     }
 }

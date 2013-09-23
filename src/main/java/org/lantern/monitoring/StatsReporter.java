@@ -43,13 +43,14 @@ public class StatsReporter implements LanternService {
     // Note - this token only has access to record/view stats and can't do any
     // admin stuff
     private static final String LIBRATO_API_TOKEN = "7c10ebf9e817e301cc578141658284bfa9f4a15bf938143b386142f854be0afe";
-    
+
     private static final int LIBRATO_REPORTING_INTERVAL = 60;
 
     private final Model model;
-    private final Stats stats;
+    private final ClientStats stats;
 
-    private final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+    private final MemoryMXBean memoryMXBean = ManagementFactory
+            .getMemoryMXBean();
     private final OperatingSystemMXBean osStats = ManagementFactory
             .getOperatingSystemMXBean();
 
@@ -60,9 +61,7 @@ public class StatsReporter implements LanternService {
         this.model = model;
         this.stats = stats;
         initializeSystemMetrics();
-        // TODO: if we want to report Lantern metrics through Librato, uncomment
-        // the below line
-        // initializeLanternMetrics();
+        initializeLanternMetrics();
     }
 
     @Override
@@ -153,9 +152,26 @@ public class StatsReporter implements LanternService {
     }
 
     /**
-     * Add gauges for all numeric properties on Stats.class
+     * Add gauges for Lantern-specific statistics
      */
     private void initializeLanternMetrics() {
+        metrics.register("LanternStat_countOfDistinctProxiedClientAddresses", new Gauge<Long>() {
+            @Override
+            public Long getValue() {
+                return stats.getCountOfDistinctProxiedClientAddresses(); 
+            }
+        });
+        // TODO: if we want to report Lantern metrics through Librato, change the
+        // below to true
+        if (false) {
+            initializeAllLanternMetrics();
+        }
+    }
+
+    /**
+     * Add gauges for all numeric properties on Stats.class
+     */
+    private void initializeAllLanternMetrics() {
         for (PropertyDescriptor property : PropertyUtils
                 .getPropertyDescriptors(Stats.class)) {
             Class<?> type = property.getPropertyType();

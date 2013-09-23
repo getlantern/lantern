@@ -69,6 +69,8 @@ public class StatsTracker implements ClientStats {
     private final CountryService countryService;
 
     private String countryCode;
+    
+    private final Set<InetAddress> distinctProxiedClientAddresses = new HashSet<InetAddress>();
 
     @Inject
     public StatsTracker(final GeoIpLookupService lookupService,
@@ -278,6 +280,16 @@ public class StatsTracker implements ClientStats {
         }
         final CountryData cd = toCountryData(address);
         cd.bytes += bp;
+    }
+    
+    @Override
+    public void addProxiedClientAddress(InetAddress address) {
+        distinctProxiedClientAddresses.add(address);
+    }
+    
+    @Override
+    public long getCountOfDistinctProxiedClientAddresses() {
+        return distinctProxiedClientAddresses.size();
     }
 
     @Override
