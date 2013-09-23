@@ -15,11 +15,15 @@ import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
 import org.lantern.util.StopwatchManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tests for the friends syncing REST API.
  */
 public class FriendEndpointTest {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Test
     public void testFriendEndpiont() throws Exception {
@@ -39,7 +43,7 @@ public class FriendEndpointTest {
                 "org.lantern", "listFriends");
         
         List<ClientFriend> friends = null;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2; i++) {
             friendsWatch.start();
             friends = api.listFriends();
             friendsWatch.stop();
@@ -48,11 +52,13 @@ public class FriendEndpointTest {
         friendsWatch.logSummary();
         StopwatchManager.logSummaries("org.lantern");
         
+        log.debug("Deleting all friends from: {}", friends);
         for (final ClientFriend f : friends) {
             final Long id = f.getId();
             api.removeFriend(id);
             // Give the db a chance to sync.
-            Thread.sleep(100);
+            log.debug("Removing friend: {}", f);
+            Thread.sleep(2000);
         }
         
         final List<ClientFriend> postDelete = api.listFriends();
