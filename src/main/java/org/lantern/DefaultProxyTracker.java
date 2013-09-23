@@ -501,11 +501,11 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxies() {
         parseFallbackProxy();
-        
+        addSingleFallbackProxy(fallbackServerHost, fallbackServerPort);
+
         final File file = new File(SystemUtils.USER_HOME, "fallbacks.json");
         if (!file.isFile()) {
             LOG.info("No fallback proxies in: {}", file.getAbsolutePath());
-            addSingleFallbackProxy(fallbackServerHost, fallbackServerPort);
             return;
         }
         final ObjectMapper om = new ObjectMapper();
@@ -522,7 +522,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 addSingleFallbackProxy(fp.getIp(), fp.getPort());
             }
         } catch (final IOException e) {
-            LOG.error("Could not load fallback proxies?", e);
+            LOG.error("Could not load fallback proxies?");
         }
     }
 

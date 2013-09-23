@@ -7,7 +7,6 @@ import java.net.InetSocketAddress;
 import javax.net.ssl.SSLSession;
 
 import org.lantern.ClientStats;
-import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
@@ -45,8 +44,6 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
                 .withSslEngineSource(sslEngineSource)
-                // Fallbacks don't authenticate clients, everyone else does
-                .withAuthenticateSslClients(!LanternUtils.isFallbackProxy())
 
                 // Use a filter to deny requests to non-public ips
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
