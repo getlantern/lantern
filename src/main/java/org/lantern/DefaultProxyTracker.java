@@ -522,7 +522,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 addSingleFallbackProxy(fp.getIp(), fp.getPort());
             }
         } catch (final IOException e) {
-            LOG.error("Could not load fallback proxies?");
+            LOG.error("Could not load fallback proxies?", e);
         }
     }
 
