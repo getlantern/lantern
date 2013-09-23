@@ -3,7 +3,6 @@ package org.lantern;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
@@ -15,7 +14,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.Scheme;
@@ -158,7 +156,8 @@ public class FallbackProxyTest {
     }
 
 
-    private void hitSite(DefaultHttpClient httpClient, final String url)  {
+    private void hitSite(DefaultHttpClient httpClient, final String url) 
+            throws Exception {
         final HttpGet get = new HttpGet(url);
         
         try {
@@ -176,12 +175,6 @@ public class FallbackProxyTest {
                 log.error("OAuth error?\n"+line);
                 fail("Could not get response?");
             }
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         } finally {
             get.reset();
         }
