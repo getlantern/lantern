@@ -17,6 +17,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.http.PhotoServlet;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.monitoring.StatsReporter;
 import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
@@ -84,6 +85,7 @@ public class LanternModule extends AbstractModule {
 
         bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(ClientStats.class).to(StatsTracker.class);
+        bind(StatsReporter.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwtMessageService.class);

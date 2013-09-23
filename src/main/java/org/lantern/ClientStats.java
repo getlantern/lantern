@@ -63,14 +63,6 @@ public interface ClientStats extends Stats {
      */
     void addBytesProxied(long bytes, InetSocketAddress localProxyAddress);
 
-    /**
-     * This updates the system statistics on this {@link ClientStats} object.
-     * These include statistics like {@link #getCpuUtilization()},
-     * {@link #getLoadAverage()}, {@link #getMemoryUsageInBytes()} and
-     * {@link #getNumberOfOpenFileDescriptors()}.
-     */
-    void updateSystemStatistics();
-
     void resetCumulativeStats();
 
 }

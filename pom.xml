@@ -370,6 +370,16 @@
     	<artifactId>fastutil</artifactId>
     	<version>6.5.4</version>
     </dependency>
+    <dependency>
+        <groupId>com.codahale.metrics</groupId>
+        <artifactId>metrics-core</artifactId>
+        <version>3.0.1</version>
+    </dependency>
+    <dependency>
+	    <groupId>com.librato.metrics</groupId>
+	    <artifactId>metrics-librato</artifactId>
+	    <version>3.0.1.RC1</version>
+	</dependency>
   </dependencies>
 
   <prerequisites>

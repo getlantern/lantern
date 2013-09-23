@@ -1,9 +1,5 @@
 package org.lantern;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryUsage;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
@@ -73,16 +69,6 @@ public class StatsTracker implements ClientStats {
     private final CountryService countryService;
 
     private String countryCode;
-
-    private double processCpuUsage;
-
-    private double systemCpuUsage;
-
-    private double systemLoadAverage;
-
-    private double memoryUsageInBytes;
-
-    private long numberOfOpenFileDescriptors;
 
     @Inject
     public StatsTracker(final GeoIpLookupService lookupService,
@@ -312,83 +298,6 @@ public class StatsTracker implements ClientStats {
     @Override
     public boolean isNatpmp() {
         return natpmp;
-    }
-
-    @Override
-    public double getProcessCpuUsage() {
-        return processCpuUsage;
-    }
-
-    @Override
-    public double getSystemCpuUsage() {
-        return systemCpuUsage;
-    }
-
-    @Override
-    public double getSystemLoadAverage() {
-        return systemLoadAverage;
-    }
-
-    @Override
-    public double getMemoryUsageInBytes() {
-        return memoryUsageInBytes;
-    }
-
-    @Override
-    public long getNumberOfOpenFileDescriptors() {
-        return numberOfOpenFileDescriptors;
-    }
-
-    @Override
-    public void updateSystemStatistics() {
-        // Below courtesy of:
-        // http://stackoverflow.com/questions/10999076/programmatically-print-the-heap-usage-that-is-typically-printed-on-jvm-exit-when
-        MemoryUsage mu = ManagementFactory.getMemoryMXBean()
-                .getHeapMemoryUsage();
-        MemoryUsage muNH = ManagementFactory.getMemoryMXBean()
-                .getNonHeapMemoryUsage();
-        this.memoryUsageInBytes = mu.getCommitted() + muNH.getCommitted();
-
-        // Below courtesy of:
-        // http://neopatel.blogspot.com/2011/05/java-count-open-file-handles.html
-        OperatingSystemMXBean osStats = ManagementFactory
-                .getOperatingSystemMXBean();
-        this.systemLoadAverage = osStats.getSystemLoadAverage();
-        if (osStats.getClass().getName()
-                .equals("com.sun.management.UnixOperatingSystem")) {
-            this.processCpuUsage = getSystemStatDouble(osStats, "getProcessCpuLoad");
-            this.systemCpuUsage = getSystemStatDouble(osStats, "getSystemCpuLoad");
-            this.numberOfOpenFileDescriptors = getSystemStatLong(osStats, "getOpenFileDescriptorCount");
-        }
-    }
-
-    private Double getSystemStatDouble(final OperatingSystemMXBean osStats, 
-            final String name) {
-        try {
-            return getSystemStat(osStats, name);
-        } catch (final Exception e) {
-            log.debug("Unable to get system stat: {}", name, e);
-            return 0.0;
-        }
-    }
-    
-    private Long getSystemStatLong(final OperatingSystemMXBean osStats, 
-            final String name) {
-        try {
-            return getSystemStat(osStats, name);
-        } catch (final Exception e) {
-            log.debug("Unable to get system stat: {}", name, e);
-            return 0L;
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    private <T extends Number> T getSystemStat(
-            final OperatingSystemMXBean osStats, 
-            final String name) throws Exception {
-        final  Method method = osStats.getClass().getDeclaredMethod(name);
-        method.setAccessible(true);
-        return (T) method.invoke(osStats);
     }
 
     private CountryData toCountryData(final InetSocketAddress isa) {

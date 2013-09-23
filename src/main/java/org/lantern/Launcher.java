@@ -48,6 +48,7 @@ import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.exceptional4j.HttpStrategy;
 import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
+import org.lantern.monitoring.StatsReporter;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
@@ -103,7 +104,8 @@ public class Launcher {
     private XmppHandler xmpp;
     private BrowserService browserService;
     private StatsUpdater statsUpdater;
-
+    private StatsReporter statsReporter;
+    
     private LocalCipherProvider localCipherProvider;
 
     /**
@@ -338,6 +340,7 @@ public class Launcher {
 
         instance(GeoIp.class);
         statsUpdater = instance(StatsUpdater.class);
+        statsReporter = instance(StatsReporter.class);
 
         model.getConnectivity().setInternet(false);
         
@@ -409,7 +412,12 @@ public class Launcher {
 
                 syncService.start();
                 statsUpdater.start();
-
+                
+                // TODO: Maybe report stats only for fallback proxies
+                //if (LanternUtils.isFallbackProxy()) {
+                    statsReporter.start();
+                //}
+                
                 gnomeAutoStart();
                 
                 autoConnect();
