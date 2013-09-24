@@ -128,10 +128,10 @@ Chrome extension (especially the performance tab) can come in handy.
 
 This repo was started with the
 [angular-seed](https://github.com/angular/angular-seed). The
-`scripts/web-server.js` script has been modified to attach a
-[bayeux server](http://faye.jcoglan.com/) server and an http API to simulate
-the Lantern backend. The application logic for the mock backend can be found in
-`mock/backend.js`.
+`scripts/web-server.js` script has been modified to attach a [bayeux
+server](http://svn.cometd.com/trunk/bayeux/bayeux.html) server as mentioned
+above and an http API to simulate the Lantern backend. The application logic
+for the mock backend can be found in `mock/backend.js`.
 
 Specifications for application states and transitions between them are documented
 [here](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md).
