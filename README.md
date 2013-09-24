@@ -114,14 +114,13 @@ unit tests and end-to-end tests.
 
 The UI is implemented as an [AngularJS](http://angularjs.org) app. Using the
 [AngularJS Batarang](https://github.com/angular/angularjs-batarang)
-Chrome extension (especially the performance tab) is highly recommended for
-development. As recommended, this repo was started with the
-[angular-seed](https://github.com/angular/angular-seed). The
-`scripts/web-server.js` script has been modified to attach a bayeux server
-and a work-in-progress http API to simulate the Lantern backend.
+Chrome extension (especially the performance tab) can come in handy.
 
-[Specs](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md) are
-currently being developed to represent the full state of the application at any
-given time, as well as transitions between states. The specs are being
-developed in parallel to the UI and are currently changing frequently to
-meet its needs.
+This repo was started with the
+[angular-seed](https://github.com/angular/angular-seed). The
+`scripts/web-server.js` script has been modified to attach a
+[bayeux server](http://faye.jcoglan.com/) server and an http API to simulate
+the Lantern backend.
+
+Specifications for application states and transitions between them are documented
+[here](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md).
