@@ -122,7 +122,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                                 .peerForSession(sslSession) : null;
                     }
                 }));
-        log.info("Creating give mode proxy on port: {}",
-                model.getSettings().getServerPort());
+        log.info("Creating give mode proxy on port {}, running as fallback: {}",
+                model.getSettings().getServerPort(),
+                LanternUtils.isFallbackProxy());
     }
 }
