@@ -37,8 +37,28 @@ Install required dependencies (`sudo` as necessary):
   be able to update dependencies; they're already checked in to the
   app/bower_components directory so you don't need bower just to fetch them).
 
+* run `npm install` to fetch dependencies specified in package.json
+
+* run `scripts/web-server.js`
+
+You should get a message telling you the application is up and running with
+a link to access it.
+
+When you first access the app, you will start at the beginning of the setup
+process (will look like the screenshot above). To skip the setup process and
+go straight to an already set-up app, run `scripts/web-server.js --skip-setup`.
+You should then see something like this when you open the app:
+
+![screenshot-vis](./screenshots/vis.png)
+
+The mock scenarios the app can run with (e.g. your location is London, you have
+a friend in Shanghai, etc.) are defined in `mock/scenarios.js`, and are enabled
+in `mock/backend.js`.
+
 
 ### For working on the stylesheets:
+
+(Not necessary unless you want to change stylesheets.)
 
 * [ruby](http://www.ruby-lang.org/) (comes with OS X)
 
@@ -52,19 +72,6 @@ config file (`config/compass.rb`):
     $ scripts/start-compass.sh &
     >>> Compass is watching for changes. Press Ctrl-C to Stop.
 
-### For running the mock backend:
-
-* run `npm install` to fetch dependencies specified in package.json
-
-* run `scripts/web-server.js`
-
-The UI should now be available at
-[http://localhost:8000/app/index.html](http://localhost:8000/app/index.html).
-To skip the setup process and go straight to an already set-up instance, run
-`scripts/web-server.js --skip-setup`. You should then see something like this
-when you open the app:
-
-![screenshot-vis](./screenshots/vis.png)
 
 ## i18n
 
@@ -123,7 +130,8 @@ This repo was started with the
 [angular-seed](https://github.com/angular/angular-seed). The
 `scripts/web-server.js` script has been modified to attach a
 [bayeux server](http://faye.jcoglan.com/) server and an http API to simulate
-the Lantern backend.
+the Lantern backend. The application logic for the mock backend can be found in
+`mock/backend.js`.
 
 Specifications for application states and transitions between them are documented
 [here](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md).
