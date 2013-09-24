@@ -372,7 +372,9 @@ public class Launcher {
             LOG.debug("No display?");
             
             // We just wait here because depending on the OS and what threads
-            // happen to have 
+            // happen to have started, it's possible there are no more 
+            // non-daemon threads at this point, in which case the JVM will
+            // just exit.
             synchronized (this) {
                 try {
                     wait();
