@@ -14,7 +14,7 @@ fi
 VERSION=$(./parseversionfrompom.py | sed s/-SNAPSHOT//)
 
 mvn release:clean || die "Could not clean release?"
-mvn release:prepare -Dmaven.test.skip=true || die "Could not prepare release?"
+mvn release:prepare || die "Could not prepare release?"
 
 echo "Tagging latest release"
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7` || die "Could not get git version?"
