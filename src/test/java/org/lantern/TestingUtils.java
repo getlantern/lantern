@@ -271,7 +271,7 @@ public class TestingUtils {
     }
 
     public static CommandLine newCommandLine(final String[] args) throws Exception {
-        final Options options = Launcher.buildOptions();
+        final Options options = Cli.buildOptions();
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd = parser.parse(options, args);
         if (cmd.getArgs().length > 0) {

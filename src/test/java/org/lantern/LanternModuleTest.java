@@ -29,8 +29,7 @@ public class LanternModuleTest {
 
     @Test
     public void test() throws Exception {
-        final CommandLine cmd = TestingUtils.newCommandLine();
-        final LanternModule lm = new LanternModule(cmd);
+        final LanternModule lm = new LanternModule(new String[]{});
         
         lm.setLocalCipherProvider(new LocalCipherProvider() {
 

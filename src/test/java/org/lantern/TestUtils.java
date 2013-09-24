@@ -1,5 +1,7 @@
 package org.lantern;
 
+import static org.mockito.Mockito.mock;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,7 +46,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.util.Modules;
 
 public class TestUtils {
 
@@ -202,7 +203,7 @@ public class TestUtils {
         public TestModelIo(EncryptedFileService encryptedFileService,
                 Transfers transfers, CountryService countryService) throws Exception {
             super(file, encryptedFileService, transfers, countryService,
-                    TestingUtils.newCommandLine());
+                    TestingUtils.newCommandLine(), mock(LocalCipherProvider.class));
         }
 
         @Override
@@ -212,7 +213,7 @@ public class TestUtils {
     }
 
     public static LanternModule newTestLanternModule() throws Exception {
-        final LanternModule lm = new LanternModule(TestingUtils.newCommandLine());
+        final LanternModule lm = new LanternModule(new String[]{});
         lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
         lm.setEncryptedFileService(new UnencryptedFileService());
         lm.setGeoIpLookupService(new GeoIpLookupService(false));

@@ -59,14 +59,6 @@ public class ProxifierTest {
             public void addToClosedBeta(String to) {}
 
             @Override
-            public void loadOAuth2ClientSecretsFile(String optionValue) {
-            }
-
-            @Override
-            public void loadOAuth2UserCredentialsFile(String optionValue) {
-            }
-
-            @Override
             public void syncConnectingStatus(String msg) {
                 // TODO Auto-generated method stub
 

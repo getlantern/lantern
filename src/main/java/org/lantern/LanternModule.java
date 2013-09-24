@@ -71,10 +71,11 @@ public class LanternModule extends AbstractModule {
     private GeoIpLookupService geoIpLookupService;
     private final org.apache.commons.cli.CommandLine commandLine;
     
-    public LanternModule(final org.apache.commons.cli.CommandLine cmd) {
-        this.commandLine = cmd;
+    public LanternModule(final String[] args) {
+        final Cli cli = new Cli(args);
+        this.commandLine = cli.getParsedCommandLine();
     }
-
+    
     @Override
     protected void configure() {
         //install policy files before anything gets loaded

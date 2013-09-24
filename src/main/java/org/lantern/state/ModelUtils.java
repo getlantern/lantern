@@ -21,10 +21,6 @@ public interface ModelUtils {
 
     void addToClosedBeta(String to);
 
-    void loadOAuth2ClientSecretsFile(String optionValue);
-
-    void loadOAuth2UserCredentialsFile(String optionValue);
-
     void syncConnectingStatus(String msg);
 
     boolean isGet();
