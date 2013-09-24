@@ -934,6 +934,7 @@ public class LanternUtils {
     }
 
     public static void addCSPHeader(HttpServletResponse resp) {
+        // see http://cspisawesome.com/ for a CSP header generator
         String[] paths = {"ws://127.0.0.1",
                 "http://127.0.0.1",
                 "ws://localhost",
