@@ -376,7 +376,7 @@ public class Launcher {
                 
                 // TODO: Maybe report stats only for fallback proxies
                 //if (LanternUtils.isFallbackProxy()) {
-                    statsReporter.start();
+                    //statsReporter.start();
                 //}
                 
                 gnomeAutoStart();
