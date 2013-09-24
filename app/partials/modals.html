@@ -266,6 +266,12 @@
       <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
       id="friendsListSearch" ng-class="{empty: !searchText}" ng-show="nfriends || npending">
 
+      <div id="fetchingFriends" class="centered muted" ng-show="!model.friends">
+        <div style="margin: 30px 0 5px; padding: 10px 0; border-top: 1px solid #eee">
+          {{ 'LOADING_FRIENDS' | i18n }}
+        </div>
+        <img src="img/spinner.gif">
+      </div>
       <ul class="well" id="currentFriends" ng-show="nfriends || npending">
         <li ng-show="searchText && displayedFriends.length == 0">
           <div class="indented gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>

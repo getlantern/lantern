@@ -96,6 +96,7 @@
   "LANTERN_FRIENDS_EXP_GIVE": "Adding the people you trust below can help censored users all over the world.",
   "LANTERN_FRIENDS_EXP_GET": "Adding the people you trust below can help get access to you and others around the world.",
   "LANTERN_FRIENDS_COLON": "Lantern friends:",
+  "LOADING_FRIENDS": "Loading current Lantern friends...",
   "PROXYING_ALL_TRAFFIC": "Proxying all traffic",
   "NO_NAME": "(name unavailable)",
   "NO_EMAIL": "(email unavailable)",
