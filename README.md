@@ -98,14 +98,17 @@ for more.
 
 ## Running tests
 
-Globally install required Node.js packages (`sudo` as necessary):
+Lantern UI does not yet have a comprehensive set of tests, but the tests that
+are written are useful and are set up with continuous integration in
+[Travis](https://travis-ci.org/getlantern/lantern-ui).
+
+To run the tests locally, first install karma (`sudo` as necessary):
 
     npm install -g karma
 
 and [PhantomJS](http://phantomjs.org/) (brew install phantomjs).
 
-Check out `.travis.yml` and referenced files for examples of running the
-unit tests and end-to-end tests.
+Then look in `.travis.yml` for the commands to run the unit and end-to-end tests.
 
 **TODO**: *expand this*
 
