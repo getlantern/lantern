@@ -7,10 +7,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -24,12 +22,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -54,7 +46,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 
 /**
  * End-to-end proxying test to make sure we're able to proxy access to
@@ -169,20 +160,7 @@ public class Diagnostics {
                 "--access-tok", access, 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
-        final Options options = Launcher.buildOptions();
-        final CommandLineParser parser = new PosixParser();
-        final CommandLine cmd;
-        try {
-            cmd = parser.parse(options, args);
-            if (cmd.getArgs().length > 0) {
-                throw new UnrecognizedOptionException("Extra arguments were provided");
-            }
-        }
-        catch (final ParseException e) {
-            return;
-        }
-
-        final LanternModule lm = new LanternModule(cmd);
+        final LanternModule lm = new LanternModule(args);
 
         output("Creating lantern module...");
         final Launcher launcher = new Launcher(lm);

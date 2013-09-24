@@ -2,12 +2,14 @@ package org.lantern;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.lantern.privacy.EncryptedFileService;
+import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -66,7 +68,7 @@ public class WhitelistTest {
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
         final ModelIo modelIo = new ModelIo(randFile, fileService, null,
-                countryService, null);
+                countryService, null, mock(LocalCipherProvider.class));
         return modelIo;
     }
 

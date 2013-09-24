@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
-import com.google.inject.Module;
 
 /**
  * End-to-end proxying test to make sure we're able to proxy access to
@@ -45,8 +43,7 @@ public class LanternProxyingTest {
                 "--access-tok", TestUtils.getAccessToken(), 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
-        final CommandLine cmd = TestingUtils.newCommandLine(args);
-        final LanternModule lm = new LanternModule(cmd);
+        final LanternModule lm = new LanternModule(args);
 
         final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();

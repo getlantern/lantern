@@ -10,8 +10,10 @@ import org.junit.Test;
 import org.lantern.CountryService;
 import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
+import org.lantern.privacy.LocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.mockito.Mockito.*;
 
 public class ModelIoTest {
 
@@ -30,7 +32,8 @@ public class ModelIoTest {
     public void testModelIo() throws Exception {
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
-                null, countryService, TestingUtils.newCommandLine());
+                null, countryService, TestingUtils.newCommandLine(), 
+                mock(LocalCipherProvider.class));
 
         Model model = io.get();
 
@@ -47,7 +50,8 @@ public class ModelIoTest {
         io.write();
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null,
-                countryService, TestingUtils.newCommandLine());
+                countryService, TestingUtils.newCommandLine(),
+                mock(LocalCipherProvider.class));
         final Model model2 = io.get();
         system = model2.getSystem();
         connectivity = model2.getConnectivity();
