@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class StatsStub implements ClientStats {
@@ -221,6 +222,18 @@ public class StatsStub implements ClientStats {
     }
 
     @Override
+    public void addProxiedClientAddress(InetAddress address) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public long getCountOfDistinctProxiedClientAddresses() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
     public long getPeerCount() {
         // TODO Auto-generated method stub
         return 0;
@@ -236,42 +249,6 @@ public class StatsStub implements ClientStats {
     public String getCountryCode() {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    @Override
-    public double getProcessCpuUsage() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public double getSystemCpuUsage() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public double getSystemLoadAverage() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public double getMemoryUsageInBytes() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public long getNumberOfOpenFileDescriptors() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public void updateSystemStatistics() {
-        // TODO Auto-generated method stub
-
     }
 
 }
