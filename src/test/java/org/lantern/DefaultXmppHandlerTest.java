@@ -25,7 +25,6 @@ public class DefaultXmppHandlerTest {
     private ClosedBetaEvent closedBetaEvent;
     
     public DefaultXmppHandlerTest() {
-        TestingUtils.newHttClientFactory();
         SASLAuthentication.registerSASLMechanism("X-OAUTH2", 
                 LanternSaslGoogleOAuth2Mechanism.class);
         Events.register(this);

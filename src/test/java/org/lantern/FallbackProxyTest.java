@@ -3,6 +3,7 @@ package org.lantern;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
@@ -10,6 +11,7 @@ import java.security.cert.CertificateException;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -62,9 +64,9 @@ public class FallbackProxyTest {
     @Test
     public void testFallback() throws Exception {
         //System.setProperty("javax.net.debug", "all");
-        System.setProperty("javax.net.debug", "ssl");
+        //System.setProperty("javax.net.debug", "ssl");
         Launcher.configureCipherSuites();
-        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager(SystemUtils.getJavaIoTmpDir());
         ksm.start();
         
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);

@@ -1,12 +1,11 @@
 package org.lantern.endpoints;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
 import org.junit.Test;
 import org.lantern.TestingUtils;
-import org.lantern.endpoints.FriendApi;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.state.ClientFriend;
