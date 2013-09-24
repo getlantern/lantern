@@ -33,11 +33,10 @@ Install required dependencies (`sudo` as necessary):
 * [Node.js](http://nodejs.org/): `brew install node` or equivalent for your
   system
 
-* [Bower](http://bower.io): `npm install -g bower`
+* [Bower](http://bower.io): `npm install -g bower` (only needed if you want to
+  be able to update dependencies; they're already checked in to the
+  app/bower_components directory so you don't need bower just to fetch them).
 
-* Then run `bower install` from the repo root
-* note - for newer versions of bower you may need to run `bower update`
-* note - if you're asked to select a specific version of select2, choose `1) select2#c4529b8700fb1cc2de5e06b9177147581e0e69d5 which resolved to c4529b8700 and has lantern-ui as dependants`
 
 ### For working on the stylesheets:
 
