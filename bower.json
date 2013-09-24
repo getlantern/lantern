@@ -13,7 +13,7 @@
     "d3": "3.3.3",
     "jquery": "2.0.3",
     "jsonpatch": "1.0.0-rc1",
-    "lodash": "2.0.0",
+    "lodash": "2.1.0",
     "select2": "3.4.3"
   },
   "devDependencies": {

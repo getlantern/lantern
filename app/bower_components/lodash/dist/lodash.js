@@ -1,6 +1,6 @@
 /**
  * @license
- * Lo-Dash 2.0.0 (Custom Build) <http://lodash.com/>
+ * Lo-Dash 2.1.0 (Custom Build) <http://lodash.com/>
  * Build: `lodash modern -o ./dist/lodash.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
@@ -67,7 +67,7 @@
   var reNoMatch = /($^)/;
 
   /** Used to detect functions containing a `this` reference */
-  var reThis = (reThis = /\bthis\b/) && reThis.test(runInContext) && reThis;
+  var reThis = /\bthis\b/;
 
   /** Used to match unescaped characters in compiled string literals */
   var reUnescapedString = /['\n\r\t\u2028\u2029\\]/g;
@@ -126,10 +126,13 @@
   var root = (objectTypes[typeof window] && window) || this;
 
   /** Detect free variable `exports` */
-  var freeExports = objectTypes[typeof exports] && exports;
+  var freeExports = objectTypes[typeof exports] && exports && !exports.nodeType && exports;
 
   /** Detect free variable `module` */
-  var freeModule = objectTypes[typeof module] && module && module.exports == freeExports && module;
+  var freeModule = objectTypes[typeof module] && module && !module.nodeType && module;
+
+  /** Detect the popular CommonJS extension `module.exports` */
+  var moduleExports = freeModule && freeModule.exports === freeExports && freeExports;
 
   /** Detect free variable `global` from Node.js or Browserified code and use it as `root` */
   var freeGlobal = objectTypes[typeof global] && global;
@@ -189,7 +192,7 @@
   }
 
   /**
-   * Adds a given `value` to the corresponding cache object.
+   * Adds a given value to the corresponding cache object.
    *
    * @private
    * @param {*} value The value to add to the cache.
@@ -268,9 +271,11 @@
     var index = -1,
         length = array.length,
         first = array[0],
+        mid = array[(length / 2) | 0],
         last = array[length - 1];
 
-    if (first && typeof first == 'object' && last && typeof last == 'object') {
+    if (first && typeof first == 'object' &&
+        mid && typeof mid == 'object' && last && typeof last == 'object') {
       return false;
     }
     var cache = getObject();
@@ -409,7 +414,7 @@
   /*--------------------------------------------------------------------------*/
 
   /**
-   * Create a new `lodash` function using the given `context` object.
+   * Create a new `lodash` function using the given context object.
    *
    * @static
    * @memberOf _
@@ -613,6 +618,15 @@
     support.fastBind = nativeBind && !isV8;
 
     /**
+     * Detect if functions can be decompiled by `Function#toString`
+     * (all but PS3 and older Opera mobile browsers & avoided in Windows 8 apps).
+     *
+     * @memberOf _.support
+     * @type boolean
+     */
+    support.funcDecomp = !reNative.test(context.WinRTError) && reThis.test(runInContext);
+
+    /**
      * Detect if `Function#name` is supported (all but IE).
      *
      * @memberOf _.support
@@ -689,7 +703,7 @@
      *
      * @private
      * @param {*} value The value to clone.
-     * @param {boolean} [deep=false] A flag to indicate a deep clone.
+     * @param {boolean} [deep=false] Specify a deep clone.
      * @param {Function} [callback] The function to customize cloning values.
      * @param {Array} [stackA=[]] Tracks traversed source objects.
      * @param {Array} [stackB=[]] Associates clones with source counterparts.
@@ -799,7 +813,7 @@
         }
         if (support.funcNames || !bindData) {
           // checks if `func` references the `this` keyword and stores the result
-          bindData = !reThis || reThis.test(source);
+          bindData = !support.funcDecomp || reThis.test(source);
           setBindData(func, bindData);
         }
       }
@@ -842,9 +856,21 @@
 
       while (++index < length) {
         var value = array[index];
-        // recursively flatten arrays (susceptible to call stack limits)
-        if (value && typeof value == 'object' && (isArray(value) || isArguments(value))) {
-          push.apply(result, isShallow ? value : baseFlatten(value, isShallow, isArgArrays));
+
+        if (value && typeof value == 'object' && typeof value.length == 'number'
+            && (isArray(value) || isArguments(value))) {
+          // recursively flatten arrays (susceptible to call stack limits)
+          if (!isShallow) {
+            value = baseFlatten(value, isShallow, isArgArrays);
+          }
+          var valIndex = -1,
+              valLength = value.length,
+              resIndex = result.length;
+
+          result.length += valLength;
+          while (++valIndex < valLength) {
+            result[resIndex++] = value[valIndex];
+          }
         } else if (!isArgArrays) {
           result.push(value);
         }
@@ -1325,7 +1351,7 @@
      * @param {Function} func The function to set data on.
      * @param {*} value The value to set.
      */
-    var setBindData = function(func, value) {
+    var setBindData = !defineProperty ? noop : function(func, value) {
       var descriptor = getObject();
       descriptor.value = value;
       defineProperty(func, '__bindData__', descriptor);
@@ -1390,7 +1416,8 @@
      * // => false
      */
     function isArguments(value) {
-      return (value && typeof value == 'object') ? toString.call(value) == argsClass : false;
+      return value && typeof value == 'object' && typeof value.length == 'number' &&
+        toString.call(value) == argsClass || false;
     }
 
     /**
@@ -1411,7 +1438,8 @@
      * // => true
      */
     var isArray = nativeIsArray || function(value) {
-      return (value && typeof value == 'object') ? toString.call(value) == arrayClass : false;
+      return value && typeof value == 'object' && typeof value.length == 'number' &&
+        toString.call(value) == arrayClass || false;
     };
 
     /**
@@ -1548,7 +1576,7 @@
      * @memberOf _
      * @category Objects
      * @param {*} value The value to clone.
-     * @param {boolean} [deep=false] A flag to indicate a deep clone.
+     * @param {boolean} [deep=false] Specify a deep clone.
      * @param {Function} [callback] The function to customize cloning values.
      * @param {*} [thisArg] The `this` binding of `callback`.
      * @returns {*} Returns the cloned `value`.
@@ -3209,10 +3237,11 @@
     }
 
     /**
-     * Retrieves the maximum value of an array. If a callback is provided it
-     * will be executed for each value in the array to generate the criterion by
-     * which the value is ranked. The callback is bound to `thisArg` and invoked
-     * with three arguments; (value, index, collection).
+     * Retrieves the maximum value of a collection. If the collection is empty or
+     * falsey `-Infinity` is returned. If a callback is provided it will be executed
+     * for each value in the collection to generate the criterion by which the value
+     * is ranked. The callback is bound to `thisArg` and invoked with three
+     * arguments; (value, index, collection).
      *
      * If a property name is provided for `callback` the created "_.pluck" style
      * callback will return the property value of the given element.
@@ -3278,10 +3307,11 @@
     }
 
     /**
-     * Retrieves the minimum value of an array. If a callback is provided it
-     * will be executed for each value in the array to generate the criterion by
-     * which the value is ranked. The callback is bound to `thisArg` and invoked
-     * with three arguments; (value, index, collection).
+     * Retrieves the minimum value of a collection. If the collection is empty or
+     * falsey `Infinity` is returned. If a callback is provided it will be executed
+     * for each value in the collection to generate the criterion by which the value
+     * is ranked. The callback is bound to `thisArg` and invoked with three
+     * arguments; (value, index, collection).
      *
      * If a property name is provided for `callback` the created "_.pluck" style
      * callback will return the property value of the given element.
@@ -3745,16 +3775,16 @@
      * @category Collections
      * @param {Array|Object|string} collection The collection to iterate over.
      * @param {Object} properties The object of property values to filter by.
-     * @returns {Array} Returns a new array of elements that have the given `properties`.
+     * @returns {Array} Returns a new array of elements that have the given properties.
      * @example
      *
      * var stooges = [
      *   { 'name': 'curly', 'age': 30, 'quotes': ['Oh, a wise guy, eh?', 'Poifect!'] },
-     *   { 'name': 'moe', 'age': '40', 'quotes': ['Spread out!', 'You knucklehead!'] }
+     *   { 'name': 'moe', 'age': 40, 'quotes': ['Spread out!', 'You knucklehead!'] }
      * ];
      *
      * _.where(stooges, { 'age': 40 });
-     * // => [{ 'name': 'moe', 'age': '40', 'quotes': ['Spread out!', 'You knucklehead!'] }]
+     * // => [{ 'name': 'moe', 'age': 40, 'quotes': ['Spread out!', 'You knucklehead!'] }]
      *
      * _.where(stooges, { 'quotes': ['Poifect!'] });
      * // => [{ 'name': 'curly', 'age': 30, 'quotes': ['Oh, a wise guy, eh?', 'Poifect!'] }]
@@ -4906,7 +4936,7 @@
      */
     function compose() {
       var funcs = arguments,
-          length = funcs.length || 1;
+          length = funcs.length;
 
       while (length--) {
         if (!isFunction(funcs[length])) {
@@ -5173,7 +5203,7 @@
       return setTimeout(function() { func.apply(undefined, args); }, 1);
     }
     // use `setImmediate` if available in Node.js
-    if (isV8 && freeModule && typeof setImmediate == 'function') {
+    if (isV8 && moduleExports && typeof setImmediate == 'function') {
       defer = function(func) {
         if (!isFunction(func)) {
           throw new TypeError;
@@ -5538,7 +5568,7 @@
     }
 
     /**
-     * Converts the given `value` into an integer of the specified `radix`.
+     * Converts the given value into an integer of the specified radix.
      * If `radix` is `undefined` or `0` a `radix` of `10` is used unless the
      * `value` is a hexadecimal, in which case a `radix` of `16` is used.
      *
@@ -5564,35 +5594,56 @@
     /**
      * Produces a random number between `min` and `max` (inclusive). If only one
      * argument is provided a number between `0` and the given number will be
-     * returned.
+     * returned. If `floating` is truey or either `min` or `max` are floats a
+     * floating-point number will be returned instead of an integer.
      *
      * @static
      * @memberOf _
      * @category Utilities
      * @param {number} [min=0] The minimum possible value.
      * @param {number} [max=1] The maximum possible value.
+     * @param {boolean} [floating=false] Specify returning a floating-point number.
      * @returns {number} Returns a random number.
      * @example
      *
      * _.random(0, 5);
-     * // => a number between 0 and 5
+     * // => an integer between 0 and 5
      *
      * _.random(5);
-     * // => also a number between 0 and 5
+     * // => also an integer between 0 and 5
+     *
+     * _.random(5, true);
+     * // => a floating-point number between 0 and 5
+     *
+     * _.random(1.2, 5.2);
+     * // => a floating-point number between 1.2 and 5.2
      */
-    function random(min, max) {
-      if (min == null && max == null) {
+    function random(min, max, floating) {
+      var noMin = min == null,
+          noMax = max == null;
+
+      if (floating == null) {
+        if (typeof min == 'boolean' && noMax) {
+          floating = min;
+          min = 1;
+        }
+        else if (!noMax && typeof max == 'boolean') {
+          floating = max;
+          noMax = true;
+        }
+      }
+      if (noMin && noMax) {
         max = 1;
       }
       min = +min || 0;
-      if (max == null) {
+      if (noMax) {
         max = min;
         min = 0;
       } else {
         max = +max || 0;
       }
       var rand = nativeRandom();
-      return (min % 1 || max % 1)
+      return (floating || min % 1 || max % 1)
         ? min + nativeMin(rand * (max - min + parseFloat('1e-' + ((rand +'').length - 1))), max)
         : min + floor(rand * (max - min + 1));
     }
@@ -5691,8 +5742,8 @@
      * // => 'hello mustache!'
      *
      * // using the `imports` option to import jQuery
-     * var list = '<% $.each(people, function(name) { %><li><%= name %></li><% }); %>';
-     * _.template(list, { 'people': ['moe', 'larry'] }, { 'imports': { '$': jQuery });
+     * var list = '<% $.each(people, function(name) { %><li><%- name %></li><% }); %>';
+     * _.template(list, { 'people': ['moe', 'larry'] }, { 'imports': { '$': jQuery } });
      * // => '<li>moe</li><li>larry</li>'
      *
      * // using the `sourceURL` option to specify a custom sourceURL for the template
@@ -5810,7 +5861,7 @@
       if (data) {
         return result(data);
       }
-      // provide the compiled function's source via its `toString` method, in
+      // provide the compiled function's source by its `toString` method, in
       // supported environments, or the `source` property as a convenience for
       // inlining compiled templates during the build process
       result.source = source;
@@ -5895,7 +5946,7 @@
     /*--------------------------------------------------------------------------*/
 
     /**
-     * Creates a `lodash` object that wraps the given `value`.
+     * Creates a `lodash` object that wraps the given value.
      *
      * @static
      * @memberOf _
@@ -6196,7 +6247,7 @@
      * @memberOf _
      * @type string
      */
-    lodash.VERSION = '2.0.0';
+    lodash.VERSION = '2.1.0';
 
     // add "Chaining" functions to the wrapper
     lodash.prototype.chain = wrapperChain;
@@ -6247,7 +6298,7 @@
     // Expose Lo-Dash to the global object even when an AMD loader is present in
     // case Lo-Dash was injected by a third-party script and not intended to be
     // loaded as a module. The global assignment can be reverted in the Lo-Dash
-    // module via its `noConflict()` method.
+    // module by its `noConflict()` method.
     root._ = _;
 
     // define as an anonymous module so, through path mapping, it can be
@@ -6257,12 +6308,12 @@
     });
   }
   // check for `exports` after `define` in case a build optimizer adds an `exports` object
-  else if (freeExports && !freeExports.nodeType) {
-    // in Node.js or RingoJS v0.8.0+
-    if (freeModule) {
+  else if (freeExports && freeModule) {
+    // in Node.js or RingoJS
+    if (moduleExports) {
       (freeModule.exports = _)._ = _;
     }
-    // in Narwhal or RingoJS v0.7.0-
+    // in Narwhal or Rhino -require
     else {
       freeExports._ = _;
     }
