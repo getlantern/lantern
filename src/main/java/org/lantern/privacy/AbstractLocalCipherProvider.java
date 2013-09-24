@@ -143,6 +143,7 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
         if (localKey == null) {
             log.info("Retrieving local cipher key...");
             localKey = getLocalKey(init);
+            System.out.println("\u001B[0mprinting ANSI reset to stdout to clear red from above call");
         }
 
         final Cipher cipher = getCipher();
