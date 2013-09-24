@@ -75,13 +75,6 @@ public class LanternKeyStoreManager implements LanternService {
                 log.error("Could not create config dir!! "+CONFIG_DIR);
             }
         }
-        Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
-            @Override
-            public void run() {
-                log.debug("Deleting keystore file on shutdown");
-                LanternUtils.fullDelete(KEYSTORE_FILE);
-            }
-        }, "Keystore-Delete-Thread"));
     }
     
     @Override
@@ -93,7 +86,10 @@ public class LanternKeyStoreManager implements LanternService {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+        log.debug("Deleting keystore file on shutdown");
+        LanternUtils.fullDelete(KEYSTORE_FILE);
+    }
 
 
     private void reset() {

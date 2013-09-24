@@ -116,6 +116,7 @@ public class FallbackProxyTest {
             hitSite(httpClient, "https://www.wikipedia.org");
         } finally {
             give.stop();
+            ksm.stop();
         }
     }
 
