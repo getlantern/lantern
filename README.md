@@ -1,6 +1,7 @@
 Lantern 
 =======
 
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/getlantern/lantern/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 [Build Status](https://getlantern.atlassian.net/builds/browse/LAN-TEST1)
 
 Lantern allows you to give or get access to the internet through other users
