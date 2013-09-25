@@ -1,6 +1,8 @@
 # lantern-ui
+
 [![Build
-Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-ci.org/getlantern/lantern-ui)
+Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-ci.org/getlantern/lantern-ui "Build Status")
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/getlantern/lantern-ui/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 ![screenshot-welcome](./screenshots/welcome.png)
 
