@@ -72,7 +72,7 @@ public class LanternFeedback {
         // If we're testing we just make sure we can connect successfully.
         final HttpPost post = getHttpPost(url);
         log.debug("Creating proxied client...");
-        final HttpClient httpClient = httpClientFactory.newProxiedClient();
+        final HttpClient httpClient = httpClientFactory.newClient();
         try {
             final UrlEncodedFormEntity entity =
                     new UrlEncodedFormEntity(params, "UTF-8");

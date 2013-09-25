@@ -52,8 +52,8 @@ public class HttpClientFactory {
      * otherwise an unproxied client.
      * @throws IOException If we could not obtain a proxied client.
      */
-    public HttpClient newProxiedClient() throws IOException {
-        if (LanternUtils.isGet()) {
+    public HttpClient newClient() throws IOException {
+        if (this.censored.isCensored() || LanternUtils.isGet()) {
             try {
                 return newClient(newProxyBlocking(), true);
             } catch (InterruptedException e) {
@@ -63,32 +63,12 @@ public class HttpClientFactory {
         
         // Just return a direct client if we haven't been able to connect
         // to a proxy.
-        return newClient(null, true);
+        return newClient(null, false);
     }
     
     public HttpClient newDirectClient() {
         return newClient(null, false);
     }
-
-    public HttpClient newClient() {
-        return newClient(newProxy());
-    }
-
-    private HttpHost newProxy() {
-        // Can be empty for testing.
-        if (this.proxyTracker == null) {
-            return null;
-        }
-        final ProxyHolder ph = proxyTracker.firstConnectedTcpProxy();
-        if (ph == null) {
-            return null;
-        }
-        final FiveTuple ft = ph.getFiveTuple();
-        final InetSocketAddress isa = ft.getRemote();
-        return new HttpHost(isa.getAddress().getHostAddress(), 
-                isa.getPort(), "https");
-    }
-    
 
     public HttpHost newProxyBlocking() throws InterruptedException {
         // Can be empty for testing.
@@ -102,10 +82,6 @@ public class HttpClientFactory {
                 isa.getPort(), "https");
     }
 
-    public HttpClient newClient(final HttpHost proxy) {
-        return newClient(proxy, this.censored.isCensored());
-    }
-    
     public HttpClient newClient(final HttpHost proxy, final boolean addProxy) {
         final DefaultHttpClient client = new DefaultHttpClient();
         configureDefaults(proxy, client);

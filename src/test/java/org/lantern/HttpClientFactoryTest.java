@@ -96,7 +96,7 @@ public class HttpClientFactoryTest {
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
                 new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
-        final HttpClient client = factory.newProxiedClient();
+        final HttpClient client = factory.newClient();
 
         testExceptional(client);
         testGoogleDocs(factory);

@@ -150,8 +150,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
         final HttpClient client;
         try {
-            client = this.httpClientFactory.newProxiedClient();
-        } catch (IOException e) {
+            client = this.httpClientFactory.newClient();
+        } catch (final IOException e) {
             log.error("Could not get a proxy?", e);
             this.model.addNotification("We're sorry but Lantern could not "
                     + "connect to any proxies!", MessageType.error);
