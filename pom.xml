@@ -351,11 +351,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.getlantern</groupId>
-      <artifactId>lantern-common</artifactId>
-      <version>0.0.19-lanternpreview</version>
-    </dependency>
-    <dependency>
     	<groupId>org.bitbucket.thealchemist</groupId>
     	<artifactId>range-coder</artifactId>
     	<version>0.1</version>
@@ -641,7 +636,7 @@
 	  <verbose>true</verbose>
 	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
 	</configuration>
-      </plugin>   
+      </plugin>
     </plugins>
 
     <resources>
@@ -913,4 +908,10 @@
     </snapshotRepository>
   </distributionManagement>
 
+  <parent>
+    <groupId>org.getlantern</groupId>
+    <artifactId>lantern-common</artifactId>
+    <version>0.0.19</version>
+    <relativePath>lantern-common</relativePath>
+  </parent>
 </project>
