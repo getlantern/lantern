@@ -126,7 +126,7 @@
     <dependency>
       <groupId>com.google.oauth-client</groupId>
       <artifactId>google-oauth-client-java6</artifactId>
-      <version>1.14.1-beta</version>
+      <version>1.17.0-rc</version>
     </dependency>
 
     <dependency>
@@ -276,7 +276,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>1.0.0-beta2-lanternpreview</version>
+      <version>1.0.0-beta2</version>
     </dependency>
 
     <dependency>
@@ -353,7 +353,7 @@
     <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>lantern-common</artifactId>
-      <version>0.0.19-lanternpreview</version>
+      <version>0.0.19-SNAPSHOT</version>
     </dependency>
     <dependency>
     	<groupId>org.bitbucket.thealchemist</groupId>
