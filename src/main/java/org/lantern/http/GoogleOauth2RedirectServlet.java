@@ -92,7 +92,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.debug("Params: {}", params);
         log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
         log.debug("Query string: {}", req.getQueryString());
-        if (this.censored.isCensored() || this.modelUtils.isGet()) {
+        if (this.censored.isCensored() || LanternUtils.isGet()) {
             try {
                 proxifier.startProxying(true, Proxifier.PROXY_ALL);
             } catch (final ProxyConfigurationError e) {

@@ -23,6 +23,4 @@ public interface ModelUtils {
 
     void syncConnectingStatus(String msg);
 
-    boolean isGet();
-
 }

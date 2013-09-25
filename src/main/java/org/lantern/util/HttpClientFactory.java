@@ -1,5 +1,6 @@
 package org.lantern.util;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.apache.http.HttpHost;
@@ -12,6 +13,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.Censored;
 import org.lantern.LanternSocketsUtil;
+import org.lantern.LanternUtils;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.littleshoot.util.FiveTuple;
@@ -21,6 +23,12 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Class for handling HTTP client interaction.
+ * 
+ * TODO: We really need all of these methods to follow similar logic to 
+ * OauthUtils and to try to connect directly. 
+ */
 @Singleton
 public class HttpClientFactory {
 
@@ -37,8 +45,25 @@ public class HttpClientFactory {
         this.proxyTracker = proxyTracker;
     }
 
-    public HttpClient newProxiedClient() {
-        return newClient(newProxy(), true);
+    /**
+     * Returns a proxied client if we have access to a proxy in get mode.
+     * 
+     * @return The proxied {@link HttpClient} if available in get mode, 
+     * otherwise an unproxied client.
+     * @throws IOException If we could not obtain a proxied client.
+     */
+    public HttpClient newProxiedClient() throws IOException {
+        if (LanternUtils.isGet()) {
+            try {
+                return newClient(newProxyBlocking(), true);
+            } catch (InterruptedException e) {
+                throw new IOException("Could not access proxy!", e);
+            }
+        }
+        
+        // Just return a direct client if we haven't been able to connect
+        // to a proxy.
+        return newClient(null, true);
     }
     
     public HttpClient newDirectClient() {
@@ -49,14 +74,28 @@ public class HttpClientFactory {
         return newClient(newProxy());
     }
 
-    public HttpHost newProxy() {
+    private HttpHost newProxy() {
+        // Can be empty for testing.
         if (this.proxyTracker == null) {
             return null;
         }
-        final ProxyHolder ph = proxyTracker.firstConnectedProxy();
+        final ProxyHolder ph = proxyTracker.firstConnectedTcpProxy();
         if (ph == null) {
             return null;
         }
+        final FiveTuple ft = ph.getFiveTuple();
+        final InetSocketAddress isa = ft.getRemote();
+        return new HttpHost(isa.getAddress().getHostAddress(), 
+                isa.getPort(), "https");
+    }
+    
+
+    public HttpHost newProxyBlocking() throws InterruptedException {
+        // Can be empty for testing.
+        if (this.proxyTracker == null) {
+            return null;
+        }
+        final ProxyHolder ph = proxyTracker.firstConnectedTcpProxyBlocking();
         final FiveTuple ft = ph.getFiveTuple();
         final InetSocketAddress isa = ft.getRemote();
         return new HttpHost(isa.getAddress().getHostAddress(), 

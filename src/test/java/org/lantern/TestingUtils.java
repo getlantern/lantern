@@ -113,7 +113,7 @@ public class TestingUtils {
         
         return new ProxyTrackerStub() {
             @Override
-            public ProxyHolder firstConnectedProxy() {
+            public ProxyHolder firstConnectedTcpProxy() {
                 final InetSocketAddress tuple = 
                     new InetSocketAddress("54.254.96.14", 16589);
                 final URI uri;

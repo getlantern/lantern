@@ -68,7 +68,12 @@ public class ProxySocketFactory extends SocketFactory {
 
     private Socket httpConnectSocket(final String host, final int port)
         throws IOException {
-        final ProxyHolder ph = proxyTracker.firstConnectedProxy();
+        final ProxyHolder ph;
+        try {
+            ph = proxyTracker.firstConnectedTcpProxyBlocking();
+        } catch (InterruptedException e) {
+            throw new IOException("Could not retrieve TCP proxy!", e);
+        }
         final InetSocketAddress isa = ph.getFiveTuple().getRemote();
         final String proxyHost = isa.getAddress().getHostAddress();
         final int proxyPort = isa.getPort();

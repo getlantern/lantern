@@ -1,7 +1,8 @@
 package org.lantern;
 
-import static org.lantern.state.Peer.Type.*;
-import static org.littleshoot.util.FiveTuple.Protocol.*;
+import static org.lantern.state.Peer.Type.pc;
+import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.littleshoot.util.FiveTuple.Protocol.UDP;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +27,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -70,7 +73,7 @@ public class DefaultProxyTracker implements ProxyTracker {
      */
     private final Map<FiveTuple, ProxyHolder> proxies =
             new ConcurrentHashMap<FiveTuple, ProxyHolder>();
-
+    
     /**
      * Holds the times at which a given JID should next be NAT traversed. We use
      * this to implement a back-off strategy that keeps us from too frequently
@@ -102,6 +105,19 @@ public class DefaultProxyTracker implements ProxyTracker {
             .newSingleThreadedScheduledExecutor("Proxy-Retry");
 
     private final LanternTrustStore lanternTrustStore;
+    
+    /**
+     * This is a lock for when we need to block on retrieving a TCP proxy,
+     * such as when we need to access a blocked site over HTTP during initial 
+     * setup.
+     */
+    private final ReentrantLock tcpProxyLock = new ReentrantLock();
+    
+    /**
+     * Condition for when there are no proxies -- threads needing proxies wait
+     * on this until proxies are available within the timeout or not.
+     */
+    private final Condition noProxies = this.tcpProxyLock.newCondition();
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -206,7 +222,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 try {
                     sock.connect(remote, 60 * 1000);
 
-                    if (proxies.put(ph.getFiveTuple(), ph) == null) {
+                    if (putTcpProxy(ph) == null) {
                         LOG.debug(
                                 "Added connected TCP proxy.  Proxies is now {}",
                                 proxies);
@@ -234,7 +250,20 @@ public class DefaultProxyTracker implements ProxyTracker {
                     IOUtils.closeQuietly(sock);
                 }
             }
+
         });
+    }
+    
+    private ProxyHolder putTcpProxy(final ProxyHolder ph) {
+        LOG.debug("Got TCP proxy...unlocking");
+        final ProxyHolder holder = proxies.put(ph.getFiveTuple(), ph);
+        this.tcpProxyLock.lock();
+        try {
+            noProxies.signalAll();
+        } finally {
+            this.tcpProxyLock.unlock();
+        }
+        return holder;
     }
 
     /**
@@ -293,7 +322,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
                     peerFactory.onOutgoingConnection(jid, remote, Type.pc);
 
-                    proxies.put(tuple, ph);
+                    proxies.put(ph.getFiveTuple(), ph);
 
                     resetNatTraversalScheduleFor(jid);
 
@@ -465,12 +494,38 @@ public class DefaultProxyTracker implements ProxyTracker {
         Collections.sort(result, PROXY_PRIORITIZER);
         return result;
     }
-
+    
     @Override
-    public ProxyHolder firstConnectedProxy() {
-        Iterator<ProxyHolder> it = getConnectedProxiesInOrderOfFallbackPreference()
-                .iterator();
-        return it.hasNext() ? it.next() : null;
+    public ProxyHolder firstConnectedTcpProxy() {
+        for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference()) {
+            if (ph.getFiveTuple().getProtocol() == Protocol.TCP) {
+                return ph;
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public ProxyHolder firstConnectedTcpProxyBlocking() throws InterruptedException {
+        LOG.debug("Getting first TCP proxy...");
+        final ProxyHolder ph = firstConnectedTcpProxy();
+        if (ph != null) {
+            LOG.debug("Returning existing proxy...");
+            return ph;
+        }
+        
+        this.tcpProxyLock.lock();
+        try {
+            LOG.debug("Waiting for availability...");
+            if (this.proxies.isEmpty()) {
+                this.noProxies.await(30, TimeUnit.SECONDS);
+            }
+            LOG.debug("Out of wait...returning proxy");
+            return firstConnectedTcpProxy();
+        } finally {
+            this.tcpProxyLock.unlock();
+        }
+        
     }
 
     private void prepopulateProxies() {

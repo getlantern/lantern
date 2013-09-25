@@ -63,12 +63,6 @@ public class ProxifierTest {
                 // TODO Auto-generated method stub
 
             }
-
-            @Override
-            public boolean isGet() {
-                // TODO Auto-generated method stub
-                return false;
-            }
         };
     }
 }

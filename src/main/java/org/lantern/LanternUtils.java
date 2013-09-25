@@ -52,6 +52,8 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.lantern.state.Mode;
+import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -77,6 +79,8 @@ public class LanternUtils {
     private static boolean amFallbackProxy = false;
 
     private static String keystorePath = "<UNSET>";
+
+    private static Model model;
 
     private static final Properties privateProps = new Properties();
     private static final File privatePropsFile;
@@ -1051,5 +1055,19 @@ public class LanternUtils {
         } finally {
             IOUtils.closeQuietly(gzip);
         }
-     }
+    }
+
+    /**
+     * Sets the model -- this should be called very early in the overall 
+     * initialization sequence.
+     * 
+     * @param model The model for application-wide settings.
+     */
+    public static void setModel(final Model model) {
+        LanternUtils.model = model;
+    }
+
+    public static boolean isGet() {
+        return model.getSettings().getMode() == Mode.get;
+    }
 }

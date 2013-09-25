@@ -39,6 +39,7 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
@@ -147,7 +148,16 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
 
-        final HttpClient client = this.httpClientFactory.newProxiedClient();
+        final HttpClient client;
+        try {
+            client = this.httpClientFactory.newProxiedClient();
+        } catch (IOException e) {
+            log.error("Could not get a proxy?", e);
+            this.model.addNotification("We're sorry but Lantern could not "
+                    + "connect to any proxies!", MessageType.error);
+            redirectToDashboard(resp);
+            return;
+        }
 
         final Map<String, String> allToks;
         try {

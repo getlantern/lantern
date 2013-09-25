@@ -157,7 +157,15 @@ public class OauthUtils {
             int attempts = 0;
             while (attempts < maxAttempts) {
                 LOG.debug("Attempting calls with fallback...");
-                final HttpHost proxy = httpClientFactory.newProxy();
+                // We need to make sure we've actually got a fallback proxy 
+                // here!
+                
+                final HttpHost proxy;
+                try {
+                    proxy = httpClientFactory.newProxyBlocking();
+                } catch (InterruptedException e1) {
+                    throw new IOException("Could not connect to any proxy!!");
+                }
                 if (usedHosts.contains(proxy)) {
                     break;
                 }

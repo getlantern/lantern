@@ -102,6 +102,7 @@ public class ModelIo extends Storage<Model> {
             if (!isCensored && read.getModal() == Modal.giveModeForbidden) {
                 read.setModal(Modal.none);
             }
+            LanternUtils.setModel(read);
             processCommandLine(this.commandLine, read);
             return read;
         } catch (final ModelReadFailedException e) {

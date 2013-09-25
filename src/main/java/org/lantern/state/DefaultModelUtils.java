@@ -143,9 +143,4 @@ public class DefaultModelUtils implements ModelUtils {
         this.model.getConnectivity().setConnectingStatus(msg);
         Events.syncConnectingStatus(msg);
     }
-
-    @Override
-    public boolean isGet() {
-        return this.model.getSettings().getMode() == Mode.get;
-    }
 }

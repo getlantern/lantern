@@ -53,7 +53,7 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public ProxyHolder firstConnectedProxy() {
+    public ProxyHolder firstConnectedTcpProxy() {
         return null;
     }
 
@@ -63,6 +63,12 @@ public class ProxyTrackerStub implements ProxyTracker {
 
     @Override
     public void onError(URI peerUri) {
+    }
+
+    @Override
+    public ProxyHolder firstConnectedTcpProxyBlocking()
+            throws InterruptedException {
+        return null;
     }
 
 }
