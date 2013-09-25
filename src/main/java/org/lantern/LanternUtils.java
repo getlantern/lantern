@@ -1068,6 +1068,10 @@ public class LanternUtils {
     }
 
     public static boolean isGet() {
+        if (model == null) {
+            LOG.error("Calling isGet before model populated! Testing?");
+            return true;
+        }
         return model.getSettings().getMode() == Mode.get;
     }
 }

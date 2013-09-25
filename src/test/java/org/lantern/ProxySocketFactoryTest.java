@@ -24,7 +24,7 @@ public class ProxySocketFactoryTest {
         // test to fail if another test configures high bit rated encryption.
         final ProxyInfo info = new ProxyInfo(ProxyType.HTTP, 
                 "54.254.96.14", 16589, "", "");
-            //LanternClientConstants.FALLBACK_SERVER_HOST, 
+            //LanternClientConstants.FALLBACK_SERVER_HOST,T 
             //Integer.parseInt(LanternClientConstants.FALLBACK_SERVER_PORT), "", "");
         // Test creating a socket through our fallback proxy.
         final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
