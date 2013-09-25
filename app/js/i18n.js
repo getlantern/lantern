@@ -56,7 +56,7 @@ angular.module('app.i18n', [])
   .filter('i18n', function ($filter, $log, $rootScope, TRANSLATIONS) {
     var COUNT = /{}/g,
         numFltr = $filter('number');
-    return function (key, count) {
+    return function (key, count, nonNegative) {
       if (!key) {
         if (_.isUndefined(key)) {
           $log.debug('translation key undefined. did you forget quotes?');
@@ -86,7 +86,7 @@ angular.module('app.i18n', [])
           $log.debug('plural not found for key "'+key+'" and count "'+count+'"');
           return '';
         }
-        return translation.replace(COUNT, numFltr(count));
+        return translation.replace(COUNT, numFltr(nonNegative ? Math.max(count, 0) : count));
       }
       var translation = (TRANSLATIONS[lang] || {})[key];
       if (!translation) {
