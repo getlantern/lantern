@@ -29,7 +29,6 @@ import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.RefreshTokenEvent;
-import org.lantern.event.UiLoadedEvent;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.ui.FriendNotificationDialog;
@@ -61,15 +60,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
     
     private final NotificationManager notificationManager;
-
-    /**
-     * The following is necessary because we need both the UI to be loaded 
-     * (so we can push server-side friends to the frontend) as well the refresh
-     * token to be loaded (so we can make oauth requests) before we can load
-     * the friends.
-     */
-    private AtomicBoolean uiLoaded = new AtomicBoolean(false);
-    private AtomicBoolean refreshLoaded = new AtomicBoolean(false);
     
     private Future<Map<String, ClientFriend>> loadedFriends;
 
@@ -96,21 +86,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
     public void onRefreshToken(final RefreshTokenEvent refresh) {
         log.debug("Got refresh token -- loading friends");
         loadFriends();
-        refreshLoaded.set(true);
-    }
-    
-    @Subscribe
-    public void uiLoaded(final UiLoadedEvent event) {
-        log.debug("Responding to UI loaded event");
-        uiLoaded.set(true);
-        
-        if (refreshLoaded.get()) {
-            // This is necessary because we may have loaded the friends before
-            // the UI is ready to process them, in which case syncing friends 
-            // will have no effect. 
-            log.debug("Handling UI loaded...");
-            Events.sync(SyncPath.FRIENDS, getFriends());
-        }
     }
     
     private void loadFriends() {
@@ -120,7 +95,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         final ExecutorService friendsLoader = 
                 Executors.newSingleThreadExecutor(
-                        Threads.newDaemonThreadFactory("Friend-Loader"));
+                        Threads.newDaemonThreadFactory("Friends-Loader"));
         
         // We make this a future because we only want to manage friends based
         // on the server's copy. So any local changes wait for that copy to
@@ -138,7 +113,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
                         tempFriends.put(friend.getEmail().toLowerCase(), friend);
                     }
                     log.debug("Finished loading friends");
-                    Events.sync(SyncPath.FRIENDS, vals(tempFriends)); 
+                    final Collection<ClientFriend> friends = vals(tempFriends);
+                    //model.setFriends(friends);
+                    Events.sync(SyncPath.FRIENDS, friends); 
                     return tempFriends;
                 } catch (final IOException e) {
                     log.error("Could not list friends?", e);
@@ -168,7 +145,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
             // We have an existing friend that's either a friend, rejected, or
             // pending.
             friend = existingFriend;
-            switch (friend.getStatus()) {
+            
+            // Store the friend's original status -- we'll reset to this if
+            // anything goes wrong.
+            final Status originalStatus = friend.getStatus();
+            switch (originalStatus) {
             case friend:
                 log.debug("Already friends with {}", email);
                 info("You have already friended "+email+".");
@@ -177,13 +158,32 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // Fall through -- handled in the same way as rejected.
             case rejected:
                 friend.setStatus(Status.friend);
-                update(friend);
+                
+                // We sync early here to give the user feedback right away.
+                sync(friend);
+                try {
+                    update(friend);
+                } catch (IOException e) {
+                    log.error("Could not friend?", e);
+                    warn("Error friending friend '"+email+
+                        "'. Do you still have an Internet connection?");
+                    
+                    // Set the friend back to his or her original status!
+                    friend.setStatus(originalStatus);
+                    sync(friend);
+                    return;
+                }
                 try {
                     invite(friend, true);
                 } catch (final IOException e) {
                     log.error("Could not invite?", e);
                     warn("Error inviting friend '"+email+
                         "'. Do you still have an Internet connection?");
+                    
+                    // Set the friend back to his or her original status!
+                    friend.setStatus(originalStatus);
+                    sync(friend);
+                    return;
                 }
 
                 break;
@@ -192,9 +192,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
             }
         }
         
-        // Otherwise, it's an existing friend that's likely pending.
         sync(friend);
         
+        // Note this also happens for existing friends, but no harm done.
         if (subscribe) {
             subscribe(email);
         }
@@ -244,7 +244,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         temp.setStatus(Status.friend);
         try {
             final ClientFriend friend = this.api.insertFriend(temp);
-            add(friend);
+            put(friend);
             try {
                 invite(friend, true);
             } catch (final IOException e) {
@@ -274,7 +274,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         //friend.setStatus(status);
         //friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        Events.sync(SyncPath.FRIENDS, getFriends());
+        syncFriends();
     }
     
     private void invite(final Friend friend, final boolean addToRoster) 
@@ -383,7 +383,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // presence notification from a peer running lantern, so we want to
         // record that for future sessions because we might not see them
         // running Lantern right away again.
-        update(friend);
+        try {
+            update(friend);
+        } catch (final IOException e) {
+            log.warn("Could not update?", e);
+        }
     }
 
     private void friendNotification(final ClientFriend friend) {
@@ -409,8 +413,17 @@ public class DefaultFriendsHandler implements FriendsHandler {
             notificationManager.addNotification(notification);
         }
     }
-
+    
     private void put(final ClientFriend friend) {
+        put(friend, false);
+    }
+    
+    private void put(final ClientFriend friend, final boolean checkId) {
+        log.debug("Adding friend: {}", friend);
+        if (checkId && friend.getId() == 0L) {
+            log.warn("Adding friend that's not added to the server?");
+            return;
+        }
         friends().put(friend.getEmail().toLowerCase(), friend);
     }
 
@@ -436,15 +449,19 @@ public class DefaultFriendsHandler implements FriendsHandler {
             return;
         }
         
+        final Status existingStatus = friend.getStatus();
         try {
             friend.setStatus(Status.rejected);
-            final ClientFriend updated = this.api.updateFriend(friend);
-            friends().put(email, updated);
             sync(friend);
+            final ClientFriend updated = this.api.updateFriend(friend);
+            put(updated);
+            
             info("You have successfully rejected '"+email+"'.");
         } catch (final IOException e) {
             log.warn("Could not remove friend?", e);
-            warn("There was an error removing '"+email+"'.");
+            warn("There was an error rejecting '"+email+"'.");
+            friend.setStatus(existingStatus);
+            sync(friend);
         }
         
         // TODO: We should really also unsubscribe from them here and
@@ -456,15 +473,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
     @Override
     public Collection<ClientFriend> getFriends() {
         return vals(friends());
-    }
-
-    public void add(final ClientFriend friend) {
-        log.debug("Adding friend: {}", friend);
-        if (friend.getId() == 0L) {
-            log.warn("Adding friend that's not added to the server?");
-            return;
-        }
-        friends().put(friend.getEmail().toLowerCase(), friend);
     }
 
     public void remove(final String email) {
@@ -524,12 +532,20 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     @Override
     public void setStatus(final ClientFriend friend, final Status status) {
-        if (friend.getStatus() == status) {
+        final Status originalStatus = friend.getStatus();
+        if (originalStatus == status) {
             log.debug("No change in status -- ignoring call");
             return;
         }
+        
         friend.setStatus(status);
-        update(friend);
+        sync(friend);
+        try {
+            update(friend);
+        } catch (final IOException e) {
+            friend.setStatus(originalStatus);
+            sync(friend);
+        }
     }
 
 
@@ -537,18 +553,28 @@ public class DefaultFriendsHandler implements FriendsHandler {
     public void setPendingSubscriptionRequest(final ClientFriend friend, 
             final boolean subscribe) {
         friend.setPendingSubscriptionRequest(subscribe);
-        update(friend);
+        try {
+            update(friend);
+        } catch (final IOException e) {
+            log.warn("Could not update friend status for '"+friend.getEmail()+"'.", e);
+        }
     }
 
 
-    private void update(final ClientFriend friend) {
+    private void update(final ClientFriend friend) throws IOException {
+        this.api.updateFriend(friend);
+        put(friend);
+        /*
         try {
             this.api.updateFriend(friend);
             put(friend);
         } catch (final IOException e) {
             log.error("Could not update friend?", e);
             warn("Could not update friend status for '"+friend.getEmail()+"'.");
+            friend.setStatus(Status.pending);
+            sync(friend);
         }
+        */
     }
     
     @Override
@@ -570,9 +596,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
             // may not even be from lantern.
             final ClientFriend newFriend = new ClientFriend(from);
             newFriend.setPendingSubscriptionRequest(true);
-            add(newFriend);
+            put(newFriend, false);
         }
-        Events.syncAdd(SyncPath.FRIENDS.getPath(), getFriends());
+        syncFriends();
     }
 
 
@@ -581,7 +607,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
         final ClientFriend friend = getFriend(address);
         if (friend != null && !name.equals(friend.getName())) {
             friend.setName(name);
-            update(friend);
+            try {
+                update(friend);
+            } catch (IOException e) {
+                log.warn("Could not update name", e);
+            }
         }
     }
 
@@ -687,10 +717,12 @@ public class DefaultFriendsHandler implements FriendsHandler {
     @Override
     public void syncFriends() {
         final Collection<ClientFriend> fr = getFriends();
+        //model.setFriends(fr);
         if (fr.isEmpty()) {
             log.warn("Syncing empty friends!!!");
             return;
         }
+        
         Events.sync(SyncPath.FRIENDS, fr);
     }
 }

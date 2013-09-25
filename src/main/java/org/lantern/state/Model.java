@@ -95,6 +95,8 @@ public class Model {
 
     private String instanceId;
 
+    private Collection<ClientFriend> friends;
+
     @JsonView({Run.class})
     private Transfers getTransfers() {
         return transfers;
@@ -362,5 +364,14 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+
+    public void setFriends(Collection<ClientFriend> friends) {
+        this.friends = friends;
+    }
+    
+    @JsonView({Run.class})
+    public Collection<ClientFriend> getFriends() {
+        return this.friends;
     }
 }
