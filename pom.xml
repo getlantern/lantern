@@ -276,7 +276,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>1.0.0-beta2-SNAPSHOT</version>
+      <version>1.0.0-beta2-lanternpreview</version>
     </dependency>
 
     <dependency>
@@ -353,7 +353,7 @@
     <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>lantern-common</artifactId>
-      <version>0.0.19-SNAPSHOT</version>
+      <version>0.0.19-lanternpreview</version>
     </dependency>
     <dependency>
     	<groupId>org.bitbucket.thealchemist</groupId>
