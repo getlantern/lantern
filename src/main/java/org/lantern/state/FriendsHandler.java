@@ -21,8 +21,6 @@ public interface FriendsHandler {
 
     void setStatus(ClientFriend friend, Status status);
 
-    void setPendingSubscriptionRequest(ClientFriend friend, boolean subscribe);
-
     void addIncomingSubscriptionRequest(String from);
 
     void updateName(String address, String name);

@@ -240,7 +240,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // We want our local copy of friends to always reflect the server,
         // along with e-tags and everything else, so we always use the 
         // server version.
-        final ClientFriend temp = makeFriend(email);
+        final ClientFriend temp = getOrCreateFriend(email);
         temp.setStatus(Status.friend);
         try {
             final ClientFriend friend = this.api.insertFriend(temp);
@@ -415,7 +415,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
     
     private void put(final ClientFriend friend) {
-        put(friend, false);
+        put(friend, true);
     }
     
     private void put(final ClientFriend friend, final boolean checkId) {
@@ -427,17 +427,18 @@ public class DefaultFriendsHandler implements FriendsHandler {
         friends().put(friend.getEmail().toLowerCase(), friend);
     }
 
-    private ClientFriend makeFriend(final String email) {
-        ClientFriend friend = getFriend(email);
-        if (friend == null) {
-            friend = new ClientFriend(email);
-            final Roster roster = model.getRoster();
-            final RosterEntry entry = roster.getEntry(email);
-            if (entry != null) {
-                friend.setName(entry.getName());
-            }
+    private ClientFriend getOrCreateFriend(final String email) {
+        final ClientFriend friend = getFriend(email);
+        if (friend != null) {
+            return friend;
         }
-        return friend;
+        final ClientFriend newFriend = new ClientFriend(email);
+        final Roster roster = model.getRoster();
+        final RosterEntry entry = roster.getEntry(email);
+        if (entry != null) {
+            newFriend.setName(entry.getName());
+        }
+        return newFriend;
     }
 
     @Override
@@ -548,17 +549,34 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
     }
 
-
+    
     @Override
-    public void setPendingSubscriptionRequest(final ClientFriend friend, 
-            final boolean subscribe) {
-        friend.setPendingSubscriptionRequest(subscribe);
-        try {
-            update(friend);
-        } catch (final IOException e) {
-            log.warn("Could not update friend status for '"+friend.getEmail()+"'.", e);
+    public void addIncomingSubscriptionRequest(final String from) {
+        log.debug("Adding subscription request from: {}", from);
+        if (LanternUtils.isAnonymizedGoogleTalkAddress(from)) {
+            // This was a subscription request between these users from outside
+            // Lantern of the form:
+            // 0po8orrkoxnba3oobvgvyd70ne@public.talk.google.com
+            // We just ignore it.
+            log.debug("Ignoring request");
+            return;
         }
+        final ClientFriend friend = getFriend(from);
+        // Note we do not update the server with this change -- XMPP takes care
+        // of delivering subscription requests, so we just track them on the
+        // client.
+        if (friend != null) {
+            friend.setPendingSubscriptionRequest(true);
+        } else {
+            // This subscription request is from someone we don't know, and it
+            // may not even be from lantern.
+            final ClientFriend newFriend = new ClientFriend(from);
+            newFriend.setPendingSubscriptionRequest(true);
+            put(newFriend, false);
+        }
+        syncFriends();
     }
+
 
 
     private void update(final ClientFriend friend) throws IOException {
@@ -576,31 +594,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         */
     }
-    
-    @Override
-    public void addIncomingSubscriptionRequest(final String from) {
-        log.debug("Adding subscription request from: {}", from);
-        if (LanternUtils.isAnonymizedGoogleTalkAddress(from)) {
-            // This was a subscription request between these users from outside
-            // Lantern of the form:
-            // 0po8orrkoxnba3oobvgvyd70ne@public.talk.google.com
-            // We just ignore it.
-            log.debug("Ignoring request");
-            return;
-        }
-        final ClientFriend friend = getFriend(from);
-        if (friend != null) {
-            setPendingSubscriptionRequest(friend, true);
-        } else {
-            // This subscription request is from someone we don't know, and it
-            // may not even be from lantern.
-            final ClientFriend newFriend = new ClientFriend(from);
-            newFriend.setPendingSubscriptionRequest(true);
-            put(newFriend, false);
-        }
-        syncFriends();
-    }
-
 
     @Override
     public void updateName(final String address, final String name) {
@@ -691,7 +684,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     continue;
                 }
                 
-                final Friend friend = makeFriend(email.trim());
+                final Friend friend = getOrCreateFriend(email.trim());
                 model.addNotification("BULK-EMAIL: An email will be sent to "+email+" "+
                     "with a notification that you friended them. "+
                     "If they do not yet have a Lantern invite, they will "+
