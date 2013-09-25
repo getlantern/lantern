@@ -24,6 +24,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 
+/**
+ * Dialog for asking the user whether or not they want to friend another user
+ * we've seen on the network.
+ */
 public class FriendNotificationDialog extends NotificationDialog {
     private final Logger log =
         LoggerFactory.getLogger(LanternUtils.class);
@@ -55,13 +59,10 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     protected void doLayout() {
         final String text = loadText();
-        final String displayName;
         final String displayEmail;
         if (StringUtils.isEmpty(name)) {
-            displayName = email;
             displayEmail = email;
         } else {
-            displayName = name;
             displayEmail = name + " (" + email + ")";
         }
 
@@ -114,15 +115,11 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     protected void later() {
         final long tomorrow = System.currentTimeMillis() + 1000 * 86400;
-        friend.setNextQuery(tomorrow);
-        dialog.dispose();
         
-        // Can be null for testing.
-        if (this.friendsHandler != null) {
-            this.friendsHandler.setStatus(friend, Status.pending);
-        }
-        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        this.friendsHandler.syncFriends();
+        // Even though we don't store the following to disk, it's still used
+        // in the logic for whether or not to ask the user again about a friend
+        friend.setNextQuery(tomorrow);
+        setFriendStatus(Status.pending);
     }
 
     protected void no() {
@@ -135,7 +132,11 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     private void setFriendStatus(final Status status) {
         dialog.dispose();
-        this.friendsHandler.setStatus(friend, status);
+        
+        // Can be null for testing.
+        if (this.friendsHandler != null) {
+            this.friendsHandler.setStatus(friend, status);
+        }
         
         // This is necessary to sync up the user's interaction with the 
         // dialog with the state of the friend in the friends modal.
