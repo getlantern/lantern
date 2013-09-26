@@ -374,10 +374,9 @@ public class Launcher {
                 syncService.start();
                 statsUpdater.start();
                 
-                // TODO: Maybe report stats only for fallback proxies
-                //if (LanternUtils.isFallbackProxy()) {
-                    //statsReporter.start();
-                //}
+                if (LanternUtils.isFallbackProxy()) {
+                    statsReporter.start();
+                }
                 
                 gnomeAutoStart();
                 
