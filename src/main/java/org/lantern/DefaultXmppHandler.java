@@ -42,7 +42,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
-import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdateEvent;

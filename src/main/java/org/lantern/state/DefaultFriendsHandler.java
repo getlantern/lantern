@@ -35,6 +35,7 @@ import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,6 +161,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 friend.setStatus(Status.friend);
                 
                 // We sync early here to give the user feedback right away.
+                // Note this also has the side effect of generating an event
+                // to remove any notification dialogs for the friend, for 
+                // example.
                 sync(friend);
                 try {
                     update(friend);
@@ -377,14 +381,19 @@ public class DefaultFriendsHandler implements FriendsHandler {
             friend.setLoggedIn(false);
         }
         friend.setMode(pres.getMode());
-        friendNotification(friend);
         
         // We actually update the server here because we've received a 
         // presence notification from a peer running lantern, so we want to
         // record that for future sessions because we might not see them
         // running Lantern right away again.
         try {
-            update(friend);
+            final ClientFriend onServer = update(friend);
+            
+            // We only notify the user after the friend is safely stored on
+            // the server as a pending friend. This also ensures any action
+            // taken on that friend is referencing the actual server version
+            // with a server ID.
+            friendNotification(onServer);
         } catch (final IOException e) {
             log.warn("Could not update?", e);
         }
@@ -539,6 +548,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             return;
         }
         
+        
         friend.setStatus(status);
         sync(friend);
         try {
@@ -579,9 +589,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
 
 
-    private void update(final ClientFriend friend) throws IOException {
-        this.api.updateFriend(friend);
-        put(friend);
+    private ClientFriend update(final ClientFriend friend) throws IOException {
+        final ClientFriend updated = this.api.updateFriend(friend);
+        put(updated);
+        return updated;
         /*
         try {
             this.api.updateFriend(friend);
@@ -712,7 +723,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         final Collection<ClientFriend> fr = getFriends();
         //model.setFriends(fr);
         if (fr.isEmpty()) {
-            log.warn("Syncing empty friends!!!");
+            log.warn("Syncing empty friends!!!\n"+ThreadUtils.dumpStack());
             return;
         }
         

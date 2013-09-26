@@ -22,6 +22,7 @@ import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -39,13 +40,16 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     private final String email;
 
-    public FriendNotificationDialog(NotificationManager manager,
+    public FriendNotificationDialog(final NotificationManager manager,
             FriendsHandler friends, final ClientFriend friend) {
         super(manager);
+        Preconditions.checkNotNull(friend, "Null friend?");
+        Preconditions.checkArgument(friend.getId() != 0L, 
+                "Showing a notification for a friend the server doesn't know about?");
         this.friendsHandler = friends;
         this.friend = friend;
-        this.name = friend.getName();
-        this.email = friend.getEmail();
+        this.name = friend.getName().toLowerCase();
+        this.email = friend.getEmail().toLowerCase();
         Events.register(this);
         layout();
     }
@@ -131,17 +135,13 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     private void setFriendStatus(final Status status) {
+        dialog.setVisible(false);
         dialog.dispose();
         
         // Can be null for testing.
         if (this.friendsHandler != null) {
             this.friendsHandler.setStatus(friend, status);
         }
-        
-        // This is necessary to sync up the user's interaction with the 
-        // dialog with the state of the friend in the friends modal.
-        Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
-        friendsHandler.syncFriends();
     }
 
     @Subscribe
