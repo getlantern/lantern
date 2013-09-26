@@ -115,7 +115,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     }
                     log.debug("Finished loading friends");
                     final Collection<ClientFriend> friends = vals(tempFriends);
-                    //model.setFriends(friends);
+                    model.setFriends(friends);
                     Events.sync(SyncPath.FRIENDS, friends); 
                     return tempFriends;
                 } catch (final IOException e) {
@@ -388,6 +388,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // running Lantern right away again.
         try {
             final ClientFriend onServer = update(friend);
+            syncFriends();
             
             // We only notify the user after the friend is safely stored on
             // the server as a pending friend. This also ensures any action
