@@ -392,7 +392,6 @@
     </resources>
 
     <!-- Make sure the lantern common parent doesn't override this -->
-    <resources>
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
