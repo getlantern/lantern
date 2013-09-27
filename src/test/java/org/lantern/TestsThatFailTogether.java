@@ -11,19 +11,17 @@ import org.junit.runners.Suite.SuiteClasses;
 //@SuiteClasses({
 //  AllTests.class,
 //})
-@SuiteClasses({ LanternUtilsTest.class, LanternTrustStoreTest.class, 
-    UdtSslTest.class})
+@SuiteClasses({ DefaultXmppHandlerTest.class, FallbackProxyTest.class})
 
 /**
- * There seem to be several common problems with these tests. First, sometimes 
- * cipher suites are configured for p2p connections and not for general 
- * connections, and the p2p cipher suites typically won't work. 
+ * This is a catch all test suite just for running tests that happen to fail
+ * when run together even though they succeed individually. It's for debugging
+ * those tests.
  * 
- * Second, it is sometimes the case that keys are added to the wrong keystore
- * or are removed for some reason, causing unexpected behavior in subsequent 
- * tests.
+ * This tends to happen when one test corrupts the other test in some way,
+ * typically through setting global static variables.
  */
-public class AllTrustStoreTests {
+public class TestsThatFailTogether {
 
     @BeforeClass 
     public static void setUpClass() {  

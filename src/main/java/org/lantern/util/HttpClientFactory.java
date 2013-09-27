@@ -3,6 +3,8 @@ package org.lantern.util;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import javax.net.ssl.SSLSocket;
+
 import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -102,9 +104,24 @@ public class HttpClientFactory {
         // dynamically trust new certs as we connect to peers and trust them,
         // we need to reload the trust store and this is the only way to
         // achieve that in conjunction with HttpClient.
+        final javax.net.ssl.SSLSocketFactory sf = 
+                socketsUtil.newTlsSocketFactoryJavaCipherSuites();
         final SSLSocketFactory socketFactory = 
-            new SSLSocketFactory(socketsUtil.newTlsSocketFactoryJavaCipherSuites(), 
-                new LanternHostNameVerifier(proxy));
+            new SSLSocketFactory(sf, 
+                new LanternHostNameVerifier(proxy)) {
+            
+            @Override
+            protected void prepareSocket(final SSLSocket socket) throws IOException {
+                // We reset the default cipher suites here because we've seen
+                // them somehow getting corrupted in the Google oauth library,
+                // apparently through setting some statics that leak into other
+                // SSL sessions or possibly related to the use of actual
+                // SSL sessions causing leakage. Unclear, but this fixes it!
+                // See https://github.com/getlantern/lantern/issues/1005.
+                final String[] suites = sf.getDefaultCipherSuites();
+                socket.setEnabledCipherSuites(suites);
+            }
+        };
         final Scheme sch = new Scheme("https", 443, socketFactory);
         httpClient.getConnectionManager().getSchemeRegistry().register(sch);
         

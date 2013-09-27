@@ -4,14 +4,19 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -48,8 +53,7 @@ public class FallbackProxyTest {
     // other tests when tests are run together.
     @BeforeClass 
     public static void setUpClass() {  
-        originalFallbackKeystorePath =
-                LanternUtils.getFallbackKeystorePath();
+        originalFallbackKeystorePath = LanternUtils.getFallbackKeystorePath();
         // This is the keystore that's used on the server side -- a test 
         // dummy of littleproxy_keystore.jks that's used in production.
         LanternUtils.setFallbackKeystorePath("src/test/resources/test.jks");
@@ -64,9 +68,15 @@ public class FallbackProxyTest {
     @Test
     public void testFallback() throws Exception {
         //System.setProperty("javax.net.debug", "all");
-        //System.setProperty("javax.net.debug", "ssl");
+        System.setProperty("javax.net.debug", "ssl");
         Launcher.configureCipherSuites();
-        final LanternKeyStoreManager ksm = new LanternKeyStoreManager(SystemUtils.getJavaIoTmpDir());
+        
+        final File temp = new File(SystemUtils.getJavaIoTmpDir(), 
+                String.valueOf(RandomUtils.nextLong()));
+        
+        FileUtils.forceDeleteOnExit(temp);
+        final LanternKeyStoreManager ksm = 
+                new LanternKeyStoreManager(temp);
         ksm.start();
         
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
@@ -97,15 +107,32 @@ public class FallbackProxyTest {
             
             // We prefer this one because this way the client can advertise a more
             // typical set of suites, and the server can choose.
-            final SSLSocketFactory client = util.newTlsSocketFactoryJavaCipherSuites();
+            final SSLSocketFactory clientFactory = util.newTlsSocketFactoryJavaCipherSuites();
             //final SSLSocketFactory client = util.newTlsSocketFactory(IceConfig.getCipherSuites());
             
             final HttpHost proxy = new HttpHost(NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, "https");
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
             
             final org.apache.http.conn.ssl.SSLSocketFactory socketFactory = 
-                new org.apache.http.conn.ssl.SSLSocketFactory(client, 
-                    new LanternHostNameVerifier(proxy));
+                    new org.apache.http.conn.ssl.SSLSocketFactory(clientFactory, 
+                        new LanternHostNameVerifier(proxy)) {
+                    
+                    @Override
+                    protected void prepareSocket(final SSLSocket socket) throws IOException {
+                        // This is necessary because calls to the Google auth
+                        // library that wraps an HTTP client apparently
+                        // can corrupt the set cipher suites, causing 
+                        // "no cipher suites in common". To reproduce:
+                        // 1) Run on Java 6 (might fail on 7 too, but not sure)
+                        // 2) Disable the setEnabledCipherSuites call below
+                        // 3) Run DefaultXmppHandlerTest followed by 
+                        // FallbackProxyTest in the same suite,for example 
+                        // "TestsThatFailTogether.java" as of this writing.
+                        final String[] suites = clientFactory.getDefaultCipherSuites();
+                        log.debug("Default suites are: {}", Arrays.asList(suites));
+                        socket.setEnabledCipherSuites(suites);
+                    }
+                };
             final Scheme sch = new Scheme("https", 443, socketFactory);
             httpClient.getConnectionManager().getSchemeRegistry().register(sch);
             
