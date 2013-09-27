@@ -385,13 +385,6 @@
     <defaultGoal>install</defaultGoal>
 
     <!-- Make sure the lantern common parent doesn't override this -->
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-    </resources>
-
-    <!-- Make sure the lantern common parent doesn't override this -->
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
