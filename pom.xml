@@ -3,7 +3,7 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0-beta5-SNAPSHOT</version>
+  <version>1.0.0-beta5</version>
   <name>Lantern</name>
   <description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
   <url>https://github.com/getlantern/lantern</url>
@@ -383,6 +383,21 @@
 
   <build>
     <defaultGoal>install</defaultGoal>
+
+    <!-- Make sure the lantern common parent doesn't override this -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+
+    <!-- Make sure the lantern common parent doesn't override this -->
+    <resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
 
     <extensions>
       <extension>
