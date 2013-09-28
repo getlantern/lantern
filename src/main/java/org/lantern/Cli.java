@@ -66,10 +66,10 @@ public class Cli {
 
         if (cmd.hasOption(OPTION_HELP)) {
             printHelp(options, null);
-            return;
+            System.exit(0);
         } else if (cmd.hasOption(OPTION_VERSION)) {
             printVersion();
-            return;
+            System.exit(0);
         }
     }
     
