@@ -24,7 +24,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
@@ -40,7 +39,6 @@ import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
-import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
@@ -110,7 +108,7 @@ public class TestingUtils {
 
     public static ProxyTracker newProxyTracker() {
         final PeerFactory peerFactory = new PeerFactoryStub();
-        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternKeyStoreManager ksm = newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         return new ProxyTrackerStub() {
@@ -131,9 +129,10 @@ public class TestingUtils {
         };
     }
     
-    public static XmppHandler newXmppHandler(final Censored censored, final Model model) {
+    public static XmppHandler newXmppHandler(final Censored censored, 
+            final Model model) throws IOException {
         
-        final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternKeyStoreManager ksm = newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         //final String testId = "test@gmail.com/somejidresource";
         //trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
@@ -246,21 +245,22 @@ public class TestingUtils {
     }
 
     public static LanternKeyStoreManager newKeyStoreManager() {
-        final File temp = new File(String.valueOf(RandomUtils.nextInt()));
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    FileUtils.forceDelete(temp);
-                } catch (IOException e) {}
-            }
-        });
-        final LanternKeyStoreManager ksm = new LanternKeyStoreManager(temp);
+        // We do all this temp and random file stuff below to avoid multiple
+        // tests clobbering each other.
+        final File ksmFile = new File(System.getProperty("java.io.tmpdir"), 
+                String.valueOf(RandomUtils.nextLong()));
+        ksmFile.mkdirs();
+        try {
+            FileUtils.forceDeleteOnExit(ksmFile);
+        } catch (IOException e) {
+        }
+        final LanternKeyStoreManager ksm = new LanternKeyStoreManager(
+                ksmFile);
         return ksm;
     }
 
     public static String accessToken() throws IOException {
-        final HttpClient httpClient = new DefaultHttpClient();
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
         final OauthUtils utils = newOauthUtils();
         return utils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
     }
