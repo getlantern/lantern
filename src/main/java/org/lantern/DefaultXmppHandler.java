@@ -893,6 +893,8 @@ public class DefaultXmppHandler implements XmppHandler {
         
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
+        forHub.setProperty(LanternConstants.IS_FALLBACK_PROXY,
+                           LanternUtils.isFallbackProxy());
         final String str = JsonUtils.jsonify(stats);
         LOG.debug("Reporting data: {}", str);
         if (!this.lastJson.equals(str)) {
