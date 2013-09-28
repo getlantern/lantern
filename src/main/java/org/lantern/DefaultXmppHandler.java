@@ -765,8 +765,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
         
-        LOG.debug("json", body);
-
         boolean handled = false;
         handled |= handleSetDelay(json);
         handled |= handleUpdate(json);
@@ -783,15 +781,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
-        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
-            sendToken();
-        }
-        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_ADDRESS))) {
-            sendAddress();
-        }
-        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_FALLBACK_ADDRESS))) {
-            sendFallbackAddress();
-        }
+        sendOnDemandValuesToControllerIfNecessary(json);
     }
 
     @SuppressWarnings("unchecked")
@@ -1322,31 +1312,50 @@ public class DefaultXmppHandler implements XmppHandler {
 
     }
 
-    private void sendToken() {
-        LOG.info("Sending refresh token to controller.");
-        sendValueToController(LanternConstants.REFRESH_TOKEN,
-                              this.model.getSettings().getRefreshToken());
+    /**
+     * Sends one or more properties to the controller based on a request from
+     * the controller.
+     * 
+     * @param json
+     */
+    private void sendOnDemandValuesToControllerIfNecessary(JSONObject json) {
+        final Presence presence = new Presence(Presence.Type.available);
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
+            sendToken(presence);
+        }
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_ADDRESS))) {
+            sendAddress(presence);
+        }
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_FALLBACK_ADDRESS))) {
+            sendFallbackAddress(presence);
+        }
+        if (presence.getPropertyNames().size() > 0) {
+            LOG.debug("Sending on-demand properties to controller");
+            presence.setTo(LanternClientConstants.LANTERN_JID);
+            sendPresence(presence, "SendOnDemandProperties-Thread");
+        } else {
+            LOG.debug("Not sending on-demand properties to controller");
+        }
     }
     
-    private void sendAddress() {
+    private void sendToken(Presence presence) {
+        LOG.info("Sending refresh token to controller.");
+        presence.setProperty(LanternConstants.REFRESH_TOKEN,
+                             this.model.getSettings().getRefreshToken());
+    }
+    
+    private void sendAddress(Presence presence) {
         LOG.info("Sending give mode proxy address to controller.");
         InetSocketAddress address = giveModeProxy.getServer().getAddress();
         String hostAndPort = addressToHostAndPort(address);
-        sendValueToController(LanternConstants.FALLBACK_ADDRESS, hostAndPort);
+        presence.setProperty(LanternConstants.ADDRESS, hostAndPort);
     }
     
-    private void sendFallbackAddress() {
+    private void sendFallbackAddress(Presence presence) {
         LOG.info("Sending fallback address to controller.");
         InetSocketAddress address = proxyTracker.addressForConfiguredFallbackProxy();
         String hostAndPort = addressToHostAndPort(address);
-        sendValueToController(LanternConstants.FALLBACK_ADDRESS, hostAndPort);
-    }
-    
-    private void sendValueToController(String key, Object value) {
-        final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternClientConstants.LANTERN_JID);
-        pres.setProperty(key, value);
-        sendPresence(pres, String.format("Send%1$s-Thread", key));
+        presence.setProperty(LanternConstants.FALLBACK_ADDRESS, hostAndPort);
     }
     
     private String addressToHostAndPort(InetSocketAddress address) {
