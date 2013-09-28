@@ -893,6 +893,11 @@ public class DefaultXmppHandler implements XmppHandler {
         
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
+        if (LanternUtils.isFallbackProxy()) {
+            sendHostAndPort(forHub);
+        } else {
+            sendFallbackHostAndPort(forHub);
+        }
         forHub.setProperty(LanternConstants.IS_FALLBACK_PROXY,
                            LanternUtils.isFallbackProxy());
         final String str = JsonUtils.jsonify(stats);
@@ -1325,12 +1330,6 @@ public class DefaultXmppHandler implements XmppHandler {
         if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
             sendToken(presence);
         }
-        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_ADDRESS))) {
-            sendAddress(presence);
-        }
-        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_FALLBACK_ADDRESS))) {
-            sendFallbackAddress(presence);
-        }
         if (presence.getPropertyNames().size() > 0) {
             LOG.debug("Sending on-demand properties to controller");
             presence.setTo(LanternClientConstants.LANTERN_JID);
@@ -1346,18 +1345,25 @@ public class DefaultXmppHandler implements XmppHandler {
                              this.model.getSettings().getRefreshToken());
     }
     
-    private void sendAddress(Presence presence) {
+    private void sendHostAndPort(Presence presence) {
         LOG.info("Sending give mode proxy address to controller.");
-        InetSocketAddress address = giveModeProxy.getServer().getAddress();
+        InetSocketAddress address = giveModeProxy.getServer()
+                .getListenAddress();
         String hostAndPort = addressToHostAndPort(address);
-        presence.setProperty(LanternConstants.ADDRESS, hostAndPort);
+        if (hostAndPort != null) {
+            presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
+        }
     }
-    
-    private void sendFallbackAddress(Presence presence) {
+
+    private void sendFallbackHostAndPort(Presence presence) {
         LOG.info("Sending fallback address to controller.");
-        InetSocketAddress address = proxyTracker.addressForConfiguredFallbackProxy();
+        InetSocketAddress address = proxyTracker
+                .addressForConfiguredFallbackProxy();
         String hostAndPort = addressToHostAndPort(address);
-        presence.setProperty(LanternConstants.FALLBACK_ADDRESS, hostAndPort);
+        if (hostAndPort != null) {
+            presence.setProperty(LanternConstants.FALLBACK_HOST_AND_PORT,
+                    hostAndPort);
+        }
     }
     
     private String addressToHostAndPort(InetSocketAddress address) {
