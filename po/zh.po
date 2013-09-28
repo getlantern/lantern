@@ -27,7 +27,7 @@ msgstr "现在开始运行Lantern吗？"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:81
 msgid "Open Lantern Dashboard"
-msgstr ""
+msgstr "打开Lantern面板"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:109
 #, fuzzy
@@ -46,19 +46,19 @@ msgstr "设定Lantern的首选项"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:175
 msgid "Quit"
-msgstr ""
+msgstr "退出"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:213
 msgid "Browser Restart"
-msgstr ""
+msgstr "重启浏览器"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:215
 msgid "You may have to restart your browser for these changes to take effect."
-msgstr ""
+msgstr "您需要重启浏览器使修改生效"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:287
 msgid "Update to Lantern "
-msgstr ""
+msgstr "Lantern更新"
 
 #: src/main/java/org/lantern/LanternBrowser.java:76
 #, fuzzy
