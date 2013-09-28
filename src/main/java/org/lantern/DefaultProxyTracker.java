@@ -1,8 +1,7 @@
 package org.lantern;
 
-import static org.lantern.state.Peer.Type.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
-import static org.littleshoot.util.FiveTuple.Protocol.UDP;
+import static org.lantern.state.Peer.Type.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -593,7 +592,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    private void parseFallbackProxy() {
+    @Override
+    public InetSocketAddress addressForConfiguredFallbackProxy() {
         final File file =
                 new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
         if (!file.isFile()) {
@@ -607,7 +607,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         if (!file.isFile()) {
             LOG.error("No fallback proxy to load!");
-            return;
+            return null;
         }
 
         final ObjectMapper om = new ObjectMapper();
@@ -617,13 +617,23 @@ public class DefaultProxyTracker implements ProxyTracker {
             final String proxy = IOUtils.toString(is);
             final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
 
-            fallbackServerHost = fp.getIp();
-            fallbackServerPort = fp.getPort();
-            LOG.debug("Set fallback proxy to {}", fallbackServerHost);
+            return new InetSocketAddress(fp.getIp(), fp.getPort());
         } catch (final IOException e) {
             LOG.error("Could not load fallback", e);
+            return null;
         } finally {
             IOUtils.closeQuietly(is);
+        }
+    }
+    
+    private void parseFallbackProxy() {
+        InetSocketAddress fallbackAddress = addressForConfiguredFallbackProxy();
+        if (fallbackAddress != null) {
+            fallbackServerHost = fallbackAddress.getAddress().getHostAddress();
+            fallbackServerPort = fallbackAddress.getPort();
+            LOG.debug("Set fallback proxy to {}:{}",
+                      fallbackServerHost,
+                      fallbackServerPort);
         }
     }
 

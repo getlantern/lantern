@@ -70,5 +70,10 @@ public class ProxyTrackerStub implements ProxyTracker {
             throws InterruptedException {
         return null;
     }
+    
+    @Override
+    public InetSocketAddress addressForConfiguredFallbackProxy() {
+        return null;
+    }
 
 }

@@ -48,6 +48,7 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
@@ -176,6 +177,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private final UdtServerFiveTupleListener udtFiveTupleListener;
 
     private final FriendsHandler friendsHandler;
+    
+    private final GiveModeProxy giveModeProxy;
 
     /**
      * Creates a new XMPP handler.
@@ -193,7 +196,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final NatPmpService natPmpService,
         final UpnpService upnpService,
         final UdtServerFiveTupleListener udtFiveTupleListener,
-        final FriendsHandler friendsHandler) {
+        final FriendsHandler friendsHandler,
+        final GiveModeProxy giveModeProxy) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -208,6 +212,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.upnpService = upnpService;
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
+        this.giveModeProxy = giveModeProxy;
         Events.register(this);
         //setupJmx();
     }
@@ -759,6 +764,8 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Hub message body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
+        
+        LOG.debug("json", body);
 
         boolean handled = false;
         handled |= handleSetDelay(json);
@@ -778,6 +785,12 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
             sendToken();
+        }
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_ADDRESS))) {
+            sendAddress();
+        }
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_FALLBACK_ADDRESS))) {
+            sendFallbackAddress();
         }
     }
 
@@ -1311,11 +1324,39 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void sendToken() {
         LOG.info("Sending refresh token to controller.");
+        sendValueToController(LanternConstants.REFRESH_TOKEN,
+                              this.model.getSettings().getRefreshToken());
+    }
+    
+    private void sendAddress() {
+        LOG.info("Sending give mode proxy address to controller.");
+        InetSocketAddress address = giveModeProxy.getServer().getAddress();
+        String hostAndPort = addressToHostAndPort(address);
+        sendValueToController(LanternConstants.FALLBACK_ADDRESS, hostAndPort);
+    }
+    
+    private void sendFallbackAddress() {
+        LOG.info("Sending fallback address to controller.");
+        InetSocketAddress address = proxyTracker.addressForConfiguredFallbackProxy();
+        String hostAndPort = addressToHostAndPort(address);
+        sendValueToController(LanternConstants.FALLBACK_ADDRESS, hostAndPort);
+    }
+    
+    private void sendValueToController(String key, Object value) {
         final Presence pres = new Presence(Presence.Type.available);
         pres.setTo(LanternClientConstants.LANTERN_JID);
-        pres.setProperty(LanternConstants.REFRESH_TOKEN,
-                         this.model.getSettings().getRefreshToken());
-        sendPresence(pres, "SendToken-Thread");
+        pres.setProperty(key, value);
+        sendPresence(pres, String.format("Send%1$s-Thread", key));
+    }
+    
+    private String addressToHostAndPort(InetSocketAddress address) {
+        if (address == null) {
+            return null;
+        } else {
+            return String.format("%1$s:%2$s",
+                    address.getAddress().getHostAddress(),
+                    address.getPort());
+        }
     }
 
     @Override
