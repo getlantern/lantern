@@ -170,8 +170,11 @@ public class InstallDownloader {
     private static SSLSocketFactory newAwsSocketFactory() throws 
         NoSuchAlgorithmException, KeyManagementException, KeyStoreException, 
         CertificateException, IOException {
-        final SSLContext ctx = SSLContext.getInstance("TLS");
-        return ctx.getSocketFactory();
+        log("Using default socket factory...");
+        return (SSLSocketFactory) SSLSocketFactory.getDefault();
+        //final SSLContext ctx = SSLContext.getInstance("TLS");
+        //ctx.init(null, tmf.getTrustManagers(), null);
+        //return ctx.getSocketFactory();
         
         /*
         log("Generating SSLSocketFactory for Amazon/verisign");
