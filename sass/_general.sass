@@ -37,6 +37,9 @@ a, button, .icon-external-link-wrapper
       color: $linkColorHover
       width: 8px
 
+a
+  +single-transition(color, 0.5s, ease)
+
 i[class*=icon]
   font-style: normal
 
@@ -158,6 +161,9 @@ a.disabled:hover
 
 .get-colored
   +get-colored
+
+a.get-colored:hover
+  color: $getModeColorAccent
 
 .yellow-colored
   +yellow-colored

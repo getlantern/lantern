@@ -6524,6 +6524,11 @@ a:hover i.icon-external-link, button:hover i.icon-external-link, .icon-external-
   width: 8px;
 }
 
+a {
+  -webkit-transition: color 0.5s ease;
+  transition: color 0.5s ease;
+}
+
 i[class*=icon] {
   font-style: normal;
 }
@@ -6760,6 +6765,10 @@ a.disabled:hover {
   color: #ffcc66;
 }
 
+a.get-colored:hover {
+  color: #cc8800;
+}
+
 .yellow-colored {
   color: #fff343;
 }
@@ -6979,7 +6988,7 @@ textarea {
   text-transform: uppercase;
 }
 #welcome .tagLine {
-  margin: -20px 0 70px;
+  margin: -40px 0 50px;
 }
 #welcome .internetRequired {
   -webkit-animation-name: defaultPulse;
@@ -6995,6 +7004,10 @@ textarea {
   text-shadow: black 1px 1px 2px;
   width: 142px;
   margin: 0 10px 10px;
+}
+#welcome .orIfYouNeed {
+  font-size: 11.9px;
+  margin: 10px 0;
 }
 
 #passwordCreate .control-group {

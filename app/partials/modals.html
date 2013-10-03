@@ -72,11 +72,20 @@
     </div>
     <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
     <div ng-show="model.connectivity.internet">
-      <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-        class="btn btn-large btn-{{inCensoringCountry && 'warning' || 'give-inverse' }}">
-        <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-        {{ 'GIVE_ACCESS' | i18n }}</button>
-      <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+      <div ng-show="inCensoringCountry">
+        <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+      </div>
+      <div ng-hide="inCensoringCountry">
+        <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
+          class="btn btn-large btn-give-inverse">
+          <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
+          {{ 'GIVE_ACCESS' | i18n }}
+        </button>
+        <div class="orIfYouNeed">
+          {{ 'OR_IF_YOU_NEED' | i18n }}
+          <a class="get-colored always-underlined" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</a>
+        </div>
+      </div>
     </div>
     <div class="internetRequired fadeInOut" ng-hide="model.connectivity.internet">
       {{ 'INTERNET_REQUIRED' | i18n }}

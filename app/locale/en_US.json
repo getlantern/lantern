@@ -29,6 +29,7 @@
   "BETA": "Beta",
   "TAG_LINE": "Internet freedom for everyone.",
   "GIVE_ACCESS": "Give Access",
+  "OR_IF_YOU_NEED": "or if you need access to blocked sites:",
   "GET_ACCESS": "Get Access",
   "INTERNET_REQUIRED": "Please connect to the internet to proceed.",
   "NO_PROXIES": "Connection failure: Can’t reach any users in your Lantern network who are giving access.",
