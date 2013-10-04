@@ -7102,7 +7102,7 @@ textarea {
   float: right;
   width: 230px;
   height: 27px;
-  margin: 35px 0 7px;
+  margin: 25px 0 7px;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
@@ -7171,7 +7171,7 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 
 #currentFriendsHeading {
   font-weight: bold;
-  margin: 40px 0 0 13px;
+  margin: 30px 0 0 13px;
   padding: 0 5px 2px;
   border-bottom: 1px solid #3a87ad;
   float: left;
