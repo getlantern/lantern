@@ -1,6 +1,6 @@
 /**
  * @license
- * Lo-Dash 2.1.0 (Custom Build) <http://lodash.com/>
+ * Lo-Dash 2.2.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modern -o ./dist/lodash.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
@@ -100,6 +100,21 @@
   cloneableClasses[boolClass] = cloneableClasses[dateClass] =
   cloneableClasses[numberClass] = cloneableClasses[objectClass] =
   cloneableClasses[regexpClass] = cloneableClasses[stringClass] = true;
+
+  /** Used as an internal `_.debounce` options object */
+  var debounceOptions = {
+    'leading': false,
+    'maxWait': 0,
+    'trailing': false
+  };
+
+  /** Used as the property descriptor for `__bindData__` */
+  var descriptor = {
+    'configurable': false,
+    'enumerable': false,
+    'value': null,
+    'writable': false
+  };
 
   /** Used to determine if values are of the language type Object */
   var objectTypes = {
@@ -324,23 +339,17 @@
     return objectPool.pop() || {
       'array': null,
       'cache': null,
-      'configurable': false,
       'criteria': null,
-      'enumerable': false,
       'false': false,
       'index': 0,
-      'leading': false,
-      'maxWait': 0,
       'null': false,
       'number': null,
       'object': null,
       'push': null,
       'string': null,
-      'trailing': false,
       'true': false,
       'undefined': false,
-      'value': null,
-      'writable': false
+      'value': null
     };
   }
 
@@ -517,8 +526,8 @@
     /*--------------------------------------------------------------------------*/
 
     /**
-     * Creates a `lodash` object which wraps the given value to enable method
-     * chaining.
+     * Creates a `lodash` object which wraps the given value to enable intuitive
+     * method chaining.
      *
      * In addition to Lo-Dash methods, wrappers also have the following `Array` methods:
      * `concat`, `join`, `pop`, `push`, `reverse`, `shift`, `slice`, `sort`, `splice`,
@@ -551,6 +560,8 @@
      *
      * The wrapper functions `first` and `last` return wrapped values when `n` is
      * provided, otherwise they return unwrapped values.
+     *
+     * Explicit chaining can be enabled by using the `_.chain` method.
      *
      * @name _
      * @constructor
@@ -707,60 +718,58 @@
      * @param {Function} [callback] The function to customize cloning values.
      * @param {Array} [stackA=[]] Tracks traversed source objects.
      * @param {Array} [stackB=[]] Associates clones with source counterparts.
-     * @returns {*} Returns the cloned `value`.
+     * @returns {*} Returns the cloned value.
      */
     function baseClone(value, deep, callback, stackA, stackB) {
-      var result = value;
-
       if (callback) {
-        result = callback(result);
+        var result = callback(value);
         if (typeof result != 'undefined') {
           return result;
         }
-        result = value;
       }
       // inspect [[Class]]
-      var isObj = isObject(result);
+      var isObj = isObject(value);
       if (isObj) {
-        var className = toString.call(result);
+        var className = toString.call(value);
         if (!cloneableClasses[className]) {
-          return result;
+          return value;
         }
-        var isArr = isArray(result);
-      }
-      // shallow clone
-      if (!isObj || !deep) {
-        return isObj
-          ? (isArr ? slice(result) : assign({}, result))
-          : result;
-      }
-      var ctor = ctorByClass[className];
-      switch (className) {
-        case boolClass:
-        case dateClass:
-          return new ctor(+result);
+        var ctor = ctorByClass[className];
+        switch (className) {
+          case boolClass:
+          case dateClass:
+            return new ctor(+value);
 
-        case numberClass:
-        case stringClass:
-          return new ctor(result);
+          case numberClass:
+          case stringClass:
+            return new ctor(value);
 
-        case regexpClass:
-          return ctor(result.source, reFlags.exec(result));
-      }
-      // check for circular references and return corresponding clone
-      var initedStack = !stackA;
-      stackA || (stackA = getArray());
-      stackB || (stackB = getArray());
-
-      var length = stackA.length;
-      while (length--) {
-        if (stackA[length] == value) {
-          return stackB[length];
+          case regexpClass:
+            result = ctor(value.source, reFlags.exec(value));
+            result.lastIndex = value.lastIndex;
+            return result;
         }
+      } else {
+        return value;
       }
-      // init cloned object
-      result = isArr ? ctor(result.length) : {};
+      var isArr = isArray(value);
+      if (deep) {
+        // check for circular references and return corresponding clone
+        var initedStack = !stackA;
+        stackA || (stackA = getArray());
+        stackB || (stackB = getArray());
 
+        var length = stackA.length;
+        while (length--) {
+          if (stackA[length] == value) {
+            return stackB[length];
+          }
+        }
+        result = isArr ? ctor(value.length) : {};
+      }
+      else {
+        result = isArr ? slice(value) : assign({}, value);
+      }
       // add array properties assigned by `RegExp#exec`
       if (isArr) {
         if (hasOwnProperty.call(value, 'index')) {
@@ -769,6 +778,10 @@
         if (hasOwnProperty.call(value, 'input')) {
           result.input = value.input;
         }
+      }
+      // exit for shallow clone
+      if (!deep) {
+        return result;
       }
       // add the source value to the stack of traversed objects
       // and associate it with its clone
@@ -1319,6 +1332,17 @@
     function createObject(prototype) {
       return isObject(prototype) ? nativeCreate(prototype) : {};
     }
+    // fallback for browsers without `Object.create`
+    if (!nativeCreate) {
+      createObject = function(prototype) {
+        if (isObject(prototype)) {
+          noop.prototype = prototype;
+          var result = new noop;
+          noop.prototype = null;
+        }
+        return result || {};
+      };
+    }
 
     /**
      * Used by `escape` to convert characters to HTML entities.
@@ -1352,10 +1376,8 @@
      * @param {*} value The value to set.
      */
     var setBindData = !defineProperty ? noop : function(func, value) {
-      var descriptor = getObject();
       descriptor.value = value;
       defineProperty(func, '__bindData__', descriptor);
-      releaseObject(descriptor);
     };
 
     /**
@@ -1579,7 +1601,7 @@
      * @param {boolean} [deep=false] Specify a deep clone.
      * @param {Function} [callback] The function to customize cloning values.
      * @param {*} [thisArg] The `this` binding of `callback`.
-     * @returns {*} Returns the cloned `value`.
+     * @returns {*} Returns the cloned value.
      * @example
      *
      * var stooges = [
@@ -1633,7 +1655,7 @@
      * @param {*} value The value to deep clone.
      * @param {Function} [callback] The function to customize cloning values.
      * @param {*} [thisArg] The `this` binding of `callback`.
-     * @returns {*} Returns the deep cloned `value`.
+     * @returns {*} Returns the deep cloned value.
      * @example
      *
      * var stooges = [
@@ -5421,13 +5443,11 @@
         leading = 'leading' in options ? options.leading : leading;
         trailing = 'trailing' in options ? options.trailing : trailing;
       }
-      options = getObject();
-      options.leading = leading;
-      options.maxWait = wait;
-      options.trailing = trailing;
+      debounceOptions.leading = leading;
+      debounceOptions.maxWait = wait;
+      debounceOptions.trailing = trailing;
 
-      var result = debounce(func, wait, options);
-      releaseObject(options);
+      var result = debounce(func, wait, debounceOptions);
       return result;
     }
 
@@ -5542,9 +5562,12 @@
 
             push.apply(args, arguments);
             var result = func.apply(object, args);
-            return (value && typeof value == 'object' && value === result)
-              ? this
-              : new ctor(result);
+            if (value && typeof value == 'object' && value === result) {
+              return this;
+            }
+            result = new ctor(result);
+            result.__chain__ = this.__chain__;
+            return result;
           };
         }
       });
@@ -5644,7 +5667,7 @@
       }
       var rand = nativeRandom();
       return (floating || min % 1 || max % 1)
-        ? min + nativeMin(rand * (max - min + parseFloat('1e-' + ((rand +'').length - 1))), max)
+        ? nativeMin(min + (rand * (max - min + parseFloat('1e-' + ((rand +'').length - 1)))), max)
         : min + floor(rand * (max - min + 1));
     }
 
@@ -5946,7 +5969,8 @@
     /*--------------------------------------------------------------------------*/
 
     /**
-     * Creates a `lodash` object that wraps the given value.
+     * Creates a `lodash` object that wraps the given value with explicit
+     * method chaining enabled.
      *
      * @static
      * @memberOf _
@@ -5962,9 +5986,10 @@
      * ];
      *
      * var youngest = _.chain(stooges)
-     *     .sortBy(function(stooge) { return stooge.age; })
+     *     .sortBy('age')
      *     .map(function(stooge) { return stooge.name + ' is ' + stooge.age; })
-     *     .first();
+     *     .first()
+     *     .value();
      * // => 'moe is 40'
      */
     function chain(value) {
@@ -6001,7 +6026,7 @@
     }
 
     /**
-     * Enables method chaining on the wrapper object.
+     * Enables explicit method chaining on the wrapper object.
      *
      * @name chain
      * @memberOf _
@@ -6009,11 +6034,21 @@
      * @returns {*} Returns the wrapper object.
      * @example
      *
-     * var sum = _([1, 2, 3])
-     *     .chain()
-     *     .reduce(function(sum, num) { return sum + num; })
-     *     .value()
-     * // => 6`
+     * var stooges = [
+     *   { 'name': 'moe', 'age': 40 },
+     *   { 'name': 'larry', 'age': 50 }
+     * ];
+     *
+     * // without explicit chaining
+     * _(stooges).first();
+     * // => { 'name': 'moe', 'age': 40 }
+     *
+     * // with explicit chaining
+     * _(stooges).chain()
+     *   .first()
+     *   .pick('age')
+     *   .value()
+     * // => { 'age': 40 }
      */
     function wrapperChain() {
       this.__chain__ = true;
@@ -6247,7 +6282,7 @@
      * @memberOf _
      * @type string
      */
-    lodash.VERSION = '2.1.0';
+    lodash.VERSION = '2.2.1';
 
     // add "Chaining" functions to the wrapper
     lodash.prototype.chain = wrapperChain;

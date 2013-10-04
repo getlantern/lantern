@@ -1,6 +1,6 @@
 /**
  * @license
- * Lo-Dash 2.1.0 (Custom Build) <http://lodash.com/>
+ * Lo-Dash 2.2.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash underscore exports="amd,commonjs,global,node" -o ./dist/lodash.underscore.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
@@ -26,9 +26,6 @@
 
   /** Used to ensure capturing order of template delimiters */
   var reNoMatch = /($^)/;
-
-  /** Used to detect functions containing a `this` reference */
-  var reThis = /\bthis\b/;
 
   /** Used to match unescaped characters in compiled string literals */
   var reUnescapedString = /['\n\r\t\u2028\u2029\\]/g;
@@ -185,6 +182,7 @@
   var ceil = Math.ceil,
       floor = Math.floor,
       hasOwnProperty = objectProto.hasOwnProperty,
+      now = reNative.test(now = Date.now) && now || function() { return +new Date; },
       push = arrayRef.push,
       toString = objectProto.toString,
       unshift = arrayRef.unshift;
@@ -208,8 +206,8 @@
   /*--------------------------------------------------------------------------*/
 
   /**
-   * Creates a `lodash` object which wraps the given value to enable method
-   * chaining.
+   * Creates a `lodash` object which wraps the given value to enable intuitive
+   * method chaining.
    *
    * In addition to Lo-Dash methods, wrappers also have the following `Array` methods:
    * `concat`, `join`, `pop`, `push`, `reverse`, `shift`, `slice`, `sort`, `splice`,
@@ -242,6 +240,8 @@
    *
    * The wrapper functions `first` and `last` return wrapped values when `n` is
    * provided, otherwise they return unwrapped values.
+   *
+   * Explicit chaining can be enabled by using the `_.chain` method.
    *
    * @name _
    * @constructor
@@ -309,15 +309,6 @@
      * @type boolean
      */
     support.fastBind = nativeBind && !isV8;
-
-    /**
-     * Detect if functions can be decompiled by `Function#toString`
-     * (all but PS3 and older Opera mobile browsers & avoided in Windows 8 apps).
-     *
-     * @memberOf _.support
-     * @type boolean
-     */
-    support.funcDecomp = !reNative.test(root.WinRTError) && reThis.test(function() { return this; });
 
     /**
      * Detect if `Array#shift` and `Array#splice` augment array-like objects correctly.
@@ -958,7 +949,7 @@
    * @param {boolean} [deep=false] Specify a deep clone.
    * @param {Function} [callback] The function to customize cloning values.
    * @param {*} [thisArg] The `this` binding of `callback`.
-   * @returns {*} Returns the cloned `value`.
+   * @returns {*} Returns the cloned value.
    * @example
    *
    * var stooges = [
@@ -3791,7 +3782,7 @@
       trailing = 'trailing' in options ? options.trailing : trailing;
     }
     var delayed = function() {
-      var remaining = wait - (new Date - stamp);
+      var remaining = wait - (now() - stamp);
       if (remaining <= 0) {
         if (maxTimeoutId) {
           clearTimeout(maxTimeoutId);
@@ -3799,7 +3790,7 @@
         var isCalled = trailingCall;
         maxTimeoutId = timeoutId = trailingCall = undefined;
         if (isCalled) {
-          lastCalled = +new Date;
+          lastCalled = now();
           result = func.apply(thisArg, args);
         }
       } else {
@@ -3813,14 +3804,14 @@
       }
       maxTimeoutId = timeoutId = trailingCall = undefined;
       if (trailing || (maxWait !== wait)) {
-        lastCalled = +new Date;
+        lastCalled = now();
         result = func.apply(thisArg, args);
       }
     };
 
     return function() {
       args = arguments;
-      stamp = +new Date;
+      stamp = now();
       thisArg = this;
       trailingCall = trailing && (timeoutId || !leading);
 
@@ -4157,11 +4148,9 @@
         push.apply(args, arguments);
 
         var result = func.apply(lodash, args);
-        if (this.__chain__) {
-          result = new lodashWrapper(result);
-          result.__chain__ = true;
-        }
-        return result;
+        return this.__chain__
+          ? new lodashWrapper(result, true)
+          : result;
       };
     });
   }
@@ -4478,7 +4467,8 @@
   /*--------------------------------------------------------------------------*/
 
   /**
-   * Creates a `lodash` object that wraps the given value.
+   * Creates a `lodash` object that wraps the given value with explicit
+   * method chaining enabled.
    *
    * @static
    * @memberOf _
@@ -4494,9 +4484,10 @@
    * ];
    *
    * var youngest = _.chain(stooges)
-   *     .sortBy(function(stooge) { return stooge.age; })
+   *     .sortBy('age')
    *     .map(function(stooge) { return stooge.name + ' is ' + stooge.age; })
-   *     .first();
+   *     .first()
+   *     .value();
    * // => 'moe is 40'
    */
   function chain(value) {
@@ -4533,7 +4524,7 @@
   }
 
   /**
-   * Enables method chaining on the wrapper object.
+   * Enables explicit method chaining on the wrapper object.
    *
    * @name chain
    * @memberOf _
@@ -4541,11 +4532,21 @@
    * @returns {*} Returns the wrapper object.
    * @example
    *
-   * var sum = _([1, 2, 3])
-   *     .chain()
-   *     .reduce(function(sum, num) { return sum + num; })
-   *     .value()
-   * // => 6`
+   * var stooges = [
+   *   { 'name': 'moe', 'age': 40 },
+   *   { 'name': 'larry', 'age': 50 }
+   * ];
+   *
+   * // without explicit chaining
+   * _(stooges).first();
+   * // => { 'name': 'moe', 'age': 40 }
+   *
+   * // with explicit chaining
+   * _(stooges).chain()
+   *   .first()
+   *   .pick('age')
+   *   .value()
+   * // => { 'age': 40 }
    */
   function wrapperChain() {
     this.__chain__ = true;
@@ -4707,7 +4708,7 @@
    * @memberOf _
    * @type string
    */
-  lodash.VERSION = '2.1.0';
+  lodash.VERSION = '2.2.1';
 
   // add "Chaining" functions to the wrapper
   lodash.prototype.chain = wrapperChain;
