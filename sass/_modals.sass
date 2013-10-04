@@ -177,7 +177,7 @@
   +bold
   margin: 40px 0 0 13px
   padding: 0 5px 2px
-  border-bottom: 1px solid #ddd
+  border-bottom: 1px solid $infoText
   float: left
 
 #currentFriends
@@ -193,6 +193,9 @@
     padding: 5px
     border: 1px solid #fff
     color: $grayLight
+    &.status-pending
+      +info-colored
+      border-bottom-style: dotted !important
     .reject
       display: inline-block
       width: 10px
@@ -201,6 +204,8 @@
       text-decoration: none
     &:hover
       background-color: #ffffd7 !important
+      border-left: 1px solid #ffffd7
+      border-right: 1px solid #ffffd7
       border-top: 1px solid #ddd
       border-bottom: 1px solid #ddd
       color: #000
@@ -217,12 +222,13 @@
   .approve.btn-group
     display: inline-block
     float: right
+    & > .btn
+      width: 55px
   .pending
-    +thin
     +smaller
     +centered
     +single-transition(all, 0.3s, ease)
-    +warning-colored
+    +error-colored
     opacity: 0
     clear: both
     margin: 0

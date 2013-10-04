@@ -270,7 +270,7 @@
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
       </div>
 
-      <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ', ' || ''}}{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</p>
+      <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ' · ' || ''}}<span class="info-colored">{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</span></p>
 
       <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
       id="friendsListSearch" ng-class="{empty: !searchText}" ng-show="nfriends || npending">
@@ -293,8 +293,8 @@
               <span class="email">{{ friend.email }}</span>
             </span>
             <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending" dir="ltr">
-              <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'FRIEND' | i18n }}</button>
-              <button type="button" class="btn btn-mini btn-danger" ng-click="reject(friend.email)">{{ 'DECLINE' | i18n }}</button>
+              <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'ADD' | i18n }}</button>
+              <button type="button" class="btn btn-mini" ng-click="reject(friend.email)">{{ 'DISMISS' | i18n }}</button>
             </span>
           </div>
           <div class="pending" ng-show="friend.status == FRIEND_STATUS.pending">

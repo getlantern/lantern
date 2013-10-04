@@ -6757,6 +6757,10 @@ a.disabled:hover {
   color: #c09853 !important;
 }
 
+.info-colored, .text-info {
+  color: #3a87ad !important;
+}
+
 .give-colored {
   color: #83c95a;
 }
@@ -7169,7 +7173,7 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   font-weight: bold;
   margin: 40px 0 0 13px;
   padding: 0 5px 2px;
-  border-bottom: 1px solid #dddddd;
+  border-bottom: 1px solid #3a87ad;
   float: left;
 }
 
@@ -7192,6 +7196,10 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   border: 1px solid white;
   color: #999999;
 }
+#currentFriends .entry.status-pending {
+  color: #3a87ad !important;
+  border-bottom-style: dotted !important;
+}
 #currentFriends .entry .reject {
   display: inline-block;
   width: 10px;
@@ -7201,6 +7209,8 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 }
 #currentFriends .entry:hover {
   background-color: #ffffd7 !important;
+  border-left: 1px solid #ffffd7;
+  border-right: 1px solid #ffffd7;
   border-top: 1px solid #dddddd;
   border-bottom: 1px solid #dddddd;
   color: black;
@@ -7222,13 +7232,15 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   display: inline-block;
   float: right;
 }
+#currentFriends .approve.btn-group > .btn {
+  width: 55px;
+}
 #currentFriends .pending {
-  font-family: "Roboto Thin";
   font-size: 11.9px;
   text-align: center;
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
-  color: #c09853 !important;
+  color: #b94a48 !important;
   opacity: 0;
   clear: both;
   margin: 0;
