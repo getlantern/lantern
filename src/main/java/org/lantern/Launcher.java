@@ -679,6 +679,7 @@ public class Launcher {
                             // it turned on.
                             return false;
                         }
+                        json.put("fallback", LanternUtils.isFallbackProxy());
                         json.put("version", LanternClientConstants.VERSION);
                         return true;
                     }
