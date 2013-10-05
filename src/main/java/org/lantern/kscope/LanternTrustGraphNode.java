@@ -35,6 +35,11 @@ public class LanternTrustGraphNode extends TrustGraphNode {
     }
     
     @Override
+    public void advertiseSelf(TrustGraphAdvertisement message) {
+        super.advertiseSelf(message);
+    }
+    
+    @Override
     public void sendAdvertisement(final TrustGraphAdvertisement message,
         final TrustGraphNodeId neighbor, final int ttl) {
         // We extract the JID of the peer and send the advertisement to them.
