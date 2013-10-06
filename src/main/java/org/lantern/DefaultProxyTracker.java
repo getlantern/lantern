@@ -277,10 +277,6 @@ public class DefaultProxyTracker implements ProxyTracker {
      */
     private void addNattedProxy(final URI jid,
             final boolean adhereToSchedule) {
-        if (true) {
-            LOG.debug("NAT traversal is currently disabled;");
-            return;
-        }
         LOG.debug("Considering NAT traversal to proxy for: {}", jid);
         final HashMap<URI, AtomicInteger> peerFailureCount =
                 new HashMap<URI, AtomicInteger>();
