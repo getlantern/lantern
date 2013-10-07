@@ -276,7 +276,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>1.0.0-beta2</version>
+      <version>1.0.0-beta3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
