@@ -45,6 +45,7 @@ public class Cli {
     public static final String OPTION_INSTANCE_ID = "instance-id";
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
+    public static final String OPTION_REPORT_IP = "report-ip";
     
     private CommandLine cmd;
     
@@ -143,6 +144,8 @@ public class Cli {
             "Run as fallback proxy");
         options.addOption(null, OPTION_KEYSTORE, true,
             "[XXX: perhaps provisional] path to keystore file where the fallback proxy should find its own keypair.");
+        options.addOption(null, OPTION_REPORT_IP, true,
+            "(Fallback's listen) IP to report to controller");
         return options;
     }
 

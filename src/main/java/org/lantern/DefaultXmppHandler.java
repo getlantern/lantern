@@ -1347,12 +1347,14 @@ public class DefaultXmppHandler implements XmppHandler {
     
     private void sendHostAndPort(Presence presence) {
         LOG.info("Sending give mode proxy address to controller.");
-        InetSocketAddress address = giveModeProxy.getServer()
-                .getListenAddress();
-        String hostAndPort = addressToHostAndPort(address);
-        if (hostAndPort != null) {
-            presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
+        String ip = model.getReportIp();
+        if (StringUtils.isBlank(ip)) {
+            LOG.error("No host? " + ip);
+            return;
         }
+        int port = this.model.getSettings().getServerPort();
+        String hostAndPort = ip.trim() + ":" + port;
+        presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
     }
 
     private void sendFallbackHostAndPort(Presence presence) {

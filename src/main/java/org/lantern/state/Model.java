@@ -95,6 +95,8 @@ public class Model {
 
     private String instanceId;
 
+    private String reportIp;
+
     private Collection<ClientFriend> friends;
 
     @JsonView({Run.class})
@@ -364,6 +366,15 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+
+    @JsonView({Persistent.class})
+    public String getReportIp() {
+        return reportIp;
+    }
+
+    public void setReportIp(String reportIp) {
+        this.reportIp = reportIp;
     }
 
     public void setFriends(Collection<ClientFriend> friends) {
