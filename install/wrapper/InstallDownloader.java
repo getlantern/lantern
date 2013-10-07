@@ -18,6 +18,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -63,6 +65,15 @@ public class InstallDownloader {
             localName = parsed;
         }
         final File file = new File(dir, localName);
+        
+        final long now = System.currentTimeMillis();
+        
+        final long elapsed = now - file.lastModified();
+        
+        log("ELAPSED TIME SINCE DOWNLOAD: "+elapsed);
+        if (elapsed > 1000 * 60) {
+            log("LAST MODIFIED TIME OF DOWNLOADED FILE TOO FAR IN THE PAST!!");
+        }
         //final File file = new File(fileName.substring(0, fileName.length()-5));
         log("NAME "+file.getName());
         log("SIZE: "+file.length());
@@ -205,9 +216,14 @@ public class InstallDownloader {
         }
         final File log = new File(CONFIG_DIR, 
                 "lantern-verify-installer-log.txt");
+        
+        final SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        final String formatted = df.format(new Date());
         Writer os = null;
         try {
             os = new FileWriter(log, true);
+            os.append(formatted);
+            os.append(": ");
             os.append(string + "\n");
         } catch (final IOException e) {
             e.printStackTrace();
