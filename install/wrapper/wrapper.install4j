@@ -125,6 +125,12 @@
                       <void property="failIfNotRootUnix">
                         <boolean>true</boolean>
                       </void>
+                      <void property="obtainIfAdminMac">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="obtainIfNormalMac">
+                        <boolean>true</boolean>
+                      </void>
                       <void property="obtainIfNormalWin">
                         <boolean>true</boolean>
                       </void>
@@ -442,11 +448,6 @@ return verified;</string>
                       <void property="stdoutFile">
                         <object class="java.io.File">
                           <string>${installer:sys.userHome}/lantern-install-log.txt</string>
-                        </object>
-                      </void>
-                      <void property="workingDirectory">
-                        <object class="java.io.File">
-                          <string>${installer:sys.workingDir}</string>
                         </object>
                       </void>
                     </object>

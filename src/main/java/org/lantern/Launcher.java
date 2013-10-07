@@ -23,7 +23,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.DefaultHttpResponseFactory;
-import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
@@ -37,6 +36,7 @@ import org.lantern.event.MessageEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.exceptional4j.HttpStrategy;
+import org.lantern.exceptional4j.contrib.IPv4Sanitizer;
 import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.monitoring.StatsReporter;
@@ -679,6 +679,7 @@ public class Launcher {
                             // it turned on.
                             return false;
                         }
+                        json.put("fallback", LanternUtils.isFallbackProxy());
                         json.put("version", LanternClientConstants.VERSION);
                         return true;
                     }
@@ -717,9 +718,10 @@ public class Launcher {
                     return client.execute(request);
                 }
             };
-            final Appender bugAppender = new ExceptionalAppender(
+            final ExceptionalAppender bugAppender = new ExceptionalAppender(
                 LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback, true,
                 Level.WARN, strategy);
+            bugAppender.addSanitizer(new IPv4Sanitizer());
 
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {

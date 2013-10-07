@@ -35,7 +35,6 @@ import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.littleshoot.commom.xmpp.XmppUtils;
-import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -722,12 +721,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
     @Override
     public void syncFriends() {
         final Collection<ClientFriend> fr = getFriends();
-        //model.setFriends(fr);
-        if (fr.isEmpty()) {
-            log.warn("Syncing empty friends!!!\n"+ThreadUtils.dumpStack());
-            return;
-        }
-        
         Events.sync(SyncPath.FRIENDS, fr);
     }
 }

@@ -170,6 +170,13 @@ public class InstallDownloader {
     private static SSLSocketFactory newAwsSocketFactory() throws 
         NoSuchAlgorithmException, KeyManagementException, KeyStoreException, 
         CertificateException, IOException {
+        log("Using default socket factory...");
+        return (SSLSocketFactory) SSLSocketFactory.getDefault();
+        //final SSLContext ctx = SSLContext.getInstance("TLS");
+        //ctx.init(null, tmf.getTrustManagers(), null);
+        //return ctx.getSocketFactory();
+        
+        /*
         log("Generating SSLSocketFactory for Amazon/verisign");
         final KeyStore ks = KeyStore.getInstance("JKS"); 
         ks.load( null, null );
@@ -186,6 +193,7 @@ public class InstallDownloader {
         final SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(null, tmf.getTrustManagers(), null);
         return ctx.getSocketFactory();
+        */
     }
 
     public static final File CONFIG_DIR =
