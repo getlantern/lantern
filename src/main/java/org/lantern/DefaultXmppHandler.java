@@ -420,11 +420,12 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.asyncEventBus().post(event);
             XMPPConnection connection = client.get().getXmppConnection();
             if (connection == previousConnection) {
-                //only add packet listener once
+                LOG.debug("We only add packet listener once, ignoring");
                 return;
             }
             previousConnection = connection;
 
+            LOG.debug("Adding packet listener");
             connection.addPacketListener(new PingListener(),
                     new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
         }
