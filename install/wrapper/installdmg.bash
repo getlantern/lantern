@@ -55,19 +55,23 @@ function reportErrors() {
 
 function die() {
   echo "Failure: $@ ... Reporting errors"
-  reportErrors "$@"
+#  reportErrors "$@"
   exit 1
 }
 
 echo $0
-if [ $# -ne "2" ]
+if [ $# -ne "1" ]
 then
     die "$0: Received $# args... dmg and mountpoint required"
 fi
 
 dmg=$1
-mountpoint=$2
-#hdiutil attach -mountpoint $mountpoint $dmg || die "Could not mount dmg $dmg at $mountpoint"
+mountpoint=lantern
+#hdiutil attach -nobrowse $dmg || die "Could not mount dmg $dmg at $mountpoint"
+hdiutil attach -mountpoint $mountpoint $dmg || die "Could not mount dmg $dmg at $mountpoint"
 
-
-#hdiutil detach $mountpoint || die "Could not UNMOUNT dmg $dmg at $mountpoint"
+echo `ls -la $mountpoint`
+apptmpdir=`mktemp -d /tmp/lantern-install.XXXXXX` || die "Could not create temp dir?"
+cp -R $mountpoint/"Lantern Installer.app" $apptmpdir || die "Could not copy installer app!!"
+open $apptmpdir/"Lantern Installer.app" || die "Could not open app at $apptmpdir/Lantern Installer.app" 
+hdiutil detach $mountpoint || die "Could not UNMOUNT dmg $dmg at $mountpoint"
