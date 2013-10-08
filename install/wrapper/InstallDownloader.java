@@ -25,7 +25,7 @@ public class InstallDownloader {
     
     private static final int MAX_SHA1_TRIES = 10;
     
-    public static boolean verify(final File dir, final File installDir) 
+    public static boolean verify(final File dir, final File dmgPath) 
             throws IOException {
         log("Downloading from file: "+dir.getAbsolutePath());
         final String fileName;
@@ -60,7 +60,12 @@ public class InstallDownloader {
         } else {
             localName = parsed;
         }
-        final File file = new File(dir, localName);
+        final File file;
+        if (dmgPath != null && dmgPath.length() > 0) {
+            file = dmgPath;
+        } else {
+            file = new File(dir, localName);
+        }
         
         final long now = System.currentTimeMillis();
         

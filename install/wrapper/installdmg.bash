@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-scriptversion=0.0.1
+scriptversion=0.0.2
 
-function appendToFile() {
-  local escaped=`echo $3 | perl -MURI::Escape -lne 'print uri_escape($_)'`
-  echo "Got escaped: "$escaped
+mkdir -p ~/Library/Logs/Lantern || echo "Fould not make dir?"
+touch ~/Library/Logs/Lantern/dmginstall.log || die "Could not touch log file?"
 
-  echo $2=$escaped >> $1
+datesuffix=`date "+%Y-%m-%d%H-%M-%S"`
+#mountpoint=lantern-install-$scriptversion-$datesuffix
+mountpoint=/Volumes/lantern
+
+function log() {
+  echo $1 >> ~/Library/Logs/Lantern/dmginstall.log
 }
 
 function reportErrors() {
@@ -35,16 +39,16 @@ function reportErrors() {
   local exception="$exception$0\"}"
 
   local application_environment="\"application_environment\": {\"application_root_directory\":\"\/\",\"env\":{"
-  echo "app env: $application_environment"
+  log "app env: $application_environment"
   local application_environment="$application_environment \
     \"LINE_NUMBER\": \"$bashLineNumber\", \
     \"GROUP\": \"$groupInfo\", \
     \"VERSION\": \"$scriptversion\"}}"
 
-  echo "app env: $application_environment"
+  log "app env: $application_environment"
   local body="{${application_environment}, \"client\":{\"client\":\"exceptional-java-plugin\",\"protocol_version\":\"6\",\"version\":\"0.1\"}, ${exception}, \"request\":{}}"
 
-  echo "BODY:\n$body"  
+  log "BODY:\n$body"  
   echo $body > $errFile
 
   gzip $errFile
@@ -54,7 +58,8 @@ function reportErrors() {
 }
 
 function die() {
-  echo "Failure: $@ ... Reporting errors"
+  log "Failure: $@ ... Reporting errors"
+  hdiutil detach $mountpoint || echo "Could not UNMOUNT dmg $dmg at $mountpoint"
 #  reportErrors "$@"
   exit 1
 }
@@ -65,13 +70,24 @@ then
     die "$0: Received $# args... dmg and mountpoint required"
 fi
 
-dmg=$1
-mountpoint=lantern
-#hdiutil attach -nobrowse $dmg || die "Could not mount dmg $dmg at $mountpoint"
-hdiutil attach -mountpoint $mountpoint $dmg || die "Could not mount dmg $dmg at $mountpoint"
+log $mountpoint
 
-echo `ls -la $mountpoint`
+dmg=$1
+log "DMG file: $dmg"
+
+# Just in case a previous lantern dmg was attached...
+hdiutil detach $mountpoint
+
+#hdiutil attach -nobrowse $dmg || die "Could not mount dmg $dmg at $mountpoint"
+#hdiutil attach -mountpoint $mountpoint $dmg -debug || die "Could not mount dmg $dmg at $mountpoint"
+#hdiutil attach $dmg  || die "Could not mount dmg $dmg at $mountpoint"
+hdiutil attach $dmg -debug &> /Users/afisk/Library/Logs/hdiutil.log || die "Could not mount dmg $dmg at $mountpoint"
+
+log `ls -la $mountpoint`
 apptmpdir=`mktemp -d /tmp/lantern-install.XXXXXX` || die "Could not create temp dir?"
 cp -R $mountpoint/"Lantern Installer.app" $apptmpdir || die "Could not copy installer app!!"
 open $apptmpdir/"Lantern Installer.app" || die "Could not open app at $apptmpdir/Lantern Installer.app" 
+
+log "Detaching from $mountpoint"
 hdiutil detach $mountpoint || die "Could not UNMOUNT dmg $dmg at $mountpoint"
+#hdiutil detach /Volumes/lantern || die "Could not UNMOUNT dmg $dmg at $mountpoint"

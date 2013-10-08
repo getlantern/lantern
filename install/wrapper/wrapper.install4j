@@ -297,12 +297,31 @@ return true;</string>
                 </serializedBean>
                 <condition />
               </action>
+              <action name="" id="439" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.SetVariableAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.SetVariableAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>return ((String)context.getVariable("sys.userHome")) + "/lantern-" + Long.valueOf(System.currentTimeMillis())+".dmg";</string>
+                          </void>
+                        </object>
+                      </void>
+                      <void property="variableName">
+                        <string>dmg</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isMacOS();</condition>
+              </action>
               <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/latest.dmg</string>
+                        <string>${installer:dmg}</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
@@ -387,7 +406,8 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                       <void property="script">
                         <object class="com.install4j.api.beans.ScriptProperty">
                           <void property="value">
-                            <string>final boolean verified = InstallDownloader.verify(new File((String)context.getVariable("sys.userHome")), new File((String)context.getVariable("sys.installationDir")));
+                            <string>final boolean verified = InstallDownloader.verify(new File((String)context.getVariable("sys.userHome")), 
+    new File((String)context.getVariable("dmg")));
 
 return verified;</string>
                           </void>
@@ -405,7 +425,7 @@ return verified;</string>
                       <void property="arguments">
                         <array class="java.lang.String" length="1">
                           <void index="0">
-                            <string>${installer:sys.userHome}/latest.dmg</string>
+                            <string>"${installer:dmg}"</string>
                           </void>
                         </array>
                       </void>
@@ -438,9 +458,6 @@ return verified;</string>
                       </void>
                       <void property="timeout">
                         <int>30</int>
-                      </void>
-                      <void property="wait">
-                        <boolean>true</boolean>
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
@@ -661,7 +678,7 @@ return result == 0;</string>
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.FinishedScreen" />
