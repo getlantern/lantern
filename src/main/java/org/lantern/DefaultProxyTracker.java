@@ -459,10 +459,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         final Collection<Peer> peers = this.model.getPeers();
         LOG.debug("Proxy set is: {}", peers);
         for (final Peer peer : peers) {
-            final String id = peer.getPeerid();
-            if (!id.contains(fallbackServerHost)) {
-                addProxy(LanternUtils.newURI(peer.getPeerid()),
-                        new InetSocketAddress(peer.getIp(), peer.getPort()));
+            // Don't use peer proxies since we're not connected to XMPP yet.
+            if (peer.isMapped()) {
+                final String id = peer.getPeerid();
+                if (!id.contains(fallbackServerHost)) {
+                    addProxy(LanternUtils.newURI(peer.getPeerid()),
+                            new InetSocketAddress(peer.getIp(), peer.getPort()));
+                }
             }
         }
     }
