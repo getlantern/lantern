@@ -39,7 +39,7 @@ public interface ProxyTracker extends LanternService {
      * 
      * @param uri
      */
-    void removeNatTraversedProxy(URI uri);
+    void removeNattedProxy(URI uri);
 
     boolean hasProxy();
 

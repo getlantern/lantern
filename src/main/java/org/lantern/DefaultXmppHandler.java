@@ -941,7 +941,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         else {
             LOG.info("Removing JID for peer '"+from);
-            this.proxyTracker.removeNatTraversedProxy(uri);
+            this.proxyTracker.removeNattedProxy(uri);
         }
     }
 

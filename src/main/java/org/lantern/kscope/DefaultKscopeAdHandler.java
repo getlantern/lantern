@@ -125,6 +125,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
 
     @Override
     public void onBase64Cert(final URI jid, final String base64Cert) {
+        log.debug("Received cert for {}", jid);
         this.trustStore.addBase64Cert(jid, base64Cert);
         
         final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);

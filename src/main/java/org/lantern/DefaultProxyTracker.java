@@ -1,8 +1,7 @@
 package org.lantern;
 
-import static org.lantern.state.Peer.Type.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
-import static org.littleshoot.util.FiveTuple.Protocol.UDP;
+import static org.lantern.state.Peer.Type.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,10 +17,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,29 +58,22 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
-    private static final long NAT_TRAVERSAL_INITIAL_DELAY = 5000;
-
-    private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
+    private static final FiveTuple EMPTY_UDP_TUPLE = new FiveTuple(null, null,
+            UDP);
 
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
+
+    private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     private final ExecutorService p2pSocketThreadPool =
             Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
 
     /**
-     * Holds all proxies keyed to their {@link FiveTuple}.
+     * Holds all proxies.
      */
-    private final Map<FiveTuple, ProxyHolder> proxies =
-            new ConcurrentHashMap<FiveTuple, ProxyHolder>();
-    
-    /**
-     * Holds the times at which a given JID should next be NAT traversed. We use
-     * this to implement a back-off strategy that keeps us from too frequently
-     * trying to NAT traverse to the same peers.
-     */
-    private final Map<URI, ScheduledNatTraversal> natTraversalSchedule =
-            new ConcurrentHashMap<URI, ScheduledNatTraversal>();
+    private final Set<ProxyHolder> proxies = Collections
+            .synchronizedSet(new HashSet<ProxyHolder>());
 
     private final Model model;
 
@@ -105,14 +98,13 @@ public class DefaultProxyTracker implements ProxyTracker {
             .newSingleThreadedScheduledExecutor("Proxy-Retry");
 
     private final LanternTrustStore lanternTrustStore;
-    
+
     /**
-     * This is a lock for when we need to block on retrieving a TCP proxy,
-     * such as when we need to access a blocked site over HTTP during initial 
-     * setup.
+     * This is a lock for when we need to block on retrieving a TCP proxy, such
+     * as when we need to access a blocked site over HTTP during initial setup.
      */
     private final ReentrantLock tcpProxyLock = new ReentrantLock();
-    
+
     /**
      * Condition for when there are no proxies -- threads needing proxies wait
      * on this until proxies are available within the timeout or not.
@@ -159,225 +151,37 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void clearPeerProxySet() {
-        Iterator<FiveTuple> it = proxies.keySet().iterator();
+        Iterator<ProxyHolder> it = proxies.iterator();
         while (it.hasNext()) {
-            if (it.next().getProtocol() == UDP) {
+            if (it.next().getFiveTuple().getProtocol() == UDP) {
                 it.remove();
             }
         }
     }
 
     @Override
-    public void addProxy(URI jid, InetSocketAddress address) {
-        addProxy(jid, address, Type.pc);
+    public void addProxy(URI jid) {
+        this.addProxy(jid, null, Type.pc);
     }
 
     @Override
-    public void addProxy(URI jid) {
-        this.addProxy(jid, (ProxyHolder) null);
-    }
-
-    private void addProxy(URI jid, InetSocketAddress address, Type type) {
-        boolean canAddAsTCP = address != null && address.getPort() > 0
-                && this.model.getSettings().isTcp();
-        addProxy(jid, canAddAsTCP ? new ProxyHolder(this, peerFactory,
-                lanternTrustStore, jid, address, type) : null);
-    }
-
-    private void addProxy(URI jid, ProxyHolder proxyHolder) {
-        if (proxyHolder != null) {
-            addTcpProxy(jid, proxyHolder, true);
-        } else {
-            addNattedProxy(jid, true);
-        }
-    }
-
-    /**
-     * Attempts to add this proxy as a proxy using a known TCP port.
-     * 
-     * @param jid
-     * @param ph
-     * @param allowFallbackToNatTTraversal
-     */
-    private void addTcpProxy(final URI jid, final ProxyHolder ph,
-            final boolean allowFallbackToNatTTraversal) {
-        LOG.info("Adding TCP proxy {} {}", jid, ph);
-
+    public void addProxy(URI jid, InetSocketAddress address) {
         // We've seen this in weird cases in the field -- might as well
         // program defensively here.
-        InetAddress remoteAddress = ph.getFiveTuple().getRemote().getAddress();
+        InetAddress remoteAddress = address.getAddress();
         if (remoteAddress.isLoopbackAddress()
                 || remoteAddress.isAnyLocalAddress()) {
             LOG.warn("Can connect to neither loopback nor 0.0.0.0 address {}",
                     remoteAddress);
-            return;
+            address = null;
         }
 
-        proxyCheckThreadPool.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                final Socket sock = new Socket();
-                final InetSocketAddress remote = ph.getFiveTuple().getRemote();
-                try {
-                    sock.connect(remote, 60 * 1000);
-
-                    if (putTcpProxy(ph) == null) {
-                        LOG.debug(
-                                "Added connected TCP proxy.  Proxies is now {}",
-                                proxies);
-                        peerFactory.onOutgoingConnection(jid, remote,
-                                ph.getType());
-                    }
-
-                    ph.resetFailures();
-                    LOG.debug("Dispatching CONNECTED event");
-                    Events.asyncEventBus().post(
-                            new ProxyConnectionEvent(
-                                    ConnectivityStatus.CONNECTED));
-                } catch (final IOException e) {
-                    // This can happen if the user has subsequently gone
-                    // offline, for example.
-                    LOG.debug("Could not connect to {} {}", jid, ph, e);
-                    onCouldNotConnect(ph);
-
-                    if (allowFallbackToNatTTraversal) {
-                        // Try adding the proxy by it's JID! This can happen,
-                        // for example, if we get a bogus port mapping.
-                        addNattedProxy(jid, true);
-                    }
-                } finally {
-                    IOUtils.closeQuietly(sock);
-                }
-            }
-
-        });
-    }
-    
-    private ProxyHolder putTcpProxy(final ProxyHolder ph) {
-        LOG.debug("Got TCP proxy...unlocking");
-        final ProxyHolder holder = proxies.put(ph.getFiveTuple(), ph);
-        this.tcpProxyLock.lock();
-        try {
-            noProxies.signalAll();
-        } finally {
-            this.tcpProxyLock.unlock();
-        }
-        return holder;
-    }
-
-    /**
-     * Attempts to do a NAT traversal to obtain an available UDP port for the
-     * given jid and then adds a proxy for that port.
-     * 
-     * @param jid
-     * @param adhereToSchedule
-     *            whether or not to adhere to the schedule set in
-     *            {@link #natTraversalSchedule}
-     */
-    private void addNattedProxy(final URI jid,
-            final boolean adhereToSchedule) {
-        LOG.debug("Considering NAT traversal to proxy for: {}", jid);
-        final HashMap<URI, AtomicInteger> peerFailureCount =
-                new HashMap<URI, AtomicInteger>();
-
-        if (hasConnectedNatTraversedProxy(jid)) {
-            LOG.debug(
-                    "Already have connected NAT traversed proxy for {}, declining to add",
-                    jid);
-            return;
-        }
-
-        if (adhereToSchedule) {
-            if (!scheduleAllowsNatTraversal(jid)) {
-                LOG.debug(
-                        "Skipping NAT traversal for {} before scheduled time",
-                        jid);
-                return;
-            }
-        }
-
-        p2pSocketThreadPool.submit(new Runnable() {
-            @Override
-            public void run() {
-                // TODO: In the past we created a bunch of connections here -
-                // a socket pool -- to avoid dealing with connection time
-                // delays. We should probably do that again!.
-                try {
-                    LOG.debug("Opening outgoing peer...");
-                    final FiveTuple tuple = LanternUtils.openOutgoingPeer(
-                            jid, xmppHandler.getP2PClient(),
-                            peerFailureCount);
-                    LOG.debug("Got tuple and adding it for peer: {}", jid);
-
-                    final InetSocketAddress remote = tuple.getRemote();
-                    final ProxyHolder ph =
-                            new ProxyHolder(DefaultProxyTracker.this,
-                                    peerFactory, lanternTrustStore,
-                                    jid, tuple, Type.pc);
-
-                    peerFactory.onOutgoingConnection(jid, remote, Type.pc);
-
-                    proxies.put(ph.getFiveTuple(), ph);
-
-                    resetNatTraversalScheduleFor(jid);
-
-                    Events.eventBus().post(
-                            new ProxyConnectionEvent(
-                                    ConnectivityStatus.CONNECTED));
-
-                } catch (final IOException e) {
-                    LOG.info("Could not create peer socket", e);
-                    scheduleNextAllowedNatTraversalFor(jid);
-                }
-            }
-        });
-    }
-
-    private boolean scheduleAllowsNatTraversal(URI jid) {
-        synchronized (natTraversalSchedule) {
-            ScheduledNatTraversal scheduled = natTraversalSchedule.get(jid);
-            return scheduled == null || scheduled.scheduledTime <= System
-                    .currentTimeMillis();
-        }
-    }
-
-    private void resetNatTraversalScheduleFor(URI jid) {
-        synchronized (natTraversalSchedule) {
-            natTraversalSchedule.remove(jid);
-        }
-    }
-
-    private void scheduleNextAllowedNatTraversalFor(URI jid) {
-        synchronized (natTraversalSchedule) {
-            ScheduledNatTraversal scheduled = natTraversalSchedule
-                    .get(jid);
-            ScheduledNatTraversal nextScheduled;
-            if (scheduled == null) {
-                nextScheduled = new ScheduledNatTraversal(
-                        NAT_TRAVERSAL_INITIAL_DELAY);
-            } else {
-                // Back off by a factor of 2
-                nextScheduled = new ScheduledNatTraversal(
-                        scheduled.delay * 2);
-            }
-            natTraversalSchedule.put(jid, nextScheduled);
-        }
-    }
-
-    private boolean hasConnectedNatTraversedProxy(final URI jid) {
-        for (ProxyHolder proxy : proxies.values()) {
-            if (proxy.getJid().equals(jid) && proxy.isNatTraversed()
-                    && proxy.isConnected()) {
-                return true;
-            }
-        }
-        return false;
+        addProxy(jid, address, Type.pc);
     }
 
     @Override
-    public void removeNatTraversedProxy(final URI uri) {
-        Iterator<ProxyHolder> it = proxies.values().iterator();
+    public void removeNattedProxy(final URI uri) {
+        Iterator<ProxyHolder> it = proxies.iterator();
         while (it.hasNext()) {
             ProxyHolder proxy = it.next();
             if (proxy.getJid().equals(uri) && proxy.isNatTraversed()) {
@@ -387,39 +191,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    private void restoreTimedInProxies() {
-        long now = new Date().getTime();
-        for (ProxyHolder proxy : proxies.values()) {
-            if (!proxy.isConnected() && now > proxy.getRetryTime()) {
-                LOG.debug("Attempting to restore timed-in proxy " + proxy);
-                if (proxy.isNatTraversed()) {
-                    addNattedProxy(proxy.getJid(), false);
-                } else {
-                    addTcpProxy(proxy.getJid(), proxy, false);
-                }
-            } else {
-                break;
-            }
-        }
-    }
-
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
         LOG.debug("Got connectivity changed event: {}", e);
         if (e.isConnected()) {
             restoreDeceasedProxies();
-        }
-    }
-
-    private void restoreDeceasedProxies() {
-        long now = new Date().getTime();
-        for (ProxyHolder proxy : proxies.values()) {
-            if (!proxy.isConnected()) {
-                LOG.debug("Attempting to restore deceased proxy " + proxy);
-                addTcpProxy(proxy.getJid(), proxy, false);
-            } else {
-                break;
-            }
         }
     }
 
@@ -440,22 +216,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void onError(final URI peerUri) {
-        for (ProxyHolder proxy : proxies.values()) {
+        for (ProxyHolder proxy : proxies) {
             if (proxy.getJid().equals(peerUri)) {
                 proxy.addFailure();
             }
         }
         notifyProxiesSize();
-    }
-
-    private void notifyProxiesSize() {
-        int numberOfConnectedProxies = 0;
-        for (ProxyHolder proxy : proxies.values()) {
-            if (proxy.isConnected()) {
-                numberOfConnectedProxies += 1;
-            }
-        }
-        Events.sync(SyncPath.CONNECTIVITY_NPROXIES, numberOfConnectedProxies);
     }
 
     @Override
@@ -482,7 +248,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
-        for (ProxyHolder proxy : proxies.values()) {
+        for (ProxyHolder proxy : proxies) {
             if (proxy.isConnected()) {
                 result.add(proxy);
             }
@@ -490,7 +256,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         Collections.sort(result, PROXY_PRIORITIZER);
         return result;
     }
-    
+
     @Override
     public ProxyHolder firstConnectedTcpProxy() {
         for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference()) {
@@ -500,16 +266,17 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         return null;
     }
-    
+
     @Override
-    public ProxyHolder firstConnectedTcpProxyBlocking() throws InterruptedException {
+    public ProxyHolder firstConnectedTcpProxyBlocking()
+            throws InterruptedException {
         LOG.debug("Getting first TCP proxy...");
         final ProxyHolder ph = firstConnectedTcpProxy();
         if (ph != null) {
             LOG.debug("Returning existing proxy...");
             return ph;
         }
-        
+
         this.tcpProxyLock.lock();
         try {
             LOG.debug("Waiting for availability...");
@@ -521,7 +288,160 @@ public class DefaultProxyTracker implements ProxyTracker {
         } finally {
             this.tcpProxyLock.unlock();
         }
-        
+    }
+
+    private void addProxy(URI jid, InetSocketAddress address, Type type) {
+        boolean canAddAsTCP = address != null && address.getPort() > 0
+                && this.model.getSettings().isTcp();
+        FiveTuple fiveTuple = canAddAsTCP ? new FiveTuple(null, address, TCP) :
+                EMPTY_UDP_TUPLE;
+        ProxyHolder proxy = new ProxyHolder(this, peerFactory,
+                lanternTrustStore, jid, fiveTuple, type);
+        doAddProxy(jid, proxy);
+    }
+
+    private void doAddProxy(final URI jid, final ProxyHolder proxy) {
+        LOG.info("Attempting to add proxy {} {}", jid, proxy);
+
+        if (proxies.contains(proxy)) {
+            LOG.debug("Proxy already tracked.  Proxies is: {}", proxies);
+            return;
+        } else {
+            LOG.info("Adding proxy {} {}", jid, proxy);
+            proxies.add(proxy);
+            LOG.info("Proxies is now {}", proxies);
+            checkConnectivityToProxy(proxy, true);
+        }
+    }
+
+    private void checkConnectivityToProxy(ProxyHolder proxy,
+            boolean allowFallbackToNatTraversal) {
+        if (proxy.isNatTraversed()) {
+            checkConnectivityToNattedProxy(proxy);
+        } else {
+            checkConnectivityToTcpProxy(proxy, true);
+        }
+    }
+
+    private void checkConnectivityToTcpProxy(final ProxyHolder proxy,
+            final boolean allowFallbackToNatTraversal) {
+        proxyCheckThreadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                final Socket sock = new Socket();
+                final InetSocketAddress remote = proxy.getFiveTuple()
+                        .getRemote();
+                try {
+                    sock.connect(remote, 60 * 1000);
+                    notifyTcpProxyAvailable();
+                    successfullyConnectedToProxy(proxy);
+                } catch (final IOException e) {
+                    // This can happen if the user has subsequently gone
+                    // offline, for example.
+                    LOG.debug("Could not connect to proxy: {}", proxy, e);
+                    onCouldNotConnect(proxy);
+
+                    if (allowFallbackToNatTraversal) {
+                        addProxy(proxy.getJid());
+                    }
+                } finally {
+                    IOUtils.closeQuietly(sock);
+                }
+            }
+        });
+    }
+
+    private void checkConnectivityToNattedProxy(final ProxyHolder proxy) {
+        p2pSocketThreadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                // TODO: In the past we created a bunch of connections here -
+                // a socket pool -- to avoid dealing with connection time
+                // delays. We should probably do that again!.
+                try {
+                    LOG.debug("Opening outgoing peer...");
+                    // Not sure what this is for
+                    Map<URI, AtomicInteger> peerFailureCount =
+                            new HashMap<URI, AtomicInteger>();
+                    final FiveTuple tuple = LanternUtils.openOutgoingPeer(
+                            proxy.getJid(), xmppHandler.getP2PClient(),
+                            peerFailureCount);
+
+                    LOG.debug("Got tuple and adding it for proxy: {}", proxy);
+                    proxy.setFiveTuple(tuple);
+                    successfullyConnectedToProxy(proxy);
+                } catch (final IOException e) {
+                    LOG.info("Could not create peer socket", e);
+                    proxy.addFailure();
+                }
+            }
+        });
+    }
+
+    /**
+     * Let threads waiting on the first connected TCP proxy know that we now
+     * have one.
+     */
+    private void notifyTcpProxyAvailable() {
+        LOG.debug("Got TCP proxy...unlocking");
+        this.tcpProxyLock.lock();
+        try {
+            noProxies.signalAll();
+        } finally {
+            this.tcpProxyLock.unlock();
+        }
+    }
+
+    /**
+     * Let the world know that we've successfully connected to the proxy.
+     * 
+     * @param proxy
+     */
+    private void successfullyConnectedToProxy(ProxyHolder proxy) {
+        LOG.debug("Connected to proxy: {}", proxy);
+        peerFactory.onOutgoingConnection(proxy.getJid(), proxy.getFiveTuple()
+                .getRemote(), proxy.getType());
+        proxy.resetFailures();
+
+        LOG.debug("Dispatching CONNECTED event");
+        Events.asyncEventBus().post(
+                new ProxyConnectionEvent(
+                        ConnectivityStatus.CONNECTED));
+
+        notifyProxiesSize();
+    }
+
+    private void notifyProxiesSize() {
+        int numberOfConnectedProxies = 0;
+        for (ProxyHolder proxy : proxies) {
+            if (proxy.isConnected()) {
+                numberOfConnectedProxies += 1;
+            }
+        }
+        Events.sync(SyncPath.CONNECTIVITY_NPROXIES, numberOfConnectedProxies);
+    }
+
+    private void restoreTimedInProxies() {
+        long now = new Date().getTime();
+        for (ProxyHolder proxy : proxies) {
+            if (!proxy.isConnected() && now > proxy.getRetryTime()) {
+                LOG.debug("Attempting to restore timed-in proxy " + proxy);
+                checkConnectivityToProxy(proxy, false);
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void restoreDeceasedProxies() {
+        for (ProxyHolder proxy : proxies) {
+            if (!proxy.isConnected()) {
+                LOG.debug("Attempting to restore deceased proxy " + proxy);
+                checkConnectivityToProxy(proxy, false);
+            } else {
+                break;
+            }
+        }
     }
 
     private void prepopulateProxies() {
@@ -539,13 +459,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         final Collection<Peer> peers = this.model.getPeers();
         LOG.debug("Proxy set is: {}", peers);
         for (final Peer peer : peers) {
-            // Don't use peer proxies since we're not connected to XMPP yet.
-            if (peer.isMapped()) {
-                final String id = peer.getPeerid();
-                if (!id.contains(fallbackServerHost)) {
-                    addProxy(LanternUtils.newURI(peer.getPeerid()),
-                            new InetSocketAddress(peer.getIp(), peer.getPort()));
-                }
+            final String id = peer.getPeerid();
+            if (!id.contains(fallbackServerHost)) {
+                addProxy(LanternUtils.newURI(peer.getPeerid()),
+                        new InetSocketAddress(peer.getIp(), peer.getPort()));
             }
         }
     }
@@ -701,17 +618,5 @@ public class DefaultProxyTracker implements ProxyTracker {
                 return 0;
             }
         }
-    }
-
-    private static class ScheduledNatTraversal {
-        private long scheduledTime;
-        private long delay;
-
-        public ScheduledNatTraversal(long delay) {
-            super();
-            this.scheduledTime = System.currentTimeMillis() + delay;
-            this.delay = delay;
-        }
-
     }
 }

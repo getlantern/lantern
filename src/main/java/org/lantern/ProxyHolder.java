@@ -15,7 +15,6 @@ import org.lantern.state.Peer.Type;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
-import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,23 +30,16 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final URI jid;
 
-    private final FiveTuple fiveTuple;
+    private volatile FiveTuple fiveTuple;
 
-    private final AtomicLong timeOfDeath = new AtomicLong(-1);
+    // Note - we initialize this to 1 to indicate that the proxy starts out
+    // not connected (until we verify it)
+    private final AtomicLong timeOfDeath = new AtomicLong(1);
     private final AtomicInteger failures = new AtomicInteger();
 
     private final Type type;
 
     private volatile Peer peer;
-
-    public ProxyHolder(final ProxyTracker proxyTracker,
-            final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore, 
-            final URI jid, final InetSocketAddress isa,
-            final Type type) {
-        this(proxyTracker, peerFactory, lanternTrustStore, jid,
-                new FiveTuple(null, isa, Protocol.TCP), type);
-    }
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
@@ -64,6 +56,10 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     public FiveTuple getFiveTuple() {
         return fiveTuple;
+    }
+    
+    public void setFiveTuple(FiveTuple fiveTuple) {
+        this.fiveTuple = fiveTuple;
     }
 
     /**
@@ -89,7 +85,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
             timeOfDeathStr = "@" + new Date(timeOfDeath) + " retry at "
                     + new Date(getRetryTime());
         }
-        return "ProxyHolder [isa=" + getFiveTuple() + timeOfDeathStr + "]";
+        return String.format("ProxyHolder [jid=%1$s isa=%2$s%3$s]", jid,
+                fiveTuple, timeOfDeathStr);
     }
 
     @Override
@@ -98,6 +95,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         int result = 1;
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
+        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
         return result;
     }
 
@@ -115,6 +113,11 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
                 return false;
         } else if (!fiveTuple.equals(other.fiveTuple))
             return false;
+        if (jid == null) {
+            if (other.jid != null)
+                return false;
+        } else if (!jid.equals(other.jid))
+            return false;
         return true;
     }
 
@@ -129,7 +132,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public void setTimeOfDeath(long timeOfDeath) {
         this.timeOfDeath.set(timeOfDeath);
     }
-
+    
     public int getFailures() {
         return failures.get();
     }

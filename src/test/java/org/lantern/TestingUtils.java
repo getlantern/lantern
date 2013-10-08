@@ -47,6 +47,8 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.FiveTuple.Protocol;
 
 public class TestingUtils {
 
@@ -112,8 +114,9 @@ public class TestingUtils {
         return new ProxyTrackerStub() {
             @Override
             public ProxyHolder firstConnectedTcpProxyBlocking() {
-                final InetSocketAddress tuple = 
-                    new InetSocketAddress("54.254.96.14", 16589);
+                FiveTuple tuple = new FiveTuple(null,
+                        new InetSocketAddress("54.254.96.14", 16589),
+                        Protocol.TCP);
                 final URI uri;
                 try {
                     uri = new URI("fallback@getlantern.org");
