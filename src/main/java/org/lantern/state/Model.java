@@ -57,7 +57,7 @@ public class Model {
 
     private boolean setupComplete;
 
-    private int nproxiedSitesMax = 2000;
+    private int nproxiedSitesMax = 5000;
 
     private boolean launchd;
 
