@@ -1,34 +1,32 @@
-import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
 
 public class InstallDownloader {
     
     private static final int MAX_SHA1_TRIES = 10;
     
-    public static boolean verify(final File dir) throws IOException {
+    public static boolean verify(final File dir, final File dmgPath) 
+            throws IOException {
         log("Downloading from file: "+dir.getAbsolutePath());
         final String fileName;
         final String os = System.getProperty("os.name");
@@ -62,7 +60,21 @@ public class InstallDownloader {
         } else {
             localName = parsed;
         }
-        final File file = new File(dir, localName);
+        final File file;
+        if (dmgPath != null && dmgPath.length() > 0) {
+            file = dmgPath;
+        } else {
+            file = new File(dir, localName);
+        }
+        
+        final long now = System.currentTimeMillis();
+        
+        final long elapsed = now - file.lastModified();
+        
+        log("ELAPSED TIME SINCE DOWNLOAD: "+elapsed);
+        if (elapsed > 1000 * 60) {
+            log("LAST MODIFIED TIME OF DOWNLOADED FILE TOO FAR IN THE PAST!!");
+        }
         //final File file = new File(fileName.substring(0, fileName.length()-5));
         log("NAME "+file.getName());
         log("SIZE: "+file.length());
@@ -73,6 +85,7 @@ public class InstallDownloader {
             final String sha1 = sha1(is, (int) file.length());
             if (sha1.equals(hash)) {
                 log("SHA-1s MATCH!!");
+                //return launchInstaller(file, installDir);
                 return true;
             }
             
@@ -85,6 +98,34 @@ public class InstallDownloader {
         return false;
     }
     
+    private static boolean launchInstaller(final File dmg, final File installDir) {
+        log("Launching installer...");
+        log("Current directory is: "+System.getProperty("user.dir"));
+        final ProcessBuilder builder = new ProcessBuilder("./installdmg.bash", 
+                "\""+dmg.getAbsolutePath()+"\"");
+        builder.directory(installDir);
+        try {
+            final Process process = builder.start();
+            final InputStream is = process.getInputStream();
+            final InputStreamReader isr = new InputStreamReader(is);
+            final BufferedReader br = new BufferedReader(isr);
+            String line;
+            while ((line = br.readLine()) != null) {
+              log("Script output: "+line);
+            }
+            final int exit = process.waitFor();
+            if (exit == 0) {
+                return true;
+            }
+            return false;
+        } catch (IOException e) {
+            log("Could not run script:\n"+dumpStack(e));
+        } catch (InterruptedException e) {
+            log("Could not run script:\n"+dumpStack(e));
+        }
+        return false;
+    }
+
     private static String sha1(final InputStream is, final int size)
             throws IOException {
         final MessageDigest md;
@@ -170,6 +211,13 @@ public class InstallDownloader {
     private static SSLSocketFactory newAwsSocketFactory() throws 
         NoSuchAlgorithmException, KeyManagementException, KeyStoreException, 
         CertificateException, IOException {
+        log("Using default socket factory...");
+        return (SSLSocketFactory) SSLSocketFactory.getDefault();
+        //final SSLContext ctx = SSLContext.getInstance("TLS");
+        //ctx.init(null, tmf.getTrustManagers(), null);
+        //return ctx.getSocketFactory();
+        
+        /*
         log("Generating SSLSocketFactory for Amazon/verisign");
         final KeyStore ks = KeyStore.getInstance("JKS"); 
         ks.load( null, null );
@@ -186,6 +234,7 @@ public class InstallDownloader {
         final SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(null, tmf.getTrustManagers(), null);
         return ctx.getSocketFactory();
+        */
     }
 
     public static final File CONFIG_DIR =
@@ -197,9 +246,14 @@ public class InstallDownloader {
         }
         final File log = new File(CONFIG_DIR, 
                 "lantern-verify-installer-log.txt");
+        
+        final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss z");
+        final String formatted = df.format(new Date());
         Writer os = null;
         try {
             os = new FileWriter(log, true);
+            os.append(formatted);
+            os.append(": ");
             os.append(string + "\n");
         } catch (final IOException e) {
             e.printStackTrace();

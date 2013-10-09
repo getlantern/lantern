@@ -343,6 +343,11 @@ public class InteractionServlet extends HttpServlet {
         case notInvited:
             switch (inter) {
             case RETRY:
+                log.debug("Switching to authorize modal");
+                // We need to kill all the existing oauth tokens.
+                this.model.getSettings().setRefreshToken("");
+                this.model.getSettings().setAccessToken("");
+                this.model.getSettings().setExpiryTime(0L);
                 Events.syncModal(model, Modal.authorize);
                 break;
             // not currently implemented:
