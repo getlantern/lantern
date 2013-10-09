@@ -179,6 +179,11 @@ public class ModelIo extends Storage<Model> {
             loadOAuth2UserCredentialsFile(cmd.getOptionValue(credOpt), set);
         }
 
+        final String ripOpt = Cli.OPTION_REPORT_IP;
+        if (cmd.hasOption(ripOpt)) {
+            model.setReportIp(cmd.getOptionValue(ripOpt));
+        }
+
         //final Settings set = LanternHub.settings();
 
         set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, Cli.OPTION_TRUSTED_PEERS));
