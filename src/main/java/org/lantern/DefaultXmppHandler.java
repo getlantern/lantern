@@ -589,6 +589,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 notInClosedBeta("Not in closed beta");
             } else {
                 LOG.debug("Server notified us we're in the closed beta!");
+                Events.sync(SyncPath.SETTINGS, this.model.getSettings());
                 return;
             }
         } else {
