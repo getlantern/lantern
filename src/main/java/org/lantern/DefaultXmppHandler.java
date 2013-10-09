@@ -48,6 +48,7 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
@@ -176,6 +177,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private final UdtServerFiveTupleListener udtFiveTupleListener;
 
     private final FriendsHandler friendsHandler;
+    
+    private final GiveModeProxy giveModeProxy;
 
     /**
      * Creates a new XMPP handler.
@@ -193,7 +196,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final NatPmpService natPmpService,
         final UpnpService upnpService,
         final UdtServerFiveTupleListener udtFiveTupleListener,
-        final FriendsHandler friendsHandler) {
+        final FriendsHandler friendsHandler,
+        final GiveModeProxy giveModeProxy) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -208,6 +212,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.upnpService = upnpService;
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
+        this.giveModeProxy = giveModeProxy;
         Events.register(this);
         //setupJmx();
     }
@@ -759,7 +764,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Hub message body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
-
+        
         boolean handled = false;
         handled |= handleSetDelay(json);
         handled |= handleUpdate(json);
@@ -776,9 +781,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
-        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
-            sendToken();
-        }
+        sendOnDemandValuesToControllerIfNecessary(json);
     }
 
     @SuppressWarnings("unchecked")
@@ -890,6 +893,13 @@ public class DefaultXmppHandler implements XmppHandler {
         
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
+        if (LanternUtils.isFallbackProxy()) {
+            sendHostAndPort(forHub);
+        } else {
+            sendFallbackHostAndPort(forHub);
+        }
+        forHub.setProperty(LanternConstants.IS_FALLBACK_PROXY,
+                           LanternUtils.isFallbackProxy());
         final String str = JsonUtils.jsonify(stats);
         LOG.debug("Reporting data: {}", str);
         if (!this.lastJson.equals(str)) {
@@ -1309,13 +1319,63 @@ public class DefaultXmppHandler implements XmppHandler {
 
     }
 
-    private void sendToken() {
+    /**
+     * Sends one or more properties to the controller based on a request from
+     * the controller.
+     * 
+     * @param json
+     */
+    private void sendOnDemandValuesToControllerIfNecessary(JSONObject json) {
+        final Presence presence = new Presence(Presence.Type.available);
+        if (Boolean.TRUE.equals(json.get(LanternConstants.NEED_REFRESH_TOKEN))) {
+            sendToken(presence);
+        }
+        if (presence.getPropertyNames().size() > 0) {
+            LOG.debug("Sending on-demand properties to controller");
+            presence.setTo(LanternClientConstants.LANTERN_JID);
+            sendPresence(presence, "SendOnDemandProperties-Thread");
+        } else {
+            LOG.debug("Not sending on-demand properties to controller");
+        }
+    }
+    
+    private void sendToken(Presence presence) {
         LOG.info("Sending refresh token to controller.");
-        final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternClientConstants.LANTERN_JID);
-        pres.setProperty(LanternConstants.REFRESH_TOKEN,
-                         this.model.getSettings().getRefreshToken());
-        sendPresence(pres, "SendToken-Thread");
+        presence.setProperty(LanternConstants.REFRESH_TOKEN,
+                             this.model.getSettings().getRefreshToken());
+    }
+    
+    private void sendHostAndPort(Presence presence) {
+        LOG.info("Sending give mode proxy address to controller.");
+        String ip = model.getReportIp();
+        if (StringUtils.isBlank(ip)) {
+            LOG.error("No host? " + ip);
+            return;
+        }
+        int port = this.model.getSettings().getServerPort();
+        String hostAndPort = ip.trim() + ":" + port;
+        presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
+    }
+
+    private void sendFallbackHostAndPort(Presence presence) {
+        LOG.info("Sending fallback address to controller.");
+        InetSocketAddress address = proxyTracker
+                .addressForConfiguredFallbackProxy();
+        String hostAndPort = addressToHostAndPort(address);
+        if (hostAndPort != null) {
+            presence.setProperty(LanternConstants.FALLBACK_HOST_AND_PORT,
+                    hostAndPort);
+        }
+    }
+    
+    private String addressToHostAndPort(InetSocketAddress address) {
+        if (address == null) {
+            return null;
+        } else {
+            return String.format("%1$s:%2$s",
+                    address.getAddress().getHostAddress(),
+                    address.getPort());
+        }
     }
 
     @Override

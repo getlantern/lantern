@@ -222,25 +222,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-      <version>1.9.11</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mrbean</artifactId>
-      <version>1.9.11</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-      <version>1.9.11</version>
-    </dependency>
-
-
-    <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>exceptional4j</artifactId>
       <version>0.0.4</version>
@@ -276,7 +257,7 @@
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
-      <version>1.0.0-beta2</version>
+      <version>1.0.0-beta3-SNAPSHOT</version>
     </dependency>
 
     <dependency>

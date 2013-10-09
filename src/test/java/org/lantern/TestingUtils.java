@@ -1,5 +1,6 @@
 package org.lantern;
 
+import static org.mockito.Mockito.*;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -32,6 +33,7 @@ import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
+import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
@@ -194,12 +196,14 @@ public class TestingUtils {
                 new ProxySocketFactory(socketsUtil, proxyTracker);
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
+        
+        GiveModeProxy giveModeProxy = mock(GiveModeProxy.class);
 
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null),
-            friendsHandler);
+            friendsHandler, giveModeProxy);
         return xmppHandler;
     }
 
