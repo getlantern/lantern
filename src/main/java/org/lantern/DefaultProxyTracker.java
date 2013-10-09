@@ -161,19 +161,25 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void addProxy(URI jid) {
-        this.addProxy(jid, null, Type.pc);
+        this.addProxy(jid, null);
     }
 
     @Override
     public void addProxy(URI jid, InetSocketAddress address) {
         // We've seen this in weird cases in the field -- might as well
         // program defensively here.
-        InetAddress remoteAddress = address.getAddress();
-        if (remoteAddress.isLoopbackAddress()
-                || remoteAddress.isAnyLocalAddress()) {
-            LOG.warn("Can connect to neither loopback nor 0.0.0.0 address {}",
-                    remoteAddress);
-            address = null;
+        InetAddress remoteAddress = null;
+        if (address != null) {
+            remoteAddress = address.getAddress();
+        }
+        if (remoteAddress != null) {
+            if (remoteAddress.isLoopbackAddress()
+                    || remoteAddress.isAnyLocalAddress()) {
+                LOG.warn(
+                        "Can connect to neither loopback nor 0.0.0.0 address {}",
+                        remoteAddress);
+                address = null;
+            }
         }
 
         addProxy(jid, address, Type.pc);
