@@ -385,7 +385,14 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // presence notification from a peer running lantern, so we want to
         // record that for future sessions because we might not see them
         // running Lantern right away again.
+        
         try {
+            final ClientFriend existing = 
+                    friends().get(friend.getEmail().toLowerCase());
+            if (existing != null) {
+                log.debug("We already know about the friend");
+                return;
+            }
             final ClientFriend onServer = update(friend);
             syncFriends();
             
