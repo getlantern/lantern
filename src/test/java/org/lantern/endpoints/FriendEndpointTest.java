@@ -91,7 +91,7 @@ public class FriendEndpointTest {
         
         assertEquals("Did not successfully delete friends?", 0, postDelete.size());
         
-        final Friend inserted = api.insertFriend(friend);
+        final ClientFriend inserted = api.insertFriend(friend);
         
         final String updatedName = "brandnew@email.com";
         inserted.setEmail(updatedName);
