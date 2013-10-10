@@ -7,6 +7,7 @@ import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternUtils;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.state.ClientFriends;
 import org.lantern.state.ClientFriend;
@@ -47,6 +48,10 @@ public class FriendApi {
      * @throws IOException If there's an error making the call to the server.
      */
     public List<ClientFriend> listFriends() throws IOException {
+        if (LanternUtils.isFallbackProxy()) {
+            log.debug("Ignoring friends call from fallback");
+            return Collections.emptyList();
+        }
         final String url = BASE+"list";
 
         final String all = this.oauth.getRequest(url);
@@ -68,6 +73,10 @@ public class FriendApi {
      * @throws IOException If there's an error making the call to the server.
      */
     public ClientFriend getFriend(final long id) throws IOException {
+        if (LanternUtils.isFallbackProxy()) {
+            log.debug("Ignoring friends call from fallback");
+            return null;
+        }
         final String url = BASE+"get/"+id;
         final String content = this.oauth.getRequest(url);
         final ClientFriend read = mapper.readValue(content, ClientFriend.class);
@@ -82,7 +91,11 @@ public class FriendApi {
      * @return The inserted entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public ClientFriend insertFriend(final Friend friend) throws IOException {
+    public ClientFriend insertFriend(final ClientFriend friend) throws IOException {
+        if (LanternUtils.isFallbackProxy()) {
+            log.debug("Ignoring friends call from fallback");
+            return friend;
+        }
         log.debug("Inserting friend: {}", friend);
         final String url = BASE+"insert";
         return post(url, friend);
@@ -95,7 +108,11 @@ public class FriendApi {
      * @return The updated entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public ClientFriend updateFriend(final Friend friend) throws IOException {
+    public ClientFriend updateFriend(final ClientFriend friend) throws IOException {
+        if (LanternUtils.isFallbackProxy()) {
+            log.debug("Ignoring friends call from fallback");
+            return friend;
+        }
         log.debug("Updating friend: {}", friend);
         final String url = BASE+"update";
         return post(url, friend);
@@ -118,6 +135,10 @@ public class FriendApi {
      * @throws IOException If there's an error making the call to the server.
      */
     public void removeFriend(final long id) throws IOException {
+        if (LanternUtils.isFallbackProxy()) {
+            log.debug("Ignoring friends call from fallback");
+            return;
+        }
         final String url = BASE+"remove/"+id;
         
         // The responses to this simply return no entity body (204 No Content).
