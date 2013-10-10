@@ -11,6 +11,8 @@ import org.lantern.oauth.OauthUtils;
 import org.lantern.state.ClientFriends;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -19,6 +21,8 @@ import com.google.inject.Inject;
  */
 public class FriendApi {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private static final String BASE = 
         LanternClientConstants.CONTROLLER_URL + "/_ah/api/friend/v1/friend/";
     
@@ -79,11 +83,9 @@ public class FriendApi {
      * @throws IOException If there's an error making the call to the server.
      */
     public ClientFriend insertFriend(final Friend friend) throws IOException {
+        log.debug("Inserting friend: {}", friend);
         final String url = BASE+"insert";
-        final String json = JsonUtils.jsonify(friend);
-        final String content = this.oauth.postRequest(url, json);
-        final ClientFriend read = mapper.readValue(content, ClientFriend.class);
-        return read;
+        return post(url, friend);
     }
 
     /**
@@ -94,7 +96,13 @@ public class FriendApi {
      * @throws IOException If there's an error making the call to the server.
      */
     public ClientFriend updateFriend(final Friend friend) throws IOException {
+        log.debug("Updating friend: {}", friend);
         final String url = BASE+"update";
+        return post(url, friend);
+    }
+
+    private ClientFriend post(final String url, final Friend friend) 
+            throws IOException {
         final String json = JsonUtils.jsonify(friend);
         final String content = this.oauth.postRequest(url, json);
         final ClientFriend read = mapper.readValue(content, ClientFriend.class);
