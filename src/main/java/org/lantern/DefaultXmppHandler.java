@@ -894,6 +894,14 @@ public class DefaultXmppHandler implements XmppHandler {
         
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
+        // Counterintuitive as it might seem at first glance, this is correct.
+        //
+        // If I'm a fallback proxy I need to send the host and port at which
+        // *I'm* listening.
+        //
+        // If I'm a non-fallback proxy client I need to send the host and port
+        // that *my fallback proxy* is listening to (that is, the host and port
+        // in my ~/.lantern/fallback.json).
         if (LanternUtils.isFallbackProxy()) {
             sendHostAndPort(forHub);
         } else {
