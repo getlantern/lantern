@@ -57,14 +57,14 @@ public interface ProxyTracker extends LanternService {
      * @return
      */
     ProxyHolder firstConnectedTcpProxy();
-    
+
     /**
      * Gets the first proxy in order of fallback preference, blocking for a set
      * amount of time until a proxy becomes available.
      * 
      * @return The {@link ProxyHolder} instance.
-     * @throws InterruptedException If we could not retrieve a proxy within the
-     * timeout period.
+     * @throws InterruptedException
+     *             If we could not retrieve a proxy within the timeout period.
      */
     ProxyHolder firstConnectedTcpProxyBlocking() throws InterruptedException;
 
@@ -77,5 +77,12 @@ public interface ProxyTracker extends LanternService {
     void onCouldNotConnect(ProxyHolder proxyAddress);
 
     void onError(URI peerUri);
+
+    /**
+     * Return the address for the configured fallback proxy from fallback.json.
+     * 
+     * @return
+     */
+    InetSocketAddress addressForConfiguredFallbackProxy();
 
 }

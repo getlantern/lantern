@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.JEditorPane;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -135,19 +136,29 @@ public class FriendNotificationDialog extends NotificationDialog {
     }
 
     private void setFriendStatus(final Status status) {
-        dialog.setVisible(false);
-        dialog.dispose();
-        
-        // Can be null for testing.
-        if (this.friendsHandler != null) {
-            this.friendsHandler.setStatus(friend, status);
-        }
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                dialog.setVisible(false);
+                dialog.dispose();
+                
+                // Can be null for testing.
+                if (friendsHandler != null) {
+                    friendsHandler.setStatus(friend, status);
+                }
+            }
+        });
     }
 
     @Subscribe
     public void onFriendStatusChanged(final FriendStatusChangedEvent e) {
         if (e.getFriend().getEmail().equals(friend.getEmail())) {
-            dialog.dispose();
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    dialog.dispose();
+                }
+            });
         }
     }
 

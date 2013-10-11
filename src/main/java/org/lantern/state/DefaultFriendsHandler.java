@@ -35,6 +35,7 @@ import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -386,7 +387,15 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // record that for future sessions because we might not see them
         // running Lantern right away again.
         try {
-            final ClientFriend onServer = update(friend);
+            
+            // Make sure we don't add a new friend if we already know about 
+            // them.
+            final ClientFriend existing = getFriend(friend.getEmail());
+            if (existing != null) {
+                log.debug("We already know about the friend");
+                return;
+            }
+            final ClientFriend onServer = insert(friend);
             syncFriends();
             
             // We only notify the user after the friend is safely stored on
@@ -547,7 +556,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
             log.debug("No change in status -- ignoring call");
             return;
         }
-        
+        if (!isOnServer(friend)) {
+            return;
+        }
         
         friend.setStatus(status);
         sync(friend);
@@ -560,6 +571,14 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     
+    private boolean isOnServer(final ClientFriend friend) {
+        if (friend.getId() == null) {
+            log.error("Friend has no ID? "+ThreadUtils.dumpStack());
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public void addIncomingSubscriptionRequest(final String from) {
         log.debug("Adding subscription request from: {}", from);
@@ -587,29 +606,25 @@ public class DefaultFriendsHandler implements FriendsHandler {
         syncFriends();
     }
 
-
+    private ClientFriend insert(final ClientFriend friend) throws IOException {
+        final ClientFriend updated = this.api.insertFriend(friend);
+        put(updated);
+        return updated;
+    }
 
     private ClientFriend update(final ClientFriend friend) throws IOException {
         final ClientFriend updated = this.api.updateFriend(friend);
         put(updated);
         return updated;
-        /*
-        try {
-            this.api.updateFriend(friend);
-            put(friend);
-        } catch (final IOException e) {
-            log.error("Could not update friend?", e);
-            warn("Could not update friend status for '"+friend.getEmail()+"'.");
-            friend.setStatus(Status.pending);
-            sync(friend);
-        }
-        */
     }
 
     @Override
     public void updateName(final String address, final String name) {
         final ClientFriend friend = getFriend(address);
         if (friend != null && !name.equals(friend.getName())) {
+            if (!isOnServer(friend)) {
+                return;
+            }
             friend.setName(name);
             try {
                 update(friend);

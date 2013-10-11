@@ -10,6 +10,7 @@ import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
@@ -29,8 +30,21 @@ public class FriendEndpointTest {
         final HttpClientFactory httpClientFactory = 
                 TestingUtils.newHttClientFactory();
         final Model model = TestingUtils.newModel();
+        model.getSettings().setMode(Mode.give);
         final OauthUtils utils = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(utils);
+        
+        // First just clear the existing friends.
+        List<ClientFriend> friends = api.listFriends();
+            
+        log.debug("Deleting all friends from: {}", friends);
+        for (final ClientFriend f : friends) {
+            final Long id = f.getId();
+            api.removeFriend(id);
+            // Give the db a chance to sync.
+            log.debug("Removing friend: {}", f);
+            Thread.sleep(50);
+        }
         
         final ClientFriend friend = new ClientFriend();
         friend.setEmail("test@test.com");
@@ -41,16 +55,26 @@ public class FriendEndpointTest {
             StopwatchManager.getStopwatch("friends-api", 
                 "org.lantern", "listFriends");
         
-        List<ClientFriend> friends = null;
+        friends = null;
         for (int i = 0; i < 2; i++) {
             friendsWatch.start();
             friends = api.listFriends();
+            
             friendsWatch.stop();
+            log.debug("Deleting all friends from: {}", friends);
+            for (final ClientFriend f : friends) {
+                final Long id = f.getId();
+                api.removeFriend(id);
+                // Give the db a chance to sync.
+                log.debug("Removing friend: {}", f);
+                Thread.sleep(200);
+            }
             friendsWatch.logSummary();
         }
         friendsWatch.logSummary();
         StopwatchManager.logSummaries("org.lantern");
         
+        /*
         log.debug("Deleting all friends from: {}", friends);
         for (final ClientFriend f : friends) {
             final Long id = f.getId();
@@ -59,17 +83,21 @@ public class FriendEndpointTest {
             log.debug("Removing friend: {}", f);
             Thread.sleep(2000);
         }
+        */
+        
+        Thread.sleep(2000);
         
         final List<ClientFriend> postDelete = api.listFriends();
         
-        assertEquals(0, postDelete.size());
+        assertEquals("Did not successfully delete friends?", 0, postDelete.size());
         
-        final Friend inserted = api.insertFriend(friend);
+        final ClientFriend inserted = api.insertFriend(friend);
         
         final String updatedName = "brandnew@email.com";
         inserted.setEmail(updatedName);
         final Friend updated = api.updateFriend(inserted);
         
+        Thread.sleep(4000);
         assertEquals(updatedName, updated.getEmail());
         
         final List<ClientFriend> newList = api.listFriends();

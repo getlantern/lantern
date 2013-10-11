@@ -57,7 +57,7 @@ public class Model {
 
     private boolean setupComplete;
 
-    private int nproxiedSitesMax = 2000;
+    private int nproxiedSitesMax = 5000;
 
     private boolean launchd;
 
@@ -94,6 +94,8 @@ public class Model {
     }
 
     private String instanceId;
+
+    private String reportIp;
 
     private Collection<ClientFriend> friends;
 
@@ -364,6 +366,15 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+
+    @JsonView({Persistent.class})
+    public String getReportIp() {
+        return reportIp;
+    }
+
+    public void setReportIp(String reportIp) {
+        this.reportIp = reportIp;
     }
 
     public void setFriends(Collection<ClientFriend> friends) {
