@@ -19,7 +19,6 @@ import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.state.FriendsHandler;
-import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,20 +43,18 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
-    private final Model model;
     private final FriendsHandler friendsHandler;
     
     @Inject
     public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
         final LanternTrustStore trustStore,
         final RandomRoutingTable routingTable,
-        final XmppHandler xmppHandler, final Model model,
+        final XmppHandler xmppHandler,
         final FriendsHandler friendsHandler) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.xmppHandler = xmppHandler;
-        this.model = model;
         this.friendsHandler = friendsHandler;
     }
 
@@ -84,14 +81,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             return false;
         }
 
-        final LanternKscopeAdvertisement existing =
-                awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
-        if (existing != null) {
-            if (existing.equals(ad)) {
-                log.debug("Ignoring identical kscope ad - already processed");
-                return false;
-            }
-        }
+        awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
+        
         // do we want to relay this?
         int inboundTtl = ad.getTtl();
         if(inboundTtl <= 0) {
