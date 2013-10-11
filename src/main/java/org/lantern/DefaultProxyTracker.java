@@ -538,6 +538,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         this.proxiesPopulated.set(true);
         addFallbackProxies();
+        
+        // For now, don't pre-populate stored proxies
+        if (true) return;
+        
         // Add all the stored proxies.
         final Collection<Peer> peers = this.model.getPeers();
         LOG.debug("Proxy set is: {}", peers);
