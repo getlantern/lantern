@@ -10,6 +10,8 @@ import java.awt.Toolkit;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
+import javax.swing.SwingUtilities;
+
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Settings;
@@ -66,32 +68,37 @@ public class NotificationManager {
 
     }
 
-    protected synchronized void doNotify(NotificationDialog notification) {
-        //install the dialog in the shell
+    protected synchronized void doNotify(final NotificationDialog notification) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // install the dialog in the shell
 
-        Rectangle clientArea = getClientArea();
+                Rectangle clientArea = getClientArea();
 
-        int startX = clientArea.x + clientArea.width - notification.dialog.getSize().width;
+                int startX = clientArea.x + clientArea.width
+                        - notification.dialog.getSize().width;
 
-        int totalHeight = 0;
-        for (NotificationDialog existing : notifications) {
-            totalHeight += existing.dialog.getSize().height;
-        }
+                int totalHeight = 0;
+                for (NotificationDialog existing : notifications) {
+                    totalHeight += existing.dialog.getSize().height;
+                }
 
-        totalHeight += notification.dialog.getSize().height;
+                totalHeight += notification.dialog.getSize().height;
 
-        int startY = clientArea.y + clientArea.height - totalHeight;
+                int startY = clientArea.y + clientArea.height - totalHeight;
 
-        if (startY < 0) {
-            //no need to notify
-            return;
-        }
+                if (startY < 0) {
+                    // no need to notify
+                    return;
+                }
 
-        notification.dialog.setLocation(startX, startY);
-        notification.dialog.setVisible(true);
+                notification.dialog.setLocation(startX, startY);
+                notification.dialog.setVisible(true);
 
-        notifications.add(notification);
-
+                notifications.add(notification);
+            }
+        });
     }
 
     private Rectangle getClientArea() {
