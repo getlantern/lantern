@@ -153,7 +153,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void clearPeerProxySet() {
         Iterator<ProxyHolder> it = proxies.iterator();
         while (it.hasNext()) {
-            if (it.next().getFiveTuple().getProtocol() == UDP) {
+            if (it.next().isNatTraversed()) {
                 it.remove();
             }
         }
@@ -369,13 +369,20 @@ public class DefaultProxyTracker implements ProxyTracker {
                     // Not sure what this is for
                     Map<URI, AtomicInteger> peerFailureCount =
                             new HashMap<URI, AtomicInteger>();
-                    final FiveTuple tuple = LanternUtils.openOutgoingPeer(
+                    final FiveTuple newFiveTuple = LanternUtils.openOutgoingPeer(
                             proxy.getJid(), xmppHandler.getP2PClient(),
                             peerFailureCount);
 
-                    LOG.debug("Got tuple and adding it for proxy: {}", proxy);
-                    proxy.setFiveTuple(tuple);
-                    successfullyConnectedToProxy(proxy);
+                    ProxyHolder newProxy = new ProxyHolder(DefaultProxyTracker.this,
+                            peerFactory,
+                            lanternTrustStore,
+                            proxy.getJid(),
+                            newFiveTuple,
+                            proxy.getType());
+                    LOG.debug("Got tuple and adding it for proxy: {}", newProxy);
+                    proxies.add(newProxy);
+                    successfullyConnectedToProxy(newProxy);
+                    proxies.remove(proxy);
                 } catch (final IOException e) {
                     LOG.info("Could not create peer socket", e);
                     proxy.addFailure();
@@ -451,6 +458,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void prepopulateProxies() {
+        LOG.debug("Attempting to pre-populate proxies");
         if (this.model.getSettings().getMode() == Mode.give) {
             LOG.debug("Not loading proxies in give mode");
             return;
@@ -477,6 +485,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addFallbackProxies() {
+        LOG.debug("Attempting to add fallback proxies");
         parseFallbackProxy();
         addSingleFallbackProxy(fallbackServerHost, fallbackServerPort);
 
@@ -504,6 +513,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addSingleFallbackProxy(final String host, final int port) {
+        LOG.debug("Attempting to add single fallback proxy");
         if (this.model.getSettings().isTcp()) {
             final URI uri =
                     LanternUtils.newURI("fallback-" + host + "@getlantern.org");

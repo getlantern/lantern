@@ -30,7 +30,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final URI jid;
 
-    private volatile FiveTuple fiveTuple;
+    private final FiveTuple fiveTuple;
 
     // Note - we initialize this to 1 to indicate that the proxy starts out
     // not connected (until we verify it)
@@ -58,10 +58,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return fiveTuple;
     }
     
-    public void setFiveTuple(FiveTuple fiveTuple) {
-        this.fiveTuple = fiveTuple;
-    }
-
     /**
      * Get the {@link Peer} for this ProxyHolder, lazily looking it up from our
      * {@link PeerFactory}.
