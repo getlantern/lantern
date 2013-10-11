@@ -1012,6 +1012,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void sendInfoResponse(final String from) {
+        LOG.info("Sending certificate to {}", from);
         final Message msg = new Message();
         // The from becomes the to when we're responding.
         msg.setTo(from);
