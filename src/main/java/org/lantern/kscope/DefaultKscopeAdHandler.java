@@ -67,14 +67,13 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         // output a bell character to call more attention
         log.debug("\u0007*** got kscope ad from {} for {}", from, ad.getJid());
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
-        final LanternKscopeAdvertisement existing =
-            awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
 
         //ignore kscope ads directly or indirectly from untrusted sources
         //(they might have been relayed via untrusted sources in the middle,
         //but there is nothing we can do about that)
 
         if (!this.friendsHandler.isFriend(ad.getJid())) {
+            log.debug("Ignoring kscope add from non-friend");
             return false;
         }
 
@@ -85,6 +84,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             return false;
         }
 
+        final LanternKscopeAdvertisement existing =
+                awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
         if (existing != null) {
             if (existing.equals(ad)) {
                 log.debug("Ignoring identical kscope ad - already processed");
