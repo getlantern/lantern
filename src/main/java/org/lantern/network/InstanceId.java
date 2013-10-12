@@ -1,9 +1,24 @@
 package org.lantern.network;
 
+/**
+ * Identifies an instance on the Lantern network.
+ * 
+ * @param <U>
+ *            Type of object identifying users
+ * @param <F>
+ *            Type of object identifying full instance ids
+ */
 public class InstanceId<U, F> {
     private U userId;
     private F fullId;
 
+    /**
+     * 
+     * @param userId
+     *            the id of the user running the instance
+     * @param fullId
+     *            a full identifier for the instance (e.g. a URI)
+     */
     public InstanceId(U userId, F fullId) {
         super();
         this.userId = userId;

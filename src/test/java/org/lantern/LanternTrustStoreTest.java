@@ -3,7 +3,6 @@ package org.lantern;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -147,7 +146,9 @@ public class LanternTrustStoreTest {
             }
         }
         // We need to add this back as otherwise it can affect other tests!
-        trustStore.addCert(new URI("equifaxsecureca"), LanternUtils.certFromBase64(FileUtils.readFileToString(new File("certs/equifaxsecureca.cer"))));
+        trustStore.addCert(new URI("equifaxsecureca"), LanternUtils
+                .certFromBytes(FileUtils.readFileToByteArray(new File(
+                        "certs/equifaxsecureca.cer"))));
     }
 
     private String trySite(final HttpClient client, final String uri)

@@ -27,12 +27,16 @@ import com.google.inject.Singleton;
  * <ul>
  * <li>instanceId: Identifies a Lantern instance in some consistent and unique
  * way. In practice, this is currently the Jabber ID.</li>
+ * <li>Instance online/offline: we're told of this as we learn about instances
+ * being online or offline (e.g. via KScope ad)</li>
+ * <li>User trusted/untrusted: we're told of this as the friends list changes</li>
+ * <li>Certificate received: we're told of this as certificates are received</li>
  * </ul>
  * 
  * @param <U>
- *            Type of object representing users
+ *            Type of object identifying users
  * @param <F>
- *            Type of object representing full instance ids
+ *            Type of object identifying full instance ids
  * @param <D>
  *            Type of object representing additional data stored in
  *            {@link InstanceInfo}s
@@ -46,13 +50,13 @@ public class NetworkTracker<U, F, D> {
     private final Map<U, Map<InstanceId<U, F>, InstanceInfo<U, F, D>>> onlineInstances = new ConcurrentHashMap<U, Map<InstanceId<U, F>, InstanceInfo<U, F, D>>>();
     private final Set<U> trustedUsers = Collections
             .synchronizedSet(new HashSet<U>());
-    private final List<TrustedOnlineInstanceListener<U, F, D>> trustedOnlineInstancesListeners = new ArrayList<TrustedOnlineInstanceListener<U, F, D>>();
+    private final List<NetworkTrackerListener<U, F, D>> listeners = new ArrayList<NetworkTrackerListener<U, F, D>>();
     private Set<InstanceInfoWithCert<U, F, D>> trustedOnlineInstances = Collections
             .synchronizedSet(new HashSet<InstanceInfoWithCert<U, F, D>>());
 
-    public void addTrustedOnlineInstanceListener(
-            TrustedOnlineInstanceListener<U, F, D> listener) {
-        this.trustedOnlineInstancesListeners.add(listener);
+    public void addListener(
+            NetworkTrackerListener<U, F, D> listener) {
+        this.listeners.add(listener);
     }
 
     /**
@@ -123,6 +127,12 @@ public class NetworkTracker<U, F, D> {
         reevaluateTrustedOnlineInstances();
     }
 
+    /**
+     * Returns a list of all instances that are currently trusted, including
+     * their certs.
+     * 
+     * @return
+     */
     public Set<InstanceInfoWithCert<U, F, D>> getTrustedOnlineInstances() {
         return trustedOnlineInstances;
     }
@@ -136,13 +146,13 @@ public class NetworkTracker<U, F, D> {
         addedOnlineInstances.removeAll(trustedOnlineInstances);
         removedOnlineInstances.removeAll(updatedTrustedOnlineInstances);
         for (InstanceInfoWithCert<U, F, D> instance : addedOnlineInstances) {
-            for (TrustedOnlineInstanceListener<U, F, D> listener : trustedOnlineInstancesListeners) {
+            for (NetworkTrackerListener<U, F, D> listener : listeners) {
                 LOG.debug("Online trusted instance added: {}", instance);
                 listener.instanceOnlineAndTrusted(instance);
             }
         }
         for (InstanceInfoWithCert<U, F, D> instance : removedOnlineInstances) {
-            for (TrustedOnlineInstanceListener<U, F, D> listener : trustedOnlineInstancesListeners) {
+            for (NetworkTrackerListener<U, F, D> listener : listeners) {
                 LOG.debug("Online trusted instance removed: {}", instance);
                 listener.instanceOfflineOrUntrusted(instance);
             }

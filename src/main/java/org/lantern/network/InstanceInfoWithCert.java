@@ -9,7 +9,7 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
             Certificate certificate) {
         super(instanceInfo.getInstanceId(),
                 instanceInfo.getAddressOnLan(),
-                instanceInfo.getAddressOnWan(),
+                instanceInfo.getAddressOnInternet(),
                 instanceInfo.getData());
         this.certificate = certificate;
     }
@@ -19,7 +19,7 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
     }
 
     public boolean hasMappedEndpoint() {
-        return !addressOnWan.isUnresolved() && addressOnWan.getPort() > 1;
+        return !addressOnInternet.isUnresolved() && addressOnInternet.getPort() > 1;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
         result = prime * result
                 + ((addressOnLan == null) ? 0 : addressOnLan.hashCode());
         result = prime * result
-                + ((addressOnWan == null) ? 0 : addressOnWan.hashCode());
+                + ((addressOnInternet == null) ? 0 : addressOnInternet.hashCode());
         result = prime * result
                 + ((certificate == null) ? 0 : certificate.hashCode());
         return result;
@@ -49,10 +49,10 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
                 return false;
         } else if (!addressOnLan.equals(other.addressOnLan))
             return false;
-        if (addressOnWan == null) {
-            if (other.addressOnWan != null)
+        if (addressOnInternet == null) {
+            if (other.addressOnInternet != null)
                 return false;
-        } else if (!addressOnWan.equals(other.addressOnWan))
+        } else if (!addressOnInternet.equals(other.addressOnInternet))
             return false;
         if (certificate == null) {
             if (other.certificate != null)
@@ -65,7 +65,7 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
     @Override
     public String toString() {
         return "InstanceInfoWithCert [addressOnLan=" + addressOnLan
-                + ", addressOnWan=" + addressOnWan + "]";
+                + ", addressOnWan=" + addressOnInternet + "]";
     }
 
 }

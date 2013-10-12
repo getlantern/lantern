@@ -48,7 +48,10 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.proxy.GiveModeProxy;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.InstanceInfoWithCert;
+import org.lantern.network.NetworkTracker;
+import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
@@ -84,7 +87,8 @@ import com.google.inject.Singleton;
  * the roster.
  */
 @Singleton
-public class DefaultXmppHandler implements XmppHandler {
+public class DefaultXmppHandler implements XmppHandler,
+    NetworkTrackerListener<String, URI, ReceivedKScopeAd> {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
@@ -178,7 +182,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final FriendsHandler friendsHandler;
     
-    private final GiveModeProxy giveModeProxy;
+    private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
     /**
      * Creates a new XMPP handler.
@@ -197,7 +201,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final UpnpService upnpService,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
-        final GiveModeProxy giveModeProxy) {
+        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -212,7 +216,8 @@ public class DefaultXmppHandler implements XmppHandler {
         this.upnpService = upnpService;
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
-        this.giveModeProxy = giveModeProxy;
+        this.networkTracker = networkTracker;
+        this.networkTracker.addListener(this);
         Events.register(this);
         //setupJmx();
     }
@@ -959,8 +964,13 @@ public class DefaultXmppHandler implements XmppHandler {
             //sendAndRequestCert(uri);
         }
         else {
-            LOG.info("Removing JID for peer '"+from);
-            this.proxyTracker.removeNattedProxy(uri);
+            LOG.info("Removing JID for peer '" + from);
+            try {
+                this.networkTracker.instanceOffline(LanternUtils
+                        .instanceIdFor(new URI(from)));
+            } catch (URISyntaxException e) {
+                LOG.error("Unable to parse JabberID: {}", from, e);
+            }
         }
     }
 
@@ -1387,5 +1397,19 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public ProxyTracker getProxyTracker() {
         return proxyTracker;
+    }
+    
+    @Override
+    public void instanceOnlineAndTrusted(
+            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+        // Do nothing
+    }
+    
+    @Override
+    public void instanceOfflineOrUntrusted(
+            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+        URI jid = instance.getInstanceId().getFullId();
+        LOG.debug("Removing proxy for {}", jid);
+        this.proxyTracker.removeNattedProxy(jid);
     }
 }

@@ -203,13 +203,11 @@ public class TestingUtils {
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
         
-        GiveModeProxy giveModeProxy = mock(GiveModeProxy.class);
-
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null),
-            friendsHandler, giveModeProxy);
+            friendsHandler, networkTracker);
         return xmppHandler;
     }
 

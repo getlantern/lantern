@@ -21,7 +21,7 @@ import org.lantern.network.InstanceId;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.InstanceInfoWithCert;
 import org.lantern.network.NetworkTracker;
-import org.lantern.network.TrustedOnlineInstanceListener;
+import org.lantern.network.NetworkTrackerListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class DefaultKscopeAdHandler implements KscopeAdHandler,
-        TrustedOnlineInstanceListener<String, URI, ReceivedKScopeAd> {
+        NetworkTrackerListener<String, URI, ReceivedKScopeAd> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final XmppHandler xmppHandler;
@@ -53,7 +53,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         this.xmppHandler = xmppHandler;
         this.networkTracker = networkTracker;
 
-        this.networkTracker.addTrustedOnlineInstanceListener(this);
+        this.networkTracker.addListener(this);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         log.debug("Adding proxy... {}", instance);
         URI jid = instance.getInstanceId().getFullId();
         InetSocketAddress address = instance.hasMappedEndpoint() ?
-                instance.getAddressOnWan() :
+                instance.getAddressOnInternet() :
                 null;
         this.proxyTracker.addProxy(jid, address);
         // Also add the local network advertisement in case they're on

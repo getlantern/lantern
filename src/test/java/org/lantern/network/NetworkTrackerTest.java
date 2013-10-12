@@ -40,7 +40,7 @@ public class NetworkTrackerTest {
 
         NetworkTracker tracker = new NetworkTracker();
         final Set<InstanceInfoWithCert> trustedByListener = new HashSet<InstanceInfoWithCert>();
-        tracker.addTrustedOnlineInstanceListener(new TrustedOnlineInstanceListener() {
+        tracker.addListener(new NetworkTrackerListener() {
 
             @Override
             public void instanceOnlineAndTrusted(InstanceInfoWithCert instance) {

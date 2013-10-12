@@ -1087,8 +1087,12 @@ public class LanternUtils {
     
     public static Certificate certFromBase64(String base64Cert)
             throws CertificateException {
-        final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final InputStream is = new ByteArrayInputStream(decoded);
+        return certFromBytes(Base64.decodeBase64(base64Cert));
+    }
+
+    public static Certificate certFromBytes(byte[] bytes)
+            throws CertificateException {
+        final InputStream is = new ByteArrayInputStream(bytes);
 
         try {
             final CertificateFactory cf = CertificateFactory
