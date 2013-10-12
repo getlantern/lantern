@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jboss.netty.util.internal.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
@@ -26,53 +28,62 @@ import com.google.inject.Singleton;
  * <li>instanceId: Identifies a Lantern instance in some consistent and unique
  * way. In practice, this is currently the Jabber ID.</li>
  * </ul>
+ * 
+ * @param <U>
+ *            Type of object representing users
+ * @param <F>
+ *            Type of object representing full instance ids
+ * @param <D>
+ *            Type of object representing additional data stored in
+ *            {@link InstanceInfo}s
  */
 @Singleton
 public class NetworkTracker<U, F, D> {
-    private Map<U, Map<InstanceId<U, F>, Certificate>> receivedCertificates = new ConcurrentHashMap<U, Map<InstanceId<U, F>, Certificate>>();
-    private Map<U, Map<InstanceId<U, F>, InstanceInfo<U, F, D>>> onlineInstances = new ConcurrentHashMap<U, Map<InstanceId<U, F>, InstanceInfo<U, F, D>>>();
-    private Set<U> trustedUsers = Collections
+    private static final Logger LOG = LoggerFactory
+            .getLogger(NetworkTracker.class);
+
+    private final Map<U, Map<InstanceId<U, F>, Certificate>> receivedCertificates = new ConcurrentHashMap<U, Map<InstanceId<U, F>, Certificate>>();
+    private final Map<U, Map<InstanceId<U, F>, InstanceInfo<U, F, D>>> onlineInstances = new ConcurrentHashMap<U, Map<InstanceId<U, F>, InstanceInfo<U, F, D>>>();
+    private final Set<U> trustedUsers = Collections
             .synchronizedSet(new HashSet<U>());
+    private final List<TrustedOnlineInstanceListener<U, F, D>> trustedOnlineInstancesListeners = new ArrayList<TrustedOnlineInstanceListener<U, F, D>>();
     private Set<InstanceInfoWithCert<U, F, D>> trustedOnlineInstances = Collections
             .synchronizedSet(new HashSet<InstanceInfoWithCert<U, F, D>>());
-    private List<TrustedOnlineInstanceListener> trustedOnlineInstancesListeners = new ArrayList<TrustedOnlineInstanceListener>();
 
     public void addTrustedOnlineInstanceListener(
-            TrustedOnlineInstanceListener listener) {
+            TrustedOnlineInstanceListener<U, F, D> listener) {
         this.trustedOnlineInstancesListeners.add(listener);
     }
 
-    public void certificateReceived(InstanceId<U, F> instanceId,
-            Certificate certificate) {
-        synchronized (receivedCertificates) {
-            U userId = instanceId.getUserId();
-            Map<InstanceId<U, F>, Certificate> userCerts = receivedCertificates
-                    .get(userId);
-            if (userCerts == null) {
-                userCerts = new ConcurrentHashMap<InstanceId<U, F>, Certificate>();
-                receivedCertificates.put(userId, userCerts);
-            }
-            userCerts.put(instanceId, certificate);
-        }
-        reevaluateTrustedOnlineInstances();
-    }
-
-    public void instanceOnline(InstanceId<U, F> instanceId,
+    /**
+     * Tell the {@link NetworkTracker} that an instance went online.
+     * 
+     * @param instanceId
+     * @param instanceInfo
+     * @return true if NetworkTracker didn't already know that this instance is
+     *         online.
+     */
+    public boolean instanceOnline(InstanceId<U, F> instanceId,
             InstanceInfo<U, F, D> instanceInfo) {
+        LOG.debug("instanceOnline: {}", instanceInfo);
+        boolean instanceIsNew = false;
         synchronized (onlineInstances) {
             U userId = instanceId.getUserId();
             Map<InstanceId<U, F>, InstanceInfo<U, F, D>> userInstances = onlineInstances
                     .get(userId);
             if (userInstances == null) {
                 userInstances = new ConcurrentHashMap<InstanceId<U, F>, InstanceInfo<U, F, D>>();
-                onlineInstances.put(userId, userInstances);
+                instanceIsNew = onlineInstances.put(userId, userInstances) == null;
             }
             userInstances.put(instanceId, instanceInfo);
         }
         reevaluateTrustedOnlineInstances();
+        LOG.debug("New instance? {}", instanceIsNew);
+        return instanceIsNew;
     }
 
     public void instanceOffline(InstanceId<U, F> instanceId) {
+        LOG.debug("instanceOffline: {}", instanceId);
         synchronized (onlineInstances) {
             U userId = instanceId.getUserId();
             Map<InstanceId<U, F>, InstanceInfo<U, F, D>> userInstances = onlineInstances
@@ -85,12 +96,30 @@ public class NetworkTracker<U, F, D> {
     }
 
     public void userTrusted(U userId) {
+        LOG.debug("userTrusted: {}", userId);
         trustedUsers.add(userId);
         reevaluateTrustedOnlineInstances();
     }
 
     public void userUntrusted(U userId) {
+        LOG.debug("userUntrusted: {}", userId);
         trustedUsers.remove(userId);
+        reevaluateTrustedOnlineInstances();
+    }
+
+    public void certificateReceived(InstanceId<U, F> instanceId,
+            Certificate certificate) {
+        LOG.debug("certificateReceived: {} {}", instanceId, certificate);
+        synchronized (receivedCertificates) {
+            U userId = instanceId.getUserId();
+            Map<InstanceId<U, F>, Certificate> userCerts = receivedCertificates
+                    .get(userId);
+            if (userCerts == null) {
+                userCerts = new ConcurrentHashMap<InstanceId<U, F>, Certificate>();
+                receivedCertificates.put(userId, userCerts);
+            }
+            userCerts.put(instanceId, certificate);
+        }
         reevaluateTrustedOnlineInstances();
     }
 
@@ -107,16 +136,20 @@ public class NetworkTracker<U, F, D> {
         addedOnlineInstances.removeAll(trustedOnlineInstances);
         removedOnlineInstances.removeAll(updatedTrustedOnlineInstances);
         for (InstanceInfoWithCert<U, F, D> instance : addedOnlineInstances) {
-            for (TrustedOnlineInstanceListener listener : trustedOnlineInstancesListeners) {
+            for (TrustedOnlineInstanceListener<U, F, D> listener : trustedOnlineInstancesListeners) {
+                LOG.debug("Online trusted instance added: {}", instance);
                 listener.instanceOnlineAndTrusted(instance);
             }
         }
         for (InstanceInfoWithCert<U, F, D> instance : removedOnlineInstances) {
-            for (TrustedOnlineInstanceListener listener : trustedOnlineInstancesListeners) {
+            for (TrustedOnlineInstanceListener<U, F, D> listener : trustedOnlineInstancesListeners) {
+                LOG.debug("Online trusted instance removed: {}", instance);
                 listener.instanceOfflineOrUntrusted(instance);
             }
         }
         trustedOnlineInstances = updatedTrustedOnlineInstances;
+        LOG.debug("Number of trusted online instances: {}",
+                trustedOnlineInstances.size());
     }
 
     private Set<InstanceInfoWithCert<U, F, D>> calculateTrustedOnlineInstances() {

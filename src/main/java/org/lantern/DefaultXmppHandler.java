@@ -987,19 +987,14 @@ public class DefaultXmppHandler implements XmppHandler {
                 break;
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
-                //only process kscope ads delivered by friends
-                if (this.friendsHandler.isFriend(from)) {
-                    LOG.debug("Handling KSCOPE ADVERTISEMENT");
-                    final String payload =
-                            (String) msg.getProperty(
-                                    LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
-                    if (StringUtils.isNotBlank(payload)) {
-                        processKscopePayload(from, payload);
-                    } else {
-                        LOG.error("kscope ad with no payload? "+msg.toXML());
-                    }
+                LOG.debug("Handling KSCOPE ADVERTISEMENT");
+                final String payload =
+                        (String) msg.getProperty(
+                                LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
+                if (StringUtils.isNotBlank(payload)) {
+                    processKscopePayload(from, payload);
                 } else {
-                    LOG.warn("kscope ad from non-friend");
+                    LOG.error("kscope ad with no payload? "+msg.toXML());
                 }
                 break;
             default:

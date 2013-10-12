@@ -131,6 +131,15 @@ public class LanternKscopeAdvertisement {
         this.ttl = ttl;
     }
 
+    public boolean hasMappedEndpoint() {
+        try {
+            InetAddress.getAllByName(address);
+            return this.port > 1;
+        } catch (final UnknownHostException e) {
+            return false;
+        }
+    }
+
     public String getLanternVersion() {
         return lanternVersion;
     }

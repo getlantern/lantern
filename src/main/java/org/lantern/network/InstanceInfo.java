@@ -40,4 +40,11 @@ public class InstanceInfo<U, F, D> {
     public D getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "InstanceInfo [instanceId=" + instanceId + ", addressOnLan="
+                + addressOnLan + ", addressOnWan=" + addressOnWan + "]";
+    }
+
 }

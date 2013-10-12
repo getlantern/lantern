@@ -85,6 +85,7 @@ public class LanternModule extends AbstractModule {
         SASLAuthentication.registerSASLMechanism("X-OAUTH2",
             LanternSaslGoogleOAuth2Mechanism.class);
 
+        bind(NetworkTracker.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(ClientStats.class).to(StatsTracker.class);
         bind(StatsReporter.class);

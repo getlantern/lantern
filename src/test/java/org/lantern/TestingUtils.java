@@ -31,6 +31,8 @@ import org.lantern.endpoints.FriendApi;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.GiveModeProxy;
@@ -159,8 +161,9 @@ public class TestingUtils {
         final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth);
         
+        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendsHandler = 
-                new DefaultFriendsHandler(model, api, null, null);
+                new DefaultFriendsHandler(model, api, null, null, networkTracker);
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
@@ -171,7 +174,7 @@ public class TestingUtils {
             new DefaultProxyTracker(model, peerFactory, null, trustStore);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                null, model, friendsHandler);
+                null, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}

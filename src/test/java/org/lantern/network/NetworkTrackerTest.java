@@ -27,8 +27,8 @@ public class NetworkTrackerTest {
         InetSocketAddress addressC = new InetSocketAddress("host2.com", 5000);
         InetSocketAddress addressD = new InetSocketAddress("127.0.0.1", 5000);
 
-        InstanceId instanceAA = new InstanceId("UserA", "A");
-        InstanceId instanceAB = new InstanceId("UserA", "B");
+        InstanceId instanceAA = new InstanceId("UserA", "UserA-A");
+        InstanceId instanceAB = new InstanceId("UserA", "UserB-B");
 
         InstanceInfo instanceInfoAA = new InstanceInfo(instanceAA, addressA, addressB);
         InstanceInfo instanceInfoAB = new InstanceInfo(instanceAB, addressC, addressD);

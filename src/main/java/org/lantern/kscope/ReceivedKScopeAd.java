@@ -1,6 +1,6 @@
 package org.lantern.kscope;
 
-final class ReceivedKScopeAd {
+public final class ReceivedKScopeAd {
     private String from;
     private LanternKscopeAdvertisement ad;
 

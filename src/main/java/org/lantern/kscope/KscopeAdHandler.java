@@ -12,8 +12,10 @@ public interface KscopeAdHandler {
      *
      * @param jid Who the ad is from.
      * @param ad The ad itself.
+     * @return <code>true</code> if this was a newly processed ad, otherwise
+     * <code>false</code> if we've seen this ad before.
      */
-    void handleAd(String jid, LanternKscopeAdvertisement ad);
+    boolean handleAd(String jid, LanternKscopeAdvertisement ad);
 
     /**
      * Tells the ad handler to process a certificate from a peer.

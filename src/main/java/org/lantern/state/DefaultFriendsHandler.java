@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,8 @@ import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.RefreshTokenEvent;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.ui.FriendNotificationDialog;
@@ -62,16 +65,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     private final NotificationManager notificationManager;
     
-    private Future<Map<String, ClientFriend>> loadedFriends;
+    private final NetworkTracker<String, URI, ?> networkTracker;
 
+    private Future<Map<String, ClientFriend>> loadedFriends;
+    
+    
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
             final XmppHandler xmppHandler, 
-            final NotificationManager notificationManager) {
+            final NotificationManager notificationManager,
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
         this.api = api;
         this.xmppHandler = xmppHandler;
         this.notificationManager = notificationManager;
+        this.networkTracker = networkTracker;
         
         // If we already have a refresh token, just use it to load friends.
         // Otherwise register for refresh token events.
@@ -116,6 +124,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     log.debug("Finished loading friends");
                     final Collection<ClientFriend> friends = vals(tempFriends);
                     model.setFriends(friends);
+                    for (ClientFriend friend : friends) {
+                        trackFriend(friend);
+                    }
                     Events.sync(SyncPath.FRIENDS, friends); 
                     return tempFriends;
                 } catch (final IOException e) {
@@ -273,12 +284,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     }
 
-    private void sync(final Friend friend) {
+    private void sync(final ClientFriend friend) {
         log.debug("Syncing friend");
         //friend.setStatus(status);
         //friends.setNeedsSync(true);
         Events.asyncEventBus().post(new FriendStatusChangedEvent(friend));
+        trackFriend(friend);
         syncFriends();
+    }
+    
+    private void trackFriend(ClientFriend friend) {
+        if (isFriend(friend)) {
+            networkTracker.userTrusted(friend.getEmail());
+        } else if (isRejected(friend)){
+            networkTracker.userUntrusted(friend.getEmail());
+        }
     }
     
     private void invite(final Friend friend, final boolean addToRoster) 

@@ -37,7 +37,7 @@ public class SslHttpProxyServerTest {
         final LanternKeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore ts = new LanternTrustStore(ksm);
         final String testId = "127.0.0.1";// "test@gmail.com/somejidresource";
-        ts.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
+        ts.addCert(new URI(testId), LanternUtils.certFromBase64(ksm.getBase64Cert(testId)));
         CertTrackingSslEngineSource cses = new CertTrackingSslEngineSource(ts,
                 ksm);
         final int port = LanternUtils.randomPort();

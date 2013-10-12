@@ -57,7 +57,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
     }
 
     @Override
-    public void handleAd(final String from,
+    public boolean handleAd(final String from,
             final LanternKscopeAdvertisement ad) {
         // output a bell character to call more attention
         log.debug("\u0007*** got kscope ad from {} for {}", from, ad.getJid());
@@ -66,7 +66,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
             URI jid = new URI(from);
             InstanceId<String, URI> instanceId = LanternUtils
                     .instanceIdFor(jid);
-            networkTracker
+            return networkTracker
                     .instanceOnline(
                             instanceId,
                             new InstanceInfo<String, URI, ReceivedKScopeAd>(
@@ -78,6 +78,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
                                     new ReceivedKScopeAd(from, ad)));
         } catch (final URISyntaxException e) {
             log.error("Could not create URI from: {}", from);
+            return false;
         }
     }
 
