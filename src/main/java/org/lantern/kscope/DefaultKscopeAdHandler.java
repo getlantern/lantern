@@ -2,9 +2,8 @@ package org.lantern.kscope;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.net.URISyntaxException;
+import java.security.cert.CertificateException;
 
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.kaleidoscope.BasicTrustGraphNodeId;
@@ -18,7 +17,11 @@ import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
-import org.lantern.state.FriendsHandler;
+import org.lantern.network.InstanceId;
+import org.lantern.network.InstanceInfo;
+import org.lantern.network.InstanceInfoWithCert;
+import org.lantern.network.NetworkTracker;
+import org.lantern.network.TrustedOnlineInstanceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,70 +29,96 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class DefaultKscopeAdHandler implements KscopeAdHandler {
+public class DefaultKscopeAdHandler implements KscopeAdHandler,
+        TrustedOnlineInstanceListener<String, URI, ReceivedKScopeAd> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final XmppHandler xmppHandler;
-    
-    /**
-     * Map of kscope advertisements for which we are awaiting corresponding
-     * certificates.
-     */
-    private final ConcurrentHashMap<URI, LanternKscopeAdvertisement> awaitingCerts = 
-        new ConcurrentHashMap<URI, LanternKscopeAdvertisement>();
-    
-    private final Set<LanternKscopeAdvertisement> processedAds =
-            new HashSet<LanternKscopeAdvertisement>();
+
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
-    private final FriendsHandler friendsHandler;
-    
+    private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
+
     @Inject
-    public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
-        final LanternTrustStore trustStore,
-        final RandomRoutingTable routingTable,
-        final XmppHandler xmppHandler,
-        final FriendsHandler friendsHandler) {
+    public DefaultKscopeAdHandler(
+            final ProxyTracker proxyTracker,
+            final LanternTrustStore trustStore,
+            final RandomRoutingTable routingTable,
+            final XmppHandler xmppHandler,
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.xmppHandler = xmppHandler;
-        this.friendsHandler = friendsHandler;
+        this.networkTracker = networkTracker;
+
+        this.networkTracker.addTrustedOnlineInstanceListener(this);
     }
 
     @Override
-    public boolean handleAd(final String from,
+    public void handleAd(final String from,
             final LanternKscopeAdvertisement ad) {
         // output a bell character to call more attention
         log.debug("\u0007*** got kscope ad from {} for {}", from, ad.getJid());
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
-
-        //ignore kscope ads directly or indirectly from untrusted sources
-        //(they might have been relayed via untrusted sources in the middle,
-        //but there is nothing we can do about that)
-
-        if (!this.friendsHandler.isFriend(ad.getJid())) {
-            log.debug("Ignoring kscope add from non-friend");
-            return false;
+        try {
+            URI jid = new URI(from);
+            InstanceId<String, URI> instanceId = LanternUtils
+                    .instanceIdFor(jid);
+            networkTracker
+                    .instanceOnline(
+                            instanceId,
+                            new InstanceInfo<String, URI, ReceivedKScopeAd>(
+                                    instanceId,
+                                    new InetSocketAddress(ad.getLocalAddress(),
+                                            ad.getLocalPort()),
+                                    new InetSocketAddress(ad.getAddress(), ad
+                                            .getPort()),
+                                    new ReceivedKScopeAd(from, ad)));
+        } catch (final URISyntaxException e) {
+            log.error("Could not create URI from: {}", from);
         }
+    }
 
-        // If the connection we received the kscope add on is rejected, ignore
-        // the add.
-        if (this.friendsHandler.isRejected(from)) {
-            log.debug("Ignoring kscope add from rejected contact");
-            return false;
+    @Override
+    public void onBase64Cert(final URI jid, final String base64Cert) {
+        log.debug("Received cert for {}", jid);
+        InstanceId<String, URI> instanceId = LanternUtils.instanceIdFor(jid);
+        try {
+            networkTracker.certificateReceived(instanceId,
+                    LanternUtils.certFromBase64(base64Cert));
+        } catch (CertificateException ce) {
+            log.error("Unable to decode base64 cert: {}", base64Cert, ce);
         }
+    }
 
-        awaitingCerts.put(LanternUtils.newURI(ad.getJid()), ad);
-        
+    @Override
+    public void instanceOnlineAndTrusted(
+            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+        trustStore.addCert((URI) instance.getInstanceId().getFullId(),
+                instance.getCertificate());
+        addProxy(instance);
+        relayKScopeAd(instance);
+    }
+
+    @Override
+    public void instanceOfflineOrUntrusted(
+            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void relayKScopeAd(
+            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+        ReceivedKScopeAd receivedAd = instance.getData();
+        LanternKscopeAdvertisement ad = receivedAd.getAd();
+        Integer inboundTtl = ad.getTtl();
         // do we want to relay this?
-        int inboundTtl = ad.getTtl();
-        if(inboundTtl <= 0) {
-            log.debug("End of the line for kscope ad for {} from {}.", 
-                ad.getJid(), from
-            );
-            return true;
+        if (inboundTtl <= 0) {
+            log.debug("End of the line for kscope ad for {} from {}.",
+                    ad.getJid(), receivedAd.getFrom());
+            return;
         }
         TrustGraphNodeId nid = new BasicTrustGraphNodeId(ad.getJid());
         TrustGraphNodeId nextNid = routingTable.getNextHop(nid);
@@ -97,44 +126,34 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             // This will happen when we're not connected to any other peers,
             // for example.
             log.debug("Could not relay ad: Node ID not in routing table");
-            return true;
+            return;
         }
-        LanternKscopeAdvertisement relayAd = 
-            LanternKscopeAdvertisement.makeRelayAd(ad);
+        LanternKscopeAdvertisement relayAd =
+                LanternKscopeAdvertisement.makeRelayAd(ad);
 
         final String relayAdPayload = JsonUtils.jsonify(relayAd);
         final BasicTrustGraphAdvertisement message =
-            new BasicTrustGraphAdvertisement(nextNid, relayAdPayload, 
-                relayAd.getTtl()
-            );
+                new BasicTrustGraphAdvertisement(nextNid, relayAdPayload,
+                        relayAd.getTtl()
+                );
 
-        final TrustGraphNode tgn = 
-            new LanternTrustGraphNode(xmppHandler);
-        
-        tgn.sendAdvertisement(message, nextNid, relayAd.getTtl()); 
-        return true;
+        final TrustGraphNode tgn =
+                new LanternTrustGraphNode(xmppHandler);
+
+        tgn.sendAdvertisement(message, nextNid, relayAd.getTtl());
     }
 
-    @Override
-    public void onBase64Cert(final URI jid, final String base64Cert) {
-        log.debug("Received cert for {}", jid);
-        this.trustStore.addBase64Cert(jid, base64Cert);
-        
-        final LanternKscopeAdvertisement ad = awaitingCerts.remove(jid);
-        if (ad != null) {
-            log.debug("Adding proxy... {}", ad);
-            InetSocketAddress address = ad.hasMappedEndpoint() ?
-                    LanternUtils.isa(ad.getAddress(), ad.getPort()) :
-                    null;
-            this.proxyTracker.addProxy(jid, address);
-            // Also add the local network advertisement in case they're on
-            // the local network.
-            this.proxyTracker.addProxy(jid, 
-                LanternUtils.isa(ad.getLocalAddress(), ad.getLocalPort()));
-            processedAds.add(ad);
-        } else {
-            this.proxyTracker.addProxy(jid);
-        }
+    private void addProxy(
+            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+        log.debug("Adding proxy... {}", instance);
+        URI jid = instance.getInstanceId().getFullId();
+        InetSocketAddress address = instance.hasMappedEndpoint() ?
+                instance.getAddressOnWan() :
+                null;
+        this.proxyTracker.addProxy(jid, address);
+        // Also add the local network advertisement in case they're on
+        // the local network.
+        this.proxyTracker.addProxy(jid, instance.getAddressOnLan());
     }
 
 }
