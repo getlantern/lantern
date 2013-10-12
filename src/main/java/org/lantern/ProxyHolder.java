@@ -144,6 +144,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     public void addFailure() {
         if (isConnected()) {
+            LOG.debug("Setting proxy as disconnected: {}", fiveTuple);
             long now = new Date().getTime();
             setTimeOfDeath(now);
         }
