@@ -168,6 +168,18 @@ public class NetworkTracker<U, F, D> {
                 trustedOnlineInstances.size());
     }
 
+    /**
+     * <p>
+     * Determines all trusted online instances.
+     * </p>
+     * 
+     * <p>
+     * Note - yes this is expensive, but we don't expect it to be on any
+     * performance critical paths so it's not worth worrying about right now.
+     * </p>
+     * 
+     * @return
+     */
     private Set<InstanceInfoWithCert<U, F, D>> calculateTrustedOnlineInstances() {
         Set<InstanceInfoWithCert<U, F, D>> result = Collections
                 .synchronizedSet(new HashSet<InstanceInfoWithCert<U, F, D>>());
