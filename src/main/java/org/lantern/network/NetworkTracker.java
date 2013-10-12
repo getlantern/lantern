@@ -152,14 +152,14 @@ public class NetworkTracker<U, F, D> {
         addedOnlineInstances.removeAll(trustedOnlineInstances);
         removedOnlineInstances.removeAll(updatedTrustedOnlineInstances);
         for (InstanceInfoWithCert<U, F, D> instance : addedOnlineInstances) {
+            LOG.debug("Online trusted instance added: {}", instance);
             for (NetworkTrackerListener<U, F, D> listener : listeners) {
-                LOG.debug("Online trusted instance added: {}", instance);
                 listener.instanceOnlineAndTrusted(instance);
             }
         }
         for (InstanceInfoWithCert<U, F, D> instance : removedOnlineInstances) {
+            LOG.debug("Online trusted instance removed: {}", instance);
             for (NetworkTrackerListener<U, F, D> listener : listeners) {
-                LOG.debug("Online trusted instance removed: {}", instance);
                 listener.instanceOfflineOrUntrusted(instance);
             }
         }
