@@ -236,13 +236,13 @@ public class Roster implements RosterListener {
         final String user = xmppHandler.getJid();
         final LanternKscopeAdvertisement ad;
         final MappedServerSocket ms = xmppHandler.getMappedServer();
-//        if (ms.isPortMapped()) {
-//            ad = new LanternKscopeAdvertisement(user, address, 
-//                ms.getMappedPort(), ms.getHostAddress()
-//            );
-//        } else {
+        if (ms.isPortMapped()) {
+            ad = new LanternKscopeAdvertisement(user, address, 
+                ms.getMappedPort(), ms.getHostAddress()
+            );
+        } else {
             ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
-//        }
+        }
 
         final TrustGraphNode tgn = new LanternTrustGraphNode(xmppHandler);
         // set ttl to max for now
