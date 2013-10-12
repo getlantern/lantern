@@ -125,7 +125,7 @@ public class NetworkTracker<U, I, D> {
 
     public void certificateTrusted(I instanceId,
             Certificate certificate) {
-        LOG.debug("certificateReceived: {} {}", certificate);
+        LOG.debug("certificateReceived: {} {}", instanceId, certificate);
         trustedCertificatesByInstance.put(instanceId, certificate);
         reevaluateTrustedOnlineInstances();
     }
