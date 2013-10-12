@@ -54,6 +54,12 @@ public class NetworkTracker<U, F, D> {
     private Set<InstanceInfoWithCert<U, F, D>> trustedOnlineInstances = Collections
             .synchronizedSet(new HashSet<InstanceInfoWithCert<U, F, D>>());
 
+    /**
+     * Add a {@link NetworkTrackerListener} to listen for events from this
+     * tracker.
+     * 
+     * @param listener
+     */
     public void addListener(
             NetworkTrackerListener<U, F, D> listener) {
         this.listeners.add(listener);

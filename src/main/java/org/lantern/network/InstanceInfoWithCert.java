@@ -2,6 +2,18 @@ package org.lantern.network;
 
 import java.security.cert.Certificate;
 
+/**
+ * An {@link InstanceInfo} that also includes the {@link Certificate} by which
+ * this instance is trusted.
+ * 
+ * @param <U>
+ *            Type of object identifying users
+ * @param <F>
+ *            Type of object identifying full instance ids
+ * @param <D>
+ *            Type of object representing additional data stored in
+ *            {@link InstanceInfo}s
+ */
 public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
     private Certificate certificate;
 
@@ -19,7 +31,8 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
     }
 
     public boolean hasMappedEndpoint() {
-        return !addressOnInternet.isUnresolved() && addressOnInternet.getPort() > 1;
+        return !addressOnInternet.isUnresolved()
+                && addressOnInternet.getPort() > 1;
     }
 
     @Override
@@ -28,8 +41,10 @@ public class InstanceInfoWithCert<U, F, D> extends InstanceInfo<U, F, D> {
         int result = 1;
         result = prime * result
                 + ((addressOnLan == null) ? 0 : addressOnLan.hashCode());
-        result = prime * result
-                + ((addressOnInternet == null) ? 0 : addressOnInternet.hashCode());
+        result = prime
+                * result
+                + ((addressOnInternet == null) ? 0 : addressOnInternet
+                        .hashCode());
         result = prime * result
                 + ((certificate == null) ? 0 : certificate.hashCode());
         return result;
