@@ -1097,9 +1097,10 @@ public class DefaultXmppHandler implements XmppHandler,
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
         //msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
-        msg.setProperty(P2PConstants.CERT,
-            this.keyStoreManager.getBase64Cert(getJid()));
+        String cert = this.keyStoreManager.getBase64Cert(getJid());
+        msg.setProperty(P2PConstants.CERT, cert);
         if (isLoggedIn()) {
+            LOG.debug("Sending cert {}", cert);
             this.client.get().getXmppConnection().sendPacket(msg);
         } else {
             LOG.debug("No longer logged in? Not sending cert");
