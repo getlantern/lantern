@@ -57,7 +57,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.lantern.network.InstanceId;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
@@ -1079,10 +1078,6 @@ public class LanternUtils {
             return true;
         }
         return model.getSettings().getMode() == Mode.get;
-    }
-    
-    public static InstanceId<String, URI> instanceIdFor(URI jid) {
-        return new InstanceId<String, URI>(XmppUtils.jidToUser(jid.toASCIIString()), jid);
     }
     
     public static Certificate certFromBase64(String base64Cert)

@@ -27,70 +27,80 @@ public class NetworkTrackerTest {
         InetSocketAddress addressC = new InetSocketAddress("host2.com", 5000);
         InetSocketAddress addressD = new InetSocketAddress("127.0.0.1", 5000);
 
-        InstanceId instanceAA = new InstanceId("UserA", "UserA-A");
-        InstanceId instanceAB = new InstanceId("UserA", "UserB-B");
+        String userA = "UserA";
+        String userB = "UserB";
 
-        InstanceInfo instanceInfoAA = new InstanceInfo(instanceAA, addressA, addressB);
-        InstanceInfo instanceInfoAB = new InstanceInfo(instanceAB, addressC, addressD);
+        // An instance that will be advertised by its own user
+        String instanceAA = "UserA-A";
+        // An instance that will be advertised by a the same user as instanceAA
+        String instanceXX = "UserX-X";
+        // An instance that will be advertised by a different user
+        String instanceBA = "UserB-A";
 
-        InstanceInfoWithCert instanceInfoWithCertAA = new InstanceInfoWithCert(
-                instanceInfoAA, cert);
-        InstanceInfoWithCert instanceInfoWithCertAB = new InstanceInfoWithCert(
-                instanceInfoAB, cert);
+        InstanceInfo instanceInfoAA = new InstanceInfo(instanceAA, addressA,
+                addressB);
+        InstanceInfo instanceInfoXX = new InstanceInfo(instanceXX, addressC,
+                addressD);
 
         NetworkTracker tracker = new NetworkTracker();
-        final Set<InstanceInfoWithCert> trustedByListener = new HashSet<InstanceInfoWithCert>();
+        final Set<InstanceInfo> instancesTrustedByListener = new HashSet<InstanceInfo>();
         tracker.addListener(new NetworkTrackerListener() {
 
             @Override
-            public void instanceOnlineAndTrusted(InstanceInfoWithCert instance) {
-                trustedByListener.add(instance);
+            public void instanceOnlineAndTrusted(InstanceInfo instance) {
+                instancesTrustedByListener.add(instance);
             }
 
             @Override
-            public void instanceOfflineOrUntrusted(InstanceInfoWithCert instance) {
-                trustedByListener.remove(instance);
+            public void instanceOfflineOrUntrusted(InstanceInfo instance) {
+                instancesTrustedByListener.remove(instance);
             }
         });
 
-        tracker.certificateReceived(instanceAA, cert);
-        tracker.userTrusted("UserA");
-        tracker.instanceOnline(instanceAB, instanceInfoAA);
-        Set<InstanceInfoWithCert> allTrusted = tracker
+        tracker.certificateTrusted(instanceAA, cert);
+        tracker.userTrusted(userA);
+        Set<InstanceInfo> trustedInstances = tracker
                 .getTrustedOnlineInstances();
-        assertEquals(0, allTrusted.size());
-        assertEquals(0, trustedByListener.size());
+        assertEquals(0, trustedInstances.size());
+        assertEquals(0, instancesTrustedByListener.size());
 
-        tracker.instanceOnline(instanceAA, instanceInfoAA);
-        allTrusted = tracker.getTrustedOnlineInstances();
-        assertTrue(allTrusted.contains(instanceInfoWithCertAA));
-        assertTrue(trustedByListener.contains(instanceInfoWithCertAA));
+        tracker.instanceOnline(userA, instanceXX, instanceInfoXX);
+        trustedInstances = tracker.getTrustedOnlineInstances();
+        assertEquals(0, trustedInstances.size());
+        assertEquals(0, instancesTrustedByListener.size());
 
-        tracker.instanceOnline(instanceAB, instanceInfoAB);
-        allTrusted = tracker.getTrustedOnlineInstances();
-        assertTrue(allTrusted.contains(instanceInfoWithCertAA));
-        assertFalse(allTrusted.contains(instanceInfoWithCertAB));
-        assertTrue(trustedByListener.contains(instanceInfoWithCertAA));
-        assertFalse(trustedByListener.contains(instanceInfoWithCertAB));
+        tracker.instanceOnline(userA, instanceAA, instanceInfoAA);
+        trustedInstances = tracker.getTrustedOnlineInstances();
+        assertTrue(trustedInstances.contains(instanceInfoAA));
+        assertTrue(instancesTrustedByListener.contains(instanceInfoAA));
 
-        tracker.certificateReceived(instanceAB, cert);
-        allTrusted = tracker.getTrustedOnlineInstances();
-        assertTrue(allTrusted.contains(instanceInfoWithCertAA));
-        assertTrue(allTrusted.contains(instanceInfoWithCertAB));
-        assertTrue(trustedByListener.contains(instanceInfoWithCertAA));
-        assertTrue(trustedByListener.contains(instanceInfoWithCertAB));
+        tracker.instanceOnline(userA, instanceXX, instanceInfoXX);
+        trustedInstances = tracker.getTrustedOnlineInstances();
+        assertTrue(trustedInstances.contains(instanceInfoAA));
+        assertFalse(trustedInstances.contains(instanceInfoXX));
+        assertTrue(instancesTrustedByListener.contains(instanceInfoAA));
+        assertFalse(instancesTrustedByListener.contains(instanceInfoXX));
 
-        tracker.instanceOffline(instanceAA);
-        allTrusted = tracker.getTrustedOnlineInstances();
-        assertFalse(allTrusted.contains(instanceInfoWithCertAA));
-        assertTrue(allTrusted.contains(instanceInfoWithCertAB));
-        assertFalse(trustedByListener.contains(instanceInfoWithCertAA));
-        assertTrue(trustedByListener.contains(instanceInfoWithCertAB));
+        tracker.certificateTrusted(instanceXX, cert);
+        trustedInstances = tracker.getTrustedOnlineInstances();
+        assertTrue(trustedInstances.contains(instanceInfoAA));
+        assertTrue(trustedInstances.contains(instanceInfoXX));
+        assertTrue(instancesTrustedByListener.contains(instanceInfoAA));
+        assertTrue(instancesTrustedByListener.contains(instanceInfoXX));
 
-        tracker.userUntrusted("UserA");
-        allTrusted = tracker.getTrustedOnlineInstances();
-        assertEquals(0, allTrusted.size());
-        assertEquals(0, trustedByListener.size());
+        tracker.instanceOffline(userA, instanceAA);
+        trustedInstances = tracker.getTrustedOnlineInstances();
+        assertFalse(trustedInstances.contains(instanceInfoAA));
+        assertTrue(trustedInstances.contains(instanceInfoXX));
+        assertFalse(instancesTrustedByListener.contains(instanceInfoAA));
+        assertTrue(instancesTrustedByListener.contains(instanceInfoXX));
+
+        tracker.userTrusted(userB);
+        tracker.certificateTrusted(instanceBA, cert);
+        tracker.userUntrusted(userA);
+        trustedInstances = tracker.getTrustedOnlineInstances();
+        assertEquals(0, trustedInstances.size());
+        assertEquals(0, instancesTrustedByListener.size());
     }
 
     // @formatter:off

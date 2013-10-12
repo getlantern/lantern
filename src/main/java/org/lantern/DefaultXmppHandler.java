@@ -49,7 +49,7 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.ReceivedKScopeAd;
-import org.lantern.network.InstanceInfoWithCert;
+import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.UdtServerFiveTupleListener;
@@ -88,7 +88,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DefaultXmppHandler implements XmppHandler,
-    NetworkTrackerListener<String, URI, ReceivedKScopeAd> {
+    NetworkTrackerListener<URI, ReceivedKScopeAd> {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
@@ -947,13 +947,6 @@ public class DefaultXmppHandler implements XmppHandler,
     @Override
     public void addOrRemovePeer(final Presence p, final String from) {
         LOG.info("Processing peer: {}", from);
-        final URI uri;
-        try {
-            uri = new URI(from);
-        } catch (final URISyntaxException e) {
-            LOG.error("Could not create URI from: {}", from);
-            return;
-        }
         if (p.isAvailable()) {
             LOG.info("Processing available peer");
             // Only exchange certs with peers based on kscope ads.
@@ -966,8 +959,7 @@ public class DefaultXmppHandler implements XmppHandler,
         else {
             LOG.info("Removing JID for peer '" + from);
             try {
-                this.networkTracker.instanceOffline(LanternUtils
-                        .instanceIdFor(new URI(from)));
+                this.networkTracker.instanceOffline(from, new URI(from));
             } catch (URISyntaxException e) {
                 LOG.error("Unable to parse JabberID: {}", from, e);
             }
@@ -1402,14 +1394,14 @@ public class DefaultXmppHandler implements XmppHandler,
     
     @Override
     public void instanceOnlineAndTrusted(
-            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
         // Do nothing
     }
     
     @Override
     public void instanceOfflineOrUntrusted(
-            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
-        URI jid = instance.getInstanceId().getFullId();
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        URI jid = instance.getId();
         LOG.debug("Removing proxy for {}", jid);
         this.proxyTracker.removeNattedProxy(jid);
     }

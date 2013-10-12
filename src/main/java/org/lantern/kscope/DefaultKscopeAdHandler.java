@@ -3,6 +3,7 @@ package org.lantern.kscope;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
@@ -17,11 +18,10 @@ import org.lantern.ProxyTracker;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
-import org.lantern.network.InstanceId;
 import org.lantern.network.InstanceInfo;
-import org.lantern.network.InstanceInfoWithCert;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class DefaultKscopeAdHandler implements KscopeAdHandler,
-        NetworkTrackerListener<String, URI, ReceivedKScopeAd> {
+        NetworkTrackerListener<URI, ReceivedKScopeAd> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final XmppHandler xmppHandler;
@@ -64,13 +64,13 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
         try {
             URI jid = new URI(from);
-            InstanceId<String, URI> instanceId = LanternUtils
-                    .instanceIdFor(jid);
+            String advertisingUser = XmppUtils.jidToUser(from);
             return networkTracker
                     .instanceOnline(
-                            instanceId,
-                            new InstanceInfo<String, URI, ReceivedKScopeAd>(
-                                    instanceId,
+                            advertisingUser,
+                            jid,
+                            new InstanceInfo<URI, ReceivedKScopeAd>(
+                                    jid,
                                     new InetSocketAddress(ad.getLocalAddress(),
                                             ad.getLocalPort()),
                                     new InetSocketAddress(ad.getAddress(), ad
@@ -85,10 +85,10 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
     @Override
     public void onBase64Cert(final URI jid, final String base64Cert) {
         log.debug("Received cert for {}", jid);
-        InstanceId<String, URI> instanceId = LanternUtils.instanceIdFor(jid);
         try {
-            networkTracker.certificateReceived(instanceId,
-                    LanternUtils.certFromBase64(base64Cert));
+            Certificate certificate = LanternUtils.certFromBase64(base64Cert);
+            trustStore.addCert((URI) jid, certificate);
+            networkTracker.certificateTrusted(jid, certificate);
         } catch (CertificateException ce) {
             log.error("Unable to decode base64 cert: {}", base64Cert, ce);
         }
@@ -96,22 +96,20 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
 
     @Override
     public void instanceOnlineAndTrusted(
-            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
-        trustStore.addCert((URI) instance.getInstanceId().getFullId(),
-                instance.getCertificate());
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
         addProxy(instance);
         relayKScopeAd(instance);
     }
 
     @Override
     public void instanceOfflineOrUntrusted(
-            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
         // TODO Auto-generated method stub
 
     }
 
     private void relayKScopeAd(
-            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
         ReceivedKScopeAd receivedAd = instance.getData();
         LanternKscopeAdvertisement ad = receivedAd.getAd();
         Integer inboundTtl = ad.getTtl();
@@ -145,9 +143,9 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
     }
 
     private void addProxy(
-            InstanceInfoWithCert<String, URI, ReceivedKScopeAd> instance) {
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
         log.debug("Adding proxy... {}", instance);
-        URI jid = instance.getInstanceId().getFullId();
+        URI jid = instance.getId();
         InetSocketAddress address = instance.hasMappedEndpoint() ?
                 instance.getAddressOnInternet() :
                 null;
