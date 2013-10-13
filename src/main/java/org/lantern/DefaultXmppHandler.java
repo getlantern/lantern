@@ -1080,8 +1080,7 @@ public class DefaultXmppHandler implements XmppHandler,
     }
 
     private void sendAndRequestCert(final String peer) {
-        String to = XmppUtils.jidToUser(peer);
-        LOG.debug("Requesting cert from {}", to);
+        LOG.debug("Requesting cert from {}", peer);
         final Message msg = new Message();
         msg.setProperty(P2PConstants.MESSAGE_TYPE,
             XmppMessageConstants.INFO_REQUEST_TYPE);
@@ -1093,7 +1092,7 @@ public class DefaultXmppHandler implements XmppHandler,
         String cert = this.keyStoreManager.getBase64Cert(getJid());
         msg.setProperty(P2PConstants.CERT, cert);
         if (isLoggedIn()) {
-            LOG.debug("Sending cert to {}, {}", msg.getTo(), cert);
+            LOG.debug("Sending cert {}", cert);
             this.client.get().getXmppConnection().sendPacket(msg);
         } else {
             LOG.debug("No longer logged in? Not sending cert");
