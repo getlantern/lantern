@@ -1085,7 +1085,7 @@ public class DefaultXmppHandler implements XmppHandler,
         msg.setProperty(P2PConstants.MESSAGE_TYPE,
             XmppMessageConstants.INFO_REQUEST_TYPE);
 
-        msg.setTo(peer);
+        msg.setTo(XmppUtils.jidToUser(peer));
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
         //msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
