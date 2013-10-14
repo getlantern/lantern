@@ -414,7 +414,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         LOG.debug("Connected to proxy: {}", proxy);
         peerFactory.onOutgoingConnection(proxy.getJid(), proxy.getFiveTuple()
                 .getRemote(), proxy.getType());
-        proxy.resetFailures();
+        proxy.markConnected();
 
         LOG.debug("Dispatching CONNECTED event");
         Events.asyncEventBus().post(
@@ -450,6 +450,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (ProxyHolder proxy : proxies) {
             if (!proxy.isConnected()) {
                 LOG.debug("Attempting to restore deceased proxy " + proxy);
+                // Proxy may have accumulated a long back-off time while we
+                // were offline, so let's reset its failures.
+                proxy.resetFailures();
                 checkConnectivityToProxy(proxy, false);
             } else {
                 break;

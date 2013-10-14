@@ -133,8 +133,12 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return failures.get();
     }
 
-    public void resetFailures() {
+    public void markConnected() {
         setTimeOfDeath(-1);
+        resetFailures();
+    }
+    
+    public void resetFailures() {
         this.failures.set(0);
     }
 
@@ -242,7 +246,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionSucceeded() {
-        resetFailures();
+        markConnected();
         Peer peer = getPeer();
         if (peer != null) {
             peer.connected();
