@@ -408,14 +408,14 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Subscribe
     public void onConnectivityChanged(ConnectivityChangedEvent e) {
-        LOG.debug("Got connectivity changed event: {}", e);
+        LOG.debug("Got connectivity changed event: {}  number of proxies: {}", e, proxies.size());
         if (e.isConnected()) {
             restoreDeceasedProxies();
         }
     }
 
     private void restoreDeceasedProxies() {
-        long now = new Date().getTime();
+        LOG.debug("Restoring deceased proxies");
         for (ProxyHolder proxy : proxies.values()) {
             if (!proxy.isConnected()) {
                 LOG.debug("Attempting to restore deceased proxy " + proxy);
