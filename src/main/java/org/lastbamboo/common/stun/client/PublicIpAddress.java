@@ -96,6 +96,8 @@ public class PublicIpAddress implements PublicIp {
             return publicIp;
         }
         
+        LOG.debug("Attempting to find public IP address");
+        
         try {
             publicIp = stunLookup();
             return publicIp;
