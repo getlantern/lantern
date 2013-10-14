@@ -357,7 +357,7 @@ public class Launcher {
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
                 final Timer timer = new Timer();
-                timer.schedule(connectivityChecker, 0, 60 * 1000);
+                timer.schedule(connectivityChecker, 0, 10 * 1000);
 
                 shutdownable(ModelIo.class);
                 
