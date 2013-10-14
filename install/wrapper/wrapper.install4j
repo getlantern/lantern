@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.1.6" transformSequenceNumber="4">
-  <directoryPresets config="./installdmg.bash" />
+  <directoryPresets config="./fallbacks.json" />
   <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir=".." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern-net-installer" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -29,14 +29,13 @@
     <entries>
       <fileEntry mountPoint="201" file="./fallback.json" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="201" file="./fallbacks.json" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
-      <fileEntry mountPoint="201" file="./installdmg.bash" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="133" file="./dpkg.bash" overwriteMode="4" shared="false" fileMode="744" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
     </entries>
     <components />
   </files>
   <launchers>
     <launcher name="lantern-net-installer" id="25" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="false" fileset="" macBundleBinary="JavaApplicationStub" addMacEntitlements="false" macEntitlementsFile="">
-      <executable name="net-installer" type="1" iconSet="false" iconFile="" executableDir="" redirectStderr="true" stderrFile="${installer:sys.userHome}/Library/Logs/Lantern/installer-launcher.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="${installer:sys.userHome}/Library/Logs/Lantern/installer-launcher.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+      <executable name="wrapper" type="1" iconSet="false" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -93,6 +92,9 @@
                   </object>
                 </void>
               </void>
+              <void property="executionMode">
+                <object class="com.install4j.runtime.beans.applications.ExecutionMode" field="UNATTENDED_WITH_PROGRESS" />
+              </void>
               <void property="splashMessage">
                 <string>Lantern Fetcher</string>
               </void>
@@ -123,41 +125,10 @@
                       <void property="failIfNotRootUnix">
                         <boolean>true</boolean>
                       </void>
-                      <void property="obtainIfAdminMac">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="obtainIfNormalMac">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="obtainIfNormalWin">
-                        <boolean>true</boolean>
-                      </void>
                     </object>
                   </java>
                 </serializedBean>
                 <condition />
-              </action>
-              <action name="" id="335" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not set installation directory to AppData!!">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
-                      <void property="script">
-                        <object class="com.install4j.api.beans.ScriptProperty">
-                          <void property="value">
-                            <string>final File installDir = new File(System.getenv("APPDATA"), "LanternNetInstaller");
-if (!installDir.isDirectory() &amp;&amp; !installDir.mkdirs()) {
-    Util.showMessage("Could not create install directory at "+installDir);
-    return false;
-}
-context.setInstallationDirectory(installDir);
-return true;</string>
-                          </void>
-                        </object>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isWindows();</condition>
               </action>
             </actions>
             <formComponents />
@@ -194,7 +165,7 @@ return true;</string>
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="4" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="4" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" />
@@ -237,7 +208,7 @@ return true;</string>
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
@@ -297,31 +268,15 @@ return true;</string>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="439" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.SetVariableAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.control.SetVariableAction">
-                      <void property="script">
-                        <object class="com.install4j.api.beans.ScriptProperty">
-                          <void property="value">
-                            <string>return ((String)context.getVariable("sys.userHome")) + "/lantern-" + Long.valueOf(System.currentTimeMillis())+".dmg";</string>
-                          </void>
-                        </object>
-                      </void>
-                      <void property="variableName">
-                        <string>dmg</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isMacOS();</condition>
-              </action>
-              <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="27" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
-                        <string>${installer:dmg}</string>
+                        <string>${installer:sys.userHome}/latest.dmg</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
@@ -331,10 +286,13 @@ return true;</string>
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="85" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.exe</string>
                       </void>
@@ -346,10 +304,13 @@ return true;</string>
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="88" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="88" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
@@ -362,10 +323,13 @@ return true;</string>
                 <condition>final boolean is64Bit = System.getProperty("sun.arch.data.model").equals("64");
 return Util.isLinux() &amp;&amp; is64Bit;</condition>
               </action>
-              <action name="" id="90" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not download essential Lantern components!">
+              <action name="" id="90" customizedId="" beanClass="com.install4j.runtime.beans.actions.update.DownloadFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not download essential Lantern components!">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.update.DownloadFileAction">
+                      <void property="retryIfInterrupted">
+                        <boolean>false</boolean>
+                      </void>
                       <void property="targetFile">
                         <string>${installer:sys.userHome}/latest.deb</string>
                       </void>
@@ -378,27 +342,6 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                 <condition>final boolean is64Bit = System.getProperty("sun.arch.data.model").equals("64");
 return Util.isLinux() &amp;&amp; !is64Bit;</condition>
               </action>
-              <action name="" id="396" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not set permissions on dmg launch file!">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.files.SetModeAction">
-                      <void property="files">
-                        <array class="java.io.File" length="1">
-                          <void index="0">
-                            <object class="java.io.File">
-                              <string>installdmg.bash</string>
-                            </object>
-                          </void>
-                        </array>
-                      </void>
-                      <void property="mode">
-                        <string>770</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isMacOS();</condition>
-              </action>
               <action name="" id="260" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -406,8 +349,7 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                       <void property="script">
                         <object class="com.install4j.api.beans.ScriptProperty">
                           <void property="value">
-                            <string>final boolean verified = InstallDownloader.verify(new File((String)context.getVariable("sys.userHome")), 
-    new File((String)context.getVariable("dmg")));
+                            <string>final boolean verified = InstallDownloader.verify(new File((String)context.getVariable("sys.userHome")));
 
 return verified;</string>
                           </void>
@@ -418,104 +360,7 @@ return verified;</string>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="394" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not run main installer script?">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
-                      <void property="arguments">
-                        <array class="java.lang.String" length="1">
-                          <void index="0">
-                            <string>"${installer:dmg}"</string>
-                          </void>
-                        </array>
-                      </void>
-                      <void property="executable">
-                        <object class="java.io.File">
-                          <string>installdmg.bash</string>
-                        </object>
-                      </void>
-                      <void property="failOnStderrFileError">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="failOnStdoutFileError">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="stderrFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern-install-log.txt</string>
-                        </object>
-                      </void>
-                      <void property="stderrRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
-                      <void property="stdoutFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern-install-log.txt</string>
-                        </object>
-                      </void>
-                      <void property="stdoutRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
-                      <void property="timeout">
-                        <int>30</int>
-                      </void>
-                      <void property="workingDirectory">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}</string>
-                        </object>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="" id="205" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
-                      <void property="destinationFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}</string>
-                        </object>
-                      </void>
-                      <void property="files">
-                        <array class="java.io.File" length="1">
-                          <void index="0">
-                            <object class="java.io.File">
-                              <string>fallback.json</string>
-                            </object>
-                          </void>
-                        </array>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="" id="300" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
-                      <void property="destinationFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}</string>
-                        </object>
-                      </void>
-                      <void property="files">
-                        <array class="java.io.File" length="1">
-                          <void index="0">
-                            <object class="java.io.File">
-                              <string>fallbacks.json</string>
-                            </object>
-                          </void>
-                        </array>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="" id="31" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer!">
+              <action name="" id="31" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
@@ -524,37 +369,9 @@ return verified;</string>
                           <string>${installer:sys.userHome}/latest.dmg</string>
                         </object>
                       </void>
-                      <void property="failOnStderrFileError">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="failOnStdoutFileError">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="includeParentEnvironmentVariables">
-                        <boolean>false</boolean>
-                      </void>
-                      <void property="stderrFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern-install-log.txt</string>
-                        </object>
-                      </void>
-                      <void property="stderrRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
-                      <void property="stdoutFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern-install-log.txt</string>
-                        </object>
-                      </void>
-                      <void property="stdoutRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
-                      </void>
-                      <void property="wait">
-                        <boolean>true</boolean>
-                      </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}</string>
+                          <string>${installer:sys.workingDir}</string>
                         </object>
                       </void>
                     </object>
@@ -562,37 +379,18 @@ return verified;</string>
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="86" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not run Lantern installer!">
+              <action name="" id="86" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not run Lantern installer! Quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/latest.exe</string>
-                        </object>
-                      </void>
-                      <void property="failOnStderrFileError">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="failOnStdoutFileError">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="keepConsoleWindow">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="stderrFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern-install-log.txt</string>
-                        </object>
-                      </void>
-                      <void property="stdoutFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern-install-log.txt</string>
+                          <string>${installer:sys.userHome}/lantern.exe</string>
                         </object>
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}</string>
+                          <string>${installer:sys.workingDir}</string>
                         </object>
                       </void>
                     </object>
@@ -675,10 +473,56 @@ return result == 0;</string>
                 </serializedBean>
                 <condition>return Util.isLinux();</condition>
               </action>
+              <action name="" id="205" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>fallback.json</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="300" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>fallbacks.json</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.FinishedScreen" />
@@ -800,7 +644,7 @@ return result == 0;</string>
     </applications>
   </installerGui>
   <mediaSets>
-    <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="" installDir="lantern-net-installer" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="../jres/macosx-amd64-jre.tar.gz" manualJREEntry="true" bundleType="2" jreURL="https://s3.amazonaws.com/bundled-jres/macosx-amd64-jre.tar.gz" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="false" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
+    <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="" installDir="Wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude />
@@ -812,7 +656,7 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <windows name="Windows" id="79" customizedId="" mediaFileName="" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="../jres/windows-x86-jre.tar.gz" manualJREEntry="true" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-jre.tar.gz" jreShared="false" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+    <windows name="Windows" id="79" customizedId="" mediaFileName="" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-1.7.0_21.tar.gz" jreShared="true" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="25" />
       </excludedLaunchers>
@@ -829,7 +673,7 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <unixInstaller name="Unix Installer" id="127" customizedId="" mediaFileName="" installDir="lantern-net-installer" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="">
+    <unixInstaller name="Unix Installer" id="127" customizedId="" mediaFileName="" installDir="lantern-net-installer" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="">
       <excludedLaunchers>
         <launcher id="25" />
       </excludedLaunchers>
@@ -850,8 +694,8 @@ sudo ls -la</content>
     </unixInstaller>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="79" />
+    <mediaSet refId="26" />
   </buildIds>
-  <buildOptions verbose="false" faster="false" disableSigning="false" debug="false" />
+  <buildOptions verbose="false" faster="false" disableSigning="false" debug="true" />
 </install4j>
 
