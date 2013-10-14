@@ -419,6 +419,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (ProxyHolder proxy : proxies.values()) {
             if (!proxy.isConnected()) {
                 LOG.debug("Attempting to restore deceased proxy " + proxy);
+                // Reset failures to undo back-off from during our offline time
+                proxy.resetFailures();
                 addTcpProxy(proxy.getJid(), proxy, false);
             } else {
                 break;
