@@ -27,8 +27,10 @@ public class ConnectivityChecker extends TimerTask {
 
     @Override
     public void run() {
-        final InetAddress ip = new PublicIpAddress().getPublicIpAddress();
         Connectivity connectivity = model.getConnectivity();
+        boolean forceCheck = !connectivity.isInternet();
+        final InetAddress ip =
+                new PublicIpAddress().getPublicIpAddress(forceCheck);
         if (ip == null) {
             LOG.info("No IP -- possibly no internet connection");
             if (connected) {
