@@ -40,6 +40,7 @@ public class ConnectivityChecker extends TimerTask {
             }
             return;
         }
+        LOG.debug("Connected");
         String oldIp = connectivity.getIp();
         String newIpString = ip.getHostAddress();
         if (newIpString.equals(oldIp)) {

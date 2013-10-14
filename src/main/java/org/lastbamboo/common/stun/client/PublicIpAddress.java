@@ -89,10 +89,10 @@ public class PublicIpAddress implements PublicIp {
      */
     public InetAddress getPublicIpAddress(boolean forceCheck) {
         final long now = System.currentTimeMillis();
-        boolean cachedValueExpired =
+        boolean cachedValueValid =
                 now - lastLookupTime < this.cacheTime * 1000 &&
                 (now - lastLookupTime < 2 * 1000 || publicIp != null);
-        if (!forceCheck && cachedValueExpired) {
+        if (!forceCheck && cachedValueValid) {
             return publicIp;
         }
         
