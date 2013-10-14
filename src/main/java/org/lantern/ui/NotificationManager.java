@@ -75,16 +75,18 @@ public class NotificationManager {
                 // install the dialog in the shell
 
                 Rectangle clientArea = getClientArea();
+                
+                notification.window.pack();
 
                 int startX = clientArea.x + clientArea.width
-                        - notification.dialog.getSize().width;
+                        - notification.window.getSize().width;
 
                 int totalHeight = 0;
                 for (NotificationDialog existing : notifications) {
-                    totalHeight += existing.dialog.getSize().height;
+                    totalHeight += existing.window.getSize().height;
                 }
 
-                totalHeight += notification.dialog.getSize().height;
+                totalHeight += notification.window.getSize().height;
 
                 int startY = clientArea.y + clientArea.height - totalHeight;
 
@@ -93,9 +95,9 @@ public class NotificationManager {
                     return;
                 }
 
-                notification.dialog.setLocation(startX, startY);
-                notification.dialog.setVisible(true);
-
+                notification.window.setLocation(startX, startY);
+                notification.window.setVisible(true);
+                
                 notifications.add(notification);
             }
         });
@@ -126,9 +128,9 @@ public class NotificationManager {
         boolean later = false;
         for (final NotificationDialog nd : notifications) {
             if (later) {
-                Point location = nd.dialog.getLocation();
-                int height = nd.dialog.getSize().height;
-                nd.dialog.setLocation(location.x, location.y + height);
+                Point location = nd.window.getLocation();
+                int height = nd.window.getSize().height;
+                nd.window.setLocation(location.x, location.y + height);
             } else if (nd == toRemove) {
                 later = true;
             }
