@@ -724,13 +724,22 @@ public class Launcher {
             bugAppender.addSanitizer(new IPv4Sanitizer());
 
             BasicConfigurator.configure(bugAppender);
+            // When shutting down, we may see exceptions because someone is
+            // still using the system while we're shutting down.  Let's now
+            // send these to Exceptional.
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    org.apache.log4j.Logger.getRootLogger().removeAppender(bugAppender);
+                }
+            }, "Disable-Exceptional4J-Logging-on-Shutdown"));
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
             e.printStackTrace();
         }
     }
-
+    
     private void handleError(final Throwable t, final boolean exit) {
         final String msg = msg(t);
         LOG.error("Uncaught exception on" +
