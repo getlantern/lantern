@@ -25,7 +25,7 @@ public class InstallDownloader {
     
     private static final int MAX_SHA1_TRIES = 10;
     
-    public static boolean verify(final File dir, final File dmgPath) 
+    public static boolean verify(final File dir) 
             throws IOException {
         log("Downloading from file: "+dir.getAbsolutePath());
         final String fileName;
@@ -54,18 +54,15 @@ public class InstallDownloader {
         log("Downloaded: '"+hash+"'");
         log("CUR DIR: "+System.getProperty("user.dir"));
         final String localName;
+        
+        // Just strip the SHA-1 from the calculated name above.
         final String parsed = fileName.substring(0, fileName.length()-5);
         if (parsed.endsWith(".deb")) {
             localName = "latest.deb";
         } else {
             localName = parsed;
         }
-        final File file;
-        if (dmgPath != null && dmgPath.length() > 0) {
-            file = dmgPath;
-        } else {
-            file = new File(dir, localName);
-        }
+        final File file = new File(dir, localName);
         
         final long now = System.currentTimeMillis();
         
