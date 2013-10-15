@@ -31,7 +31,7 @@ package update
 import (
 	"compress/gzip"
 	"fmt"
-	execpath "github.com/inconshreveable/go-execpath"
+	"bitbucket.org/kardianos/osext"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -377,7 +377,7 @@ func FromFile(filepath string) (err error, errRecover error) {
 // in order to not mask the error that caused the rename recovery attempt.
 func FromStream(newBinary io.Reader) (err error, errRecover error) {
 	// get the path to the executable
-	thisExecPath, err := execpath.Get()
+	thisExecPath, err := osext.Executable()
 	if err != nil {
 		return
 	}
@@ -433,7 +433,7 @@ func FromStream(newBinary io.Reader) (err error, errRecover error) {
 // applied later.
 func SanityCheck() (err error) {
 	// get the path to the executable
-	thisExecPath, err := execpath.Get()
+	thisExecPath, err := osext.Executable()
 	if err != nil {
 		return
 	}
