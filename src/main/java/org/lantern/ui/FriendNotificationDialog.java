@@ -32,7 +32,7 @@ import com.google.common.eventbus.Subscribe;
  */
 public class FriendNotificationDialog extends NotificationDialog {
     private final Logger log =
-        LoggerFactory.getLogger(LanternUtils.class);
+            LoggerFactory.getLogger(LanternUtils.class);
 
     private final FriendsHandler friendsHandler;
     private final ClientFriend friend;
@@ -45,24 +45,25 @@ public class FriendNotificationDialog extends NotificationDialog {
             FriendsHandler friends, final ClientFriend friend) {
         super(manager);
         Preconditions.checkNotNull(friend, "Null friend?");
-        Preconditions.checkArgument(friend.getId() != 0L, 
-                "Showing a notification for a friend the server doesn't know about?");
+        Preconditions
+                .checkArgument(friend.getId() != 0L,
+                        "Showing a notification for a friend the server doesn't know about?");
         this.friendsHandler = friends;
         this.friend = friend;
         this.name = friend.getName().toLowerCase();
         this.email = friend.getEmail().toLowerCase();
         Events.register(this);
-        layout();
+        setup();
     }
 
-    protected void layout() {
+    protected void setup() {
         if (LanternUtils.isTesting()) {
             return;
         }
-        doLayout();
+        doSetup();
     }
 
-    protected void doLayout() {
+    private void doSetup() {
         final String text = loadText();
         final String displayEmail;
         if (StringUtils.isEmpty(name)) {
@@ -71,14 +72,22 @@ public class FriendNotificationDialog extends NotificationDialog {
             displayEmail = name + " (" + email + ")";
         }
 
-        final String cssurl = StaticSettings.getLocalEndpoint() + "/_css/app.css"; 
-        final String iconurl = StaticSettings.getLocalEndpoint() + "/img/favicon.png";
-        final String popupHtml = String.format(text, cssurl, iconurl, displayEmail);
+        final String cssurl = StaticSettings.getLocalEndpoint()
+                + "/_css/app.css";
+        final String iconurl = StaticSettings.getLocalEndpoint()
+                + "/img/favicon.png";
+        final String popupHtml = String.format(text, cssurl, iconurl,
+                displayEmail);
 
-        dialog.setBackground(new Color(200, 200, 200, ALPHA));
+        window.setBackground(new Color(200, 200, 200, ALPHA));
         final JEditorPane pane = new JEditorPane("text/html", popupHtml);
         pane.setEditable(false);
         pane.setBorder(BorderFactory.createLineBorder(Color.black));
+        // We need to set the size as follows as a hack to get the JEditorPane
+        // to lay itself out correctly on the first pass.
+        // See http://stackoverflow.com/questions/2221379/controlling-the-preferred-size-of-a-jeditorpane-with-long-text
+        pane.setSize(100, Integer.MAX_VALUE);
+        pane.getPreferredSize();
         ToolTipManager.sharedInstance().registerComponent(pane);
 
         HyperlinkListener l = new HyperlinkListener() {
@@ -101,15 +110,14 @@ public class FriendNotificationDialog extends NotificationDialog {
 
         };
         pane.addHyperlinkListener(l);
-        dialog.add(pane);
-        dialog.pack();
-        //dialog.setVisible(true);
+        window.add(pane);
     }
 
     private String loadText() {
         InputStream is = null;
         try {
-            is = getClass().getClassLoader().getResourceAsStream("friendsuggestion.html");
+            is = getClass().getClassLoader().getResourceAsStream(
+                    "friendsuggestion.html");
             return IOUtils.toString(is);
         } catch (IOException e) {
             throw new Error("Could not load friend suggestion?", e);
@@ -120,7 +128,7 @@ public class FriendNotificationDialog extends NotificationDialog {
 
     protected void later() {
         final long tomorrow = System.currentTimeMillis() + 1000 * 86400;
-        
+
         // Even though we don't store the following to disk, it's still used
         // in the logic for whether or not to ask the user again about a friend
         friend.setNextQuery(tomorrow);
@@ -139,9 +147,9 @@ public class FriendNotificationDialog extends NotificationDialog {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                dialog.setVisible(false);
-                dialog.dispose();
-                
+                window.setVisible(false);
+                window.dispose();
+
                 // Can be null for testing.
                 if (friendsHandler != null) {
                     friendsHandler.setStatus(friend, status);
@@ -156,7 +164,7 @@ public class FriendNotificationDialog extends NotificationDialog {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    dialog.dispose();
+                    window.dispose();
                 }
             });
         }
@@ -186,14 +194,14 @@ public class FriendNotificationDialog extends NotificationDialog {
             return false;
         return true;
     }
-    
+
     /*
-    public static void main(final String... args) {
-        final NotificationManager manager = new NotificationManager(new Model().getSettings());
-        final ClientFriend fr = new ClientFriend("tom.preston-werner@gmail.com");
-        fr.setName("Tom Preston-Werner");
-        final FriendNotificationDialog fnd = new FriendNotificationDialog(manager, null, fr);
-        
-    }
-    */
+     * public static void main(final String... args) { final NotificationManager
+     * manager = new NotificationManager(new Model().getSettings()); final
+     * ClientFriend fr = new ClientFriend("tom.preston-werner@gmail.com");
+     * fr.setName("Tom Preston-Werner"); final FriendNotificationDialog fnd =
+     * new FriendNotificationDialog(manager, null, fr);
+     * 
+     * }
+     */
 }

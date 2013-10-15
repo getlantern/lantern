@@ -14,28 +14,28 @@ public class NotificationDialog {
     public static final int WIDTH = 320;
     public static final int HEIGHT = 320;
 
-    protected JWindow dialog;
+    protected JWindow window;
 
     public NotificationDialog(final NotificationManager manager) {
         if (LanternUtils.isTesting()) {
             return;
         }
         JDialog child = new JDialog();
-        dialog = new JWindow(child);
-        dialog.addWindowListener(new WindowAdapter() {
+        window = new JWindow(child);
+        window.addWindowListener(new WindowAdapter() {
 
             @Override
             public void windowClosed(WindowEvent arg0) {
                 manager.remove(NotificationDialog.this);
             }
         });
-        dialog.setAlwaysOnTop(true);
+        window.setAlwaysOnTop(true);
         child.setUndecorated(true);
-        dialog.setFocusable(false);
+        window.setFocusable(false);
     }
-
+    
     public void dispose() {
-        dialog.dispose();
+        window.dispose();
     }
 
 }
