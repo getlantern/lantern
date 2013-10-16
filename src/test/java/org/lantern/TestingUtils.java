@@ -31,6 +31,8 @@ import org.lantern.endpoints.FriendApi;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.GiveModeProxy;
@@ -49,6 +51,8 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.FiveTuple.Protocol;
 
 public class TestingUtils {
 
@@ -114,8 +118,9 @@ public class TestingUtils {
         return new ProxyTrackerStub() {
             @Override
             public ProxyHolder firstConnectedTcpProxyBlocking() {
-                final InetSocketAddress tuple = 
-                    new InetSocketAddress("54.254.96.14", 16589);
+                FiveTuple tuple = new FiveTuple(null,
+                        new InetSocketAddress("54.254.96.14", 16589),
+                        Protocol.TCP);
                 final URI uri;
                 try {
                     uri = new URI("fallback@getlantern.org");
@@ -156,8 +161,9 @@ public class TestingUtils {
         final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth);
         
+        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendsHandler = 
-                new DefaultFriendsHandler(model, api, null, null);
+                new DefaultFriendsHandler(model, api, null, null, networkTracker);
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
@@ -168,7 +174,7 @@ public class TestingUtils {
             new DefaultProxyTracker(model, peerFactory, null, trustStore);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                null, model, friendsHandler);
+                null, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}
@@ -197,13 +203,11 @@ public class TestingUtils {
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
         
-        GiveModeProxy giveModeProxy = mock(GiveModeProxy.class);
-
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
-            new UdtServerFiveTupleListener(null),
-            friendsHandler, giveModeProxy);
+            new UdtServerFiveTupleListener(null, model),
+            friendsHandler, networkTracker);
         return xmppHandler;
     }
 

@@ -48,7 +48,10 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.proxy.GiveModeProxy;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.InstanceInfo;
+import org.lantern.network.NetworkTracker;
+import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
@@ -84,7 +87,8 @@ import com.google.inject.Singleton;
  * the roster.
  */
 @Singleton
-public class DefaultXmppHandler implements XmppHandler {
+public class DefaultXmppHandler implements XmppHandler,
+    NetworkTrackerListener<URI, ReceivedKScopeAd> {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
@@ -178,7 +182,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final FriendsHandler friendsHandler;
     
-    private final GiveModeProxy giveModeProxy;
+    private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
     /**
      * Creates a new XMPP handler.
@@ -197,7 +201,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final UpnpService upnpService,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
-        final GiveModeProxy giveModeProxy) {
+        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -212,7 +216,8 @@ public class DefaultXmppHandler implements XmppHandler {
         this.upnpService = upnpService;
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
-        this.giveModeProxy = giveModeProxy;
+        this.networkTracker = networkTracker;
+        this.networkTracker.addListener(this);
         Events.register(this);
         //setupJmx();
     }
@@ -425,11 +430,12 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.asyncEventBus().post(event);
             XMPPConnection connection = client.get().getXmppConnection();
             if (connection == previousConnection) {
-                //only add packet listener once
+                LOG.debug("We only add packet listener once, ignoring");
                 return;
             }
             previousConnection = connection;
 
+            LOG.debug("Adding packet listener");
             connection.addPacketListener(new PingListener(),
                     new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
         }
@@ -941,13 +947,6 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void addOrRemovePeer(final Presence p, final String from) {
         LOG.info("Processing peer: {}", from);
-        final URI uri;
-        try {
-            uri = new URI(from);
-        } catch (final URISyntaxException e) {
-            LOG.error("Could not create URI from: {}", from);
-            return;
-        }
         if (p.isAvailable()) {
             LOG.info("Processing available peer");
             // Only exchange certs with peers based on kscope ads.
@@ -958,8 +957,12 @@ public class DefaultXmppHandler implements XmppHandler {
             //sendAndRequestCert(uri);
         }
         else {
-            LOG.info("Removing JID for peer '"+from);
-            this.proxyTracker.removeNatTraversedProxy(uri);
+            LOG.info("Removing JID for peer '" + from);
+            try {
+                this.networkTracker.instanceOffline(from, new URI(from));
+            } catch (URISyntaxException e) {
+                LOG.error("Unable to parse JabberID: {}", from, e);
+            }
         }
     }
 
@@ -986,19 +989,14 @@ public class DefaultXmppHandler implements XmppHandler {
                 break;
 
             case (LanternConstants.KSCOPE_ADVERTISEMENT):
-                //only process kscope ads delivered by friends
-                if (this.friendsHandler.isFriend(from)) {
-                    LOG.debug("Handling KSCOPE ADVERTISEMENT");
-                    final String payload =
-                            (String) msg.getProperty(
-                                    LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
-                    if (StringUtils.isNotBlank(payload)) {
-                        processKscopePayload(from, payload);
-                    } else {
-                        LOG.error("kscope ad with no payload? "+msg.toXML());
-                    }
+                LOG.debug("Handling KSCOPE ADVERTISEMENT");
+                final String payload =
+                        (String) msg.getProperty(
+                                LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
+                if (StringUtils.isNotBlank(payload)) {
+                    processKscopePayload(from, payload);
                 } else {
-                    LOG.warn("kscope ad from non-friend");
+                    LOG.error("kscope ad with no payload? "+msg.toXML());
                 }
                 break;
             default:
@@ -1030,6 +1028,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void sendInfoResponse(final String from) {
+        LOG.info("Sending certificate to {}", from);
         final Message msg = new Message();
         // The from becomes the to when we're responding.
         msg.setTo(from);
@@ -1090,9 +1089,10 @@ public class DefaultXmppHandler implements XmppHandler {
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
         //msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
-        msg.setProperty(P2PConstants.CERT,
-            this.keyStoreManager.getBase64Cert(getJid()));
+        String cert = this.keyStoreManager.getBase64Cert(getJid());
+        msg.setProperty(P2PConstants.CERT, cert);
         if (isLoggedIn()) {
+            LOG.debug("Sending cert {}", cert);
             this.client.get().getXmppConnection().sendPacket(msg);
         } else {
             LOG.debug("No longer logged in? Not sending cert");
@@ -1390,5 +1390,19 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public ProxyTracker getProxyTracker() {
         return proxyTracker;
+    }
+    
+    @Override
+    public void instanceOnlineAndTrusted(
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        // Do nothing
+    }
+    
+    @Override
+    public void instanceOfflineOrUntrusted(
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        URI jid = instance.getId();
+        LOG.debug("Removing proxy for {}", jid);
+        this.proxyTracker.removeNattedProxy(jid);
     }
 }

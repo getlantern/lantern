@@ -3,6 +3,7 @@ package org.lantern;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.security.cert.CertificateEncodingException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -210,14 +211,15 @@ public class DefaultPeerFactory implements PeerFactory {
                     "{} not found in {}", event.getJid(),
                     this.model.getPeerCollector().getPeers().keySet());
         } else {
-            byte[] certificateBytes = Base64
-                    .decodeBase64(event.getBase64Cert());
             try {
+                byte[] certificateBytes = event.getCert().getEncoded();
                 X509Certificate certificate = X509Certificate
                         .getInstance(certificateBytes);
                 certsToPeers.put(certificate, peer);
             } catch (CertificateException ce) {
                 log.error("Unable to decode X509 certificate", ce);
+            } catch (CertificateEncodingException cee) {
+                log.error("Unable to encode X509 certificate", cee);
             }
         }
     }

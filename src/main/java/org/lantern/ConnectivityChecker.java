@@ -6,7 +6,7 @@ import java.util.TimerTask;
 import org.lantern.event.Events;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
+import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

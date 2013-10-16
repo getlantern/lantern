@@ -15,7 +15,6 @@ import org.lantern.state.Peer.Type;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
-import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,21 +32,14 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final FiveTuple fiveTuple;
 
-    private final AtomicLong timeOfDeath = new AtomicLong(-1);
-    private final AtomicInteger failures = new AtomicInteger();
+    // Note - we initialize this to 1 to indicate that the proxy starts out
+    // not connected (until we verify it)
+    private final AtomicLong timeOfDeath = new AtomicLong(1);
+    private final AtomicInteger failures = new AtomicInteger(0);
 
     private final Type type;
 
     private volatile Peer peer;
-
-    public ProxyHolder(final ProxyTracker proxyTracker,
-            final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore, 
-            final URI jid, final InetSocketAddress isa,
-            final Type type) {
-        this(proxyTracker, peerFactory, lanternTrustStore, jid,
-                new FiveTuple(null, isa, Protocol.TCP), type);
-    }
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
@@ -65,7 +57,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
-
+    
     /**
      * Get the {@link Peer} for this ProxyHolder, lazily looking it up from our
      * {@link PeerFactory}.
@@ -89,7 +81,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
             timeOfDeathStr = "@" + new Date(timeOfDeath) + " retry at "
                     + new Date(getRetryTime());
         }
-        return "ProxyHolder [isa=" + getFiveTuple() + timeOfDeathStr + "]";
+        return String.format("ProxyHolder [jid=%1$s isa=%2$s%3$s]", jid,
+                fiveTuple, timeOfDeathStr);
     }
 
     @Override
@@ -98,6 +91,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         int result = 1;
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
+        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
         return result;
     }
 
@@ -115,6 +109,11 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
                 return false;
         } else if (!fiveTuple.equals(other.fiveTuple))
             return false;
+        if (jid == null) {
+            if (other.jid != null)
+                return false;
+        } else if (!jid.equals(other.jid))
+            return false;
         return true;
     }
 
@@ -129,22 +128,38 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public void setTimeOfDeath(long timeOfDeath) {
         this.timeOfDeath.set(timeOfDeath);
     }
-
+    
     public int getFailures() {
         return failures.get();
     }
 
-    public void resetFailures() {
+    public void markConnected() {
         setTimeOfDeath(-1);
+        resetFailures();
+    }
+    
+    public void resetFailures() {
         this.failures.set(0);
     }
 
     private void incrementFailures() {
         failures.incrementAndGet();
     }
+    
+    /**
+     * If this is a new proxy and our first attempt to connect fails, it is
+     * permitted to try falling back to connecting to the same peer via a NAT
+     * traversal.
+     * 
+     * @return
+     */
+    public boolean attemptNatTraversalIfConnectionFailed() {
+        return !isNatTraversed() && getTimeOfDeath() == 1l && getFailures() == 1;
+    }
 
     public void addFailure() {
         if (isConnected()) {
+            LOG.debug("Setting proxy as disconnected: {}", fiveTuple);
             long now = new Date().getTime();
             setTimeOfDeath(now);
         }
@@ -174,6 +189,10 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return timeOfDeath.get() <= 0;
     }
 
+    public boolean needsConnectionTest() {
+        return getFailures() > 0;
+    }
+    
     public String getProxyUsername() {
         // TODO: Implement!
         return "";
@@ -242,7 +261,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public void connectionSucceeded() {
-        resetFailures();
+        markConnected();
         Peer peer = getPeer();
         if (peer != null) {
             peer.connected();
