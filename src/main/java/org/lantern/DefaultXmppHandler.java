@@ -560,7 +560,7 @@ public class DefaultXmppHandler implements XmppHandler,
                 this.upnpService, this.mappedServer,
                 this.socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 this.socketsUtil.newTlsServerSocketFactory(),
-                plainTextProxyRelayAddress, sessionListener, false,
+                plainTextProxyRelayAddress, sessionListener, true,
                 udtFiveTupleListener);
     }
 

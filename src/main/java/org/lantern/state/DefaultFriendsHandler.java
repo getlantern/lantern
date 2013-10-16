@@ -384,6 +384,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             //we'll assume that a user already trusts themselves
             if (friend.getStatus() != Status.friend) {
                 friend.setStatus(Status.friend);
+                sync(friend);
                 subscribe(email);
             }
             return;

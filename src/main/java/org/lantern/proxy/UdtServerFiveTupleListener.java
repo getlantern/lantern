@@ -53,6 +53,7 @@ public class UdtServerFiveTupleListener
                 .withTransportProtocol(TransportProtocol.UDT)
                 .withAddress(sock.getLocal())
                 .start();
+        log.info("Now listening for UDT traffic at: {}", sock.getLocal());
         // note - we don't need to hang on to the clone because it will
         // get shut down automatically when the giveModeProxy gets shut down.
     }
