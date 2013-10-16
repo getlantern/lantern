@@ -153,7 +153,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             switch (originalStatus) {
             case friend:
                 log.debug("Already friends with {}", email);
-                info("You have already friended "+email+".");
+                info("You have already added "+email+".");
                 return;
             case pending:
                 // Fall through -- handled in the same way as rejected.
@@ -169,8 +169,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     update(friend);
                 } catch (IOException e) {
                     log.error("Could not friend?", e);
-                    warn("Error friending friend '"+email+
-                        "'. Do you still have an Internet connection?");
+                    error("Error adding "+email+".");
                     
                     // Set the friend back to his or her original status!
                     friend.setStatus(originalStatus);
@@ -180,9 +179,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 try {
                     invite(friend, true);
                 } catch (final IOException e) {
-                    log.error("Could not invite?", e);
-                    warn("Error inviting friend '"+email+
-                        "'. Do you still have an Internet connection?");
+                    error("Error adding "+email+".", e);
                     
                     // Set the friend back to his or her original status!
                     friend.setStatus(originalStatus);
@@ -214,8 +211,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // their presence.
                 this.xmppHandler.subscribe(email);
             } catch (final IllegalStateException e) {
-                error("Error subscribing to friend: "+email+
-                    ". Could you have lost your Internet connection?", e);
+                error("Error connecting to "+email+".", e);
             }
         } else {
             log.warn("No XMPP handler? Testing?");
@@ -225,15 +221,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private void unsubscribe(final String email) {
         if (this.xmppHandler != null) {
             try {
-                //if they have requested a subscription to us, we'll accept it.
                 this.xmppHandler.unsubscribed(email);
-    
-                // We also automatically subscribe to them in turn so we know about
-                // their presence.
                 this.xmppHandler.unsubscribe(email);
             } catch (final IllegalStateException e) {
-                error("Error subscribing to friend: "+email+
-                    ". Could you have lost your Internet connection?", e);
+                log.error("Error unsubscribing from "+email, e);
             }
         } else {
             log.warn("No XMPP handler? Testing?");
@@ -252,22 +243,19 @@ public class DefaultFriendsHandler implements FriendsHandler {
             try {
                 invite(friend, true);
             } catch (final IOException e) {
-                error("Error inviting friend '"+email+
-                    "'. Do you still have an Internet connection?", e);
+                error("Error adding "+email+ ".", e);
                 
                 // We treat this as all or nothing -- if a friend isn't 
                 // invited successfully, remove them.
                 try {
                     this.api.removeFriend(friend.getId());
                 } catch (final IOException ioe) {
-                    error("Error removing friend '"+email+
-                        "'. Do you still have an Internet connection?", ioe);
+                    log.error("Error removing "+email+".", ioe);
                 }
             }
             return friend;
         } catch (final IOException e) {
-            error("Error adding friend '"+email+
-                "'. Do you still have an Internet connection?", e);
+            error("Error adding "+email+".", e);
         }
         return null;
 
@@ -292,15 +280,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         try {
             this.xmppHandler.sendInvite(friend, false, addToRoster);
-            info("An email will be sent to "+email+" "+
-                "with a notification that you friended them. "+
-                "If they do not yet have a Lantern invite, they will "+
-                "be invited when the network can accommodate them.");
+            info("Added "+email+". If this account is not yet in the private beta, "+
+                "it will be invited upon admin approval.");
         } catch (final Throwable e) {
-            log.error("failed to send invite: ", e);
-            error("Failed to successfully become Lantern " +
-                "friends with '"+email+"'. The cause was described as '"+e.getMessage()+"'.",
-                e);
+            error("Error adding "+email+".", e);
             throw new IOException("Invite failed", e);
         }
     }
@@ -474,11 +457,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
             sync(friend);
             final ClientFriend updated = this.api.updateFriend(friend);
             put(updated);
-            
-            info("You have successfully rejected '"+email+"'.");
+            info(email+" has been removed.");
         } catch (final IOException e) {
-            log.warn("Could not remove friend?", e);
-            warn("There was an error rejecting '"+email+"'.");
+            error("Error removing "+email+".", e);
             friend.setStatus(existingStatus);
             sync(friend);
         }
