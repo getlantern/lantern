@@ -96,6 +96,7 @@ public class Whitelist {
         "gooya.com",
         "irangreenvoice.com",
         "iranian.com",
+        "linkadeh.com",
         "manoto1.com",
         "mardomak.org",
         "radiofarda.com",
