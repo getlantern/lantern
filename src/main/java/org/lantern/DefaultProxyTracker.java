@@ -374,7 +374,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                             peerFailureCount);
                     
                     LOG.debug("Attempting to open UDT socket to verify FiveTuple: {}", newFiveTuple);
-                    final SocketUDT sock = new SocketUDT(TypeUDT.DATAGRAM);
+                    final SocketUDT sock = new SocketUDT(TypeUDT.STREAM);
                     sock.setSoTimeout(60000);
                     sock.setReuseAddress(true);
                     sock.bind(newFiveTuple.getLocal());
