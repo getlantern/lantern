@@ -379,7 +379,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     sock.setReuseAddress(true);
                     sock.bind(newFiveTuple.getLocal());
                     sock.connect(newFiveTuple.getRemote());
-                    
+                    sock.send("What gives".getBytes());
                     
                     ProxyHolder newProxy = new ProxyHolder(DefaultProxyTracker.this,
                             peerFactory,
