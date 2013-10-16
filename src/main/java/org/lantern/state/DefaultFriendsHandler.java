@@ -180,7 +180,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     update(friend);
                 } catch (IOException e) {
                     log.error("Could not friend?", e);
-                    error("Error adding "+email+".");
+                    error("Error adding "+email+".", e);
                     
                     // Set the friend back to his or her original status!
                     friend.setStatus(originalStatus);
