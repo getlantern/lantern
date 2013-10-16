@@ -373,7 +373,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                             proxy.getJid(), xmppHandler.getP2PClient(),
                             peerFailureCount);
                     
-                    LOG.debug("Attempting to open UDT socket to verify FiveTuple");
+                    LOG.debug("Attempting to open UDT socket to verify FiveTuple: {}", newFiveTuple);
                     final SocketUDT sock = new SocketUDT(TypeUDT.DATAGRAM);
                     sock.setSoTimeout(60000);
                     sock.setReuseAddress(true);
