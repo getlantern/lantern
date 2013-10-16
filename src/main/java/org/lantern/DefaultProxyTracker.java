@@ -67,7 +67,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     private final ExecutorService p2pSocketThreadPool =
-            Threads.newSingleThreadExecutor("P2P-Socket-Creation-Thread-");
+            Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
 
     /**
      * Holds all proxies.
@@ -316,21 +316,18 @@ public class DefaultProxyTracker implements ProxyTracker {
             LOG.info("Adding proxy {} {}", jid, proxy);
             proxies.add(proxy);
             LOG.info("Proxies is now {}", proxies);
-            checkConnectivityToProxy(proxy, true);
         }
     }
 
-    private void checkConnectivityToProxy(ProxyHolder proxy,
-            boolean allowFallbackToNatTraversal) {
+    private void checkConnectivityToProxy(ProxyHolder proxy) {
         if (proxy.isNatTraversed()) {
             checkConnectivityToNattedProxy(proxy);
         } else {
-            checkConnectivityToTcpProxy(proxy, true);
+            checkConnectivityToTcpProxy(proxy);
         }
     }
 
-    private void checkConnectivityToTcpProxy(final ProxyHolder proxy,
-            final boolean allowFallbackToNatTraversal) {
+    private void checkConnectivityToTcpProxy(final ProxyHolder proxy) {
         proxyCheckThreadPool.submit(new Runnable() {
             @Override
             public void run() {
@@ -347,7 +344,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     LOG.debug("Could not connect to proxy: {}", proxy, e);
                     onCouldNotConnect(proxy);
 
-                    if (allowFallbackToNatTraversal) {
+                    if (proxy.attemptNatTraversalIfConnectionFailed()) {
                         addProxy(proxy.getJid());
                     }
                 } finally {

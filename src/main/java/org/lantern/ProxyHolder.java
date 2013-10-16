@@ -35,7 +35,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     // Note - we initialize this to 1 to indicate that the proxy starts out
     // not connected (until we verify it)
     private final AtomicLong timeOfDeath = new AtomicLong(1);
-    private final AtomicInteger failures = new AtomicInteger();
+    private final AtomicInteger failures = new AtomicInteger(0);
 
     private final Type type;
 
@@ -144,6 +144,17 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private void incrementFailures() {
         failures.incrementAndGet();
+    }
+    
+    /**
+     * If this is a new proxy and our first attempt to connect fails, it is
+     * permitted to try falling back to connecting to the same peer via a NAT
+     * traversal.
+     * 
+     * @return
+     */
+    public boolean attemptNatTraversalIfConnectionFailed() {
+        return !isNatTraversed() && getTimeOfDeath() == 1l && getFailures() == 1;
     }
 
     public void addFailure() {

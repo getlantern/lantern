@@ -56,9 +56,4 @@ public class Threads {
         return Executors.newSingleThreadScheduledExecutor(newDaemonThreadFactory(name));
     }
     
-    public static ExecutorService newSingleThreadExecutor(
-            String name) {
-        return Executors.newSingleThreadExecutor(newDaemonThreadFactory(name));
-    }
-
 }
