@@ -437,7 +437,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         for (ProxyHolder proxy : proxies) {
             if (!proxy.isConnected() && now > proxy.getRetryTime()) {
                 LOG.debug("Attempting to restore timed-in proxy " + proxy);
-                checkConnectivityToProxy(proxy, false);
+                checkConnectivityToProxy(proxy);
             } else {
                 break;
             }
@@ -451,7 +451,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 // Proxy may have accumulated a long back-off time while we
                 // were offline, so let's reset its failures.
                 proxy.resetFailures();
-                checkConnectivityToProxy(proxy, false);
+                checkConnectivityToProxy(proxy);
             } else {
                 break;
             }
