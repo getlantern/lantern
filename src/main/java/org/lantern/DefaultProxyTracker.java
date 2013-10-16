@@ -383,6 +383,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     proxies.add(newProxy);
                     successfullyConnectedToProxy(newProxy);
                     proxies.remove(proxy);
+                    LOG.debug("Proxies is now: {}", proxies);
                 } catch (final IOException e) {
                     LOG.info("Could not create peer socket", e);
                     proxy.addFailure();
