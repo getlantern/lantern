@@ -189,6 +189,10 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return timeOfDeath.get() <= 0;
     }
 
+    public boolean needsConnectionTest() {
+        return getFailures() > 0;
+    }
+    
     public String getProxyUsername() {
         // TODO: Implement!
         return "";

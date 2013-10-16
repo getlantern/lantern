@@ -316,6 +316,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             LOG.info("Adding proxy {} {}", jid, proxy);
             proxies.add(proxy);
             LOG.info("Proxies is now {}", proxies);
+            checkConnectivityToProxy(proxy);
         }
     }
 
@@ -435,7 +436,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void restoreTimedInProxies() {
         long now = new Date().getTime();
         for (ProxyHolder proxy : proxies) {
-            if (!proxy.isConnected() && now > proxy.getRetryTime()) {
+            if (proxy.needsConnectionTest() && now > proxy.getRetryTime()) {
                 LOG.debug("Attempting to restore timed-in proxy " + proxy);
                 checkConnectivityToProxy(proxy);
             } else {
@@ -446,7 +447,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void restoreDeceasedProxies() {
         for (ProxyHolder proxy : proxies) {
-            if (!proxy.isConnected()) {
+            if (proxy.needsConnectionTest()) {
                 LOG.debug("Attempting to restore deceased proxy " + proxy);
                 // Proxy may have accumulated a long back-off time while we
                 // were offline, so let's reset its failures.
