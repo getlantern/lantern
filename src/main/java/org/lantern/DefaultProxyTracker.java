@@ -380,7 +380,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                     sock.bind(newFiveTuple.getLocal());
                     sock.connect(newFiveTuple.getRemote());
                     
-                    try {Thread.sleep(60000);} catch (InterruptedException ie) {}
                     
                     ProxyHolder newProxy = new ProxyHolder(DefaultProxyTracker.this,
                             peerFactory,
@@ -393,6 +392,9 @@ public class DefaultProxyTracker implements ProxyTracker {
                     successfullyConnectedToProxy(newProxy);
                     proxies.remove(proxy);
                     LOG.debug("Proxies is now {}", proxies);
+                    
+                    try {Thread.sleep(120000);} catch (InterruptedException ie) {}
+                    
                 } catch (final IOException e) {
                     LOG.info("Could not create peer socket", e);
                     proxy.addFailure();
