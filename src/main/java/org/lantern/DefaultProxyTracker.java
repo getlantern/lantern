@@ -48,8 +48,6 @@ import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.barchart.udt.SocketUDT;
-import com.barchart.udt.TypeUDT;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
@@ -373,14 +371,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                             proxy.getJid(), xmppHandler.getP2PClient(),
                             peerFailureCount);
                     
-                    LOG.debug("Attempting to open UDT socket to verify FiveTuple: {}", newFiveTuple);
-                    final SocketUDT sock = new SocketUDT(TypeUDT.STREAM);
-                    sock.setSoTimeout(60000);
-                    sock.setReuseAddress(true);
-                    sock.bind(newFiveTuple.getLocal());
-                    sock.connect(newFiveTuple.getRemote());
-                    sock.send("What gives".getBytes());
-                    
                     ProxyHolder newProxy = new ProxyHolder(DefaultProxyTracker.this,
                             peerFactory,
                             lanternTrustStore,
@@ -392,9 +382,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                     successfullyConnectedToProxy(newProxy);
                     proxies.remove(proxy);
                     LOG.debug("Proxies is now {}", proxies);
-                    
-                    try {Thread.sleep(120000);} catch (InterruptedException ie) {}
-                    
                 } catch (final IOException e) {
                     LOG.info("Could not create peer socket", e);
                     proxy.addFailure();
