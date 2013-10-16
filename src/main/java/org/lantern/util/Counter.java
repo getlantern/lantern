@@ -132,7 +132,7 @@ public class Counter {
     static {
         // Periodically calculate rate for all Counters
         ScheduledExecutorService executor = Threads
-                .newSingleThreadedScheduledExecutor("Counter-Calculator");
+                .newSingleThreadScheduledExecutor("Counter-Calculator");
         executor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override

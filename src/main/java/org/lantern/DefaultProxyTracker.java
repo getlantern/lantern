@@ -67,7 +67,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     private final ExecutorService p2pSocketThreadPool =
-            Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
+            Threads.newSingleThreadExecutor("P2P-Socket-Creation-Thread-");
 
     /**
      * Holds all proxies.
@@ -95,7 +95,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private int fallbackServerPort;
 
     private final ScheduledExecutorService proxyRetryService = Threads
-            .newSingleThreadedScheduledExecutor("Proxy-Retry");
+            .newSingleThreadScheduledExecutor("Proxy-Retry");
 
     private final LanternTrustStore lanternTrustStore;
 
@@ -383,7 +383,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     proxies.add(newProxy);
                     successfullyConnectedToProxy(newProxy);
                     proxies.remove(proxy);
-                    LOG.debug("Proxies is now: {}", proxies);
+                    LOG.debug("Proxies is now {}", proxies);
                 } catch (final IOException e) {
                     LOG.info("Could not create peer socket", e);
                     proxy.addFailure();
