@@ -250,6 +250,20 @@ fallback proxies, which are operated by Brave New Software on EC2 on
 behalf of its users.  We have not analyzed how this will affect
 availability.
 
+In particular, a Lantern proxy advertises itself as follows:
+
+  1. Tell all its immediate Lantern friends about it (these are people whom the
+     Give mode user explicitly added as a friend).  In particular, it's telling
+     them:
+     * The exact JID of the Lantern instance (assigned by Google Talk on startup
+       of Lantern)
+     * The ip address of the instance, both on its own LAN and as seen on the
+       internet
+     * If it was able to map a port using UPnP or NAT-PMP, the mapped port
+  2. Each of these friends forwards this advertisement to a subset of their
+     Lantern friends     
+  3. Step 2 is repeated out to 4 levels (this depth could change, but it's a
+     globally applied setting)
 
 Cryptography
 ------------
@@ -262,6 +276,41 @@ The Bouncy Castle SSL provider is used.
 
 Lantern uses TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA when it can.  It falls
 back to TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA.  
+
+Certificate Exchange
+--------------------
+
+Lantern proxies and clients mutually authenticate using
+[public key certificates](http://en.wikipedia.org/wiki/Public_key_certificate).
+These certificates are exchanged via XMPP messages between the client and the
+proxy sent through Google Talk.  The exchange happens as a result of the client
+becoming aware of the server through the Kaleidoscope advertising process
+(see above).
+
+Once the client becomes aware of a proxy, the client sends that proxy its own
+certificate via a direct XMPP message to the JID in the Kaleidoscope
+advertisement.  Note - we do not relay this message through the chain of friends
+that advertised the proxy because that would require all of them to be online
+at the time that the client wants to access the internet, which would severely
+restrict availability.
+
+When the proxy receives the client's certificate, it implicitly trusts it.
+This works because the only way that Google Talk's XMPP server will deliver the
+message is if either:
+  
+  1. The peer sent the message to the exact JID for the running Lantern instance
+     (e.g. email@company.com/23432adf), which is only made available through the
+     Kaleidoscope discovery process.
+  2. The users are on already each other's rosters, meaning that the proxy's
+     user at some point explicitly authorized the client to chat with him/her on
+     Google Talk.
+
+In addition to trusting the client's certificate, the proxy immediately sends
+its certificate to the client via XMPP.  The client implicitly trusts the
+proxy's certificate for the same reasons that the proxy trusted the client's.
+
+On both ends, if the user explicitly rejected the other user as a Lantern
+friend, the certificate received via XMPP will not be trusted.
 
 
 ### Open questions ###

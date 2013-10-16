@@ -129,34 +129,17 @@ public class LanternTrustStore {
         onTrustStoreChanged();
     }
 
-    public void addBase64Cert(final URI jid, final String base64Cert) {
-        log.debug("Adding base 64 cert for {} to trust store", jid);
-        Events.asyncEventBus().post(new PeerCertEvent(jid, base64Cert));
-
-        final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final InputStream is = new ByteArrayInputStream(decoded);
-        addCert(jid.toASCIIString(), is);
-    }
-    
-    public void addCert(final String alias, final InputStream is) {
-        log.debug("Importing cert");
+    public void addCert(URI jid, Certificate cert) {
+        log.debug("Adding cert for {} to trust store", jid);
+        Events.asyncEventBus().post(new PeerCertEvent(jid, cert));
         try {
-            final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            final Certificate certificate = cf.generateCertificate(is);
-            this.trustStore.setCertificateEntry(alias, certificate);
-        } catch (final CertificateException e) {
-            log.error("Could not load cert - cert error?", e);
-        } catch (final KeyStoreException e) {
+            this.trustStore.setCertificateEntry(jid.toASCIIString(), cert);
+        } catch (KeyStoreException e) {
             log.error("Could not load cert into keystore?", e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        
+        } 
         onTrustStoreChanged();
     }
     
-
-
     /**
      * Accessor for the SSL context. This is regenerated whenever
      * we receive new certificates.

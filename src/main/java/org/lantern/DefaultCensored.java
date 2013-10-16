@@ -7,7 +7,7 @@ import java.util.TreeSet;
 
 import org.lantern.annotation.Keep;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
+import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

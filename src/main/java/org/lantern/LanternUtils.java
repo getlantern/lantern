@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.File;
@@ -25,6 +26,9 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Policy;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOExceptionWithCause;
@@ -55,9 +60,9 @@ import org.jivesoftware.smack.packet.Packet;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
+import org.lantern.util.PublicIpAddress;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -1073,5 +1078,23 @@ public class LanternUtils {
             return true;
         }
         return model.getSettings().getMode() == Mode.get;
+    }
+    
+    public static Certificate certFromBase64(String base64Cert)
+            throws CertificateException {
+        return certFromBytes(Base64.decodeBase64(base64Cert));
+    }
+
+    public static Certificate certFromBytes(byte[] bytes)
+            throws CertificateException {
+        final InputStream is = new ByteArrayInputStream(bytes);
+
+        try {
+            final CertificateFactory cf = CertificateFactory
+                    .getInstance("X.509");
+            return cf.generateCertificate(is);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
     }
 }

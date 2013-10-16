@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -23,6 +24,8 @@ import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.state.DefaultFriendsHandler;
@@ -47,8 +50,9 @@ public class RosterTest {
                 new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth);
         final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
+        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendHandler = 
-                new DefaultFriendsHandler(model, api, xmppHandler, null);
+                new DefaultFriendsHandler(model, api, xmppHandler, null, networkTracker);
         final Roster roster =
             new Roster(routingTable, model, new TestCensored(), friendHandler);
 

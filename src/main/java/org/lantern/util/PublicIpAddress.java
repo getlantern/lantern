@@ -1,4 +1,4 @@
-package org.lastbamboo.common.stun.client;
+package org.lantern.util;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -19,6 +19,9 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.lastbamboo.common.stun.client.StunClient;
+import org.lastbamboo.common.stun.client.StunServerRepository;
+import org.lastbamboo.common.stun.client.UdpStunClient;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +40,8 @@ import org.slf4j.LoggerFactory;
  * IRC: perl -MIO -e'$x=IO::Socket::INET->new("$ARGV[0]:6667");print $x "USER x x x x\nNICK testip$$\nWHOIS testip$$\n";while(<$x>){if(/PING (\S+)/){print $x "PONG $1\n"}elsif(/^\S+ 378 .* (\S+)/){die$1}}' irc.freenode.org
  *
  * Many thanks to Samy Kamkar!!
+ * 
+ * PMW: Cargoculted from LittleShoot
  */
 public class PublicIpAddress implements PublicIp {
 

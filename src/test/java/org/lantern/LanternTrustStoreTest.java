@@ -1,11 +1,8 @@
 package org.lantern;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -14,6 +11,7 @@ import java.net.URI;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -70,7 +68,7 @@ public class LanternTrustStoreTest {
     }
     
     @Test
-    public void testSites() throws FileNotFoundException {//throws Exception {
+    public void testSites() throws Exception {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
         //log.debug("CONFIGURED TRUSTSTORE: "+
         //        System.getProperty("javax.net.ssl.trustStore"));
@@ -148,7 +146,9 @@ public class LanternTrustStoreTest {
             }
         }
         // We need to add this back as otherwise it can affect other tests!
-        trustStore.addCert("equifaxsecureca", new FileInputStream(new File("certs/equifaxsecureca.cer")));
+        trustStore.addCert(new URI("equifaxsecureca"), LanternUtils
+                .certFromBytes(FileUtils.readFileToByteArray(new File(
+                        "certs/equifaxsecureca.cer"))));
     }
 
     private String trySite(final HttpClient client, final String uri)
