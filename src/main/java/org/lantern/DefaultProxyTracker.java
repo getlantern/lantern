@@ -380,6 +380,8 @@ public class DefaultProxyTracker implements ProxyTracker {
                     sock.bind(newFiveTuple.getLocal());
                     sock.connect(newFiveTuple.getRemote());
                     
+                    try {Thread.sleep(60000);} catch (InterruptedException ie) {}
+                    
                     ProxyHolder newProxy = new ProxyHolder(DefaultProxyTracker.this,
                             peerFactory,
                             lanternTrustStore,
