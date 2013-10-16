@@ -232,9 +232,7 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
      */
     @Override
     public InetSocketAddress getLocalAddress() {
-        InetSocketAddress localAddress = UDP == fiveTuple.getProtocol() ? fiveTuple.getLocal() : null;
-        LOG.debug("Local address: {}", localAddress);
-        return localAddress;
+        return UDP == fiveTuple.getProtocol() ? fiveTuple.getLocal() : null;
     }
 
     /**
