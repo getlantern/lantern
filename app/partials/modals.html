@@ -264,13 +264,11 @@
 
     <div class="addFriendsControls">
       <div id="fetchingFriends" class="centered muted" ng-hide="model.friends">
-        <div style="margin: 30px 0 5px; padding: 10px 0; border-top: 1px solid #eee">
-          {{ 'LOADING_FRIENDS' | i18n }}
-        </div>
+        <div>{{ 'LOADING_FRIENDS' | i18n }}</div>
         <img src="img/spinner.gif">
       </div>
 
-      <div ng-show="nfriends || nfriendSuggestions">
+      <div ng-show="model.friends && (nfriends || nfriendSuggestions)">
         <div ng-show="nfriendSuggestions == 0" ng-class="{hasSearchText: !!searchText}">
           <h4 id="currentFriendsHeading">
             <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
@@ -332,7 +330,7 @@
         </div>
       </div>
 
-      <div collapse="nfriendSuggestions > 0">
+      <div collapse="!model.friends || nfriendSuggestions > 0">
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="addSuccess"
           placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
