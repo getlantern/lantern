@@ -7230,7 +7230,7 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 
 #friendSuggestionList, #currentFriends {
   list-style: none;
-  max-height: 200px;
+  max-height: 195px;
   overflow-y: scroll;
   border-radius: 8px;
   border: 2px solid #cccccc;
