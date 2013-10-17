@@ -1,5 +1,6 @@
 package org.lantern;
 
+import static org.lantern.Tr.tr;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -50,9 +51,9 @@ public class SystemTrayImpl implements SystemTray {
     private Map<String, Object> updateData;
     private boolean active = false;
 
-    private final static String LABEL_DISCONNECTED = Tr.tr("TRAY_NOT_CONNECTED");
-    private final static String LABEL_CONNECTING = Tr.tr("TRAY_CONNECTING");
-    private final static String LABEL_CONNECTED = Tr.tr("TRAY_CONNECTED");
+    private final static String LABEL_DISCONNECTED = tr("TRAY_NOT_CONNECTED");
+    private final static String LABEL_CONNECTING = tr("TRAY_CONNECTING");
+    private final static String LABEL_CONNECTED = tr("TRAY_CONNECTED");
     
     private final static String ICON_DISCONNECTED  = "16off.png";
     private final static String ICON_CONNECTING    = "16off.png"; 
@@ -127,7 +128,7 @@ public class SystemTrayImpl implements SystemTray {
             log.info("Creating system tray...");
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
-                Tr.tr("LANTERN")+" "+LanternClientConstants.VERSION);
+                tr("LANTERN")+" "+LanternClientConstants.VERSION);
             
             // Another thread could have set the tray item image before the
             // tray item was created.
@@ -161,7 +162,7 @@ public class SystemTrayImpl implements SystemTray {
             connectionStatusItem.setEnabled(false);
             
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
-            dashboardItem.setText(Tr.tr("TRAY_SHOW_LANTERN")); 
+            dashboardItem.setText(tr("TRAY_SHOW_LANTERN")); 
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -173,7 +174,7 @@ public class SystemTrayImpl implements SystemTray {
             new MenuItem(menu, SWT.SEPARATOR);
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText(Tr.tr("TRAY_QUIT")); 
+            quitItem.setText(tr("TRAY_QUIT")); 
             
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
@@ -301,7 +302,7 @@ public class SystemTrayImpl implements SystemTray {
                         }
                     });
                 }
-                updateItem.setText(Tr.tr("TRAY_UPDATE")+" "+
+                updateItem.setText(tr("TRAY_UPDATE")+" "+
                     data.get(LanternConstants.UPDATE_VERSION_KEY));
             }
         });
