@@ -72,6 +72,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private final NetworkTracker<String, URI, ?> networkTracker;
 
     private Future<Map<String, ClientFriend>> loadedFriends;
+
+    private String refreshToken;
     
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
@@ -86,7 +88,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
         
         // If we already have a refresh token, just use it to load friends.
         // Otherwise register for refresh token events.
-        if (StringUtils.isNotBlank(model.getSettings().getRefreshToken())) {
+        this.refreshToken = model.getSettings().getRefreshToken();
+        if (StringUtils.isNotBlank(this.refreshToken)) {
             loadFriends();
         }
         Events.register(this);
@@ -96,6 +99,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refresh) {
         log.debug("Got refresh token -- loading friends");
+        this.refreshToken = refresh.getRefreshToken();
         loadFriends();
     }
     
@@ -105,7 +109,12 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // the Internet, so just make sure we load friends in that case.
         // This will do no harm if we're connecting to the proxy for some
         // other reason.
-        loadFriends();
+        
+        // We also need to make sure we have a refresh token here -- otherwise
+        // we'll connect when we get one!
+        if (StringUtils.isNotBlank(this.refreshToken)) {
+            loadFriends();
+        }
     }
     
     private void loadFriends() {
