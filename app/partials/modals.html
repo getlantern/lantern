@@ -64,7 +64,7 @@
   </div>
 </div>
 
-<div modal="model.modal == MODAL.welcome">
+<div ng-controller="WelcomeCtrl" modal="show">
   <div class="modal-body" id="welcome">
     <div class="logo">
       <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
@@ -73,11 +73,12 @@
     <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
     <div ng-show="model.connectivity.internet">
       <div ng-show="inCensoringCountry">
-        <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+        <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)"
+          focus-on="show">{{ 'GET_ACCESS' | i18n }}</button>
       </div>
       <div ng-hide="inCensoringCountry">
         <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-          class="btn btn-large btn-give-inverse">
+          class="btn btn-large btn-give-inverse" focus-on="show">
           <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
           {{ 'GIVE_ACCESS' | i18n }}
         </button>

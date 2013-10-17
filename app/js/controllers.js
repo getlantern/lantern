@@ -10,6 +10,13 @@ function SettingsLoadFailureCtrl($scope, MODAL) {
   });
 }
 
+function WelcomeCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.welcome;
+  });
+}
+
 function SponsorCtrl($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
