@@ -243,7 +243,7 @@ public class Launcher {
         instance(Censored.class);
 
         messageService = instance(MessageService.class);
-
+        
         if (SystemUtils.IS_OS_MAC_OSX) {
             final boolean sixtyFourBits =
                 System.getProperty("sun.arch.data.model").equals("64");
@@ -356,7 +356,7 @@ public class Launcher {
                 keyStoreManager.start();
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
-                final Timer timer = new Timer();
+                final Timer timer = new Timer("Connectivity-Check-Timer", true);
                 timer.schedule(connectivityChecker, 0, 10 * 1000);
 
                 shutdownable(ModelIo.class);
