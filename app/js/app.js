@@ -113,13 +113,15 @@ var app = angular.module('app', [
 
     $rootScope.$watch('model.friends', function (friends) {
       if (!friends) return;
-      $rootScope.friendsByEmail = {};
       $rootScope.nfriends = 0;
-      $rootScope.npending = 0;
+      $rootScope.nfriendSuggestions = 0;
+      $rootScope.friendSuggestions = [];
+      $rootScope.friendsByEmail = {};
       for (var i=0, l=friends.length, ii=friends[i]; ii; ii=friends[++i]) {
         $rootScope.friendsByEmail[ii.email] = ii;
         if (ii.status === FRIEND_STATUS.pending) {
-          $rootScope.npending++;
+          $rootScope.nfriendSuggestions++;
+          $rootScope.friendSuggestions.push(ii);
         } else if (ii.status == FRIEND_STATUS.friend) {
           $rootScope.nfriends++;
         }

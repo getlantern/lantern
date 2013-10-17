@@ -128,7 +128,7 @@
   float: right
   width: 230px
   height: 1.5 * $baseLineHeight
-  margin: 25px 0 7px
+  margin: -5px 0 7px
   +border-radius(18px)
   &::-webkit-search-decoration
     -webkit-appearance: searchfield-decoration
@@ -142,13 +142,13 @@
 #lanternFriends
   min-height: 115px
   .addFriendsControls
-    margin-top: 20px
+    padding: 15px
   .coloredByConnectedStatus
     +single-transition(all, 0.3s, ease)
     body.getMode &.transferringNow
       background-color: #fffced
       .friendConnectedStatus
-        color: #f7b636
+        +get-colored-alt
     body.getMode &.connected
       background-color: #fffced
       .friendConnectedStatus
@@ -164,7 +164,7 @@
     &.lastConnected
       .friendConnectedStatus
         +grayDark
-    &.notYetConnected:not(.status-pending)
+    &.notYetConnected
       background-color: #f5f5f5
       .friendConnectedStatus
         +gray
@@ -172,30 +172,65 @@
     +smaller
     +thin
     margin: 2px 0 0 14px
+  .vcard .email
+    &:before
+      content: '<'
+    &:after
+      content: '>'
+  .hasSearchText .select2-container
+    display: none
 
 #currentFriendsHeading
-  +bold
-  margin: 30px 0 0 13px
-  padding: 0 5px 2px
-  border-bottom: 1px solid $infoText
+  +info-colored
+  margin: 0 0 0 22px
   float: left
 
-#currentFriends
+#suggestedFriendsHeading
+  +info-colored
+  margin-top: 0
+
+.below-friendSuggestionList
+  +single-transition(opacity, 0.3s, ease)
+  +smaller
+  opacity: 0
+  text-align: left
+  margin: 15px 0
+  padding: 0 13px
+  .dismiss-all
+    float: right
+    width: 110px
+  .addFriendsControls:hover &
+    opacity: 1
+
+#friendSuggestionList
+  text-align: left
+  & > li
+    padding: 8px 10px
+    border: 1px solid #eee
+    &:hover
+      background-color: #ffffd7
+  .approve.btn-group
+    display: inline-block
+    float: right
+    & > .btn
+      width: 55px
+
+#friendSuggestionList, #currentFriends
   +no-bullets
-  //background: #f5f5f5
-  background: #fff
-  clear: both
   max-height: 200px
   overflow-y: scroll
-  margin: 10px 0
+  border-radius: 8px
+  border: 2px solid #ccc
+  margin: 0
+
+#currentFriends
+  clear: both
   padding: 0
+  margin-bottom: 10px
   .entry
     padding: 5px
     border: 1px solid #fff
     color: $grayLight
-    &.status-pending
-      +info-colored
-      border-bottom-style: dotted !important
     .reject
       display: inline-block
       width: 10px
@@ -213,38 +248,12 @@
         opacity: 1
         &:hover
           color: #000
-      .pending
-        height: auto
-        line-height: auto
-        margin: 10px
-        padding: 10px
-        opacity: 1
-  .approve.btn-group
-    display: inline-block
-    float: right
-    & > .btn
-      width: 55px
-  .pending
-    +smaller
-    +centered
-    +single-transition(all, 0.3s, ease)
-    +error-colored
-    opacity: 0
-    clear: both
-    margin: 0
-    height: 0
-    line-height: 0
-  .entry.status-pending
-    .reject
-      opacity: 0
-      cursor: default
-  .email
-    &:before
-      content: '<'
-    &:after
-      content: '>'
 
-.contactList-horizontal
+.no-friends-matching
+  padding: 10px 22px
+  background-color: #f5f5f5
+
+//.contactList-horizontal
   +neverHideScrollbars
   margin: 5px 0 10px
   overflow: auto

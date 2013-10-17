@@ -13,11 +13,6 @@ angular.module('app.filters', [])
       return count > max ? max + '+' : count;
     };
   })
-  .filter('notRejected', function(FRIEND_STATUS) {
-    return function(friends) {
-      return _.reject(friends, {status: FRIEND_STATUS.rejected});
-    };
-  })
   .filter('noNullIsland', function() {
     return function(peers) {
       return _.reject(peers, function (peer) {

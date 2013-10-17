@@ -259,6 +259,26 @@ exports.SCENARIOS = {
                            email: 'suggested4@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Fourth Suggestion',
+                           status: FRIEND_STATUS.pending
+                          },{
+                           email: 'suggested5@example.com',
+                           picture: 'img/default-avatar.png',
+                           name: 'Fifth Suggestion',
+                           status: FRIEND_STATUS.pending
+                          },{
+                           email: 'suggested6@example.com',
+                           picture: 'img/default-avatar.png',
+                           name: 'Sixth Suggestion',
+                           status: FRIEND_STATUS.pending
+                          },{
+                           email: 'suggested7@example.com',
+                           picture: 'img/default-avatar.png',
+                           name: 'Seventh Suggestion',
+                           status: FRIEND_STATUS.pending
+                          },{
+                           email: 'suggested8@example.com',
+                           picture: 'img/default-avatar.png',
+                           name: 'Eighth Suggestion',
                            status: FRIEND_STATUS.rejected
                           }];
               this.sync({'/friends': friends});

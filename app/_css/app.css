@@ -6897,6 +6897,10 @@ textarea {
   border-bottom-color: #b94a48;
 }
 
+.select2-results {
+  max-height: 60px;
+}
+
 @-webkit-keyframes defaultPulse {
   from {
     opacity: 1;
@@ -7102,7 +7106,7 @@ textarea {
   float: right;
   width: 230px;
   height: 27px;
-  margin: 25px 0 7px;
+  margin: -5px 0 7px;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
@@ -7124,7 +7128,7 @@ textarea {
   min-height: 115px;
 }
 #lanternFriends .addFriendsControls {
-  margin-top: 20px;
+  padding: 15px;
 }
 #lanternFriends .coloredByConnectedStatus {
   -webkit-transition: all 0.3s ease;
@@ -7134,7 +7138,7 @@ body.getMode #lanternFriends .coloredByConnectedStatus.transferringNow {
   background-color: #fffced;
 }
 body.getMode #lanternFriends .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
-  color: #f7b636;
+  color: #cc8800;
 }
 body.getMode #lanternFriends .coloredByConnectedStatus.connected {
   background-color: #fffced;
@@ -7157,10 +7161,10 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 #lanternFriends .coloredByConnectedStatus.lastConnected .friendConnectedStatus {
   color: #555555;
 }
-#lanternFriends .coloredByConnectedStatus.notYetConnected:not(.status-pending) {
+#lanternFriends .coloredByConnectedStatus.notYetConnected {
   background-color: whitesmoke;
 }
-#lanternFriends .coloredByConnectedStatus.notYetConnected:not(.status-pending) .friendConnectedStatus {
+#lanternFriends .coloredByConnectedStatus.notYetConnected .friendConnectedStatus {
   color: #999999;
 }
 #lanternFriends .friendConnectedStatus {
@@ -7168,37 +7172,85 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   font-family: "Roboto Thin";
   margin: 2px 0 0 14px;
 }
+#lanternFriends .vcard .email:before {
+  content: "<";
+}
+#lanternFriends .vcard .email:after {
+  content: ">";
+}
+#lanternFriends .hasSearchText .select2-container {
+  display: none;
+}
 
 #currentFriendsHeading {
-  font-weight: bold;
-  margin: 30px 0 0 13px;
-  padding: 0 5px 2px;
-  border-bottom: 1px solid #3a87ad;
+  color: #3a87ad !important;
+  margin: 0 0 0 22px;
   float: left;
 }
 
-#currentFriends {
+#suggestedFriendsHeading {
+  color: #3a87ad !important;
+  margin-top: 0;
+}
+
+.below-friendSuggestionList {
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
+  font-size: 11.9px;
+  opacity: 0;
+  text-align: left;
+  margin: 15px 0;
+  padding: 0 13px;
+}
+.below-friendSuggestionList .dismiss-all {
+  float: right;
+  width: 110px;
+}
+.addFriendsControls:hover .below-friendSuggestionList {
+  opacity: 1;
+}
+
+#friendSuggestionList {
+  text-align: left;
+}
+#friendSuggestionList > li {
+  padding: 8px 10px;
+  border: 1px solid #eeeeee;
+}
+#friendSuggestionList > li:hover {
+  background-color: #ffffd7;
+}
+#friendSuggestionList .approve.btn-group {
+  display: inline-block;
+  float: right;
+}
+#friendSuggestionList .approve.btn-group > .btn {
+  width: 55px;
+}
+
+#friendSuggestionList, #currentFriends {
   list-style: none;
-  background: white;
-  clear: both;
   max-height: 200px;
   overflow-y: scroll;
-  margin: 10px 0;
-  padding: 0;
+  border-radius: 8px;
+  border: 2px solid #cccccc;
+  margin: 0;
 }
-#currentFriends li {
+#friendSuggestionList li, #currentFriends li {
   list-style-image: none;
   list-style-type: none;
   margin-left: 0;
+}
+
+#currentFriends {
+  clear: both;
+  padding: 0;
+  margin-bottom: 10px;
 }
 #currentFriends .entry {
   padding: 5px;
   border: 1px solid white;
   color: #999999;
-}
-#currentFriends .entry.status-pending {
-  color: #3a87ad !important;
-  border-bottom-style: dotted !important;
 }
 #currentFriends .entry .reject {
   display: inline-block;
@@ -7221,95 +7273,10 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 #currentFriends .entry:hover .reject:hover {
   color: black;
 }
-#currentFriends .entry:hover .pending {
-  height: auto;
-  line-height: auto;
-  margin: 10px;
-  padding: 10px;
-  opacity: 1;
-}
-#currentFriends .approve.btn-group {
-  display: inline-block;
-  float: right;
-}
-#currentFriends .approve.btn-group > .btn {
-  width: 55px;
-}
-#currentFriends .pending {
-  font-size: 11.9px;
-  text-align: center;
-  -webkit-transition: all 0.3s ease;
-  transition: all 0.3s ease;
-  color: #b94a48 !important;
-  opacity: 0;
-  clear: both;
-  margin: 0;
-  height: 0;
-  line-height: 0;
-}
-#currentFriends .entry.status-pending .reject {
-  opacity: 0;
-  cursor: default;
-}
-#currentFriends .email:before {
-  content: "<";
-}
-#currentFriends .email:after {
-  content: ">";
-}
 
-.contactList-horizontal {
-  margin: 5px 0 10px;
-  overflow: auto;
-  white-space: nowrap;
-  width: 100%;
-}
-.contactList-horizontal::-webkit-scrollbar {
-  -webkit-appearance: none;
-  width: 11px;
-  height: 11px;
-}
-.contactList-horizontal::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  border: 2px solid white;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-.contactList-horizontal li {
-  display: -moz-inline-stack;
-  display: inline-block;
-  vertical-align: middle;
-  *vertical-align: auto;
-  zoom: 1;
-  *display: inline;
-  text-align: left;
-  white-space: normal;
-  width: 200px;
-  margin-right: 5px;
-  line-height: 1.4;
-}
-.contactList-horizontal li:last-child {
-  margin-right: 0;
-}
-.contactList-horizontal img.photo {
-  width: 50px;
-  height: 50px;
-  margin-right: 10px;
-  float: left;
-}
-.contactList-horizontal .fn, .contactList-horizontal .email {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.contactList-horizontal .fn {
-  font-weight: bold;
-  font-size: 13.3px;
-}
-.contactList-horizontal .btn-mini {
-  padding: 0 3px;
-  line-height: 1.4;
-  font-size: 11.9px;
+.no-friends-matching {
+  padding: 10px 22px;
+  background-color: whitesmoke;
 }
 
 #finished-autoReport {

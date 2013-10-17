@@ -262,57 +262,82 @@
     </div>
 
     <div class="addFriendsControls">
-      <div>
-        <input type="hidden" id="addFriendInput" name="addFriendInput"
-          select2-focus-on="show" select2-focus-on-broadcast="addSuccess"
-          placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
-          ng-model="added" ui-select2="select2opts">
-          <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
-      </div>
-
-      <p id="currentFriendsHeading" ng-show="nfriends || npending">{{ nfriends && ('NFRIENDS' | i18n:nfriends) || '' }}{{ nfriends && npending && ' · ' || ''}}<span class="info-colored">{{ npending && ('NSUGGESTED' | i18n:npending) || '' }}</span></p>
-
-      <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
-      id="friendsListSearch" ng-class="{empty: !searchText}" ng-show="nfriends || npending">
-
-      <div id="fetchingFriends" class="centered muted" ng-show="!model.friends">
+      <div id="fetchingFriends" class="centered muted" ng-hide="model.friends">
         <div style="margin: 30px 0 5px; padding: 10px 0; border-top: 1px solid #eee">
           {{ 'LOADING_FRIENDS' | i18n }}
         </div>
         <img src="img/spinner.gif">
       </div>
-      <ul class="well" id="currentFriends" ng-show="nfriends || npending">
-        <li ng-show="searchText && displayedFriends.length == 0">
-          <div class="indented gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>
-        </li>
-        <li ng-repeat="friend in displayedFriends" class="entry status-{{ friend.status }} coloredByConnectedStatus {{friend.connectedStatus}}">
-          <div>
-            <a class="reject" ng-click="friend.status != FRIEND_STATUS.pending && reject(friend.email)">×</a>
-            <span class="vcard">
-              <span class="fn">{{ friend.name }}</span>
-              <span class="email">{{ friend.email }}</span>
-            </span>
-            <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending" dir="ltr">
-              <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'ADD' | i18n }}</button>
-              <button type="button" class="btn btn-mini" ng-click="reject(friend.email)">{{ 'DISMISS' | i18n }}</button>
-            </span>
-          </div>
-          <div class="pending" ng-show="friend.status == FRIEND_STATUS.pending">
+
+      <div ng-show="nfriends || nfriendSuggestions">
+        <div ng-show="nfriendSuggestions == 0" ng-class="{hasSearchText: !!searchText}">
+          <h4 id="currentFriendsHeading">
+            <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
+            <span ng-show="searchText">{{ 'MATCHING_FRIENDS' | i18n:displayedFriends.length }}</span>
+          </h4>
+
+          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
+            id="friendsListSearch" ng-class="{empty: !searchText}">
+
+          <ul id="currentFriends">
+            <li ng-show="searchText && displayedFriends.length == 0" class="no-friends-matching">
+              <div class="gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>
+            </li>
+            <li ng-repeat="friend in displayedFriends" class="entry status-{{ friend.status }} coloredByConnectedStatus {{friend.connectedStatus}}">
+              <div>
+                <a class="reject" ng-click="reject(friend.email)">×</a>
+                <span class="vcard">
+                  <span class="fn">{{ friend.name }}</span>
+                  <span class="email">{{ friend.email }}</span>
+                </span>
+              </div>
+              <div class="friendConnectedStatus">
+                <div ng-switch="friend.connectedStatus">
+                  <span ng-switch-when="transferringNow">{{friend.bpsUpDnSum | prettyBps}} {{'TRANSFERRING_NOW'|i18n}}</span>
+                  <span ng-switch-when="connected">{{'CONNECTED'|i18n}}</span>
+                  <span ng-switch-when="lastConnected">{{'LAST_CONNECTED'|i18n}} {{friend.lastConnected|date:'short'}}</span>
+                  <span ng-switch-when="notYetConnected">{{'NOT_YET_CONNECTED'|i18n}}</span>
+                  <span ng-switch-default>{{'UNKNOWN_CONNECTED_STATUS'|i18n}}</span><!-- should not get here -->
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <input type="hidden" id="addFriendInput" name="addFriendInput"
+            select2-focus-on="show" select2-focus-on-broadcast="addSuccess"
+            placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
+            ng-model="added" ui-select2="select2opts">
+            <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
+        </div>
+
+        <div ng-show="nfriendSuggestions > 0" class="centered">
+          <h4 id="suggestedFriendsHeading">
+            {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
+          </h4>
+
+          <ul id="friendSuggestionList">
+            <li ng-repeat="friend in friendSuggestions">
+              <div>
+                <span class="vcard">
+                  <span class="fn">{{ friend.name }}</span>
+                  <span class="email">{{ friend.email }}</span>
+                </span>
+                <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending" dir="ltr">
+                  <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'ADD' | i18n }}</button>
+                  <button type="button" class="btn btn-mini" ng-click="reject(friend.email)">{{ 'DISMISS' | i18n }}</button>
+                </span>
+              </div>
+            </li>
+          </ul>
+          <div class="below-friendSuggestionList">
+            <i class="icon-warning-sign warning-colored"></i>
             {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
+            <button class="btn btn-mini dismiss-all" ng-click="dismissAll()">{{ 'DISMISS_ALL' | i18n }}</button>
           </div>
-          <div ng-hide="friend.status == FRIEND_STATUS.pending" class="friendConnectedStatus">
-            <div ng-switch="friend.connectedStatus">
-            <span ng-switch-when="transferringNow">{{friend.bpsUpDnSum | prettyBps}} {{'TRANSFERRING_NOW'|i18n}}</span>
-            <span ng-switch-when="connected">{{'CONNECTED'|i18n}}</span>
-            <span ng-switch-when="lastConnected">{{'LAST_CONNECTED'|i18n}} {{friend.lastConnected|date:'short'}}</span>
-            <span ng-switch-when="notYetConnected">{{'NOT_YET_CONNECTED'|i18n}}</span>
-            <span ng-switch-default>{{'UNKNOWN_CONNECTED_STATUS'|i18n}}</span><!-- should not get here -->
-          </div>
-          </div>
-        </li>
-      </ul>
-      <div class="error error-colored pagination-centered" ui-toggle="errorLabelKey">
-        {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
+        </div>
+        <div class="error error-colored pagination-centered" ui-toggle="errorLabelKey">
+          {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
+        </div>
       </div>
     </div>
   </div>

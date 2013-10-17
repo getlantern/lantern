@@ -281,12 +281,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
 function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
-      dateFltr = $filter('date'),
-      filterFltr = $filter('filter'),
       i18nFltr = $filter('i18n'),
-      notRejectedFltr = $filter('notRejected'),
-      orderByFltr = $filter('orderBy'),
-      prettyBpsFltr = $filter('prettyBps'),
       prettyUserFltr = $filter('prettyUser');
 
   $scope.show = false;
@@ -328,17 +323,21 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       });
   };
 
+  $scope.dismissAll = function () {
+    // XXX a batch "dismiss" api would be better
+    _.each($scope.friendSuggestions, function (friend) {
+      $scope.interaction(INTERACTION.reject, {email: friend.email});
+    });
+  };
+
   function updateDisplayedFriends() {
-    if (!$scope.show) return;
-    $scope.displayedFriends =
-      orderByFltr(
-        filterFltr(
-          notRejectedFltr(
-            filterFltr(
-              model.friends,
-              matchSearchText)),
-          addConnectedStatus),
-        friendOrder);
+    if (!$scope.show || $scope.nfriendSuggestions > 0) return;
+    $scope.displayedFriends = _.filter(model.friends, {status: FRIEND_STATUS.friend});
+    if ($scope.searchText) {
+      $scope.displayedFriends = _.filter($scope.displayedFriends, matchSearchText);
+    }
+    _.each($scope.displayedFriends, addConnectedStatus);
+    $scope.displayedFriends = _.sortBy($scope.displayedFriends, friendOrder);
   }
   $scope.$watch('model.peers', updateDisplayedFriends, true);
   $scope.$watch('model.friends', updateDisplayedFriends, true);
@@ -381,19 +380,15 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     return friend;
   }
 
+  var prefixByConnectedStatus = {
+    transferringNow: '1',
+    connected: '2',
+    lastConnected: '3',
+    notYetConnected: '4'
+  };
   function friendOrder(friend) {
-    // entries with status 'pending' come first, then 'friend', then other
-    // within each group, entries with no name field come first
-    // ('-' < '0' < 'A' < 'a')
-    var s = friend.name ? prettyUserFltr(friend) : '-' + friend.email;
-    switch (friend.status) {
-      case FRIEND_STATUS.pending:
-        return '0' + s;
-      case FRIEND_STATUS.friend:
-        return '1' + s;
-      default:
-        return '2' + s;
-    }
+    var prefix = prefixByConnectedStatus[friend.connectedStatus] || '';
+    return prefix + prettyUserFltr(friend);
   }
 
   $scope.$watch('contactCompletions', function (contactCompletions) {
