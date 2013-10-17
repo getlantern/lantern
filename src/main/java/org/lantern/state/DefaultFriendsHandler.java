@@ -30,6 +30,7 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.RefreshTokenEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
@@ -87,9 +88,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // Otherwise register for refresh token events.
         if (StringUtils.isNotBlank(model.getSettings().getRefreshToken())) {
             loadFriends();
-        } else {
-            Events.register(this);
         }
+        Events.register(this);
         handleBulkInvites();
     }
     
@@ -99,8 +99,19 @@ public class DefaultFriendsHandler implements FriendsHandler {
         loadFriends();
     }
     
+    @Subscribe
+    public void onProxyConnection(final ProxyConnectionEvent event) {
+        // This may be a proxy connection event due to being reconnected to
+        // the Internet, so just make sure we load friends in that case.
+        // This will do no harm if we're connecting to the proxy for some
+        // other reason.
+        loadFriends();
+    }
+    
     private void loadFriends() {
-        if (this.friendsLoading.getAndSet(true)) {
+        // If we're currently loading friends or have already successfully 
+        // loaded friends, ignore this call.
+        if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {
             log.debug("Friends currently loading...");
             return;
         }
