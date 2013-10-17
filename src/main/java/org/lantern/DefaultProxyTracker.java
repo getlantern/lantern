@@ -437,23 +437,26 @@ public class DefaultProxyTracker implements ProxyTracker {
         long now = new Date().getTime();
         for (ProxyHolder proxy : proxies) {
             if (proxy.needsConnectionTest() && now > proxy.getRetryTime()) {
-                LOG.debug("Attempting to restore timed-in proxy " + proxy);
+                LOG.debug("Attempting to restore timed-in proxy: {}", proxy);
                 checkConnectivityToProxy(proxy);
             } else {
+                LOG.debug("Ignoring timed-in proxy: {}", proxy);
                 break;
             }
         }
     }
 
     private void restoreDeceasedProxies() {
+        LOG.debug("Checking to restore {} proxies", proxies.size());
         for (ProxyHolder proxy : proxies) {
             if (proxy.needsConnectionTest()) {
-                LOG.debug("Attempting to restore deceased proxy " + proxy);
+                LOG.debug("Attempting to restore deceased proxy: {}", proxy);
                 // Proxy may have accumulated a long back-off time while we
                 // were offline, so let's reset its failures.
                 proxy.resetFailures();
                 checkConnectivityToProxy(proxy);
             } else {
+                LOG.debug("Proxy does not need a connection test: {}", proxy);
                 break;
             }
         }
@@ -472,22 +475,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.proxiesPopulated.set(true);
         addFallbackProxies();
 
-        // For now, don't pre-populate stored proxies
-        if (true) return;
-        
-        // Add all the stored proxies.
-        final Collection<Peer> peers = this.model.getPeers();
-        LOG.debug("Proxy set is: {}", peers);
-        for (final Peer peer : peers) {
-            // Don't use peer proxies since we're not connected to XMPP yet.
-            if (peer.isMapped()) {
-                final String id = peer.getPeerid();
-                if (!id.contains(fallbackServerHost)) {
-                    addProxy(LanternUtils.newURI(peer.getPeerid()),
-                            new InetSocketAddress(peer.getIp(), peer.getPort()));
-                }
-            }
-        }
+        // For now, we don't pre-populate stored proxies that are not standard
+        // fallbacks because we don't have a way to exchange updated 
+        // certificates with them yet (we do that
+        // over XMPP, but at this point we don't even have a fallback so may
+        // not be able to connected to XMPP...chicken/egg).
     }
 
     private void addFallbackProxies() {
