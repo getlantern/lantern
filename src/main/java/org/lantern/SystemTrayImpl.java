@@ -50,17 +50,14 @@ public class SystemTrayImpl implements SystemTray {
     private Map<String, Object> updateData;
     private boolean active = false;
 
-    private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
-    private final static String LABEL_CONNECTING = "Lantern: Connecting...";
-    private final static String LABEL_CONNECTED = "Lantern: Connected";
-    private final static String LABEL_DISCONNECTING = "Lantern: Disconnecting...";
+    private final static String LABEL_DISCONNECTED = Tr.tr("TRAY_NOT_CONNECTED");
+    private final static String LABEL_CONNECTING = Tr.tr("TRAY_CONNECTING");
+    private final static String LABEL_CONNECTED = Tr.tr("TRAY_CONNECTED");
     
-    // could be changed to red/yellow/green
     private final static String ICON_DISCONNECTED  = "16off.png";
     private final static String ICON_CONNECTING    = "16off.png"; 
     private final static String ICON_CONNECTED     = "16on.png";
-    private final static String ICON_DISCONNECTING = "16off.png";
-    //private final XmppHandler handler;
+
     private final BrowserService browserService;
     private final Model model;
     private String connectionStatusText;
@@ -130,7 +127,7 @@ public class SystemTrayImpl implements SystemTray {
             log.info("Creating system tray...");
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
-                Tr.tr("Lantern ")+LanternClientConstants.VERSION);
+                Tr.tr("LANTERN")+" "+LanternClientConstants.VERSION);
             
             // Another thread could have set the tray item image before the
             // tray item was created.
@@ -159,12 +156,12 @@ public class SystemTrayImpl implements SystemTray {
             if (StringUtils.isNotBlank(connectionStatusText)) {
                 connectionStatusItem.setText(connectionStatusText);
             } else {
-                connectionStatusItem.setText(LABEL_DISCONNECTED); // XXX i18n
+                connectionStatusItem.setText(LABEL_DISCONNECTED);
             }
             connectionStatusItem.setEnabled(false);
             
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
-            dashboardItem.setText("Show Lantern"); // XXX i18n
+            dashboardItem.setText(Tr.tr("TRAY_SHOW_LANTERN")); 
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -176,7 +173,7 @@ public class SystemTrayImpl implements SystemTray {
             new MenuItem(menu, SWT.SEPARATOR);
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText("Quit Lantern"); // XXX i18n
+            quitItem.setText(Tr.tr("TRAY_QUIT")); 
             
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
@@ -304,7 +301,7 @@ public class SystemTrayImpl implements SystemTray {
                         }
                     });
                 }
-                updateItem.setText(Tr.tr("Update to Lantern ")+
+                updateItem.setText(Tr.tr("TRAY_UPDATE")+" "+
                     data.get(LanternConstants.UPDATE_VERSION_KEY));
             }
         });
