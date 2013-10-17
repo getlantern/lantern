@@ -130,7 +130,7 @@ public class SystemTrayImpl implements SystemTray {
             log.info("Creating system tray...");
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
-                I18n.tr("Lantern ")+LanternClientConstants.VERSION);
+                Tr.tr("Lantern ")+LanternClientConstants.VERSION);
             
             // Another thread could have set the tray item image before the
             // tray item was created.
@@ -304,7 +304,7 @@ public class SystemTrayImpl implements SystemTray {
                         }
                     });
                 }
-                updateItem.setText(I18n.tr("Update to Lantern ")+
+                updateItem.setText(Tr.tr("Update to Lantern ")+
                     data.get(LanternConstants.UPDATE_VERSION_KEY));
             }
         });
