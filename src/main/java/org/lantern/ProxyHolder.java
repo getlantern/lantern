@@ -75,8 +75,8 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
     public String toString() {
         long timeOfDeath = this.timeOfDeath.get();
         String timeOfDeathStr;
-        if (timeOfDeath == -1) {
-            timeOfDeathStr = " (alive)";
+        if (isConnected()) {
+            timeOfDeathStr = " (connected)";
         } else {
             timeOfDeathStr = "@" + new Date(timeOfDeath) + " retry at "
                     + new Date(getRetryTime());
