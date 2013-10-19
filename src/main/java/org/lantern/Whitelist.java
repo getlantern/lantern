@@ -38,6 +38,7 @@ public class Whitelist {
         "blognevesht.com",
         
         "avaaz.org",
+        "bit.ly",
         "bittorrent.com",
         "bloglines.com",
         "blogspot.com",
@@ -75,6 +76,7 @@ public class Whitelist {
         "rsf.org",
         "scribd.com",
         "stumbleupon.com",
+        "t.co",
         "torproject.org",
         "tumblr.com",
         "twitter.com",
