@@ -476,12 +476,12 @@ public class DefaultXmppHandler implements XmppHandler,
 
         // Make sure all connections between us and the server are stored
         // OTR.
-        modelUtils.syncConnectingStatus("Activating Google Talk pseudo-OTR...");
+        modelUtils.syncConnectingStatus(Tr.tr(MessageKey.CONFIGURING_CONNECTION));
         LanternUtils.activateOtr(connection);
 
         LOG.debug("Connection ID: {}", connection.getConnectionID());
 
-        modelUtils.syncConnectingStatus("Waiting for message from Lantern...");
+        modelUtils.syncConnectingStatus(Tr.tr(MessageKey.CHECKING_INVITE));
 
         DefaultPacketListener listener = new DefaultPacketListener();
         connection.addPacketListener(listener, listener);
@@ -490,7 +490,7 @@ public class DefaultXmppHandler implements XmppHandler,
         updatePresence();
 
         waitForClosedBetaStatus(credentials.getUsername());
-        modelUtils.syncConnectingStatus("Lantern message received...");
+        modelUtils.syncConnectingStatus(Tr.tr(MessageKey.INVITED));
     }
 
     private void makeClient(final InetSocketAddress plainTextProxyRelayAddress)
@@ -518,7 +518,7 @@ public class DefaultXmppHandler implements XmppHandler,
     }
 
     private void getStunServers(final XMPPConnection connection) {
-        modelUtils.syncConnectingStatus("Gathering servers...");
+        modelUtils.syncConnectingStatus(Tr.tr(MessageKey.STUN_SERVER_LOOKUP));
         final Collection<InetSocketAddress> googleStunServers =
                 XmppUtils.googleStunServers(connection);
         StunServerRepository.setStunServers(googleStunServers);
@@ -531,7 +531,7 @@ public class DefaultXmppHandler implements XmppHandler,
         try {
             this.client.get().login(credentials);
 
-            modelUtils.syncConnectingStatus("Logged in to Google Talk...");
+            modelUtils.syncConnectingStatus(Tr.tr(MessageKey.LOGGED_IN));
             // Preemptively create our key.
             this.keyStoreManager.getBase64Cert(getJid());
 
