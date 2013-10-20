@@ -27,6 +27,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.LanternConstants;
+import org.lantern.MessageKey;
+import org.lantern.Messages;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
@@ -73,13 +75,15 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private final HttpClientFactory httpClientFactory;
 
     private final ModelUtils modelUtils;
+
+    private final Messages msgs;
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils, final Messages msgs) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
@@ -88,6 +92,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
+        this.msgs = msgs;
     }
 
     @Override
@@ -153,8 +158,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             client = this.httpClientFactory.newClient();
         } catch (final IOException e) {
             log.error("Could not get a proxy?", e);
-            this.model.addNotification("We're sorry but Lantern could not "
-                    + "connect to any proxies!", MessageType.error);
+            this.msgs.error(MessageKey.NO_PROXIES);
             redirectToDashboard(resp);
             return;
         }
