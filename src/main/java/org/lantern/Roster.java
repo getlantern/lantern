@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -33,8 +32,6 @@ import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.state.Model.Persistent;
-import org.lantern.state.SyncPath;
 import org.lantern.util.PublicIpAddress;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.slf4j.Logger;
@@ -66,11 +63,6 @@ public class Roster implements RosterListener {
     private final Model model;
 
     private org.jivesoftware.smack.Roster smackRoster;
-
-    /**
-     * Locally-stored set of users we've invited.
-     */
-    private Set<String> invited = new HashSet<String>();
 
     private XmppHandler xmppHandler;
 
@@ -454,14 +446,5 @@ public class Roster implements RosterListener {
     @Subscribe
     public void onReset(final ResetEvent event) {
         reset();
-    }
-
-    public void setInvited(final Set<String> invited) {
-        this.invited = invited;
-    }
-
-    @JsonView({Persistent.class})
-    public Set<String> getInvited() {
-        return invited;
     }
 }
