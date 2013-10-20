@@ -36,6 +36,14 @@ public class Tr {
         reload();
     }
     
+    public static String tr(final MessageKey key) {
+        if (key == null) {
+            LOG.error("Null translation key at: "+ThreadUtils.dumpStack());
+            throw new IllegalArgumentException("Null translation key");
+        }
+        return tr("BACKEND_"+key.toString());
+    }
+    
     public static String tr(final String key) {
         if (StringUtils.isBlank(key) ) {
             LOG.error("Null translation key at: "+ThreadUtils.dumpStack());

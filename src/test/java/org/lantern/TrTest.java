@@ -34,11 +34,6 @@ public class TrTest {
         cn = Tr.tr("CN");
         assertEquals("中国", cn);
         
-        // Should just return the key for values that don't exist for easier
-        // debugging.
-        assertEquals("doesnot-exist-in-any-file-hopefully", 
-                Tr.tr("doesnot-exist-in-any-file-hopefully"));
-        
         // Set it to something we're unlikely to ever translate to test 
         // pass-through to english;
         Locale.setDefault(Locale.CANADA_FRENCH);

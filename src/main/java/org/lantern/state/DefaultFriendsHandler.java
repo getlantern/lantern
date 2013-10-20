@@ -25,6 +25,8 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.LanternUtils;
+import org.lantern.MessageKey;
+import org.lantern.Messages;
 import org.lantern.Roster;
 import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
@@ -184,7 +186,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             switch (originalStatus) {
             case friend:
                 log.debug("Already friends with {}", email);
-                info("You have already added "+email+".");
+                Messages.info(MessageKey.ALREADY_ADDED, email);//"You have already added "+email+".");
                 return;
             case pending:
                 // Fall through -- handled in the same way as rejected.
@@ -242,13 +244,26 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // their presence.
                 this.xmppHandler.subscribe(email);
             } catch (final IllegalStateException e) {
-                error("Error connecting to "+email+".", e);
+                Messages.error(MessageKey.ERROR_CONNECTING_TO, e, email);
             }
         } else {
             log.warn("No XMPP handler? Testing?");
         }
     }
     
+    
+    private void error(String string, Throwable e) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    private void info(String string) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    
+
     private void unsubscribe(final String email) {
         if (this.xmppHandler != null) {
             try {
@@ -677,24 +692,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
     
 
-    private void info(final String msg) {
-        msg(msg, MessageType.info);
-    }
-    
-    private void warn(final String msg) {
-        msg(msg, MessageType.warning);
-    }
-    
-    private void error(final String msg, final Throwable t) {
-        log.error(msg, t);
-        msg(msg, MessageType.error);
-    }
-    
-    private void msg(final String msg, final MessageType type) {
-        model.addNotification(msg, type, 30);
-        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-    }
-    
     /**
      * See if there's a bulk invite file to process, and process it if so.
      */
