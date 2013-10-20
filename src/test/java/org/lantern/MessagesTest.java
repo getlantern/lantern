@@ -14,7 +14,7 @@ public class MessagesTest {
         final Messages msgs = new Messages(model);
         assertEquals(0, model.getNotifications().size());
         final String email = "test@test.org";
-        Messages.info(MessageKey.ALREADY_ADDED, email);
+        msgs.info(MessageKey.ALREADY_ADDED, email);
         
         int tries = 0;
         while (tries < 30) {

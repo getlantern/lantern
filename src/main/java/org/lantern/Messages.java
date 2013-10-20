@@ -36,6 +36,7 @@ public class Messages {
             LOG.info("Ignoring message with no model...");
             return;
         }
+        LOG.info("Adding message...");
         model.addNotification(me.getMsg(), me.getType(), 30);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
@@ -45,7 +46,7 @@ public class Messages {
      * 
      * @param key The key for looking up the translated version of the message.
      */
-    public static void info(final MessageKey key) {
+    public void info(final MessageKey key) {
         msg(key, MessageType.info);
     }
 
@@ -55,7 +56,7 @@ public class Messages {
      * @param key The key for looking up the translated version of the message.
      * @param args The replacement strings to place in the message.
      */
-    public static void info(final MessageKey key, final String... args) {
+    public void info(final MessageKey key, final String... args) {
         msg(key, MessageType.info, args);
     }
     
@@ -65,7 +66,7 @@ public class Messages {
      * @param key The key for looking up the translated version of the message.
      * @param args The replacement strings to place in the message.
      */
-    public static void warn(final MessageKey key, final String... args) {
+    public void warn(final MessageKey key, final String... args) {
         msg(key, MessageType.warning, args);
     }
     
@@ -75,7 +76,7 @@ public class Messages {
      * @param key The key for the translated version of the message.
      * @param args The replacement strings to place in the message.
      */
-    public static void error(final MessageKey key, final String... args) {
+    public void error(final MessageKey key, final String... args) {
         msg(key, MessageType.error, args);
     }
     
@@ -88,13 +89,18 @@ public class Messages {
      * @param type The type of the message (info, warning, error, etc).
      * @param args The replacement strings to place in the message.
      */
-    public static void msg(final MessageKey key, final MessageType type, 
+    public void msg(final MessageKey key, final MessageType type, 
             final String... args) {
         // Our translation files use a slightly different form of replacement,
         // so normalize them.
         final String msg = tr(key);
         final String formatted = String.format(msg, args);
-        Events.asyncEventBus().post(new MessageEvent(formatted, type));
+        msg(formatted, type);
+    }
+
+    private void msg(final String msg, final MessageType type) {
+        model.addNotification(msg, type, 30);
+        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 
     /**
@@ -102,7 +108,7 @@ public class Messages {
      * 
      * @param key The key for looking up the translated version of the message.
      */
-    public static void warn(final MessageKey key) {
+    public void warn(final MessageKey key) {
         msg(key, MessageType.warning);
     }
     
@@ -112,7 +118,7 @@ public class Messages {
      * @param key The key for the translated version of the message.
      * @param t The Throwable.
      */
-    public static void error(final MessageKey key, final Throwable t) {
+    public void error(final MessageKey key, final Throwable t) {
         LOG.error(key.toString(), t);
         msg(key, MessageType.error);
     }
@@ -124,7 +130,7 @@ public class Messages {
      * @param t The Throwable.
      * @param args The replacement strings to place in the message.
      */
-    public static void error(final MessageKey key, final Throwable t, 
+    public void error(final MessageKey key, final Throwable t, 
             final String... args) {
         LOG.error(key.toString(), t);
         msg(key, MessageType.error, args);
@@ -138,8 +144,9 @@ public class Messages {
      * @param key The key for looking up the translated version of the message.
      * @param type The type of the message (info, warning, error, etc).
      */
-    public static void msg(final MessageKey key, final MessageType type) {
+    public void msg(final MessageKey key, final MessageType type) {
+        LOG.info("Messaging!!");
         final String msg = tr(key);
-        Events.asyncEventBus().post(new MessageEvent(msg, type));
+        msg(msg, type);
     }
 }
