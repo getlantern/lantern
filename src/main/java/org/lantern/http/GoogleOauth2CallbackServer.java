@@ -10,6 +10,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.lantern.LanternUtils;
+import org.lantern.Messages;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
@@ -47,12 +48,14 @@ public class GoogleOauth2CallbackServer {
     private final HttpClientFactory httpClientFactory;
 
     private final ModelUtils modelUtils;
+
+    private final Messages msgs;
     
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils, final Messages msgs) {
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
@@ -60,6 +63,7 @@ public class GoogleOauth2CallbackServer {
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
+        this.msgs = msgs;
     }
     
     public void start() {
@@ -93,7 +97,7 @@ public class GoogleOauth2CallbackServer {
         final ServletHolder oauth2callback = new ServletHolder(
             new GoogleOauth2CallbackServlet(this, this.xmppHandler, 
                 this.model, this.internalState, this.modelIo, this.proxifier,
-                this.httpClientFactory, modelUtils));
+                this.httpClientFactory, modelUtils, this.msgs));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         
