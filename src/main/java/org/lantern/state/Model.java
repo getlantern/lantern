@@ -65,8 +65,6 @@ public class Model {
 
     private final Global global = new Global();
 
-    //private DefaultFriendsHandler friends = new DefaultFriendsHandler();
-
     private Peers peerCollector = new Peers();
 
     private final ConcurrentHashMap<Integer, Notification> notifications = new ConcurrentHashMap<Integer, Notification>();
@@ -255,10 +253,6 @@ public class Model {
     public void addNotification(String message, MessageType type, int timeout) {
         Notification notification = new Notification(message, type, timeout);
         addNotification(notification);
-    }
-
-    public void addNotification(String message, MessageType type) {
-        addNotification(new Notification(message, type));
     }
 
     public void addNotification(Notification notification) {

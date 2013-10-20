@@ -5,9 +5,10 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.MessageKey;
+import org.lantern.Messages;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
-import org.lantern.state.Notification.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,8 @@ public class InternalState {
 
     private boolean notInvited = false;
 
+    private final Messages msgs;
+
     public Modal getLastModal() {
         return this.lastModal;
     }
@@ -46,8 +49,9 @@ public class InternalState {
     }
 
     @Inject
-    public InternalState(final Model model) {
+    public InternalState(final Model model, final Messages msgs) {
         this.model = model;
+        this.msgs = msgs;
         Events.register(this);
     }
 
@@ -87,12 +91,7 @@ public class InternalState {
                     log.warn("unsupported OS");
                     iconLoc = "(unsupported OS: Lantern icon may not be visible)";
                 }
-                final String msg = "Now that you're all set up, take a minute to "
-                        + "explore the Lantern global network map, or just get back to "
-                        + "whatever you'd like to do next. You can always get back here "
-                        + "through the Lantern icon in your " + iconLoc + ".";
-                model.addNotification(msg, MessageType.info, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                this.msgs.info(MessageKey.SETUP, iconLoc);
             }
         }
         Events.syncModal(this.model, next);

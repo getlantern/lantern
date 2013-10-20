@@ -27,6 +27,8 @@ import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternFeedback;
 import org.lantern.LanternUtils;
+import org.lantern.MessageKey;
+import org.lantern.Messages;
 import org.lantern.SecurityUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
@@ -40,7 +42,6 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Desktop;
@@ -112,13 +113,16 @@ public class InteractionServlet extends HttpServlet {
 
     private final FriendsHandler friender;
 
+    private final Messages msgs;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, 
         final Censored censored, final LanternFeedback lanternFeedback,
-        final FriendsHandler friender) {
+        final FriendsHandler friender,
+        final Messages msgs) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -126,6 +130,7 @@ public class InteractionServlet extends HttpServlet {
         this.censored = censored;
         this.lanternFeedback = lanternFeedback;
         this.friender = friender;
+        this.msgs = msgs;
         Events.register(this);
     }
 
@@ -376,13 +381,7 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case SET:
                 if (!model.getSettings().isSystemProxy()) {
-                    String msg = "Because you are using manual proxy "
-                            + "configuration, you may have to restart your "
-                            + "browser for your updated proxied sites list "
-                            + "to take effect.";
-                    model.addNotification(msg, MessageType.info, 30);
-                    Events.sync(SyncPath.NOTIFICATIONS,
-                            model.getNotifications());
+                    this.msgs.info(MessageKey.MANUAL_PROXY);
                 }
                 applyJson(json);
                 break;
@@ -478,8 +477,9 @@ public class InteractionServlet extends HttpServlet {
         case settingsLoadFailure:
             switch (inter) {
             case RETRY:
-                modelIo.reload();
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                if (!modelIo.reload()) {
+                    this.msgs.error(MessageKey.LOAD_SETTINGS_ERROR);
+                }
                 Events.syncModal(model, model.getModal());
                 break;
             case RESET:
@@ -554,20 +554,13 @@ public class InteractionServlet extends HttpServlet {
             switch(inter) {
             case CONTINUE:
                 String msg;
-                MessageType messageType;
                 try {
                     lanternFeedback.submit(json,
                         this.model.getProfile().getEmail());
-                    msg = "Thank you for contacting Lantern.";
-                    messageType = MessageType.info;
-                } catch(Exception e) {
-                    log.error("Error submitting contact form: {}", e);
-                    msg = "Error sending message. Please check your "+
-                        "connection and try again.";
-                    messageType = MessageType.error;
+                    this.msgs.info(MessageKey.CONTACT_THANK_YOU);
+                } catch (Exception e) {
+                    this.msgs.error(MessageKey.CONTACT_ERROR, e);
                 }
-                model.addNotification(msg, messageType, 30);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
             // fall through because this should be done in both cases:
             case CANCEL:
                 Events.syncModal(model, this.internalState.getLastModal());

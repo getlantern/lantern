@@ -38,7 +38,6 @@ import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
@@ -742,12 +741,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 }
                 
                 final Friend friend = getOrCreateFriend(email.trim());
-                model.addNotification("BULK-EMAIL: An email will be sent to "+email+" "+
-                    "with a notification that you friended them. "+
-                    "If they do not yet have a Lantern invite, they will "+
-                    "be invited when the network can accommodate them.",
-                    MessageType.info, 5);
-                Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+                this.msgs.info(MessageKey.BULK_INVITE, 5, email);
                 invite(friend, false);
                 email = br.readLine();
                 

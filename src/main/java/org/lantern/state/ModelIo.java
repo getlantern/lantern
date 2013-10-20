@@ -19,7 +19,6 @@ import org.lantern.event.RefreshTokenEvent;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.state.Notification.MessageType;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -415,14 +414,14 @@ public class ModelIo extends Storage<Model> {
         }
     }
 
-    public void reload() {
+    public boolean reload() {
         Model newModel = read();
         newModel.setCountryService(countryService);
         if (newModel.getModal() == Modal.welcome) {
             //if modal is welcome, then we are dealing with fresh settings
-            obj.addNotification("Failed to reload settings", MessageType.error);
-            return;
+            return false;
         }
         obj.loadFrom(newModel);
+        return true;
     }
 }

@@ -17,6 +17,7 @@ import com.google.inject.Inject;
  */
 public class Messages {
     
+    private static final int DEFAULT_DISPLAY_TIME = 30;
     private static final Logger LOG = 
             LoggerFactory.getLogger(Messages.class);
     private final Model model;
@@ -61,6 +62,18 @@ public class Messages {
     }
     
     /**
+     * Send an info message with replacement variables in the message.
+     * 
+     * @param key The key for looking up the translated version of the message.
+     * @param timeout The time to dislay the message in seconds.
+     * @param args The replacement strings to place in the message.
+     */
+    public void info(final MessageKey key, final int timeout, 
+            final String... args) {
+        msg(key, MessageType.info, timeout, args);
+    }
+    
+    /**
      * Send an warning message with replacement variables in the message.
      * 
      * @param key The key for looking up the translated version of the message.
@@ -91,15 +104,35 @@ public class Messages {
      */
     public void msg(final MessageKey key, final MessageType type, 
             final String... args) {
+        msg(key, type, DEFAULT_DISPLAY_TIME, args);
+    }
+    
+    /**
+     * Sends a message of the given type with the given key to lookup a 
+     * translated version and with the given replacement arguments to place
+     * with the message.
+     * 
+     * @param key The key for looking up the translated version of the message.
+     * @param type The type of the message (info, warning, error, etc).
+     * @param timeout The time to dislay the message in seconds.
+     * @param args The replacement strings to place in the message.
+     */
+    public void msg(final MessageKey key, final MessageType type, 
+            final int timeout, final String... args) {
         // Our translation files use a slightly different form of replacement,
         // so normalize them.
         final String msg = tr(key);
         final String formatted = String.format(msg, args);
-        msg(formatted, type);
+        msg(formatted, type, timeout);
     }
 
     private void msg(final String msg, final MessageType type) {
-        model.addNotification(msg, type, 30);
+        msg(msg, type, DEFAULT_DISPLAY_TIME);
+    }
+    
+    private void msg(final String msg, final MessageType type, 
+            final int timeout) {
+        model.addNotification(msg, type, timeout);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
 

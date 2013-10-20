@@ -210,6 +210,7 @@ public class NetworkTracker<U, I, D> {
                 trustedOnlineInstances.size());
     }
     
+    @SuppressWarnings("unused")
     @Subscribe
     public void onReset(final ResetEvent event) {
         this.onlineInstancesByAdvertisingUser.clear();
