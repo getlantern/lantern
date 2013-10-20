@@ -87,7 +87,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         log.debug("Received cert for {}", jid);
         try {
             Certificate certificate = LanternUtils.certFromBase64(base64Cert);
-            trustStore.addCert((URI) jid, certificate);
+            trustStore.addCert(jid, certificate);
             networkTracker.certificateTrusted(jid, certificate);
         } catch (CertificateException ce) {
             log.error("Unable to decode base64 cert: {}", base64Cert, ce);
