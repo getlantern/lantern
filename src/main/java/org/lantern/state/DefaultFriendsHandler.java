@@ -34,6 +34,7 @@ import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.RefreshTokenEvent;
+import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
@@ -767,5 +768,13 @@ public class DefaultFriendsHandler implements FriendsHandler {
     public void syncFriends() {
         final Collection<ClientFriend> fr = getFriends();
         Events.sync(SyncPath.FRIENDS, fr);
+    }
+    
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        this.friendsLoaded.set(false);
+        this.friendsLoading.set(false);
+        this.loadedFriends = null;
+        this.friends().clear();
     }
 }
