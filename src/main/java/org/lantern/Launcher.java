@@ -125,11 +125,9 @@ public class Launcher {
 
     private InternalState internalState;
 
-    //private final String[] commandLineArgs;
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
     private final LanternModule lanternModule;
-    //private SplashScreen splashScreen;
 
     private ProxyTracker proxyTracker;
 
