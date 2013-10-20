@@ -59,7 +59,6 @@ import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -184,6 +183,8 @@ public class DefaultXmppHandler implements XmppHandler,
     
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
+    private final Messages msgs;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -201,7 +202,8 @@ public class DefaultXmppHandler implements XmppHandler,
         final UpnpService upnpService,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
-        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
+        final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
+        final Messages msgs) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -217,6 +219,7 @@ public class DefaultXmppHandler implements XmppHandler,
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
         this.networkTracker = networkTracker;
+        this.msgs = msgs;
         this.networkTracker.addListener(this);
         Events.register(this);
         //setupJmx();
@@ -1123,21 +1126,9 @@ public class DefaultXmppHandler implements XmppHandler,
 
         final String email = friend.getEmail();
 
-        final Set<String> invited = roster.getInvited();
-        if ((!redo) && invited.contains(email)) {
-            LOG.info("Already invited: {}", email);
-            model.addNotification("You appear to have already sent a Lantern invitation to '"+email+"'",
-                MessageType.info, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
-            return;
-        }
         if (!isLoggedIn()) {
             LOG.info("Not logged in!");
-            model.addNotification("Cannot send invite because we appear to no " +
-                "longer be logged in to Google Talk. Are you still connected " +
-                "to the Internet?",
-                MessageType.error, 30);
-            Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+            this.msgs.error(MessageKey.INVITE_FAILED);
             return;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
@@ -1175,8 +1166,6 @@ public class DefaultXmppHandler implements XmppHandler,
         }
         pres.setProperty(LanternConstants.INVITER_NAME, 
                 this.model.getProfile().getName());
-
-        invited.add(email);
 
         sendPresence(pres, "Invite-Thread");
 
