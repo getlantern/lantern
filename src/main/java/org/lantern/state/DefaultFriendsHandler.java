@@ -76,17 +76,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private Future<Map<String, ClientFriend>> loadedFriends;
 
     private String refreshToken;
+
+    private final Messages msgs;
     
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
             final XmppHandler xmppHandler, 
             final NotificationManager notificationManager,
-            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
+            final Messages msgs) {
         this.model = model;
         this.api = api;
         this.xmppHandler = xmppHandler;
         this.notificationManager = notificationManager;
         this.networkTracker = networkTracker;
+        this.msgs = msgs;
         
         // If we already have a refresh token, just use it to load friends.
         // Otherwise register for refresh token events.
@@ -170,62 +174,89 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     @Override
     public void addFriend(final String email) {
-        addFriend(email, true);
-    }
-    
-    private void addFriend(final String email, final boolean subscribe) {
         log.debug("Adding friend...");
         final ClientFriend existingFriend = getFriend(email);
-        
-        final ClientFriend friend;
         
         // If the friend previously didn't exist or was rejected, friend them.
         if (existingFriend == null) {
             log.debug("Adding friend...");
-            friend = addAndInvite(email);
+            //friend = addAndInvite(email);
+            final ClientFriend temp = getOrCreateFriend(email);
+            temp.setStatus(Status.friend);
+            // We add the friend here even though it's not actually on the 
+            // server -- we want the UI to get the processing state.
+            put(temp, false);
+            
+            // Sync right away to update the UI. This also makes it as 
+            // trusted right away.
+            sync(temp);
+            try {
+                final ClientFriend cf = this.api.insertFriend(temp);
+                
+                // This will overwrite the temporary friend above.
+                put(cf);
+                try {
+                    invite(cf, true);
+                    try {
+                        subscribe(email);
+                    } catch (final IOException e) {
+                        this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
+                                email);
+                        fullRemove(cf);
+                    }
+                } catch (final IOException e) {
+                    this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
+                            email);
+                    
+                    fullRemove(cf);
+                }
+            } catch (final IOException e) {
+                this.msgs.error(MessageKey.ERROR_ADDING_NEW_FRIEND, e, email);
+                remove(email);
+            }
+            
         } else {
             log.debug("Friend is existing friend....");
             // We have an existing friend that's either a friend, rejected, or
             // pending.
-            friend = existingFriend;
             
             // Store the friend's original status -- we'll reset to this if
             // anything goes wrong.
-            final Status originalStatus = friend.getStatus();
+            final Status originalStatus = existingFriend.getStatus();
             switch (originalStatus) {
             case friend:
                 log.debug("Already friends with {}", email);
-                Messages.info(MessageKey.ALREADY_ADDED, email);//"You have already added "+email+".");
+                msgs.info(MessageKey.ALREADY_ADDED, email);//"You have already added "+email+".");
                 return;
             case pending:
                 // Fall through -- handled in the same way as rejected.
             case rejected:
-                friend.setStatus(Status.friend);
+                existingFriend.setStatus(Status.friend);
                 
                 // We sync early here to give the user feedback right away.
                 // Note this also has the side effect of generating an event
                 // to remove any notification dialogs for the friend, for 
                 // example.
-                sync(friend);
+                sync(existingFriend);
                 try {
-                    update(friend);
+                    update(existingFriend);
                 } catch (IOException e) {
                     log.error("Could not friend?", e);
-                    error("Error adding "+email+".", e);
+                    this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, e, email);
                     
                     // Set the friend back to his or her original status!
-                    friend.setStatus(originalStatus);
-                    sync(friend);
+                    existingFriend.setStatus(originalStatus);
+                    sync(existingFriend);
                     return;
                 }
                 try {
-                    invite(friend, true);
+                    invite(existingFriend, true);
                 } catch (final IOException e) {
-                    error("Error adding "+email+".", e);
+                    this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
                     
                     // Set the friend back to his or her original status!
-                    friend.setStatus(originalStatus);
-                    sync(friend);
+                    existingFriend.setStatus(originalStatus);
+                    sync(existingFriend);
                     return;
                 }
 
@@ -234,16 +265,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 break;
             }
         }
-        
-        sync(friend);
-        
-        // Note this also happens for existing friends, but no harm done.
-        if (subscribe) {
-            subscribe(email);
+    }
+
+    private void fullRemove(final ClientFriend cf) {
+        remove(cf.getEmail());
+        // We treat this as all or nothing -- if a friend isn't 
+        // invited successfully, remove them.
+        try {
+            this.api.removeFriend(cf.getId());
+        } catch (final IOException ioe) {
+            // We've already messaged the user about an error above.
+            //log.error("Error removing "+email+".", ioe);
         }
     }
 
-    private void subscribe(final String email) {
+    private void subscribe(final String email) throws IOException {
         if (this.xmppHandler != null) {
             try {
                 //if they have requested a subscription to us, we'll accept it.
@@ -253,25 +289,13 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // their presence.
                 this.xmppHandler.subscribe(email);
             } catch (final IllegalStateException e) {
-                Messages.error(MessageKey.ERROR_CONNECTING_TO, e, email);
+                throw new IOException("Error subscribing?", e);
             }
         } else {
             log.warn("No XMPP handler? Testing?");
+            throw new IOException("No xmpp handler? Testing");
         }
     }
-    
-    
-    private void error(String string, Throwable e) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    private void info(String string) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    
 
     private void unsubscribe(final String email) {
         if (this.xmppHandler != null) {
@@ -284,36 +308,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } else {
             log.warn("No XMPP handler? Testing?");
         }
-    }
-
-    private ClientFriend addAndInvite(final String email) {
-        // We want our local copy of friends to always reflect the server,
-        // along with e-tags and everything else, so we always use the 
-        // server version.
-        final ClientFriend temp = getOrCreateFriend(email);
-        temp.setStatus(Status.friend);
-        try {
-            final ClientFriend friend = this.api.insertFriend(temp);
-            put(friend);
-            try {
-                invite(friend, true);
-            } catch (final IOException e) {
-                error("Error adding "+email+ ".", e);
-                
-                // We treat this as all or nothing -- if a friend isn't 
-                // invited successfully, remove them.
-                try {
-                    this.api.removeFriend(friend.getId());
-                } catch (final IOException ioe) {
-                    log.error("Error removing "+email+".", ioe);
-                }
-            }
-            return friend;
-        } catch (final IOException e) {
-            error("Error adding "+email+".", e);
-        }
-        return null;
-
     }
 
     private void sync(final ClientFriend friend) {
@@ -344,10 +338,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         try {
             this.xmppHandler.sendInvite(friend, false, addToRoster);
-            info("Added "+email+". If this account is not yet in the private beta, "+
-                "it will be invited upon admin approval.");
+            this.msgs.info(MessageKey.ADDED_FRIEND, email);
         } catch (final Throwable e) {
-            error("Error adding "+email+".", e);
+            this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, email);
             throw new IOException("Invite failed", e);
         }
     }
@@ -412,7 +405,13 @@ public class DefaultFriendsHandler implements FriendsHandler {
             if (friend.getStatus() != Status.friend) {
                 friend.setStatus(Status.friend);
                 sync(friend);
-                subscribe(email);
+                try {
+                    subscribe(email);
+                } catch (IOException e) {
+                    this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e);
+                    friend.setStatus(Status.pending);
+                    sync(friend);
+                }
             }
             return;
         }
@@ -522,9 +521,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
             sync(friend);
             final ClientFriend updated = this.api.updateFriend(friend);
             put(updated);
-            info(email+" has been removed.");
+            this.msgs.info(MessageKey.REMOVED_FRIEND, email);
         } catch (final IOException e) {
-            error("Error removing "+email+".", e);
+            this.msgs.error(MessageKey.ERROR_REMOVING_FRIEND, e, email);
             friend.setStatus(existingStatus);
             sync(friend);
         }
