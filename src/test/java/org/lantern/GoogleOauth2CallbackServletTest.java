@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.lantern.http.GoogleOauth2CallbackServlet;
+import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 
 public class GoogleOauth2CallbackServletTest {
@@ -24,7 +25,7 @@ public class GoogleOauth2CallbackServletTest {
                 new HttpClientFactory(socketsUtil, censored, null);
         final GoogleOauth2CallbackServlet servlet = 
             new GoogleOauth2CallbackServlet(null, null, null, null, null, 
-                null, factory, null);
+                null, factory, null, new Messages(new Model()));
         
         final Map<String, String> allToks = new HashMap<String, String>();
         allToks.put("access_token", "invalidcode");

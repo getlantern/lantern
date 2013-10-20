@@ -1,6 +1,5 @@
 package org.lantern;
 
-import static org.mockito.Mockito.*;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -35,7 +34,6 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
-import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
@@ -163,7 +161,7 @@ public class TestingUtils {
         
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendsHandler = 
-                new DefaultFriendsHandler(model, api, null, null, networkTracker);
+                new DefaultFriendsHandler(model, api, null, null, networkTracker, new Messages(new Model()));
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
@@ -207,7 +205,7 @@ public class TestingUtils {
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
-            friendsHandler, networkTracker);
+            friendsHandler, networkTracker, new Messages(model));
         return xmppHandler;
     }
 

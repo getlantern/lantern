@@ -52,7 +52,7 @@ public class RosterTest {
         final XmppHandler xmppHandler = TestingUtils.newXmppHandler();
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendHandler = 
-                new DefaultFriendsHandler(model, api, xmppHandler, null, networkTracker);
+                new DefaultFriendsHandler(model, api, xmppHandler, null, networkTracker, new Messages(new Model()));
         final Roster roster =
             new Roster(routingTable, model, new TestCensored(), friendHandler);
 
