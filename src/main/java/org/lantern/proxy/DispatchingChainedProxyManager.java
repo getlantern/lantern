@@ -41,10 +41,6 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
         // Add all connected ProxyHolders to our queue of chained proxies
         chainedProxies.addAll(proxyHolders);
 
-        // Allow falling back to a direct connection if necessary
-        chainedProxies
-                .add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
-
         logFallbackOrder(proxyHolders);
     }
 
