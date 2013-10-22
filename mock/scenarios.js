@@ -92,6 +92,34 @@ exports.SCENARIOS = {
               '/connectivity/ip': '64.90.182.55'
             })
     },
+    hanoi: {
+      desc: 'location: Hanoi',
+      func: make_simple_scenario({
+              '/location': {lat:21.0333, lon:105.85, country:'VN'},
+              '/connectivity/ip': '123.30.209.59'
+            })
+    },
+    riyadh: {
+      desc: 'location: Riyadh',
+      func: make_simple_scenario({
+              '/location': {lat:24.6537, lon:46.7152, country:'SA'},
+              '/connectivity/ip': '87.109.24.69'
+            })
+    },
+    fars: {
+      desc: 'location: Fars',
+      func: make_simple_scenario({
+              '/location': {lat:35.1826, lon:59.3886, country:'IR'},
+              '/connectivity/ip': '151.232.47.99'
+            })
+    },
+    ankara: {
+      desc: 'location: Ankara',
+      func: make_simple_scenario({
+              '/location': {lat:39.9117, lon:32.8403, country:'TR'},
+              '/connectivity/ip': '193.140.86.3'
+            })
+    },
     paris: {
       desc: 'location: Paris',
       func: make_simple_scenario({

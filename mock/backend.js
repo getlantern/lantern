@@ -46,7 +46,7 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
       },
       appliedScenarios: {
         os: 'osx',
-        location: 'nyc',
+        location: 'ankara',
         internet: 'true',
         updateAvailable: 'false',
         gtalkAuthorized: 'true',
