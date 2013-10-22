@@ -6846,11 +6846,11 @@ textarea {
   *display: inline;
   font-weight: bold;
   font-size: 12px;
-  background: radial-gradient(1px -11px, circle, #ffffff 8%, #ff0000 26px);
-  background: -moz-radial-gradient(1px -11px, circle, white 8%, red 26px);
-  background: -ms-radial-gradient(1px -11px, circle, white 8%, red 26px);
-  background: -o-radial-gradient(1px -11px, circle, white 8%, red 26px);
-  background: -webkit-radial-gradient(1px -11px, circle, white 8%, red 26px);
+  background: radial-gradient(1px -11px, circle, #ffffff 8%, #3a87ad 26px);
+  background: -moz-radial-gradient(1px -11px, circle, white 8%, #3a87ad 26px);
+  background: -ms-radial-gradient(1px -11px, circle, white 8%, #3a87ad 26px);
+  background: -o-radial-gradient(1px -11px, circle, white 8%, #3a87ad 26px);
+  background: -webkit-radial-gradient(1px -11px, circle, white 8%, #3a87ad 26px);
   background-color: red;
   border: 2px solid white;
   border-radius: 12px;
@@ -7114,7 +7114,7 @@ textarea {
   float: right;
   width: 230px;
   height: 27px;
-  margin: -5px 0 7px;
+  margin: 0 0 7px;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
@@ -7191,7 +7191,7 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 }
 
 #currentFriendsHeading {
-  margin: 0 0 0 22px;
+  margin: 3px 0 0 22px;
   float: left;
 }
 
