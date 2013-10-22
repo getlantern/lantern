@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
@@ -55,7 +56,13 @@ public class FriendApi {
         final String url = BASE+"list";
 
         final String all = this.oauth.getRequest(url);
-        final ClientFriends friends = mapper.readValue(all, ClientFriends.class);
+        final ClientFriends friends;
+        try {
+            friends = mapper.readValue(all, ClientFriends.class);
+        } catch (final JsonParseException e) {
+            log.error("Could not parse json in body: "+all, e);
+            throw new IOException("Could not parse friends!", e);
+        }
         
         final List<ClientFriend> list = friends.getItems();
         if (list == null) {
@@ -79,8 +86,14 @@ public class FriendApi {
         }
         final String url = BASE+"get/"+id;
         final String content = this.oauth.getRequest(url);
-        final ClientFriend read = mapper.readValue(content, ClientFriend.class);
-        return read;
+        try {
+            final ClientFriend read =
+                    mapper.readValue(content, ClientFriend.class);
+            return read;
+        } catch (final JsonParseException e) {
+            log.error("Could not parse friend in body: "+content, e);
+            throw new IOException("Could not parse friends!", e);
+        }
     }
 
     /**
@@ -91,7 +104,8 @@ public class FriendApi {
      * @return The inserted entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public ClientFriend insertFriend(final ClientFriend friend) throws IOException {
+    public ClientFriend insertFriend(final ClientFriend friend)
+            throws IOException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return friend;
@@ -122,8 +136,13 @@ public class FriendApi {
             throws IOException {
         final String json = JsonUtils.jsonify(friend);
         final String content = this.oauth.postRequest(url, json);
-        final ClientFriend read = mapper.readValue(content, ClientFriend.class);
-        return read;
+        try {
+            final ClientFriend read = mapper.readValue(content, ClientFriend.class);
+            return read;
+        } catch (final JsonParseException e) {
+            log.error("Could not parse friend in body: "+content, e);
+            throw new IOException("Could not parse friends!", e);
+        }
     }
 
     /**
