@@ -285,7 +285,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
   };
 }
 
-function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
+function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
       i18nFltr = $filter('i18n'),
@@ -296,6 +296,30 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     $scope.show = modal === MODAL.lanternFriends;
     if ($scope.show) {
       updateDisplayedFriends();
+    }
+  });
+
+  $scope.$watch('nfriendSuggestions', function (nfriendSuggestions, nfriendSuggestionsOld) {
+    if (_.isUndefined(nfriendSuggestions)) return;
+    if ($scope.show && !_.isUndefined($scope.showSuggestions) &&
+      !(nfriendSuggestionsOld && !nfriendSuggestions)) {
+      return;
+    }
+    $scope.showSuggestions = nfriendSuggestions > 0;
+  });
+
+  $scope.toggleShowSuggestions = function () {
+    $scope.showSuggestions = !$scope.showSuggestions;
+  };
+
+  $scope.$watch('showSuggestions', function (showSuggestions, showSuggestionsOld) {
+    if (!showSuggestions && showSuggestionsOld) {
+      $scope.$broadcast('focusAddFriendsInput');
+    } else if (showSuggestions) {
+      // XXX
+      $timeout(function () {
+        $('.btn.add-suggestion').first().focus();
+      }, 500);
     }
   });
 
@@ -314,7 +338,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     $scope.interaction(INTERACTION.friend, {email: email}).then(
       function () {
         $scope.added = null;
-        $scope.$broadcast('addSuccess');
+        $scope.$broadcast('focusAddFriendsInput');
       },
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
@@ -338,7 +362,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   };
 
   function updateDisplayedFriends() {
-    if (!$scope.show || $scope.nfriendSuggestions > 0) return;
+    if (!$scope.show || $scope.showSuggestions) return;
     $scope.displayedFriends = _.filter(model.friends, {status: FRIEND_STATUS.friend});
     if ($scope.searchText) {
       $scope.displayedFriends = _.filter($scope.displayedFriends, matchSearchText);

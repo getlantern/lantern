@@ -6769,6 +6769,14 @@ a.disabled:hover {
   color: #ffcc66;
 }
 
+.give-colored-alt {
+  color: #528e2f;
+}
+
+.get-colored-alt {
+  color: #cc8800;
+}
+
 a.get-colored:hover {
   color: #cc8800;
 }
@@ -7183,7 +7191,6 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 }
 
 #currentFriendsHeading {
-  color: #3a87ad !important;
   margin: 0 0 0 22px;
   float: left;
 }

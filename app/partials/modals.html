@@ -269,8 +269,8 @@
       </div>
 
       <div ng-show="model.friends && (nfriends || nfriendSuggestions)">
-        <div ng-show="nfriendSuggestions == 0" ng-class="{hasSearchText: !!searchText}">
-          <h4 id="currentFriendsHeading">
+        <div collapse="showSuggestions" ng-class="{hasSearchText: !!searchText}">
+          <h4 id="currentFriendsHeading" class="{{model.settings.mode}}-colored-alt">
             <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
             <span ng-show="searchText">{{ 'MATCHING_FRIENDS' | i18n:displayedFriends.length }}</span>
           </h4>
@@ -303,7 +303,7 @@
           </ul>
         </div>
 
-        <div ng-show="nfriendSuggestions > 0" class="centered">
+        <div collapse="!showSuggestions" class="centered">
           <h4 id="suggestedFriendsHeading">
             {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
           </h4>
@@ -316,7 +316,8 @@
                   <span class="email">{{ friend.email }}</span>
                 </span>
                 <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending" dir="ltr">
-                  <button type="button" class="btn btn-mini btn-success" ng-click="add(friend.email)">{{ 'ADD' | i18n }}</button>
+                  <button type="button" class="btn btn-mini btn-{{model.settings.mode}}-inverse add-suggestion"
+                          ng-click="add(friend.email)">{{ 'ADD' | i18n }}</button>
                   <button type="button" class="btn btn-mini" ng-click="reject(friend.email)">{{ 'DISMISS' | i18n }}</button>
                 </span>
               </div>
@@ -330,9 +331,9 @@
         </div>
       </div>
 
-      <div collapse="!model.friends || nfriendSuggestions > 0">
+      <div collapse="!model.friends || showSuggestions">
         <input type="hidden" id="addFriendInput" name="addFriendInput"
-          select2-focus-on="show" select2-focus-on-broadcast="addSuccess"
+          select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
           placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
           ng-model="added" ui-select2="select2opts">
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
@@ -344,6 +345,10 @@
     </div>
   </div>
   <div class="modal-footer">
+    <button class="btn btn-{{showSuggestions && (model.settings.mode+'-inverse') || 'info'}} pull-left" ng-show="nfriendSuggestions > 0"
+      ng-click="toggleShowSuggestions()">
+      {{ showSuggestions && 'SHOW_CURRENT_FRIENDS' || 'SHOW_SUGGESTED_FRIENDS' | i18n }}
+    </button>
     <button class="btn btn-primary"
       ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>

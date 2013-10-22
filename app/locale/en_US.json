@@ -125,6 +125,8 @@
   "DECLINE": "Decline",
   "ADD": "Add",
   "DISMISS": "Dismiss",
+  "SHOW_CURRENT_FRIENDS": "Show current friends",
+  "SHOW_SUGGESTED_FRIENDS": "Show suggested friends",
   "SETTINGS": "Settings",
   "MODE": "Mode",
   "PROXY": "Proxy",
