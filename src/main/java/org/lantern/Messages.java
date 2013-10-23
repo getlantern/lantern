@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.lantern.Tr.tr;
+
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.state.Model;
@@ -129,8 +130,8 @@ public class Messages {
     private void msg(final String msg, final MessageType type) {
         msg(msg, type, DEFAULT_DISPLAY_TIME);
     }
-    
-    private void msg(final String msg, final MessageType type, 
+
+    public void msg(final String msg, final MessageType type, 
             final int timeout) {
         model.addNotification(msg, type, timeout);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());

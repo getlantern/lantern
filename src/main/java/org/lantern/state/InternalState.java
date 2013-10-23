@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import static org.lantern.Tr.tr;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -82,16 +83,16 @@ public class InternalState {
             Events.sync(SyncPath.SETUPCOMPLETE, true);
             if (!model.isWelcomeMessageShown()) {
                 model.setWelcomeMessageShown(true);
-                final String iconLoc;
+                final MessageKey iconLoc;
                 if (SystemUtils.IS_OS_MAC_OSX || SystemUtils.IS_OS_LINUX) {
-                    iconLoc = "menu bar at the top of the screen";
+                    iconLoc = MessageKey.ICONLOC_MENUBAR;
                 } else if (SystemUtils.IS_OS_WINDOWS) {
-                    iconLoc = "system tray at the bottom right of your screen";
+                    iconLoc = MessageKey.ICONLOC_SYSTRAY;
                 } else {
                     log.warn("unsupported OS");
-                    iconLoc = "(unsupported OS: Lantern icon may not be visible)";
+                    iconLoc = MessageKey.ICONLOC_UNKNOWN;
                 }
-                this.msgs.info(MessageKey.SETUP, iconLoc);
+                this.msgs.info(MessageKey.SETUP, tr(iconLoc));
             }
         }
         Events.syncModal(this.model, next);

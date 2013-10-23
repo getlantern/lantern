@@ -1127,9 +1127,7 @@ public class DefaultXmppHandler implements XmppHandler,
         final String email = friend.getEmail();
 
         if (!isLoggedIn()) {
-            LOG.info("Not logged in!");
-            this.msgs.error(MessageKey.INVITE_FAILED);
-            return;
+            throw new IllegalStateException("Not logged in!");
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
 

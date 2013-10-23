@@ -38,6 +38,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
@@ -200,18 +201,18 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     try {
                         subscribe(email);
                     } catch (final IOException e) {
-                        this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
-                                email);
+                        //this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
+                        //        email);
                         fullRemove(cf);
                     }
                 } catch (final IOException e) {
-                    this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
-                            email);
+                    //this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
+                    //        email);
                     
                     fullRemove(cf);
                 }
             } catch (final IOException e) {
-                this.msgs.error(MessageKey.ERROR_ADDING_NEW_FRIEND, e, email);
+                this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
                 remove(email);
             }
             
@@ -242,7 +243,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     update(existingFriend);
                 } catch (IOException e) {
                     log.error("Could not friend?", e);
-                    this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, e, email);
+                    //this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, e, email);
                     
                     // Set the friend back to his or her original status!
                     existingFriend.setStatus(originalStatus);
@@ -741,7 +742,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 }
                 
                 final Friend friend = getOrCreateFriend(email.trim());
-                this.msgs.info(MessageKey.BULK_INVITE, 5, email);
+                this.msgs.msg(String.format("Processing %1$s", email), MessageType.info, 5);
                 invite(friend, false);
                 email = br.readLine();
                 
