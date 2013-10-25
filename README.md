@@ -51,7 +51,7 @@ process (will look like the screenshot above). To skip the setup process and
 go straight to an already set-up app, run `scripts/web-server.js --skip-setup`.
 You should then see something like this when you open the app:
 
-![screenshot-vis](./screenshots/vis.png)
+![screenshot-vis](./screenshots/vis.gif)
 
 The mock scenarios the app can run with (e.g. your location is London, you have
 a friend in Shanghai, etc.) are defined in `mock/scenarios.js`, and are enabled
