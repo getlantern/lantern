@@ -28,7 +28,7 @@ public enum MessageKey {
             final String msg = "No entry for key! "+key;
             log.error(msg);
             if (LanternUtils.isDevMode()) {
-                log.debug("Exiting with missing key in dev mode!");
+                log.error("Exiting with missing key in dev mode!".toUpperCase());
                 System.exit(1);
             }
             throw new Error(msg);
