@@ -183,6 +183,9 @@ public class Launcher {
         LOG = LoggerFactory.getLogger(Launcher.class);
         LOG.info("Starting Lantern...");
 
+        // Fail fast on message keys.
+        MessageKey.values();
+        
         final Stopwatch injectorWatch = 
             StopwatchManager.getStopwatch("Guice-Injector", 
                 STOPWATCH_LOG, STOPWATCH_GROUP);

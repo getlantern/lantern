@@ -1120,14 +1120,16 @@ public class DefaultXmppHandler implements XmppHandler,
     }
 
     @Override
-    public void sendInvite(final Friend friend, boolean redo, 
+    public boolean sendInvite(final Friend friend, boolean redo, 
             final boolean addToRoster) {
         LOG.debug("Sending invite");
 
         final String email = friend.getEmail();
 
         if (!isLoggedIn()) {
-            throw new IllegalStateException("Not logged in!");
+            LOG.info("Not logged in!");
+            this.msgs.error(MessageKey.INVITE_FAILED);
+            return false;
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
@@ -1168,6 +1170,7 @@ public class DefaultXmppHandler implements XmppHandler,
         sendPresence(pres, "Invite-Thread");
 
         addToRoster(email);
+        return true;
     }
 
     private void sendPresence(final Presence pres, final String threadName) {
