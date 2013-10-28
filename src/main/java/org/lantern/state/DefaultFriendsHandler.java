@@ -201,13 +201,13 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     try {
                         subscribe(email);
                     } catch (final IOException e) {
-                        //this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
-                        //        email);
+                        this.msgs.error(MessageKey.ERROR_EMAILING_FRIEND, e, 
+                                email);
                         fullRemove(cf);
                     }
                 } catch (final IOException e) {
-                    //this.msgs.error(MessageKey.ERROR_EMAILING_NEW_FRIEND, e, 
-                    //        email);
+                    this.msgs.error(MessageKey.ERROR_EMAILING_FRIEND, e, 
+                            email);
                     
                     fullRemove(cf);
                 }
@@ -243,7 +243,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     update(existingFriend);
                 } catch (IOException e) {
                     log.error("Could not friend?", e);
-                    //this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, e, email);
+                    this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, e, email);
                     
                     // Set the friend back to his or her original status!
                     existingFriend.setStatus(originalStatus);
@@ -338,8 +338,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
             return;
         }
         try {
-            this.xmppHandler.sendInvite(friend, false, addToRoster);
-            this.msgs.info(MessageKey.ADDED_FRIEND, email);
+            if (this.xmppHandler.sendInvite(friend, false, addToRoster)) {
+                this.msgs.info(MessageKey.ADDED_FRIEND, email);
+            }
         } catch (final Throwable e) {
             this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, email);
             throw new IOException("Invite failed", e);
@@ -742,7 +743,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 }
                 
                 final Friend friend = getOrCreateFriend(email.trim());
-                this.msgs.msg(String.format("Processing %1$s", email), MessageType.info, 5);
+                this.msgs.msg(String.format("Processing %1$s", email),
+                        MessageType.info, 5);
                 invite(friend, false);
                 email = br.readLine();
                 
