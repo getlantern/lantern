@@ -172,11 +172,17 @@
     +smaller
     +thin
     margin: 2px 0 0 14px
-  .vcard .email
-    &:before
-      content: '<'
-    &:after
-      content: '>'
+  #currentFriends .vcard
+    +ellipsisPast(470px)
+  #friendSuggestionList .vcard
+    +ellipsisPast(350px)
+  .vcard
+    display: inline-block
+    .email
+      &:before
+        content: '<'
+      &:after
+        content: '>'
   .hasSearchText .select2-container
     display: none
 

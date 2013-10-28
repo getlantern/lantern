@@ -257,7 +257,7 @@ exports.SCENARIOS = {
                            status: FRIEND_STATUS.friend
                           },
                           {
-                           email: 'lantern_friend2@example.com',
+                           email: 'lantern_friend2+a_really_realy_long_entry@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Leah X Schmidt',
                            status: FRIEND_STATUS.friend
@@ -274,7 +274,7 @@ exports.SCENARIOS = {
                            name: 'Suggested Friend',
                            status: FRIEND_STATUS.pending
                           },{
-                           email: 'suggested2@example.com',
+                           email: 'suggested2+a_really_really_long_entry@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Another Suggestion',
                            status: FRIEND_STATUS.pending

@@ -7180,6 +7180,21 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   font-family: "Roboto Thin";
   margin: 2px 0 0 14px;
 }
+#lanternFriends #currentFriends .vcard {
+  max-width: 470px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#lanternFriends #friendSuggestionList .vcard {
+  max-width: 350px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#lanternFriends .vcard {
+  display: inline-block;
+}
 #lanternFriends .vcard .email:before {
   content: "<";
 }
