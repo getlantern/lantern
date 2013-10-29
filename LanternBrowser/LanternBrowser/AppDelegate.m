@@ -20,10 +20,21 @@
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
     [self.webView.mainFrame loadRequest:request];
     [NSApp activateIgnoringOtherApps:YES];
+    [self.webView setPolicyDelegate:self];
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication {
     return YES;
+}
+
+- (void)webView:(WebView *)webView decidePolicyForNewWindowAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request newFrameName:(NSString *)frameName decisionListener:(id < WebPolicyDecisionListener >)listener {
+    NSURL* url = request.URL;
+    NSLog(@"Got request to open url: %@", [url description]);
+    [[NSWorkspace sharedWorkspace] openURLs:@[url]
+                    withAppBundleIdentifier:@"com.apple.Safari"
+                                    options:NSWorkspaceLaunchNewInstance
+             additionalEventParamDescriptor:nil
+                          launchIdentifiers:nil];
 }
 
 @end

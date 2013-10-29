@@ -309,7 +309,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     }
 
     private void redirectToDashboard(final HttpServletResponse resp) {
-        final String dashboard = StaticSettings.getLocalEndpoint();
+        final String dashboard = StaticSettings.getLocalEndpoint() + "/signin_finished.html";
         try {
             resp.sendRedirect(dashboard);
             resp.flushBuffer();
