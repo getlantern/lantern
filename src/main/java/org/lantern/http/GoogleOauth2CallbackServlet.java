@@ -41,7 +41,6 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
@@ -135,7 +134,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final String error = params.get("error");
             log.debug("Got error: {}", error);
             log.debug("Setting modal on model: {}", model);
-            this.model.setModal(Modal.authorize);
+            Events.syncModal(this.model, Modal.authorize);
             redirectToDashboard(resp);
             return;
         }
@@ -147,7 +146,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         modelUtils.syncConnectingStatus(
             "Communicating with Google Talk servers...");
         log.debug("Setting modal to connecting...");
-        this.model.setModal(Modal.connecting);
+        Events.syncModal(this.model, Modal.connecting);
         redirectToDashboard(resp);
 
         // Kill our temporary oauth callback server.
