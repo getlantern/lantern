@@ -430,6 +430,8 @@ public class DefaultProxyTracker implements ProxyTracker {
                 numberOfConnectedProxies += 1;
             }
         }
+        LOG.debug("Now connected to {} proxies", numberOfConnectedProxies);
+        model.getConnectivity().setNProxies(numberOfConnectedProxies);
         Events.sync(SyncPath.CONNECTIVITY_NPROXIES, numberOfConnectedProxies);
     }
 
