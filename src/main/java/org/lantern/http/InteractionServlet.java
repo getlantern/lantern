@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
@@ -80,7 +81,8 @@ public class InteractionServlet extends HttpServlet {
         URL,
         EXCEPTION,
         FRIEND,
-        REJECT
+        REJECT,
+        SIGNIN
     }
 
     // modals the user can switch to from other modals
@@ -284,9 +286,19 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case authorize:
-           log.debug("Processing authorize modal...");
-            this.internalState.setModalCompleted(Modal.authorize);
-            this.internalState.advanceModal(null);
+            log.debug("Processing authorize modal...");
+            switch(inter) {
+            case SIGNIN:
+                try {
+                    java.awt.Desktop.getDesktop().browse(new URI(model.getConnectivity().getGtalkOauthUrl()));
+                } catch (Exception e) {
+                    // TODO: handle this
+                }
+                break;
+            default:
+                this.internalState.setModalCompleted(Modal.authorize);
+                this.internalState.advanceModal(null);        
+            }
             break;
         case finished:
             this.internalState.setCompletedTo(Modal.finished);
