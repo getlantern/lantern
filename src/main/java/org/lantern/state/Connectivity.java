@@ -31,7 +31,7 @@ public class Connectivity {
 
     private boolean gtalkAuthorized = false;
 
-    private boolean internet = false;
+    private Boolean internet = null;
 
     private boolean invited = false;
 
@@ -93,11 +93,11 @@ public class Connectivity {
     }
 
     @JsonView({Run.class})
-    public boolean isInternet() {
+    public Boolean isInternet() {
         return internet;
     }
 
-    public void setInternet(final boolean internet) {
+    public void setInternet(final Boolean internet) {
         this.internet = internet;
     }
 

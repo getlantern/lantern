@@ -35,7 +35,7 @@ public class ConnectivityChecker extends TimerTask {
 
     @Override
     public void run() {
-        wasConnected = model.getConnectivity().isInternet();
+        wasConnected = Boolean.TRUE.equals(model.getConnectivity().isInternet());
         InetAddress ip = determineCurrentIpAddress();
         if (ip != null) {
             notifyConnected(ip);
