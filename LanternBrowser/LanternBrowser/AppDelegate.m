@@ -33,7 +33,6 @@
 // Note - for whatever reason, when using window.open(), the request comes in as null, so only target = "_blank" actually works.
 - (void)webView:(WebView *)webView decidePolicyForNewWindowAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request newFrameName:(NSString *)frameName decisionListener:(id < WebPolicyDecisionListener >)listener {
     NSURL* url = request.URL;
-    NSLog(@"Got request to open url: %@", [url description]);
     [[NSWorkspace sharedWorkspace] openURLs:@[url]
                     withAppBundleIdentifier:@"com.apple.Safari"
                                     options:NSWorkspaceLaunchNewInstance
