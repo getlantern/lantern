@@ -61,7 +61,7 @@
     padding-top: 12px
   button
     +text-shadow(#000 1px 1px 2px)
-    width: 142px
+    width: 165px
     margin: 0 10px 10px
   .orIfYouNeed
     +smaller
@@ -141,6 +141,7 @@
 
 #lanternFriends
   min-height: 115px
+  max-height: 445px // override bootstrap
   .addFriendsControls
     padding: 15px
   .coloredByConnectedStatus
@@ -206,6 +207,10 @@
     width: 110px
   .addFriendsControls:hover &
     opacity: 1
+
+.below-friendSuggestionList-text
+  max-width: 360px
+  float: left
 
 #friendSuggestionList
   text-align: left
@@ -293,6 +298,7 @@
   color: #666
   label
     +smaller
+    white-space: normal // override bootstrap
   input[type=checkbox]
     margin-left: -15px
     margin-top: 3px

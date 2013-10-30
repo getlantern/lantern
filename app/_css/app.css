@@ -7018,7 +7018,7 @@ textarea {
 }
 #welcome button {
   text-shadow: black 1px 1px 2px;
-  width: 142px;
+  width: 165px;
   margin: 0 10px 10px;
 }
 #welcome .orIfYouNeed {
@@ -7134,6 +7134,7 @@ textarea {
 
 #lanternFriends {
   min-height: 115px;
+  max-height: 445px;
 }
 #lanternFriends .addFriendsControls {
   padding: 15px;
@@ -7232,6 +7233,11 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   opacity: 1;
 }
 
+.below-friendSuggestionList-text {
+  max-width: 360px;
+  float: left;
+}
+
 #friendSuggestionList {
   text-align: left;
 }
@@ -7307,6 +7313,7 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 }
 #finished-autoReport label {
   font-size: 11.9px;
+  white-space: normal;
 }
 #finished-autoReport input[type=checkbox] {
   margin-left: -15px;
