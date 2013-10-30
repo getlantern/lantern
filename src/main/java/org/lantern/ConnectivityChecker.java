@@ -18,7 +18,8 @@ public class ConnectivityChecker extends TimerTask {
     private static Logger LOG = LoggerFactory
             .getLogger(ConnectivityChecker.class);
     private static final String[] TEST_SITES = new String[] {
-            "www.google.com",
+            "mail.yahoo.com",
+            "www.microsoft.com",
             "blogfa.com",
             "www.baidu.com"
     };
@@ -35,7 +36,7 @@ public class ConnectivityChecker extends TimerTask {
 
     @Override
     public void run() {
-        wasConnected = model.getConnectivity().isInternet();
+        wasConnected = Boolean.TRUE.equals(model.getConnectivity().isInternet());
         InetAddress ip = determineCurrentIpAddress();
         if (ip != null) {
             notifyConnected(ip);
