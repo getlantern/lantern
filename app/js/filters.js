@@ -56,6 +56,9 @@ angular.module('app.filters', [])
 
       // omit these fields
       state = _.omit(state, 'mock', 'countries', 'global');
+      delete state.location.lat;
+      delete state.location.lon;
+      delete state.connectivity.ip;
 
       // only include these fields from the user's profile
       if (state.profile) {
@@ -70,9 +73,11 @@ angular.module('app.filters', [])
 
       var peers = getByPath(state, '/peers');
       _.each(peers, function (peer) {
-        if (peer.rosterEntry) {
-          peer.rosterEntry = true;
-        }
+        peer.rosterEntry = !!peer.rosterEntry;
+        delete peer.peerid;
+        delete peer.ip;
+        delete peer.lat;
+        delete peer.lon;
       });
 
       return state;
