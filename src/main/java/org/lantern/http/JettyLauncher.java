@@ -12,6 +12,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cometd.server.CometdServlet;
@@ -26,6 +27,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.lantern.BayeuxInitializer;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternService;
 import org.lantern.LanternUtils;
@@ -87,7 +89,7 @@ public class JettyLauncher implements LanternService {
         final ContextHandlerCollection contexts = 
             new ContextHandlerCollection();
 
-        String prefix = StaticSettings.getPrefix();
+        final String prefix = StaticSettings.getPrefix();
 
         final ServletContextHandler contextHandler = newContext(prefix, apiName);
 
@@ -206,6 +208,7 @@ public class JettyLauncher implements LanternService {
             public void run() {
                 try {
                     server.start();
+                    recordApiLocation(port, prefix);
                     server.join();
                 } catch (final Exception e) {
                     log.error("Exception on HTTP server");
@@ -265,6 +268,19 @@ public class JettyLauncher implements LanternService {
         context.setContextPath(path);
         context.setConnectorNames(new String[] {name});
         return context;
+    }
+    
+    private void recordApiLocation(int port, String prefix) {
+        String path = LanternClientConstants.CONFIG_DIR + "/api_location.txt";
+        String location = String.format("http://localhost:%1$s%2$s", port,
+                prefix);
+        try {
+            FileUtils.writeStringToFile(new File(path), location);
+        } catch (Exception e) {
+            log.warn(
+                    "Unable to record API location, may impact automated test: "
+                            + e.getMessage(), e);
+        }
     }
 }
 
