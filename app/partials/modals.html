@@ -73,18 +73,18 @@
     <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
     <div ng-show="model.connectivity.internet != false">
       <div ng-show="inCensoringCountry">
-        <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)"
+        <button type="button" class="btn btn-large btn-get-inverse enter-get-mode" ng-click="interaction(MODE.get)"
           focus-on="show">{{ 'GET_ACCESS' | i18n }}</button>
       </div>
       <div ng-hide="inCensoringCountry">
         <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-          class="btn btn-large btn-give-inverse" focus-on="show">
+          class="btn btn-large btn-give-inverse enter-give-mode" focus-on="show">
           <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
           {{ 'GIVE_ACCESS' | i18n }}
         </button>
         <div class="orIfYouNeed">
           {{ 'OR_IF_YOU_NEED' | i18n }}
-          <a class="get-colored always-underlined" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</a>
+          <a class="get-colored always-underlined enter-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</a>
         </div>
       </div>
     </div>
@@ -129,7 +129,7 @@
     <p class="small gray indented">{{ 'INVITE_EMAIL' | i18n }}</p><!-- XXX remove this when we go to open beta -->
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}" focus-on="show">
+    <a class="btn btn-primary sign-in" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}" focus-on="show">
       {{ 'SIGN_IN' | i18n }}
     </a>
   </div>
@@ -240,7 +240,8 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-disabled="!hasUpdate || updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | i18n }}</button>
-    <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
+    <button id="continueFromProxiedSites" 
+            type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
             ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | i18n }}</button>
   </div>
@@ -349,7 +350,7 @@
       ng-click="toggleShowSuggestions()">
       {{ showSuggestions && 'SHOW_CURRENT_FRIENDS' || 'SHOW_SUGGESTED_FRIENDS' | i18n }}
     </button>
-    <button class="btn btn-primary"
+    <button id="continueFromFriends" class="btn btn-primary"
       ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>
 </div>
@@ -376,7 +377,8 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
+    <button id="finishSetup"
+            type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
             focus-on="show"
             ng-click="finish()">{{ 'FINISH' | i18n }}</button>
   </div>
