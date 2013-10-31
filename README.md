@@ -8,7 +8,7 @@ Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-c
 
 UI for [Lantern](https://github.com/getlantern/lantern).
 
-A live demo is deployed to http://lantern-ui.jit.su/app/index.html running
+A live demo is deployed to https://lantern-ui.nodejitsu.com/app/index.html running
 against the bundled mock server, which simulates a real Lantern backend.
 The real backend serves lantern-ui only over localhost, where minification,
 concatenation, and other speedups appropriate for remotely hosted files are not

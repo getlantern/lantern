@@ -16,8 +16,9 @@ var DEFAULT_LANG = 'en_US',
     DEFAULT_DIRECTION = 'ltr',
     LANGS = {
       en_US: {dir: 'ltr', name: 'English'},
-      fa_IR: {dir: 'rtl', name: 'پارسی'},
-      zh_CN: {dir: 'ltr', name: '中文'}
+      fr_FR: {dir: 'ltr', name: 'Français'}
+      //fa_IR: {dir: 'rtl', name: 'پارسی'},
+      //zh_CN: {dir: 'ltr', name: '中文'}
       //ar: {dir: 'rtl', name: 'العربية'},
     },
     GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-2',

@@ -325,8 +325,10 @@
             </li>
           </ul>
           <div class="below-friendSuggestionList">
-            <i class="icon-warning-sign warning-colored"></i>
-            {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
+            <div class="below-friendSuggestionList-text">
+              <i class="icon-warning-sign warning-colored"></i>
+              {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
+            </div>
             <button class="btn btn-mini dismiss-all" ng-click="dismissAll()">{{ 'DISMISS_ALL' | i18n }}</button>
           </div>
         </div>
