@@ -212,14 +212,15 @@ public class OauthUtils {
         final GoogleClientSecrets creds = OauthUtils.loadClientSecrets();
         final Details installed = creds.getInstalled();
         try {
+            final ClientParametersAuthentication clientAuth = 
+                new ClientParametersAuthentication(installed.getClientId(), 
+                    installed.getClientSecret());
             final TokenResponse response =
                 new RefreshTokenRequest(httpTransport, 
-                    new JacksonFactory(), new GenericUrl(
-                        "https://accounts.google.com/o/oauth2/token"), refresh)
-                    .setClientAuthentication(new ClientParametersAuthentication(
-                            installed.getClientId(), 
-                            installed.getClientSecret()))
-                        .execute();
+                    new JacksonFactory(), 
+                    new GenericUrl("https://accounts.google.com/o/oauth2/token"), 
+                    refresh)
+                .setClientAuthentication(clientAuth).execute();
             
             final long expiry = response.getExpiresInSeconds();
             LOG.info("Got expiry time: {}", expiry);
