@@ -285,7 +285,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
   };
 }
 
-function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
+function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
       i18nFltr = $filter('i18n'),
@@ -296,30 +296,6 @@ function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, I
     $scope.show = modal === MODAL.lanternFriends;
     if ($scope.show) {
       updateDisplayedFriends();
-    }
-  });
-
-  $scope.$watch('nfriendSuggestions', function (nfriendSuggestions, nfriendSuggestionsOld) {
-    if (_.isUndefined(nfriendSuggestions)) return;
-    if ($scope.show && !_.isUndefined($scope.showSuggestions) &&
-      !(nfriendSuggestionsOld && !nfriendSuggestions)) {
-      return;
-    }
-    $scope.showSuggestions = nfriendSuggestions > 0;
-  });
-
-  $scope.toggleShowSuggestions = function () {
-    $scope.showSuggestions = !$scope.showSuggestions;
-  };
-
-  $scope.$watch('showSuggestions', function (showSuggestions, showSuggestionsOld) {
-    if (!showSuggestions && showSuggestionsOld) {
-      $scope.$broadcast('focusAddFriendsInput');
-    } else if (showSuggestions) {
-      // XXX
-      $timeout(function () {
-        $('.btn.add-suggestion').first().focus();
-      }, 500);
     }
   });
 
@@ -354,21 +330,27 @@ function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, I
       });
   };
 
+  /*
   $scope.dismissAll = function () {
     // XXX a batch "dismiss" api would be better
     _.each($scope.friendSuggestions, function (friend) {
       $scope.interaction(INTERACTION.reject, {email: friend.email});
     });
   };
+  */
 
   function updateDisplayedFriends() {
-    if (!$scope.show || $scope.showSuggestions) return;
+    if (!$scope.show) return;
     $scope.displayedFriends = _.filter(model.friends, {status: FRIEND_STATUS.friend});
     if ($scope.searchText) {
+      $scope.displayedSuggestions = _.filter($scope.friendSuggestions, matchSearchText);
       $scope.displayedFriends = _.filter($scope.displayedFriends, matchSearchText);
+    } else {
+      $scope.displayedSuggestions = $scope.friendSuggestions;
     }
     _.each($scope.displayedFriends, addConnectedStatus);
-    $scope.displayedFriends = _.sortBy($scope.displayedFriends, friendOrder);
+    $scope.displayedFriends = _.sortBy($scope.displayedFriends, prettyUserFltr);
+    $scope.displayedSuggestions = _.sortBy($scope.displayedSuggestions, prettyUserFltr);
   }
   $scope.$watch('model.peers', updateDisplayedFriends, true);
   $scope.$watch('model.friends', updateDisplayedFriends, true);
@@ -411,6 +393,7 @@ function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, I
     return friend;
   }
 
+  /*
   var prefixByConnectedStatus = {
     transferringNow: '1',
     connected: '2',
@@ -421,6 +404,7 @@ function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, I
     var prefix = prefixByConnectedStatus[friend.connectedStatus] || '';
     return prefix + prettyUserFltr(friend);
   }
+  */
 
   $scope.$watch('contactCompletions', function (contactCompletions) {
     var data = _.map(contactCompletions, function (c) {

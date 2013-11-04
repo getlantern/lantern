@@ -6906,7 +6906,11 @@ textarea {
 }
 
 .select2-results {
-  max-height: 60px;
+  max-height: 80px;
+}
+
+.select2-result-label {
+  white-space: nowrap;
 }
 
 @-webkit-keyframes defaultPulse {
@@ -7139,155 +7143,66 @@ textarea {
 #lanternFriends .addFriendsControls {
   padding: 15px;
 }
-#lanternFriends .coloredByConnectedStatus {
-  -webkit-transition: all 0.3s ease;
-  transition: all 0.3s ease;
-}
-body.getMode #lanternFriends .coloredByConnectedStatus.transferringNow {
-  background-color: #fffced;
-}
-body.getMode #lanternFriends .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
-  color: #cc8800;
-}
-body.getMode #lanternFriends .coloredByConnectedStatus.connected {
-  background-color: #fffced;
-}
-body.getMode #lanternFriends .coloredByConnectedStatus.connected .friendConnectedStatus {
-  color: #cc8800;
-}
-body.giveMode #lanternFriends .coloredByConnectedStatus.transferringNow {
-  background-color: #e5ffe0;
-}
-body.giveMode #lanternFriends .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
-  color: #83c95a;
-}
-body.giveMode #lanternFriends .coloredByConnectedStatus.connected {
-  background-color: #e5ffe0;
-}
-body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnectedStatus {
-  color: #528e2f;
-}
-#lanternFriends .coloredByConnectedStatus.lastConnected .friendConnectedStatus {
-  color: #555555;
-}
-#lanternFriends .coloredByConnectedStatus.notYetConnected {
-  background-color: whitesmoke;
-}
-#lanternFriends .coloredByConnectedStatus.notYetConnected .friendConnectedStatus {
-  color: #999999;
-}
-#lanternFriends .friendConnectedStatus {
-  font-size: 11.9px;
-  font-family: "Roboto Thin";
-  margin: 2px 0 0 14px;
-}
-#lanternFriends #currentFriends .vcard {
-  max-width: 470px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#lanternFriends #friendSuggestionList .vcard {
-  max-width: 350px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#lanternFriends .vcard {
-  display: inline-block;
-}
-#lanternFriends .vcard .email:before {
-  content: "<";
-}
-#lanternFriends .vcard .email:after {
-  content: ">";
-}
 #lanternFriends .hasSearchText .select2-container {
   display: none;
 }
 
 #currentFriendsHeading {
+  display: inline-block;
   margin: 3px 0 0 22px;
   float: left;
 }
 
 #suggestedFriendsHeading {
   color: #3a87ad !important;
-  margin-top: 0;
-}
-
-.below-friendSuggestionList {
-  -webkit-transition: opacity 0.3s ease;
-  transition: opacity 0.3s ease;
-  font-size: 11.9px;
-  opacity: 0;
-  text-align: left;
-  margin: 15px 0;
-  padding: 0 13px;
-}
-.below-friendSuggestionList .dismiss-all {
-  float: right;
-  width: 110px;
-}
-.addFriendsControls:hover .below-friendSuggestionList {
-  opacity: 1;
-}
-
-.below-friendSuggestionList-text {
-  max-width: 360px;
-  float: left;
-}
-
-#friendSuggestionList {
-  text-align: left;
-}
-#friendSuggestionList > li {
-  padding: 8px 10px;
-  border: 1px solid #eeeeee;
-}
-#friendSuggestionList > li:hover {
-  background-color: #ffffd7;
-}
-#friendSuggestionList .approve.btn-group {
   display: inline-block;
-  float: right;
-}
-#friendSuggestionList .approve.btn-group > .btn {
-  width: 55px;
+  margin: 5px 0 0 22px;
+  float: left;
+  clear: both;
 }
 
-#friendSuggestionList, #currentFriends {
+#friendlist {
   list-style: none;
   max-height: 195px;
   overflow-y: scroll;
   border-radius: 8px;
   border: 2px solid #cccccc;
   margin: 0;
-}
-#friendSuggestionList li, #currentFriends li {
-  list-style-image: none;
-  list-style-type: none;
-  margin-left: 0;
-}
-
-#currentFriends {
   clear: both;
   padding: 0;
   margin-bottom: 10px;
 }
-#currentFriends .entry {
+#friendlist li {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: 0;
+}
+#friendlist .entry {
+  position: relative;
   padding: 5px;
   border: 1px solid white;
   color: #999999;
 }
-#currentFriends .entry .reject {
+#friendlist .entry .reject {
+  position: absolute;
   display: inline-block;
   width: 10px;
   opacity: 0;
   color: #999999;
   text-decoration: none;
 }
-#currentFriends .entry:hover {
+#friendlist .entry.suggested {
+  color: black;
+  background-color: #ede7ff;
+  border-top-color: #ede7ff;
+  border-bottom-color: white;
+}
+#friendlist .entry.suggested:hover {
+  background-color: #e5ddff !important;
+  border-top-color: #9db6ff;
+  border-bottom-color: #9db6ff;
+}
+#friendlist .entry:hover {
   background-color: #ffffd7 !important;
   border-left: 1px solid #ffffd7;
   border-right: 1px solid #ffffd7;
@@ -7295,16 +7210,100 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
   border-bottom: 1px solid #dddddd;
   color: black;
 }
-#currentFriends .entry:hover .reject {
+#friendlist .entry:hover .reject {
   opacity: 1;
 }
-#currentFriends .entry:hover .reject:hover {
+#friendlist .entry:hover .reject:hover {
   color: black;
+}
+#friendlist .entry:hover .btn-group {
+  opacity: 1;
+}
+#friendlist .entry .btn-group {
+  -webkit-transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  display: inline-block;
+  float: right;
+}
+#friendlist .entry .btn-group > .btn {
+  width: 55px;
+}
+#friendlist .vcard {
+  max-width: 470px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  margin-left: 13px;
+}
+#friendlist .email:before {
+  content: "<";
+}
+#friendlist .email:after {
+  content: ">";
+}
+#friendlist .suggested .vcard {
+  max-width: 350px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#friendlist .coloredByConnectedStatus {
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+body.getMode #friendlist .coloredByConnectedStatus.transferringNow {
+  background-color: #fffced;
+}
+body.getMode #friendlist .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
+  color: #cc8800;
+}
+body.getMode #friendlist .coloredByConnectedStatus.connected {
+  background-color: #fffced;
+}
+body.getMode #friendlist .coloredByConnectedStatus.connected .friendConnectedStatus {
+  color: #cc8800;
+}
+body.giveMode #friendlist .coloredByConnectedStatus.transferringNow {
+  background-color: #e5ffe0;
+}
+body.giveMode #friendlist .coloredByConnectedStatus.transferringNow .friendConnectedStatus {
+  color: #83c95a;
+}
+body.giveMode #friendlist .coloredByConnectedStatus.connected {
+  background-color: #e5ffe0;
+}
+body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedStatus {
+  color: #528e2f;
+}
+#friendlist .coloredByConnectedStatus.lastConnected .friendConnectedStatus {
+  color: #555555;
+}
+#friendlist .coloredByConnectedStatus.notYetConnected {
+  background-color: whitesmoke;
+}
+#friendlist .coloredByConnectedStatus.notYetConnected .friendConnectedStatus {
+  color: #999999;
+}
+#friendlist .friendConnectedStatus, #friendlist .reason {
+  font-size: 11.9px;
+  font-family: "Roboto Thin";
+  margin: 2px 0 0 14px;
+}
+#friendlist .reason {
+  color: #999999;
 }
 
 .no-friends-matching {
   padding: 10px 22px;
   background-color: whitesmoke;
+}
+
+.friend-warning {
+  font-size: 11.9px;
+  color: #999999;
+  margin-top: 4px;
 }
 
 #finished-autoReport {

@@ -270,18 +270,35 @@
       </div>
 
       <div ng-show="model.friends && (nfriends || nfriendSuggestions)">
-        <div collapse="showSuggestions" ng-class="{hasSearchText: !!searchText}">
+        <div ng-class="{hasSearchText: !!searchText}">
           <h4 id="currentFriendsHeading" class="{{model.settings.mode}}-colored-alt">
             <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
             <span ng-show="searchText">{{ 'MATCHING_FRIENDS' | i18n:displayedFriends.length }}</span>
+          </h4>
+          <h4 id="suggestedFriendsHeading" ng-show="nfriendSuggestions">
+            {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
           </h4>
 
           <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
             id="friendsListSearch" ng-class="{empty: !searchText}">
 
-          <ul id="currentFriends">
-            <li ng-show="searchText && displayedFriends.length == 0" class="no-friends-matching">
+          <ul id="friendlist">
+            <li ng-show="searchText && displayedSuggestions.length == 0 && displayedFriends.length == 0" class="no-friends-matching">
               <div class="gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>
+            </li>
+            <li ng-repeat="friend in displayedSuggestions" class="entry suggested">
+              <a class="reject" ng-click="reject(friend.email)">×</a>
+              <span class="vcard">
+                <span class="fn">{{ friend.name }}</span>
+                <span class="email">{{ friend.email }}</span>
+              </span>
+              <div class="pull-right btn-group">
+                <button ng-click="add(friend.email)" class="btn btn-mini btn-success">{{'ADD' | i18n}}</button>
+                <button ng-click="reject(friend.email)" class="btn btn-mini">{{'DISMISS' | i18n}}</button>
+              </div>
+              <div class="reason">
+                {{'SUGGESTED_BECAUSE_RUNNING' | i18n}}
+              </div>
             </li>
             <li ng-repeat="friend in displayedFriends" class="entry status-{{ friend.status }} coloredByConnectedStatus {{friend.connectedStatus}}">
               <div>
@@ -304,37 +321,9 @@
           </ul>
         </div>
 
-        <div collapse="!showSuggestions" class="centered">
-          <h4 id="suggestedFriendsHeading">
-            {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
-          </h4>
-
-          <ul id="friendSuggestionList">
-            <li ng-repeat="friend in friendSuggestions">
-              <div>
-                <span class="vcard">
-                  <span class="fn">{{ friend.name }}</span>
-                  <span class="email">{{ friend.email }}</span>
-                </span>
-                <span class="btn-group approve" ng-show="friend.status == FRIEND_STATUS.pending" dir="ltr">
-                  <button type="button" class="btn btn-mini btn-{{model.settings.mode}}-inverse add-suggestion"
-                          ng-click="add(friend.email)">{{ 'ADD' | i18n }}</button>
-                  <button type="button" class="btn btn-mini" ng-click="reject(friend.email)">{{ 'DISMISS' | i18n }}</button>
-                </span>
-              </div>
-            </li>
-          </ul>
-          <div class="below-friendSuggestionList">
-            <div class="below-friendSuggestionList-text">
-              <i class="icon-warning-sign warning-colored"></i>
-              {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
-            </div>
-            <button class="btn btn-mini dismiss-all" ng-click="dismissAll()">{{ 'DISMISS_ALL' | i18n }}</button>
-          </div>
-        </div>
       </div>
 
-      <div collapse="!model.friends || showSuggestions">
+      <div>
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
           placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
@@ -348,10 +337,11 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-{{showSuggestions && (model.settings.mode+'-inverse') || 'info'}} pull-left" ng-show="nfriendSuggestions > 0"
-      ng-click="toggleShowSuggestions()">
-      {{ showSuggestions && 'SHOW_CURRENT_FRIENDS' || 'SHOW_SUGGESTED_FRIENDS' | i18n }}
-    </button>
+    <div class="pull-left friend-warning">
+      <i class="icon-warning-sign warning-colored"></i>
+      {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
+    </div>
+
     <button id="continueFromFriends" class="btn btn-primary"
       ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>
