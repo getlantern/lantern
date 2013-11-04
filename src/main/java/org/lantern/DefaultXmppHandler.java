@@ -1169,7 +1169,9 @@ public class DefaultXmppHandler implements XmppHandler,
 
         sendPresence(pres, "Invite-Thread");
 
-        addToRoster(email);
+        if (addToRoster) {
+            addToRoster(email);
+        }
         return true;
     }
 
