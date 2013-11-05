@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,6 @@ import com.google.inject.Injector;
  * End-to-end proxying test to make sure we're able to proxy access to
  * different sites.
  */
-@Ignore
 public class LanternProxyingTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -41,15 +40,17 @@ public class LanternProxyingTest {
         //Launcher.main(false, args);
         
         final String[] args = new String[]{"--disable-ui", "--force-get", 
-                "--refresh-tok", TestUtils.getRefreshToken(), 
-                "--access-tok", TestUtils.getAccessToken(), 
+                "--refresh-tok", TestingUtils.getRefreshToken(), 
+                "--access-tok", TestingUtils.getAccessToken(), 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
         final LanternModule lm = new LanternModule(args);
-
+        log.info("Created Lantern module");
         final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();
+        log.info("Launching");
         launcher.launch();
+        log.info("Finished launching");
         launcher.model.setSetupComplete(true);
         
         final Injector injector = launcher.getInjector();
@@ -60,6 +61,10 @@ public class LanternProxyingTest {
             Thread.sleep(200);
             tries++;
         }
+        
+        log.info("Finished getting proxy");
+        
+        assertTrue("Too many tried to get a proxy!", tries < 200);
         
         //LanternUtils.addCert("digicerthighassurancerootca", new File("certs/DigiCertHighAssuranceCA-3.cer"), certsFile, "changeit");
         //LanternUtils.addCert("littleproxy", new File("certs/littleproxy.cer"), certsFile, "changeit");
@@ -75,7 +80,9 @@ public class LanternProxyingTest {
         // internally.
         System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
         
+        log.info("Waiting for server");
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        log.info("Got local HTTP server");
 
         //final Collection<String> censored = Arrays.asList("myspace.com");
         //final Collection<String> censored = Arrays.asList("getlantern.org");
