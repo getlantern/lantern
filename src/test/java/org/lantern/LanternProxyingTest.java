@@ -1,6 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,6 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,11 @@ public class LanternProxyingTest {
         final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();
         log.info("Launching");
-        launcher.launch();
+        
+        // We need to launch lantern on a thread because it blocks indefinitely.
+        launch(launcher);
+        
+        Thread.sleep(4000);
         log.info("Finished launching");
         launcher.model.setSetupComplete(true);
         
@@ -125,6 +129,20 @@ public class LanternProxyingTest {
         //log.info("Stopping proxy");
         //proxy.stop();
         //Launcher.stop();
+    }
+
+    private void launch(final Launcher launcher) {
+        final Runnable runner = new Runnable() {
+
+            @Override
+            public void run() {
+                launcher.launch();
+            }
+            
+        };
+        final Thread t = new Thread(runner, "Test-Proxy-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 
     private boolean testWhitelistedSite(final String url, final HttpClient client,
