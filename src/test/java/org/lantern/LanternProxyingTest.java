@@ -19,6 +19,7 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import com.google.inject.Injector;
  * End-to-end proxying test to make sure we're able to proxy access to
  * different sites.
  */
+@Ignore
 public class LanternProxyingTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
