@@ -69,7 +69,7 @@ public class LanternProxyingTest {
         
         log.info("Finished getting proxy");
         
-        assertTrue("Too many tried to get a proxy!", tries < max);
+        assertTrue("Too many tries to get a proxy!", tries < max);
         
         //LanternUtils.addCert("digicerthighassurancerootca", new File("certs/DigiCertHighAssuranceCA-3.cer"), certsFile, "changeit");
         //LanternUtils.addCert("littleproxy", new File("certs/littleproxy.cer"), certsFile, "changeit");
