@@ -21,6 +21,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.lantern.state.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,7 @@ public class LanternProxyingTest {
         log.info("Created Lantern module");
         final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();
+        //launcher.model.getSettings().setMode(Mode.get);
         log.info("Launching");
         
         // We need to launch lantern on a thread because it blocks indefinitely.

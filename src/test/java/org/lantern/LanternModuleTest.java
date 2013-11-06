@@ -3,17 +3,9 @@ package org.lantern;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
-import javax.crypto.Cipher;
-
-import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
 import org.lantern.TestUtils.TestModule;
 import org.lantern.http.JettyLauncher;
-import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.state.Model;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -30,28 +22,6 @@ public class LanternModuleTest {
     @Test
     public void test() throws Exception {
         final LanternModule lm = new LanternModule(new String[]{});
-        
-        lm.setLocalCipherProvider(new LocalCipherProvider() {
-
-            @Override
-            public Cipher newLocalCipher(int opmode) throws IOException,
-                    GeneralSecurityException {
-                return Cipher.getInstance("AES/CBC/PKCS5Padding");
-            }
-
-            @Override
-            public boolean requiresAdditionalUserInput() {return false;}
-
-            @Override
-            public void feedUserInput(char[] input, boolean init)
-                    throws IOException, GeneralSecurityException {}
-            @Override
-            public boolean isInitialized() {return true;}
-            @Override
-            public void reset() throws IOException {}
-            
-        });
-        lm.setEncryptedFileService(new UnencryptedFileService());
         lm.setUpnpService(new UpnpService() {
             @Override
             public void shutdown() {}
