@@ -383,7 +383,8 @@ public class ModelIo extends Storage<Model> {
     @Override
     protected Model blank() {
         log.info("Loading empty model!!");
-        Model mod = new Model(countryService);
+        final Model mod = new Model(countryService);
+        processCommandLine(this.commandLine, mod);
         return mod;
     }
 
