@@ -374,6 +374,9 @@ public class LanternUtils {
      */
     public static String runKeytool(final String... args) {
 
+        final Collection<String> withMx = new ArrayList<String>();
+        withMx.addAll(Arrays.asList(args));
+        withMx.add("-JXms64m");
         try {
             final CommandLine command = new CommandLine(findKeytoolPath(), args);
             command.execute();
