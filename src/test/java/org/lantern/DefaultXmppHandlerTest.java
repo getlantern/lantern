@@ -18,7 +18,6 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Test for the XMPP handler.
  */
-@Ignore
 public class DefaultXmppHandlerTest {
 
     private static Logger LOG = 

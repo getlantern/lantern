@@ -60,15 +60,16 @@ public class LanternProxyingTest {
         final Injector injector = launcher.getInjector();
         final ProxyTracker proxyTracker = injector.getInstance(ProxyTracker.class);
         
+        final int max = 400;
         int tries = 0;
-        while (!proxyTracker.hasProxy() && tries < 200) {
-            Thread.sleep(200);
+        while (!proxyTracker.hasProxy() && tries < max) {
+            Thread.sleep(100);
             tries++;
         }
         
         log.info("Finished getting proxy");
         
-        assertTrue("Too many tried to get a proxy!", tries < 200);
+        assertTrue("Too many tried to get a proxy!", tries < max);
         
         //LanternUtils.addCert("digicerthighassurancerootca", new File("certs/DigiCertHighAssuranceCA-3.cer"), certsFile, "changeit");
         //LanternUtils.addCert("littleproxy", new File("certs/littleproxy.cer"), certsFile, "changeit");
