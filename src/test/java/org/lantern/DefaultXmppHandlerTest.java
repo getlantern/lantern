@@ -67,7 +67,7 @@ public class DefaultXmppHandlerTest {
         LOG.debug("Checking for proxies in settings: {}", settings);
         int count = 0;
         while (closedBetaEvent == null && count < 200) {
-            Thread.sleep(100);
+            Thread.sleep(120);
             count++;
         }
         
