@@ -3,6 +3,7 @@ package org.lantern;
 import static org.junit.Assert.assertTrue;
 
 import org.jivesoftware.smack.SASLAuthentication;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
@@ -17,6 +18,7 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Test for the XMPP handler.
  */
+@Ignore
 public class DefaultXmppHandlerTest {
 
     private static Logger LOG = 
