@@ -15,7 +15,7 @@ fi
 baseName=$1
 bucket="lantern"
 names=($baseName.exe $baseName.dmg $baseName-32-bit.deb $baseName-64-bit.deb)
-#names=($baseName-32-bit.deb)
+#names=($baseName-32-bit.deb $baseName-64-bit.deb)
 
 for name in "${names[@]}"
 do
@@ -33,7 +33,7 @@ do
   echo "Latest name: $latestName"
 
   echo "Downloading existing file..."
-  curl -O https://s3.amazonaws.com/lantern/$name
+  test -f $name || curl -O https://s3.amazonaws.com/lantern/$name
 
   echo "Copying on S3 to latest file"
   ./copys3file.py $name || die "Could not copy s3 file to latest!"
