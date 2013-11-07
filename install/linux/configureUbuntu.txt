@@ -5,9 +5,8 @@
 logf=~/.lantern.installer.log
 
 sed -i s,^Icon=.*png$,Icon=/opt/lantern/128on.png, /opt/lantern/lantern.desktop
-chown $SUDO_USER:$SUDO_USER /opt/lantern/lantern.desktop
 cp /opt/lantern/lantern.desktop /usr/share/applications || echo "Could not copy desktop file!!"  >> $logf
-
+chown $SUDO_USER:$SUDO_USER /usr/share/applications/lantern.desktop
 chmod 4711 /opt/lantern/copyPolicy.exe
 
 test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
