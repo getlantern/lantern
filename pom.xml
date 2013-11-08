@@ -395,7 +395,7 @@
         <configuration>
           <forkCount>1</forkCount>
           <reuseForks>false</reuseForks>
-          <argLine>-Xmx1600m -XX:+HeapDumpOnOutOfMemoryError -Djava.library.path=${java.library.path}</argLine>
+          <argLine>-Xmx1600m -XX:+HeapDumpOnOutOfMemoryError -Djava.library.path=${java.library.path} -javaagent:pginstrument-0.1.0-shadow.jar -Xbootclasspath/a:pginstrument-0.1.0-shadow.jar -Dpginstrument.outfile=Lantern.pro</argLine>
           <systemProperties>
             <property>
               <name>testing</name>
