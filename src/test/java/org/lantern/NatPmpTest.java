@@ -51,7 +51,7 @@ public class NatPmpTest {
         assertTrue(index != -1);
         synchronized(ai) {
             if (ai.get() == -1) {
-                ai.wait(10000);
+                ai.wait(12000);
             }
         }
 

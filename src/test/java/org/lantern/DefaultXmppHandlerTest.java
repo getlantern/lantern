@@ -3,6 +3,7 @@ package org.lantern;
 import static org.junit.Assert.assertTrue;
 
 import org.jivesoftware.smack.SASLAuthentication;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
@@ -67,7 +68,7 @@ public class DefaultXmppHandlerTest {
         LOG.debug("Checking for proxies in settings: {}", settings);
         int count = 0;
         while (closedBetaEvent == null && count < 200) {
-            Thread.sleep(100);
+            Thread.sleep(120);
             count++;
         }
         

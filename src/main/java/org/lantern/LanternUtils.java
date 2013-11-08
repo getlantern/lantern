@@ -374,12 +374,16 @@ public class LanternUtils {
      */
     public static String runKeytool(final String... args) {
 
+        final Collection<String> withMx = new ArrayList<String>();
+        withMx.addAll(Arrays.asList(args));
+        withMx.add("-JXms64m");
         try {
             final CommandLine command = new CommandLine(findKeytoolPath(), args);
             command.execute();
             final String output = command.getStdOut();
             if (!command.isSuccessful()) {
-                LOG.info("Command failed!! -- {}", Arrays.asList(args));
+                LOG.info("Command failed!! Args: {}\nResult: {}", 
+                        Arrays.asList(args), output);
             }
             return output;
         } catch (IOException e) {

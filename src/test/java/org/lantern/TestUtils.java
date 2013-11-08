@@ -19,10 +19,8 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.JettyLauncher;
 import org.lantern.oauth.OauthUtils;
-import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
@@ -214,8 +212,6 @@ public class TestUtils {
 
     public static LanternModule newTestLanternModule() throws Exception {
         final LanternModule lm = new LanternModule(new String[]{});
-        lm.setLocalCipherProvider(new DefaultLocalCipherProvider());
-        lm.setEncryptedFileService(new UnencryptedFileService());
         lm.setGeoIpLookupService(new GeoIpLookupService(false));
         lm.setUpnpService(new UpnpService() {
             @Override

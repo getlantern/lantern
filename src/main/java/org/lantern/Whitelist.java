@@ -59,6 +59,7 @@ public class Whitelist {
         "github.com",
         "google.com",
         "googleusercontent.com",
+        "googlevideo.com",
         "greatfire.org",
         "hrw.org", // Human Rights Watch
         "ifconfig.me",

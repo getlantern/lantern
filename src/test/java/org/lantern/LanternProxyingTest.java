@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.lantern.state.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,25 +41,37 @@ public class LanternProxyingTest {
         //Launcher.main(false, args);
         
         final String[] args = new String[]{"--disable-ui", "--force-get", 
-                "--refresh-tok", TestUtils.getRefreshToken(), 
-                "--access-tok", TestUtils.getAccessToken(), 
+                "--refresh-tok", TestingUtils.getRefreshToken(), 
+                "--access-tok", TestingUtils.getAccessToken(), 
                 "--disable-trusted-peers", "--disable-anon-peers"};
 
         final LanternModule lm = new LanternModule(args);
-
+        log.info("Created Lantern module");
         final Launcher launcher = new Launcher(lm);
         launcher.configureDefaultLogger();
-        launcher.launch();
+        //launcher.model.getSettings().setMode(Mode.get);
+        log.info("Launching");
+        
+        // We need to launch lantern on a thread because it blocks indefinitely.
+        launch(launcher);
+        
+        Thread.sleep(4000);
+        log.info("Finished launching");
         launcher.model.setSetupComplete(true);
         
         final Injector injector = launcher.getInjector();
         final ProxyTracker proxyTracker = injector.getInstance(ProxyTracker.class);
         
+        final int max = 400;
         int tries = 0;
-        while (!proxyTracker.hasProxy() && tries < 200) {
-            Thread.sleep(200);
+        while (!proxyTracker.hasProxy() && tries < max) {
+            Thread.sleep(100);
             tries++;
         }
+        
+        log.info("Finished getting proxy");
+        
+        assertTrue("Too many tries to get a proxy!", tries < max);
         
         //LanternUtils.addCert("digicerthighassurancerootca", new File("certs/DigiCertHighAssuranceCA-3.cer"), certsFile, "changeit");
         //LanternUtils.addCert("littleproxy", new File("certs/littleproxy.cer"), certsFile, "changeit");
@@ -73,7 +87,9 @@ public class LanternProxyingTest {
         // internally.
         System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
         
+        log.info("Waiting for server");
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        log.info("Got local HTTP server");
 
         //final Collection<String> censored = Arrays.asList("myspace.com");
         //final Collection<String> censored = Arrays.asList("getlantern.org");
@@ -116,6 +132,20 @@ public class LanternProxyingTest {
         //log.info("Stopping proxy");
         //proxy.stop();
         //Launcher.stop();
+    }
+
+    private void launch(final Launcher launcher) {
+        final Runnable runner = new Runnable() {
+
+            @Override
+            public void run() {
+                launcher.launch();
+            }
+            
+        };
+        final Thread t = new Thread(runner, "Test-Proxy-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 
     private boolean testWhitelistedSite(final String url, final HttpClient client,
