@@ -236,7 +236,7 @@ public class DefaultPeerFactory implements PeerFactory {
             X509Certificate cert = certificateChain[0];
             return certsToPeers.get(cert);
         } catch (SSLPeerUnverifiedException spue) {
-            log.error("Peer not verified");
+            log.debug("Peer not verified");
             return null;
         }
     }
