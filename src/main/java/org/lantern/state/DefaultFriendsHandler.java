@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
@@ -80,6 +82,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final Messages msgs;
     
+    private final ScheduledExecutorService bulkInvitesChecker = 
+            Threads.newSingleThreadScheduledExecutor("Bulk-Invites-Thread");
+    
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
             final XmppHandler xmppHandler, 
@@ -100,7 +105,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
             loadFriends();
         }
         Events.register(this);
-        handleBulkInvites();
     }
     
     @Subscribe
@@ -295,19 +299,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } else {
             log.warn("No XMPP handler? Testing?");
             throw new IOException("No xmpp handler? Testing");
-        }
-    }
-
-    private void unsubscribe(final String email) {
-        if (this.xmppHandler != null) {
-            try {
-                this.xmppHandler.unsubscribed(email);
-                this.xmppHandler.unsubscribe(email);
-            } catch (final IllegalStateException e) {
-                log.error("Error unsubscribing from "+email, e);
-            }
-        } else {
-            log.warn("No XMPP handler? Testing?");
         }
     }
 
@@ -684,7 +675,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
     }
 
-    private void handleBulkInvites() {
+    public void start() {
+        log.debug("Starting");
         final Runnable runner = new Runnable() {
             
             @Override
@@ -696,12 +688,19 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 checkForBulkInvites();
             }
         };
-        final Thread t = new Thread(runner, "Bulk-Invites-Thread");
-        t.setDaemon(true);
-        t.start();
+        bulkInvitesChecker.scheduleWithFixedDelay(
+                runner,
+                40, 
+                10,
+                TimeUnit.SECONDS);
     }
     
-
+    @Override
+    public void stop() {
+        log.debug("Stopping");
+        bulkInvitesChecker.shutdown();
+    }
+    
     /**
      * See if there's a bulk invite file to process, and process it if so.
      */
@@ -711,42 +710,46 @@ public class DefaultFriendsHandler implements FriendsHandler {
         if (!file.isFile()) {
             return;
         }
-        final File processed = 
-            new File(file.getParentFile(), file.getName()+".processed");
+        
+        log.debug("BulkInvite: Found lantern-bulk-friends.txt");
+        if (!this.xmppHandler.isLoggedIn()) {
+            log.debug("BulkInvite: Unable to process lantern-bulk-friends.txt. Not logged in?");
+            return;
+        }
+        
+        log.debug("BulkInvite: Processing lantern-bulk-friends.txt");
+        final File processing = 
+            new File(file.getParentFile(), file.getName()+".processing");
         
         try {
-            Files.move(file, processed);
+            Files.move(file, processing);
         } catch (final IOException e) {
-            log.error("Could not move bulk invites file?", e);
+            log.error("BulkInvite: Could not move bulk invites file to .processing?", e);
             return;
         }
         
-        if (!this.xmppHandler.isLoggedIn()) {
-            log.debug("Not logged in?");
-            return;
-        }
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-            String email = br.readLine();
-            while (StringUtils.isNotBlank(email)) {
-                log.debug("Inviting {}", email);
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(processing)));
+            String email = null;
+            while (StringUtils.isNotBlank(email = br.readLine())) {
+                log.debug("BulkInvite: Considering inviting: {}", email);
                 if (!email.contains("@")) {
                     log.error("Not an email: {}", email);
                     break;
                 }
                 
                 if (email.startsWith("#")) {
-                    log.debug("Email commented out: {}", email);
+                    log.debug("BulkInvite: Email commented out: {}", email);
                     email = br.readLine();
                     continue;
                 }
                 
                 final Friend friend = getOrCreateFriend(email.trim());
-                this.msgs.msg(String.format("Processing %1$s", email),
-                        MessageType.info, 5);
                 invite(friend, false);
-                email = br.readLine();
+                String message = String.format("Invited: %1$s", email);
+                log.debug("BulkInvite: {}", message);
+                this.msgs.msg(message, MessageType.info, 5);
                 
                 // Wait a bit between each one!
                 try {
@@ -755,9 +758,18 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 }
             }
         } catch (final IOException e) {
-            log.error("Could not find file?", e);
+            log.error("BulkInvite: Could not find file?", e);
         } finally {
             IOUtils.closeQuietly(br);
+            
+            File processed = 
+                    new File(file.getParentFile(), file.getName()+".processed");
+            try {
+                Files.move(processing, processed);
+            } catch (final IOException e) {
+                log.warn("BulkInvite: Could not move bulk invites file to .processed?", e);
+                return;
+            }  
         }
     }
 

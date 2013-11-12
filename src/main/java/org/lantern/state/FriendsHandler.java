@@ -3,9 +3,10 @@ package org.lantern.state;
 import java.util.Collection;
 
 import org.jivesoftware.smack.packet.Presence;
+import org.lantern.Shutdownable;
 import org.lantern.state.Friend.Status;
 
-public interface FriendsHandler {
+public interface FriendsHandler extends Shutdownable {
 
     void addFriend(String email);
     
@@ -28,5 +29,7 @@ public interface FriendsHandler {
     ClientFriend getFriend(String email);
 
     void syncFriends();
+    
+    void start();
 
 }
