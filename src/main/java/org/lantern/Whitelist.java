@@ -102,6 +102,7 @@ public class Whitelist {
         "linkadeh.com",
         "manoto1.com",
         "mardomak.org",
+        "osyan.net",
         "radiofarda.com",
         "radiozamaneh.com",
         "roozonline.com",
