@@ -691,7 +691,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         bulkInvitesChecker.scheduleWithFixedDelay(
                 runner,
                 40, 
-                10,
+                1,
                 TimeUnit.SECONDS);
     }
     
@@ -728,15 +728,23 @@ public class DefaultFriendsHandler implements FriendsHandler {
             return;
         }
         
+        int numberOfPeopleInvited = 0;
         BufferedReader br = null;
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(processing)));
             String email = null;
-            while (StringUtils.isNotBlank(email = br.readLine())) {
+            while ((email = br.readLine()) != null) {
+                email = email.trim();
                 log.debug("BulkInvite: Considering inviting: {}", email);
+                
+                if (StringUtils.isBlank(email)) {
+                    log.debug("BulkInvite: Skipping blank line");
+                    continue;
+                }
+                
                 if (!email.contains("@")) {
-                    log.error("Not an email: {}", email);
-                    break;
+                    log.warn("BulkInvite: Not an email, skipping: {}", email);
+                    continue;
                 }
                 
                 if (email.startsWith("#")) {
@@ -747,9 +755,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 
                 final Friend friend = getOrCreateFriend(email.trim());
                 invite(friend, false);
-                String message = String.format("Invited: %1$s", email);
-                log.debug("BulkInvite: {}", message);
-                this.msgs.msg(message, MessageType.info, 5);
+                log.debug("BulkInvite: Invited {}", email);
+                numberOfPeopleInvited += 1;
+                
+                log.debug("BulkInvite: Invited {} so far", numberOfPeopleInvited);
                 
                 // Wait a bit between each one!
                 try {
@@ -757,6 +766,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 } catch (InterruptedException e) {
                 }
             }
+            
+            String message = String.format("Bulk invited %1$s people",
+                    numberOfPeopleInvited);
+            this.msgs.msg(message, MessageType.info, 5);
+            log.debug("BulkInvite: {}", message);
         } catch (final IOException e) {
             log.error("BulkInvite: Could not find file?", e);
         } finally {
