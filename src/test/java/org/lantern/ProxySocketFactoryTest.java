@@ -3,7 +3,9 @@ package org.lantern;
 import static org.junit.Assert.assertTrue;
 
 import java.net.Socket;
+import java.security.Security;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.junit.Test;
@@ -17,7 +19,8 @@ public class ProxySocketFactoryTest {
     @Test
     public void test() throws Exception {
         log.debug("Running proxy socket factory test");
-        //System.setProperty("javax.net.debug", "ssl");
+        Launcher.configureCipherSuites();
+        System.setProperty("javax.net.debug", "ssl");
         
         // Change the server to use because the default LittleProxy server
         // doesn't support higher bit length encryption. That will cause this
