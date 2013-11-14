@@ -82,6 +82,7 @@ public class GoogleOauth2CallbackServer {
         server.setStopAtShutdown(true);
         
         connector = new SelectChannelConnector();
+        // Set the port to 0 to be auto-assigned an available ephemeral port.
         connector.setPort(0);
         connector.setMaxIdleTime(80 * 1000);
         connector.setLowResourcesMaxIdleTime(30 * 1000);
@@ -158,7 +159,8 @@ public class GoogleOauth2CallbackServer {
     }
     
     /**
-     * Return the local port on which we're listening.
+     * Return the local ephemeral port on which we're listening.
+     * 
      * @return
      */
     public int getPort() {
