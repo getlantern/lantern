@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @font-face {
   font-family: "Droid Sans Mono";
   src: url('../font/DroidSansMono.ttf');
@@ -2173,7 +2174,7 @@ table th[class*="span"],
   background-color: #c4e3f3;
 }
 
-/*
+/*!
  *  Font Awesome 3.0.1
  *  the iconic font designed for use with Twitter Bootstrap
  *  -------------------------------------------------------
@@ -6538,6 +6539,10 @@ i[class*=icon] {
   margin-left: 2px;
 }
 
+.capitalize {
+  text-transform: capitalize;
+}
+
 details *:not(summary) {
   font-size: 11.9px;
 }
@@ -7366,7 +7371,6 @@ body.giveMode #lanternFriends .coloredByConnectedStatus.connected .friendConnect
 #latestDetails summary {
   margin-left: 20px;
   font-weight: bold;
-  text-transform: capitalize;
 }
 #latestDetails dt {
   text-transform: capitalize;
