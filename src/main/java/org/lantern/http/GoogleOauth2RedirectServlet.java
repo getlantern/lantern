@@ -56,7 +56,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     private final ModelUtils modelUtils;
 
     private final Messages msgs;
-
+    
     @Inject
     public GoogleOauth2RedirectServlet(final XmppHandler handler, 
         final Model model, final InternalState internalState,
@@ -104,23 +104,23 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
                 log.error("Could not start proxying", e);
             }
         }
-        final String location = newGtalkOauthUrl();
-        
         // We have to completely recreate the server each time because we
         // stop it and start it only when we need oauth callbacks. If we
         // attempt to restart a stopped server, things get funky.
-        final GoogleOauth2CallbackServer server = 
+        GoogleOauth2CallbackServer server =
             new GoogleOauth2CallbackServer(handler, model, this.internalState, 
                 this.modelIo, this.proxifier, this.httpClientFactory, modelUtils, this.msgs);
         
         // Note that this call absolutely ensures the server is started.
         server.start();
         
+        final String location = newGtalkOauthUrl(server);
+        
         log.debug("Sending redirect to {}", location);
         resp.sendRedirect(location);
     }
 
-    private String newGtalkOauthUrl() {
+    private String newGtalkOauthUrl(GoogleOauth2CallbackServer server) {
         try {
             
             final GoogleClientSecrets clientSecrets = 
@@ -133,7 +133,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
             
             final GoogleBrowserClientRequestUrl gbc = 
                 new GoogleBrowserClientRequestUrl(clientSecrets, 
-                    OauthUtils.REDIRECT_URL, scopes);
+                    OauthUtils.getRedirectUrl(server.getPort()), scopes);
             gbc.setApprovalPrompt("auto");
             gbc.setResponseTypes("code");
             final String baseUrl = gbc.build();
