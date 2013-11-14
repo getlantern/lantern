@@ -112,12 +112,10 @@ public class CometDTest {
 
         final Map<String,Object> updateJson =
             new LinkedHashMap<String,Object>();
-        updateJson.put(LanternConstants.UPDATE_VERSION_KEY, "0.20");
+        updateJson.put(LanternConstants.UPDATE_KEY, "1.0.0-beta8");
         updateJson.put(LanternConstants.UPDATE_RELEASE_DATE_KEY, "2012-10-31");
         updateJson.put(LanternConstants.UPDATE_URL_KEY,
             "http://s3.amazonaws.com/lantern/latest.dmg");
-        updateJson.put(LanternConstants.UPDATE_MESSAGE_KEY,
-            "test update");
 
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
 

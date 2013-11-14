@@ -303,7 +303,7 @@ public class SystemTrayImpl implements SystemTray {
                     });
                 }
                 updateItem.setText(tr("TRAY_UPDATE")+" "+
-                    data.get(LanternConstants.UPDATE_VERSION_KEY));
+                    data.get(LanternConstants.UPDATE_KEY));
             }
         });
     }

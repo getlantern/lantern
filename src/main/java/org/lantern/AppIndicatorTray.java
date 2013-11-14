@@ -232,7 +232,7 @@ public class AppIndicatorTray implements SystemTray {
         }
         this.updateData = data;
         final String label = Tr.tr("Update to Lantern ") + 
-            data.get(LanternConstants.UPDATE_VERSION_KEY);
+            data.get(LanternConstants.UPDATE_KEY);
         updateItem = libgtk.gtk_menu_item_new_with_label(label);
         updateItemCallback = new Gobject.GCallback() {
             @Override
