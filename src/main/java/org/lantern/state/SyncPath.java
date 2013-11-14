@@ -7,6 +7,8 @@ package org.lantern.state;
 public enum SyncPath {
     SETTINGS("settings"),
     VERSION("version"),
+    VERSION_LATEST("version/latest"),
+    VERSION_UPDATE_AVAILABLE("version/updateAvailable"),
     ROSTER("roster"),
     MODAL("modal"),
     ALL(""),

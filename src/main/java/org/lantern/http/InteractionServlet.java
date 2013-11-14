@@ -80,6 +80,7 @@ public class InteractionServlet extends HttpServlet {
         URL,
         EXCEPTION,
         FRIEND,
+        UPDATEAVAILABLE,
         REJECT
     }
 
@@ -92,6 +93,7 @@ public class InteractionServlet extends HttpServlet {
         switchModals.add(Modal.settings);
         switchModals.add(Modal.proxiedSites);
         switchModals.add(Modal.lanternFriends);
+        switchModals.add(Modal.updateAvailable);
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());

@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.security.auth.login.CredentialException;
 
@@ -60,6 +63,7 @@ import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncPath;
+import org.lantern.state.Version.Installed;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -184,6 +188,9 @@ public class DefaultXmppHandler implements XmppHandler,
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
     private final Messages msgs;
+
+    // TODO: DRY with lantern-controller's SemanticVersion
+    private static final Pattern VERSION_ID_PATTERN = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)(\\-\\w+)?$");
 
     /**
      * Creates a new XMPP handler.
@@ -777,7 +784,6 @@ public class DefaultXmppHandler implements XmppHandler,
         
         boolean handled = false;
         handled |= handleSetDelay(json);
-        handled |= handleUpdate(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -792,21 +798,60 @@ public class DefaultXmppHandler implements XmppHandler,
             }
         }
         sendOnDemandValuesToControllerIfNecessary(json);
+        
+        handleVersionUpdate(json);
     }
 
-    @SuppressWarnings("unchecked")
-    private boolean handleUpdate(final JSONObject json) {
-        // This is really a JSONObject, but that itself is a map.
-        final JSONObject update =
-            (JSONObject) json.get(LanternConstants.UPDATE_KEY);
-        if (update == null) {
-            return false;
+    private void handleVersionUpdate(JSONObject json) {
+        String latestVersionId = (String) json.get(LanternConstants.UPDATE_KEY);
+        if (StringUtils.isBlank(latestVersionId)) {
+            return;
         }
-        LOG.info("About to propagate update...");
-        final Map<String, Object> event = new HashMap<String, Object>();
-        event.putAll(update);
-        Events.asyncEventBus().post(new UpdateEvent(event));
-        return false;
+
+        Map<String,Object> latest = model.getVersion().getLatest();
+
+        // TODO: DRY with lantern-controller's semanticVersion.from()
+        Matcher matcher = VERSION_ID_PATTERN.matcher(latestVersionId);
+        if (!matcher.matches()) {
+            LOG.error(String.format("Got bad latest version id: %1$s", latestVersionId));
+            return;
+        }
+        int major = Integer.parseInt(matcher.group(1));
+        int minor = Integer.parseInt(matcher.group(2));
+        int patch = Integer.parseInt(matcher.group(3));
+        String tag = matcher.group(4);
+        if (!StringUtils.isEmpty(tag)) {
+            tag = tag.substring(1); // strip the "-"
+        }
+
+        String releaseDate = (String) json.get(LanternConstants.UPDATE_RELEASE_DATE_KEY);
+        String infoUrl = (String) json.get(LanternConstants.UPDATE_URL_KEY);
+
+        latest.put("major", major);
+        latest.put("minor", minor);
+        latest.put("patch", patch);
+        latest.put("tag", tag);
+        latest.put("infoUrl", infoUrl);
+        latest.put("releaseDate", releaseDate);
+
+        String installerUrl = "https://s3.amazonaws.com/lantern/latest";
+        final String os = System.getProperty("os.name");
+        if (SystemUtils.IS_OS_WINDOWS) {
+            installerUrl += ".exe";
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            installerUrl += ".dmg";
+        } else if (SystemUtils.IS_OS_LINUX) {
+            installerUrl += System.getProperty("os.arch").contains("64") ? "-64.deb" : "-32.deb";
+        } else {
+            LOG.error("Unsupported OS");
+            return;
+        }
+        latest.put("installerUrl", installerUrl);
+
+        Events.sync(SyncPath.VERSION_LATEST, latest);
+
+        model.getVersion().setUpdateAvailable(true);
+        Events.sync(SyncPath.VERSION_UPDATE_AVAILABLE, true);
     }
 
     private boolean handleSetDelay(final JSONObject json) {
@@ -900,7 +945,14 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setTo(LanternClientConstants.LANTERN_JID);
 
         forHub.setProperty("language", SystemUtils.USER_LANGUAGE);
-        
+
+        // TODO: refactor various SemanticVersion / LanternVersion classes and use here
+        Installed installed = model.getVersion().getInstalled();
+        String tag = installed.getTag();
+        String verstr = ""+installed.getMajor()+"."+installed.getMinor()+"."+installed.getPatch()+
+            (StringUtils.isEmpty(tag) ? "" : "-" + tag);
+        forHub.setProperty(LanternConstants.UPDATE_KEY, verstr);
+
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
         // Counterintuitive as it might seem at first glance, this is correct.

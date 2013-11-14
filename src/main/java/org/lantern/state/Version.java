@@ -3,6 +3,8 @@ package org.lantern.state;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -173,6 +175,7 @@ public class Version {
 
     @Keep
     public class SemanticVersion {
+
         private final int major;
 
         private final int minor;
