@@ -13,6 +13,7 @@ import com.google.inject.Singleton;
 public class SystemDefaultBrowserService extends BrowserServiceAdapter {
     @Override
     public void openBrowser(URI uri) {
+        log.debug("Opening browser to: {}", uri);
         try {
             Desktop.getDesktop().browse(uri);
         } catch (IOException ioe) {
