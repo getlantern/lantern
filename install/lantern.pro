@@ -1,5 +1,7 @@
 -ignorewarnings
 
+-include ../Lantern.pro
+
 -keep public class org.lantern.Launcher {
      public static void main(java.lang.String[]);
 }
