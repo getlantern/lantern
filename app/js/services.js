@@ -79,6 +79,9 @@ angular.module('app.services', [])
       }
       var wasConnected = connected;
       connected = msg.successful;
+      if (connected) {
+        $rootScope.cometdLastConnectedAt = new Date();
+      }
       if (!wasConnected && connected) { // reconnected
         log.debug('connection established');
         $rootScope.$apply(function () {
