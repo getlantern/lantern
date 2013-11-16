@@ -85,9 +85,10 @@ if [[ $VERSION == "HEAD" ]];
 then
     cp target/lantern-*.jar install/common/lantern.jar || die "Could not copy jar?"
 else
-    cp target/lantern-$VERSION.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
 fi
 
+cp GeoIP.dat install/common/ || die "Could not copy GeoIP.dat?"
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 
