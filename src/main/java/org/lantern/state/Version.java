@@ -3,8 +3,6 @@ package org.lantern.state;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -173,6 +171,15 @@ public class Version {
 
     }
 
+    /**
+     * TODO: This class is only used in Version.getApi() and
+     * Version.getModelSchema(), neither of which is currently used by the
+     * frontend, and it really models more than just a semantic version because
+     * it doesn't have a tag component and also adds a `mock` field. Confusing
+     * because lantern-common also has a (more faithful) SemanticVersion class.
+     * Leaving here for now for model compatibility, but could be nuked in the
+     * future.
+     */
     @Keep
     public class SemanticVersion {
 

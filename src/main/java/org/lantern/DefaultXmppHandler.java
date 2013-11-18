@@ -189,9 +189,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final Messages msgs;
 
-    // TODO: DRY with lantern-controller's SemanticVersion
-    private static final Pattern VERSION_ID_PATTERN = Pattern.compile("^(\\d+)\\.(\\d+)\\.(\\d+)(\\-\\w+)?$");
-
     /**
      * Creates a new XMPP handler.
      */
@@ -808,25 +805,15 @@ public class DefaultXmppHandler implements XmppHandler,
             return;
         }
 
-        Map<String,Object> latest = model.getVersion().getLatest();
-
-        // TODO: DRY with lantern-controller's semanticVersion.from()
-        Matcher matcher = VERSION_ID_PATTERN.matcher(latestVersionId);
-        if (!matcher.matches()) {
-            LOG.error(String.format("Got bad latest version id: %1$s", latestVersionId));
-            return;
-        }
-        int major = Integer.parseInt(matcher.group(1));
-        int minor = Integer.parseInt(matcher.group(2));
-        int patch = Integer.parseInt(matcher.group(3));
-        String tag = matcher.group(4);
-        if (!StringUtils.isEmpty(tag)) {
-            tag = tag.substring(1); // strip the "-"
-        }
-
-        String releaseDate = (String) json.get(LanternConstants.UPDATE_RELEASE_DATE_KEY);
+        SemanticVersion fromId = SemanticVersion.from(latestVersionId);
+        int major = fromId.getMajor();
+        int minor = fromId.getMinor();
+        int patch = fromId.getPatch();
+        String tag = fromId.getTag();
         String infoUrl = (String) json.get(LanternConstants.UPDATE_URL_KEY);
+        String releaseDate = (String) json.get(LanternConstants.UPDATE_RELEASE_DATE_KEY);
 
+        Map<String,Object> latest = model.getVersion().getLatest();
         latest.put("major", major);
         latest.put("minor", minor);
         latest.put("patch", patch);
