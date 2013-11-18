@@ -310,6 +310,9 @@ function LanternFriendsCtrl($rootScope, $scope, $timeout, logFactory, $filter, I
 
   $scope.toggleShowSuggestions = function () {
     $scope.showSuggestions = !$scope.showSuggestions;
+    if (!$scope.displayedFriends) {
+      updateDisplayedFriends();
+    }
   };
 
   $scope.$watch('showSuggestions', function (showSuggestions, showSuggestionsOld) {
