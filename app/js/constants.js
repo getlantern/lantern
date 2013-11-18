@@ -16,10 +16,12 @@ var DEFAULT_LANG = 'en_US',
     DEFAULT_DIRECTION = 'ltr',
     LANGS = {
       en_US: {dir: 'ltr', name: 'English'},
-      fr_FR: {dir: 'ltr', name: 'Français'}
-      //fa_IR: {dir: 'rtl', name: 'پارسی'},
-      //zh_CN: {dir: 'ltr', name: '中文'}
-      //ar: {dir: 'rtl', name: 'العربية'},
+      fr_FR: {dir: 'ltr', name: 'français'},
+      pt_BR: {dir: 'ltr', name: 'português'},
+      fa_IR: {dir: 'rtl', name: 'پارسی'},
+      zh_CN: {dir: 'ltr', name: '中文'},
+      es: {dir: 'ltr', name: 'español'}
+    //ar: {dir: 'rtl', name: 'العربية'}
     },
     GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-2',
     GOOGLE_ANALYTICS_DISABLE_KEY = 'ga-disable-'+GOOGLE_ANALYTICS_WEBPROP_ID,

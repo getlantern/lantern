@@ -463,15 +463,19 @@
       <summary><span class="capitalize">{{ 'VERSION' | upper | i18n }}</span> {{ model.version.latest | version:true }}</summary>
       <dl class="dl-horizontal">
         <dt>{{ 'RELEASED' | i18n }}</dt>
+        <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
+                 to properly localize this date string -->
         <dd><time>{{ model.version.latest.releaseDate | date:'longDate' }}</time>&nbsp;</dd>
         <dt>{{ 'URL' | i18n }}</dt>
-        <dd><a ng-click="openExternal(model.version.latest.installerUrl)">{{ model.version.latest.installerUrl }}</a></dd>
+        <dd><a title="{{model.version.latest.installerUrl}}" ng-click="openExternal(model.version.latest.installerUrl)">{{ model.version.latest.installerUrl }}</a></dd>
         <dt ng-show="model.version.latest.infoUrl">{{ 'MORE_INFO' | i18n }}</dt>
-        <dd ng-show="model.version.latest.infoUrl"><a ng-click="openExternal(model.version.latest.infoUrl)">{{ model.version.latest.infoUrl }}</a></dd>
+        <dd ng-show="model.version.latest.infoUrl"><a title="{{model.version.latest.infoUrl}}" ng-click="openExternal(model.version.latest.infoUrl)">{{ model.version.latest.infoUrl }}</a></dd>
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
       {{ 'VERSION' | i18n }} {{ model.version.installed | version }},
+      <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
+               to properly localize this date string -->
       {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
     <br>
     <p class="indented bold">{{ 'UPDATE_PROMPT' | i18n }}</p>

@@ -48,7 +48,7 @@ var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--ski
         os: 'osx',
         location: 'ankara',
         internet: 'true',
-        updateAvailable: 'false',
+        updateAvailable: 'true',
         gtalkAuthorized: 'true',
         invited: 'true',
         gtalkReachable: 'true',
