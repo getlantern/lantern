@@ -95,7 +95,6 @@ public class FallbackProxyTest {
         
         try {
             log.debug("Connecting on port: {}", SERVER_PORT);
-            System.out.println(NetworkUtils.getLocalHost().getHostAddress());
             if (!LanternUtils.waitForServer(
                     NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, 4000)) {
                 fail("Could not get server on expected port?");
