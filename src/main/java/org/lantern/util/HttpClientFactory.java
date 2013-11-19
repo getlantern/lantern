@@ -67,6 +67,7 @@ public class HttpClientFactory {
         configureDefaults(client);
         if (proxy != null) {
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+            LanternUtils.waitForServer(proxy.getHostName(), proxy.getPort(), 10000);
         }
         return client;
     }

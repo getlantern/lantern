@@ -74,6 +74,7 @@ public class ProxySocketFactory extends SocketFactory {
             throws IOException {
         final String proxyHost = "127.0.0.1";
         final int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
+        LanternUtils.waitForServer(proxyHost, proxyPort, 10000);
         LOGGER.debug("Opening CONNECT tunnel to {}:{} using proxy at {}:{}",
                 host,
                 port,
