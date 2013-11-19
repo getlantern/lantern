@@ -17,7 +17,6 @@ import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -31,13 +30,6 @@ public class ProxySocketFactory extends SocketFactory {
             .getLogger(ProxySocketFactory.class);
     private static final Pattern RESPONSE_PATTERN = Pattern
             .compile("HTTP/\\S+\\s(\\d+)\\s(.*)\\s*");
-
-    private final LanternSocketsUtil socketsUtil;
-
-    @Inject
-    public ProxySocketFactory(final LanternSocketsUtil socketsUtil) {
-        this.socketsUtil = socketsUtil;
-    }
 
     @Override
     public Socket createSocket(String host, int port) throws IOException,
