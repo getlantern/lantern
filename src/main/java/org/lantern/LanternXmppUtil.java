@@ -10,8 +10,6 @@ import java.net.UnknownHostException;
 import javax.net.SocketFactory;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.littleshoot.commom.xmpp.XmppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,44 +33,13 @@ public class LanternXmppUtil {
         XmppConfig.setRetyStrategyFactory(new LanternXmppRetryStrategyFactory());
     }
     
-    public ConnectionConfiguration xmppConfig() {
-        final ConnectionConfiguration config = xmppConfig(null);
-        return config;
-    }
-    
-    private ProxyInfo proxyInfo() {
-        //final int proxyPort = LanternUtils.getFallbackServerPort();
-        final ProxyInfo proxyInfo = 
-                new ProxyInfo(ProxyType.HTTP, "", 0, "", "");
-                        //LanternUtils.getFallbackServerHost(), 
-                    //proxyPort, "", "");
-        return proxyInfo;
-    }
-
-    public ConnectionConfiguration xmppProxyConfig() {
-
-        return xmppConfig(proxyInfo());
-    }
-    
-    public ConnectionConfiguration xmppConfig(final ProxyInfo proxyInfo) {
-        final ConnectionConfiguration config;
-        if (proxyInfo == null) { 
-            config = new ConnectionConfiguration("talk.google.com", 5222, 
+    public ConnectionConfiguration xmppConfig(boolean proxied) {
+        final ConnectionConfiguration config = new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com");
-            config.setSocketFactory(new DirectSocketFactory());
-        } else {
-            config = new ConnectionConfiguration("talk.google.com", 5222, 
-                "gmail.com", proxyInfo);
-            config.setSocketFactory(proxySocketFactory);
-        }
-        
-        //config.setProxiedHttpClient(this.httpClientFactory.newProxiedClient());
-        //config.setDirectHttpClient(this.httpClientFactory.newClient());
-        
-        //config.setSslSocketFactory(this.socketsUtil.newTlsSocketFactoryJavaCipherSuites());
-        //config.setFallbackProxy(proxyInfo);
+        SocketFactory socketFactory =
+                proxied ? proxySocketFactory : new DirectSocketFactory();
+        config.setSocketFactory(socketFactory);
         config.setExpiredCertificatesCheckEnabled(true);
-        
         // We don't check for matching domains because Google Talk uses the
         // same cert for Google Apps domains, and this would always fail in
         // those cases.
@@ -86,12 +53,6 @@ public class LanternXmppUtil {
         config.setVerifyChainEnabled(true);
         config.setVerifyRootCAEnabled(true);
         config.setSelfSignedCertificateEnabled(false);
-        //final LanternTrustManager tm = this.keyStoreManager.getTrustManager();
-        //config.setTruststorePath(tm.getTruststorePath());
-        //config.setTruststorePassword(tm.getTruststorePassword());
-        
-        //config.setTruststorePath(this.trustStore.getTrustStorePath());
-        //config.setTruststorePassword(this.trustStore.getTrustStorePassword());
         
         final String[] cipherSuites = new String[] {
             //"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",

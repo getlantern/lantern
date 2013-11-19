@@ -128,8 +128,12 @@ public class LanternSocketsUtil {
     }
 
     public SSLSocketFactory newTlsSocketFactoryJavaCipherSuites() {
+        return newTlsSocketFactoryJavaCipherSuites(null);
+    }
+    
+    public SSLSocketFactory newTlsSocketFactoryJavaCipherSuites(SocketCreationCallback socketCreationCallback) {
         log.debug("Creating TLS socket factory with default java cipher suites");
-        return newTlsSocketFactory(null);
+        return newTlsSocketFactory(null, socketCreationCallback);
     }
 
     /**
@@ -148,12 +152,13 @@ public class LanternSocketsUtil {
     }
     */
 
-    public SSLSocketFactory newTlsSocketFactory(final String[] cipherSuites) {
+    public SSLSocketFactory newTlsSocketFactory(final String[] cipherSuites, SocketCreationCallback socketCreationCallback) {
         log.debug("Creating TLS socket factory");
-        return wrappedSocketFactory(cipherSuites);
+        return wrappedSocketFactory(cipherSuites, socketCreationCallback);
     }
 
-    private SSLSocketFactory wrappedSocketFactory(final String[] cipherSuites) {
+    private SSLSocketFactory wrappedSocketFactory(final String[] cipherSuites,
+            final SocketCreationCallback socketCreationCallback) {
         return new SSLSocketFactory() {
             @Override
             public Socket createSocket() throws IOException {
@@ -222,6 +227,9 @@ public class LanternSocketsUtil {
                 if (cipherSuites != null && cipherSuites.length > 0) {
                     sock.setEnabledCipherSuites(cipherSuites);
                 }
+                if (socketCreationCallback != null) {
+                    socketCreationCallback.socketCreated(sock);
+                }
             }
         };
     }
@@ -229,5 +237,8 @@ public class LanternSocketsUtil {
     private SSLSocketFactory sf() {
         return trustStore.getSslContext().getSocketFactory();
     }
-    
+
+    public interface SocketCreationCallback {
+        void socketCreated(Socket socket);
+    }
 }

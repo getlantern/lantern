@@ -66,13 +66,7 @@ public class StatsUpdater extends Thread {
     private void updateStats() {
         log.debug("Updating stats...");
         
-        final HttpClient client;
-        try {
-            client = this.httpClientFactory.newClient();
-        } catch (final IOException e) {
-            log.warn("Could not access proxy?", e);
-            return;
-        }
+        final HttpClient client = this.httpClientFactory.newClient();
         final HttpGet get = new HttpGet();
         String json = "";
         try {
