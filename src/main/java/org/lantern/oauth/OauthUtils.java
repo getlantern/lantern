@@ -55,9 +55,6 @@ public class OauthUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(OauthUtils.class);
 
-    public static final String REDIRECT_URL =
-        "http://localhost:7777/oauth2callback";
-    
     private long nextExpiryTime = System.currentTimeMillis();
     private final Model model;
     
@@ -86,6 +83,10 @@ public class OauthUtils {
         this.modelIo = modelIo;
         this.nextExpiryTime = model.getSettings().getExpiryTime();
         LanternSaslGoogleOAuth2Mechanism.setOauthUtils(this);
+    }
+    
+    public static String getRedirectUrl(int port) {
+        return String.format("http://localhost:%1$s/oauth2callback", port);
     }
 
     /**
