@@ -60,6 +60,8 @@ FunctionEnd
 Function GetMainInstaller
     #MessageBox MB_OK "Lantern is downloading components necessary for installation. Please be patient."
  
+    # The "" is necessary per this article: http://stackoverflow.com/questions/4294313/how-to-get-around-nsis-download-error-connecting-to-host
+    # I don't know why, but it works
     inetc::get /CONNECTTIMEOUT=40 /RECEIVETIMEOUT=40 /RESUME "" ${INSTALLER_URL} ${INSTALLER_LOCAL_PATH}
     Pop $R0 ;Get the return value
     StrCmp $R0 "OK" +3
