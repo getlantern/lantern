@@ -186,16 +186,6 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
         return getFailures() > 0;
     }
     
-    public String getProxyUsername() {
-        // TODO: Implement!
-        return "";
-    }
-
-    public String getProxyPassword() {
-        // TODO: Implement!
-        return "";
-    }
-
     /**
      * 
      * @return
