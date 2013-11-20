@@ -1,5 +1,8 @@
 Name "Lantern"
 
+# Note, this requires you to have the Inetc plugin installed
+# http://nsis.sourceforge.net/Inetc_plug-in
+
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
 !define VERSION 0.1
@@ -37,12 +40,13 @@ VIAddVersionKey FileDescription ""
 VIAddVersionKey LegalCopyright ""
 
 !define INSTALLER_URL "https://s3.amazonaws.com/lantern/latest.exe"
+!define INSTALLER_LOCAL_PATH "$TEMP\lanternInstaller.exe"
 
 # Installer sections
 Section -Main SEC0000
     SetOutPath $PROFILE
     SetOverwrite on
-    File "../wrapper/fallback.json"
+    File "../wrapper\fallback.json"
     Call GetMainInstaller
 
     #WriteRegStr HKLM "${REGKEY}\Components" Main 1
@@ -56,14 +60,13 @@ FunctionEnd
 Function GetMainInstaller
     #MessageBox MB_OK "Lantern is downloading components necessary for installation. Please be patient."
  
-    StrCpy $2 "$TEMP\lanternInstaller.exe"
-    nsisdl::download /TIMEOUT=40000 ${INSTALLER_URL} $2
+    inetc::get /CONNECTTIMEOUT=40 /RECEIVETIMEOUT=40 /RESUME "" ${INSTALLER_URL} ${INSTALLER_LOCAL_PATH}
     Pop $R0 ;Get the return value
-    StrCmp $R0 "success" +3
+    StrCmp $R0 "OK" +3
     MessageBox MB_OK "We're sorry, but the Lantern install failed due to the \
         following error: $R0."  
     Quit
-    ExecWait '$2 /S'
-    Delete $2
+    ExecWait '${INSTALLER_LOCAL_PATH} /S'
+    Delete ${INSTALLER_LOCAL_PATH}
 FunctionEnd
 
