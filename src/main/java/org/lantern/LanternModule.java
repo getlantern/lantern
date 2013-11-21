@@ -2,7 +2,10 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Timer;
+
+import javax.crypto.Cipher;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -26,6 +29,7 @@ import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.SecretServiceLocalCipherProvider;
+import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.DispatchingChainedProxyManager;
@@ -62,9 +66,6 @@ public class LanternModule extends AbstractModule {
 
     private static final Logger log =
         LoggerFactory.getLogger(LanternModule.class);
-    private LocalCipherProvider localCipherProvider;
-
-    private EncryptedFileService encryptedFileService;
 
     private NatPmpService natPmpService;
 
@@ -179,8 +180,8 @@ public class LanternModule extends AbstractModule {
     @Provides @Singleton
     public EncryptedFileService provideEncryptedService(
         final LocalCipherProvider lcp) {
-        if (this.encryptedFileService != null) {
-            return this.encryptedFileService;
+        if (LanternUtils.isTesting()) {
+            return new UnencryptedFileService();
         }
         return new DefaultEncryptedFileService(lcp);
     }
@@ -202,30 +203,44 @@ public class LanternModule extends AbstractModule {
 
     @Provides  @Singleton
     public LocalCipherProvider provideLocalCipher() {
-        if (this.localCipherProvider != null) {
-            return this.localCipherProvider;
+        if (LanternUtils.isTesting()) {
+            return newBasicCipherProvider();
         }
-        final LocalCipherProvider lcp;
-
-        /*
-        if (!settings().isKeychainEnabled()) {
-            lcp = new DefaultLocalCipherProvider();
-        }
-        */
         if (SystemUtils.IS_OS_WINDOWS) {
-            lcp = new WindowsLocalCipherProvider();
+            return new WindowsLocalCipherProvider();
         } else if (SystemUtils.IS_OS_MAC_OSX) {
-            lcp = new MacLocalCipherProvider();
+            return new MacLocalCipherProvider();
             //lcp = new DefaultLocalCipherProvider();
         } else if (SystemUtils.IS_OS_LINUX &&
                  SecretServiceLocalCipherProvider.secretServiceAvailable()) {
-            lcp = new SecretServiceLocalCipherProvider();
+            return new SecretServiceLocalCipherProvider();
         }
         else {
-            lcp = new DefaultLocalCipherProvider();
+            return new DefaultLocalCipherProvider();
         }
+    }
 
-        return lcp;
+    private LocalCipherProvider newBasicCipherProvider() {
+        return new LocalCipherProvider() {
+
+            @Override
+            public Cipher newLocalCipher(int opmode) throws IOException,
+                    GeneralSecurityException {
+                return Cipher.getInstance("AES/CBC/PKCS5Padding");
+            }
+
+            @Override
+            public boolean requiresAdditionalUserInput() {return false;}
+
+            @Override
+            public void feedUserInput(char[] input, boolean init)
+                    throws IOException, GeneralSecurityException {}
+            @Override
+            public boolean isInitialized() {return true;}
+            @Override
+            public void reset() throws IOException {}
+            
+        };
     }
 
     /**
@@ -276,13 +291,6 @@ public class LanternModule extends AbstractModule {
         }
     }
 
-    public void setEncryptedFileService(EncryptedFileService encryptedFileService) {
-        this.encryptedFileService = encryptedFileService;
-    }
-
-    public void setLocalCipherProvider(LocalCipherProvider localCipherProvider) {
-        this.localCipherProvider = localCipherProvider;
-    }
     public void setNatPmpService(NatPmpService natPmpService) {
         this.natPmpService = natPmpService;
     }

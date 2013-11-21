@@ -73,16 +73,9 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     @Override
     public String toString() {
-        long timeOfDeath = this.timeOfDeath.get();
-        String timeOfDeathStr;
-        if (isConnected()) {
-            timeOfDeathStr = " (connected)";
-        } else {
-            timeOfDeathStr = "@" + new Date(timeOfDeath) + " retry at "
-                    + new Date(getRetryTime());
-        }
-        return String.format("ProxyHolder [jid=%1$s isa=%2$s%3$s]", jid,
-                fiveTuple, timeOfDeathStr);
+        return "ProxyHolder [jid=" + jid + ", fiveTuple=" + fiveTuple
+                + ", timeOfDeath=" + timeOfDeath + ", failures=" + failures
+                + ", type=" + type + "] connected? " + isConnected();
     }
 
     @Override

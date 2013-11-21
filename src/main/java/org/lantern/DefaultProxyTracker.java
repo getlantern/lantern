@@ -526,17 +526,13 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public InetSocketAddress addressForConfiguredFallbackProxy() {
+        try {
+            copyFallback();
+        } catch (final IOException e) {
+            LOG.warn("Could not copy fallback?", e);
+        }
         final File file =
                 new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
-        if (!file.isFile()) {
-            try {
-                copyFallback();
-            } catch (final IOException e) {
-                LOG.error("Could not copy fallback?", e);
-            }
-        } else {
-            LOG.debug("Fallback file already exists!");
-        }
         if (!file.isFile()) {
             LOG.error("No fallback proxy to load!");
             return null;
@@ -574,12 +570,12 @@ public class DefaultProxyTracker implements ProxyTracker {
         final File from;
 
         final File cur =
-                new File(new File(SystemUtils.USER_DIR), "fallback.json");
+                new File(new File(SystemUtils.USER_HOME), "fallback.json");
         if (cur.isFile()) {
             from = cur;
         } else {
-            LOG.debug("No fallback proxy found in home - checking cur...");
-            final File home = new File(new File(SystemUtils.USER_HOME),
+            LOG.debug("No fallback proxy found in home - checking runtime user.dir...");
+            final File home = new File(new File(SystemUtils.USER_DIR),
                     "fallback.json");
             if (home.isFile()) {
                 from = home;

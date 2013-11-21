@@ -43,6 +43,7 @@ import org.lantern.monitoring.StatsReporter;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
+import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
@@ -93,6 +94,7 @@ public class Launcher {
     private BrowserService browserService;
     private StatsUpdater statsUpdater;
     private StatsReporter statsReporter;
+    private FriendsHandler friendsHandler;
     
     /**
      * Set a dummy message service while we're not fully wired up.
@@ -317,6 +319,8 @@ public class Launcher {
         LOG.info("Creating give mode proxy...");
         giveModeProxy = instance(GiveModeProxy.class);
         
+        friendsHandler = instance(FriendsHandler.class);
+        
         startServices();
 
         // This is necessary to keep the tray/menu item up in the case
@@ -382,6 +386,8 @@ public class Launcher {
                 gnomeAutoStart();
                 
                 autoConnect();
+                
+                friendsHandler.start();
             }
             
         }, "Launcher-Start-Thread");

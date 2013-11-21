@@ -1,5 +1,8 @@
 package org.lantern;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class FallbackProxy {
 
     private String base64PublicKey = "";

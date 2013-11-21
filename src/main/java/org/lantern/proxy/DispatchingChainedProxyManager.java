@@ -45,7 +45,7 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
 
     private void logFallbackOrder(Collection<ProxyHolder> proxyHolders) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Proxy Fallback Order:");
+            LOG.debug("Proxy Fallback Order ({} proxies):", proxyHolders.size());
             for (ProxyHolder proxy : proxyHolders) {
                 LOG.debug("{} {}", proxy.getJid(), proxy.getFiveTuple());
             }

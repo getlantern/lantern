@@ -85,14 +85,14 @@ public class DefaultProxyTrackerTest {
 
         //let's turn off internet, which will restore the dead proxy
         model.getConnectivity().setInternet(false);
-        Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
+        Events.eventBus().post(new ConnectivityChangedEvent(true, false, InetAddress.getLocalHost()));
         Thread.sleep(10);
 
         proxy = tracker.firstConnectedTcpProxy();
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
-        Events.eventBus().post(new ConnectivityChangedEvent(true, false, null));
+        Events.eventBus().post(new ConnectivityChangedEvent(true, false, InetAddress.getLocalHost()));
         tracker.firstConnectedTcpProxy();
         Thread.sleep(10);
 

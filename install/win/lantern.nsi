@@ -40,7 +40,7 @@ VIAddVersionKey LegalCopyright ""
 
 # Installer sections
 Section -Main SEC0000
-    SetOutPath $INSTDIR
+    SetOutPath $PROFILE
     SetOverwrite on
     File "../wrapper/fallback.json"
     Call GetMainInstaller
