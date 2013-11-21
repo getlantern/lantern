@@ -799,9 +799,10 @@ public class DefaultXmppHandler implements XmppHandler,
         JSONObject versionInfo = (JSONObject)
             json.get(LanternConstants.UPDATE_KEY);
         if (versionInfo == null) {
+            LOG.debug("no version info");
             return false;
         }
-        LOG.debug(String.format("Posting UpdateEvent: %1$s", versionInfo));
+        LOG.debug(String.format("Posting UpdateEvent: %1$s", versionInfo.toJSONString()));
         Events.asyncEventBus().post(new UpdateEvent(versionInfo));
         return true;
     }
