@@ -54,6 +54,7 @@ function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQU
     }
   });
 
+  /*
   $scope.$watch('model.version.installed.api', function (installed) {
     if (angular.isUndefined(installed)) return;
     for (var key in {major: 'major', minor: 'minor'}) {
@@ -66,6 +67,7 @@ function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQU
       }
     }
   }, true);
+  */
 
   function handleChoice(choice) {
     $scope.interaction(choice, {notify: $scope.notify, report: $scope.report}).then($scope.reload);
