@@ -473,7 +473,7 @@
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
-      {{ 'VERSION' | i18n }} {{ model.version.installed | version }},
+      {{ 'VERSION' | i18n }} {{ model.version.installed | version:true }},
       <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
                to properly localize this date string -->
       {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
