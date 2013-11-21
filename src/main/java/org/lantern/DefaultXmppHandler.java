@@ -940,7 +940,6 @@ public class DefaultXmppHandler implements XmppHandler,
         }
         */
 
-        LOG.info(String.format("Sending packet: %1$s", forHub));
         conn.sendPacket(forHub);
     }
 
