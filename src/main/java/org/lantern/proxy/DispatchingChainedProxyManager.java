@@ -8,7 +8,6 @@ import java.util.Queue;
 import org.lantern.ProxyHolder;
 import org.lantern.ProxyTracker;
 import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

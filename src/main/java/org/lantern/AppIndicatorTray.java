@@ -239,7 +239,7 @@ public class AppIndicatorTray implements SystemTray {
             public void callback(Pointer instance, Pointer pointer) {
                 LOG.debug("updateItemCallback called");
                 NativeUtils.openUri(
-                    (String)data.get(LanternConstants.UPDATE_URL_KEY));
+                    (String)data.get("installerUrl"));
             }
         };
         libgobject.g_signal_connect_data(updateItem, "activate", updateItemCallback,null, null, 0);

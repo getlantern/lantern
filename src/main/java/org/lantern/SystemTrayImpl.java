@@ -298,7 +298,7 @@ public class SystemTrayImpl implements SystemTray {
                         public void handleEvent (final Event event) {
                             log.info("Got update call");
                             NativeUtils.openUri((String) updateData.get(
-                                LanternConstants.UPDATE_URL_KEY));
+                                "installerUrl"));
                         }
                     });
                 }

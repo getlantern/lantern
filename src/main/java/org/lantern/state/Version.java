@@ -8,8 +8,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.DateSerializer;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
+import org.lantern.LanternVersion;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
@@ -39,8 +41,9 @@ public class Version {
     public void onUpdate(final UpdateEvent updateEvent) {
         latest = updateEvent.getData();
         updateAvailable = true;
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION,
-            this));
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_LATEST,
+            latest));
+        Events.sync(SyncPath.VERSION_UPDATE_AVAILABLE, true);
     }
 
     @JsonView({Run.class})
@@ -62,28 +65,10 @@ public class Version {
     }
 
     @Keep
-    public class Installed {
-
-        private final int major;
-
-        private final int minor;
-
-        private final int patch;
-
-        private final String tag;
+    public class Installed extends LanternVersion {
 
         private final String gitFull;
         private final String git;
-
-        private final SemanticVersion api = new SemanticVersion(0, 0, 1);
-
-        private final SemanticVersion modelSchema = new SemanticVersion(0, 0, 1);
-
-        private final Date releaseDate;
-
-        private String installerUrl;
-
-        private String installerSHA1;
 
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
@@ -95,15 +80,13 @@ public class Version {
             final String number = StringUtils.substringBefore(version, "-");
             final String[] parts = number.split("\\.");
             major = Integer.parseInt(parts[0]);
+            minor = 0;
+            patch = 0;
             if (parts.length > 1) {
                 minor = Integer.parseInt(parts[1]);
                 if (parts.length > 2) {
                     patch = Integer.parseInt(parts[2]);
-                } else {
-                    patch = 0;
                 }
-            } else {
-                minor = patch = 0;
             }
             
             final String fullTag = StringUtils.substringAfter(version, "-");
@@ -115,106 +98,13 @@ public class Version {
             git = gitFull;
         }
 
-
-        public int getMajor() {
-            return major;
-        }
-
-        public int getMinor() {
-            return minor;
-        }
-
-        public int getPatch() {
-            return patch;
-        }
-
-        public String getTag() {
-            return tag;
-        }
-
         public String getGit() {
             return git;
-        }
-
-        @JsonView({Run.class})
-        public SemanticVersion getApi() {
-            return api;
         }
 
         @JsonSerialize(using=DateSerializer.class)
         public Date getReleaseDate() {
             return releaseDate;
-        }
-
-        public SemanticVersion getModelSchema() {
-            return modelSchema;
-        }
-
-        public String getInstallerUrl() {
-            return installerUrl;
-        }
-
-
-        public void setInstallerUrl(String installerUrl) {
-            this.installerUrl = installerUrl;
-        }
-
-
-        public String getInstallerSHA1() {
-            return installerSHA1;
-        }
-
-
-        public void setInstallerSHA1(String installerSHA1) {
-            this.installerSHA1 = installerSHA1;
-        }
-
-    }
-
-    /**
-     * TODO: This class is only used in Version.getApi() and
-     * Version.getModelSchema(), neither of which is currently used by the
-     * frontend, and it really models more than just a semantic version because
-     * it doesn't have a tag component and also adds a `mock` field. Confusing
-     * because lantern-common also has a (more faithful) SemanticVersion class.
-     * Leaving here for now for model compatibility, but could be nuked in the
-     * future.
-     */
-    @Keep
-    public class SemanticVersion {
-
-        private final int major;
-
-        private final int minor;
-
-        private final int patch;
-
-        private final boolean mock = false;
-
-        public SemanticVersion(final int major, final int minor, final int patch) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-        }
-
-        @JsonView({Run.class})
-        public int getMajor() {
-            return major;
-        }
-
-        @JsonView({Run.class})
-        public int getMinor() {
-            return minor;
-        }
-
-        @JsonView({Run.class})
-        public int getPatch() {
-            return patch;
-        }
-
-        @JsonView({Run.class})
-        public boolean isMock() {
-            return mock;
         }
     }
 }

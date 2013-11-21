@@ -12,7 +12,6 @@ import javax.net.ssl.SSLSession;
 import javax.security.cert.CertificateException;
 import javax.security.cert.X509Certificate;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.event.Events;

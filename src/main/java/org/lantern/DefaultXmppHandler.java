@@ -6,17 +6,12 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.security.auth.login.CredentialException;
 
@@ -781,6 +776,7 @@ public class DefaultXmppHandler implements XmppHandler,
         
         boolean handled = false;
         handled |= handleSetDelay(json);
+        handled |= handleVersionUpdate(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -795,50 +791,19 @@ public class DefaultXmppHandler implements XmppHandler,
             }
         }
         sendOnDemandValuesToControllerIfNecessary(json);
-        
-        handleVersionUpdate(json);
     }
 
-    private void handleVersionUpdate(JSONObject json) {
-        String latestVersionId = (String) json.get(LanternConstants.UPDATE_KEY);
-        if (StringUtils.isBlank(latestVersionId)) {
-            return;
+    @SuppressWarnings("unchecked")
+    private boolean handleVersionUpdate(JSONObject json) {
+        // This is really a JSONObject, but that itself is a map.
+        JSONObject versionInfo = (JSONObject)
+            json.get(LanternConstants.UPDATE_KEY);
+        if (versionInfo == null) {
+            return false;
         }
-
-        SemanticVersion fromId = SemanticVersion.from(latestVersionId);
-        int major = fromId.getMajor();
-        int minor = fromId.getMinor();
-        int patch = fromId.getPatch();
-        String tag = fromId.getTag();
-        String infoUrl = (String) json.get(LanternConstants.UPDATE_URL_KEY);
-        String releaseDate = (String) json.get(LanternConstants.UPDATE_RELEASE_DATE_KEY);
-
-        Map<String,Object> latest = model.getVersion().getLatest();
-        latest.put("major", major);
-        latest.put("minor", minor);
-        latest.put("patch", patch);
-        latest.put("tag", tag);
-        latest.put("infoUrl", infoUrl);
-        latest.put("releaseDate", releaseDate);
-
-        String installerUrl = "https://s3.amazonaws.com/lantern/latest";
-        final String os = System.getProperty("os.name");
-        if (SystemUtils.IS_OS_WINDOWS) {
-            installerUrl += ".exe";
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            installerUrl += ".dmg";
-        } else if (SystemUtils.IS_OS_LINUX) {
-            installerUrl += System.getProperty("os.arch").contains("64") ? "-64.deb" : "-32.deb";
-        } else {
-            LOG.error("Unsupported OS");
-            return;
-        }
-        latest.put("installerUrl", installerUrl);
-
-        Events.sync(SyncPath.VERSION_LATEST, latest);
-
-        model.getVersion().setUpdateAvailable(true);
-        Events.sync(SyncPath.VERSION_UPDATE_AVAILABLE, true);
+        LOG.debug(String.format("Posting UpdateEvent: %1$s", versionInfo));
+        Events.asyncEventBus().post(new UpdateEvent(versionInfo));
+        return true;
     }
 
     private boolean handleSetDelay(final JSONObject json) {
@@ -932,13 +897,11 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setTo(LanternClientConstants.LANTERN_JID);
 
         forHub.setProperty("language", SystemUtils.USER_LANGUAGE);
-
-        // TODO: refactor various SemanticVersion / LanternVersion classes and use here
+ 
         Installed installed = model.getVersion().getInstalled();
-        String tag = installed.getTag();
-        String verstr = ""+installed.getMajor()+"."+installed.getMinor()+"."+installed.getPatch()+
-            (StringUtils.isEmpty(tag) ? "" : "-" + tag);
-        forHub.setProperty(LanternConstants.UPDATE_KEY, verstr);
+        forHub.setProperty(LanternConstants.UPDATE_KEY, installed.toString());
+        forHub.setProperty(LanternConstants.OS_KEY, model.getSystem().getOs());
+        forHub.setProperty(LanternConstants.ARCH_KEY, model.getSystem().getArch());
 
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
@@ -976,6 +939,7 @@ public class DefaultXmppHandler implements XmppHandler,
         }
         */
 
+        LOG.info(String.format("Sending packet: %1$s", forHub));
         conn.sendPacket(forHub);
     }
 

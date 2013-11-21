@@ -1,14 +1,12 @@
 package org.lantern;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import javax.crypto.Cipher;
 
-import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
 import org.lantern.TestUtils.TestModule;
 import org.lantern.http.JettyLauncher;

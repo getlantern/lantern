@@ -1,7 +1,7 @@
 package org.freedesktop.Secret;
 
 import java.util.List;
-import org.freedesktop.dbus.DBusInterface;
+
 import org.freedesktop.dbus.Path;
 import org.freedesktop.dbus.Position;
 import org.freedesktop.dbus.Struct;

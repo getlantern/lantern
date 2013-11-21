@@ -1,11 +1,8 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,8 +19,6 @@ import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.lantern.event.Events;
-import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.Model;
@@ -107,20 +102,6 @@ public class CometDTest {
         subscribe (session, ml);
         waitForBoolean(hasMessage);
         assertEquals("", messagePath.get());
-        hasMessage.set(false);
-        messagePath.set("none");
-
-        final Map<String,Object> updateJson =
-            new LinkedHashMap<String,Object>();
-        updateJson.put(LanternConstants.UPDATE_KEY, "1.0.0-beta8");
-        updateJson.put(LanternConstants.UPDATE_RELEASE_DATE_KEY, "2012-10-31");
-        updateJson.put(LanternConstants.UPDATE_URL_KEY,
-            "http://s3.amazonaws.com/lantern/latest.dmg");
-
-        Events.asyncEventBus().post(new UpdateEvent(updateJson));
-
-        waitForBoolean(hasMessage);
-        assertEquals("/version", messagePath.get());
         hasMessage.set(false);
         messagePath.set("none");
     }
