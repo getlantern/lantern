@@ -74,7 +74,7 @@ public class Version {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
                 releaseDate = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
             } else {
-                releaseDate = new Date(System.currentTimeMillis());
+                releaseDate = new Date(0); // epoch signals no releaseDate available
             }
             final String version = LanternClientConstants.VERSION;
             final String number = StringUtils.substringBefore(version, "-");
