@@ -31,10 +31,10 @@ public class GoogleOauth2CallbackServer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    private SelectChannelConnector connector; 
+    
     private final Server server = new Server();
     
-    private final int port = 7777;
-
     private final XmppHandler xmppHandler;
 
     private final Model model;
@@ -81,10 +81,9 @@ public class GoogleOauth2CallbackServer {
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
         
-        final SelectChannelConnector connector = 
-            new SelectChannelConnector();
-        log.info("Setting connector port for OAUTH to: {}", port);
-        connector.setPort(port);
+        connector = new SelectChannelConnector();
+        // Set the port to 0 to be auto-assigned an available ephemeral port.
+        connector.setPort(0);
         connector.setMaxIdleTime(80 * 1000);
         connector.setLowResourcesMaxIdleTime(30 * 1000);
         connector.setLowResourcesConnections(100);
@@ -97,7 +96,8 @@ public class GoogleOauth2CallbackServer {
         final ServletHolder oauth2callback = new ServletHolder(
             new GoogleOauth2CallbackServlet(this, this.xmppHandler, 
                 this.model, this.internalState, this.modelIo, this.proxifier,
-                this.httpClientFactory, modelUtils, this.msgs));
+                this.httpClientFactory, modelUtils, this.msgs,
+                this));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         
@@ -118,7 +118,18 @@ public class GoogleOauth2CallbackServer {
         serve.start();
         
         log.info("About to wait for server....");
-        LanternUtils.waitForServer(this.port);
+        long startTime = System.currentTimeMillis();
+        while (!connector.isStarted()) {
+           try {
+               Thread.sleep(10);
+           } catch (InterruptedException ie) {
+               // ignore
+           }
+           if (System.currentTimeMillis() - startTime > 60000) {
+               break;
+           }
+        }
+        log.info("Listening for Oauth Callback on port: {}", getPort());
     }
     
     private ServletContextHandler newContext(final String path,
@@ -145,5 +156,14 @@ public class GoogleOauth2CallbackServer {
             log.info("Exception stopping server", e);
         }
         log.info("Done stopping Jetty server...");
+    }
+    
+    /**
+     * Return the local ephemeral port on which we're listening.
+     * 
+     * @return
+     */
+    public int getPort() {
+        return connector.getLocalPort();
     }
 }

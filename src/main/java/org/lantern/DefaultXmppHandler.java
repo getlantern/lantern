@@ -184,6 +184,8 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final Messages msgs;
 
+    private final Censored censored;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -202,7 +204,8 @@ public class DefaultXmppHandler implements XmppHandler,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
-        final Messages msgs) {
+        final Messages msgs,
+        final Censored censored) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -220,6 +223,7 @@ public class DefaultXmppHandler implements XmppHandler,
         this.networkTracker = networkTracker;
         this.msgs = msgs;
         this.networkTracker.addListener(this);
+        this.censored = censored;
         Events.register(this);
         //setupJmx();
     }
@@ -233,8 +237,9 @@ public class DefaultXmppHandler implements XmppHandler,
     public void start() {
         this.modelUtils.loadClientSecrets();
 
-        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
-        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
+        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
+        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
+        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
 
         this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
             upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
