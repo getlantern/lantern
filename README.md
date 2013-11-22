@@ -1,4 +1,4 @@
-# Goset [![GoDoc](https://godoc.org/github.com/fatih/goset?status.png)](http://godoc.org/github.com/fatih/goset) [![Build Status](https://travis-ci.org/fatih/goset.png)](https://travis-ci.org/fatih/goset) [![Clone in Koding](http://kbutton.org/clone.png?v1)](http://kbutton.org/fatih/goset)
+# Goset [![GoDoc](https://godoc.org/github.com/fatih/goset?status.png)](http://godoc.org/github.com/fatih/goset) [![Build Status](https://travis-ci.org/fatih/goset.png)](https://travis-ci.org/fatih/goset)
 
 Goset is a basic and simple, hash-based, *thread safe*,  **Set** data structure
 implementation in Go. The thread safety encompasses all operations on one set.
