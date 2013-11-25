@@ -27,8 +27,10 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.LanternConstants;
+import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.NotInClosedBetaException;
+import org.lantern.Tr;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
@@ -143,8 +145,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // this should do. Make sure we set this before sending the user
         // back to the dashboard. We don't need to post an event because the
         // dashboard is about to get fully reloaded.
-        modelUtils.syncConnectingStatus(
-            "Communicating with Google Talk servers...");
+        modelUtils.syncConnectingStatus(Tr.tr(MessageKey.TALK_SERVERS));
         log.debug("Setting modal to connecting...");
         this.model.setModal(Modal.connecting);
         redirectToDashboard(resp);
