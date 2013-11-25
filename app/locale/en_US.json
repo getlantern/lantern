@@ -220,6 +220,7 @@
   "BACKEND_CHECKING_INVITE":"Checking for Lantern access...",
   "BACKEND_INVITED":"Access verified.",
   "BACKEND_STUN_SERVER_LOOKUP":"Looking up servers...",
+  "BACKEND_TALK_SERVERS":"Communicating with Google Talk servers...",
   "BACKEND_INVITE_FAILED":"Cannot send invite because we appear to no longer be logged in to Google Talk. Are you still connected to the Internet?",
   "NO_PROXIES": "Connection failure: Can’t reach any users in your Lantern network who are giving access.",
   "BACKEND_NO_PROXIES": "Connection failure: Can’t reach any users in your Lantern network who are giving access.",
