@@ -264,12 +264,12 @@
     </div>
 
     <div class="addFriendsControls">
-      <div id="fetchingFriends" class="centered muted" ng-hide="model.friends">
+      <div id="fetchingFriends" class="centered muted" ng-hide="!!model.friends">
         <div>{{ 'LOADING_FRIENDS' | i18n }}</div>
         <img src="img/spinner.gif">
       </div>
 
-      <div ng-show="model.friends && (nfriends || nfriendSuggestions)">
+      <div ng-show="!!model.friends && (nfriends || nfriendSuggestions)">
         <div collapse="showSuggestions" ng-class="{hasSearchText: !!searchText}">
           <h4 id="currentFriendsHeading" class="{{model.settings.mode}}-colored-alt">
             <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
