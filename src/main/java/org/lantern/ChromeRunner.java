@@ -66,7 +66,7 @@ public class ChromeRunner {
             final File opt1 = new File(path1);
             if (opt1.isFile() && opt1.canExecute()) return path1;
             final String path2 = "/usr/bin/chromium-browser";
-            final File opt2 = new File(path1);
+            final File opt2 = new File(path2);
             if (opt2.isFile() && opt2.canExecute()) return path2;
             throw new UnsupportedOperationException("Could not find chrome");
         } else if (SystemUtils.IS_OS_WINDOWS) {
