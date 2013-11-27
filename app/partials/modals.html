@@ -264,12 +264,12 @@
     </div>
 
     <div class="addFriendsControls">
-      <div id="fetchingFriends" class="centered muted" ng-hide="model.friends">
+      <div id="fetchingFriends" class="centered muted" ng-hide="!!model.friends">
         <div>{{ 'LOADING_FRIENDS' | i18n }}</div>
         <img src="img/spinner.gif">
       </div>
 
-      <div ng-show="model.friends && (nfriends || nfriendSuggestions)">
+      <div ng-show="!!model.friends && (nfriends || nfriendSuggestions)">
         <div collapse="showSuggestions" ng-class="{hasSearchText: !!searchText}">
           <h4 id="currentFriendsHeading" class="{{model.settings.mode}}-colored-alt">
             <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
@@ -473,7 +473,7 @@
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
-      {{ 'VERSION' | i18n }} {{ model.version.installed | version }},
+      {{ 'VERSION' | i18n }} {{ model.version.installed | version:true }},
       <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
                to properly localize this date string -->
       {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
