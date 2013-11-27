@@ -62,12 +62,16 @@ public class ChromeRunner {
             //chrome is broken on os x -- see #622
             //return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
         } else if (SystemUtils.IS_OS_LINUX) {
-            final String path1 = "/usr/bin/google-chrome";
-            final File opt1 = new File(path1);
-            if (opt1.isFile() && opt1.canExecute()) return path1;
-            final String path2 = "/usr/bin/chromium-browser";
-            final File opt2 = new File(path2);
-            if (opt2.isFile() && opt2.canExecute()) return path2;
+            final ArrayList<String> path_candidates = new ArrayList<String>();
+            path_candidates.add("/usr/bin/google-chrome");
+            path_candidates.add("/usr/bin/google-chrome-stable");
+            path_candidates.add("/usr/bin/google-chrome-unstable");
+            path_candidates.add("/usr/bin/chromium");
+            path_candidates.add("/usr/bin/chromium-browser");
+            for (String path: path_candidates) {
+                final File opt = new File(path);
+                if (opt.isFile() && opt.canExecute()) return path;
+            }
             throw new UnsupportedOperationException("Could not find chrome");
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return findWindowsExe();
