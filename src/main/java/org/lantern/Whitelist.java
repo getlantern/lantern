@@ -52,6 +52,8 @@ public class Whitelist {
         "eff.org",
         "facebook.com",
         "fbcdn.com",
+        "v6.facebook.com",
+        "connect.facebook.net",
         "flickr.com",
         "friendfeed.com",
         "freedomhouse.org",
