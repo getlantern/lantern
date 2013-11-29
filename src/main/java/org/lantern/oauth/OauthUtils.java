@@ -265,7 +265,7 @@ public class OauthUtils {
                 return "";
             }
             final HttpEntity entity = response.getEntity();
-            final String body = IOUtils.toString(entity.getContent());
+            final String body = IOUtils.toString(entity.getContent(), "UTF-8");
             EntityUtils.consume(entity);
             
             if (code < 200 || code > 299) {
