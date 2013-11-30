@@ -54,6 +54,7 @@ public class Whitelist {
         "fbcdn.com",
         "v6.facebook.com",
         "connect.facebook.net",
+        "akamaihd.net",  // Facebook uses this heavily.
         "flickr.com",
         "friendfeed.com",
         "freedomhouse.org",
