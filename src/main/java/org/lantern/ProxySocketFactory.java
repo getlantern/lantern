@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.regex.Matcher;
@@ -13,10 +14,11 @@ import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jivesoftware.smack.util.Base64;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -26,10 +28,18 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class ProxySocketFactory extends SocketFactory {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ProxySocketFactory.class);
-    private static final Pattern RESPONSE_PATTERN = Pattern
-            .compile("HTTP/\\S+\\s(\\d+)\\s(.*)\\s*");
+
+    //private final SSLSocketFactory socketFactory;
+    private final ProxyTracker proxyTracker;
+    private final LanternSocketsUtil socketsUtil;
+
+    @Inject
+    public ProxySocketFactory(final LanternSocketsUtil socketsUtil, 
+            final ProxyTracker proxyTracker) {
+        this.socketsUtil = socketsUtil;
+        this.proxyTracker = proxyTracker;
+        //this.socketFactory = socketsUtil.newTlsSocketFactory();
+    }
 
     @Override
     public Socket createSocket(String host, int port) throws IOException,
@@ -39,54 +49,52 @@ public class ProxySocketFactory extends SocketFactory {
 
     @Override
     public Socket createSocket(final String host, final int port,
-            final InetAddress localHost, final int localPort)
-            throws IOException,
-            UnknownHostException {
+        final InetAddress localHost, final int localPort) throws IOException,
+        UnknownHostException {
         return httpConnectSocket(host, port);
     }
 
     @Override
     public Socket createSocket(final InetAddress host, final int port)
-            throws IOException {
+        throws IOException {
         return httpConnectSocket(host.getHostAddress(), port);
     }
 
     @Override
     public Socket createSocket(final InetAddress address, final int port,
-            final InetAddress localAddress, final int localPort)
-            throws IOException {
+        final InetAddress localAddress, final int localPort) throws IOException {
         return httpConnectSocket(address.getHostAddress(), port);
     }
 
-    /**
-     * <p>
-     * Establishes a {@link Socket} to the given host and port by doing an HTTP
-     * CONNECT tunnel using our proxy. This does not take care of TLS
-     * negotiating, that is handled by the user of the returned {@link Socket}.
-     * </p>
-     * 
-     * @param host
-     * @param port
-     * @return
-     * @throws IOException
-     */
     private Socket httpConnectSocket(final String host, final int port)
-            throws IOException {
-        final String proxyHost = "127.0.0.1";
-        final int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        LanternUtils.waitForServer(proxyHost, proxyPort, 10000);
-        LOGGER.debug("Opening CONNECT tunnel to {}:{} using proxy at {}:{}",
-                host,
-                port,
-                proxyHost,
-                proxyPort);
-        Socket socket = new Socket(proxyHost, proxyPort);
-        
+        throws IOException {
+        final ProxyHolder ph;
+        try {
+            ph = proxyTracker.firstConnectedTcpProxyBlocking();
+        } catch (InterruptedException e) {
+            throw new IOException("Could not retrieve TCP proxy!", e);
+        }
+        final InetSocketAddress isa = ph.getFiveTuple().getRemote();
+        final String proxyHost = isa.getAddress().getHostAddress();
+        final int proxyPort = isa.getPort();
+        //final Socket sock = this.socketFactory.createSocket();
+        final Socket sock = socketsUtil.newTlsSocketFactoryJavaCipherSuites().createSocket();
+        sock.connect(new InetSocketAddress(proxyHost, proxyPort), 50 * 1000);
         final String url = "CONNECT " + host + ":" + port;
-        socket.getOutputStream().write(
-            (url + " HTTP/1.1\r\nHost: " + url + "\r\n\r\n").getBytes("UTF-8"));
+        String proxyLine;
+        final String user = ph.getProxyUsername();
+        if (StringUtils.isBlank(user)) {
+            proxyLine = "";
+        } else {
+            final String password = ph.getProxyPassword();
+            proxyLine = "\r\nProxy-Authorization: Basic "
+                    + new String(Base64.encodeBytes((user + ":" + password)
+                            .getBytes("UTF-8")));
+        }
+        sock.getOutputStream().write(
+            (url + " HTTP/1.1\r\nHost: " + url + proxyLine + "\r\n\r\n").getBytes("UTF-8"));
 
-        final InputStream in = socket.getInputStream();
+        final InputStream in = sock.getInputStream();
         final StringBuilder got = new StringBuilder(100);
         int nlchars = 0;
 
@@ -141,6 +149,10 @@ public class ProxySocketFactory extends SocketFactory {
             throw new ProxyException(ProxyInfo.ProxyType.HTTP);
         }
 
-        return socket;
+        return sock;
     }
+
+    private static final Pattern RESPONSE_PATTERN
+        = Pattern.compile("HTTP/\\S+\\s(\\d+)\\s(.*)\\s*");
+
 }

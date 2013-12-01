@@ -66,6 +66,12 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
+    public ProxyHolder firstConnectedTcpProxyBlocking()
+            throws InterruptedException {
+        return null;
+    }
+    
+    @Override
     public InetSocketAddress addressForConfiguredFallbackProxy() {
         return null;
     }
