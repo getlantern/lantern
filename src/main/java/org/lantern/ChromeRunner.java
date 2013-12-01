@@ -68,6 +68,7 @@ public class ChromeRunner {
             path_candidates.add("/usr/bin/google-chrome-unstable");
             path_candidates.add("/usr/bin/chromium");
             path_candidates.add("/usr/bin/chromium-browser");
+            path_candidates.add("/usr/bin/google-chrome-beta");
             for (String path: path_candidates) {
                 final File opt = new File(path);
                 if (opt.isFile() && opt.canExecute()) return path;
