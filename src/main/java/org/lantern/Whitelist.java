@@ -52,6 +52,7 @@ public class Whitelist {
         "eff.org",
         "facebook.com",
         "fbcdn.com",
+        "fbcdn.net",
         "v6.facebook.com",
         "connect.facebook.net",
         "akamaihd.net",  // Facebook uses this heavily.
