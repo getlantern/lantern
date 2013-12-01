@@ -47,7 +47,7 @@ public class FriendEndpointTest {
                     api.removeFriend(id);
                     // Give the db a chance to sync.
                     log.debug("Removing friend: {}", f);
-                    Thread.sleep(50);
+                    //Thread.sleep(50);
                 }
                 
                 final ClientFriend friend = new ClientFriend();
@@ -71,7 +71,7 @@ public class FriendEndpointTest {
                         api.removeFriend(id);
                         // Give the db a chance to sync.
                         log.debug("Removing friend: {}", f);
-                        Thread.sleep(200);
+                        //Thread.sleep(200);
                     }
                     friendsWatch.logSummary();
                 }
@@ -89,7 +89,7 @@ public class FriendEndpointTest {
                 }
                 */
                 
-                Thread.sleep(2000);
+                //Thread.sleep(2000);
                 
                 final List<ClientFriend> postDelete = api.listFriends();
                 
@@ -101,7 +101,7 @@ public class FriendEndpointTest {
                 inserted.setEmail(updatedName);
                 final Friend updated = api.updateFriend(inserted);
                 
-                Thread.sleep(4000);
+                //Thread.sleep(4000);
                 assertEquals(updatedName, updated.getEmail());
                 
                 final List<ClientFriend> newList = api.listFriends();
@@ -114,7 +114,7 @@ public class FriendEndpointTest {
                     
                     api.removeFriend(id);
                     // Give the db a chance to sync.
-                    Thread.sleep(100);
+                    //Thread.sleep(100);
                 }
                 
                 final List<ClientFriend> empty = api.listFriends();
