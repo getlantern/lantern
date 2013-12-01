@@ -33,7 +33,7 @@ fi
 
 if [ $(uname) == "Linux" ]
 then
-  proc=`uname -p`
+  proc=`uname -m`
   javaArgs="-Djava.library.path=lib/linux/$proc $javaArgs"
 fi
 
