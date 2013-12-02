@@ -5,6 +5,8 @@
   "URL": "URL",
   "SHA1": "SHA-1",
   "WAITING_FOR_LANTERN": "Waiting for Lantern...",
+  "LANTERN_GONE": "Lantern appears not to be running anymore",
+  "CLOSE_WINDOW": "Close Window",
   "UNEXPECTED_STATE_TITLE": "Unexpected State",
   "UNEXPECTED_STATE_PROMPT": "Lantern is in an unexpected state. Try refreshing, and if the problem persists, try quitting and restarting.  You could also try reinstalling Lantern. As a last resort, choosing Reset will reset Lantern to its original state. Reporting any additional information about the problem to the Lantern developers can speed its resolution.",
   "RESET": "Reset",

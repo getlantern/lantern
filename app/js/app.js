@@ -214,4 +214,30 @@ var app = angular.module('app', [
       var reportedState = jsonFltr(reportedStateFltr($rootScope.model));
       return i18nFltr('MESSAGE_PLACEHOLDER') + reportedState;
     };
+    
+    /**
+     * Checks whether the backend is gone (based on last successful connect time).
+     */
+    $rootScope.backendIsGone = false;
+    $rootScope.$watch("cometdConnected", function(cometdConnected) {
+      var MILLIS_UNTIL_BACKEND_CONSIDERED_GONE = 10000;
+      if (!cometdConnected) {
+        // In 11 seconds, check if we're still not connected
+        $timeout(function() {
+          var lastConnectedAt = $rootScope.cometdLastConnectedAt;
+          if (lastConnectedAt) {
+            var timeSinceLastConnected = new Date().getTime() - lastConnectedAt.getTime();
+            $log.debug("Time since last connect", timeSinceLastConnected);
+            if (timeSinceLastConnected > MILLIS_UNTIL_BACKEND_CONSIDERED_GONE) {
+              // If it's been more than 10 seconds since we last connect,
+              // treat the backend as gone
+              $log.debug("Backend is gone");
+              $rootScope.backendIsGone = true;
+            } else {
+              $rootScope.backendIsGone = false;
+            }
+          }
+        }, MILLIS_UNTIL_BACKEND_CONSIDERED_GONE + 1);
+      }
+    });
   });

@@ -60,10 +60,16 @@
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
     <div id="waiting" ng-show="!cometdConnected">
-      <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
-      <img src="img/spinner.gif">
+      <div ng-show="!backendIsGone">
+        <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
+        <img src="img/spinner.gif">
+      </div>
+      <div ng-show="backendIsGone">
+        <div>{{ 'LANTERN_GONE' | i18n }}</div>
+        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | i18n }}</button>
+      </div>
     </div>
-
+    
     <div id="alerts">
       <alert ng-repeat="(id, notification) in model.notifications" ui-animate
              type="notification.type" close="interaction(INTERACTION.close, {notification: id})">
