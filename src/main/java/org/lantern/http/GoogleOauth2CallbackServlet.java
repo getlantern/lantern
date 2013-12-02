@@ -30,6 +30,7 @@ import org.lantern.LanternConstants;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.NotInClosedBetaException;
+import org.lantern.Tr;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
@@ -41,7 +42,6 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
@@ -83,7 +83,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils, final Messages msgs) {
+        final ModelUtils modelUtils, final Messages msgs,
+        final GoogleOauth2CallbackServer server) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
@@ -144,28 +145,20 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // this should do. Make sure we set this before sending the user
         // back to the dashboard. We don't need to post an event because the
         // dashboard is about to get fully reloaded.
-        modelUtils.syncConnectingStatus(
-            "Communicating with Google Talk servers...");
+        modelUtils.syncConnectingStatus(Tr.tr(MessageKey.TALK_SERVERS));
         log.debug("Setting modal to connecting...");
         this.model.setModal(Modal.connecting);
         redirectToDashboard(resp);
 
+        int port = this.googleOauth2CallbackServer.getPort();
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
 
-        final HttpClient client;
-        try {
-            client = this.httpClientFactory.newClient();
-        } catch (final IOException e) {
-            log.error("Could not get a proxy?", e);
-            this.msgs.error(MessageKey.NO_PROXIES);
-            redirectToDashboard(resp);
-            return;
-        }
+        final HttpClient client = this.httpClientFactory.newClient();
 
         final Map<String, String> allToks;
         try {
-            allToks = loadAllToks(code, client);
+            allToks = loadAllToks(code, port, client);
         } catch (final IOException e) {
             log.error("Could not load all oauth tokens!!", e);
             redirectToDashboard(resp);
@@ -274,7 +267,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         t.start();
     }
 
-    private Map<String, String> loadAllToks(final String code,
+    private Map<String, String> loadAllToks(final String code, int port,
         final HttpClient httpClient) throws IOException {
         final HttpPost post =
             new HttpPost("https://accounts.google.com/o/oauth2/token");
@@ -283,7 +276,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 new BasicNameValuePair("code", code),
                 new BasicNameValuePair("client_id", model.getSettings().getClientID()),
                 new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
-                new BasicNameValuePair("redirect_uri", OauthUtils.REDIRECT_URL),
+                new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
                 new BasicNameValuePair("grant_type", "authorization_code")
                 );
             final HttpEntity entity =

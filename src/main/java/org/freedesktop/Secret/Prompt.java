@@ -1,6 +1,5 @@
 package org.freedesktop.Secret;
 
-import java.util.Map;
 import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusSignal;
 import org.freedesktop.dbus.Variant;

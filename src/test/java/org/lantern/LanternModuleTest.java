@@ -1,7 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.lantern.TestUtils.TestModule;

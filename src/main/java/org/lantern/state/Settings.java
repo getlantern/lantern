@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
@@ -13,11 +12,9 @@ import org.lantern.LanternUtils;
 import org.lantern.Whitelist;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
-import org.lantern.event.RefreshTokenEvent;
 import org.lantern.event.SystemProxyChangedEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

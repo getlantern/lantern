@@ -1,11 +1,10 @@
 package org.lantern;
 
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
@@ -34,7 +33,7 @@ import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.Model;
 import org.lantern.util.LanternHostNameVerifier;
 import org.littleshoot.proxy.SslEngineSource;
-import org.littleshoot.util.NetworkUtils;
+import org.littleshoot.proxy.impl.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +96,7 @@ public class FallbackProxyTest {
         try {
             log.debug("Connecting on port: {}", SERVER_PORT);
             if (!LanternUtils.waitForServer(
-                    InetAddress.getLocalHost().getHostAddress(), SERVER_PORT, 4000)) {
+                    NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, 4000)) {
                 fail("Could not get server on expected port?");
             }
             

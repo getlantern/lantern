@@ -6,9 +6,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -60,6 +58,7 @@ import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncPath;
+import org.lantern.state.Version.Installed;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -185,6 +184,8 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final Messages msgs;
 
+    private final Censored censored;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -203,7 +204,8 @@ public class DefaultXmppHandler implements XmppHandler,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
-        final Messages msgs) {
+        final Messages msgs,
+        final Censored censored) {
         this.model = model;
         this.timer = updateTimer;
         this.stats = stats;
@@ -221,6 +223,7 @@ public class DefaultXmppHandler implements XmppHandler,
         this.networkTracker = networkTracker;
         this.msgs = msgs;
         this.networkTracker.addListener(this);
+        this.censored = censored;
         Events.register(this);
         //setupJmx();
     }
@@ -234,8 +237,9 @@ public class DefaultXmppHandler implements XmppHandler,
     public void start() {
         this.modelUtils.loadClientSecrets();
 
-        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
-        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
+        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
+        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
+        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
 
         this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
             upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
@@ -777,7 +781,7 @@ public class DefaultXmppHandler implements XmppHandler,
         
         boolean handled = false;
         handled |= handleSetDelay(json);
-        handled |= handleUpdate(json);
+        handled |= handleVersionUpdate(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -795,18 +799,17 @@ public class DefaultXmppHandler implements XmppHandler,
     }
 
     @SuppressWarnings("unchecked")
-    private boolean handleUpdate(final JSONObject json) {
+    private boolean handleVersionUpdate(JSONObject json) {
         // This is really a JSONObject, but that itself is a map.
-        final JSONObject update =
-            (JSONObject) json.get(LanternConstants.UPDATE_KEY);
-        if (update == null) {
+        JSONObject versionInfo = (JSONObject)
+            json.get(LanternConstants.UPDATE_KEY);
+        if (versionInfo == null) {
+            LOG.debug("no version info");
             return false;
         }
-        LOG.info("About to propagate update...");
-        final Map<String, Object> event = new HashMap<String, Object>();
-        event.putAll(update);
-        Events.asyncEventBus().post(new UpdateEvent(event));
-        return false;
+        LOG.debug(String.format("Posting UpdateEvent: %1$s", versionInfo.toJSONString()));
+        Events.asyncEventBus().post(new UpdateEvent(versionInfo));
+        return true;
     }
 
     private boolean handleSetDelay(final JSONObject json) {
@@ -900,7 +903,12 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setTo(LanternClientConstants.LANTERN_JID);
 
         forHub.setProperty("language", SystemUtils.USER_LANGUAGE);
-        
+ 
+        Installed installed = model.getVersion().getInstalled();
+        forHub.setProperty(LanternConstants.UPDATE_KEY, installed.toString());
+        forHub.setProperty(LanternConstants.OS_KEY, model.getSystem().getOs());
+        forHub.setProperty(LanternConstants.ARCH_KEY, model.getSystem().getArch());
+
         forHub.setProperty("instanceId", model.getInstanceId());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
         // Counterintuitive as it might seem at first glance, this is correct.

@@ -1,7 +1,6 @@
 package org.freedesktop.Secret;
 
 import org.freedesktop.DBus;
-import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.Path;
 
 public interface Item extends DBus.Properties {
