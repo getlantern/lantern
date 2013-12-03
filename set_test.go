@@ -1,9 +1,8 @@
-package goset
+package set
 
 import (
 	"reflect"
 	"strconv"
-
 	"testing"
 )
 
