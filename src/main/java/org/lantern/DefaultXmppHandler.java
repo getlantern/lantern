@@ -7,10 +7,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.login.CredentialException;
@@ -53,7 +55,6 @@ import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
-import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -182,9 +183,10 @@ public class DefaultXmppHandler implements XmppHandler,
     
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
-    private final Messages msgs;
-
     private final Censored censored;
+    
+    // Queue up ops that failed to execute because XMPP wasn't connected when we did them
+    private final Queue<Runnable> queuedOps = new LinkedBlockingQueue<Runnable>();
 
     /**
      * Creates a new XMPP handler.
@@ -204,7 +206,6 @@ public class DefaultXmppHandler implements XmppHandler,
         final UdtServerFiveTupleListener udtFiveTupleListener,
         final FriendsHandler friendsHandler,
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
-        final Messages msgs,
         final Censored censored) {
         this.model = model;
         this.timer = updateTimer;
@@ -221,7 +222,6 @@ public class DefaultXmppHandler implements XmppHandler,
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
         this.networkTracker = networkTracker;
-        this.msgs = msgs;
         this.networkTracker.addListener(this);
         this.censored = censored;
         Events.register(this);
@@ -271,6 +271,11 @@ public class DefaultXmppHandler implements XmppHandler,
                 return;
             }
             this.roster.onRoster(this);
+            
+            // Handle any queued ops
+            for (Runnable op : queuedOps) {
+                op.run();
+            }
             break;
         case notConnected:
             this.roster.reset();
@@ -1127,63 +1132,7 @@ public class DefaultXmppHandler implements XmppHandler,
         return conn.isAuthenticated();
     }
 
-    @Override
-    public boolean sendInvite(final Friend friend, boolean redo, 
-            final boolean addToRoster) {
-        LOG.debug("Sending invite");
-
-        final String email = friend.getEmail();
-
-        if (!isLoggedIn()) {
-            LOG.info("Not logged in!");
-            this.msgs.error(MessageKey.INVITE_FAILED);
-            return false;
-        }
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-
-        final Roster rost = conn.getRoster();
-
-        final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternClientConstants.LANTERN_JID);
-
-        // "emails" of the form xxx@public.talk.google.com aren't really
-        // e-mail addresses at all, so don't send 'em.
-        // In theory we might be able to use the Google Plus API to get
-        // actual e-mail addresses -- see:
-        // https://github.com/getlantern/lantern/issues/432
-        if (LanternUtils.isAnonymizedGoogleTalkAddress(email)) {
-            pres.setProperty(LanternConstants.INVITED_EMAIL, email);
-        } else {
-            pres.setProperty(LanternConstants.INVITED_EMAIL, "");
-        }
-
-        final String refresh = this.model.getSettings().getRefreshToken();
-        LOG.debug("Sending refresh token: {}", refresh);
-        
-        if (StringUtils.isBlank(refresh)) {
-            LOG.warn("Refresh token is blank");
-        }
-        pres.setProperty(LanternConstants.REFRESH_TOKEN, refresh);
-
-        final RosterEntry entry = rost.getEntry(email);
-        if (entry != null) {
-            final String name = entry.getName();
-            if (StringUtils.isNotBlank(name)) {
-                pres.setProperty(LanternConstants.INVITEE_NAME, name);
-            }
-        }
-        pres.setProperty(LanternConstants.INVITER_NAME, 
-                this.model.getProfile().getName());
-
-        sendPresence(pres, "Invite-Thread");
-
-        if (addToRoster) {
-            addToRoster(email);
-        }
-        return true;
-    }
-
-    private void sendPresence(final Presence pres, final String threadName) {
+   private void sendPresence(final Presence pres, final String threadName) {
         final XMPPConnection conn = this.client.get().getXmppConnection();
         final Runnable runner = new Runnable() {
             @Override
@@ -1226,18 +1175,6 @@ public class DefaultXmppHandler implements XmppHandler,
         sendTypedPacket(jid, Presence.Type.subscribed);
     }
 
-    @Override
-    public void unsubscribe(final String jid) {
-        LOG.debug("Sending unsubscribe message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.unsubscribe);
-    }
-
-    @Override
-    public void unsubscribed(final String jid) {
-        LOG.debug("Sending unsubscribed message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.unsubscribed);
-    }
-
     private void sendTypedPacket(final String jid, final Type type) {
         final Presence packet = new Presence(type);
         packet.setTo(jid);
@@ -1254,6 +1191,20 @@ public class DefaultXmppHandler implements XmppHandler,
 
     @Override
     public void addToRoster(final String email) {
+        if (this.client.get().getXmppConnection().isAuthenticated()) {
+            LOG.debug("Not currently connected, deferring add to Roster");
+            doAddToRoster(email);
+        } else {
+            queuedOps.add(new Runnable() {
+                @Override
+                public void run() {
+                    doAddToRoster(email);
+                }
+            });
+        }
+    }
+    
+    private void doAddToRoster(final String email) {
         // If the user is not already on our roster, we want to make sure to
         // send them an invite. If the e-mail address specified does not
         // correspond with a Jabber ID, then we're out of luck. If it does,
@@ -1267,26 +1218,12 @@ public class DefaultXmppHandler implements XmppHandler,
                 // Note this also sends a subscription request!!
                 rost.createEntry(email,
                     StringUtils.substringBefore(email, "@"), new String[]{});
+                return;
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
             }
         } else {
             LOG.debug("User already on roster...");
-        }
-    }
-
-    @Override
-    public void removeFromRoster(final String email) {
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-        final Roster rost = conn.getRoster();
-        final RosterEntry entry = rost.getEntry(email);
-        if (entry != null) {
-            LOG.debug("Removing user from roster: {}", email);
-            try {
-                rost.removeEntry(entry);
-            } catch (final XMPPException e) {
-                LOG.error("Could not create entry?", e);
-            }
         }
     }
 
@@ -1405,4 +1342,5 @@ public class DefaultXmppHandler implements XmppHandler,
         LOG.debug("Removing proxy for {}", jid);
         this.proxyTracker.removeNattedProxy(jid);
     }
+    
 }

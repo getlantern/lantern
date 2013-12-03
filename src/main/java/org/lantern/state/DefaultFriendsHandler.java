@@ -185,7 +185,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // If the friend previously didn't exist or was rejected, friend them.
         if (existingFriend == null) {
             log.debug("Adding friend...");
-            //friend = addAndInvite(email);
             final ClientFriend temp = getOrCreateFriend(email);
             temp.setStatus(Status.friend);
             // We add the friend here even though it's not actually on the 
@@ -201,18 +200,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // This will overwrite the temporary friend above.
                 put(cf);
                 try {
-                    invite(cf, true);
-                    try {
-                        subscribe(email);
-                    } catch (final IOException e) {
-                        this.msgs.error(MessageKey.ERROR_EMAILING_FRIEND, e, 
-                                email);
-                        fullRemove(cf);
-                    }
+                    subscribe(email);
                 } catch (final IOException e) {
                     this.msgs.error(MessageKey.ERROR_EMAILING_FRIEND, e, 
                             email);
-                    
                     fullRemove(cf);
                 }
             } catch (final IOException e) {
@@ -254,17 +245,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     sync(existingFriend);
                     return;
                 }
-                try {
-                    invite(existingFriend, true);
-                } catch (final IOException e) {
-                    this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
-                    
-                    // Set the friend back to his or her original status!
-                    existingFriend.setStatus(originalStatus);
-                    sync(existingFriend);
-                    return;
-                }
-
+                xmppHandler.addToRoster(email);
                 break;
             default:
                 break;
@@ -287,6 +268,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private void subscribe(final String email) throws IOException {
         if (this.xmppHandler != null) {
             try {
+                this.xmppHandler.addToRoster(email);
+                
                 //if they have requested a subscription to us, we'll accept it.
                 this.xmppHandler.subscribed(email);
     
@@ -316,25 +299,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
             networkTracker.userTrusted(friend.getEmail());
         } else if (isRejected(friend)){
             networkTracker.userUntrusted(friend.getEmail());
-        }
-    }
-    
-    private void invite(final Friend friend, final boolean addToRoster) 
-            throws IOException {
-        final String email = friend.getEmail();
-        
-        // Can be null for testing...
-        if (this.xmppHandler == null) {
-            log.error("Null XMPP handler");
-            return;
-        }
-        try {
-            if (this.xmppHandler.sendInvite(friend, false, addToRoster)) {
-                this.msgs.info(MessageKey.ADDED_FRIEND, email);
-            }
-        } catch (final Throwable e) {
-            this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, email);
-            throw new IOException("Invite failed", e);
         }
     }
     
@@ -800,4 +764,5 @@ public class DefaultFriendsHandler implements FriendsHandler {
         this.loadedFriends = null;
         this.friends().clear();
     }
+    
 }
