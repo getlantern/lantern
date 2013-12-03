@@ -90,6 +90,15 @@ angular.module('app.vis', [])
         });
         unwatch();
       }, true);
+      
+      // Format connectivity ip for display
+      scope.$watch('model.connectivity', function(connectivity) {
+        if (connectivity) {
+          if (model.dev) {
+            connectivity.formattedIp = " (" + connectivity.ip + ")"; 
+          }
+        }
+      });
 
       // Set up the world map once and only once
       d3.json('data/world.topojson', function (error, world) {
@@ -181,7 +190,7 @@ angular.module('app.vis', [])
           <div class=headers> \
             <div class=header>{{peer.rosterEntry.name}}</div> \
             <div class=email>{{peer.rosterEntry.email}}</div> \
-            <div class='peerid ip'>{{peer.peerid}} ({{peer.ip}})</div> \
+            <div class='peerid ip'>{{peer.peerid}}{{peer.formattedIp}}</div> \
             <div class=type>{{peer.type && peer.mode && (((peer.type|upper)+(peer.mode|upper))|i18n) || ''}}</div> \
           </div> \
           <div class=stats> \
@@ -287,6 +296,10 @@ angular.module('app.vis', [])
             // Compile the tooltip target dom element to enable the tooltip-html-unsafe directive
             var childScope = scope.$new();
             childScope.peer = peer;
+            // Format the ip for display
+            if (model.dev) {
+              peer.formattedIp = " (" + peer.ip + ")";
+            }
             $compile(this)(childScope);
           });
         
