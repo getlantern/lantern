@@ -196,7 +196,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final StatusLine line = response.getStatusLine();
             log.debug("Got response status: {}", line);
             final HttpEntity entity = response.getEntity();
-            final String body = IOUtils.toString(entity.getContent());
+            final String body = IOUtils.toString(entity.getContent(), "UTF-8");
             EntityUtils.consume(entity);
             log.debug("GOT RESPONSE BODY FOR EMAIL:\n"+body);
 
