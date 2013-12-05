@@ -5,7 +5,9 @@ import static org.junit.Assert.*;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.lantern.LanternClientConstants;
 import org.lantern.TestingUtils;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
@@ -25,6 +27,11 @@ import org.slf4j.LoggerFactory;
 public class FriendEndpointTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    @Before
+    public void setUp() {
+        LanternClientConstants.setControllerId("oxlanternctrl");
+    }
 
     @Test
     public void testFriendEndpiont() throws Exception {

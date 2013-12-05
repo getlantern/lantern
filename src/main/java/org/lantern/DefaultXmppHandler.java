@@ -7,12 +7,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.login.CredentialException;
@@ -185,9 +183,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final Censored censored;
     
-    // Queue up ops that failed to execute because XMPP wasn't connected when we did them
-    private final Queue<Runnable> queuedOps = new LinkedBlockingQueue<Runnable>();
-
     /**
      * Creates a new XMPP handler.
      */
@@ -271,11 +266,6 @@ public class DefaultXmppHandler implements XmppHandler,
                 return;
             }
             this.roster.onRoster(this);
-            
-            // Handle any queued ops
-            for (Runnable op : queuedOps) {
-                op.run();
-            }
             break;
         case notConnected:
             this.roster.reset();
@@ -1191,20 +1181,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     @Override
     public void addToRoster(final String email) {
-        if (this.client.get().getXmppConnection().isAuthenticated()) {
-            LOG.debug("Not currently connected, deferring add to Roster");
-            doAddToRoster(email);
-        } else {
-            queuedOps.add(new Runnable() {
-                @Override
-                public void run() {
-                    doAddToRoster(email);
-                }
-            });
-        }
-    }
-    
-    private void doAddToRoster(final String email) {
         // If the user is not already on our roster, we want to make sure to
         // send them an invite. If the e-mail address specified does not
         // correspond with a Jabber ID, then we're out of luck. If it does,

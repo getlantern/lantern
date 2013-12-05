@@ -718,17 +718,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 }
                 
                 final Friend friend = getOrCreateFriend(email.trim());
-                invite(friend, false);
                 log.debug("BulkInvite: Invited {}", email);
                 numberOfPeopleInvited += 1;
                 
                 log.debug("BulkInvite: Invited {} so far", numberOfPeopleInvited);
-                
-                // Wait a bit between each one!
-                try {
-                    Thread.sleep(6000);
-                } catch (InterruptedException e) {
-                }
             }
             
             String message = String.format("Bulk invited %1$s people",
