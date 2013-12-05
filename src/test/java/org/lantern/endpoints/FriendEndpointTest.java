@@ -28,11 +28,6 @@ public class FriendEndpointTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    @Before
-    public void setUp() {
-        LanternClientConstants.setControllerId("oxlanternctrl");
-    }
-
     @Test
     public void testFriendEndpiont() throws Exception {
         TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
