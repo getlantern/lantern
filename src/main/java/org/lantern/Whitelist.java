@@ -46,9 +46,10 @@ public class Whitelist {
      * to populate default whitelist entries.  The order does not matter.
      */
     private static final String[] WHITELISTS = new String[] {
-            "original.txt",
             "1.0.1.txt"
     };
+    
+    private static final String ORIGINAL_WHITELIST = "original.txt";
 
     /**
      * Keeps track of which whitelists from {@link #WHITELISTS} have been
@@ -67,34 +68,43 @@ public class Whitelist {
      * recorded in appliedWhitelists yet.
      */
     public void applyDefaultEntries() {
-        ClassLoader cl = getClass().getClassLoader();
+        if (whitelist.isEmpty()) {
+            // For empty whitelists, go ahead and apply the "original"
+            // Not including "original" in the list of WHITELISTS helps us stay
+            // backward compatible.
+            applyWhitelist(ORIGINAL_WHITELIST);
+        }
         for (String whitelistName : WHITELISTS) {
             if (!appliedWhitelists.contains(whitelistName)) {
-                String whitelistPath = "whitelists/" + whitelistName;
-                BufferedReader reader = null;
-                try {
-                    InputStream is = cl.getResourceAsStream(whitelistPath);
-                    reader = new BufferedReader(new InputStreamReader(is));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        if (!StringUtils.isBlank(line)) {
-                            if (!line.startsWith("#")) {
-                                // Line has data and is not commented, create entry
-                                this.whitelist.add(new WhitelistEntry(line,
-                                        true));
-                            }
-                        }
-                    }
-                    appliedWhitelists.add(whitelistName);
-                    log.info("Applied whitelist {}", whitelistPath);
-                } catch (Throwable t) {
-                    log.warn("Unable to apply whitelist {}", whitelistPath, t);
-                } finally {
-
-                }
-
+                applyWhitelist(whitelistName);
             }
+        }
+    }
+    
+    private void applyWhitelist(String whitelistName) {
+        ClassLoader cl = getClass().getClassLoader();
+        String whitelistPath = "whitelists/" + whitelistName;
+        BufferedReader reader = null;
+        try {
+            InputStream is = cl.getResourceAsStream(whitelistPath);
+            reader = new BufferedReader(new InputStreamReader(is));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!StringUtils.isBlank(line)) {
+                    if (!line.startsWith("#")) {
+                        // Line has data and is not commented, create entry
+                        this.whitelist.add(new WhitelistEntry(line,
+                                true));
+                    }
+                }
+            }
+            appliedWhitelists.add(whitelistName);
+            log.info("Applied whitelist {}", whitelistPath);
+        } catch (Throwable t) {
+            log.warn("Unable to apply whitelist {}", whitelistPath, t);
+        } finally {
+
         }
     }
 
