@@ -3,8 +3,10 @@ package org.lantern;
 import static org.lantern.state.Peer.Type.*;
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -66,6 +68,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
+    private final String CONFIG_FILENAME = "fallback.json";
+
+    private final File[] FALLBACK_CONFIG_INSTALL_PATHS = {
+            new File(new File(SystemUtils.USER_HOME), CONFIG_FILENAME),
+            new File(new File(SystemUtils.USER_DIR), CONFIG_FILENAME)};
+
     private final ExecutorService p2pSocketThreadPool =
             Threads.newCachedThreadPool("P2P-Socket-Creation-Thread-");
 
@@ -90,10 +98,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
-    private String fallbackServerHost;
-
-    private int fallbackServerPort;
-
     private final ScheduledExecutorService proxyRetryService = Threads
             .newSingleThreadScheduledExecutor("Proxy-Retry");
 
@@ -110,6 +114,8 @@ public class DefaultProxyTracker implements ProxyTracker {
      * on this until proxies are available within the timeout or not.
      */
     private final Condition noProxies = this.tcpProxyLock.newCondition();
+
+    private FallbackProxyConfig fallbackProxyConfig;
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -485,112 +491,133 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxies() {
         LOG.debug("Attempting to add fallback proxies");
-        parseFallbackProxy();
-        addSingleFallbackProxy(fallbackServerHost, fallbackServerPort);
-
-        final File file = new File(SystemUtils.USER_HOME, "fallbacks.json");
-        if (!file.isFile()) {
-            LOG.info("No fallback proxies in: {}", file.getAbsolutePath());
-            return;
-        }
-        final ObjectMapper om = new ObjectMapper();
-        InputStream is = null;
-
-        try {
-            is = new FileInputStream(file);
-            final String proxy = IOUtils.toString(is);
-            final FallbackProxies all = om.readValue(proxy,
-                    FallbackProxies.class);
-            final Collection<FallbackProxy> proxies = all.getProxies();
-            for (final FallbackProxy fp : proxies) {
-                LOG.debug("Adding fallback: {}", fp);
-                addSingleFallbackProxy(fp.getIp(), fp.getPort());
+        for (FallbackProxy fp : getFallbackProxyConfig().getProxies()) {
+            LOG.debug("Adding fallback: {}", fp);
+            if (this.model.getSettings().isTcp()) {
+                String host = fp.getIp();
+                final URI uri =
+                    LanternUtils.newURI("fallback-" + host
+                                        + "@getlantern.org");
+                final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
+                cloud.setMode(org.lantern.state.Mode.give);
+                LOG.debug("Adding fallback: {}", host);
+                addProxy(uri, LanternUtils.isa(host,
+                                               fp.getPort()),
+                                               Type.cloud);
             }
-        } catch (final IOException e) {
-            LOG.error("Could not load fallback proxies?");
-        }
-    }
-
-    private void addSingleFallbackProxy(final String host, final int port) {
-        LOG.debug("Attempting to add single fallback proxy");
-        if (this.model.getSettings().isTcp()) {
-            final URI uri =
-                    LanternUtils.newURI("fallback-" + host + "@getlantern.org");
-            final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
-            cloud.setMode(org.lantern.state.Mode.give);
-
-            LOG.debug("Adding fallback: {}", host);
-            addProxy(uri, LanternUtils.isa(host, port), Type.cloud);
         }
     }
 
     @Override
-    public InetSocketAddress addressForConfiguredFallbackProxy() {
-        try {
-            copyFallback();
-        } catch (final IOException e) {
-            LOG.warn("Could not copy fallback?", e);
-        }
-        final File file =
-                new File(LanternClientConstants.CONFIG_DIR, "fallback.json");
-        if (!file.isFile()) {
-            LOG.error("No fallback proxy to load!");
-            return null;
-        }
+    public String getFallbackProxyConfigCookie() {
+        return getFallbackProxyConfig().getCookie();
+    }
 
-        final ObjectMapper om = new ObjectMapper();
-        InputStream is = null;
-        try {
-            is = new FileInputStream(file);
-            final String proxy = IOUtils.toString(is);
-            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
+    private FallbackProxyConfig getFallbackProxyConfig() {
+        if (fallbackProxyConfig == null) {
+            File file = getConfigFile();
+            if (!file.isFile()) {
+                try {
+                    copyFallback();
+                } catch (final IOException e) {
+                    LOG.warn("Could not copy fallback?", e);
+                    return null;
+                }
+                file = getConfigFile();
+                if (!file.isFile()) {
+                    LOG.error("No fallback proxy config to load!");
+                    return null;
+                }
+            }
+            final ObjectMapper om = new ObjectMapper();
+            InputStream is = null;
+            try {
+                is = new FileInputStream(file);
+                fallbackProxyConfig = om.readValue(
+                        IOUtils.toString(is), FallbackProxyConfig.class);
+            } catch (final IOException e) {
+                LOG.error("Could not load fallback", e);
+                return null;
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        }
+        return fallbackProxyConfig;
+    }
 
-            return new InetSocketAddress(fp.getIp(), fp.getPort());
-        } catch (final IOException e) {
-            LOG.error("Could not load fallback", e);
-            return null;
-        } finally {
-            IOUtils.closeQuietly(is);
+    @Override
+    public void setFallbackProxyConfig(String text) {
+        saveFallbackProxyConfig(getConfigFile(), text, true);
+        // We try and save it to all directories from which we may try and
+        // load it later.  This will only matters if and when we run
+        // Lantern as a different user than the one that got the latest
+        // setFallbackProxyConfig update.  So it's not a showstopper if it
+        // fails but it's still worth trying.
+        for (File out : FALLBACK_CONFIG_INSTALL_PATHS) {
+            saveFallbackProxyConfig(out, text, false);
         }
     }
-    
-    private void parseFallbackProxy() {
-        InetSocketAddress fallbackAddress = addressForConfiguredFallbackProxy();
-        if (fallbackAddress != null) {
-            fallbackServerHost = fallbackAddress.getAddress().getHostAddress();
-            fallbackServerPort = fallbackAddress.getPort();
-            LOG.debug("Set fallback proxy to {}:{}",
-                      fallbackServerHost,
-                      fallbackServerPort);
+
+    private void saveFallbackProxyConfig(File file,
+                                         String text,
+                                         boolean crucial) {
+        try {
+            if (file == null) {
+                throw new IOException();
+            }
+            BufferedWriter out = new BufferedWriter(new FileWriter(file));
+            try {
+                out.write(text);
+            } finally {
+                out.close();
+            }
+            reloadFallbackProxies();
+        } catch (IOException e) {
+            String errMsg = "Couldn't write new fallback config to " + file;
+            if (crucial) {
+                LOG.error(errMsg);
+            } else {
+                LOG.debug(errMsg);
+            }
         }
+    }
+
+    private void reloadFallbackProxies() {
+        fallbackProxyConfig = null;
+        LOG.debug("Adding controller-fed proxies; "
+                + "ignore duplication warnings below.");
+        addFallbackProxies();
+    }
+
+    private File getConfigFile() {
+        final File par = LanternClientConstants.CONFIG_DIR;
+        if (!par.isDirectory() && !par.mkdirs()) {
+            return null;
+        }
+        return new File(par, CONFIG_FILENAME);
     }
 
     private void copyFallback() throws IOException {
         LOG.debug("Copying fallback file");
-        final File from;
-
-        final File cur =
-                new File(new File(SystemUtils.USER_HOME), "fallback.json");
-        if (cur.isFile()) {
-            from = cur;
-        } else {
-            LOG.debug("No fallback proxy found in home - checking runtime user.dir...");
-            final File home = new File(new File(SystemUtils.USER_DIR),
-                    "fallback.json");
-            if (home.isFile()) {
-                from = home;
-            } else {
-                LOG.warn("Still could not find fallback proxy!");
+        for (File from : FALLBACK_CONFIG_INSTALL_PATHS) {
+            if (from.isFile()) {
+                copyFallbackConfig(from);
                 return;
+            } else {
+                LOG.debug("No fallback config in " + from);
             }
         }
-        final File par = LanternClientConstants.CONFIG_DIR;
-        final File to = new File(par, from.getName());
-        if (!par.isDirectory() && !par.mkdirs()) {
+        LOG.warn("No fallback config found at all!");
+    }
+
+    private void copyFallbackConfig(File from) throws IOException {
+        File to = getConfigFile();
+        if (to == null) {
             throw new IOException("Could not make config dir?");
+        } else {
+            LOG.debug("Copying from {} to {}", from, to);
+            Files.copy(from, to);
         }
-        LOG.debug("Copying from {} to {}", from, to);
-        Files.copy(from, to);
     }
 
     /**
