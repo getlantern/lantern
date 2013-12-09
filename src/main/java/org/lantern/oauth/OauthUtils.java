@@ -143,10 +143,54 @@ public class OauthUtils {
             // Note this call will block until a refresh token is available!
             final String refresh = refreshToken.refreshToken();
             
-            final HttpClient client = httpClientFactory.newClient();
+            final HttpClient directClient =  httpClientFactory.newDirectClient();
             final Collection<HttpHost> usedHosts = new HashSet<HttpHost>();
             
-            return call(client, refresh);
+            try {
+                return call(directClient, refresh);
+            } catch (final IOException e) {
+                LOG.debug("Could not execute call directly", e);
+            }
+            
+            // We implement a bit of our own retry handling here to make sure
+            // we get through.
+            final int maxAttempts = 4;
+            int attempts = 0;
+            while (attempts < maxAttempts) {
+                LOG.debug("Attempting calls with fallback...");
+                // We need to make sure we've actually got a fallback proxy 
+                // here!
+                
+                final HttpHost proxy;
+                try {
+                    proxy = httpClientFactory.newProxyBlocking();
+                } catch (InterruptedException e1) {
+                    throw new IOException("Could not connect to any proxy!!");
+                }
+                if (usedHosts.contains(proxy)) {
+                    break;
+                }
+                usedHosts.add(proxy);
+                final HttpClient proxiedClient = 
+                    httpClientFactory.newClient(proxy, true);
+                try {
+                    //return oauthTokens(proxiedClient, refreshToken);
+                    return call(proxiedClient, refresh);
+                } catch (final IOException e) {
+                    LOG.debug("Could not execute call even with fallback at {}", 
+                            proxy.getHostName(), e);
+                }
+                attempts++;
+                
+                // Avoid hammering the server...
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+            }
+            final String msg = "Could not successfully make call even with fallback!";
+            LOG.error(msg);
+            throw new IOException(msg);
         }
     }
     
@@ -266,7 +310,7 @@ public class OauthUtils {
                 return "";
             }
             final HttpEntity entity = response.getEntity();
-            final String body = IOUtils.toString(entity.getContent());
+            final String body = IOUtils.toString(entity.getContent(), "UTF-8");
             EntityUtils.consume(entity);
             
             if (code < 200 || code > 299) {

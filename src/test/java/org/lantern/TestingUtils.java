@@ -1,6 +1,5 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -12,11 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-
-import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -27,9 +23,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
@@ -41,35 +34,29 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
-import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings;
+import org.lantern.stubs.PeerFactoryStub;
+import org.lantern.stubs.ProxyTrackerStub;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
-import org.littleshoot.proxy.ChainedProxyManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.FiveTuple.Protocol;
 
 public class TestingUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestingUtils.class);
-    
+
     private static final File privatePropsFile;
 
     private static final Properties privateProps = new Properties();
-    
-    private static final HttpHost EXPECTED_PROXY = new HttpHost("127.0.0.1",
-            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT,
-            "http");
     
     static {
         if (LanternClientConstants.TEST_PROPS.isFile()) {
@@ -121,6 +108,30 @@ public class TestingUtils {
         return newXmppHandler(censored, mod);
     }
 
+    public static ProxyTracker newProxyTracker() {
+        final PeerFactory peerFactory = new PeerFactoryStub();
+        final LanternKeyStoreManager ksm = newKeyStoreManager();
+        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        
+        return new ProxyTrackerStub() {
+            @Override
+            public ProxyHolder firstConnectedTcpProxyBlocking() {
+                FiveTuple tuple = new FiveTuple(null,
+                        new InetSocketAddress("54.254.96.14", 16589),
+                        Protocol.TCP);
+                final URI uri;
+                try {
+                    uri = new URI("fallback@getlantern.org");
+                } catch (URISyntaxException e) {
+                    return null;
+                }
+                return new ProxyHolder(
+                        this, peerFactory, trustStore,
+                        uri, tuple, Type.cloud);
+            }
+        };
+    }
+    
     public static XmppHandler newXmppHandler(final Censored censored, 
             final Model model) throws IOException {
         
@@ -185,7 +196,8 @@ public class TestingUtils {
             }
         };
         
-        final ProxySocketFactory proxySocketFactory = new ProxySocketFactory();
+        final ProxySocketFactory proxySocketFactory =
+                new ProxySocketFactory(socketsUtil, proxyTracker);
         final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
                 proxySocketFactory);
         
@@ -193,7 +205,7 @@ public class TestingUtils {
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
-            friendsHandler, networkTracker, new Messages(model), censored);
+            friendsHandler, networkTracker, new Messages(model));
         return xmppHandler;
     }
 
@@ -230,7 +242,7 @@ public class TestingUtils {
         
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
-                new HttpClientFactory(censored);
+                new HttpClientFactory(socketsUtil, censored, TestingUtils.newProxyTracker());
         return factory;
     }
 
@@ -272,64 +284,5 @@ public class TestingUtils {
             throw new UnrecognizedOptionException("Extra arguments were provided");
         }
         return cmd;
-    }
-    
-    /**
-     * Starts a GetModeProxy using the default fallback server, does the given
-     * work and stops the GetModeProxy.
-     * 
-     * @param work
-     * @return
-     */
-    public static <T> T doWithWithGetModeProxy(Callable<T> work) throws Exception {
-        Censored censored = new DefaultCensored();
-        CountryService countryService = new CountryService(censored);
-        Model model = new Model(countryService);
-
-        //assume that we are connected to the Internet
-        model.getConnectivity().setInternet(true);
-
-        LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        ClientStats clientStats = new StatsStub();
-        ChainedProxyManager proxyManager =
-                new ChainedProxyManager() {
-            @Override
-            public void lookupChainedProxies(HttpRequest httpRequest,
-                    Queue<ChainedProxy> chainedProxies) {
-                chainedProxies.add(new ChainedProxyAdapter() {
-                    @Override
-                    public InetSocketAddress getChainedProxyAddress() {
-                        return new InetSocketAddress("54.254.96.14", 16589);
-                    }
-                    
-                    @Override
-                    public boolean requiresEncryption() {
-                        return true;
-                    }
-                    
-                    @Override
-                    public SSLEngine newSslEngine() {
-                        return trustStore.newSSLEngine();
-                    }
-                });
-            }
-        };
-        GetModeProxy getModeProxy = new GetModeProxy(clientStats, proxyManager);
-        getModeProxy.start();
-        try {
-            return work.call();
-        } finally {
-            try {
-                getModeProxy.stop();
-            } catch (Exception e) {
-                LOGGER.warn("Unable to stop GetModeProxy - this may cause failures on subsequent tests");
-            }
-        }
-    }
-    
-    public static void assertIsUsingGetModeProxy(HttpClient httpClient) {
-        assertEquals(EXPECTED_PROXY,
-                httpClient.getParams().getParameter(ConnRoutePNames.DEFAULT_PROXY));
     }
 }

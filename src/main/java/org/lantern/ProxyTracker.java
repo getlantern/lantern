@@ -59,6 +59,16 @@ public interface ProxyTracker extends LanternService {
     ProxyHolder firstConnectedTcpProxy();
 
     /**
+     * Gets the first proxy in order of fallback preference, blocking for a set
+     * amount of time until a proxy becomes available.
+     * 
+     * @return The {@link ProxyHolder} instance.
+     * @throws InterruptedException
+     *             If we could not retrieve a proxy within the timeout period.
+     */
+    ProxyHolder firstConnectedTcpProxyBlocking() throws InterruptedException;
+
+    /**
      * Called when a connection to a proxy fails.
      * 
      * @param proxyAddress

@@ -1,10 +1,9 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-
-import java.util.concurrent.Callable;
+import static org.junit.Assert.assertTrue;
 
 import org.jivesoftware.smack.SASLAuthentication;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
@@ -56,31 +55,26 @@ public class DefaultXmppHandlerTest {
         settings.setRefreshToken(TestingUtils.getRefreshToken());
         settings.setUseGoogleOAuth2(true);
         
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
-           @Override
-            public Void call() throws Exception {
-               final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);
-               handler.start();
-               // The handler could have already been created and connected, so 
-               // make sure we disconnect.
-               handler.disconnect();
-               handler.connect();
-               
-               assertTrue(handler.isLoggedIn());
-               
-               LOG.debug("Checking for proxies in settings: {}", settings);
-               int count = 0;
-               while (closedBetaEvent == null && count < 200) {
-                   Thread.sleep(120);
-                   count++;
-               }
-               
-               handler.stop();
-               return null;
-            } 
-        });
+        
+        final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);
+        handler.start();
+        // The handler could have already been created and connected, so 
+        // make sure we disconnect.
+        handler.disconnect();
+        handler.connect();
+        
+        assertTrue(handler.isLoggedIn());
+        
+        LOG.debug("Checking for proxies in settings: {}", settings);
+        int count = 0;
+        while (closedBetaEvent == null && count < 200) {
+            Thread.sleep(120);
+            count++;
+        }
         
         assertTrue("Should have received event from the controller", 
-                this.closedBetaEvent != null);
+            this.closedBetaEvent != null);
+        
+        handler.stop();
     }
 }
