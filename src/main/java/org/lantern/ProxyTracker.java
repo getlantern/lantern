@@ -69,10 +69,17 @@ public interface ProxyTracker extends LanternService {
     void onError(URI peerUri);
 
     /**
-     * Return the address for the configured fallback proxy from fallback.json.
-     * 
-     * @return
+     * Return the 'cookie' in the fallback proxy configuration from
+     * fallback.json.
+     *
+     * This is a bookkeeping value that only makes sense to the
+     * controller.
      */
-    InetSocketAddress addressForConfiguredFallbackProxy();
+    String getFallbackProxyConfigCookie();
+
+    /**
+     * Save the given JSON as the new fallback proxy configuration.
+     */
+    void setFallbackProxyConfig(String json);
 
 }

@@ -782,6 +782,7 @@ public class DefaultXmppHandler implements XmppHandler,
         boolean handled = false;
         handled |= handleSetDelay(json);
         handled |= handleVersionUpdate(json);
+        handled |= handleFallbackUpdate(json);
 
         final Boolean inClosedBeta =
             (Boolean) json.get(LanternConstants.INVITED);
@@ -795,6 +796,7 @@ public class DefaultXmppHandler implements XmppHandler,
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
+
         sendOnDemandValuesToControllerIfNecessary(json);
     }
 
@@ -809,6 +811,18 @@ public class DefaultXmppHandler implements XmppHandler,
         }
         LOG.debug(String.format("Posting UpdateEvent: %1$s", versionInfo.toJSONString()));
         Events.asyncEventBus().post(new UpdateEvent(versionInfo));
+        return true;
+    }
+
+    private boolean handleFallbackUpdate(JSONObject json) {
+        JSONObject cfg = (JSONObject)json.get(
+                                    LanternConstants.FALLBACK_UPDATE_KEY);
+        if (cfg == null) {
+            LOG.debug("No fallback update");
+            return false;
+        }
+        LOG.debug("Fallback Update");
+        proxyTracker.setFallbackProxyConfig(cfg.toJSONString());
         return true;
     }
 
@@ -922,7 +936,7 @@ public class DefaultXmppHandler implements XmppHandler,
         if (LanternUtils.isFallbackProxy()) {
             sendHostAndPort(forHub);
         } else {
-            sendFallbackHostAndPort(forHub);
+            sendFallbackCookie(forHub);
         }
         forHub.setProperty(LanternConstants.IS_FALLBACK_PROXY,
                            LanternUtils.isFallbackProxy());
@@ -1366,25 +1380,14 @@ public class DefaultXmppHandler implements XmppHandler,
         presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
     }
 
-    private void sendFallbackHostAndPort(Presence presence) {
-        LOG.info("Sending fallback address to controller.");
-        InetSocketAddress address = proxyTracker
-                .addressForConfiguredFallbackProxy();
-        String hostAndPort = addressToHostAndPort(address);
-        if (hostAndPort != null) {
-            presence.setProperty(LanternConstants.FALLBACK_HOST_AND_PORT,
-                    hostAndPort);
+    private void sendFallbackCookie(Presence presence) {
+        LOG.info("Sending fallback config cookie to controller.");
+        String cookie = proxyTracker.getFallbackProxyConfigCookie();
+        if (cookie == null) {
+            LOG.error("No fallback cookie?");
+            return;
         }
-    }
-    
-    private String addressToHostAndPort(InetSocketAddress address) {
-        if (address == null) {
-            return null;
-        } else {
-            return String.format("%1$s:%2$s",
-                    address.getAddress().getHostAddress(),
-                    address.getPort());
-        }
+        presence.setProperty(LanternConstants.FALLBACK_COOKIE, cookie);
     }
 
     @Override
