@@ -815,14 +815,14 @@ public class DefaultXmppHandler implements XmppHandler,
     }
 
     private boolean handleFallbackUpdate(JSONObject json) {
-        JSONObject cfg = (JSONObject)json.get(
+        String cfg = (String)json.get(
                                     LanternConstants.FALLBACK_UPDATE_KEY);
         if (cfg == null) {
             LOG.debug("No fallback update");
             return false;
         }
         LOG.debug("Fallback Update");
-        proxyTracker.setFallbackProxyConfig(cfg.toJSONString());
+        proxyTracker.setFallbackProxyConfig(cfg);
         return true;
     }
 
