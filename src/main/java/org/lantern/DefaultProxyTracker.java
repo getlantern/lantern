@@ -273,29 +273,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         return null;
     }
 
-    @Override
-    public ProxyHolder firstConnectedTcpProxyBlocking()
-            throws InterruptedException {
-        LOG.debug("Getting first TCP proxy...");
-        final ProxyHolder ph = firstConnectedTcpProxy();
-        if (ph != null) {
-            LOG.debug("Returning existing proxy...");
-            return ph;
-        }
-
-        this.tcpProxyLock.lock();
-        try {
-            LOG.debug("Waiting for availability...");
-            if (this.proxies.isEmpty()) {
-                this.noProxies.await(30, TimeUnit.SECONDS);
-            }
-            LOG.debug("Out of wait...returning proxy");
-            return firstConnectedTcpProxy();
-        } finally {
-            this.tcpProxyLock.unlock();
-        }
-    }
-
     private void addProxy(URI jid, InetSocketAddress address, Type type) {
         boolean canAddAsTCP = address != null && address.getPort() > 0
                 && this.model.getSettings().isTcp();

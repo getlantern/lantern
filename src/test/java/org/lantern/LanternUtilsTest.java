@@ -1,13 +1,11 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -69,18 +67,19 @@ public class LanternUtilsTest {
 
     @Test
     public void testVCard() throws Exception {
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing vcard");
-        final XMPPConnection conn = TestUtils.xmppConnection();
-        assertTrue(conn.isAuthenticated());
-        final VCard vcard = XmppUtils.getVCard(conn, TestUtils.getUserName());
-        assertTrue(vcard != null);
-        final String full = vcard.getField("FN");
-        assertTrue(StringUtils.isNotBlank(full));
-
-        // The photo might be null with test accounts!
-        //final byte[] photo = vcard.getAvatar();
-        //assertTrue(photo != null);
-        //assertTrue(!(photo.length == 0));
+        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing vcard");
+                final XMPPConnection conn = TestUtils.xmppConnection();
+                assertTrue(conn.isAuthenticated());
+                final VCard vcard = XmppUtils.getVCard(conn, TestUtils.getUserName());
+                assertTrue(vcard != null);
+                final String full = vcard.getField("FN");
+                assertTrue(StringUtils.isNotBlank(full));
+                return null;
+            } 
+        });
     }
 
     @Test
@@ -146,62 +145,72 @@ public class LanternUtilsTest {
 
     @Test
     public void testGoogleStunServers() throws Exception {
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing STUN servers...");
-        final XMPPConnection conn = TestUtils.xmppConnection();
-
-        final Collection<InetSocketAddress> servers =
-            XmppUtils.googleStunServers(conn);
-        LOG.debug("Retrieved {} STUN servers", servers.size());
-        assertTrue(!servers.isEmpty());
-
-        final Roster roster = conn.getRoster();
-        roster.addRosterListener(new RosterListener() {
-
+        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
             @Override
-            public void entriesDeleted(final Collection<String> addresses) {
-                LOG.debug("Entries deleted");
-            }
-            @Override
-            public void entriesUpdated(final Collection<String> addresses) {
-                LOG.debug("Entries updated: {}", addresses);
-            }
-            @Override
-            public void presenceChanged(final Presence presence) {
-                LOG.debug("Processing presence changed: {}", presence);
-            }
-            @Override
-            public void entriesAdded(final Collection<String> addresses) {
-                LOG.debug("Entries added: "+addresses);
-                for (final String address : addresses) {
-                    //presences.add(address);
-                }
-            }
-        });
+            public Void call() throws Exception {
+                LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing STUN servers...");
+                final XMPPConnection conn = TestUtils.xmppConnection();
 
-        //Thread.sleep(40000);
+                final Collection<InetSocketAddress> servers =
+                    XmppUtils.googleStunServers(conn);
+                LOG.debug("Retrieved {} STUN servers", servers.size());
+                assertTrue(!servers.isEmpty());
+
+                final Roster roster = conn.getRoster();
+                roster.addRosterListener(new RosterListener() {
+
+                    @Override
+                    public void entriesDeleted(final Collection<String> addresses) {
+                        LOG.debug("Entries deleted");
+                    }
+                    @Override
+                    public void entriesUpdated(final Collection<String> addresses) {
+                        LOG.debug("Entries updated: {}", addresses);
+                    }
+                    @Override
+                    public void presenceChanged(final Presence presence) {
+                        LOG.debug("Processing presence changed: {}", presence);
+                    }
+                    @Override
+                    public void entriesAdded(final Collection<String> addresses) {
+                        LOG.debug("Entries added: "+addresses);
+                        for (final String address : addresses) {
+                            //presences.add(address);
+                        }
+                    }
+                });
+                return null;
+            } 
+         });
     }
 
     @Test
     public void testOtrMode() throws Exception {
-        LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing OTR mode...");
-        //System.setProperty("javax.net.debug", "ssl");
-        /*
-        final File certsFile = new File("src/test/resources/cacerts");
-        if (!certsFile.isFile()) {
-            throw new IllegalStateException("COULD NOT FIND CACERTS!!");
-        }
-        System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
-        */
-        final XMPPConnection conn = TestUtils.xmppConnection();
-        //System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
-        final String activateResponse = LanternUtils.activateOtr(conn).toXML();
-        LOG.debug("Got response: {}", activateResponse);
+        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing OTR mode...");
+                //System.setProperty("javax.net.debug", "ssl");
+                /*
+                final File certsFile = new File("src/test/resources/cacerts");
+                if (!certsFile.isFile()) {
+                    throw new IllegalStateException("COULD NOT FIND CACERTS!!");
+                }
+                System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
+                */
+                final XMPPConnection conn = TestUtils.xmppConnection();
+                //System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
+                final String activateResponse = LanternUtils.activateOtr(conn).toXML();
+                LOG.debug("Got response: {}", activateResponse);
 
-        final String allOtr = XmppUtils.getOtr(conn).toXML();
-        LOG.debug("All OTR: {}", allOtr);
+                final String allOtr = XmppUtils.getOtr(conn).toXML();
+                LOG.debug("All OTR: {}", allOtr);
 
-        assertTrue("Unexpected response: "+allOtr,
-            allOtr.contains("google:nosave"));
+                assertTrue("Unexpected response: "+allOtr,
+                    allOtr.contains("google:nosave"));
+                return null;
+            } 
+        });
     }
 
 
