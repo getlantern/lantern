@@ -39,19 +39,26 @@ public final class ProxyHolder implements Comparable<ProxyHolder>,
 
     private final Type type;
 
+    private final String lanternAuthToken;
+
     private volatile Peer peer;
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
             final URI jid, final FiveTuple tuple,
-            final Type type) {
+            final Type type, final String lanternAuthToken) {
         this.proxyTracker = proxyTracker;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         this.jid = jid;
         this.fiveTuple = tuple;
         this.type = type;
+        this.lanternAuthToken = lanternAuthToken;
+    }
+
+    public String getLanternAuthToken() {
+        return lanternAuthToken;
     }
 
     public FiveTuple getFiveTuple() {

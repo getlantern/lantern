@@ -5,6 +5,8 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class FallbackProxy {
 
+    private String lanternAuthToken;
+
     private String base64PublicKey = "";
     
     private String ip;
@@ -17,6 +19,14 @@ public class FallbackProxy {
     public FallbackProxy(final String ip, final int port) {
         this.ip = ip;
         this.port = port;
+    }
+
+    public String getLanternAuthToken() {
+        return lanternAuthToken;
+    }
+
+    public void setLanternAuthToken(String lanternAuthToken) {
+        this.lanternAuthToken = lanternAuthToken;
     }
 
     public String getBase64PublicKey() {

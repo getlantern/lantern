@@ -1,7 +1,15 @@
 package org.lantern.simple;
 
-import io.netty.handler.codec.http.HttpRequest;
+import java.net.InetSocketAddress;
 
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+
+import org.lantern.proxy.GetModeHttpFilters;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
@@ -51,11 +59,8 @@ public class Give {
     }
 
     private void startTcp() {
-        HttpProxyServerBootstrap bootstrap = DefaultHttpProxyServer
-                .bootstrap()
-                .withName("Give")
-                .withPort(tcpPort)
-                .withAllowLocalOnly(false)
+        HttpProxyServerBootstrap bootstrap = DefaultHttpProxyServer.bootstrap()
+                .withName("Give").withPort(tcpPort).withAllowLocalOnly(false)
                 .withListenOnAllAddresses(true)
                 .withSslEngineSource(new SimpleSslEngineSource(keyStorePath))
                 .withAuthenticateSslClients(false)
@@ -64,12 +69,52 @@ public class Give {
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
                     public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest);
+                        return new GiveModeHttpFilters(originalRequest) {
+                            @Override
+                            public HttpResponse requestPre(HttpObject httpObject) {
+                                if (httpObject instanceof HttpRequest) {
+                                    HttpRequest req = (HttpRequest) httpObject;
+                                    String authToken = req
+                                            .headers()
+                                            .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                                    if (!"abracadabra".equals(authToken)) {
+                                        return new DefaultFullHttpResponse(
+                                                HttpVersion.HTTP_1_1,
+                                                HttpResponseStatus.NOT_FOUND);
+                                    }
+                                }
+                                return super.requestPre(httpObject);
+                            }
+                        };
                     }
                 });
 
         LOG.info("Starting Give proxy at TCP port {}", tcpPort);
         server = bootstrap.start();
+
+        LOG.info("Starting Give-Http-404-responder on port {} - remember to forward from port 80!", tcpPort + 1);
+        server.clone()
+            .withName("Give-Http-404-responder")
+            .withPort(tcpPort + 1)
+            .withAllowLocalOnly(false)
+            .withListenOnAllAddresses(true)
+            // Use a filter to respond with 404 to http requests
+            .withFiltersSource(new HttpFiltersSourceAdapter() {
+                @Override
+                public HttpFilters filterRequest(HttpRequest originalRequest) {
+                    return new GiveModeHttpFilters(originalRequest) {
+                        @Override
+                        public HttpResponse requestPre(HttpObject httpObject) {
+                            if (httpObject instanceof HttpRequest) {
+                                return new DefaultFullHttpResponse(
+                                        HttpVersion.HTTP_1_1,
+                                        HttpResponseStatus.NOT_FOUND);
+                            }
+                            return super.requestPre(httpObject);
+                        }
+                    };
+                }
+            }).start();
     }
 
     private void startUdt() {
