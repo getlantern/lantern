@@ -1,13 +1,13 @@
 package org.lantern.simple;
 
-import java.net.InetSocketAddress;
-
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+
+import java.net.InetSocketAddress;
 
 import org.lantern.proxy.GetModeHttpFilters;
 import org.lantern.proxy.GiveModeHttpFilters;
@@ -48,10 +48,10 @@ public class Give {
     }
 
     public Give(String[] args) {
-        this.keyStorePath = args[2];
-        this.httpsPort = Integer.parseInt(args[0]);
+        this.keyStorePath = args[3];
+        this.httpPort = Integer.parseInt(args[0]);
         this.httpsPort = Integer.parseInt(args[1]);
-        this.udtPort = httpsPort + 1;
+        this.udtPort = Integer.parseInt(args[2]);
     }
 
     public void start() {
