@@ -47,6 +47,7 @@ public class Get {
 
     private int localPort;
     private InetSocketAddress giveAddress;
+    private String authToken;
     private TransportProtocol transportProtocol = TransportProtocol.TCP;
     private SslEngineSource sslEngineSource = new SimpleSslEngineSource();
 
@@ -59,8 +60,9 @@ public class Get {
         String[] parts = args[1].split(":");
         this.giveAddress = new InetSocketAddress(parts[0],
                 Integer.parseInt(parts[1]));
-        if (args.length > 2) {
-            transportProtocol = TransportProtocol.valueOf(args[2]);
+        this.authToken = args[2];
+        if (args.length > 3) {
+            transportProtocol = TransportProtocol.valueOf(args[3]);
         }
     }
 
@@ -79,7 +81,9 @@ public class Get {
                             public HttpResponse requestPre(HttpObject httpObject) {
                                 if (httpObject instanceof HttpRequest) {
                                     HttpRequest req = (HttpRequest) httpObject;
-                                    req.headers().add(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN, "abracadabra");
+                                    req.headers()
+                                            .add(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN,
+                                                    authToken);
                                 }
                                 return null;
                             }

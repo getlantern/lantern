@@ -37,6 +37,7 @@ public class Give {
     private static final Logger LOG = LoggerFactory.getLogger(Give.class);
 
     private String keyStorePath;
+    private String expectedAuthToken;
     private int httpsPort;
     private int httpPort;
     private int udtPort;
@@ -47,10 +48,11 @@ public class Give {
     }
 
     public Give(String[] args) {
-        this.keyStorePath = args[3];
         this.httpPort = Integer.parseInt(args[0]);
         this.httpsPort = Integer.parseInt(args[1]);
         this.udtPort = Integer.parseInt(args[2]);
+        this.keyStorePath = args[3];
+        this.expectedAuthToken = args[4];
     }
 
     public void start() {
@@ -60,7 +62,7 @@ public class Give {
     }
 
     private void startTcp() {
-        LOG.info("Starting Plain Text Give proxy at TCP port {}", httpsPort);
+        LOG.info("Starting Plain Text Give proxy at TCP port {}", httpPort);
         DefaultHttpProxyServer.bootstrap()
                 .withName("Give-PlainText")
                 .withPort(httpPort)
@@ -108,7 +110,7 @@ public class Give {
                                     String authToken = req
                                             .headers()
                                             .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
-                                    if (!"abracadabra".equals(authToken)) {
+                                    if (!expectedAuthToken.equals(authToken)) {
                                         return new DefaultFullHttpResponse(
                                                 HttpVersion.HTTP_1_1,
                                                 HttpResponseStatus.NOT_FOUND);
