@@ -48,10 +48,10 @@ public class Give {
     }
 
     public Give(String[] args) {
-        this.keyStorePath = args[1];
+        this.keyStorePath = args[2];
         this.httpsPort = Integer.parseInt(args[0]);
-        this.httpPort = httpsPort + 1;
-        this.udtPort = httpPort + 1;
+        this.httpsPort = Integer.parseInt(args[1]);
+        this.udtPort = httpsPort + 1;
     }
 
     public void start() {
