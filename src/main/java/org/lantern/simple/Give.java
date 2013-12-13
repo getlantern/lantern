@@ -93,12 +93,11 @@ public class Give {
                     }
                 });
 
-        LOG.info("Starting Give proxy at TCP port {}", httpsPort);
+        LOG.info("Starting HTTPS Give proxy at TCP port {}", httpsPort);
         server = bootstrap.start();
 
         LOG.info(
-                "Starting Give-Http-404-responder on port {} - remember to forward from port 80!",
-                httpPort);
+                "Starting HTTP Give proxy at TCP port {}", httpPort);
         server.clone()
                 .withName("Give-Http-404-responder")
                 .withAddress(
@@ -106,6 +105,8 @@ public class Give {
                                 .getAddress(), httpPort))
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(true)
+                // Don't use SSL
+                .withSslEngineSource(null)
                 // Use a filter to respond with 404 to http requests
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
