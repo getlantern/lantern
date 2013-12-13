@@ -1,6 +1,9 @@
 package org.lantern.simple;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
@@ -8,6 +11,9 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
+import java.util.Date;
+import java.util.UUID;
 
 import org.lantern.proxy.GetModeHttpFilters;
 import org.lantern.proxy.GiveModeHttpFilters;
@@ -36,11 +42,12 @@ import org.slf4j.LoggerFactory;
 public class Give {
     private static final Logger LOG = LoggerFactory.getLogger(Give.class);
 
-    private String keyStorePath;
-    private String expectedAuthToken;
+    private String host;
     private int httpsPort;
     private int httpPort;
     private int udtPort;
+    private String keyStorePath;
+    private String expectedAuthToken;
     private HttpProxyServer server;
 
     public static void main(String[] args) throws Exception {
@@ -48,11 +55,12 @@ public class Give {
     }
 
     public Give(String[] args) {
-        this.httpPort = Integer.parseInt(args[0]);
-        this.httpsPort = Integer.parseInt(args[1]);
-        this.udtPort = Integer.parseInt(args[2]);
-        this.keyStorePath = args[3];
-        this.expectedAuthToken = args[4];
+        this.host = args[0];
+        this.httpPort = Integer.parseInt(args[1]);
+        this.httpsPort = Integer.parseInt(args[2]);
+        this.udtPort = Integer.parseInt(args[3]);
+        this.keyStorePath = args[4];
+        this.expectedAuthToken = args[5];
     }
 
     public void start() {
@@ -76,9 +84,9 @@ public class Give {
                             @Override
                             public HttpResponse requestPre(HttpObject httpObject) {
                                 if (httpObject instanceof HttpRequest) {
-                                    return new DefaultFullHttpResponse(
-                                            HttpVersion.HTTP_1_1,
-                                            HttpResponseStatus.NOT_FOUND);
+                                    return mimicApache(
+                                            (HttpRequest) httpObject,
+                                            httpPort);
                                 }
                                 return super.requestPre(httpObject);
                             }
@@ -111,9 +119,7 @@ public class Give {
                                             .headers()
                                             .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
                                     if (!expectedAuthToken.equals(authToken)) {
-                                        return new DefaultFullHttpResponse(
-                                                HttpVersion.HTTP_1_1,
-                                                HttpResponseStatus.NOT_FOUND);
+                                        return mimicApache(req, httpsPort);
                                     }
                                 }
                                 return super.requestPre(httpObject);
@@ -132,4 +138,99 @@ public class Give {
                                 .getAddress(), udtPort))
                 .withTransportProtocol(TransportProtocol.UDT).start();
     }
+
+    private HttpResponse mimicApache(HttpRequest request, int port) {
+        String uri = request.getUri().toLowerCase();
+        if ("/".equals(uri) ||
+                "/index".equals(uri) ||
+                "/index.html".equals(uri)) {
+            return ok();
+        } else {
+            return notFound(request, port);
+        }
+    }
+
+    /**
+     * <p>
+     * Creates a 200 response that looks like what Apache might give you for an
+     * unconfigured server.
+     * <p>
+     * 
+     * @return
+     */
+    private HttpResponse ok() {
+        LOG.debug("Returning 200 Ok response to mimic Apache");
+        return responseFor(HttpResponseStatus.OK, OK_BODY);
+    }
+
+    /**
+     * Creates a 404 response that looks like what Apache might give you for an
+     * unconfigured server.
+     * 
+     * @return
+     */
+    private HttpResponse notFound(HttpRequest request, int port) {
+        LOG.debug("Returning 404 Not Found response to mimic Apache");
+        return responseFor(HttpResponseStatus.NOT_FOUND,
+                String.format(NOT_FOUND_BODY, request.getUri(), host, port));
+    }
+
+    /**
+     * WARNING - This method is crafted to set the right headers, in the right
+     * order, to mimic a specific version of Apache httpd. Change carefully!
+     * 
+     * @param status
+     * @param body
+     * @param contentLength
+     * @return
+     */
+    private static DefaultFullHttpResponse responseFor(
+            HttpResponseStatus status, String body) {
+        byte[] bytes = body.getBytes(Charset.forName("UTF-8"));
+        int contentLength = bytes.length;
+        ByteBuf content = Unpooled.copiedBuffer(bytes);
+
+        DefaultFullHttpResponse response = body != null ? new DefaultFullHttpResponse(
+                HttpVersion.HTTP_1_1, status, content)
+                : new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
+        response.headers().add("Date", new Date())
+                .add("Server", "Apache/2.2.22 (Ubuntu)");
+
+        if (HttpResponseStatus.OK.equals(status)) {
+            response.headers()
+                    .add("Last-Modified", LAST_MODIFIED)
+                    .add("ETag", ETAG)
+                    .add("Accept-Ranges", "bytes")
+                    .add(HttpHeaders.Names.CONTENT_LENGTH, contentLength)
+                    .add("Vary", "Accept-Encoding")
+                    .add("Connection", "close")
+                    .add("Content-Type", "text/html");
+        } else {
+            response.headers()
+                    .add("Vary", "Accept-Encoding")
+                    .add(HttpHeaders.Names.CONTENT_LENGTH, contentLength)
+                    .add("Connection", "close")
+                    .add("Content-Type", "text/html; charset=iso-8859-1");
+        }
+        return response;
+    }
+
+    private static Date LAST_MODIFIED = new Date();
+    private static String ETAG = String.format("\"%1$s\"", UUID.randomUUID());
+
+    private static String OK_BODY = "<html><body><h1>It works!</h1>\n"
+            + "<p>This is the default web page for this server.</p>\n"
+            + "<p>The web server software is running but no content has been added, yet.</p>\n"
+            + "</body></html>\n";
+
+    private static String NOT_FOUND_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
+            + "<html><head>\n"
+            + "<title>404 Not Found</title>\n"
+            + "</head><body>\n"
+            + "<h1>Not Found</h1>\n"
+            + "<p>The requested URL %1$s was not found on this server.</p>\n"
+            + "<hr>\n"
+            + "<address>Apache/2.2.22 (Ubuntu) Server at %2$s Port %3$s</address>\n"
+            + "</body></html>\n";
+
 }
