@@ -14,7 +14,6 @@ import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServer;
-import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.slf4j.Logger;
@@ -61,15 +60,43 @@ public class Give {
     }
 
     private void startTcp() {
-        HttpProxyServerBootstrap bootstrap = DefaultHttpProxyServer.bootstrap()
-                .withName("Give")
+        LOG.info("Starting Plain Text Give proxy at TCP port {}", httpsPort);
+        DefaultHttpProxyServer.bootstrap()
+                .withName("Give-PlainText")
+                .withPort(httpPort)
+                .withAllowLocalOnly(false)
+                .withListenOnAllAddresses(true)
+                // Use a filter to respond with 404 to http requests
+                .withFiltersSource(new HttpFiltersSourceAdapter() {
+                    @Override
+                    public HttpFilters filterRequest(HttpRequest originalRequest) {
+                        return new GiveModeHttpFilters(originalRequest) {
+                            @Override
+                            public HttpResponse requestPre(HttpObject httpObject) {
+                                if (httpObject instanceof HttpRequest) {
+                                    return new DefaultFullHttpResponse(
+                                            HttpVersion.HTTP_1_1,
+                                            HttpResponseStatus.NOT_FOUND);
+                                }
+                                return super.requestPre(httpObject);
+                            }
+                        };
+                    }
+                })
+                .start();
+
+        LOG.info(
+                "Starting TLS Give proxy at TCP port {}", httpPort);
+        server = DefaultHttpProxyServer.bootstrap()
+                .withName("Give-PlainText")
                 .withPort(httpsPort)
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(true)
                 .withSslEngineSource(new SimpleSslEngineSource(keyStorePath))
                 .withAuthenticateSslClients(false)
 
-                // Use a filter to deny requests to non-public ips
+                // Use a filter to deny requests other than those contains the
+                // right auth token
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
                     public HttpFilters filterRequest(HttpRequest originalRequest) {
@@ -91,39 +118,8 @@ public class Give {
                             }
                         };
                     }
-                });
-
-        LOG.info("Starting HTTPS Give proxy at TCP port {}", httpsPort);
-        server = bootstrap.start();
-
-        LOG.info(
-                "Starting HTTP Give proxy at TCP port {}", httpPort);
-        server.clone()
-                .withName("Give-Http-404-responder")
-                .withAddress(
-                        new InetSocketAddress(server.getListenAddress()
-                                .getAddress(), httpPort))
-                .withAllowLocalOnly(false)
-                .withListenOnAllAddresses(true)
-                // Don't use SSL
-                .withSslEngineSource(null)
-                // Use a filter to respond with 404 to http requests
-                .withFiltersSource(new HttpFiltersSourceAdapter() {
-                    @Override
-                    public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest) {
-                            @Override
-                            public HttpResponse requestPre(HttpObject httpObject) {
-                                if (httpObject instanceof HttpRequest) {
-                                    return new DefaultFullHttpResponse(
-                                            HttpVersion.HTTP_1_1,
-                                            HttpResponseStatus.NOT_FOUND);
-                                }
-                                return super.requestPre(httpObject);
-                            }
-                        };
-                    }
-                }).start();
+                })
+                .start();
     }
 
     private void startUdt() {
