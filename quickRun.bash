@@ -31,6 +31,11 @@ then
   javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
 fi
 
+if [ "$BUMP_LANTERN_RAM" ]
+then
+    javaArgs="-Xmx${BUMP_LANTERN_RAM}m $javaArgs"
+fi
+
 if [ $(uname) == "Linux" ]
 then
   proc=`uname -m`
