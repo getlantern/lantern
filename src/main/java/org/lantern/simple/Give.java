@@ -38,7 +38,8 @@ public class Give {
     private static final Logger LOG = LoggerFactory.getLogger(Give.class);
 
     private String keyStorePath;
-    private int tcpPort;
+    private int httpsPort;
+    private int httpPort;
     private int udtPort;
     private HttpProxyServer server;
 
@@ -48,8 +49,9 @@ public class Give {
 
     public Give(String[] args) {
         this.keyStorePath = args[1];
-        this.tcpPort = Integer.parseInt(args[0]);
-        this.udtPort = tcpPort + 1;
+        this.httpsPort = Integer.parseInt(args[0]);
+        this.httpPort = httpsPort + 1;
+        this.udtPort = httpPort + 1;
     }
 
     public void start() {
@@ -60,7 +62,9 @@ public class Give {
 
     private void startTcp() {
         HttpProxyServerBootstrap bootstrap = DefaultHttpProxyServer.bootstrap()
-                .withName("Give").withPort(tcpPort).withAllowLocalOnly(false)
+                .withName("Give")
+                .withPort(httpsPort)
+                .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(true)
                 .withSslEngineSource(new SimpleSslEngineSource(keyStorePath))
                 .withAuthenticateSslClients(false)
@@ -89,37 +93,44 @@ public class Give {
                     }
                 });
 
-        LOG.info("Starting Give proxy at TCP port {}", tcpPort);
+        LOG.info("Starting Give proxy at TCP port {}", httpsPort);
         server = bootstrap.start();
 
-        LOG.info("Starting Give-Http-404-responder on port {} - remember to forward from port 80!", tcpPort + 1);
+        LOG.info(
+                "Starting Give-Http-404-responder on port {} - remember to forward from port 80!",
+                httpPort);
         server.clone()
-            .withName("Give-Http-404-responder")
-            .withPort(tcpPort + 1)
-            .withAllowLocalOnly(false)
-            .withListenOnAllAddresses(true)
-            // Use a filter to respond with 404 to http requests
-            .withFiltersSource(new HttpFiltersSourceAdapter() {
-                @Override
-                public HttpFilters filterRequest(HttpRequest originalRequest) {
-                    return new GiveModeHttpFilters(originalRequest) {
-                        @Override
-                        public HttpResponse requestPre(HttpObject httpObject) {
-                            if (httpObject instanceof HttpRequest) {
-                                return new DefaultFullHttpResponse(
-                                        HttpVersion.HTTP_1_1,
-                                        HttpResponseStatus.NOT_FOUND);
+                .withName("Give-Http-404-responder")
+                .withAddress(
+                        new InetSocketAddress(server.getListenAddress()
+                                .getAddress(), httpPort))
+                .withAllowLocalOnly(false)
+                .withListenOnAllAddresses(true)
+                // Use a filter to respond with 404 to http requests
+                .withFiltersSource(new HttpFiltersSourceAdapter() {
+                    @Override
+                    public HttpFilters filterRequest(HttpRequest originalRequest) {
+                        return new GiveModeHttpFilters(originalRequest) {
+                            @Override
+                            public HttpResponse requestPre(HttpObject httpObject) {
+                                if (httpObject instanceof HttpRequest) {
+                                    return new DefaultFullHttpResponse(
+                                            HttpVersion.HTTP_1_1,
+                                            HttpResponseStatus.NOT_FOUND);
+                                }
+                                return super.requestPre(httpObject);
                             }
-                            return super.requestPre(httpObject);
-                        }
-                    };
-                }
-            }).start();
+                        };
+                    }
+                }).start();
     }
 
     private void startUdt() {
         LOG.info("Starting Give proxy at UDT port {}", udtPort);
-        server.clone().withPort(udtPort)
+        server.clone()
+                .withAddress(
+                        new InetSocketAddress(server.getListenAddress()
+                                .getAddress(), udtPort))
                 .withTransportProtocol(TransportProtocol.UDT).start();
     }
 }
