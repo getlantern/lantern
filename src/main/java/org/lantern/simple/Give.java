@@ -120,6 +120,11 @@ public class Give {
                                             .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
                                     if (!expectedAuthToken.equals(authToken)) {
                                         return mimicApache(req, httpsPort);
+                                    } else {
+                                        // Strip the auth token before sending
+                                        // request downstream
+                                        req.headers().remove(
+                                                "X_LANTERN_AUTH_TOKEN");
                                     }
                                 }
                                 return super.requestPre(httpObject);
