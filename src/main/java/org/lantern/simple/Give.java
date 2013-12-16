@@ -123,8 +123,8 @@ public class Give {
                                     } else {
                                         // Strip the auth token before sending
                                         // request downstream
-                                        req.headers().remove(
-                                                "X_LANTERN_AUTH_TOKEN");
+                                        req.headers()
+                                                .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
                                     }
                                 }
                                 return super.requestPre(httpObject);
