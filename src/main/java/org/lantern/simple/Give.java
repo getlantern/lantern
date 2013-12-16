@@ -140,11 +140,13 @@ public class Give {
     }
 
     private HttpResponse mimicApache(HttpRequest request, int port) {
-        String uri = request.getUri().toLowerCase();
+        String uri = getApacheLikeURI(request);
         if ("/".equals(uri) ||
                 "/index".equals(uri) ||
                 "/index.html".equals(uri)) {
-            return ok();
+            return ok(request, port);
+        } else if ("/cgi-bin/php".equals(uri) || "/cgi-bin/php5".equals(uri)) {
+            return internalServerError(request, port);
         } else {
             return notFound(request, port);
         }
@@ -158,8 +160,9 @@ public class Give {
      * 
      * @return
      */
-    private HttpResponse ok() {
-        LOG.debug("Returning 200 Ok response to mimic Apache");
+    private HttpResponse ok(HttpRequest request, int port) {
+        LOG.debug("Returning 200 Ok response to mimic Apache: "
+                + request.getUri());
         return responseFor(HttpResponseStatus.OK, OK_BODY);
     }
 
@@ -170,9 +173,18 @@ public class Give {
      * @return
      */
     private HttpResponse notFound(HttpRequest request, int port) {
-        LOG.debug("Returning 404 Not Found response to mimic Apache");
+        LOG.debug("Returning 404 Not Found response to mimic Apache: "
+                + request.getUri());
+        String uri = getApacheLikeURI(request);
         return responseFor(HttpResponseStatus.NOT_FOUND,
-                String.format(NOT_FOUND_BODY, request.getUri(), host, port));
+                String.format(NOT_FOUND_BODY, uri, host, port));
+    }
+
+    private HttpResponse internalServerError(HttpRequest request, int port) {
+        LOG.debug("Returning 500 Internal Server Error response to mimic Apache: "
+                + request.getUri());
+        return responseFor(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                String.format(INTERNAL_SERVER_ERROR_BODY, host, port));
     }
 
     /**
@@ -215,6 +227,12 @@ public class Give {
         return response;
     }
 
+    private static String getApacheLikeURI(HttpRequest request) {
+        return request.getUri()
+                // Strip duplicate leading slash like Apache
+                .replaceFirst("//", "/");
+    }
+
     private static Date LAST_MODIFIED = new Date();
     private static String ETAG = String.format("\"%1$s\"", UUID.randomUUID());
 
@@ -233,4 +251,21 @@ public class Give {
             + "<address>Apache/2.2.22 (Ubuntu) Server at %2$s Port %3$s</address>\n"
             + "</body></html>\n";
 
+    private static String INTERNAL_SERVER_ERROR_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
+            + "<html><head>\n"
+            + "<title>500 Internal Server Error</title>\n"
+            + "</head><body>\n"
+            + "<h1>Internal Server Error</h1>\n"
+            + "<p>The server encountered an internal error or\n"
+            + "misconfiguration and was unable to complete\n"
+            + "your request.</p>\n"
+            + "<p>Please contact the server administrator,\n"
+            + " webmaster@%1$s and inform them of the time the error occurred,\n"
+            + "and anything you might have done that may have\n"
+            + "caused the error.</p>\n"
+            + "<p>More information about this error may be available\n"
+            + "in the server error log.</p>\n"
+            + "<hr>\n"
+            + "<address>Apache/2.2.22 (Ubuntu) Server at %1$s Port %2$s</address>\n"
+            + "</body></html>\n";
 }
