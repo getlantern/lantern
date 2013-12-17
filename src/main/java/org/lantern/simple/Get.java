@@ -118,8 +118,10 @@ public class Get {
                     }
                 });
 
-        LOG.info("Starting Get proxy at {} port {}", transportProtocol,
-                localPort);
+        LOG.info(
+                "Starting Get proxy on port {} that connects upstream with {}",
+                localPort,
+                transportProtocol);
         bootstrap.start();
     }
 }

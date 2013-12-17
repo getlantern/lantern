@@ -48,8 +48,7 @@ public class Give {
     private int udtPort;
     private String keyStorePath;
     private String expectedAuthToken;
-    private HttpProxyServer server;
-
+    
     public static void main(String[] args) throws Exception {
         new Give(args).start();
     }
@@ -96,9 +95,9 @@ public class Give {
                 .start();
 
         LOG.info(
-                "Starting TLS Give proxy at TCP port {}", httpPort);
-        server = DefaultHttpProxyServer.bootstrap()
-                .withName("Give-PlainText")
+                "Starting TLS Give proxy at TCP port {}", httpsPort);
+        DefaultHttpProxyServer.bootstrap()
+                .withName("Give-Encrypted")
                 .withPort(httpsPort)
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(true)
@@ -137,11 +136,43 @@ public class Give {
 
     private void startUdt() {
         LOG.info("Starting Give proxy at UDT port {}", udtPort);
-        server.clone()
-                .withAddress(
-                        new InetSocketAddress(server.getListenAddress()
-                                .getAddress(), udtPort))
-                .withTransportProtocol(TransportProtocol.UDT).start();
+        DefaultHttpProxyServer.bootstrap()
+        .withName("Give-Encrypted")
+        .withPort(udtPort)
+        .withAllowLocalOnly(false)
+        .withListenOnAllAddresses(true)
+        .withSslEngineSource(new SimpleSslEngineSource(keyStorePath))
+        .withTransportProtocol(TransportProtocol.UDT)
+        .withAuthenticateSslClients(false)
+
+        // Use a filter to deny requests other than those contains the
+        // right auth token
+        .withFiltersSource(new HttpFiltersSourceAdapter() {
+            @Override
+            public HttpFilters filterRequest(HttpRequest originalRequest) {
+                return new GiveModeHttpFilters(originalRequest) {
+                    @Override
+                    public HttpResponse requestPre(HttpObject httpObject) {
+                        if (httpObject instanceof HttpRequest) {
+                            HttpRequest req = (HttpRequest) httpObject;
+                            String authToken = req
+                                    .headers()
+                                    .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                            if (!expectedAuthToken.equals(authToken)) {
+                                return mimicApache(req, httpsPort);
+                            } else {
+                                // Strip the auth token before sending
+                                // request downstream
+                                req.headers()
+                                        .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                            }
+                        }
+                        return super.requestPre(httpObject);
+                    }
+                };
+            }
+        })
+        .start();
     }
 
     private HttpResponse mimicApache(HttpRequest request, int port) {
