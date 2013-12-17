@@ -4,15 +4,17 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
-import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.lantern.proxy.GetModeHttpFilters;
@@ -41,6 +43,54 @@ import org.slf4j.LoggerFactory;
  */
 public class Give {
     private static final Logger LOG = LoggerFactory.getLogger(Give.class);
+    // Http Methods known to Apache
+    private static final Set<HttpMethod> KNOWN_METHODS = new HashSet<HttpMethod>();
+    private static final Set<HttpMethod> ALLOWED_METHODS = new HashSet<HttpMethod>();
+    private static final Set<String> KNOWN_URIS = new HashSet<String>();
+    private static final Set<String> BAD_URIS = new HashSet<String>();
+
+    static {
+        KNOWN_METHODS.add(new HttpMethod("BASELINE-CONTROL"));
+        KNOWN_METHODS.add(new HttpMethod("CHECKIN"));
+        KNOWN_METHODS.add(new HttpMethod("CHECKOUT"));
+        KNOWN_METHODS.add(new HttpMethod("CONNECT"));
+        KNOWN_METHODS.add(new HttpMethod("COPY"));
+        KNOWN_METHODS.add(new HttpMethod("DELETE"));
+        KNOWN_METHODS.add(new HttpMethod("GET"));
+        KNOWN_METHODS.add(new HttpMethod("HEAD"));
+        KNOWN_METHODS.add(new HttpMethod("LABEL"));
+        KNOWN_METHODS.add(new HttpMethod("LOCK"));
+        KNOWN_METHODS.add(new HttpMethod("MERGE"));
+        KNOWN_METHODS.add(new HttpMethod("MKACTIVITY"));
+        KNOWN_METHODS.add(new HttpMethod("MKCOL"));
+        KNOWN_METHODS.add(new HttpMethod("MKWORKSPACE"));
+        KNOWN_METHODS.add(new HttpMethod("MOVE"));
+        KNOWN_METHODS.add(new HttpMethod("OPTIONS"));
+        KNOWN_METHODS.add(new HttpMethod("PATCH"));
+        KNOWN_METHODS.add(new HttpMethod("POLL"));
+        KNOWN_METHODS.add(new HttpMethod("POST"));
+        KNOWN_METHODS.add(new HttpMethod("PROPFIND"));
+        KNOWN_METHODS.add(new HttpMethod("PROPPATCH"));
+        KNOWN_METHODS.add(new HttpMethod("PUT"));
+        KNOWN_METHODS.add(new HttpMethod("REPORT"));
+        KNOWN_METHODS.add(new HttpMethod("TRACE"));
+        KNOWN_METHODS.add(new HttpMethod("UNCHECKOUT"));
+        KNOWN_METHODS.add(new HttpMethod("UNLOCK"));
+        KNOWN_METHODS.add(new HttpMethod("UPDATE"));
+        KNOWN_METHODS.add(new HttpMethod("VERSION-CONTROL"));
+
+        ALLOWED_METHODS.add(HttpMethod.GET);
+        ALLOWED_METHODS.add(HttpMethod.HEAD);
+        ALLOWED_METHODS.add(HttpMethod.POST);
+        ALLOWED_METHODS.add(HttpMethod.OPTIONS);
+
+        BAD_URIS.add("/cgi-bin/php");
+        BAD_URIS.add("/cgi-bin/php5");
+
+        KNOWN_URIS.add("/");
+        KNOWN_URIS.add("/index");
+        KNOWN_URIS.add("/index.html");
+    }
 
     private String host;
     private int httpsPort;
@@ -48,7 +98,8 @@ public class Give {
     private int udtPort;
     private String keyStorePath;
     private String expectedAuthToken;
-    
+    private HttpProxyServer server;
+
     public static void main(String[] args) throws Exception {
         new Give(args).start();
     }
@@ -96,7 +147,7 @@ public class Give {
 
         LOG.info(
                 "Starting TLS Give proxy at TCP port {}", httpsPort);
-        DefaultHttpProxyServer.bootstrap()
+        server = DefaultHttpProxyServer.bootstrap()
                 .withName("Give-Encrypted")
                 .withPort(httpsPort)
                 .withAllowLocalOnly(false)
@@ -136,53 +187,68 @@ public class Give {
 
     private void startUdt() {
         LOG.info("Starting Give proxy at UDT port {}", udtPort);
-        DefaultHttpProxyServer.bootstrap()
-        .withName("Give-Encrypted")
-        .withPort(udtPort)
-        .withAllowLocalOnly(false)
-        .withListenOnAllAddresses(true)
-        .withSslEngineSource(new SimpleSslEngineSource(keyStorePath))
-        .withTransportProtocol(TransportProtocol.UDT)
-        .withAuthenticateSslClients(false)
+        server.clone()
+                .withName("Give-UDT")
+                .withPort(udtPort)
+                .withTransportProtocol(TransportProtocol.UDT)
 
-        // Use a filter to deny requests other than those contains the
-        // right auth token
-        .withFiltersSource(new HttpFiltersSourceAdapter() {
-            @Override
-            public HttpFilters filterRequest(HttpRequest originalRequest) {
-                return new GiveModeHttpFilters(originalRequest) {
+                // Use a filter to deny requests other than those contains the
+                // right auth token
+                .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
-                    public HttpResponse requestPre(HttpObject httpObject) {
-                        if (httpObject instanceof HttpRequest) {
-                            HttpRequest req = (HttpRequest) httpObject;
-                            String authToken = req
-                                    .headers()
-                                    .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
-                            if (!expectedAuthToken.equals(authToken)) {
-                                return mimicApache(req, httpsPort);
-                            } else {
-                                // Strip the auth token before sending
-                                // request downstream
-                                req.headers()
-                                        .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                    public HttpFilters filterRequest(HttpRequest originalRequest) {
+                        return new GiveModeHttpFilters(originalRequest) {
+                            @Override
+                            public HttpResponse requestPre(HttpObject httpObject) {
+                                if (httpObject instanceof HttpRequest) {
+                                    HttpRequest req = (HttpRequest) httpObject;
+                                    String authToken = req
+                                            .headers()
+                                            .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                                    if (!expectedAuthToken.equals(authToken)) {
+                                        // TODO: For UDT, should probably just
+                                        // disconnect here
+                                        return mimicApache(req, httpsPort);
+                                    } else {
+                                        // Strip the auth token before sending
+                                        // request downstream
+                                        req.headers()
+                                                .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                                    }
+                                }
+                                return super.requestPre(httpObject);
                             }
-                        }
-                        return super.requestPre(httpObject);
+                        };
                     }
-                };
-            }
-        })
-        .start();
+                })
+                .start();
     }
 
+    /**
+     * WARNING - this method, including logic, headers and so on is carefully
+     * crafted to mimic a mostly unconfigured Apache 2.2.22 running on Ubuntu
+     * 12.04.
+     * 
+     * @param request
+     * @param port
+     * @return
+     */
     private HttpResponse mimicApache(HttpRequest request, int port) {
         String uri = getApacheLikeURI(request);
-        if ("/".equals(uri) ||
-                "/index".equals(uri) ||
-                "/index.html".equals(uri)) {
-            return ok(request, port);
-        } else if ("/cgi-bin/php".equals(uri) || "/cgi-bin/php5".equals(uri)) {
+        if (uri.endsWith("/")) {
+            return forbidden(request, port);
+        } else if (BAD_URIS.contains(uri)) {
             return internalServerError(request, port);
+        } else if (uri.toLowerCase().startsWith("/cgi-bin/")) {
+            return notFound(request, port);
+        } else if (HttpMethod.OPTIONS.equals(request.getMethod())) {
+            return optionsResponse(request, port);
+        } else if (!KNOWN_METHODS.contains(request.getMethod())) {
+            return methodNotImplemented(request, port);
+        } else if (!ALLOWED_METHODS.contains(request.getMethod())) {
+            return methodNotAllowed(request, port);
+        } else if (KNOWN_URIS.contains(uri)) {
+            return ok(request, port);
         } else {
             return notFound(request, port);
         }
@@ -199,7 +265,48 @@ public class Give {
     private HttpResponse ok(HttpRequest request, int port) {
         LOG.debug("Returning 200 Ok response to mimic Apache: "
                 + request.getUri());
-        return responseFor(HttpResponseStatus.OK, OK_BODY);
+        DefaultFullHttpResponse response = responseFor(HttpResponseStatus.OK,
+                OK_BODY);
+        response.headers()
+                .add("Last-Modified", LAST_MODIFIED)
+                .add("ETag", ETAG)
+                .add("Accept-Ranges", "bytes")
+                .add(HttpHeaders.Names.CONTENT_LENGTH,
+                        response.content().capacity())
+                .add("Vary", "Accept-Encoding")
+                .add("Connection", "close")
+                .add("Content-Type", "text/html");
+        return response;
+    }
+
+    /**
+     * Generate a response to an OPTIONS request that looks like Apache's
+     * response.
+     * 
+     * @param request
+     * @param port
+     * @return
+     */
+    private HttpResponse optionsResponse(HttpRequest request, int port) {
+        DefaultFullHttpResponse response = responseFor(HttpResponseStatus.OK);
+        response.headers()
+                .add("Allow", "GET,HEAD,POST,OPTIONS")
+                .add("Vary", "Accept-Encoding")
+                .add("Content-Length", 0)
+                .add("Content-Type", "text/html");
+        return response;
+    }
+
+    private HttpResponse forbidden(HttpRequest request, int port) {
+        String uri = getApacheLikeURI(request);
+        DefaultFullHttpResponse response = responseFor(
+                HttpResponseStatus.FORBIDDEN,
+                String.format(FORBIDDEN_BODY, uri, host, port));
+        response.headers()
+                .add("Vary", "Accept-Encoding")
+                .add("Content-Length", response.content().capacity())
+                .add("Content-Type", "text/html; charset=iso-8859-1");
+        return response;
     }
 
     /**
@@ -212,21 +319,85 @@ public class Give {
         LOG.debug("Returning 404 Not Found response to mimic Apache: "
                 + request.getUri());
         String uri = getApacheLikeURI(request);
-        return responseFor(HttpResponseStatus.NOT_FOUND,
+        DefaultFullHttpResponse response = responseFor(
+                HttpResponseStatus.NOT_FOUND,
                 String.format(NOT_FOUND_BODY, uri, host, port));
-    }
-
-    private HttpResponse internalServerError(HttpRequest request, int port) {
-        LOG.debug("Returning 500 Internal Server Error response to mimic Apache: "
-                + request.getUri());
-        return responseFor(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                String.format(INTERNAL_SERVER_ERROR_BODY, host, port));
+        response.headers()
+                .add("Vary", "Accept-Encoding")
+                .add(HttpHeaders.Names.CONTENT_LENGTH,
+                        response.content().capacity())
+                .add("Connection", "close")
+                .add("Content-Type", "text/html; charset=iso-8859-1");
+        return response;
     }
 
     /**
-     * WARNING - This method is crafted to set the right headers, in the right
-     * order, to mimic a specific version of Apache httpd. Change carefully!
+     * Creates a 500 response that looks somewhat
      * 
+     * @param request
+     * @param port
+     * @return
+     */
+    private HttpResponse internalServerError(HttpRequest request, int port) {
+        LOG.debug("Returning 500 Internal Server Error response to mimic Apache: "
+                + request.getUri());
+        DefaultFullHttpResponse response = responseFor(
+                HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                String.format(INTERNAL_SERVER_ERROR_BODY, host, port));
+        response.headers()
+                .add("Vary", "Accept-Encoding")
+                .add(HttpHeaders.Names.CONTENT_LENGTH,
+                        response.content().capacity())
+                .add("Connection", "close")
+                .add("Content-Type", "text/html; charset=iso-8859-1");
+        return response;
+    }
+
+    private HttpResponse methodNotAllowed(HttpRequest request, int port) {
+        LOG.debug("Returning 405 Method Not Allowed response to mimic Apache: "
+                + request.getUri());
+        String uri = getApacheLikeURI(request);
+        DefaultFullHttpResponse response = responseFor(
+                HttpResponseStatus.METHOD_NOT_ALLOWED,
+                String.format(METHOD_NOT_ALLOWED_BODY,
+                        request.getMethod().name(),
+                        uri,
+                        host,
+                        port));
+        response.headers()
+                .add("Allow", "GET,HEAD,POST,OPTIONS")
+                .add("Vary", "Accept-Encoding")
+                .add("Content-Length", response.content().capacity())
+                .add("Content-Type", "text/html; charset=iso-8859-1");
+        return response;
+    }
+
+    private HttpResponse methodNotImplemented(HttpRequest request, int port) {
+        LOG.debug("Returning 501 Method Not Implemented response to mimic Apache: "
+                + request.getUri());
+        String uri = getApacheLikeURI(request);
+        DefaultFullHttpResponse response = responseFor(
+                HttpResponseStatus.NOT_IMPLEMENTED,
+                String.format(NOT_IMPLEMENTED_BODY,
+                        request.getMethod().name(),
+                        uri,
+                        host,
+                        port));
+        response.headers()
+                .add("Allow", "GET,HEAD,POST,OPTIONS")
+                .add("Vary", "Accept-Encoding")
+                .add("Content-Length", response.content().capacity())
+                .add("Connection", "close")
+                .add("Content-Type", "text/html; charset=iso-8859-1");
+        return response;
+    }
+
+    private static DefaultFullHttpResponse responseFor(
+            HttpResponseStatus status) {
+        return responseFor(status, null);
+    }
+
+    /**
      * @param status
      * @param body
      * @param contentLength
@@ -234,39 +405,31 @@ public class Give {
      */
     private static DefaultFullHttpResponse responseFor(
             HttpResponseStatus status, String body) {
-        byte[] bytes = body.getBytes(Charset.forName("UTF-8"));
-        int contentLength = bytes.length;
-        ByteBuf content = Unpooled.copiedBuffer(bytes);
-
-        DefaultFullHttpResponse response = body != null ? new DefaultFullHttpResponse(
-                HttpVersion.HTTP_1_1, status, content)
-                : new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
-        response.headers().add("Date", new Date())
-                .add("Server", "Apache/2.2.22 (Ubuntu)");
-
-        if (HttpResponseStatus.OK.equals(status)) {
-            response.headers()
-                    .add("Last-Modified", LAST_MODIFIED)
-                    .add("ETag", ETAG)
-                    .add("Accept-Ranges", "bytes")
-                    .add(HttpHeaders.Names.CONTENT_LENGTH, contentLength)
-                    .add("Vary", "Accept-Encoding")
-                    .add("Connection", "close")
-                    .add("Content-Type", "text/html");
+        DefaultFullHttpResponse response;
+        if (body != null) {
+            byte[] bytes = body.getBytes(Charset.forName("UTF-8"));
+            ByteBuf content = Unpooled.copiedBuffer(bytes);
+            response = new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1, status, content);
         } else {
-            response.headers()
-                    .add("Vary", "Accept-Encoding")
-                    .add(HttpHeaders.Names.CONTENT_LENGTH, contentLength)
-                    .add("Connection", "close")
-                    .add("Content-Type", "text/html; charset=iso-8859-1");
+            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
         }
+
+        response.headers()
+                .add("Date", new Date())
+                // This mimics setting 'ServerTokens Prod'
+                .add("Server", "Apache");
         return response;
     }
 
     private static String getApacheLikeURI(HttpRequest request) {
-        return request.getUri()
+        String uri = request.getUri()
                 // Strip duplicate leading slash like Apache
                 .replaceFirst("//", "/");
+        if ("/".equals(uri)) {
+            uri = "/index.html";
+        }
+        return uri;
     }
 
     private static Date LAST_MODIFIED = new Date();
@@ -277,6 +440,17 @@ public class Give {
             + "<p>The web server software is running but no content has been added, yet.</p>\n"
             + "</body></html>\n";
 
+    private static String FORBIDDEN_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
+            + "<html><head>\n"
+            + "<title>403 Forbidden</title>\n"
+            + "</head><body>\n"
+            + "<h1>Forbidden</h1>\n"
+            + "<p>You don't have permission to access %1$s\n"
+            + "on this server.</p>\n"
+            + "<hr>\n"
+            + "<address>Apache Server at %2$s Port %3$s</address>\n"
+            + "</body></html>\n";
+
     private static String NOT_FOUND_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
             + "<html><head>\n"
             + "<title>404 Not Found</title>\n"
@@ -284,7 +458,28 @@ public class Give {
             + "<h1>Not Found</h1>\n"
             + "<p>The requested URL %1$s was not found on this server.</p>\n"
             + "<hr>\n"
-            + "<address>Apache/2.2.22 (Ubuntu) Server at %2$s Port %3$s</address>\n"
+            + "<address>Apache Server at %2$s Port %3$s</address>\n"
+            + "</body></html>\n";
+
+    private static String METHOD_NOT_ALLOWED_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
+            + "<html><head>\n"
+            + "<title>405 Method Not Allowed</title>\n"
+            + "</head><body>\n"
+            + "<h1>Method Not Allowed</h1>\n"
+            + "<p>The requested method %1$s is not allowed for the URL %2$s.</p>\n"
+            + "<hr>\n"
+            + "<address>Apache Server at %3$s Port %4$s</address>\n"
+            + "</body></html>\n";
+
+    private static String NOT_IMPLEMENTED_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
+            + "<html><head>\n"
+            + "<title>501 Method Not Implemented</title>\n"
+            + "</head><body>\n"
+            + "<h1>Method Not Implemented</h1>\n"
+            + "<p>%1$s to %2$s not supported.<br />\n"
+            + "</p>\n"
+            + "<hr>\n"
+            + "<address>Apache Server at %3$s Port %4$s</address>\n"
             + "</body></html>\n";
 
     private static String INTERNAL_SERVER_ERROR_BODY = "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
@@ -302,6 +497,6 @@ public class Give {
             + "<p>More information about this error may be available\n"
             + "in the server error log.</p>\n"
             + "<hr>\n"
-            + "<address>Apache/2.2.22 (Ubuntu) Server at %1$s Port %2$s</address>\n"
+            + "<address>Apache Server at %1$s Port %2$s</address>\n"
             + "</body></html>\n";
 }
