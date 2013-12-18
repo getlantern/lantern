@@ -17,6 +17,7 @@ import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.SslEngineSource;
+import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import com.google.inject.Singleton;
 public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private Model model;
 
     @Inject
     public GiveModeProxy(
@@ -127,8 +129,28 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                                 .peerForSession(sslSession) : null;
                     }
                 }));
-        log.info("Creating give mode proxy on port {}, running as fallback: {}",
+        this.model = model;
+        log.info(
+                "Creating give mode proxy on port {}, running as fallback: {}",
                 model.getSettings().getServerPort(),
                 LanternUtils.isFallbackProxy());
+    }
+
+    @Override
+    public void start() {
+        super.start();
+
+        if (TransportProtocol.TCP == model.getSettings().getProxyProtocol()) {
+            InetSocketAddress original = server.getListenAddress();
+            InetSocketAddress next = new InetSocketAddress(
+                    original.getAddress(),
+                    original.getPort() - 443);
+            server.clone()
+                    .withAddress(next)
+                    .withSslEngineSource(null)
+                    .start();
+            log.info("Added additional unencrypted server for TCP on port {}",
+                    next.getPort());
+        }
     }
 }

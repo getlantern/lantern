@@ -70,7 +70,8 @@ public class CertTrackingSslEngineSource implements SslEngineSource {
         try {
             final SSLEngine engine = this.serverContext.createSSLEngine();
             engine.setUseClientMode(false);
-            configureCipherSuites(engine);
+            // To reduce fingerprintability of fallbacks, we use the default cipher suites
+            //configureCipherSuites(engine);
             return engine;
         } catch (final Exception e) {
             throw new Error(
