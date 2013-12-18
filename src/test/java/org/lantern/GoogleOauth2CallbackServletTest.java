@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.junit.Test;
+import org.lantern.http.GoogleOauth2CallbackServer;
 import org.lantern.http.GoogleOauth2CallbackServlet;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 
 public class GoogleOauth2CallbackServletTest {
-
 
     @Test
     public void testGoogleApis() throws Exception {
@@ -21,9 +21,13 @@ public class GoogleOauth2CallbackServletTest {
             public Integer call() throws Exception {
                final Censored censored = new DefaultCensored();
                final HttpClientFactory factory = new HttpClientFactory(censored);
+               Model model = new Model();
+               Messages messages = new Messages(model);
+               GoogleOauth2CallbackServer server = new GoogleOauth2CallbackServer(
+                       null, model, null, null, null, factory, null, messages);
                final GoogleOauth2CallbackServlet servlet = 
                    new GoogleOauth2CallbackServlet(null, null, null, null, null, 
-                       null, factory, null, new Messages(new Model()));
+                       null, factory, null, messages, server);
                
                final Map<String, String> allToks = new HashMap<String, String>();
                allToks.put("access_token", "invalidcode");

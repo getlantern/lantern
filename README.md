@@ -7,7 +7,7 @@ Lantern
 Lantern allows you to give or get access to the internet through other users
 around the world connected by a peer-to-peer network.
 
-Lantern is written primarily in Java and runs on modern OS X, Windows, and
+Lantern is [open source](COPYING), written primarily in Java and runs on modern OS X, Windows, and
 Ubuntu Linux desktop systems.
 
 ![screenshot](https://raw.github.com/getlantern/lantern-ui/master/screenshots/welcome.png)
