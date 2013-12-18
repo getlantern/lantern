@@ -1122,54 +1122,6 @@ public class DefaultXmppHandler implements XmppHandler,
         return conn.isAuthenticated();
     }
 
-    @Override
-    public boolean sendInvite(final Friend friend, boolean redo, 
-            final boolean addToRoster) {
-        LOG.debug("Sending invite");
-
-        final String email = friend.getEmail();
-
-        if (!isLoggedIn()) {
-            LOG.info("Not logged in!");
-            this.msgs.error(MessageKey.INVITE_FAILED);
-            return false;
-        }
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-
-        final Roster rost = conn.getRoster();
-
-        final Presence pres = new Presence(Presence.Type.available);
-        pres.setTo(LanternClientConstants.LANTERN_JID);
-
-        // "emails" of the form xxx@public.talk.google.com aren't really
-        // e-mail addresses at all, so don't send 'em.
-        // In theory we might be able to use the Google Plus API to get
-        // actual e-mail addresses -- see:
-        // https://github.com/getlantern/lantern/issues/432
-        if (LanternUtils.isAnonymizedGoogleTalkAddress(email)) {
-            pres.setProperty(LanternConstants.INVITED_EMAIL, email);
-        } else {
-            pres.setProperty(LanternConstants.INVITED_EMAIL, "");
-        }
-
-        final RosterEntry entry = rost.getEntry(email);
-        if (entry != null) {
-            final String name = entry.getName();
-            if (StringUtils.isNotBlank(name)) {
-                pres.setProperty(LanternConstants.INVITEE_NAME, name);
-            }
-        }
-        pres.setProperty(LanternConstants.INVITER_NAME, 
-                this.model.getProfile().getName());
-
-        sendPresence(pres, "Invite-Thread");
-
-        if (addToRoster) {
-            addToRoster(email);
-        }
-        return true;
-    }
-
     private void sendPresence(final Presence pres, final String threadName) {
         final XMPPConnection conn = this.client.get().getXmppConnection();
         final Runnable runner = new Runnable() {
