@@ -13,7 +13,7 @@
               <div class=headers>
                 <div class=header>{{model.profile.name}}</div>
                 <div class=email>{{model.profile.email}}</div>
-                <div class='peerid ip'>{{model.connectivity.peerid}} ({{model.connectivity.ip}})</div>
+                <div class='peerid ip'>{{model.connectivity.peerid}}{{model.connectivity.formattedIp}}</div>
                 <div class=type>{{model.connectivity.type && model.settings.mode && (((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n) || ''}}</div>
               </div>
               <div class=stats>
