@@ -93,6 +93,10 @@ public class Settings {
     private boolean useCloudProxies = true;
 
     private boolean showFriendPrompts = true;
+    
+    public Settings() {
+        whitelist.applyDefaultEntries();
+    }
 
     @JsonView(Run.class)
     public String getLang() {
@@ -166,6 +170,8 @@ public class Settings {
 
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
+        // After the whitelist has been set, apply the default entries
+        this.whitelist.applyDefaultEntries();
     }
 
 
