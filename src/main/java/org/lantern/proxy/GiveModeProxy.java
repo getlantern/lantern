@@ -42,6 +42,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 .bootstrap()
                 .withName("GiveModeProxy")
                 .withPort(model.getSettings().getServerPort())
+                .withTransportProtocol(model.getSettings().getProxyProtocol())
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
                 .withSslEngineSource(sslEngineSource)
@@ -51,7 +52,11 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
                     public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest);
+                        return new GiveModeHttpFilters(originalRequest,
+                                model.getReportIp(),
+                                model.getSettings().getProxyPort(),
+                                model.getSettings().getProxyProtocol(),
+                                model.getSettings().getProxyAuthToken());
                     }
                 })
 

@@ -20,6 +20,7 @@ import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lastbamboo.common.offer.answer.IceConfig;
+import org.littleshoot.proxy.TransportProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +148,21 @@ public class ModelIo extends Storage<Model> {
         }
         log.info("Running give mode proxy on port: {}", set.getServerPort());
         
+        TransportProtocol proxyProtocol = TransportProtocol.TCP;
+        if (cmd.hasOption(Cli.OPTION_SERVER_PROTOCOL)) {
+            String serverProtocol = cmd
+                    .getOptionValue(Cli.OPTION_SERVER_PROTOCOL);
+            if ("udp".equalsIgnoreCase(serverProtocol)) {
+                proxyProtocol = TransportProtocol.UDT;
+            }
+        }
+        set.setProxyProtocol(proxyProtocol);
+        log.info("Running give mode proxy with protocol: {}", proxyProtocol);
+        
+        final String authTokenOpt = Cli.OPTION_SERVER_AUTHTOKEN_FILE;
+        if (cmd.hasOption(authTokenOpt)) {
+            loadServerAuthTokenFile(cmd.getOptionValue(authTokenOpt), set);
+        }
 
         if (cmd.hasOption(Cli.OPTION_KEYSTORE)) {
             LanternUtils.setFallbackKeystorePath(cmd.getOptionValue(Cli.OPTION_KEYSTORE));
@@ -245,6 +261,28 @@ public class ModelIo extends Storage<Model> {
             model.getSettings().setMode(Mode.give);
         } else if (cmd.hasOption(Cli.OPTION_GET)) {
             model.getSettings().setMode(Mode.get);
+        }
+    }
+    
+    private void loadServerAuthTokenFile(final String filename, final Settings set) {
+        if (StringUtils.isBlank(filename)) {
+            log.error("No server auth token filename specified");
+            throw new NullPointerException("No filename specified!");
+        }
+        final File file = new File(filename);
+        if (!(file.exists() && file.canRead())) {
+            log.error("Unable to read server auth token  from {}", filename);
+            throw new IllegalArgumentException("File does not exist! "+filename);
+        }
+        log.info("Reading server auth token from file \"{}\"", filename);
+        try {
+            String authToken = FileUtils.readFileToString(file, "UTF-8");
+            // Strip all whitespace
+            authToken = authToken.replaceAll("\\s", "");
+            set.setProxyAuthToken(authToken);
+        } catch (final IOException e) {
+            log.error("Failed to read file \"{}\"", filename);
+            throw new Error("Could not load server auth token", e);
         }
     }
 

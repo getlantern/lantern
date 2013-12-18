@@ -5,7 +5,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -17,7 +16,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.lantern.proxy.GetModeHttpFilters;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
@@ -130,17 +128,9 @@ public class Give {
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
                     public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest) {
-                            @Override
-                            public HttpResponse requestPre(HttpObject httpObject) {
-                                if (httpObject instanceof HttpRequest) {
-                                    return mimicApache(
-                                            (HttpRequest) httpObject,
-                                            httpPort);
-                                }
-                                return super.requestPre(httpObject);
-                            }
-                        };
+                        return new GiveModeHttpFilters(originalRequest, host,
+                                httpPort, TransportProtocol.TCP,
+                                expectedAuthToken);
                     }
                 })
                 .start();
@@ -160,26 +150,9 @@ public class Give {
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
                     public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest) {
-                            @Override
-                            public HttpResponse requestPre(HttpObject httpObject) {
-                                if (httpObject instanceof HttpRequest) {
-                                    HttpRequest req = (HttpRequest) httpObject;
-                                    String authToken = req
-                                            .headers()
-                                            .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
-                                    if (!expectedAuthToken.equals(authToken)) {
-                                        return mimicApache(req, httpsPort);
-                                    } else {
-                                        // Strip the auth token before sending
-                                        // request downstream
-                                        req.headers()
-                                                .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
-                                    }
-                                }
-                                return super.requestPre(httpObject);
-                            }
-                        };
+                        return new GiveModeHttpFilters(originalRequest, host,
+                                httpsPort, TransportProtocol.TCP,
+                                expectedAuthToken);
                     }
                 })
                 .start();
@@ -197,28 +170,9 @@ public class Give {
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
                     public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest) {
-                            @Override
-                            public HttpResponse requestPre(HttpObject httpObject) {
-                                if (httpObject instanceof HttpRequest) {
-                                    HttpRequest req = (HttpRequest) httpObject;
-                                    String authToken = req
-                                            .headers()
-                                            .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
-                                    if (!expectedAuthToken.equals(authToken)) {
-                                        // TODO: For UDT, should probably just
-                                        // disconnect here
-                                        return mimicApache(req, httpsPort);
-                                    } else {
-                                        // Strip the auth token before sending
-                                        // request downstream
-                                        req.headers()
-                                                .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
-                                    }
-                                }
-                                return super.requestPre(httpObject);
-                            }
-                        };
+                        return new GiveModeHttpFilters(originalRequest, host,
+                                udtPort, TransportProtocol.UDT,
+                                expectedAuthToken);
                     }
                 })
                 .start();

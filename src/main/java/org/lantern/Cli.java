@@ -22,6 +22,8 @@ public class Cli {
     public static final String OPTION_LAUNCHD = "launchd";
     public static final String OPTION_PUBLIC_API = "public-api";
     public static final String OPTION_SERVER_PORT = "server-port";
+    public static final String OPTION_SERVER_PROTOCOL = "server-protocol";
+    public static final String OPTION_SERVER_AUTHTOKEN_FILE = "auth-token-file";
     public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
     public static final String OPTION_PASSWORD_FILE = "password-file";
     public static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
@@ -94,6 +96,10 @@ public class Cli {
             "run without a graphical user interface.");
         options.addOption(null, OPTION_SERVER_PORT, true,
             "the port to run the give mode proxy server on.");
+        options.addOption(null, OPTION_SERVER_PROTOCOL, true,
+                "the protocol with which to run the proxy ('tcp' or 'udp').");
+        options.addOption(null, OPTION_SERVER_AUTHTOKEN_FILE, true,
+                "a file containing the auth-token to require from clients.");
         options.addOption(null, OPTION_PUBLIC_API, false,
             "make the API server publicly accessible on non-localhost.");
         options.addOption(null, OPTION_HELP, false,
