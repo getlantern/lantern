@@ -59,14 +59,19 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
-    <!--[if IE]>
-    <div id="ie-warning">
-      Unsupported browser.
-      <a href="https://chrome.google.com">Chrome</a> or
-      <a href="https://www.mozilla.org/firefox/">Firefox</a>
-      is recommended.
-    </div>
-    <![endif]-->
+    <script type="text/javascript">
+      if ((/trident/i).test(navigator.userAgent)) {
+        document.write(
+          '<div id="ie-warning">' +
+          '  Unsupported browser.' +
+          '  <a href="https://chrome.google.com">Chrome</a> or' +
+          '  <a href="https://www.mozilla.org/firefox/">Firefox</a>' +
+          '  is recommended.' +
+          '</div>'
+        );
+        $(document.body).removeAttr('ng-cloak');
+      }
+    </script>
 
     <div id="waiting" ng-show="!cometdConnected">
       <div ng-show="!backendIsGone">
