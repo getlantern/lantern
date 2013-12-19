@@ -691,7 +691,7 @@ public class InteractionServlet extends HttpServlet {
     }
 
     private void handleSetModeWelcome(final Mode mode) {
-        this.model.setModal(Modal.authorize);
+        this.model.setModal(Modal.finished);
         this.internalState.setModalCompleted(Modal.welcome);
         this.modelService.setMode(mode);
         Events.syncModal(model);
