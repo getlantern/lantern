@@ -90,10 +90,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
-    private String fallbackServerHost;
-
-    private int fallbackServerPort;
-
     private final ScheduledExecutorService proxyRetryService = Threads
             .newSingleThreadScheduledExecutor("Proxy-Retry");
 
@@ -181,7 +177,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         }
 
-        addProxy(jid, address, Type.pc, null);
+        addProxy(jid, address, Type.pc, TCP, null);
     }
 
     @Override
@@ -272,13 +268,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         return null;
     }
 
-    private void addProxy(URI jid, InetSocketAddress address, Type type, String lanternAuthToken) {
-        boolean canAddAsTCP = address != null && address.getPort() > 0
-                && this.model.getSettings().isTcp();
-        FiveTuple fiveTuple = canAddAsTCP ? new FiveTuple(null, address, TCP)
+    private void addProxy(URI jid, InetSocketAddress address, Type type, Protocol protocol, String lanternAuthToken) {
+        boolean natTraversed = address == null || address.getPort() == 0;
+        FiveTuple fiveTuple = !natTraversed ? new FiveTuple(null, address, protocol)
                 : EMPTY_UDP_TUPLE;
         ProxyHolder proxy = new ProxyHolder(this, peerFactory,
-                lanternTrustStore, jid, fiveTuple, type, lanternAuthToken);
+                lanternTrustStore, jid, fiveTuple, type, natTraversed,
+                lanternAuthToken);
         doAddProxy(jid, proxy);
     }
 
@@ -300,7 +296,12 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (proxy.isNatTraversed()) {
             checkConnectivityToNattedProxy(proxy);
         } else {
-            checkConnectivityToTcpProxy(proxy);
+            if (proxy.getFiveTuple().getProtocol() == TCP) {
+                checkConnectivityToTcpProxy(proxy);
+            } else {
+                // TODO: need to actually test UDT connectivity somehow
+                successfullyConnectedToProxy(proxy);
+            }
         }
     }
 
@@ -350,7 +351,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     ProxyHolder newProxy = new ProxyHolder(
                             DefaultProxyTracker.this, peerFactory,
                             lanternTrustStore, proxy.getJid(), newFiveTuple,
-                            proxy.getType(), proxy.getLanternAuthToken());
+                            proxy.getType(), true, proxy.getLanternAuthToken());
                     LOG.debug("Got tuple and adding it for proxy: {}", newProxy);
                     proxies.add(newProxy);
                     successfullyConnectedToProxy(newProxy);
@@ -458,44 +459,26 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxies() {
         LOG.debug("Attempting to add fallback proxies");
-        parseFallbackProxy();
-        addSingleFallbackProxy(fallbackServerHost, fallbackServerPort, "abracadabra"); // XXX TODO
-
-        final File file = new File(SystemUtils.USER_HOME, "fallbacks.json");
-        if (!file.isFile()) {
-            LOG.info("No fallback proxies in: {}", file.getAbsolutePath());
-            return;
+        FallbackProxy fallbackProxy = configuredFallbackProxy();
+        if (fallbackProxy == null) {
+            LOG.error("No fallback proxy found!");
         }
-        final ObjectMapper om = new ObjectMapper();
-        InputStream is = null;
-
-        try {
-            is = new FileInputStream(file);
-            final String proxy = IOUtils.toString(is);
-            final FallbackProxies all = om.readValue(proxy,
-                    FallbackProxies.class);
-            final Collection<FallbackProxy> proxies = all.getProxies();
-            for (final FallbackProxy fp : proxies) {
-                LOG.debug("Adding fallback: {}", fp);
-                addSingleFallbackProxy(fp.getIp(), fp.getPort(), fp.getLanternAuthToken());
-            }
-        } catch (final IOException e) {
-            LOG.error("Could not load fallback proxies?");
-        }
+        addSingleFallbackProxy(fallbackProxy);
     }
 
-    private void addSingleFallbackProxy(final String host, final int port,
-            final String lanternAuthToken) {
+    private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
         LOG.debug("Attempting to add single fallback proxy");
-        if (this.model.getSettings().isTcp()) {
-            final URI uri = LanternUtils.newURI("fallback-" + host
-                    + "@getlantern.org");
-            final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
-            cloud.setMode(org.lantern.state.Mode.give);
+        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getIp()
+                + "@getlantern.org");
+        final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
+        cloud.setMode(org.lantern.state.Mode.give);
 
-            LOG.debug("Adding fallback: {}", host);
-            addProxy(uri, LanternUtils.isa(host, port), Type.cloud, lanternAuthToken);
-        }
+        LOG.debug("Adding fallback: {}", fallbackProxy.getIp());
+        Protocol protocol = "udp".equalsIgnoreCase(fallbackProxy.getProtocol()) ?
+            UDP : TCP;
+        addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
+                fallbackProxy.getPort()), Type.cloud, protocol,
+                fallbackProxy.getAuth_token());
     }
 
     private FallbackProxy configuredFallbackProxy() {
@@ -533,16 +516,6 @@ public class DefaultProxyTracker implements ProxyTracker {
             return null;
         }
         return new InetSocketAddress(fp.getIp(), fp.getPort());
-    }
-
-    private void parseFallbackProxy() {
-        InetSocketAddress fallbackAddress = addressForConfiguredFallbackProxy();
-        if (fallbackAddress != null) {
-            fallbackServerHost = fallbackAddress.getAddress().getHostAddress();
-            fallbackServerPort = fallbackAddress.getPort();
-            LOG.debug("Set fallback proxy to {}:{}", fallbackServerHost,
-                    fallbackServerPort);
-        }
     }
 
     private void copyFallback() throws IOException {

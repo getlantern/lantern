@@ -374,7 +374,7 @@ public class Launcher {
                 }
                 //xmpp.start();
                 getModeProxy.start();
-                //giveModeProxy.start();
+                giveModeProxy.start();
 
                 syncService.start();
                 //statsUpdater.start();

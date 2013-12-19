@@ -9,7 +9,7 @@ import java.util.Queue;
 
 import javax.net.ssl.SSLEngine;
 
-import org.lantern.proxy.GetModeHttpFilters;
+import org.lantern.ProxyHolder;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -82,7 +82,7 @@ public class Get {
                                 if (httpObject instanceof HttpRequest) {
                                     HttpRequest req = (HttpRequest) httpObject;
                                     req.headers()
-                                            .add(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN,
+                                            .add(ProxyHolder.X_LANTERN_AUTH_TOKEN,
                                                     authToken);
                                 }
                                 return null;

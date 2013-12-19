@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.lantern.ProxyHolder;
 import org.littleshoot.proxy.HttpFiltersAdapter;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.ProxyUtils;
@@ -92,7 +93,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             HttpRequest req = (HttpRequest) httpObject;
             String authToken = req
                     .headers()
-                    .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                    .get(ProxyHolder.X_LANTERN_AUTH_TOKEN);
             if (!expectedAuthToken.equals(authToken)) {
                 if (shouldMimicApache) {
                     return mimicApache(req, port);
@@ -104,7 +105,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
                 // Strip the auth token before sending
                 // request downstream
                 req.headers()
-                        .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                        .remove(ProxyHolder.X_LANTERN_AUTH_TOKEN);
             }
         }
         return super.requestPre(httpObject);
