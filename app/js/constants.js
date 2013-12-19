@@ -24,6 +24,7 @@ var DEFAULT_LANG = 'en_US',
       nl: {dir: 'ltr', name: 'Nederlands'},
       sk: {dir: 'ltr', name: 'slovenčina'},
       sv: {dir: 'ltr', name: 'Svenska'},
+      ja: {dir: 'ltr', name: '日本語'},
       es: {dir: 'ltr', name: 'español'}
     //ar: {dir: 'rtl', name: 'العربية'}
     },
