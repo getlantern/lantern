@@ -110,8 +110,8 @@
 =indented($amount: 20px)
   margin-left: $amount
 
-=aboveModal
-  z-index: $zindexModal + 1
+=aboveModal($delta: 1)
+  z-index: $zindexModal + $delta
 
 =inputInvalid
   border-color: darken(#ee5f5b, 10%) !important

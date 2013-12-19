@@ -13,6 +13,16 @@
   +single-transition(opacity, 0.3s, ease)
   top: 10% // same as .modal.fade.in
 
+#ie-warning
+  +aboveModal(2)
+  +position(0, 0, false, 0)
+  +error-colored
+  +centered
+  +bold
+  background: #fff
+  border: 1px dotted #f00
+  padding: 3px
+
 #waiting
   +position(0, 0, 0, 0)
   +aboveModal

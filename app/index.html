@@ -59,6 +59,15 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
+    <!--[if IE]>
+    <div id="ie-warning">
+      Unsupported browser.
+      <a href="https://chrome.google.com">Chrome</a> or
+      <a href="https://www.mozilla.org/firefox/">Firefox</a>
+      is recommended.
+    </div>
+    <![endif]-->
+
     <div id="waiting" ng-show="!cometdConnected">
       <div ng-show="!backendIsGone">
         <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
@@ -69,7 +78,7 @@
         <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | i18n }}</button>
       </div>
     </div>
-    
+
     <div id="alerts">
       <alert ng-repeat="(id, notification) in model.notifications" ui-animate
              type="notification.type" close="interaction(INTERACTION.close, {notification: id})">

@@ -6957,6 +6957,20 @@ textarea {
   top: 10%;
 }
 
+#ie-warning {
+  z-index: 1052;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  color: #b94a48 !important;
+  text-align: center;
+  font-weight: bold;
+  background: white;
+  border: 1px dotted red;
+  padding: 3px;
+}
+
 #waiting {
   position: absolute;
   top: 0;
