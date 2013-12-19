@@ -15,11 +15,13 @@ function makeEnum(keys, extra) {
 var DEFAULT_LANG = 'en_US',
     DEFAULT_DIRECTION = 'ltr',
     LANGS = {
+      // http://www.omniglot.com/language/names.htm
       en_US: {dir: 'ltr', name: 'English'},
       fr_FR: {dir: 'ltr', name: 'français'},
       pt_BR: {dir: 'ltr', name: 'português'},
       fa_IR: {dir: 'rtl', name: 'پارسی'},
       zh_CN: {dir: 'ltr', name: '中文'},
+      nl: {dir: 'ltr', name: 'Nederlands'},
       es: {dir: 'ltr', name: 'español'}
     //ar: {dir: 'rtl', name: 'العربية'}
     },
