@@ -22,6 +22,7 @@ var DEFAULT_LANG = 'en_US',
       fa_IR: {dir: 'rtl', name: 'پارسی'},
       zh_CN: {dir: 'ltr', name: '中文'},
       nl: {dir: 'ltr', name: 'Nederlands'},
+      sk: {dir: 'ltr', name: 'slovenčina'},
       es: {dir: 'ltr', name: 'español'}
     //ar: {dir: 'rtl', name: 'العربية'}
     },
