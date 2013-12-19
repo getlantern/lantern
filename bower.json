@@ -5,7 +5,7 @@
     "angular": "1.0.8",
     "angular-sanitize": "1.0.8",
     "angular-translate": "1.1.0",
-    "angular-ui-select2": "0.0.2",
+    "angular-ui-select2": "0.0.5",
     "angular-ui-utils": "0.0.2",
     "angulartics": "0.8.5",
     "cometd-js-jquery": "2.6.0",

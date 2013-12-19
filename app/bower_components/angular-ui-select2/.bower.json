@@ -1,7 +1,7 @@
 {
   "author": "AngularUI",
   "name": "angular-ui-select2",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "homepage": "http://angular-ui.github.com",
   "keywords": [
     "angular",
@@ -10,20 +10,20 @@
   ],
   "main": "./src/select2.js",
   "dependencies": {
-    "angular": ">= 1.0.2",
+    "angular": ">=1.2.0",
     "select2": "~3.4",
     "jquery": ">=1.6.4"
   },
   "devDependencies": {
-    "angular-mocks": ">= 1.0.2"
+    "angular-mocks": ">=1.0.2"
   },
-  "_release": "0.0.2",
+  "_release": "0.0.5",
   "_resolution": {
     "type": "version",
-    "tag": "v0.0.2",
-    "commit": "117bbbc0408a5933f580c6fe7b8e977181d01199"
+    "tag": "v0.0.5",
+    "commit": "680bf4abb3dba0835f0d5002fe111e3396ae617e"
   },
   "_source": "git://github.com/angular-ui/ui-select2.git",
-  "_target": "0.0.2",
+  "_target": "0.0.5",
   "_originalSource": "angular-ui-select2"
 }
