@@ -10,7 +10,7 @@
     "angulartics": "0.8.5",
     "cometd-js-jquery": "2.6.0",
     "cssesc": "0.1.0",
-    "d3": "3.3.6",
+    "d3": "3.3.13",
     "jquery": "2.0.3",
     "jsonpatch": "1.0.0-rc1",
     "lodash": "2.4.1",
