@@ -9,8 +9,6 @@ var app = angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
-  'angulartics',
-  'angulartics.google.analytics',
   'ui.event',
   'ui.if',
   'ui.showhide',
@@ -18,12 +16,6 @@ var app = angular.module('app', [
   'ui.validate',
   'ui.bootstrap'
   ])
-  // angulartics config
-  .config(function ($analyticsProvider) {
-    // turn off automatic tracking
-    $analyticsProvider.firstPageview(false);
-    $analyticsProvider.virtualPageviews(false);
-  })
   // angular ui bootstrap config
   .config(function($dialogProvider) {
     $dialogProvider.options({

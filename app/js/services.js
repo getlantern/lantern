@@ -212,7 +212,8 @@ angular.module('app.services', [])
   })
   .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, logFactory, modelSrvc) {
     var log = logFactory('gaMgr'),
-        model = modelSrvc.model;
+        model = modelSrvc.model,
+        ga = $window.ga;
 
     function stopTracking() {
       log.debug('disabling analytics');
