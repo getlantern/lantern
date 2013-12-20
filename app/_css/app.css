@@ -7249,7 +7249,7 @@ textarea {
   width: 55px;
 }
 #friendlist .vcard {
-  max-width: 470px;
+  max-width: 465px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7263,7 +7263,7 @@ textarea {
   content: ">";
 }
 #friendlist .suggested .vcard {
-  max-width: 350px;
+  max-width: 345px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
