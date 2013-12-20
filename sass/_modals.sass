@@ -154,6 +154,109 @@
   max-height: 445px // override bootstrap
   .addFriendsControls
     padding: 15px
+  .hasSearchText .select2-container
+    display: none
+
+#currentFriendsHeading
+  display: inline-block
+  margin: 3px 0 0 22px
+  float: left
+
+#suggestedFriendsHeading
+  +info-colored
+  display: inline-block
+  margin: 5px 0 0 22px
+  float: left
+  clear: both
+
+//.below-friendSuggestionList
+  +single-transition(opacity, 0.3s, ease)
+  +smaller
+  opacity: 0
+  text-align: left
+  margin: 15px 0
+  padding: 0 13px
+  .dismiss-all
+    float: right
+    width: 110px
+  .addFriendsControls:hover &
+    opacity: 1
+
+//.below-friendSuggestionList-text
+  max-width: 360px
+  float: left
+
+//#friendSuggestionList
+  text-align: left
+  & > li
+    padding: 8px 10px
+    border: 1px solid #eee
+    &:hover
+      background-color: #ffffd7
+
+//#currentFriends, #friendSuggestionList
+#friendlist
+  +no-bullets
+  max-height: 195px
+  overflow-y: scroll
+  border-radius: 8px
+  border: 2px solid #ccc
+  margin: 0
+  clear: both
+  padding: 0
+  margin-bottom: 10px
+  .entry
+    position: relative
+    padding: 5px
+    border: 1px solid #fff
+    color: $grayLight
+    .reject
+      position: absolute
+      display: inline-block
+      width: 10px
+      opacity: 0
+      color: $grayLight
+      text-decoration: none
+    &.suggested
+      color: #000
+      background-color: #ede7ff
+      border-top-color: #ede7ff
+      border-bottom-color: lighten(#ede7ff, 10%)
+      &:hover
+        background-color: darken(#ede7ff, 2%) !important
+        border-top-color: darken(#d0dcff, 10%)
+        border-bottom-color: darken(#d0dcff, 10%)
+    &:hover
+      background-color: #ffffd7 !important
+      border-left: 1px solid #ffffd7
+      border-right: 1px solid #ffffd7
+      border-top: 1px solid #ddd
+      border-bottom: 1px solid #ddd
+      color: #000
+      .reject
+        opacity: 1
+        &:hover
+          color: #000
+      .btn-group
+        opacity: 1
+    .btn-group
+      +single-transition(opacity, 0.3s, ease)
+      opacity: 0
+      display: inline-block
+      float: right
+      & > .btn
+        width: 55px
+  .vcard
+    +ellipsisPast(470px)
+    display: inline-block
+    margin-left: 13px
+  .email
+    &:before
+      content: '<'
+    &:after
+      content: '>'
+  .suggested .vcard
+    +ellipsisPast(350px)
   .coloredByConnectedStatus
     +single-transition(all, 0.3s, ease)
     body.getMode &.transferringNow
@@ -179,99 +282,21 @@
       background-color: #f5f5f5
       .friendConnectedStatus
         +gray
-  .friendConnectedStatus
+  .friendConnectedStatus, .reason
     +smaller
     +thin
     margin: 2px 0 0 14px
-  #currentFriends .vcard
-    +ellipsisPast(470px)
-  #friendSuggestionList .vcard
-    +ellipsisPast(350px)
-  .vcard
-    display: inline-block
-    .email
-      &:before
-        content: '<'
-      &:after
-        content: '>'
-  .hasSearchText .select2-container
-    display: none
-
-#currentFriendsHeading
-  margin: 3px 0 0 22px
-  float: left
-
-#suggestedFriendsHeading
-  +info-colored
-  margin-top: 0
-
-.below-friendSuggestionList
-  +single-transition(opacity, 0.3s, ease)
-  +smaller
-  opacity: 0
-  text-align: left
-  margin: 15px 0
-  padding: 0 13px
-  .dismiss-all
-    float: right
-    width: 110px
-  .addFriendsControls:hover &
-    opacity: 1
-
-.below-friendSuggestionList-text
-  max-width: 360px
-  float: left
-
-#friendSuggestionList
-  text-align: left
-  & > li
-    padding: 8px 10px
-    border: 1px solid #eee
-    &:hover
-      background-color: #ffffd7
-  .approve.btn-group
-    display: inline-block
-    float: right
-    & > .btn
-      width: 55px
-
-#friendSuggestionList, #currentFriends
-  +no-bullets
-  max-height: 195px
-  overflow-y: scroll
-  border-radius: 8px
-  border: 2px solid #ccc
-  margin: 0
-
-#currentFriends
-  clear: both
-  padding: 0
-  margin-bottom: 10px
-  .entry
-    padding: 5px
-    border: 1px solid #fff
-    color: $grayLight
-    .reject
-      display: inline-block
-      width: 10px
-      opacity: 0
-      color: $grayLight
-      text-decoration: none
-    &:hover
-      background-color: #ffffd7 !important
-      border-left: 1px solid #ffffd7
-      border-right: 1px solid #ffffd7
-      border-top: 1px solid #ddd
-      border-bottom: 1px solid #ddd
-      color: #000
-      .reject
-        opacity: 1
-        &:hover
-          color: #000
+  .reason
+    +gray
 
 .no-friends-matching
   padding: 10px 22px
   background-color: #f5f5f5
+
+.friend-warning
+  +smaller
+  +gray
+  margin-top: 4px
 
 //.contactList-horizontal
   +neverHideScrollbars
