@@ -16,29 +16,18 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.DefaultHttpResponseFactory;
+import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
-import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
-import org.lantern.exceptional4j.ExceptionalAppender;
-import org.lantern.exceptional4j.ExceptionalAppenderCallback;
-import org.lantern.exceptional4j.HttpStrategy;
-import org.lantern.exceptional4j.contrib.IPv4Sanitizer;
 import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
+import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsReporter;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
@@ -134,6 +123,7 @@ public class Launcher {
     private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
+    private boolean loggingInTestMode = false;
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -241,6 +231,7 @@ public class Launcher {
         }
 
         model = instance(Model.class);
+        configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -646,6 +637,7 @@ public class Launcher {
         if (props.isFile()) {
             System.out.println("Running from main line");
             PropertyConfigurator.configure(propsPath);
+            loggingInTestMode = true;
         } else {
             System.out.println("Not on main line...");
             configureProductionLogger();
@@ -671,80 +663,30 @@ public class Launcher {
                     "log4j.appender.RollingTextFile.layout.ConversionPattern",
                     "%-6r %d{ISO8601} %-5p [%t] %c{2}.%M (%F:%L) - %m%n");
 
-            // This throws and swallows a FileNotFoundException, but it
-            // doesn't matter. Just weird.
             PropertyConfigurator.configure(props);
             System.out.println("Set logger file to: " + logPath);
-            final ExceptionalAppenderCallback callback =
-                new ExceptionalAppenderCallback() {
-
-                    @Override
-                    public boolean addData(final JSONObject json,
-                        final LoggingEvent le) {
-                        if (!set.isAutoReport()) {
-                            // Don't report anything if the user doesn't have
-                            // it turned on.
-                            return false;
-                        }
-                        json.put("fallback", LanternUtils.isFallbackProxy());
-                        json.put("version", LanternClientConstants.VERSION);
-                        return true;
-                    }
-            };
-
-            // We need to do the following because httpClientFactory is still
-            // null here. We basically do something reasonable while it's still
-            // null.
-            final HttpStrategy strategy = new HttpStrategy() {
-                private final ProtocolVersion ver =
-                    new ProtocolVersion("HTTP", 1, 1);
-                private HttpClient client = null;
-                @Override
-                public HttpResponse execute(final HttpPost request)
-                        throws ClientProtocolException, IOException {
-                    if (httpClientFactory == null) {
-                        return new DefaultHttpResponseFactory().newHttpResponse(
-                                ver, 200, null);
-                    }
-                    if (client == null) {
-                        client = httpClientFactory.newClient();
-                    }
-                    return client.execute(request);
-                }
-
-                @Override
-                public HttpResponse execute(final HttpGet request)
-                        throws ClientProtocolException, IOException {
-                    if (httpClientFactory == null) {
-                        return new DefaultHttpResponseFactory().newHttpResponse(
-                                ver, 200, null);
-                    }
-                    if (client == null) {
-                        client = httpClientFactory.newClient();
-                    }
-                    return client.execute(request);
-                }
-            };
-            final ExceptionalAppender bugAppender = new ExceptionalAppender(
-                LanternClientConstants.GET_EXCEPTIONAL_API_KEY, callback, true,
-                Level.WARN, strategy);
-            bugAppender.addSanitizer(new IPv4Sanitizer());
-
-            BasicConfigurator.configure(bugAppender);
-            // When shutting down, we may see exceptions because someone is
-            // still using the system while we're shutting down.  Let's now
-            // send these to Exceptional.
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    org.apache.log4j.Logger.getRootLogger().removeAppender(bugAppender);
-                }
-            }, "Disable-Exceptional4J-Logging-on-Shutdown"));
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
             e.printStackTrace();
         }
+    }
+    
+    private void configureLoggly() {
+        LogglyAppender logglyAppender = new  LogglyAppender(model, loggingInTestMode);
+        final AsyncAppender asyncAppender = new AsyncAppender();
+        asyncAppender.addAppender(logglyAppender);
+        asyncAppender.setThreshold(Level.DEBUG);
+        BasicConfigurator.configure(asyncAppender);
+        // When shutting down, we may see exceptions because someone is
+        // still using the system while we're shutting down.  Let's now
+        // send these to Exceptional.
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                org.apache.log4j.Logger.getRootLogger().removeAppender(asyncAppender);
+            }
+        }, "Disable-Loggly-Logging-on-Shutdown"));
     }
     
     private void handleError(final Throwable t, final boolean exit) {

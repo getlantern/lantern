@@ -224,12 +224,6 @@
 
     <dependency>
       <groupId>org.getlantern</groupId>
-      <artifactId>exceptional4j</artifactId>
-      <version>0.0.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.getlantern</groupId>
       <artifactId>winproxy4j</artifactId>
       <version>0.0.1</version>
     </dependency>
