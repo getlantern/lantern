@@ -676,7 +676,7 @@ public class Launcher {
         LogglyAppender logglyAppender = new  LogglyAppender(model, loggingInTestMode);
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(logglyAppender);
-        asyncAppender.setThreshold(Level.DEBUG);
+        asyncAppender.setThreshold(Level.WARN);
         BasicConfigurator.configure(asyncAppender);
         // When shutting down, we may see exceptions because someone is
         // still using the system while we're shutting down.  Let's now
