@@ -286,18 +286,18 @@
             <li ng-show="searchText && displayedSuggestions.length == 0 && displayedFriends.length == 0" class="no-friends-matching">
               <div class="gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>
             </li>
-            <li ng-repeat="friend in displayedSuggestions" class="entry suggested">
-              <a class="reject" ng-click="reject(friend.email)">×</a>
-              <span class="vcard">
-                <span class="fn">{{ friend.name }}</span>
-                <span class="email">{{ friend.email }}</span>
-              </span>
-              <div class="pull-right btn-group">
-                <button ng-click="add(friend.email)" class="btn btn-mini btn-success">{{'ADD' | i18n}}</button>
-                <button ng-click="reject(friend.email)" class="btn btn-mini">{{'DISMISS' | i18n}}</button>
-              </div>
-              <div class="reason">
-                {{'SUGGESTED_BECAUSE_RUNNING' | i18n}}
+            <li ng-repeat="friend in displayedSuggestions" class="entry suggested"
+                tooltip-placement="left" tooltip-html-unsafe="{{'SUGGESTED_BECAUSE_RUNNING' | i18n}}">
+              <div ng-mouseenter="state.showAddRmIdx = $index">
+                <a class="reject" ng-click="reject(friend.email)">×</a>
+                <span class="vcard">
+                  <span class="fn">{{ friend.name }}</span>
+                  <span class="email">{{ friend.email }}</span>
+                </span>
+                <div ng-class="{'pull-right': true, 'btn-group': true, transparent: state.showAddRmIdx != $index}">
+                  <button ng-click="add(friend.email)" class="btn btn-mini btn-success">{{'ADD' | i18n}}</button>
+                  <button ng-click="reject(friend.email)" class="btn btn-mini">{{'DISMISS' | i18n}}</button>
+                </div>
               </div>
             </li>
             <li ng-repeat="friend in displayedFriends" class="entry status-{{ friend.status }} coloredByConnectedStatus {{friend.connectedStatus}}">

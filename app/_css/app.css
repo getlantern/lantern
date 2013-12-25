@@ -6805,6 +6805,10 @@ a.get-colored:hover {
   opacity: 0 !important;
 }
 
+.transparent {
+  opacity: 0;
+}
+
 a[rel=tooltip]:not(.btn) {
   color: inherit;
   text-decoration: inherit;
@@ -7235,13 +7239,9 @@ textarea {
 #friendlist .entry:hover .reject:hover {
   color: black;
 }
-#friendlist .entry:hover .btn-group {
-  opacity: 1;
-}
 #friendlist .entry .btn-group {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
-  opacity: 0;
   display: inline-block;
   float: right;
 }

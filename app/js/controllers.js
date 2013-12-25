@@ -289,6 +289,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
 
 function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
   var log = logFactory('LanternFriendsCtrl'),
+      max = Math.max,
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
       i18nFltr = $filter('i18n'),
       prettyUserFltr = $filter('prettyUser');
@@ -300,6 +301,8 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       updateDisplayedFriends();
     }
   });
+
+  $scope.state = {showAddRmIdx: 0};
 
   $scope.$watch('added', function (added) {
     if (!added) return;
@@ -316,6 +319,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     $scope.interaction(INTERACTION.friend, {email: email}).then(
       function () {
         $scope.added = null;
+        $scope.state.showAddRmIdx = max(0, $scope.state.showAddRmIdx - 1);
         $scope.$broadcast('focusAddFriendsInput');
       },
       function () {
@@ -326,7 +330,9 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   $scope.reject = function (email) {
     $scope.errorLabelKey = '';
     $scope.interaction(INTERACTION.reject, {email: email}).then(
-      null,
+      function () {
+        $scope.state.showAddRmIdx = max(0, $scope.state.showAddRmIdx - 1);
+      },
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
       });
