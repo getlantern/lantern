@@ -1,7 +1,7 @@
 # Set [![GoDoc](https://godoc.org/github.com/fatih/set?status.png)](http://godoc.org/github.com/fatih/set) [![Build Status](https://travis-ci.org/fatih/set.png)](https://travis-ci.org/fatih/set)
 
 Set is a basic and simple, hash-based, *thread safe*,  **Set** data structure
-implementation in Go. The thread safety encompasses all operations on one set.
+implementation in Go (Golang). The thread safety encompasses all operations on one set.
 Operations on multiple sets are consistent in that the elements of each set
 used was valid at exactly one point in time between the start and the end of
 the operation. Because it's thread safe, you can use it concurrently with your
