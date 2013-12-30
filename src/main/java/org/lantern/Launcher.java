@@ -21,8 +21,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.eclipse.swt.SWTError;
-import org.eclipse.swt.widgets.Display;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.http.GeoIp;
@@ -207,29 +205,8 @@ public class Launcher {
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
 
         configureCipherSuites();
-        final Display display;
-        if (uiDisabled) {
-            display = null;
-            preInstanceWatch.stop();
-        } else {
-            Display.setAppName("Lantern Beta");
-            display = DisplayWrapper.getDisplay();
-            preInstanceWatch.stop();
-            // Never show the splash screen on startup, even if setup is
-            // not complete.
-            if (!launchD) {
-                /*
-                splashScreen = instance(SplashScreen.class);
-                final Stopwatch splashWatch = 
-                        StopwatchManager.getStopwatch("Splash-Screen-Init", 
-                            STOPWATCH_LOG, STOPWATCH_GROUP);
-                splashWatch.start();
-                splashScreen.init(display);
-                splashWatch.stop();
-                */
-            }
-        }
-
+        preInstanceWatch.stop();
+        
         model = instance(Model.class);
         configureLoggly();
         set = model.getSettings();
@@ -313,31 +290,6 @@ public class Launcher {
         friendsHandler = instance(FriendsHandler.class);
         
         startServices();
-
-        // This is necessary to keep the tray/menu item up in the case
-        // where we're not launching a browser.
-        // OX: YourKit was reporting deadlocks here.  This seems like a
-        // potentially expensive busy loop
-        if (display != null) {
-            LOG.debug("Looping on display");
-            while (!display.isDisposed ()) {
-                if (!display.readAndDispatch ()) display.sleep ();
-            }
-        } else if (!SystemUtils.IS_OS_MAC_OSX) {
-            LOG.debug("No display?");
-            
-            // We just wait here because depending on the OS and what threads
-            // happen to have started, it's possible there are no more 
-            // non-daemon threads at this point, in which case the JVM will
-            // just exit.
-            synchronized (this) {
-                try {
-                    wait();
-                } catch (final InterruptedException e) {
-                    LOG.debug("Interrupted");
-                }
-            }
-        }
     }
 
     /**
@@ -698,13 +650,7 @@ public class Launcher {
                 "\nUSER_COUNTRY: "+SystemUtils.USER_COUNTRY +
                 "\nUSER_LANGUAGE: "+SystemUtils.USER_LANGUAGE +
                 "\n\n"+msg, t);
-        if (t instanceof SWTError || msg.contains("SWTError")) {
-            System.out.println(
-                "To run without a UI, run lantern with the --" +
-                Cli.OPTION_DISABLE_UI +
-                " command line argument");
-        }
-        else if (t instanceof UnsatisfiedLinkError &&
+        if (t instanceof UnsatisfiedLinkError &&
             msg.contains("Cannot load 32-bit SWT libraries on 64-bit JVM")) {
             messageService.showMessage("Architecture Error",
                 "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");

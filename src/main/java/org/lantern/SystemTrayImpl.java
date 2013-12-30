@@ -75,6 +75,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
 
     @Override
     public void start() {
+        log.debug("Starting system tray");
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

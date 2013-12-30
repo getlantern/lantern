@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.lantern.DisplayWrapper;
+//import org.lantern.DisplayWrapper;
 import org.lantern.MessageService;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
@@ -55,12 +55,12 @@ public class SwtMessageService implements MessageService {
     public int askQuestion(final String title, final String question, 
         final int style) {
         final AtomicInteger response = new AtomicInteger();
-        DisplayWrapper.getDisplay().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                response.set(askQuestionOnThread(title, question, style));
-            }
-        });
+//        DisplayWrapper.getDisplay().syncExec(new Runnable() {
+//            @Override
+//            public void run() {
+//                response.set(askQuestionOnThread(title, question, style));
+//            }
+//        });
         log.info("Returned from sync exec");
         return response.get();
     }
@@ -68,14 +68,15 @@ public class SwtMessageService implements MessageService {
     private int askQuestionOnThread(final String title, 
         final String question, final int style) {
         log.info("Creating display...");
-        final Shell boxShell = new Shell(DisplayWrapper.getDisplay());
-        log.info("Created display...");
-        final MessageBox messageBox = new MessageBox (boxShell, style);
-        messageBox.setText(title);
-        messageBox.setMessage(question);
-        final int result = messageBox.open();
-        boxShell.dispose();
-        return result;
+//        final Shell boxShell = new Shell(DisplayWrapper.getDisplay());
+//        log.info("Created display...");
+//        final MessageBox messageBox = new MessageBox (boxShell, style);
+//        messageBox.setText(title);
+//        messageBox.setMessage(question);
+//        final int result = messageBox.open();
+//        boxShell.dispose();
+//        return result;
+        return 0;
     }
 
     @Override
