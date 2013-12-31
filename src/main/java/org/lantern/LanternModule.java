@@ -80,9 +80,6 @@ public class LanternModule extends AbstractModule {
     
     @Override
     protected void configure() {
-        //install policy files before anything gets loaded
-        LanternUtils.installPolicyFiles();
-
         SASLAuthentication.registerSASLMechanism("X-OAUTH2",
             LanternSaslGoogleOAuth2Mechanism.class);
 
