@@ -81,7 +81,7 @@ public class FallbackTray implements SystemTray {
     public void fallback() {
         log.debug("App Indicator tray is not available.");
         if (model.getSettings().isUiEnabled() && nonLinuxTray.isSupported()) {
-            log.debug("Falling back to SWT Tray.");
+            log.debug("Falling back to Java Tray.");
             nonLinuxTray.createTray();
         }
         else {

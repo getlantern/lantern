@@ -101,6 +101,15 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
 
     @Override
     public void createTray() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                doCreateTray();
+            }
+        });
+    }
+
+    private void doCreateTray() {
         tray = SystemTray.getSystemTray();
         if (tray == null) {
             log.warn("The system tray is not available");
