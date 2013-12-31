@@ -9,7 +9,7 @@
   <url>https://github.com/getlantern/lantern</url>
 
   <properties>
-    <skipTests>true</skipTests>
+    <skipTests>false</skipTests>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <slf4j.version>1.7.2</slf4j.version>
