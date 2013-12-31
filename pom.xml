@@ -286,12 +286,6 @@
     </dependency>
 
     <dependency>
-      <groupId>${swt.groupId}</groupId>
-      <artifactId>${arch.artifactId}</artifactId>
-      <version>4.2.1</version>
-    </dependency>
-
-    <dependency>
       <groupId>net.sourceforge.jdpapi</groupId>
       <artifactId>jdpapi-java</artifactId>
       <version>1.0.1</version>
@@ -782,7 +776,6 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-linux</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
 	<java.library.path>lib/linux/x86_64</java.library.path>
@@ -796,7 +789,6 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
 	<java.library.path />
@@ -810,7 +802,6 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.win32.win32</swt.groupId>
         <unix.artifactId>unix-java-x86</unix.artifactId> 
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>

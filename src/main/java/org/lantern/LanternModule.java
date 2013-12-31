@@ -50,7 +50,7 @@ import org.lantern.state.SyncStrategy;
 import org.lantern.state.Transfers;
 import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
-import org.lantern.ui.SwtMessageService;
+import org.lantern.ui.SwingMessageService;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -92,7 +92,7 @@ public class LanternModule extends AbstractModule {
         bind(StatsReporter.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
-        bind(MessageService.class).to(SwtMessageService.class);
+        bind(MessageService.class).to(SwingMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
 
         bind(FriendsHandler.class).to(DefaultFriendsHandler.class);

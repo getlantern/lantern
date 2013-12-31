@@ -100,9 +100,8 @@ public class Launcher {
         }
 
         @Override
-        public int askQuestion(String title, String message, int typeFlag) {
-            showMessage(title, message);
-            return 0;
+        public boolean askQuestion(String title, String message) {
+            return false;
         }
     };
 
@@ -222,7 +221,6 @@ public class Launcher {
                 messageService.showMessage("Operating System Error",
                         "We're sorry but Lantern requires a 64 bit operating " +
                         "system on OSX! Exiting");
-                
                 System.exit(0);
             }
         }

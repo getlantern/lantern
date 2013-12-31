@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
-import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
@@ -341,10 +340,9 @@ public class Proxifier implements ProxyService, LanternService {
                     "in order to access the web.\n\nTry again?";
                     
                     // TODO: Don't think this will work on Linux.
-                    final int response = 
-                        messageService.askQuestion("Proxy Settings", question,
-                        SWT.APPLICATION_MODAL | SWT.ICON_WARNING | SWT.RETRY | SWT.CANCEL);
-                    if (response == SWT.CANCEL) {
+                    boolean retry = 
+                        messageService.askQuestion("Proxy Settings", question);
+                    if (!retry) {
                         finished = true;
                     }
                     else {
