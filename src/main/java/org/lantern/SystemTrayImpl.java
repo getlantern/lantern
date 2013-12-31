@@ -225,7 +225,8 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
             return null;
         }
 
-        return (new ImageIcon(iconFile.getAbsolutePath())).getImage();
+        return (new ImageIcon(iconFile.getAbsolutePath())).getImage()
+                .getScaledInstance(16, 16, Image.SCALE_SMOOTH);
     }
 
     @Override
