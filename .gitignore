@@ -10,6 +10,7 @@ lantern_getexceptional.txt
 nbactions.xml
 dependency-reduced-pom.xml
 .sass-cache
+*.log
 log.txt*
 target/
 dashboard/assets/*.pac
