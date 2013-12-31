@@ -40,6 +40,9 @@ func TestToValue(t *testing.T) {
 
 	value, _ := otto.ToValue(nil)
 	Is(value, "undefined")
+
+	value, _ = otto.ToValue((*byte)(nil))
+	Is(value, "undefined")
 }
 
 func TestToBoolean(t *testing.T) {

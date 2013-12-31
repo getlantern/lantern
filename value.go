@@ -356,7 +356,12 @@ func toValue(value interface{}) Value {
 		}
 	default:
 		{
-			value := reflect.Indirect(reflect.ValueOf(value))
+			value := reflect.ValueOf(value)
+			if value.IsNil() {
+				return UndefinedValue()
+			}
+
+			value = reflect.Indirect(value)
 			toValue_reflectValuePanic(value.Interface(), value.Kind())
 		}
 	}
