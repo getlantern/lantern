@@ -58,6 +58,19 @@ public class AppIndicatorTray implements SystemTray {
                 libgobject = (Gobject) Native.loadLibrary("gobject-2.0", Gobject.class);
                 libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
                 //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
+                
+                Pointer mainContext = libglib.g_main_context_new();
+                final Pointer mainLoop = libglib
+                        .g_main_loop_new(mainContext, 0);
+                new Thread() {
+                    public void run() {
+                        try {
+                            libglib.g_main_loop_run(mainLoop);
+                        } catch (Throwable t) {
+                            LOG.warn("Unable to run main loop", t);
+                        }
+                    }
+                }.start();
             }
             catch (final Throwable ex) {
                 LOG.warn("no supported version of appindicator libs found", ex);
