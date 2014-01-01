@@ -123,7 +123,7 @@ public class LanternModule extends AbstractModule {
         //bind(PeerProxyManager.class).to(DefaultPeerProxyManager.class);
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
-        bind(AppIndicatorTray.class);
+        //bind(AppIndicatorTray.class);
         bind(GetModeProxy.class);
         bind(StatsUpdater.class);
         bind(ConnectivityChecker.class);
@@ -189,11 +189,11 @@ public class LanternModule extends AbstractModule {
     @Provides @Singleton
     SystemTray provideSystemTray(final BrowserService browserService,
         final Model model) {
-        if (SystemUtils.IS_OS_LINUX) {
-            return new AppIndicatorTray(browserService, model);
-        } else {
+        //if (SystemUtils.IS_OS_LINUX) {
+//            return new AppIndicatorTray(browserService, model);
+//        } else {
             return new SystemTrayImpl(browserService, model);
-        }
+//        }
     }
 
     @Provides @Singleton
