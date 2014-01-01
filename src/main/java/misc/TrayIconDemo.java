@@ -103,6 +103,7 @@ public class TrayIconDemo {
             tray.add(trayIcon);
         } catch (AWTException e) {
             System.out.println("TrayIcon could not be added.");
+            e.printStackTrace();
             return;
         }
         
