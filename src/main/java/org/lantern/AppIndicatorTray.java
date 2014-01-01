@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
-import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
@@ -60,13 +60,10 @@ public class AppIndicatorTray implements SystemTray {
                 //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
                 
                 libgtk.gtk_init(0, null);
-                Pointer mainContext = libglib.g_main_context_new();
-                final Pointer mainLoop = libglib
-                        .g_main_loop_new(mainContext, 0);
                 new Thread() {
                     public void run() {
                         try {
-                            libglib.g_main_loop_run(mainLoop);
+                            libgtk.gtk_main();
                         } catch (Throwable t) {
                             LOG.warn("Unable to run main loop", t);
                         }
