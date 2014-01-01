@@ -59,6 +59,7 @@ public class AppIndicatorTray implements SystemTray {
                 libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
                 //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
                 
+                libgtk.gtk_init(0, null);
                 Pointer mainContext = libglib.g_main_context_new();
                 final Pointer mainLoop = libglib
                         .g_main_loop_new(mainContext, 0);
