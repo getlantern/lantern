@@ -44,7 +44,7 @@ public class StatsReporter implements LanternService {
     // admin stuff
     private static final String LIBRATO_API_TOKEN = "7c10ebf9e817e301cc578141658284bfa9f4a15bf938143b386142f854be0afe";
 
-    private static final int LIBRATO_REPORTING_INTERVAL = 60;
+    private static final int LIBRATO_REPORTING_INTERVAL = 600;
 
     private final Model model;
     private final ClientStats stats;
