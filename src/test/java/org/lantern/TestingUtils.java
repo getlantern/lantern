@@ -193,7 +193,7 @@ public class TestingUtils {
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
-            friendsHandler, networkTracker, new Messages(model), censored);
+            friendsHandler, networkTracker, censored);
         return xmppHandler;
     }
 
@@ -225,8 +225,6 @@ public class TestingUtils {
     public static HttpClientFactory newHttClientFactory() {
         final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        final LanternSocketsUtil socketsUtil =
-            new LanternSocketsUtil(null, trustStore);
         
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 

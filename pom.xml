@@ -3,13 +3,13 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.0-sagecloud2-SNAPSHOT</version>
+  <version>1.1.0-beta2-SNAPSHOT</version>
   <name>Lantern</name>
   <description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
   <url>https://github.com/getlantern/lantern</url>
 
   <properties>
-    <skipTests>true</skipTests>
+    <skipTests>false</skipTests>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <slf4j.version>1.7.2</slf4j.version>
@@ -36,7 +36,7 @@
     <connection>scm:git:git://github.com/getlantern/lantern.git</connection>
     <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
     <url>scm:git:git@github.com:getlantern/lantern.git</url>
-    <tag>lantern-1.1.0-sagecloud1</tag>
+    <tag>lantern-1.1.0-beta1</tag>
   </scm>
 
   <dependencies>
@@ -224,12 +224,6 @@
 
     <dependency>
       <groupId>org.getlantern</groupId>
-      <artifactId>exceptional4j</artifactId>
-      <version>0.0.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.getlantern</groupId>
       <artifactId>winproxy4j</artifactId>
       <version>0.0.1</version>
     </dependency>
@@ -292,12 +286,6 @@
     </dependency>
 
     <dependency>
-      <groupId>${swt.groupId}</groupId>
-      <artifactId>${arch.artifactId}</artifactId>
-      <version>4.2.1</version>
-    </dependency>
-
-    <dependency>
       <groupId>net.sourceforge.jdpapi</groupId>
       <artifactId>jdpapi-java</artifactId>
       <version>1.0.1</version>
@@ -356,6 +344,11 @@
 	    <groupId>com.librato.metrics</groupId>
 	    <artifactId>metrics-librato</artifactId>
 	    <version>3.0.1.RC1</version>
+	</dependency>
+	<dependency>
+	    <groupId>com.maxmind.geoip</groupId>
+	    <artifactId>geoip-api</artifactId>
+	    <version>1.2.11</version>
 	</dependency>
   </dependencies>
 
@@ -733,7 +726,6 @@
       </activation>
       <build>
         <plugins>
-<!--
           <plugin>
             <groupId>com.github.wvengen</groupId>
             <artifactId>proguard-maven-plugin</artifactId>
@@ -773,7 +765,6 @@
               <proguardInclude>install/lantern.pro</proguardInclude>
             </configuration>
           </plugin>
--->
         </plugins>
       </build>
     </profile>
@@ -785,7 +776,6 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-linux</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
 	<java.library.path>lib/linux/x86_64</java.library.path>
@@ -799,7 +789,6 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
 	<java.library.path />
@@ -813,7 +802,6 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.win32.win32</swt.groupId>
         <unix.artifactId>unix-java-x86</unix.artifactId> 
         <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
         <natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>

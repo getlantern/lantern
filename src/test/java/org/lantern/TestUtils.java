@@ -212,7 +212,7 @@ public class TestUtils {
 
     public static LanternModule newTestLanternModule() throws Exception {
         final LanternModule lm = new LanternModule(new String[]{});
-        lm.setGeoIpLookupService(new GeoIpLookupService(false));
+        lm.setGeoIpLookupService(new GeoIpLookupService());
         lm.setUpnpService(new UpnpService() {
             @Override
             public void shutdown() {}
