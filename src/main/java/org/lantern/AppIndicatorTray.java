@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
-import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
@@ -58,6 +58,8 @@ public class AppIndicatorTray implements SystemTray {
                 libgobject = (Gobject) Native.loadLibrary("gobject-2.0", Gobject.class);
                 libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
                 //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
+                
+                libgtk.gtk_init(0, null);
             }
             catch (final Throwable ex) {
                 LOG.warn("no supported version of appindicator libs found", ex);
@@ -191,6 +193,15 @@ public class AppIndicatorTray implements SystemTray {
         libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
     
         Events.register(this);
+        new Thread() {
+            public void run() {
+                try {
+                    libgtk.gtk_main();
+                } catch (Throwable t) {
+                    LOG.warn("Unable to run main loop", t);
+                }
+            }
+        }.start();
         this.active = true;
     }
 

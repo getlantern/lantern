@@ -14,9 +14,6 @@
     public protected *;
 }
 
--keep class org.eclipse.swt.** {
-    *;
-}
 -keep class dbusjava_localized,
             dbusjava_localized_en_GB
 
