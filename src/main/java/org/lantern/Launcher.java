@@ -313,12 +313,12 @@ public class Launcher {
                 } catch (final Exception e) {
                     LOG.error("Could not start proxy tracker?", e);
                 }
-                //xmpp.start();
+                xmpp.start();
                 getModeProxy.start();
                 giveModeProxy.start();
 
                 syncService.start();
-                //statsUpdater.start();
+                statsUpdater.start();
                 
                 if (LanternUtils.isFallbackProxy()) {
                     statsReporter.start();
@@ -326,7 +326,7 @@ public class Launcher {
                 
                 gnomeAutoStart();
                 
-                //autoConnect();
+                autoConnect();
                 
                 friendsHandler.start();
             }

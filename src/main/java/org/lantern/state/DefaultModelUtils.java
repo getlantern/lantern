@@ -77,14 +77,13 @@ public class DefaultModelUtils implements ModelUtils {
             // It's possible it's configured in some other way, so keep
             // checking
         }
-        return this.model.getSettings().getMode() != null;
-//        final String refresh = this.model.getSettings().getRefreshToken();
-//        final boolean oauth = this.model.getSettings().isUseGoogleOAuth2();
-//        final boolean hasRefresh = StringUtils.isNotBlank(refresh);
-//        
-//        LOG.debug("Has refresh: "+hasRefresh);
-//        LOG.debug("Has oauth: "+oauth);
-//        return oauth && hasRefresh;
+        final String refresh = this.model.getSettings().getRefreshToken();
+        final boolean oauth = this.model.getSettings().isUseGoogleOAuth2();
+        final boolean hasRefresh = StringUtils.isNotBlank(refresh);
+        
+        LOG.debug("Has refresh: "+hasRefresh);
+        LOG.debug("Has oauth: "+oauth);
+        return oauth && hasRefresh;
     }
     
     @Override

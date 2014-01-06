@@ -81,7 +81,7 @@ public class ModelIo extends Storage<Model> {
             read.setCountryService(countryService);
             if (!LanternUtils.persistCredentials()) {
                 if (read.getModal() != Modal.welcome) {
-                    //read.setModal(Modal.authorize);
+                    read.setModal(Modal.authorize);
                 }
             }
 
