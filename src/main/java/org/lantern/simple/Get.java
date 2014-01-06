@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * A really basic Get mode proxy and that trusts all Give proxies.
+ * A really basic Get mode proxy that trusts all Give proxies. Mostly for
+ * experimentation purposes.
  * </p>
  * 
  * <p>

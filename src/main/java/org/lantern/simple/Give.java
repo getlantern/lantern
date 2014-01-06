@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * <p>
  * A really basic Give mode proxy that listens with both TCP and UDT and trusts
- * all Get proxies.
+ * all Get proxies. Mostly for experimentation purposes.
  * </p>
  * 
  * <p>
@@ -36,8 +36,20 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <pre>
- * ./launch org.lantern.simple.Give 46000 ../too-many-secrets/littleproxy_keystore.jks
+ * ./launch org.lantern.simple.Give 70.113.95.23 46000 46001 46002 ../too-many-secrets/littleproxy_keystore.jks "534#^#$523590)"
  * </pre>
+ * 
+ * <ul>
+ * <li>70.113.95.23 is the proxy's public IP address</li>
+ * <li>46000 is the HTTP listen port</li>
+ * <li>46001 is the HTTPS listen port</li>
+ * <li>46002 is the UDT listen port</li>
+ * <li>../too-many-secrets/littleproxy_keystore.jks is the keystore with the
+ * proxy's cert</li>
+ * <li>534#^#$523590) is the auth token that this proxy expects from its clients
+ * </li>
+ * </ul>
+ * 
  */
 public class Give {
     private static final Logger LOG = LoggerFactory.getLogger(Give.class);
