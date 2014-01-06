@@ -413,6 +413,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     private void friendNotification(final ClientFriend friend) {
+        // Ox: friend notifications are disabled at the moment
+        if (true) {
+            return;
+        }
         final Settings settings = model.getSettings();
         if (!settings.isUiEnabled()) {
             log.debug("UI not enabled");
