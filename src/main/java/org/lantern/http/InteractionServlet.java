@@ -766,8 +766,6 @@ public class InteractionServlet extends HttpServlet {
         if (set.getMode() == null || set.getMode() == Mode.unknown) {
             if (censored.isCensored()) {
                 set.setMode(Mode.get);
-            } else {
-                set.setMode(Mode.give);
             }
         } else if (set.getMode() == Mode.give && censored.isCensored()) {
             // want to set the mode to get now so that we don't mistakenly

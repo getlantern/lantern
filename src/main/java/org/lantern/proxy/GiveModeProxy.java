@@ -9,6 +9,9 @@ import javax.net.ssl.SSLSession;
 import org.lantern.ClientStats;
 import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
+import org.lantern.event.Events;
+import org.lantern.event.ModeChangedEvent;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
@@ -22,17 +25,26 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
+ * <p>
  * HTTP proxy server for remote requests to Lantern (i.e. in Give Mode).
+ * </p>
+ * 
+ * <p>
+ * GiveModeProxy starts and stops itself based on {@link ModeChangedEvent}s so
+ * that it's only running when Lantern is in Give mode.
+ * </p>
  */
 @Singleton
 public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Model model;
+    private volatile boolean running = false;
 
     @Inject
     public GiveModeProxy(
@@ -130,6 +142,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     }
                 }));
         this.model = model;
+        Events.register(this);
         log.info(
                 "Creating give mode proxy on port {}, running as fallback: {}",
                 model.getSettings().getServerPort(),
@@ -137,7 +150,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
     }
 
     @Override
-    public void start() {
+    public synchronized void start() {
         super.start();
 
         if (TransportProtocol.TCP == model.getSettings().getProxyProtocol()) {
@@ -151,6 +164,30 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     .start();
             log.info("Added additional unencrypted server for TCP on port {}",
                     next.getPort());
+        }
+
+        running = true;
+        log.info("Started GiveModeProxy");
+    }
+
+    @Override
+    public synchronized void stop() {
+        super.stop();
+        running = false;
+        log.info("Stopped GiveModeProxy");
+    }
+
+    @Subscribe
+    public void modeChanged(ModeChangedEvent event) {
+        log.debug("Got mode change");
+        if (Mode.give == event.getNewMode()) {
+            if (!running) {
+                start();
+            }
+        } else {
+            if (running) {
+                stop();
+            }
         }
     }
 }

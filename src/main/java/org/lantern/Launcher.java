@@ -33,6 +33,7 @@ import org.lantern.proxy.GiveModeProxy;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
@@ -315,7 +316,10 @@ public class Launcher {
                 }
                 xmpp.start();
                 getModeProxy.start();
-                giveModeProxy.start();
+                // Immediately start giveModeProxy if we're already in Give mode
+                if (Mode.give == model.getSettings().getMode()) {
+                    giveModeProxy.start();
+                }
 
                 syncService.start();
                 statsUpdater.start();
