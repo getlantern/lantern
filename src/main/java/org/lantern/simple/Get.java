@@ -16,6 +16,7 @@ import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersAdapter;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
+import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.SslEngineSource;
 import org.littleshoot.proxy.TransportProtocol;
@@ -51,20 +52,28 @@ public class Get {
     private String authToken;
     private TransportProtocol transportProtocol = TransportProtocol.TCP;
     private SslEngineSource sslEngineSource = new SimpleSslEngineSource();
+    private HttpProxyServer server;
 
     public static void main(String[] args) throws Exception {
         new Get(args).start();
     }
 
     public Get(String[] args) {
-        this.localPort = Integer.parseInt(args[0]);
-        String[] parts = args[1].split(":");
-        this.giveAddress = new InetSocketAddress(parts[0],
-                Integer.parseInt(parts[1]));
-        this.authToken = args[2];
-        if (args.length > 3) {
-            transportProtocol = TransportProtocol.valueOf(args[3]);
-        }
+        this(Integer.parseInt(args[0]),
+                new InetSocketAddress(args[1].split(":")[0],
+                        Integer.parseInt(args[1].split(":")[1])),
+                args[2],
+                args.length > 3 ? TransportProtocol.valueOf(args[3]) : null);
+    }
+
+    public Get(int localPort,
+            InetSocketAddress giveAddress,
+            String authToken,
+            TransportProtocol transportProtocol) {
+        this.localPort = localPort;
+        this.giveAddress = giveAddress;
+        this.authToken = authToken;
+        this.transportProtocol = transportProtocol;
     }
 
     public void start() {
@@ -123,6 +132,10 @@ public class Get {
                 "Starting Get proxy on port {} that connects upstream with {}",
                 localPort,
                 transportProtocol);
-        bootstrap.start();
+        server = bootstrap.start();
+    }
+    
+    public void stop() {
+        server.stop();
     }
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
@@ -30,9 +31,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
+import org.lantern.simple.Get;
 import org.lantern.state.Model;
 import org.lantern.util.LanternHostNameVerifier;
 import org.littleshoot.proxy.SslEngineSource;
+import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +47,19 @@ import org.slf4j.LoggerFactory;
 public class FallbackProxyTest {
 
     private Logger log = LoggerFactory.getLogger(getClass());
-    private static final int SERVER_PORT = LanternUtils.randomPort();
+    private static final String GET_HOST = "127.0.0.1";
+    private static final int GET_PORT = 8787;
+    private static String GIVE_HOST;
+    private static final int GIVE_PORT = LanternUtils.randomPort();
+    private static final String PROXY_AUTH_TOKEN = "AUTHMEBABY!";
 
     private static String originalFallbackKeystorePath;
     
     // We have to make sure to clean up the keystore path to avoid affecting
     // other tests when tests are run together.
     @BeforeClass 
-    public static void setUpClass() {  
+    public static void setUpClass() throws Exception {
+        GIVE_HOST = NetworkUtils.getLocalHost().getHostAddress();
         originalFallbackKeystorePath = LanternUtils.getFallbackKeystorePath();
         // This is the keystore that's used on the server side -- a test 
         // dummy of littleproxy_keystore.jks that's used in production.
@@ -92,11 +100,14 @@ public class FallbackProxyTest {
         // will send different keys to the client side (see comments above on 
         // using a test keystore).
         final GiveModeProxy give = startGiveModeProxy(trustStore, ksm);
+        final Get get = startGetModeProxy();
         
         try {
-            log.debug("Connecting on port: {}", SERVER_PORT);
-            if (!LanternUtils.waitForServer(
-                    NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, 4000)) {
+            log.debug("Connecting on port: {}", GIVE_PORT);
+            if (!LanternUtils.waitForServer(GIVE_HOST, GIVE_PORT, 4000)) {
+                fail("Could not get server on expected port?");
+            }
+            if (!LanternUtils.waitForServer(GET_HOST, GET_PORT, 4000)) {
                 fail("Could not get server on expected port?");
             }
             
@@ -109,39 +120,24 @@ public class FallbackProxyTest {
             final SSLSocketFactory clientFactory = util.newTlsSocketFactoryJavaCipherSuites();
             //final SSLSocketFactory client = util.newTlsSocketFactory(IceConfig.getCipherSuites());
             
-            final HttpHost proxy = new HttpHost(NetworkUtils.getLocalHost().getHostAddress(), SERVER_PORT, "https");
+            final HttpHost proxy = new HttpHost(GET_HOST, GET_PORT);
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-            
-            final org.apache.http.conn.ssl.SSLSocketFactory socketFactory = 
-                    new org.apache.http.conn.ssl.SSLSocketFactory(clientFactory, 
-                        new LanternHostNameVerifier(proxy)) {
-                    
-                    @Override
-                    protected void prepareSocket(final SSLSocket socket) throws IOException {
-                        // This is necessary because calls to the Google auth
-                        // library that wraps an HTTP client apparently
-                        // can corrupt the set cipher suites, causing 
-                        // "no cipher suites in common". To reproduce:
-                        // 1) Run on Java 6 (might fail on 7 too, but not sure)
-                        // 2) Disable the setEnabledCipherSuites call below
-                        // 3) Run DefaultXmppHandlerTest followed by 
-                        // FallbackProxyTest in the same suite,for example 
-                        // "TestsThatFailTogether.java" as of this writing.
-                        final String[] suites = clientFactory.getDefaultCipherSuites();
-                        log.debug("Default suites are: {}", Arrays.asList(suites));
-                        socket.setEnabledCipherSuites(suites);
-                    }
-                };
-            final Scheme sch = new Scheme("https", 443, socketFactory);
-            httpClient.getConnectionManager().getSchemeRegistry().register(sch);
-            
             hitSite(httpClient, "https://www.google.com");
             
             // Just make sure there's nothing that pops up with making a second
             // request.
             hitSite(httpClient, "https://www.wikipedia.org");
         } finally {
-            give.stop();
+            try {
+                get.stop();
+            } catch (Exception e) {
+                // ignore
+            }
+            try {
+                give.stop();
+            } catch (Exception e) {
+                // ignore
+            }
             ksm.stop();
         }
     }
@@ -188,6 +184,7 @@ public class FallbackProxyTest {
     private void hitSite(DefaultHttpClient httpClient, final String url) 
             throws Exception {
         final HttpGet get = new HttpGet(url);
+        get.addHeader(ProxyHolder.X_LANTERN_AUTH_TOKEN, PROXY_AUTH_TOKEN);
         
         try {
             log.debug("About to execute get!");
@@ -213,7 +210,8 @@ public class FallbackProxyTest {
             final LanternKeyStoreManager keyStoreManager) {
         LanternUtils.setFallbackProxy(true);
         final Model model = new Model();
-        model.getSettings().setServerPort(SERVER_PORT);
+        model.getSettings().setServerPort(GIVE_PORT);
+        model.getSettings().setProxyAuthToken(PROXY_AUTH_TOKEN);
         final SslEngineSource sslEngineSource = 
             new CertTrackingSslEngineSource(trustStore, keyStoreManager);
         PeerFactory peerFactory = mock(PeerFactory.class);
@@ -223,5 +221,14 @@ public class FallbackProxyTest {
         
         proxy.start();
         return proxy;
+    }
+    
+    private Get startGetModeProxy() throws Exception {
+        Get get = new Get(GET_PORT,
+                new InetSocketAddress(GIVE_HOST, GIVE_PORT),
+                PROXY_AUTH_TOKEN,
+                TransportProtocol.TCP);
+        get.start();
+        return get;
     }
 }
