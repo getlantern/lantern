@@ -69,7 +69,7 @@ public interface ProxyTracker extends LanternService {
     void onError(URI peerUri);
 
     /**
-     * Return the address for the configured fallback proxy from fallback.json.
+     * Return the configured fallback proxy from fallback.json.
      * 
      * @return
      */
