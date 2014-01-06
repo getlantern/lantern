@@ -279,7 +279,7 @@ public class TestingUtils {
      * @param work
      * @return
      */
-    public static <T> T doWithWithGetModeProxy(Callable<T> work) throws Exception {
+    public static <T> T doWithGetModeProxy(Callable<T> work) throws Exception {
         Censored censored = new DefaultCensored();
         CountryService countryService = new CountryService(censored);
         Model model = new Model(countryService);

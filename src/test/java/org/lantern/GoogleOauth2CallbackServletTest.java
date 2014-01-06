@@ -16,7 +16,7 @@ public class GoogleOauth2CallbackServletTest {
 
     @Test
     public void testGoogleApis() throws Exception {
-        int code = TestingUtils.doWithWithGetModeProxy(new Callable<Integer>() {
+        int code = TestingUtils.doWithGetModeProxy(new Callable<Integer>() {
            @Override
             public Integer call() throws Exception {
                final Censored censored = new DefaultCensored();

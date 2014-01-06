@@ -56,7 +56,7 @@ public class DefaultXmppHandlerTest {
         settings.setRefreshToken(TestingUtils.getRefreshToken());
         settings.setUseGoogleOAuth2(true);
         
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
            @Override
             public Void call() throws Exception {
                final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);

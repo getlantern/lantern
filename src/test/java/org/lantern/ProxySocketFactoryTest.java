@@ -19,7 +19,7 @@ public class ProxySocketFactoryTest {
         Launcher.configureCipherSuites();
         System.setProperty("javax.net.debug", "ssl");
         
-        Socket sock = TestingUtils.doWithWithGetModeProxy(new Callable<Socket>() {
+        Socket sock = TestingUtils.doWithGetModeProxy(new Callable<Socket>() {
             @Override
             public Socket call() throws Exception {
              // Test creating a socket through our fallback proxy.

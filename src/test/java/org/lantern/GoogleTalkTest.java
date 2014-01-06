@@ -17,7 +17,7 @@ public class GoogleTalkTest {
     
     @Test
     public void testGoogleTalk() throws Exception {
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 SASLAuthentication.registerSASLMechanism("X-OAUTH2",

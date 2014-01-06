@@ -67,7 +67,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testVCard() throws Exception {
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing vcard");
@@ -109,7 +109,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testGoogleStunServers() throws Exception {
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing STUN servers...");
@@ -150,7 +150,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testOtrMode() throws Exception {
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing OTR mode...");

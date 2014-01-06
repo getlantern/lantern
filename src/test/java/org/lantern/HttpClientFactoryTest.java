@@ -43,7 +43,7 @@ public class HttpClientFactoryTest {
         //System.setProperty("javax.net.debug", "ssl");
         
         Launcher.configureCipherSuites();
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
            @Override
             public Void call() throws Exception {
                final HttpClientFactory factory = 
@@ -92,7 +92,7 @@ public class HttpClientFactoryTest {
         final HttpClient client = factory.newClient();
         TestingUtils.assertIsUsingGetModeProxy(client);
 
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
            @Override
             public Void call() throws Exception {
                 testExceptional(client);

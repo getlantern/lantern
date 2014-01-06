@@ -30,7 +30,7 @@ public class FriendEndpointTest {
     
     @Test
     public void testFriendEndpiont() throws Exception {
-        TestingUtils.doWithWithGetModeProxy(new Callable<Void>() {
+        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 final HttpClientFactory httpClientFactory = 
