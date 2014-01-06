@@ -25,7 +25,7 @@ public class InternalState {
     private Modal lastModal;
 
     private final Modal[] modalSeqGive = {
-        Modal.authorize, Modal.lanternFriends, Modal.proxiedSites,
+        Modal.authorize, Modal.lanternFriends,
         Modal.finished, Modal.none,
     };
 
