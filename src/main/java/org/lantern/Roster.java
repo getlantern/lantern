@@ -207,7 +207,7 @@ public class Roster implements RosterListener {
             log.debug("Not sending kscope advertisement in censored mode");
             return;
         }
-        // only advertise if we're in GET mode
+        // don't advertise if we're in GET mode
         if(model.getSettings().getMode() != Mode.give) {
             log.debug("Not sending kscope advertisement in get mode");
             return;
