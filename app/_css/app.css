@@ -7319,12 +7319,6 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
   background-color: whitesmoke;
 }
 
-.friend-warning {
-  font-size: 11.9px;
-  color: #999999;
-  margin-top: 4px;
-}
-
 #finished-autoReport {
   margin: 20px 0 10px 35px;
   color: #666666;

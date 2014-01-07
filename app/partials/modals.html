@@ -259,11 +259,11 @@
   </div>
   <div class="modal-body" id="lanternFriends">
     <div>
-      <p>
-        <strong>{{ 'LANTERN_FRIENDS_PROMPT' | i18n }}</strong>
-        <small ng-bind-html="'LANTERN_FRIENDS_EXP_INTRO' | i18n"></small>
+      <p class="small" ng-bind-html="'LANTERN_FRIENDS_EXP_INTRO' | i18n"></p>
+      <p class="small error-colored">
+        <i class="icon-warning-sign warning-colored"></i>
+        {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
       </p>
-      <p class="small bold">{{ inGiveMode && 'LANTERN_FRIENDS_EXP_GIVE' || 'LANTERN_FRIENDS_EXP_GET'  | i18n }}</p>
     </div>
 
     <div class="addFriendsControls">
@@ -340,11 +340,6 @@
     </div>
   </div>
   <div class="modal-footer">
-    <div class="pull-left friend-warning">
-      <i class="icon-warning-sign warning-colored"></i>
-      {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
-    </div>
-
     <button id="continueFromFriends" class="btn btn-primary"
       ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
   </div>
