@@ -271,8 +271,6 @@ public class Launcher {
         statsUpdater = instance(StatsUpdater.class);
         statsReporter = instance(StatsReporter.class);
 
-        model.getConnectivity().setInternet(false);
-        
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
         if (stunServers != null && !stunServers.isEmpty()) {
