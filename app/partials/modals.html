@@ -71,7 +71,7 @@
       <div class="beta">{{ 'BETA' | i18n }}</div><!-- XXX remove this when we graduate from beta -->
     </div>
     <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
-    <div ng-show="model.connectivity.internet != false">
+    <div ng-show="model.connectivity.internet == true">
       <div ng-show="inCensoringCountry">
         <button type="button" class="btn btn-large btn-get-inverse enter-get-mode" ng-click="interaction(MODE.get)"
           focus-on="show">{{ 'GET_ACCESS' | i18n }}</button>
@@ -90,6 +90,9 @@
     </div>
     <div class="internetRequired fadeInOut" ng-hide="model.connectivity.internet != false">
       {{ 'INTERNET_REQUIRED' | i18n }}
+    </div>
+    <div ng-hide="model.connectivity.internet != null">
+        <img src="img/spinner_black.gif">
     </div>
   </div>
 </div>
