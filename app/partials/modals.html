@@ -336,7 +336,7 @@
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
       </div>
 
-      <div class="error error-colored pagination-centered" ui-toggle="errorLabelKey">
+      <div class="error error-colored pagination-centered" ng-show="errorLabelKey" style="margin-top:30px">
         {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
       </div>
     </div>
