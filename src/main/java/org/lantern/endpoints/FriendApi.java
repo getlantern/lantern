@@ -2,14 +2,16 @@ package org.lantern.endpoints;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.lantern.event.Events;
 import org.lantern.messages.FriendResponse;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
+import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,20 +24,13 @@ public class FriendApi {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private static final String BASE = 
-        LanternClientConstants.CONTROLLER_URL + "/_ah/api/friend/v1/friend/";
-    
-    /**
-     * We store this separately because it does internal caching that can
-     * speed things up on subsequent calls, or so they say.
-     */
-    private final ObjectMapper mapper = new ObjectMapper();
-
     private final OauthUtils oauth;
+    private final Model model;
     
     @Inject
-    public FriendApi(final OauthUtils oauth) {
+    public FriendApi(OauthUtils oauth, Model model) {
         this.oauth = oauth;
+        this.model = model;
     }
     
     /**
@@ -45,14 +40,14 @@ public class FriendApi {
      * @return List of all entities persisted.
      * @throws IOException If there's an error making the call to the server.
      */
-    public FriendResponse<ClientFriend[]> listFriends() throws IOException {
+    public ClientFriend[] listFriends() throws IOException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
-            return new FriendResponse(false, 0, null);
+            return null;
         }
-        final String url = BASE + "list";
+        final String url = baseUrl() + "list";
         final String json = this.oauth.getRequest(url);
-        return FriendResponse.fromJson(json, ClientFriend[].class);
+        return processResponse(json, ClientFriend[].class);
     }
 
     /**
@@ -63,14 +58,14 @@ public class FriendApi {
      * @return The entity with primary key id.
      * @throws IOException If there's an error making the call to the server.
      */
-    public FriendResponse<ClientFriend> getFriend(final long id) throws IOException {
+    public ClientFriend getFriend(final long id) throws IOException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return null;
         }
-        final String url = BASE+"get/"+id;
+        final String url = baseUrl()+"get/"+id;
         final String json = this.oauth.getRequest(url);
-        return FriendResponse.fromJson(json, ClientFriend.class);
+        return processResponse(json, ClientFriend.class);
     }
 
     /**
@@ -81,14 +76,14 @@ public class FriendApi {
      * @return The inserted entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public FriendResponse<ClientFriend> insertFriend(final ClientFriend friend)
+    public ClientFriend insertFriend(final ClientFriend friend)
             throws IOException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
-            return new FriendResponse(true, 0, friend);
+            return friend;
         }
         log.debug("Inserting friend: {}", friend);
-        final String url = BASE+"insert";
+        final String url = baseUrl()+"insert";
         return post(url, friend);
     }
 
@@ -99,21 +94,21 @@ public class FriendApi {
      * @return The updated entity.
      * @throws IOException If there's an error making the call to the server.
      */
-    public FriendResponse<ClientFriend> updateFriend(final ClientFriend friend) throws IOException {
+    public ClientFriend updateFriend(final ClientFriend friend) throws IOException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
-            return new FriendResponse(true, 0, friend);
+            return friend;
         }
         log.debug("Updating friend: {}", friend);
-        final String url = BASE+"update";
+        final String url = baseUrl()+"update";
         return post(url, friend);
     }
 
-    private FriendResponse<ClientFriend> post(final String url, final Friend friend) 
+    private ClientFriend post(final String url, final Friend friend) 
             throws IOException {
         final String json = JsonUtils.jsonify(friend);
         final String content = this.oauth.postRequest(url, json);
-        return FriendResponse.fromJson(content, ClientFriend.class);
+        return processResponse(content, ClientFriend.class);
     }
 
     /**
@@ -129,10 +124,25 @@ public class FriendApi {
             log.debug("Ignoring friends call from fallback");
             return;
         }
-        final String url = BASE+"remove/"+id;
+        final String url = baseUrl()+"remove/"+id;
         
         // The responses to this simply return no entity body (204 No Content).
         this.oauth.deleteRequest(url);
+    }
+    
+    private String baseUrl() {
+        return LanternClientConstants.CONTROLLER_URL + "/_ah/api/friend/v2/friend/";
+    }
+    
+    private <P> P processResponse(String json, Class<P> payloadType) {
+        FriendResponse<P> resp = FriendResponse.fromJson(json, payloadType);
+        if (!resp.isSuccess()) {
+            throw new RuntimeException(
+                    "Request failed - maybe friending quota was exceeded?");
+        }
+        model.setRemainingFriendingQuota(resp.getRemainingFriendingQuota());
+        Events.sync(SyncPath.FRIENDING_QUOTA, model);
+        return resp.getPayload();
     }
 
 }

@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.lantern.LanternClientConstants;
 import org.lantern.TestingUtils;
@@ -29,19 +28,20 @@ public class FriendEndpointTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     @Test
-    public void testFriendEndpiont() throws Exception {
+    public void testFriendEndpoint() throws Exception {
         TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
+                LanternClientConstants.setControllerId("oxlanternctrl");
                 final HttpClientFactory httpClientFactory = 
                         TestingUtils.newHttClientFactory();
                 final Model model = TestingUtils.newModel();
                 model.getSettings().setMode(Mode.give);
                 final OauthUtils utils = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
-                final FriendApi api = new FriendApi(utils);
+                final FriendApi api = new FriendApi(utils, model);
                 
                 // First just clear the existing friends.
-                List<ClientFriend> friends = api.listFriends();
+                ClientFriend[] friends = api.listFriends();
                     
                 log.debug("Deleting all friends from: {}", friends);
                 for (final ClientFriend f : friends) {
@@ -93,9 +93,9 @@ public class FriendEndpointTest {
                 
                 //Thread.sleep(2000);
                 
-                final List<ClientFriend> postDelete = api.listFriends();
+                final ClientFriend[] postDelete = api.listFriends();
                 
-                assertEquals("Did not successfully delete friends?", 0, postDelete.size());
+                assertEquals("Did not successfully delete friends?", 0, postDelete.length);
                 
                 final ClientFriend inserted = api.insertFriend(friend);
                 
@@ -106,7 +106,7 @@ public class FriendEndpointTest {
                 //Thread.sleep(4000);
                 assertEquals(updatedName, updated.getEmail());
                 
-                final List<ClientFriend> newList = api.listFriends();
+                final ClientFriend[] newList = api.listFriends();
                 for (final ClientFriend f : newList) {
                     assertEquals(updatedName, f.getEmail());
                     
@@ -119,8 +119,8 @@ public class FriendEndpointTest {
                     //Thread.sleep(100);
                 }
                 
-                final List<ClientFriend> empty = api.listFriends();
-                assertEquals(0, empty.size());
+                final ClientFriend[] empty = api.listFriends();
+                assertEquals(0, empty.length);
                 return null;
             }
         });
