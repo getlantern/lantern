@@ -317,25 +317,31 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       return;
     }
     $scope.errorLabelKey = '';
+    $scope.pendingFriendUpdate = true;
     $scope.interaction(INTERACTION.friend, {email: email}).then(
       function () {
         $scope.added = null;
+        $scope.pendingFriendUpdate = false;
         $scope.state.showAddRmIdx = max(0, $scope.state.showAddRmIdx - 1);
         $scope.$broadcast('focusAddFriendsInput');
       },
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
+        $scope.pendingFriendUpdate = false;
       });
   };
 
   $scope.reject = function (email) {
     $scope.errorLabelKey = '';
+    $scope.pendingFriendUpdate = true;
     $scope.interaction(INTERACTION.reject, {email: email}).then(
       function () {
         $scope.state.showAddRmIdx = max(0, $scope.state.showAddRmIdx - 1);
+        $scope.pendingFriendUpdate = false;
       },
       function () {
         $scope.errorLabelKey = 'ERROR_OPERATION_FAILED';
+        $scope.pendingFriendUpdate = false;
       });
   };
 

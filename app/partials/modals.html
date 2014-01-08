@@ -331,7 +331,7 @@
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
           placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
-          ng-disabled="!model.remainingFriendingQuota"
+          ng-disabled="!model.remainingFriendingQuota || pendingFriendUpdate"
           ng-model="added" ui-select2="select2opts">
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
       </div>
@@ -343,12 +343,17 @@
   </div>
   <div class="modal-footer">
     <div class="modal-status" ng-show="model.remainingFriendingQuota >= 0">
-      <div ng-show="model.remainingFriendingQuota > 0">
-        {{'CAN_ADD_N_MORE_FRIENDS'|i18n:model.remainingFriendingQuota}}
+      <div ng-show="pendingFriendUpdate">
+        <img src="img/spinner.gif" style="height:16px; width:16px">
       </div>
-      <div ng-show="model.remainingFriendingQuota == 0">
-        <div class="bold grayDark">{{'CAN_ADD_NO_MORE_FRIENDS'|i18n}}</div>
-        <div class="smaller gray">{{'MAY_GET_MORE_FRIENDS'|i18n}}</div>
+      <div ng-hide="pendingFriendUpdate">
+        <div ng-show="model.remainingFriendingQuota > 0">
+          {{'CAN_ADD_N_MORE_FRIENDS'|i18n:model.remainingFriendingQuota}}
+        </div>
+        <div ng-show="model.remainingFriendingQuota == 0">
+          <div class="bold grayDark">{{'CAN_ADD_NO_MORE_FRIENDS'|i18n}}</div>
+          <div class="smaller gray">{{'MAY_GET_MORE_FRIENDS'|i18n}}</div>
+        </div>
       </div>
     </div>
     <button id="continueFromFriends" class="btn btn-primary"
