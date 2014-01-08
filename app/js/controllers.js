@@ -310,6 +310,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   }, true);
 
   $scope.add = function (email) {
+    if ($scope.pendingFriendUpdate) return;
     if (!model.remainingFriendingQuota) return;
     email = email || $scope.added.email;
     if (!email) {
@@ -332,6 +333,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   };
 
   $scope.reject = function (email) {
+    if ($scope.pendingFriendUpdate) return;
     $scope.errorLabelKey = '';
     $scope.pendingFriendUpdate = true;
     $scope.interaction(INTERACTION.reject, {email: email}).then(

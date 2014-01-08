@@ -7226,6 +7226,7 @@ textarea {
   opacity: 0;
   color: #999999;
   text-decoration: none;
+  padding: 0;
 }
 #friendlist .entry.suggested {
   color: black;

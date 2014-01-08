@@ -297,16 +297,16 @@
                 </span>
                 <div ng-class="{'pull-right': true, 'btn-group': true, transparent: state.showAddRmIdx != $index}">
                   <button ng-click="add(friend.email)"
-                          class="btn btn-mini btn-success {{!model.remainingFriendingQuota && 'disabled' || ''}}"
+                          class="btn btn-mini btn-success {{(pendingFriendUpdate || !model.remainingFriendingQuota) && 'disabled' || ''}}"
                           tooltip-placement="bottom"
                           tooltip-html-unsafe="{{!model.remainingFriendingQuota && ('CAN_ADD_NO_MORE_FRIENDS' | i18n) || ''}}">{{'ADD' | i18n}}</button>
-                  <button ng-click="reject(friend.email)" class="btn btn-mini">{{'DISMISS' | i18n}}</button>
+                  <button ng-click="reject(friend.email)" class="btn btn-mini" ng-disabled="pendingFriendUpdate">{{'DISMISS' | i18n}}</button>
                 </div>
               </div>
             </li>
             <li ng-repeat="friend in displayedFriends" class="entry status-{{ friend.status }} coloredByConnectedStatus {{friend.connectedStatus}}">
               <div>
-                <a class="reject" ng-click="reject(friend.email)">×</a>
+                <button class="btn btn-link reject" ng-disabled="pendingFriendUpdate" ng-click="reject(friend.email)">×</button>
                 <span class="vcard">
                   <span class="fn">{{ friend.name }}</span>
                   <span class="email">{{ friend.email }}</span>
