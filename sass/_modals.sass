@@ -164,17 +164,22 @@
   .hasSearchText .select2-container
     display: none
 
+#friendCounts
+  +small
+  position: absolute
+  left: 52px
+  margin-top: 10px
+
 #currentFriendsHeading
+  +small
+  color: $grayLight
   display: inline-block
-  margin: 3px 0 0 22px
-  float: left
+  margin-right: 10px
 
 #suggestedFriendsHeading
+  +small
   +info-colored
   display: inline-block
-  margin: 5px 0 0 22px
-  float: left
-  clear: both
 
 //.below-friendSuggestionList
   +single-transition(opacity, 0.3s, ease)
@@ -204,7 +209,6 @@
 //#currentFriends, #friendSuggestionList
 #friendlist
   +no-bullets
-  min-height: 54px
   max-height: 195px
   background-color: whitesmoke
   overflow-y: scroll

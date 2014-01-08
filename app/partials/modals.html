@@ -274,17 +274,13 @@
 
       <div ng-show="model.friends.length >= 0 && (nfriends || nfriendSuggestions)">
         <div ng-class="{hasSearchText: !!searchText}">
-          <!--
-          <h4 id="currentFriendsHeading" class="gray">
-            <span ng-hide="searchText">{{ 'NFRIENDS' | i18n:nfriends }}</span>
-            <span ng-show="searchText">{{ 'MATCHING_FRIENDS' | i18n:displayedFriends.length }}</span>
-          </h4>
-          <h4 id="suggestedFriendsHeading" ng-show="nfriendSuggestions">
-            {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
-          </h4>
-          -->
+          <div id="friendCounts" ng-hide="searchActive || searchText">
+            <div id="currentFriendsHeading" ng-show="nfriends">{{ 'NFRIENDS' | i18n:nfriends }}</div>
+            <div id="suggestedFriendsHeading" ng-show="nfriendSuggestions">{{ 'NSUGGESTED' | i18n:nfriendSuggestions }}</div>
+          </div>
 
           <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
+            ng-mouseenter="searchActive=true" ng-mouseleave="searchActive=!!searchText"
             id="friendsListSearch" class="{{searchText && 'non' || ''}}empty">
 
           <ul id="friendlist">

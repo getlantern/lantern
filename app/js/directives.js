@@ -20,6 +20,7 @@ var directives = angular.module('app.directives', [])
       scope.$watch(val, function (val) {
         if (val) {
           $timeout(function () {
+            debugger;
             element.select2('focus', true);
           }, 0);
         }

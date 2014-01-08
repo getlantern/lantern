@@ -7176,23 +7176,28 @@ textarea {
   display: none;
 }
 
+#friendCounts {
+  font-size: 13.3px;
+  position: absolute;
+  left: 52px;
+  margin-top: 10px;
+}
+
 #currentFriendsHeading {
+  font-size: 13.3px;
+  color: #999999;
   display: inline-block;
-  margin: 3px 0 0 22px;
-  float: left;
+  margin-right: 10px;
 }
 
 #suggestedFriendsHeading {
+  font-size: 13.3px;
   color: #3a87ad !important;
   display: inline-block;
-  margin: 5px 0 0 22px;
-  float: left;
-  clear: both;
 }
 
 #friendlist {
   list-style: none;
-  min-height: 54px;
   max-height: 195px;
   background-color: whitesmoke;
   overflow-y: scroll;
