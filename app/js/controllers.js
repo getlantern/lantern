@@ -310,6 +310,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   }, true);
 
   $scope.add = function (email) {
+    if (!model.remainingFriendingQuota) return;
     email = email || $scope.added.email;
     if (!email) {
       log.error('missing email');

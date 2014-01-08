@@ -300,7 +300,10 @@
                   <span class="email">{{ friend.email }}</span>
                 </span>
                 <div ng-class="{'pull-right': true, 'btn-group': true, transparent: state.showAddRmIdx != $index}">
-                  <button ng-click="add(friend.email)" class="btn btn-mini btn-success">{{'ADD' | i18n}}</button>
+                  <button ng-click="add(friend.email)"
+                          class="btn btn-mini btn-success {{!model.remainingFriendingQuota && 'disabled' || ''}}"
+                          tooltip-placement="bottom"
+                          tooltip-html-unsafe="{{!model.remainingFriendingQuota && ('CAN_ADD_NO_MORE_FRIENDS' | i18n) || ''}}">{{'ADD' | i18n}}</button>
                   <button ng-click="reject(friend.email)" class="btn btn-mini">{{'DISMISS' | i18n}}</button>
                 </div>
               </div>
