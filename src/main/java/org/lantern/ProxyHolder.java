@@ -4,6 +4,7 @@ import static org.littleshoot.util.FiveTuple.Protocol.*;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Date;
@@ -280,11 +281,15 @@ public final class ProxyHolder extends ChainedProxyAdapter
 
     @Override
     public void connectionFailed(Throwable cause) {
-        // TODO: For some reason the stack trace we get here just includes
-        // the message -- we really need the full stack along with causes.
-        LOG.info("Could not connect to proxy at ip: "+
-                this.fiveTuple.getRemote(), cause);
-        proxyTracker.onCouldNotConnect(this);
+        String message = cause != null ? cause.getMessage() : null;
+        LOG.debug("Got connectionFailed from LittleProxy: {}", message);
+        if (cause instanceof ConnectException) {
+            LOG.info("Could not connect to proxy at ip: "+
+                    this.fiveTuple.getRemote(), cause);
+            proxyTracker.onCouldNotConnect(this);
+        } else {
+            LOG.debug("Ignoring non-ConnectException");
+        }
     }
 
     @Override
