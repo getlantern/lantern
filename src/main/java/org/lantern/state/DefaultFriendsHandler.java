@@ -209,7 +209,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             } catch (final IOException e) {
                 this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
                 remove(email);
-                Events.sync(SyncPath.FRIENDS, vals(friends()));
+                syncFriends();
             }
             
         } else {
