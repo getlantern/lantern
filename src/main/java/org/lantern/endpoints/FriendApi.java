@@ -142,7 +142,7 @@ public class FriendApi {
                     "Request failed - maybe friending quota was exceeded?");
         }
         model.setRemainingFriendingQuota(resp.getRemainingFriendingQuota());
-        Events.sync(SyncPath.FRIENDING_QUOTA, model);
+        Events.sync(SyncPath.FRIENDING_QUOTA, resp.getRemainingFriendingQuota());
         return resp.payload();
     }
 
