@@ -2,11 +2,9 @@ package org.lantern.endpoints;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.junit.Test;
-import org.lantern.LanternClientConstants;
 import org.lantern.TestingUtils;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
@@ -32,7 +30,6 @@ public class FriendEndpointTest {
         TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                LanternClientConstants.setControllerId("oxlanternctrl");
                 final HttpClientFactory httpClientFactory = 
                         TestingUtils.newHttClientFactory();
                 final Model model = TestingUtils.newModel();

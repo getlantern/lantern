@@ -134,15 +134,16 @@ public class FriendApi {
         return LanternClientConstants.CONTROLLER_URL + "/_ah/api/friend/v2/friend/";
     }
     
-    private <P> P processResponse(String json, Class<P> payloadType) {
+    private <P> P processResponse(String json, Class<P> payloadType)
+            throws IOException {
         FriendResponse<P> resp = FriendResponse.fromJson(json, payloadType);
         if (!resp.isSuccess()) {
-            throw new RuntimeException(
+            throw new IOException(
                     "Request failed - maybe friending quota was exceeded?");
         }
         model.setRemainingFriendingQuota(resp.getRemainingFriendingQuota());
         Events.sync(SyncPath.FRIENDING_QUOTA, model);
-        return resp.getPayload();
+        return resp.payload();
     }
 
 }
