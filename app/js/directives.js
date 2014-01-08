@@ -20,9 +20,6 @@ var directives = angular.module('app.directives', [])
       scope.$watch(val, function (val) {
         if (val) {
           $timeout(function () {
-            try {
-              if (element[0].disabled) return;
-            } catch (e) {}
             element.select2('focus', true);
           }, 0);
         }
@@ -33,9 +30,6 @@ var directives = angular.module('app.directives', [])
     return function(scope, element, attr) {
       var msg = attr['select2FocusOnBroadcast'];
       scope.$on(msg, function () {
-        try {
-          if (element[0].disabled) return;
-        } catch (e) {}
         element.select2('focus', true);
       });
     }
