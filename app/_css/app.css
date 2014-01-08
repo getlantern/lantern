@@ -7002,6 +7002,13 @@ textarea {
   margin-bottom: 0;
 }
 
+.modal-status {
+  width: 360px;
+  text-align: left;
+  margin-top: 4px;
+  float: left;
+}
+
 .control-extra {
   margin-left: 30px;
   font-size: 13.3px;
@@ -7136,12 +7143,13 @@ textarea {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  -webkit-transition: opacity 0.3s ease;
-  transition: opacity 0.3s ease;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
   float: right;
-  width: 230px;
+  width: 30px;
   height: 27px;
   margin: 0 0 7px;
+  border-color: white;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
@@ -7152,11 +7160,9 @@ textarea {
 #friendsListSearch::-webkit-search-cancel-button {
   -webkit-appearance: searchfield-cancel-button;
 }
-#friendsListSearch:focus, #friendsListSearch:hover {
-  opacity: 1 !important;
-}
-#friendsListSearch.empty {
-  opacity: 0.5;
+#friendsListSearch:focus, #friendsListSearch:hover, #friendsListSearch.nonempty {
+  width: 500px !important;
+  border-color: #cccccc !important;
 }
 
 #lanternFriends {
@@ -7164,7 +7170,7 @@ textarea {
   max-height: 445px;
 }
 #lanternFriends .addFriendsControls {
-  padding: 15px;
+  padding: 0 15px 15px;
 }
 #lanternFriends .hasSearchText .select2-container {
   display: none;
@@ -7186,7 +7192,9 @@ textarea {
 
 #friendlist {
   list-style: none;
+  min-height: 54px;
   max-height: 195px;
+  background-color: whitesmoke;
   overflow-y: scroll;
   border-radius: 8px;
   border: 2px solid #cccccc;

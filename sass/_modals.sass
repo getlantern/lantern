@@ -39,6 +39,12 @@
 .modal form
   margin-bottom: 0
 
+.modal-status
+  width: 360px
+  text-align: left
+  margin-top: 4px
+  float: left
+
 .control-extra
   +indented(30px)
   +small
@@ -134,26 +140,27 @@
 
 #friendsListSearch // override bootstrap
   +ctb-box-sizing(border-box)
-  +single-transition(opacity, 0.3s, ease)
+  +single-transition(all, 0.5s, ease)
   float: right
-  width: 230px
+  //width: 230px
+  width: 30px
   height: 1.5 * $baseLineHeight
   margin: 0 0 7px
+  border-color: #fff
   +border-radius(18px)
   &::-webkit-search-decoration
     -webkit-appearance: searchfield-decoration
   &::-webkit-search-cancel-button
     -webkit-appearance: searchfield-cancel-button
-  &:focus, &:hover
-    opacity: 1 !important
-  &.empty
-    opacity: .5
+  &:focus, &:hover, &.nonempty
+    width: 500px !important
+    border-color: #ccc !important
 
 #lanternFriends
   min-height: 115px
   max-height: 445px // override bootstrap
   .addFriendsControls
-    padding: 15px
+    padding: 0 15px 15px
   .hasSearchText .select2-container
     display: none
 
@@ -197,7 +204,9 @@
 //#currentFriends, #friendSuggestionList
 #friendlist
   +no-bullets
+  min-height: 54px
   max-height: 195px
+  background-color: whitesmoke
   overflow-y: scroll
   border-radius: 8px
   border: 2px solid #ccc

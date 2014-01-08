@@ -368,6 +368,11 @@ the backend maintains on the frontend through comet publications:
     <td><strong>setupComplete</strong><br><em>boolean</em></td>
     <td>Whether the user has completed Lantern setup</td>
   </tr>
+    <tr>
+    <td><strong>remainingFriendingQuota</strong><br><em>int ≥ 0</em></td>
+    <td>How many more friends the user can add. Adding friends is limited
+           to discourage promiscuous friending.</td>
+  </tr>
   <tr>
     <td><strong>connectivity</strong><br><em>object</em></td>
     <td>
