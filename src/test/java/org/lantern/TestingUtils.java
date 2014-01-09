@@ -146,7 +146,7 @@ public class TestingUtils {
         
         final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
         final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
-        final FriendApi api = new FriendApi(oauth);
+        final FriendApi api = new FriendApi(oauth, model);
         
         final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker = new NetworkTracker<String, URI, ReceivedKScopeAd>();
         final FriendsHandler friendsHandler = 
@@ -224,7 +224,6 @@ public class TestingUtils {
 
     public static HttpClientFactory newHttClientFactory() {
         final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 

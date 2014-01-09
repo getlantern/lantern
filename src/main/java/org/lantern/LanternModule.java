@@ -66,6 +66,8 @@ public class LanternModule extends AbstractModule {
 
     private static final Logger log =
         LoggerFactory.getLogger(LanternModule.class);
+    
+    private static LanternModule s_instance;
 
     private NatPmpService natPmpService;
 
@@ -76,6 +78,11 @@ public class LanternModule extends AbstractModule {
     public LanternModule(final String[] args) {
         final Cli cli = new Cli(args);
         this.commandLine = cli.getParsedCommandLine();
+        s_instance = this;
+    }
+    
+    public static LanternModule getInstance() {
+        return s_instance;
     }
     
     @Override

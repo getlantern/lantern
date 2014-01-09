@@ -151,7 +151,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 
                 Collection<ClientFriend> friends = Collections.emptyList();
                 try {
-                    final List<ClientFriend> serverFriends = api.listFriends();
+                    final ClientFriend[] serverFriends = api.listFriends();
                     log.debug("All friends from server: {}", serverFriends);
                     for (final ClientFriend friend : serverFriends) {
                         tempFriends.put(friend.getEmail().toLowerCase(), friend);
@@ -209,6 +209,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
             } catch (final IOException e) {
                 this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
                 remove(email);
+                syncFriends();
             }
             
         } else {

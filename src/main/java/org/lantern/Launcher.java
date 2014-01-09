@@ -74,6 +74,8 @@ public class Launcher {
     public static final long START_TIME = System.currentTimeMillis();
     
     private static Logger LOG;
+    private static Launcher s_instance;
+    
     private boolean lanternStarted = false;
     private GetModeProxy getModeProxy;
     private GiveModeProxy giveModeProxy;
@@ -139,6 +141,11 @@ public class Launcher {
                 handleError(e, false);
             }
         });
+        s_instance = this;
+    }
+    
+    public static Launcher getInstance() {
+        return s_instance;
     }
 
     /**

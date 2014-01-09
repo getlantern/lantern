@@ -97,6 +97,8 @@ public class Model {
 
     private Collection<ClientFriend> friends;
 
+    private int remainingFriendingQuota = 0;
+    
     @JsonView({Run.class})
     private Transfers getTransfers() {
         return transfers;
@@ -378,5 +380,13 @@ public class Model {
     @JsonView({Run.class})
     public Collection<ClientFriend> getFriends() {
         return this.friends;
+    }
+    
+    public int getRemainingFriendingQuota() {
+        return remainingFriendingQuota;
+    }
+    
+    public void setRemainingFriendingQuota(int remainingFriendingQuota) {
+        this.remainingFriendingQuota = remainingFriendingQuota;
     }
 }
