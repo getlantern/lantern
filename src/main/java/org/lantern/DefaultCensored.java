@@ -27,31 +27,82 @@ public class DefaultCensored implements Censored {
 
     private static final Collection<String> CENSORED =
         new TreeSet<String>(Sets.newHashSet(
-            // These are taken from ONI data -- 11/16/11 - any country containing
-            // any type of censorship considered "substantial" or "pervasive".
-            "AE", // United Arab Emirates
-            "AM", // Armenia
-            "BH", // Bahrain
+            // Last updated 2013-12-19 based on discussion in:
+            // https://groups.google.com/forum/#!topic/lantern-devel/0dMPEVOLc68
+
+            // "biggies":
             "CN", // China
-            "CU", // Cuba
-            "ET", // Ethiopia
-            //"ID", // Indonesia
-            "IR", // Iran
-            "KP", // North Korea
-            "KR", // South Korea
-            "KW", // Kuwait
-            "MM", // Myanmar
-            "OM", // Oman
-            //"PK", // Pakistan
-            "PS", // Palestine
-            "QA", // Qatar
-            "SA", // Saudi Arabia
-            "SD", // Sudan
-            "SY", // Syria
-            "TM", // Turkmenistan
-            "UZ", // Uzbekistan
             "VN", // Vietnam
-            "YE" // Yemen
+            "IR", // Iran
+            "CU", // Cuba
+
+            // "all count":
+            "SY", // Syria
+            "SA", // Saudi Arabia
+            "BH", // Bahrain
+            "ET", // Ethiopia
+            "ER", // Eritrea [1]
+            "UZ", // Uzbekistan
+            "TM", // Turkmenistan
+            "PK", // Pakistan [1]
+            "TR"  // Turkey
+
+
+            // "some cybercensorship, but it’s either not much, nor not much
+            // that people care a lot about, or haphazard -- at any rate, it
+            // doesn’t tend to be bad enough to provoke the market for
+            // circumvention tools to develop/exist":
+//          "QA", // Qatar [2]
+//          "SD", // Sudan [2]
+//          "JO", // Jordan
+//          "AE", // United Arab Emirates [2]
+//          "RU", // Russia
+//          "TH", // Thailand
+//          "KH", // Cambodia
+//          "TJ", // Tajikistan
+//          "KZ", // Kazakhstan
+//          "MA", // Morocco
+//          "AF", // Afghanistan
+//          "ID", // Indonesia
+//          "IN", // India
+//          "LK", // Sri Lanka
+//          "KW"  // Kuwait [2]
+
+
+            // "Myanmar has no cybercensorship (or, no more than the US
+            // has—less, in fact). ONI’s data are waaaay out of date. (I was
+            // the original source of MM’s data, from when I ran the first
+            // rTurtle test here in 2005.)"
+//          "MM", // Myanmar [2]
+
+
+            // "BY censors one site which no one even knows about. BY takes
+            // censorship flak because during “events” (elections,
+            // demonstrations)—once or twice a year—it throttles Belarusians’
+            // access to the ~7 major indy BY news sites for about three days."
+//          "BY", // Belarus
+
+
+            // "KP doesn’t have any publicly accessible internet at all. So
+            // I wouldn’t include it in the “censoring” category. That I know
+            // of (second-hand stories from friends who’ve been), the internet
+            // available to expats in hotels isn’t censored."
+//          "KP", // North Korea [2]
+
+
+            // [1] not on our old list
+            // [2] on our old list
+
+
+
+            // on our old list, but not mentioned in the thread:
+//          "AM", // Armenia
+//          "KW", // Kuwait
+//          "OM", // Oman
+//          "PS", // Palestine
+//          "YE"  // Yemen
+//          "KR", // South Korea
+
         ));
 
     private final GeoIpLookupService lookupService;
