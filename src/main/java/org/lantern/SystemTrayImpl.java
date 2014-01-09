@@ -76,12 +76,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
     @Override
     public void start() {
         log.debug("Starting system tray");
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                createTray();
-            }
-        });
+        createTray();
     }
 
     @Override
@@ -127,7 +122,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
                 }
                 trayImage = newImage(imageName);
             }
-            TrayIcon trayIcon = new TrayIcon(trayImage);
+            this.trayIcon = new TrayIcon(trayImage);
             trayIcon.setToolTip(
                     tr("LANTERN") + " " + LanternClientConstants.VERSION);
 
@@ -198,6 +193,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
             @Override
             public void run() {
                 if (trayIcon == null) {
+                    log.warn("Tray icon not created yet?");
                     trayImage = image;
                 } else {
                     trayIcon.setImage(image);
