@@ -406,6 +406,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         model.getConnectivity().setNProxies(numberOfConnectedProxies);
         Events.sync(SyncPath.CONNECTIVITY_NPROXIES, numberOfConnectedProxies);
+        
+        if (numberOfConnectedProxies == 0) {
+            Events.asyncEventBus().post(
+                    new ProxyConnectionEvent(ConnectivityStatus.DISCONNECTED));
+        }
     }
 
     private void restoreTimedInProxies() {
