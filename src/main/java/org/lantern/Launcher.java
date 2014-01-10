@@ -73,6 +73,8 @@ public class Launcher {
 
     public static final long START_TIME = System.currentTimeMillis();
     
+    private static final String LOG4J_PROPS_PATH = "src/main/resources/log4j.properties";
+    
     private static Logger LOG;
     private static Launcher s_instance;
     
@@ -215,7 +217,9 @@ public class Launcher {
         preInstanceWatch.stop();
         
         model = instance(Model.class);
-        configureLoggly();
+        if (!isRunningFromCommandLine()) {
+            configureLoggly();
+        }
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -591,11 +595,9 @@ public class Launcher {
     }
 
     void configureDefaultLogger() {
-        final String propsPath = "src/main/resources/log4j.properties";
-        final File props = new File(propsPath);
-        if (props.isFile()) {
+        if (isRunningFromCommandLine()) {
             System.out.println("Running from main line");
-            PropertyConfigurator.configure(propsPath);
+            PropertyConfigurator.configure(LOG4J_PROPS_PATH);
             loggingInTestMode = true;
         } else {
             System.out.println("Not on main line...");
@@ -632,6 +634,7 @@ public class Launcher {
     }
     
     private void configureLoggly() {
+        LOG.info("Configuring LogglyAppender");
         LogglyAppender logglyAppender = new  LogglyAppender(model, loggingInTestMode);
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(logglyAppender);
@@ -774,5 +777,10 @@ public class Launcher {
 
     public Injector getInjector() {
         return injector;
+    }
+    
+    private boolean isRunningFromCommandLine() {
+        final File props = new File(LOG4J_PROPS_PATH);
+        return props.isFile();
     }
 }
