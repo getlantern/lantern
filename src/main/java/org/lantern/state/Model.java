@@ -383,7 +383,7 @@ public class Model {
     }
     
     public int getRemainingFriendingQuota() {
-        return remainingFriendingQuota;
+        return Math.max(remainingFriendingQuota, 0);
     }
     
     public void setRemainingFriendingQuota(int remainingFriendingQuota) {
