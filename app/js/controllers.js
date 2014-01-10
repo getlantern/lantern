@@ -157,11 +157,17 @@ function SettingsCtrl($scope, MODAL) {
   });
 }
 
-function AuthorizeCtrl($scope, MODAL) {
+function AuthorizeCtrl($scope, $timeout, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.authorize;
   });
+
+  var SPINNER_DURATION = 10000; // ms
+  $scope.signInClicked = function () {
+    $scope.showSpinner = true;
+    $timeout(function () { $scope.showSpinner = false; }, SPINNER_DURATION);
+  }
 }
 
 function AboutCtrl($scope, MODAL) {

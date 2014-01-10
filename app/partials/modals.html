@@ -132,7 +132,11 @@
     <p class="small gray indented">{{ 'INVITE_EMAIL' | i18n }}</p><!-- XXX remove this when we go to open beta -->
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary sign-in" href="{{ model.connectivity.gtalkOauthUrl }}" target="{{ model.mock && '_blank' || ''}}" focus-on="show">
+    <div class="modal-status" ng-show="showSpinner">
+      <img src="img/spinner.gif" class="sz16x16">
+    </div>
+    <a class="btn btn-primary sign-in" href="{{ model.connectivity.gtalkOauthUrl }}"
+       target="{{ model.mock && '_blank' || ''}}" focus-on="show" ng-click="signInClicked()">
       {{ 'SIGN_IN' | i18n }}
     </a>
   </div>
@@ -341,7 +345,7 @@
   <div class="modal-footer">
     <div class="modal-status" ng-show="model.remainingFriendingQuota >= 0">
       <div ng-show="pendingFriendUpdate">
-        <img src="img/spinner.gif" style="height:16px; width:16px">
+        <img src="img/spinner.gif" class="sz16x16">
       </div>
       <div ng-hide="pendingFriendUpdate">
         <div ng-show="model.remainingFriendingQuota > 0">

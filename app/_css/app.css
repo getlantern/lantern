@@ -6497,6 +6497,11 @@ small, .small {
   font-size: 14.7px;
 }
 
+.sz16x16 {
+  height: 16px;
+  width: 16px;
+}
+
 i.icon-external-link {
   margin-left: 2px;
 }
