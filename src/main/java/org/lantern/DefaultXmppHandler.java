@@ -663,6 +663,8 @@ public class DefaultXmppHandler implements XmppHandler,
                 // friend the user, we can approve the request.
 
 
+                LOG.debug("Adding subscription request");
+                friendsHandler.addIncomingSubscriptionRequest(pres.getFrom());
                 break;
             case subscribed:
                 break;
