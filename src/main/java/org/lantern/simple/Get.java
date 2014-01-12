@@ -79,13 +79,13 @@ public class Get extends CliProgram {
     }
 
     public Get(int localPort,
-            InetSocketAddress giveAddress,
+            String giveAddress,
             String authToken,
             TransportProtocol transportProtocol) {
         this(
                 new String[] {
                         "-" + OPT_PORT, Integer.toString(localPort),
-                        "-" + OPT_REMOTE, giveAddress.getHostString() + ":" + giveAddress.getPort(),
+                        "-" + OPT_REMOTE, giveAddress,
                         "-" + OPT_AUTHTOKEN, authToken,
                         "-" + OPT_PROTOCOL, transportProtocol.toString() });
     }

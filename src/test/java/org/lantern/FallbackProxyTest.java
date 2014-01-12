@@ -4,13 +4,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 
-import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.io.FileUtils;
@@ -23,7 +19,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.AfterClass;
@@ -33,7 +28,6 @@ import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.simple.Get;
 import org.lantern.state.Model;
-import org.lantern.util.LanternHostNameVerifier;
 import org.littleshoot.proxy.SslEngineSource;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.NetworkUtils;
@@ -225,7 +219,7 @@ public class FallbackProxyTest {
     
     private Get startGetModeProxy() throws Exception {
         Get get = new Get(GET_PORT,
-                new InetSocketAddress(GIVE_HOST, GIVE_PORT),
+                GIVE_HOST + ":" + GIVE_PORT,
                 PROXY_AUTH_TOKEN,
                 TransportProtocol.TCP);
         get.start();
