@@ -300,7 +300,7 @@
                   <span class="email">{{ friend.email }}</span>
                 </span>
                 <div ng-class="{'pull-right': true, 'btn-group': true, transparent: state.showAddRmIdx != $index}">
-                  <button ng-click="add(friend.email)" class="btn btn-mini btn-success" ng-disabled="pendingFriendUpdate">{{'ADD' | i18n}}</button>
+                  <button ng-click="add(friend.email)" class="btn btn-mini btn-success" ng-disabled="pendingFriendUpdate || !friend.freeToFriend">{{'ADD' | i18n}}</button>
                   <button ng-click="reject(friend.email)" class="btn btn-mini" ng-disabled="pendingFriendUpdate">{{'DISMISS' | i18n}}</button>
                 </div>
               </div>
