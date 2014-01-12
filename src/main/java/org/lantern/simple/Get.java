@@ -84,10 +84,10 @@ public class Get extends CliProgram {
             TransportProtocol transportProtocol) {
         this(
                 new String[] {
-                        Integer.toString(localPort),
-                        giveAddress.toString(),
-                        authToken,
-                        transportProtocol.toString() });
+                        "-" + OPT_PORT, Integer.toString(localPort),
+                        "-" + OPT_REMOTE, giveAddress.toString(),
+                        "-" + OPT_AUTHTOKEN, authToken,
+                        "-" + OPT_PROTOCOL, transportProtocol.toString() });
     }
 
     @Override
