@@ -85,7 +85,7 @@ public class Get extends CliProgram {
         this(
                 new String[] {
                         "-" + OPT_PORT, Integer.toString(localPort),
-                        "-" + OPT_REMOTE, giveAddress.toString(),
+                        "-" + OPT_REMOTE, giveAddress.getHostString() + ":" + giveAddress.getPort(),
                         "-" + OPT_AUTHTOKEN, authToken,
                         "-" + OPT_PROTOCOL, transportProtocol.toString() });
     }
