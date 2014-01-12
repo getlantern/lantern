@@ -31,7 +31,7 @@ public class ClientFriend implements Friend {
     
     private org.jivesoftware.smack.packet.Presence.Mode mode;
     
-    private boolean freeToFriend;
+    private boolean freeToFriend = false;
 
     public ClientFriend() {
     }

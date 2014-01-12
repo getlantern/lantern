@@ -1,15 +1,11 @@
 package org.lantern.state;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +17,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
@@ -40,7 +35,6 @@ import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
@@ -50,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -605,8 +598,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // of delivering subscription requests, so we just track them on the
         // client.
         if (friend != null) {
+            log.debug("Subscription request was from known friend");
             friend.setPendingSubscriptionRequest(true);
         } else {
+            log.debug("Subscription request was from unknown user");
             // This subscription request is from someone we don't know, and it
             // may not even be from lantern.
             final ClientFriend newFriend = new ClientFriend(from);
@@ -681,72 +676,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
         
         log.debug("BulkInvite: Found lantern-bulk-friends.txt");
-        if (!this.xmppHandler.isLoggedIn()) {
-            log.debug("BulkInvite: Unable to process lantern-bulk-friends.txt. Not logged in?");
-            return;
-        }
-        
-        log.debug("BulkInvite: Processing lantern-bulk-friends.txt");
-        final File processing = 
-            new File(file.getParentFile(), file.getName()+".processing");
-        
-        try {
-            Files.move(file, processing);
-        } catch (final IOException e) {
-            log.error("BulkInvite: Could not move bulk invites file to .processing?", e);
-            return;
-        }
-        
-        int numberOfPeopleInvited = 0;
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(processing)));
-            String email = null;
-            while ((email = br.readLine()) != null) {
-                email = email.trim();
-                log.debug("BulkInvite: Considering inviting: {}", email);
-                
-                if (StringUtils.isBlank(email)) {
-                    log.debug("BulkInvite: Skipping blank line");
-                    continue;
-                }
-                
-                if (!email.contains("@")) {
-                    log.warn("BulkInvite: Not an email, skipping: {}", email);
-                    continue;
-                }
-                
-                if (email.startsWith("#")) {
-                    log.debug("BulkInvite: Email commented out: {}", email);
-                    email = br.readLine();
-                    continue;
-                }
-                
-                final Friend friend = getOrCreateFriend(email.trim());
-                log.debug("BulkInvite: Invited {}", email);
-                numberOfPeopleInvited += 1;
-                
-                log.debug("BulkInvite: Invited {} so far", numberOfPeopleInvited);
-            }
-            
-            String message = String.format("Bulk invited %1$s people",
-                    numberOfPeopleInvited);
-            this.msgs.msg(message, MessageType.info, 5);
-            log.debug("BulkInvite: {}", message);
-        } catch (final IOException e) {
-            log.error("BulkInvite: Could not find file?", e);
-        } finally {
-            IOUtils.closeQuietly(br);
-            
-            File processed = 
-                    new File(file.getParentFile(), file.getName()+".processed");
-            try {
-                Files.move(processing, processed);
-            } catch (final IOException e) {
-                log.warn("BulkInvite: Could not move bulk invites file to .processed?", e);
-                return;
-            }  
-        }
+        log.warn("Bulk invites are currently disabled");
+        return;
     }
 
     @Override
