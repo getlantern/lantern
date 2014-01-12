@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.cli.Option;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
@@ -36,71 +37,34 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <pre>
- * ./launch org.lantern.simple.Give 70.113.95.23 46000 46001 46002 ../too-many-secrets/littleproxy_keystore.jks "534#^#$523590)"
+ * ./launch org.lantern.simple.Give -host 127.0.0.1 -http 46000 -https 46001 -udt 46002 -keystore ../too-many-secrets/littleproxy_keystore.jks -authtoken '534#^#$523590)'
  * </pre>
  * 
- * <ul>
- * <li>70.113.95.23 is the proxy's public IP address</li>
- * <li>46000 is the HTTP listen port</li>
- * <li>46001 is the HTTPS listen port</li>
- * <li>46002 is the UDT listen port</li>
- * <li>../too-many-secrets/littleproxy_keystore.jks is the keystore with the
- * proxy's cert</li>
- * <li>534#^#$523590) is the auth token that this proxy expects from its clients
- * </li>
- * </ul>
- * 
+ * <pre>
+ * usage: ./launch org.lantern.simple.Give [options]
+ *  -authtoken <arg>   Auth token that this proxy requires from its clients.
+ *                     Defaults to '534#^#$523590)'.
+ *  -host <arg>        (Required) The proxy's public hostname or ip address
+ *  -http <arg>        HTTP listen port.  Defaults to 80.
+ *  -https <arg>       HTTPS listen port.  Defaults to 443.
+ *  -keystore <arg>    Path to keystore containing proxy's cert.  Defaults to
+ *                     ../too-many-secrets/littleproxy_keystore.jks
+ *  -udt <arg>         UDT listen port.  Defaults to 9090.
+ * </pre>
  */
-public class Give {
+public class Give extends CliProgram {
     private static final Logger LOG = LoggerFactory.getLogger(Give.class);
     // Http Methods known to Apache
     private static final Set<HttpMethod> KNOWN_METHODS = new HashSet<HttpMethod>();
     private static final Set<HttpMethod> ALLOWED_METHODS = new HashSet<HttpMethod>();
     private static final Set<String> KNOWN_URIS = new HashSet<String>();
     private static final Set<String> BAD_URIS = new HashSet<String>();
-
-    static {
-        KNOWN_METHODS.add(new HttpMethod("BASELINE-CONTROL"));
-        KNOWN_METHODS.add(new HttpMethod("CHECKIN"));
-        KNOWN_METHODS.add(new HttpMethod("CHECKOUT"));
-        KNOWN_METHODS.add(new HttpMethod("CONNECT"));
-        KNOWN_METHODS.add(new HttpMethod("COPY"));
-        KNOWN_METHODS.add(new HttpMethod("DELETE"));
-        KNOWN_METHODS.add(new HttpMethod("GET"));
-        KNOWN_METHODS.add(new HttpMethod("HEAD"));
-        KNOWN_METHODS.add(new HttpMethod("LABEL"));
-        KNOWN_METHODS.add(new HttpMethod("LOCK"));
-        KNOWN_METHODS.add(new HttpMethod("MERGE"));
-        KNOWN_METHODS.add(new HttpMethod("MKACTIVITY"));
-        KNOWN_METHODS.add(new HttpMethod("MKCOL"));
-        KNOWN_METHODS.add(new HttpMethod("MKWORKSPACE"));
-        KNOWN_METHODS.add(new HttpMethod("MOVE"));
-        KNOWN_METHODS.add(new HttpMethod("OPTIONS"));
-        KNOWN_METHODS.add(new HttpMethod("PATCH"));
-        KNOWN_METHODS.add(new HttpMethod("POLL"));
-        KNOWN_METHODS.add(new HttpMethod("POST"));
-        KNOWN_METHODS.add(new HttpMethod("PROPFIND"));
-        KNOWN_METHODS.add(new HttpMethod("PROPPATCH"));
-        KNOWN_METHODS.add(new HttpMethod("PUT"));
-        KNOWN_METHODS.add(new HttpMethod("REPORT"));
-        KNOWN_METHODS.add(new HttpMethod("TRACE"));
-        KNOWN_METHODS.add(new HttpMethod("UNCHECKOUT"));
-        KNOWN_METHODS.add(new HttpMethod("UNLOCK"));
-        KNOWN_METHODS.add(new HttpMethod("UPDATE"));
-        KNOWN_METHODS.add(new HttpMethod("VERSION-CONTROL"));
-
-        ALLOWED_METHODS.add(HttpMethod.GET);
-        ALLOWED_METHODS.add(HttpMethod.HEAD);
-        ALLOWED_METHODS.add(HttpMethod.POST);
-        ALLOWED_METHODS.add(HttpMethod.OPTIONS);
-
-        BAD_URIS.add("/cgi-bin/php");
-        BAD_URIS.add("/cgi-bin/php5");
-
-        KNOWN_URIS.add("/");
-        KNOWN_URIS.add("/index");
-        KNOWN_URIS.add("/index.html");
-    }
+    private static final String OPT_HOST = "host";
+    private static final String OPT_HTTP_PORT = "http";
+    private static final String OPT_HTTPS_PORT = "https";
+    private static final String OPT_UDT_PORT = "udt";
+    private static final String OPT_KEYSTORE = "keystore";
+    private static final String OPT_AUTHTOKEN = "authtoken";
 
     private String host;
     private int httpsPort;
@@ -111,22 +75,54 @@ public class Give {
     private HttpProxyServer server;
 
     public static void main(String[] args) throws Exception {
+        initializeObfuscation();
         new Give(args).start();
     }
 
     public Give(String[] args) {
-        this.host = args[0];
-        this.httpPort = Integer.parseInt(args[1]);
-        this.httpsPort = Integer.parseInt(args[2]);
-        this.udtPort = Integer.parseInt(args[3]);
-        this.keyStorePath = args[4];
-        this.expectedAuthToken = args[5];
+        super(args);
+        this.host = cmd.getOptionValue(OPT_HOST);
+        this.httpPort = Integer.parseInt(cmd
+                .getOptionValue(OPT_HTTP_PORT, "80"));
+        this.httpsPort = Integer.parseInt(cmd.getOptionValue(OPT_HTTPS_PORT,
+                "443"));
+        this.udtPort = Integer.parseInt(cmd.getOptionValue(OPT_UDT_PORT,
+                "9090"));
+        this.keyStorePath = cmd.getOptionValue(OPT_KEYSTORE,
+                "../too-many-secrets/littleproxy_keystore.jks");
+        this.expectedAuthToken = cmd.getOptionValue(OPT_AUTHTOKEN,
+                "534#^#$523590)");
     }
 
     public void start() {
+        System.out.println(String
+                .format("Starting Give proxy with the following settings ...\n"
+                        +
+                        "Host: %1$s\n" +
+                        "HTTP port: %2$s\n" +
+                        "HTTPS port: %3$s\n" +
+                        "UDT port: %4$s\n" +
+                        "Keystore path: %5$s\n" +
+                        "Auth token: %6$s\n",
+                        host,
+                        httpPort,
+                        httpsPort,
+                        udtPort,
+                        keyStorePath,
+                        expectedAuthToken));
         startTcp();
         startUdt();
+    }
 
+    protected void initializeCliOptions() {
+        //@formatter:off
+        addOption(new Option(OPT_HOST, true, "(Required) The proxy's public hostname or ip address"), true);
+        addOption(new Option(OPT_HTTP_PORT, true, "HTTP listen port.  Defaults to 80."), false);
+        addOption(new Option(OPT_HTTPS_PORT, true, "HTTPS listen port.  Defaults to 443."), false);
+        addOption(new Option(OPT_UDT_PORT, true, "UDT listen port.  Defaults to 9090."), false);
+        addOption(new Option(OPT_KEYSTORE, true, "Path to keystore containing proxy's cert.  Defaults to ../too-many-secrets/littleproxy_keystore.jks"), false);
+        addOption(new Option(OPT_AUTHTOKEN, true, "Auth token that this proxy requires from its clients.  Defaults to '534#^#$523590)'."), false);
+        //@formatter:on
     }
 
     private void startTcp() {
@@ -465,4 +461,48 @@ public class Give {
             + "<hr>\n"
             + "<address>Apache Server at %1$s Port %2$s</address>\n"
             + "</body></html>\n";
+
+    private static void initializeObfuscation() {
+        KNOWN_METHODS.add(new HttpMethod("BASELINE-CONTROL"));
+        KNOWN_METHODS.add(new HttpMethod("CHECKIN"));
+        KNOWN_METHODS.add(new HttpMethod("CHECKOUT"));
+        KNOWN_METHODS.add(new HttpMethod("CONNECT"));
+        KNOWN_METHODS.add(new HttpMethod("COPY"));
+        KNOWN_METHODS.add(new HttpMethod("DELETE"));
+        KNOWN_METHODS.add(new HttpMethod("GET"));
+        KNOWN_METHODS.add(new HttpMethod("HEAD"));
+        KNOWN_METHODS.add(new HttpMethod("LABEL"));
+        KNOWN_METHODS.add(new HttpMethod("LOCK"));
+        KNOWN_METHODS.add(new HttpMethod("MERGE"));
+        KNOWN_METHODS.add(new HttpMethod("MKACTIVITY"));
+        KNOWN_METHODS.add(new HttpMethod("MKCOL"));
+        KNOWN_METHODS.add(new HttpMethod("MKWORKSPACE"));
+        KNOWN_METHODS.add(new HttpMethod("MOVE"));
+        KNOWN_METHODS.add(new HttpMethod("OPTIONS"));
+        KNOWN_METHODS.add(new HttpMethod("PATCH"));
+        KNOWN_METHODS.add(new HttpMethod("POLL"));
+        KNOWN_METHODS.add(new HttpMethod("POST"));
+        KNOWN_METHODS.add(new HttpMethod("PROPFIND"));
+        KNOWN_METHODS.add(new HttpMethod("PROPPATCH"));
+        KNOWN_METHODS.add(new HttpMethod("PUT"));
+        KNOWN_METHODS.add(new HttpMethod("REPORT"));
+        KNOWN_METHODS.add(new HttpMethod("TRACE"));
+        KNOWN_METHODS.add(new HttpMethod("UNCHECKOUT"));
+        KNOWN_METHODS.add(new HttpMethod("UNLOCK"));
+        KNOWN_METHODS.add(new HttpMethod("UPDATE"));
+        KNOWN_METHODS.add(new HttpMethod("VERSION-CONTROL"));
+
+        ALLOWED_METHODS.add(HttpMethod.GET);
+        ALLOWED_METHODS.add(HttpMethod.HEAD);
+        ALLOWED_METHODS.add(HttpMethod.POST);
+        ALLOWED_METHODS.add(HttpMethod.OPTIONS);
+
+        BAD_URIS.add("/cgi-bin/php");
+        BAD_URIS.add("/cgi-bin/php5");
+
+        KNOWN_URIS.add("/");
+        KNOWN_URIS.add("/index");
+        KNOWN_URIS.add("/index.html");
+    }
+
 }
