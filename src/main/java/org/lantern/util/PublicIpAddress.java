@@ -8,6 +8,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.params.CoreConnectionPNames;
+import org.lantern.FallbackProxy;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
@@ -32,6 +33,8 @@ public class PublicIpAddress implements PublicIp {
     private static long lastLookupTime;
 
     private final long cacheTime;
+    private final UnsafePublicIpAddress unsafePublicIpAddress;
+    private final boolean fallbackConfigured;
 
     public PublicIpAddress() {
         this(100L);
@@ -39,6 +42,8 @@ public class PublicIpAddress implements PublicIp {
 
     public PublicIpAddress(long cacheTime) {
         this.cacheTime = cacheTime;
+        this.unsafePublicIpAddress = new UnsafePublicIpAddress(cacheTime);
+        this.fallbackConfigured = FallbackProxy.readConfigured() != null;
     }
 
     /**
@@ -69,20 +74,29 @@ public class PublicIpAddress implements PublicIp {
         }
 
         LOG.debug("Attempting to find public IP address");
-        return proxyLookup();
+        if (fallbackConfigured) {
+            LOG.debug("Fallback configured, doing safe lookup");
+            return lookupSafe();
+        } else {
+            LOG.debug("No fallback configured, doing unsafe lookup");
+            return unsafePublicIpAddress.getPublicIpAddress(forceCheck);
+        }
     }
-
-    private InetAddress proxyLookup() {
+    
+    private InetAddress lookupSafe() {
         HttpHead request = new HttpHead("/");
         try {
             request.getParams().setParameter(
-                    CoreConnectionPNames.CONNECTION_TIMEOUT, 5000);
+                    CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
+            request.getParams().setParameter(
+                    CoreConnectionPNames.SO_TIMEOUT, 60000);
             HttpResponse response = HttpClientFactory.newProxiedClient()
                     .execute(TEST_HOST, request);
             Header header = response
                     .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
             if (header == null) {
-                return null;
+                LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
+                return InetAddress.getLocalHost();
             } else {
                 return InetAddress.getByName(header.getValue());
             }
