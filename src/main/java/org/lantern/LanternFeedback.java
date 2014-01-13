@@ -12,8 +12,6 @@ import org.lantern.loggly.Loggly;
 import org.lantern.loggly.LogglyMessage;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -21,7 +19,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class LanternFeedback {
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
     private Model model;
     private Loggly loggly;
 
@@ -39,7 +36,11 @@ public class LanternFeedback {
         if (StringUtils.isBlank(reporterId)) {
             reporterId = model.getInstanceId();
         }
-        LogglyMessage msg = new LogglyMessage(reporterId, json, new Date());
+        LogglyMessage msg = new LogglyMessage(
+                reporterId,
+                "Lantern Feedback",
+                new Date())
+                .setExtraFromJson(json);
         loggly.log(msg);
         /*
         final Map <String, String> feedback = new HashMap<String, String>(); 
