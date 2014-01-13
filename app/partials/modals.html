@@ -10,57 +10,87 @@
     <li><a ng-click="openExternal(EXTERNAL_URL.helpTranslate)">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
 -->
 
+<!-- XXX DRY - contact modal, settings load failure modal -->
 <div ng-controller="UnexpectedStateCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body" ng-init="notify = true">
     <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
-    <form class="notify">
+    <form class="notify" name="contactForm">
       <p>
         <label class="checkbox inline">
           <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="report noHeightWhenHidden" ui-toggle="notify" focus-on="show"
-        ng-disabled="!notify" tabindex="{{ show && 2 || ''}}" maxlength="500000"
-        ng-model="report" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}"></textarea>
+      <div ng-show="notify">
+        <textarea class="report noHeightWhenHidden" name="contactMsg"
+          ng-model="message" tabindex="{{ show && 2 || '' }}" focus-on="show"
+          placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+        <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
+          {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+        </div>
+        <details class="diagnosticInfo">
+          <summary>{{'DIAGNOSTIC_INFO'|i18n}}</summary>
+          <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
+            ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+          <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
+            {{ 'ERROR_TOO_LONG' | i18n:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+          </div>
+        </details>
+      </div>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="handleReset()" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
+    <button type="button" class="btn pull-left" tabindex="{{ show && 5 || ''}}" ng-disabled="contactForm.$invalid"
+      ng-click="interactionWithNotify(INTERACTION.unexpectedStateReset, this, true)">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET' | i18n }}
     </button>
-    <button type="button" ng-click="handleRefresh()" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'REFRESH' | i18n }}</button>
+    <button type="button" class="btn btn-primary" tabindex="{{ show && 3 || ''}}" ng-disabled="contactForm.$invalid"
+       ng-click="interactionWithNotify(INTERACTION.unexpectedStateRefresh, this, true)">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
 
+<!-- XXX DRY - contact modal, unexpected state modal -->
 <div ng-controller="SettingsLoadFailureCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body" ng-init="notify = true; report = defaultReportMsg()">
+  <div class="modal-body" ng-init="notify = true">
     <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
-    <form class="notify">
+    <form class="notify" name="contactForm">
       <p>
         <label class="checkbox inline">
           <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
           {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
         </label>
       </p>
-      <textarea class="report noHeightWhenHidden" ui-toggle="notify" focus-on="show"
-        ng-disabled="!notify" tabindex="{{ show && 2 || ''}}" maxlength="500000"
-        ng-model="report" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}"></textarea>
+      <div ng-show="notify">
+        <textarea class="report noHeightWhenHidden" name="contactMsg"
+          ng-model="message" tabindex="{{ show && 2 || '' }}" focus-on="show"
+          placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+        <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
+          {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+        </div>
+        <details class="diagnosticInfo">
+          <summary>{{'DIAGNOSTIC_INFO'|i18n}}</summary>
+          <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
+            ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+          <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
+            {{ 'ERROR_TOO_LONG' | i18n:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+          </div>
+        </details>
+      </div>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notify, report: report})" class="btn pull-left" tabindex="{{ show && 5 || ''}}">
+    <button type="button" ng-click="interactionWithNotify(INTERACTION.reset, this)" class="btn pull-left" tabindex="{{ show && 5 || ''}}" ng-disabled="contactForm.$invalid">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET' | i18n }}
     </button>
-    <button type="button" ng-click="interaction(INTERACTION.retry, {notify: notify, report: report})" class="btn btn-primary" tabindex="{{ show && 3 || ''}}">{{ 'RETRY' | i18n }}</button>
+    <button type="button" ng-click="interactionWithNotify(INTERACTION.retry, this)" class="btn btn-primary" tabindex="{{ show && 3 || ''}}" ng-disabled="contactForm.$invalid">{{ 'RETRY' | i18n }}</button>
   </div>
 </div>
 
@@ -391,6 +421,7 @@
   </div>
 </div>
 
+<!-- XXX DRY - settings load failure modal, unexpected state modal -->
 <div ng-controller="ContactCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
@@ -405,19 +436,27 @@
     </div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
-        focus-on="show"
-        ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
-      <div class="text-error" ui-toggle="contactForm.contactMsg.$error.maxlength">
-        {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - 500000) }}&nbsp;
+        focus-on="show" placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}"
+        ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+      <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
+        {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
       </div>
+      <details class="diagnosticInfo">
+        <summary>{{'DIAGNOSTIC_INFO'|i18n}}</summary>
+        <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
+          ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+        <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
+          {{ 'ERROR_TOO_LONG' | i18n:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+        </div>
+      </details>
     </form>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" tabindex="{{ show && 3 || '' }}"
-            ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
+            ng-click="interactionWithNotify(INTERACTION.cancel, true)">{{ 'CANCEL' | i18n }}</button>
     <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
-            ng-disabled="contactForm.contactMsg.$invalid"
-            ng-click="interaction(INTERACTION.continue, {message: message})">{{ 'SEND' | i18n }}</button>
+            ng-disabled="contactForm.$invalid"
+            ng-click="interactionWithNotify(INTERACTION.continue, this)">{{ 'SEND' | i18n }}</button>
   </div>
 </div>
 
