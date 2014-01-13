@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileSystemUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.loggly.Loggly;
 import org.lantern.loggly.LogglyMessage;
@@ -29,19 +30,22 @@ public class LanternFeedback {
         this.model = model;
         this.loggly = new Loggly(model.isDev(),
              model.getSettings().getMode() == Mode.get ?
-                null // TODO pass fallback proxy address here?
-              : null);
+             LanternConstants.LANTERN_LOCALHOST_ADDR :
+             null);
     }
 
     public void submit(String json) {
-        LogglyMessage msg = new LogglyMessage(model.getInstanceId(), json, new Date());
+        String reporterId = model.getProfile().getEmail();
+        if (StringUtils.isBlank(reporterId)) {
+            reporterId = model.getInstanceId();
+        }
+        LogglyMessage msg = new LogglyMessage(reporterId, json, new Date());
         loggly.log(msg);
         /*
         final Map <String, String> feedback = new HashMap<String, String>(); 
         feedback.putAll(systemInfo());
         feedback.put("message", message);
         feedback.put("replyto", replyTo == null ? "" : replyTo);
-        return;
         */
     }
 
