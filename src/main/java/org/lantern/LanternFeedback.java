@@ -1,23 +1,16 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileSystemUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.lantern.util.HttpClientFactory;
+import org.lantern.loggly.Loggly;
+import org.lantern.loggly.LogglyMessage;
+import org.lantern.state.Mode;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,21 +21,31 @@ import com.google.inject.Singleton;
 public class LanternFeedback {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final HttpClientFactory httpClientFactory;
+    private Model model;
+    private Loggly loggly;
 
     @Inject
-    public LanternFeedback(final HttpClientFactory httpClientFactory) {
-        this.httpClientFactory = httpClientFactory;
+    public LanternFeedback(Model model) {
+        this.model = model;
+        this.loggly = new Loggly(model.isDev(),
+             model.getSettings().getMode() == Mode.get ?
+                null // TODO pass fallback proxy address here?
+              : null);
     }
 
-    public int submit(String message, String replyTo) throws IOException {
+    public void submit(String json) {
+        LogglyMessage msg = new LogglyMessage(model.getInstanceId(), json, new Date());
+        loggly.log(msg);
+        /*
         final Map <String, String> feedback = new HashMap<String, String>(); 
         feedback.putAll(systemInfo());
         feedback.put("message", message);
         feedback.put("replyto", replyTo == null ? "" : replyTo);
-        return submitFeedback(feedback);
+        return;
+        */
     }
 
+    // TODO merge this with model.system
     protected Map<String, String> systemInfo() {
         final Map<String, String> info = new HashMap<String,String>();
 
@@ -67,73 +70,4 @@ public class LanternFeedback {
         return info;
     }
     
-    private int postForm(final String url, final List<NameValuePair> params) 
-            throws IOException {
-        // If we're testing we just make sure we can connect successfully.
-        final HttpPost post = getHttpPost(url);
-        log.debug("Creating proxied client...");
-        final HttpClient httpClient = httpClientFactory.newClient();
-        try {
-            final UrlEncodedFormEntity entity =
-                    new UrlEncodedFormEntity(params, "UTF-8");
-            post.setEntity(entity);
-
-            final HttpResponse response = httpClient.execute(post);
-
-            final int statusCode = response.getStatusLine().getStatusCode();
-            final HttpEntity responseEntity = response.getEntity();
-            // We always have to read the body.
-            EntityUtils.consume(responseEntity);
-            //responseEntity.consumeContent();
-            
-            if (statusCode < 200 || statusCode > 299) {
-                final Header[] headers = response.getAllHeaders();
-                final StringBuilder headerVals = new StringBuilder();
-                for (int i = 0; i < headers.length; i++) {
-                    headerVals.append(headers[i].toString());
-                    headerVals.append("\n");
-                }
-                final String err = "Failed to submit feedback. Status was " + 
-                        statusCode + ", headers " + headerVals.toString();
-                throw new IOException(err);
-            }
-            return statusCode;
-        } finally {
-            post.reset();
-        }
-    }
-
-    HttpPost getHttpPost(String url) {
-        return new HttpPost(url);
-    }
-
-    public final static String HOST = "https://docs.google.com";
-    /**
-     * quick and dirty google spreadsheet submitter
-     */
-    private final static String FORM_URL = 
-        HOST+"/a/getlantern.org/spreadsheet/formResponse?formkey=dFl3UEhZV2pNcmFELU5jbTJ6eVhBMmc6MQ&amp;ifq";
-    private final String [] FORM_ORDER = {
-        "message",
-        "replyto",
-        "javaVersion",
-        "osName",
-        "osArch",
-        "osVersion",
-        "language",
-        "country",
-        "timeZone",
-        "diskSpace",
-        "lanternVersion"
-    };
-    
-    private int submitFeedback(final Map<String, String> info) throws IOException {
-        final List<NameValuePair> params = new ArrayList<NameValuePair>(info.size());
-        for (int i = 0; i < FORM_ORDER.length; i++) {
-            final String key = FORM_ORDER[i];
-            final String paramName = "entry." + i + ".single"; // what the google form calls it
-            params.add(new BasicNameValuePair(paramName,info.get(key)));
-        }
-        return postForm(FORM_URL, params);
-    }
 }

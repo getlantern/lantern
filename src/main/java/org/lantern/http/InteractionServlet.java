@@ -557,8 +557,7 @@ public class InteractionServlet extends HttpServlet {
             case CONTINUE:
                 String msg;
                 try {
-                    lanternFeedback.submit(json,
-                        this.model.getProfile().getEmail());
+                    lanternFeedback.submit(json);
                     this.msgs.info(MessageKey.CONTACT_THANK_YOU);
                 } catch (Exception e) {
                     this.msgs.error(MessageKey.CONTACT_ERROR, e);
@@ -619,20 +618,10 @@ public class InteractionServlet extends HttpServlet {
             // fall through because this should be done in both cases:
             case UNEXPECTEDSTATEREFRESH:
                 try {
-                    map = jsonToMap(json);
+                    lanternFeedback.submit(json);
                 } catch(Exception e) {
-                    log.error("Bad json payload in inter '{}': {}", inter, json);
-                    return true;
-                }
-                notify = (Boolean)map.get("notify");
-                if(notify) {
-                    try {
-                        lanternFeedback.submit((String)map.get("report"),
-                            this.model.getProfile().getEmail());
-                    } catch(Exception e) {
-                        log.error("Could not submit unexpected state report: {}\n {}",
-                            e.getMessage(), (String)map.get("report"));
-                    }
+                    log.error("Could not submit unexpected state report: {}\n {}",
+                        e.getMessage(), json);
                 }
                 handled = true;
                 break;
