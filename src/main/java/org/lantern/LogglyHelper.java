@@ -14,13 +14,13 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class LanternFeedback {
+public class LogglyHelper {
     private static final Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
     private Model model;
     private Loggly loggly;
 
     @Inject
-    public LanternFeedback(Model model) {
+    public LogglyHelper(Model model) {
         this.model = model;
         this.loggly = new Loggly(model.isDev(),
              model.getSettings().getMode() == Mode.get ?
@@ -39,5 +39,6 @@ public class LanternFeedback {
                 new Date())
                 .setExtraFromJson(json);
         loggly.log(msg);
+        LOG.info("submitted to Loggly: %s", json);
     }
 }
