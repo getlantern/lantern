@@ -33,7 +33,6 @@ public class FriendEndpointTest {
         TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                LanternClientConstants.setControllerId("oxlanternctrl");
                 final HttpClientFactory httpClientFactory = 
                         TestingUtils.newHttClientFactory();
                 final Model model = TestingUtils.newModel();
