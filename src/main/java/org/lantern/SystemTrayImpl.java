@@ -23,6 +23,7 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
+import org.lantern.state.Modal;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
     private final static String LABEL_DISCONNECTED = tr("TRAY_NOT_CONNECTED");
     private final static String LABEL_CONNECTING = tr("TRAY_CONNECTING");
     private final static String LABEL_CONNECTED = tr("TRAY_CONNECTED");
-
+    
     private final static String ICON_DISCONNECTED = "16off.png";
     private final static String ICON_CONNECTING = "16off.png";
     private final static String ICON_CONNECTED = "16on.png";
@@ -139,20 +140,47 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
             connectionStatusItem.setEnabled(false);
             menu.add(connectionStatusItem);
 
-            final MenuItem dashboardItem = new MenuItem(tr("TRAY_SHOW_LANTERN"));
-            dashboardItem.addActionListener(new ActionListener() {
+            newMenuItem(menu, "TRAY_SHOW_LANTERN", new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     log.debug("Reopening browser?");
                     browserService.reopenBrowser();
                 }
             });
-            menu.add(dashboardItem);
+            
+            menu.addSeparator();
+            
+            newMenuItem(menu, "TRAY_FRIENDS", new ActionListener() {
+                
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    Events.syncModal(model, Modal.lanternFriends);
+                    browserService.reopenBrowser();
+                }
+            });
+            
+            
+            newMenuItem(menu, "TRAY_WHITELIST", new ActionListener() {
+                
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    Events.syncModal(model, Modal.proxiedSites);
+                    browserService.reopenBrowser();
+                }
+            });
 
+            newMenuItem(menu, "TRAY_CONFIG", new ActionListener() {
+                
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    Events.syncModal(model, Modal.settings);
+                    browserService.reopenBrowser();
+                }
+            });
+            
             menu.addSeparator();
 
-            final MenuItem quitItem = new MenuItem(tr("TRAY_QUIT"));
-            quitItem.addActionListener(new ActionListener() {
+            newMenuItem(menu, "TRAY_QUIT", new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     log.debug("Got exit call");
@@ -162,7 +190,6 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
                     System.exit(0);
                 }
             });
-            menu.add(quitItem);
 
             trayIcon.setPopupMenu(menu);
 
@@ -186,6 +213,13 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
             this.active = true;
         }
         log.debug("Finished creating tray...");
+    }
+
+    private void newMenuItem(final PopupMenu pm, final String key,
+            final ActionListener actionListener) {
+        final MenuItem dashboardItem = new MenuItem(tr(key));
+        dashboardItem.addActionListener(actionListener);
+        pm.add(dashboardItem);
     }
 
     private void setImage(final Image image) {
