@@ -214,13 +214,25 @@ input, textarea
     cursor: default
 
 // see compass_twitter_bootstrap's _forms.sass
-input:focus, textarea:focus
-  +ctb-box-shadow(0 0 8px rgba(82,168,236,.6))
-  &.ng-invalid
+input, textarea
+  &.ng-pristine
+    &:focus, &:focus:invalid
+      +ctb-box-shadow(0 0 8px rgba(82,168,236,.6) !important)
+      border: 1px solid rgba(82, 168, 236, 0.8) !important
+  &.ng-invalid:focus
     +inputInvalid
 
 textarea
   +box-sizing(border-box)
+  &.report, &.diagnosticInfo
+    +smaller
+    +monofont
+    width: 100%
+  &.report
+    height: 125px
+  &.diagnosticInfo
+    margin-left: 0
+    height: 75px
 
 .badge
   +inline-block

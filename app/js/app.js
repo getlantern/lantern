@@ -34,7 +34,7 @@ var app = angular.module('app', [
   .value('ui.config', {
     animate: 'ui-hide',
   })
-  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, MODAL) {
+  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, MODAL, CONTACT_FORM_MAXLEN) {
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
         i18nFltr = $filter('i18n'),
@@ -42,7 +42,6 @@ var app = angular.module('app', [
         model = modelSrvc.model,
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
-
 
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
@@ -52,6 +51,7 @@ var app = angular.module('app', [
     $rootScope.lanternUiVersion = LANTERNUI_VER.join('.');
     $rootScope.model = model;
     $rootScope.DEFAULT_AVATAR_URL = 'img/default-avatar.png';
+    $rootScope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
 
     angular.forEach(ENUMS, function(val, key) {
       $rootScope[key] = val;
@@ -202,11 +202,24 @@ var app = angular.module('app', [
       }
     };
 
-    $rootScope.defaultReportMsg = function() {
-      var reportedState = jsonFltr(reportedStateFltr($rootScope.model));
-      return i18nFltr('MESSAGE_PLACEHOLDER') + reportedState;
+    $rootScope.resetContactForm = function (scope) {
+      if (scope.show) {
+        var reportedState = jsonFltr(reportedStateFltr(model));
+        scope.diagnosticInfo = reportedState;
+      }
     };
-    
+
+    $rootScope.interactionWithNotify = function (interactionid, scope, reloadAfter) {
+      var extra = scope.notify ? {
+        context: model.modal,
+        message: scope.message,
+        diagnosticInfo: scope.diagnosticInfo
+      } : null;
+      $rootScope.interaction(interactionid, extra).then(function () {
+        if (reloadAfter) $rootScope.reload();
+      });
+    };
+
     /**
      * Checks whether the backend is gone (based on last successful connect time).
      */

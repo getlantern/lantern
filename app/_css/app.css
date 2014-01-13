@@ -6834,12 +6834,13 @@ input:disabled, input[readonly], textarea:disabled, textarea[readonly] {
   cursor: default;
 }
 
-input:focus, textarea:focus {
-  -webkit-box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
-  -moz-box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
-  box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
+input.ng-pristine:focus, input.ng-pristine:focus:invalid, textarea.ng-pristine:focus, textarea.ng-pristine:focus:invalid {
+  -webkit-box-shadow: 0 0 8px rgba(82, 168, 236, 0.6) !important;
+  -moz-box-shadow: 0 0 8px rgba(82, 168, 236, 0.6) !important;
+  box-shadow: 0 0 8px rgba(82, 168, 236, 0.6) !important;
+  border: 1px solid rgba(82, 168, 236, 0.8) !important;
 }
-input:focus.ng-invalid, textarea:focus.ng-invalid {
+input.ng-invalid:focus, textarea.ng-invalid:focus {
   border-color: #e9322d !important;
   -webkit-box-shadow: 0 0 6px #f8b9b7 !important;
   -moz-box-shadow: 0 0 6px #f8b9b7 !important;
@@ -6849,6 +6850,18 @@ input:focus.ng-invalid, textarea:focus.ng-invalid {
 textarea {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
+}
+textarea.report, textarea.diagnosticInfo {
+  font-size: 11.9px;
+  font-family: "Droid Sans Mono";
+  width: 100%;
+}
+textarea.report {
+  height: 125px;
+}
+textarea.diagnosticInfo {
+  margin-left: 0;
+  height: 75px;
 }
 
 .badge {
@@ -7447,15 +7460,7 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
   width: 100%;
 }
 
-textarea.report {
-  font-family: "Droid Sans Mono";
-  font-size: 11.9px;
-  width: 100%;
-  height: 125px;
-}
-
 #contact textarea.report {
-  font-size: 13.3px;
   height: 175px;
   margin-top: 24px;
 }

@@ -7,6 +7,7 @@ function SettingsLoadFailureCtrl($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settingsLoadFailure;
+    $scope.resetContactForm($scope);
   });
 }
 
@@ -48,9 +49,9 @@ function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQU
     if (!sane) {
       // disconnect immediately from insane backend
       cometdSrvc.disconnect();
-      $scope.report = $scope.defaultReportMsg();
-      modelSrvc.model.modal = MODAL.none;
+      modelSrvc.model.modal = 'unexpectedState';
       $scope.show = true;
+      $scope.resetContactForm($scope);
     }
   });
 
@@ -68,30 +69,14 @@ function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQU
     }
   }, true);
   */
-
-  function handleChoice(choice) {
-    $scope.interaction(choice, {notify: $scope.notify, report: $scope.report}).then($scope.reload);
-  }
-  $scope.handleReset = function () {
-    handleChoice(INTERACTION.unexpectedStateReset);
-  };
-  $scope.handleRefresh = function () {
-    handleChoice(INTERACTION.unexpectedStateRefresh);
-  };
 }
 
-function ContactCtrl($scope, MODAL, CONTACT_FORM_MAXLEN) {
-  $scope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
-
+function ContactCtrl($scope, MODAL) {
   $scope.show = false;
+  $scope.notify = true; // so the view's interactionWithNotify calls include $scope.message and $scope.diagnosticInfo
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.contact;
-    if ($scope.show) {
-      $scope.message = $scope.defaultReportMsg();
-      if ($scope.contactForm && $scope.contactForm.contactMsg) {
-        $scope.contactForm.contactMsg.$pristine = true;
-      }
-    }
+    $scope.resetContactForm($scope);
   });
 }
 
