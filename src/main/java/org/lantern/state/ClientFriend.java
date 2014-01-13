@@ -1,10 +1,7 @@
 package org.lantern.state;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
-
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientFriend implements Friend {
 
     private Long id;
@@ -33,6 +30,8 @@ public class ClientFriend implements Friend {
     private boolean loggedIn;
     
     private org.jivesoftware.smack.packet.Presence.Mode mode;
+    
+    private boolean freeToFriend = false;
 
     public ClientFriend() {
     }
@@ -167,6 +166,16 @@ public class ClientFriend implements Friend {
      */
     public void setMode(final org.jivesoftware.smack.packet.Presence.Mode mode) {
         this.mode = mode;
+    }
+    
+    @Override
+    public void setFreeToFriend(boolean freeToFriend) {
+        this.freeToFriend = freeToFriend;
+    }
+    
+    @Override
+    public boolean isFreeToFriend() {
+        return this.freeToFriend;
     }
 
     @Override

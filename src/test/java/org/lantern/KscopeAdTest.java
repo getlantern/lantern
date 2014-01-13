@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.slf4j.Logger;
@@ -35,8 +34,7 @@ public class KscopeAdTest {
 
         String jsonString = FileUtils.readFileToString(jsonFile);
         
-        ObjectMapper mapper = new ObjectMapper();
-        LanternKscopeAdvertisement ad = mapper.readValue(
+        LanternKscopeAdvertisement ad = JsonUtils.OBJECT_MAPPER.readValue(
             jsonString, LanternKscopeAdvertisement.class
         );
 
