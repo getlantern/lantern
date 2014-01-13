@@ -317,14 +317,13 @@ public class Launcher {
 
                 shutdownable(ModelIo.class);
                 
-                
                 try {
                     proxyTracker.start();
                 } catch (final Exception e) {
                     LOG.error("Could not start proxy tracker?", e);
                 }
-                xmpp.start();
                 getModeProxy.start();
+                xmpp.start();
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
                     giveModeProxy.start();

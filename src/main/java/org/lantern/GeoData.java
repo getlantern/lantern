@@ -67,10 +67,12 @@ public class GeoData {
         // Default latitude and longitude by country code if necessary
         if (countrycode != null) {
             if (latitude == 0) {
-                this.latitude = LATITUDES_BY_COUNTRY.get(countrycode);
+                Double val = LATITUDES_BY_COUNTRY.get(countrycode);
+                this.latitude = val != null ? val : 0.0;
             }
             if (longitude == 0) {
-                this.longitude = LONGITUDES_BY_COUNTRY.get(countrycode);
+                Double val = LONGITUDES_BY_COUNTRY.get(countrycode);
+                this.longitude = val != null ? val : 0.0;
             }
         }
     }

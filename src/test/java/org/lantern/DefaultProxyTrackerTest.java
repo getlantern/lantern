@@ -2,7 +2,6 @@ package org.lantern;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import io.netty.util.Timer;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -41,11 +40,9 @@ public class DefaultProxyTrackerTest {
         model.getConnectivity().setInternet(true);
 
         PeerFactory peerFactory = new PeerFactoryStub();
-        Timer timer = mock(Timer.class);
-        DefaultXmppHandler xmppHandler = mock(DefaultXmppHandler.class);
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, xmppHandler, lanternTrustStore);
+                peerFactory, lanternTrustStore);
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();

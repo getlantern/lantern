@@ -27,7 +27,6 @@ import com.google.inject.Singleton;
 public class HttpClientFactory {
 
     private static final Logger log = LoggerFactory.getLogger(HttpClientFactory.class);
-    
     private final Censored censored;
 
     @Inject
@@ -73,7 +72,7 @@ public class HttpClientFactory {
         return client;
     }
     
-    public static void configureDefaults(final DefaultHttpClient httpClient) {
+    private static void configureDefaults(final DefaultHttpClient httpClient) {
         log.debug("Configuring defaults...");
         httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(2,true));
         httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);

@@ -158,7 +158,7 @@ public class TestingUtils {
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
         final ProxyTracker proxyTracker = 
-            new DefaultProxyTracker(model, peerFactory, null, trustStore);
+            new DefaultProxyTracker(model, peerFactory, trustStore);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
                 null, networkTracker);
@@ -223,8 +223,6 @@ public class TestingUtils {
 
 
     public static HttpClientFactory newHttClientFactory() {
-        final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
                 new HttpClientFactory(censored);

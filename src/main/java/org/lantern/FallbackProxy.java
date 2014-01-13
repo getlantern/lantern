@@ -1,6 +1,20 @@
 package org.lantern;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Files;
+
 public class FallbackProxy {
+    private static final Logger LOG = LoggerFactory.getLogger(FallbackProxy.class);
 
     private String ip;
     
@@ -15,6 +29,39 @@ public class FallbackProxy {
     public FallbackProxy(final String ip, final int port) {
         this.ip = ip;
         this.port = port;
+    }
+    
+    /**
+     * Reads the configured FallbackProxy from disk.
+     * 
+     * @return
+     */
+    synchronized public static FallbackProxy readConfigured() {
+        try {
+            copyFallbackFile();
+        } catch (final IOException e) {
+            LOG.warn("Could not copy fallback?", e);
+        }
+        final File file = new File(LanternClientConstants.CONFIG_DIR,
+                "fallback.json");
+        if (!file.isFile()) {
+            LOG.error("No fallback proxy to load!");
+            return null;
+        }
+
+        final ObjectMapper om = new ObjectMapper();
+        InputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            final String proxy = IOUtils.toString(is);
+            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
+            return fp;
+        } catch (final IOException e) {
+            LOG.error("Could not load fallback", e);
+            return null;
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
     }
 
     public String getIp() {
@@ -97,5 +144,32 @@ public class FallbackProxy {
                 + auth_token + ", protocol=" + protocol + "]";
         
     }
-    
+
+    private static void copyFallbackFile() throws IOException {
+        LOG.debug("Copying fallback file");
+        final File from;
+
+        final File cur = new File(new File(SystemUtils.USER_HOME),
+                "fallback.json");
+        if (cur.isFile()) {
+            from = cur;
+        } else {
+            LOG.debug("No fallback proxy found in home - checking runtime user.dir...");
+            final File home = new File(new File(SystemUtils.USER_DIR),
+                    "fallback.json");
+            if (home.isFile()) {
+                from = home;
+            } else {
+                LOG.warn("Still could not find fallback proxy!");
+                return;
+            }
+        }
+        final File par = LanternClientConstants.CONFIG_DIR;
+        final File to = new File(par, from.getName());
+        if (!par.isDirectory() && !par.mkdirs()) {
+            throw new IOException("Could not make config dir?");
+        }
+        LOG.debug("Copying from {} to {}", from, to);
+        Files.copy(from, to);
+    }
 }

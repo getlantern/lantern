@@ -2,17 +2,12 @@ package org.lantern.util;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.util.EntityUtils;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
@@ -32,28 +27,11 @@ public class PublicIpAddress implements PublicIp {
     private static final Logger LOG =
             LoggerFactory.getLogger(PublicIpAddress.class);
     private static final HttpHost TEST_HOST = new HttpHost("www.getlantern.org");
-    private static final HttpClient HTTP_CLIENT = HttpClientFactory
-            .newProxiedClient();
 
     private static InetAddress publicIp;
     private static long lastLookupTime;
 
     private final long cacheTime;
-
-    private static final ExecutorService threadPool =
-            Executors.newCachedThreadPool(new ThreadFactory() {
-
-                private int count = 0;
-
-                @Override
-                public Thread newThread(final Runnable runner) {
-                    final Thread thread = new Thread(runner,
-                            "Public-IP-Lookup-Thread-" + count);
-                    thread.setDaemon(true);
-                    count++;
-                    return thread;
-                }
-            });
 
     public PublicIpAddress() {
         this(100L);
@@ -96,10 +74,11 @@ public class PublicIpAddress implements PublicIp {
 
     private InetAddress proxyLookup() {
         HttpHead request = new HttpHead("/");
-        request.getParams().setParameter(
-                CoreConnectionPNames.CONNECTION_TIMEOUT, 5000);
         try {
-            HttpResponse response = HTTP_CLIENT.execute(TEST_HOST, request);
+            request.getParams().setParameter(
+                    CoreConnectionPNames.CONNECTION_TIMEOUT, 5000);
+            HttpResponse response = HttpClientFactory.newProxiedClient()
+                    .execute(TEST_HOST, request);
             Header header = response
                     .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
             if (header == null) {
@@ -114,4 +93,6 @@ public class PublicIpAddress implements PublicIp {
             request.releaseConnection();
         }
     }
+    
+    
 }
