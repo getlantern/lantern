@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.ProxyHolder;
+import org.lantern.util.RandomLengthString;
 import org.littleshoot.proxy.HttpFiltersAdapter;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.ProxyUtils;
@@ -35,6 +35,8 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(GiveModeHttpFilters.class);
+    private static final RandomLengthString RANDOM_LENGTH_STRING =
+            new RandomLengthString(100);
 
     private final boolean shouldMimicApache;
     private final String host;
@@ -89,12 +91,24 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
         }
     }
 
+    @Override
+    public HttpObject responsePost(HttpObject httpObject) {
+        if (httpObject instanceof HttpResponse) {
+            HttpResponse resp = (HttpResponse) httpObject;
+            // Add a random length header to help foil fingerprinting
+            resp.headers().add(
+                    GetModeHttpFilters.X_LANTERN_RANDOM_LENGTH_HEADER,
+                    RANDOM_LENGTH_STRING.next());
+        }
+        return super.responsePost(httpObject);
+    }
+
     private HttpResponse checkAuthToken(HttpObject httpObject) {
         if (httpObject instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) httpObject;
             String authToken = req
                     .headers()
-                    .get(ProxyHolder.X_LANTERN_AUTH_TOKEN);
+                    .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
             if (!expectedAuthToken.equals(authToken)) {
                 if (shouldMimicApache) {
                     return mimicApache(req, port);
@@ -106,16 +120,21 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
                 // Strip the auth token before sending
                 // request downstream
                 req.headers()
-                        .remove(ProxyHolder.X_LANTERN_AUTH_TOKEN);
+                        .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
             }
         }
         return super.requestPre(httpObject);
     }
-    
+
+    /**
+     * Removes the random length header to avoid leaking it to external sites.
+     * 
+     * @param httpObject
+     */
     private void removeRandomLengthHeader(HttpObject httpObject) {
         if (httpObject instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) httpObject;
-            req.headers().remove(ProxyHolder.X_LANTERN_RANDOM_LENGTH_HEADER);
+            req.headers().remove(GetModeHttpFilters.X_LANTERN_RANDOM_LENGTH_HEADER);
         }
     }
 

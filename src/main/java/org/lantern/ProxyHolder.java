@@ -13,9 +13,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
+import org.lantern.proxy.GetModeHttpFilters;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.lantern.util.RandomLengthString;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
@@ -26,11 +26,6 @@ public final class ProxyHolder extends ChainedProxyAdapter
         implements Comparable<ProxyHolder> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxyHolder.class);
-    private static final RandomLengthString RANDOM_LENGTH_STRING =
-            new RandomLengthString(100);
-    
-    public static final String X_LANTERN_AUTH_TOKEN = "X-LANTERN-AUTH-TOKEN";
-    public static final String X_LANTERN_RANDOM_LENGTH_HEADER = "X_LANTERN-RANDOM-LENGTH-HEADER";
     
     private final ProxyTracker proxyTracker;
 
@@ -265,14 +260,9 @@ public final class ProxyHolder extends ChainedProxyAdapter
 
     @Override
     public void filterRequest(HttpObject httpObject) {
-        if (lanternAuthToken != null) {
-            if (httpObject instanceof HttpRequest) {
-                HttpRequest httpRequest = (HttpRequest) httpObject;
-                httpRequest.headers().add(X_LANTERN_AUTH_TOKEN,
-                        lanternAuthToken);
-                httpRequest.headers().add(X_LANTERN_RANDOM_LENGTH_HEADER,
-                        RANDOM_LENGTH_STRING);
-            }
+        if (httpObject instanceof HttpRequest) {
+            new GetModeHttpFilters(lanternAuthToken, (HttpRequest) httpObject)
+                    .requestPre(httpObject);
         }
     }
     
