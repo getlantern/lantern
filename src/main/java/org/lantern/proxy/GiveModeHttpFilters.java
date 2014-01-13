@@ -2,6 +2,7 @@ package org.lantern.proxy;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -12,6 +13,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.Date;
@@ -38,17 +40,20 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
     private static final RandomLengthString RANDOM_LENGTH_STRING =
             new RandomLengthString(100);
 
+    public static final String X_LANTERN_OBSERVED_IP = "X-LANTERN-PUBLIC-IP";
+
     private final boolean shouldMimicApache;
     private final String host;
     private final int port;
     private final String expectedAuthToken;
 
     public GiveModeHttpFilters(HttpRequest originalRequest,
+            ChannelHandlerContext ctx,
             String host,
             int port,
             TransportProtocol transportProtocol,
             String authToken) {
-        super(originalRequest);
+        super(originalRequest, ctx);
         this.host = host;
         this.port = port;
         this.shouldMimicApache = TransportProtocol.TCP == transportProtocol;
@@ -97,8 +102,13 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             HttpResponse resp = (HttpResponse) httpObject;
             // Add a random length header to help foil fingerprinting
             resp.headers().add(
-                    GetModeHttpFilters.X_LANTERN_RANDOM_LENGTH_HEADER,
+                    BaseChainedProxy.X_LANTERN_RANDOM_LENGTH_HEADER,
                     RANDOM_LENGTH_STRING.next());
+            // Add the client's public IP
+            InetSocketAddress remoteAddr =
+                    (InetSocketAddress) ctx.channel().remoteAddress();
+            String remoteIp = remoteAddr.getAddress().getHostAddress();
+            resp.headers().add(X_LANTERN_OBSERVED_IP, remoteIp);
         }
         return super.responsePost(httpObject);
     }
@@ -108,7 +118,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             HttpRequest req = (HttpRequest) httpObject;
             String authToken = req
                     .headers()
-                    .get(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                    .get(BaseChainedProxy.X_LANTERN_AUTH_TOKEN);
             if (!expectedAuthToken.equals(authToken)) {
                 if (shouldMimicApache) {
                     return mimicApache(req, port);
@@ -120,7 +130,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
                 // Strip the auth token before sending
                 // request downstream
                 req.headers()
-                        .remove(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN);
+                        .remove(BaseChainedProxy.X_LANTERN_AUTH_TOKEN);
             }
         }
         return super.requestPre(httpObject);
@@ -134,7 +144,8 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
     private void removeRandomLengthHeader(HttpObject httpObject) {
         if (httpObject instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) httpObject;
-            req.headers().remove(GetModeHttpFilters.X_LANTERN_RANDOM_LENGTH_HEADER);
+            req.headers().remove(
+                    BaseChainedProxy.X_LANTERN_RANDOM_LENGTH_HEADER);
         }
     }
 

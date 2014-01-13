@@ -2,6 +2,7 @@ package org.lantern.simple;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -135,8 +136,11 @@ public class Give extends CliProgram {
                 // Use a filter to respond with 404 to http requests
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
-                    public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest, host,
+                    public HttpFilters filterRequest(
+                            HttpRequest originalRequest,
+                            ChannelHandlerContext ctx) {
+                        return new GiveModeHttpFilters(originalRequest, ctx,
+                                host,
                                 httpPort, TransportProtocol.TCP,
                                 expectedAuthToken);
                     }
@@ -157,8 +161,11 @@ public class Give extends CliProgram {
                 // right auth token
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
-                    public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest, host,
+                    public HttpFilters filterRequest(
+                            HttpRequest originalRequest,
+                            ChannelHandlerContext ctx) {
+                        return new GiveModeHttpFilters(originalRequest, ctx,
+                                host,
                                 httpsPort, TransportProtocol.TCP,
                                 expectedAuthToken);
                     }
@@ -177,8 +184,11 @@ public class Give extends CliProgram {
                 // right auth token
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
-                    public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GiveModeHttpFilters(originalRequest, host,
+                    public HttpFilters filterRequest(
+                            HttpRequest originalRequest,
+                            ChannelHandlerContext ctx) {
+                        return new GiveModeHttpFilters(originalRequest, ctx,
+                                host,
                                 udtPort, TransportProtocol.UDT,
                                 expectedAuthToken);
                     }

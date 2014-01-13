@@ -24,8 +24,8 @@ import org.apache.http.util.EntityUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.CertTrackingSslEngineSource;
-import org.lantern.proxy.GetModeHttpFilters;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.simple.Get;
 import org.lantern.state.Model;
@@ -179,7 +179,7 @@ public class FallbackProxyTest {
     private void hitSite(DefaultHttpClient httpClient, final String url) 
             throws Exception {
         final HttpGet get = new HttpGet(url);
-        get.addHeader(GetModeHttpFilters.X_LANTERN_AUTH_TOKEN, PROXY_AUTH_TOKEN);
+        get.addHeader(BaseChainedProxy.X_LANTERN_AUTH_TOKEN, PROXY_AUTH_TOKEN);
         
         try {
             log.debug("About to execute get!");

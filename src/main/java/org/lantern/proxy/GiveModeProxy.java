@@ -1,5 +1,6 @@
 package org.lantern.proxy;
 
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
 import java.net.InetSocketAddress;
@@ -65,8 +66,11 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                 // Use a filter to deny requests to non-public ips
                 .withFiltersSource(new HttpFiltersSourceAdapter() {
                     @Override
-                    public HttpFilters filterRequest(HttpRequest originalRequest) {
+                    public HttpFilters filterRequest(
+                            HttpRequest originalRequest,
+                            ChannelHandlerContext ctx) {
                         return new GiveModeHttpFilters(originalRequest,
+                                ctx,
                                 model.getReportIp(),
                                 model.getSettings().getProxyPort(),
                                 model.getSettings().getProxyProtocol(),

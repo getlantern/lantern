@@ -2,16 +2,15 @@ package org.lantern.proxy;
 
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
 
 import org.lantern.util.RandomLengthString;
+import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersAdapter;
 
 /**
  * {@link HttpFilters} used by the Get mode proxy.
  */
-public class GetModeHttpFilters extends HttpFiltersAdapter {
+public class BaseChainedProxy extends ChainedProxyAdapter {
     private static final RandomLengthString RANDOM_LENGTH_STRING =
             new RandomLengthString(100);
 
@@ -20,14 +19,16 @@ public class GetModeHttpFilters extends HttpFiltersAdapter {
 
     private final String lanternAuthToken;
 
-    public GetModeHttpFilters(String lanternAuthToken,
-            HttpRequest originalRequest) {
-        super(originalRequest);
+    public BaseChainedProxy(String lanternAuthToken) {
         this.lanternAuthToken = lanternAuthToken;
+    }
+    
+    public String getLanternAuthToken() {
+        return lanternAuthToken;
     }
 
     @Override
-    public HttpResponse requestPre(HttpObject httpObject) {
+    public void filterRequest(HttpObject httpObject) {
         if (httpObject instanceof HttpRequest) {
             HttpRequest httpRequest = (HttpRequest) httpObject;
             if (lanternAuthToken != null) {
@@ -39,7 +40,6 @@ public class GetModeHttpFilters extends HttpFiltersAdapter {
             httpRequest.headers().add(X_LANTERN_RANDOM_LENGTH_HEADER,
                     RANDOM_LENGTH_STRING.next());
         }
-        return super.requestPre(httpObject);
     }
 
 }

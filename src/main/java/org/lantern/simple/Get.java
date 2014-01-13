@@ -8,12 +8,9 @@ import java.util.Queue;
 import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.cli.Option;
-import org.lantern.proxy.GetModeHttpFilters;
+import org.lantern.proxy.BaseChainedProxy;
 import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.SslEngineSource;
@@ -101,17 +98,11 @@ public class Get extends CliProgram {
                 .withPort(localPort)
                 .withAllowLocalOnly(true)
                 .withListenOnAllAddresses(false)
-                .withFiltersSource(new HttpFiltersSourceAdapter() {
-                    @Override
-                    public HttpFilters filterRequest(HttpRequest originalRequest) {
-                        return new GetModeHttpFilters(authToken, originalRequest);
-                    }
-                })
                 .withChainProxyManager(new ChainedProxyManager() {
                     @Override
                     public void lookupChainedProxies(HttpRequest httpRequest,
                             Queue<ChainedProxy> chainedProxies) {
-                        chainedProxies.add(new ChainedProxyAdapter() {
+                        chainedProxies.add(new BaseChainedProxy(authToken) {
                             @Override
                             public InetSocketAddress getChainedProxyAddress() {
                                 return giveAddress;

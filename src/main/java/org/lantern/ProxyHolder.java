@@ -1,8 +1,6 @@
 package org.lantern;
 
 import static org.littleshoot.util.FiveTuple.Protocol.*;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -13,16 +11,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
-import org.lantern.proxy.GetModeHttpFilters;
+import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
-import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class ProxyHolder extends ChainedProxyAdapter
+public final class ProxyHolder extends BaseChainedProxy
         implements Comparable<ProxyHolder> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxyHolder.class);
@@ -46,8 +43,6 @@ public final class ProxyHolder extends ChainedProxyAdapter
 
     private final Type type;
 
-    private final String lanternAuthToken;
-
     private volatile Peer peer;
 
     public ProxyHolder(final ProxyTracker proxyTracker,
@@ -56,6 +51,7 @@ public final class ProxyHolder extends ChainedProxyAdapter
             final URI jid, final FiveTuple tuple,
             final Type type, final boolean natTraversed,
             final String lanternAuthToken) {
+        super(lanternAuthToken);
         this.proxyTracker = proxyTracker;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
@@ -63,11 +59,6 @@ public final class ProxyHolder extends ChainedProxyAdapter
         this.fiveTuple = tuple;
         this.type = type;
         this.natTraversed = natTraversed;
-        this.lanternAuthToken = lanternAuthToken;
-    }
-
-    public String getLanternAuthToken() {
-        return lanternAuthToken;
     }
 
     public FiveTuple getFiveTuple() {
@@ -258,14 +249,6 @@ public final class ProxyHolder extends ChainedProxyAdapter
         return lanternTrustStore.newSSLEngine();
     }
 
-    @Override
-    public void filterRequest(HttpObject httpObject) {
-        if (httpObject instanceof HttpRequest) {
-            new GetModeHttpFilters(lanternAuthToken, (HttpRequest) httpObject)
-                    .requestPre(httpObject);
-        }
-    }
-    
     @Override
     public void connectionSucceeded() {
         markConnected();
