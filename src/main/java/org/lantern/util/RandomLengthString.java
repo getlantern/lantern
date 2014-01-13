@@ -22,7 +22,7 @@ public class RandomLengthString {
         for (int i = 0; i < maxLength; i++) {
             char[] chars = new char[i];
             for (int j = 0; j < i; j++) {
-                chars[j] = 'r';
+                chars[j] = (char) random.get().nextInt(255);
             }
             preGeneratedStrings[i] = new String(chars);
         }
