@@ -210,11 +210,22 @@ var app = angular.module('app', [
     };
 
     $rootScope.interactionWithNotify = function (interactionid, scope, reloadAfter) {
-      var extra = scope.notify ? {
-        context: model.modal,
-        message: scope.message,
-        diagnosticInfo: scope.diagnosticInfo
-      } : null;
+      var extra;
+      if (scope.notify) {
+        var diagnosticInfo = scope.diagnosticInfo;
+        if (diagnosticInfo) {
+          try {
+            diagnosticInfo = angular.fromJson(diagnosticInfo);
+          } catch (e) {
+            $log.debug('JSON decode diagnosticInfo', diagnosticInfo, 'failed, passing as-is');
+          }
+        }
+        extra = {
+          context: model.modal,
+          message: scope.message,
+          diagnosticInfo: diagnosticInfo
+        };
+      }
       $rootScope.interaction(interactionid, extra).then(function () {
         if (reloadAfter) $rootScope.reload();
       });
