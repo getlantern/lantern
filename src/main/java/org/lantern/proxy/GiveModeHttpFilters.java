@@ -70,6 +70,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             final InetAddress ia = InetAddress.getByName(host);
             HttpResponse response = checkAuthToken(httpObject);
             if (response == null) {
+                removeRandomLengthHeader(httpObject);
                 if (NetworkUtils.isPublicAddress(ia)) {
                     LOG.debug("Allowing request for public address");
                 } else {
@@ -109,6 +110,13 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             }
         }
         return super.requestPre(httpObject);
+    }
+    
+    private void removeRandomLengthHeader(HttpObject httpObject) {
+        if (httpObject instanceof HttpRequest) {
+            HttpRequest req = (HttpRequest) httpObject;
+            req.headers().remove(ProxyHolder.X_LANTERN_RANDOM_LENGTH_HEADER);
+        }
     }
 
     private HttpResponse forbidden() {

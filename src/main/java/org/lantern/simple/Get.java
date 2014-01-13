@@ -11,6 +11,7 @@ import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.cli.Option;
 import org.lantern.ProxyHolder;
+import org.lantern.util.RandomLengthString;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -22,8 +23,6 @@ import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.SslEngineSource;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -49,11 +48,12 @@ import org.slf4j.LoggerFactory;
  * </pre>
  */
 public class Get extends CliProgram {
-    private static final Logger LOG = LoggerFactory.getLogger(Get.class);
     private static final String OPT_PORT = "port";
     private static final String OPT_REMOTE = "remote";
     private static final String OPT_AUTHTOKEN = "authtoken";
     private static final String OPT_PROTOCOL = "protocol";
+    private static final RandomLengthString RANDOM_LENGTH_STRING = 
+            new RandomLengthString(100);
 
     private int localPort;
     private InetSocketAddress giveAddress;
@@ -118,6 +118,9 @@ public class Get extends CliProgram {
                                     req.headers()
                                             .add(ProxyHolder.X_LANTERN_AUTH_TOKEN,
                                                     authToken);
+                                    req.headers()
+                                            .add(ProxyHolder.X_LANTERN_RANDOM_LENGTH_HEADER,
+                                                    RANDOM_LENGTH_STRING.next());
                                 }
                                 return null;
                             }
