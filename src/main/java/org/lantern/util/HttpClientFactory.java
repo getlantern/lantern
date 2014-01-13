@@ -26,7 +26,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class HttpClientFactory {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(HttpClientFactory.class);
+    
     private final Censored censored;
 
     @Inject
@@ -49,12 +50,12 @@ public class HttpClientFactory {
         }
     }
     
-    private HttpClient newDirectClient() {
+    public static HttpClient newDirectClient() {
         log.debug("Returning direct client");
         return newClient(null);
     }
 
-    private HttpClient newProxiedClient() {
+    public static HttpClient newProxiedClient() {
         log.debug("Returning proxied client");
         HttpHost proxy = new HttpHost("127.0.0.1",
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT,
@@ -62,7 +63,7 @@ public class HttpClientFactory {
         return newClient(proxy);
     }
 
-    public HttpClient newClient(final HttpHost proxy) {
+    public static HttpClient newClient(final HttpHost proxy) {
         final DefaultHttpClient client = new DefaultHttpClient();
         configureDefaults(client);
         if (proxy != null) {
@@ -72,7 +73,7 @@ public class HttpClientFactory {
         return client;
     }
     
-    private void configureDefaults(final DefaultHttpClient httpClient) {
+    public static void configureDefaults(final DefaultHttpClient httpClient) {
         log.debug("Configuring defaults...");
         httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(2,true));
         httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);
