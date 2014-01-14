@@ -651,8 +651,8 @@ public class Launcher {
         asyncAppender.setThreshold(Level.WARN);
         BasicConfigurator.configure(asyncAppender);
         // When shutting down, we may see exceptions because someone is
-        // still using the system while we're shutting down.  Let's now
-        // send these to Exceptional.
+        // still using the system while we're shutting down.  Let's not
+        // send these to Loggly.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {

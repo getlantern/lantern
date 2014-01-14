@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.lantern.exceptional4j.ExceptionalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,9 +86,6 @@ public class LanternClientConstants {
         new File(System.getProperty("user.home"),
             ".config/autostart/lantern-autostart.desktop");
 
-
-    public static final String GET_EXCEPTIONAL_API_KEY =
-        ExceptionalUtils.NO_OP_KEY;
 
     static {
         // Only load these if we're not on app engine.

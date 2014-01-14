@@ -197,7 +197,7 @@ public class Diagnostics {
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
 
         output("Connected to server....");
-        final Collection<String> censored = Arrays.asList(//"exceptional.io");
+        final Collection<String> censored = Arrays.asList(
             //"www.getlantern.org",
             //"github.com",
             "facebook.com",

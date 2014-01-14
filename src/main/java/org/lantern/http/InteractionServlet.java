@@ -252,7 +252,7 @@ public class InteractionServlet extends HttpServlet {
         log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
             modal, inter, this.model.getSettings().getMode());
         
-        if (handleExceptionalInteractions(modal, inter, json)) {
+        if (handleErrorReporting(modal, inter, json)) {
             return; 
         }
 
@@ -598,7 +598,7 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
-    private boolean handleExceptionalInteractions(
+    private boolean handleErrorReporting(
             final Modal modal, final Interaction inter, final String json) {
         boolean handled = false;
         Map<String, Object> map;
