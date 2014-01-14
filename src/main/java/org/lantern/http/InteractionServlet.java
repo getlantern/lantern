@@ -122,7 +122,7 @@ public class InteractionServlet extends HttpServlet {
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, 
-        final Censored censored, final LogglyHelper lanternFeedback,
+        final Censored censored, final LogglyHelper logglyHelper,
         final FriendsHandler friender,
         final Messages msgs) {
         this.model = model;
@@ -130,7 +130,7 @@ public class InteractionServlet extends HttpServlet {
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.censored = censored;
-        this.logglyHelper = lanternFeedback;
+        this.logglyHelper = logglyHelper;
         this.friender = friender;
         this.msgs = msgs;
         Events.register(this);
