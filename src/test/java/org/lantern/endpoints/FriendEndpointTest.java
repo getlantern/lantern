@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.LanternClientConstants;
 import org.lantern.TestingUtils;
@@ -27,6 +29,16 @@ import org.slf4j.LoggerFactory;
 public class FriendEndpointTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    @BeforeClass
+    public static void setUpOnce() {
+        LanternClientConstants.setControllerId("oxlanternctrl");
+    }
+    
+    @AfterClass
+    public static void tearDownOnce() {
+        LanternClientConstants.setControllerId("lanternctrl");
+    }
     
     @Test
     public void testFriendEndpoint() throws Exception {
