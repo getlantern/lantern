@@ -640,7 +640,7 @@ public class InteractionServlet extends HttpServlet {
         try {
             logglyHelper.submit(json);
             if (showNotification) {
-                this.msgs.error(MessageKey.CONTACT_THANK_YOU);
+                this.msgs.info(MessageKey.CONTACT_THANK_YOU);
             }
         } catch(Exception e) {
             if (showNotification) {
