@@ -9,6 +9,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.FallbackProxy;
+import org.lantern.LanternUtils;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class PublicIpAddress implements PublicIp {
         }
 
         LOG.debug("Attempting to find public IP address");
-        if (fallbackConfigured) {
+        if (!LanternUtils.isFallbackProxy() && fallbackConfigured) {
             LOG.debug("Fallback configured, doing safe lookup");
             return lookupSafe();
         } else {
