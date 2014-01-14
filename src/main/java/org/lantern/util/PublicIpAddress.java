@@ -35,7 +35,6 @@ public class PublicIpAddress implements PublicIp {
 
     private final long cacheTime;
     private final UnsafePublicIpAddress unsafePublicIpAddress;
-    private final boolean fallbackConfigured;
 
     public PublicIpAddress() {
         this(100L);
@@ -44,7 +43,6 @@ public class PublicIpAddress implements PublicIp {
     public PublicIpAddress(long cacheTime) {
         this.cacheTime = cacheTime;
         this.unsafePublicIpAddress = new UnsafePublicIpAddress(cacheTime);
-        this.fallbackConfigured = FallbackProxy.readConfigured() != null;
     }
 
     /**
@@ -75,7 +73,7 @@ public class PublicIpAddress implements PublicIp {
         }
 
         LOG.debug("Attempting to find public IP address");
-        if (!LanternUtils.isFallbackProxy() && fallbackConfigured) {
+        if (!LanternUtils.isFallbackProxy() && FallbackProxy.isConfigured()) {
             LOG.debug("Fallback configured, doing safe lookup");
             return lookupSafe();
         } else {

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -15,6 +16,8 @@ import com.google.common.io.Files;
 
 public class FallbackProxy {
     private static final Logger LOG = LoggerFactory.getLogger(FallbackProxy.class);
+    private static final AtomicBoolean CONFIGURATION_READ = new AtomicBoolean();
+    private static final AtomicBoolean IS_CONFIGURED = new AtomicBoolean();
 
     private String ip;
     
@@ -42,6 +45,7 @@ public class FallbackProxy {
         } catch (final IOException e) {
             LOG.warn("Could not copy fallback?", e);
         }
+        CONFIGURATION_READ.set(true);
         final File file = new File(LanternClientConstants.CONFIG_DIR,
                 "fallback.json");
         if (!file.isFile()) {
@@ -62,6 +66,14 @@ public class FallbackProxy {
         } finally {
             IOUtils.closeQuietly(is);
         }
+    }
+    
+    public static boolean isConfigured() {
+        if (!CONFIGURATION_READ.get()) {
+            FallbackProxy configured = readConfigured();
+            IS_CONFIGURED.set(configured != null);
+        }
+        return IS_CONFIGURED.get();
     }
 
     public String getIp() {

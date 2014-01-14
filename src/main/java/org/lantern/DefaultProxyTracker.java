@@ -396,10 +396,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void prepopulateProxies() {
         LOG.debug("Attempting to pre-populate proxies");
-        if (this.model.getSettings().getMode() == Mode.give) {
-            LOG.debug("Not loading proxies in give mode");
-            return;
-        }
         if (this.proxiesPopulated.get()) {
             LOG.debug("Proxies already populated!");
             return;
