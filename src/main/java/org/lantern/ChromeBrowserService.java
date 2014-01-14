@@ -74,7 +74,8 @@ public class ChromeBrowserService implements BrowserService {
                 "to run successfully. You can download Google Chrome from " +
                 "https://www.google.com/chrome/. Once Chrome is installed, " +
                 "please restart Lantern.");
-            System.exit(2);
+            log.info("Lantern requires Google Chrome, exiting");
+            System.exit(0);
         }
     }
     
