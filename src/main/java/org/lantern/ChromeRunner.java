@@ -161,6 +161,7 @@ public class ChromeRunner {
             if (SystemUtils.IS_OS_MAC_OSX) {
                 commands.add(endpoint + "/index.html");
             } else {
+                // http://peter.sh/experiments/chromium-command-line-switches/
                 commands.add("--user-data-dir="
                         + LanternClientConstants.CONFIG_DIR.getAbsolutePath());
                 commands.add("--window-size=" + screenWidth + "," + screenHeight);
@@ -174,6 +175,7 @@ public class ChromeRunner {
                 commands.add("--disable-plugins");
                 commands.add("--disable-java");
                 commands.add("--disable-extensions");
+                commands.add("--no-default-browser-check");
                 commands.add("--app=" + endpoint + "/index.html");
             }
     
