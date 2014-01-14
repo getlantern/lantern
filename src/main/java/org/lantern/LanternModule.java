@@ -119,7 +119,7 @@ public class LanternModule extends AbstractModule {
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);
         bind(PhotoServlet.class);
-        bind(LanternFeedback.class);
+        bind(LogglyHelper.class);
 
         bind(Censored.class).to(DefaultCensored.class);
         bind(ProxyTracker.class).to(DefaultProxyTracker.class);

@@ -114,22 +114,6 @@ public class HttpClientFactoryTest {
         assertEquals(200, code);
     }
 
-    private void testGoogleDocs(final HttpClientFactory clientFactory) 
-        throws Exception {
-        final LanternFeedback feedback = spy(new LanternFeedback(clientFactory));
-        when(feedback.getHttpPost(anyString())).thenAnswer(new Answer<HttpPost>() {
-            @Override
-            public HttpPost answer(InvocationOnMock invocation) {
-                HttpPost mockPost = spy(new HttpPost(LanternFeedback.HOST));
-                doNothing().when(mockPost).setEntity((HttpEntity)any());
-                return mockPost;
-            }
-        });
-        final int responseCode =
-            feedback.submit("Testing", "lanternftw@gmail.com");
-        assertEquals(200, responseCode);
-    }
-
     private void testExceptional(final HttpClient client)
         throws Exception {
         final String requestBody = "{request: {}}";
