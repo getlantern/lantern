@@ -298,6 +298,17 @@ public class Launcher {
         friendsHandler = instance(FriendsHandler.class);
         
         startServices();
+        
+        if (uiDisabled) {
+            // Run a little main loop to keep the program running
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    // do nothing
+                }
+            }
+        }
     }
 
     /**
