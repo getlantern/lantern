@@ -29,9 +29,10 @@ public class LogglyHelper {
     }
 
     public void submit(String json) {
-        String reporterId = model.getProfile().getEmail();
-        if (StringUtils.isBlank(reporterId)) {
-            reporterId = model.getInstanceId();
+        String reporterId = "(" + model.getInstanceId() + ")";
+        String email = model.getProfile().getEmail();
+        if (!StringUtils.isBlank(email)) {
+            reporterId = email + " " + reporterId;
         }
         LogglyMessage msg = new LogglyMessage(
                 reporterId,
