@@ -96,7 +96,6 @@ public class HttpClientFactoryTest {
            @Override
             public Void call() throws Exception {
                 testExceptional(client);
-                testGoogleDocs(factory);
                 testStats(client);
                 return null;
             } 
