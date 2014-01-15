@@ -38,7 +38,8 @@ public class LogglyHelper {
                 reporterId,
                 "Lantern Feedback",
                 new Date())
-                .setExtraFromJson(json);
+                .setExtraFromJson(json)
+                .sanitized();
         loggly.log(msg);
         LOG.info("submitted to Loggly: %s", json);
     }

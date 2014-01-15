@@ -252,7 +252,7 @@ public class InteractionServlet extends HttpServlet {
         log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
             modal, inter, this.model.getSettings().getMode());
         
-        if (handleErrorReporting(modal, inter, json)) {
+        if (handleExceptionInteractions(modal, inter, json)) {
             return; 
         }
 
@@ -598,11 +598,9 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
-    private boolean handleErrorReporting(
+    private boolean handleExceptionInteractions(
             final Modal modal, final Interaction inter, final String json) {
         boolean handled = false;
-        Map<String, Object> map;
-        Boolean notify;
         switch(inter) {
             case EXCEPTION:
                 maybeSubmitToLoggly(json);
@@ -611,7 +609,6 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case UNEXPECTEDSTATERESET:
                 log.debug("Handling unexpected state reset.");
-                maybeSubmitToLoggly(json);
                 backupSettings();
                 handleReset();
                 Events.syncModel(this.model);
