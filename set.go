@@ -155,6 +155,17 @@ func (s *Set) IsSuperset(t *Set) bool {
 	return t.IsSubset(s)
 }
 
+func (s *Set) Each(f func(item interface{}) bool) {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	for item := range s.m {
+		if !f(item) {
+			break
+		}
+	}
+}
+
 // String returns a string representation of s
 func (s *Set) String() string {
 	t := make([]string, 0, len(s.List()))
