@@ -11,6 +11,31 @@ import (
 	"sync"
 )
 
+type Interface interface {
+	Add(items ...interface{})
+	Remove(items ...interface{})
+	Pop() interface{}
+	Has(items ...interface{}) bool
+	Size() int
+	Clear()
+	IsEmpty() bool
+	IsEqual(s Interface) bool
+	IsSubset(s Interface) bool
+	IsSuperset(s Interface) bool
+	Each(func(interface{}) bool)
+	String() string
+	List() []interface{}
+	Copy() Interface
+	Union(s Interface) Interface
+	Merge(s Interface)
+	Separate(s Interface)
+	Intersection(s Interface) Interface
+	Difference(s Interface) Interface
+	SymmetricDifference(s Interface) Interface
+	StringSlice() []string
+	IntSlice() []int
+}
+
 // Set defines a thread safe set data structure.
 type Set struct {
 	m map[interface{}]struct{} // struct{} doesn't take up space
@@ -115,43 +140,43 @@ func (s *Set) IsEmpty() bool {
 }
 
 // IsEqual test whether s and t are the same in size and have the same items.
-func (s *Set) IsEqual(t *Set) bool {
+func (s *Set) IsEqual(t Interface) bool {
 	s.l.RLock()
-	t.l.RLock()
-	equal := true
 
-	if equal = len(s.m) == len(t.m); equal {
-		for item := range s.m {
-			if _, equal = t.m[item]; !equal {
-				break
-			}
-		}
+	// Force locking only if given set is threadsafe.
+	if conv, ok := t.(*Set); ok {
+		conv.l.RLock()
+		defer conv.l.RUnlock()
 	}
 
-	t.l.RUnlock()
+	equal := true
+	if equal = len(s.m) == t.Size(); equal {
+		t.Each(func (item interface{}) (equal bool) {
+			_, equal = s.m[item]
+			return
+		})
+	}
+
 	s.l.RUnlock()
 	return equal
 }
 
 // IsSubset tests whether t is a subset of s.
-func (s *Set) IsSubset(t *Set) bool {
+func (s *Set) IsSubset(t Interface) (subset bool) {
 	s.l.RLock()
-	t.l.RLock()
-	subset := true
+	subset = true
 
-	for item := range t.m {
-		if _, subset = s.m[item]; !subset {
-			break
-		}
-	}
+	t.Each(func (item interface{}) bool {
+		_, subset = s.m[item]
+		return subset
+	})
 
-	t.l.RUnlock()
 	s.l.RUnlock()
-	return subset
+	return
 }
 
 // IsSuperset tests whether t is a superset of s.
-func (s *Set) IsSuperset(t *Set) bool {
+func (s *Set) IsSuperset(t Interface) bool {
 	return t.IsSubset(s)
 }
 
@@ -192,14 +217,14 @@ func (s *Set) List() []interface{} {
 }
 
 // Copy returns a new Set with a copy of s.
-func (s *Set) Copy() *Set {
+func (s *Set) Copy() Interface {
 	return New(s.List()...)
 }
 
 // Union is the merger of two sets. It returns a new set with the element in s
 // and t combined. It doesn't modify s. Use Merge() if  you want to change the
 // underlying set s.
-func (s *Set) Union(t *Set) *Set {
+func (s *Set) Union(t Interface) Interface {
 	u := s.Copy()
 	u.Merge(t)
 	return u
@@ -207,31 +232,30 @@ func (s *Set) Union(t *Set) *Set {
 
 // Merge is like Union, however it modifies the current set it's applied on
 // with the given t set.
-func (s *Set) Merge(t *Set) {
+func (s *Set) Merge(t Interface) {
 	s.l.Lock()
-	t.l.RLock()
-	for item := range t.m {
+	t.Each(func (item interface{}) bool {
 		s.m[item] = keyExists
-	}
-	t.l.RUnlock()
+		return true
+	})
 	s.l.Unlock()
 }
 
 // Separate removes the set items containing in t from set s. Please aware that
 // it's not the opposite of Merge.
-func (s *Set) Separate(t *Set) {
+func (s *Set) Separate(t Interface) {
 	s.Remove(t.List()...)
 }
 
 // Intersection returns a new set which contains items which is in both s and t.
-func (s *Set) Intersection(t *Set) *Set {
+func (s *Set) Intersection(t Interface) Interface {
 	u := s.Copy()
 	u.Separate(u.Difference(t))
 	return u
 }
 
 // Difference returns a new set which contains items which are in s but not in t.
-func (s *Set) Difference(t *Set) *Set {
+func (s *Set) Difference(t Interface) Interface {
 	u := s.Copy()
 	u.Separate(t)
 	return u
@@ -239,7 +263,7 @@ func (s *Set) Difference(t *Set) *Set {
 
 // SymmetricDifference returns a new set which s is the difference of items  which are in
 // one of either, but not in both.
-func (s *Set) SymmetricDifference(t *Set) *Set {
+func (s *Set) SymmetricDifference(t Interface) Interface {
 	u := s.Difference(t)
 	v := t.Difference(s)
 	return u.Union(v)
@@ -279,14 +303,13 @@ func (s *Set) IntSlice() []int {
 // element in combined in all sets that are passed. Unlike the Union() method
 // you can use this function seperatly with multiple sets. If no items are
 // passed an empty set is returned.
-func Union(sets ...*Set) *Set {
+func Union(sets ...Interface) Interface {
 	u := New()
 	for _, set := range sets {
-		set.l.RLock()
-		for item := range set.m {
+		set.Each(func (item interface{}) bool {
 			u.m[item] = keyExists
-		}
-		set.l.RUnlock()
+			return true
+		})
 	}
 
 	return u
@@ -296,7 +319,7 @@ func Union(sets ...*Set) *Set {
 // set but not in the others. Unlike the Difference() method you can use this
 // function seperatly with multiple sets. If no items are passed an empty set
 // is returned.
-func Difference(sets ...*Set) *Set {
+func Difference(sets ...Interface) Interface {
 	if len(sets) == 0 {
 		return New()
 	}
