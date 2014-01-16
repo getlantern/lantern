@@ -55,7 +55,6 @@ public class OauthUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(OauthUtils.class);
 
-    private long nextExpiryTime = System.currentTimeMillis();
     private final Model model;
     
     private static TokenResponse lastResponse;
@@ -81,7 +80,6 @@ public class OauthUtils {
         this.model = model;
         this.refreshToken = refreshToken;
         this.modelIo = modelIo;
-        this.nextExpiryTime = model.getSettings().getExpiryTime();
         LanternSaslGoogleOAuth2Mechanism.setOauthUtils(this);
     }
     
@@ -157,7 +155,7 @@ public class OauthUtils {
         if (lastResponse != null) {
             LOG.debug("We have a cached response...");
             final long now = System.currentTimeMillis();
-            if (now < nextExpiryTime) {
+            if (now < model.getSettings().getExpiryTime()) {
                 LOG.debug("Access token hasn't expired yet");
                 return lastResponse;
             } else {
@@ -181,9 +179,6 @@ public class OauthUtils {
             
             final long expiry = response.getExpiresInSeconds();
             LOG.info("Got expiry time: {}", expiry);
-            nextExpiryTime = System.currentTimeMillis() + 
-                ((expiry-10) * 1000);
-            LOG.debug("Next expiry: "+nextExpiryTime);
             
             //LOG.info("Got response: {}", response);
             final Settings set = this.model.getSettings();
@@ -194,7 +189,8 @@ public class OauthUtils {
                 LOG.warn("Blank access token?");
             }
             
-            set.setExpiryTime(nextExpiryTime);
+            set.setExpiryTime(System.currentTimeMillis() + 
+                    ((expiry-10) * 1000));
             set.setUseGoogleOAuth2(true);
             // If the server sent us a new refresh token, store it.
             final String tok = response.getRefreshToken();
@@ -236,7 +232,8 @@ public class OauthUtils {
         return httpRequest(new HttpDelete(endpoint));
     }
 
-    private String httpRequest(final HttpRequestBase request) throws IOException {
+    private String httpRequest(final HttpRequestBase request) 
+            throws IOException {
         final HttpFallbackFunc<String> func = new HttpFallbackFunc<String>() {
 
             @Override
@@ -270,6 +267,7 @@ public class OauthUtils {
             EntityUtils.consume(entity);
             
             if (code < 200 || code > 299) {
+                LOG.warn("Bad response code: {}", code);
                 throw new IOException("Bad response code: "+code+"\n"+body);
             }
             return body;

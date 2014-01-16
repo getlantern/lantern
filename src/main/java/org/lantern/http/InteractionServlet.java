@@ -32,6 +32,7 @@ import org.lantern.Messages;
 import org.lantern.SecurityUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
+import org.lantern.oauth.RefreshToken;
 import org.lantern.state.Connectivity;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
@@ -117,6 +118,8 @@ public class InteractionServlet extends HttpServlet {
 
     private final Messages msgs;
 
+    private RefreshToken refreshToken;
+
     @Inject
     public InteractionServlet(final Model model,
         final ModelService modelService,
@@ -124,7 +127,8 @@ public class InteractionServlet extends HttpServlet {
         final ModelIo modelIo, 
         final Censored censored, final LogglyHelper logglyHelper,
         final FriendsHandler friender,
-        final Messages msgs) {
+        final Messages msgs,
+        final RefreshToken refreshToken) {
         this.model = model;
         this.modelService = modelService;
         this.internalState = internalState;
@@ -133,6 +137,7 @@ public class InteractionServlet extends HttpServlet {
         this.logglyHelper = logglyHelper;
         this.friender = friender;
         this.msgs = msgs;
+        this.refreshToken = refreshToken;
         Events.register(this);
     }
 
@@ -352,9 +357,7 @@ public class InteractionServlet extends HttpServlet {
             case RETRY:
                 log.debug("Switching to authorize modal");
                 // We need to kill all the existing oauth tokens.
-                this.model.getSettings().setRefreshToken("");
-                this.model.getSettings().setAccessToken("");
-                this.model.getSettings().setExpiryTime(0L);
+                resetOauth();
                 Events.syncModal(model, Modal.authorize);
                 break;
             // not currently implemented:
@@ -585,6 +588,14 @@ public class InteractionServlet extends HttpServlet {
         this.modelIo.write();
     }
     
+    private void resetOauth() {
+        log.debug("Resetting oauth...");
+        this.refreshToken.reset();
+        this.model.getSettings().setRefreshToken("");
+        this.model.getSettings().setAccessToken("");
+        this.model.getSettings().setExpiryTime(0L);
+    }
+    
     private String email(final String json) {
         return JsonUtils.getValueFromJson("email", json).toLowerCase();
     }
@@ -725,6 +736,7 @@ public class InteractionServlet extends HttpServlet {
                 log.warn("Could not delete model file?");
             }
         }
+        resetOauth();
         final Model base = new Model(model.getCountryService());
         model.setEverGetMode(false);
         model.setLaunchd(base.isLaunchd());
