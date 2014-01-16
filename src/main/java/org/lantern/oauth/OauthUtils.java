@@ -2,14 +2,13 @@ package org.lantern.oauth;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashSet;
+
+import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -95,8 +94,9 @@ public class OauthUtils {
      * @return The tokens.
      * @throws IOException If we cannot access the tokens either directory or
      * through a fallback proxy.
+     * @throws CredentialException If the user's credentials are invalid.
      */
-    public TokenResponse oauthTokens() throws IOException {
+    public TokenResponse oauthTokens() throws IOException, CredentialException {
         LOG.debug("Refreshing ACCESS token");
         
         // Get the tokens with a direct request followed by a proxied request
@@ -106,7 +106,7 @@ public class OauthUtils {
 
             @Override
             public TokenResponse call(final HttpClient client, 
-                    final String refresh) throws IOException {
+                    final String refresh) throws IOException, CredentialException {
                 return oauthTokens(client, refresh);
             }
         };
@@ -124,7 +124,7 @@ public class OauthUtils {
     private abstract class HttpFallbackFunc<T> {
         
         public abstract T call(final HttpClient client, final String refresh) 
-                throws IOException;
+                throws IOException, CredentialException;
         
         /**
          * Execute the desired call with a fallback. If the fallback is used,
@@ -134,23 +134,22 @@ public class OauthUtils {
          * @return The implementor's return type.
          * @throws IOException If there's an error running the function with
          * both direct attempts and fallback proxy attempts.
+         * @throws CredentialException If the user's credentials are invalid.
          */
-        public T execute() throws IOException {
+        public T execute() throws IOException, CredentialException {
             LOG.debug("Making oauth call -- will use fallback if necessary...");
             
             // Note this call will block until a refresh token is available!
             final String refresh = refreshToken.refreshToken();
             
             final HttpClient client = httpClientFactory.newClient();
-            final Collection<HttpHost> usedHosts = new HashSet<HttpHost>();
-            
             return call(client, refresh);
         }
     }
     
     public TokenResponse oauthTokens(final HttpClient httpClient, 
             final String refresh) 
-            throws IOException {
+            throws IOException, CredentialException {
         LOG.debug("Obtaining access token...");
         if (lastResponse != null) {
             LOG.debug("We have a cached response...");
@@ -207,7 +206,9 @@ public class OauthUtils {
             return lastResponse;
         } catch (final TokenResponseException e) {
             LOG.error("Token error -- maybe revoked or unauthorized?", e);
-            throw new IOException("Problem with token -- maybe revoked?", e);
+            final CredentialException ce = new CredentialException("Problem with token -- maybe revoked?");
+            ce.initCause(e);
+            throw ce;
         } catch (final IOException e) {
             LOG.warn("IO exception while trying to refresh token.", e);
             throw e;
@@ -215,7 +216,7 @@ public class OauthUtils {
     }
 
     public String postRequest(final String endpoint, final String json) 
-            throws IOException {
+            throws IOException, CredentialException {
         
         final HttpPost post = new HttpPost(endpoint);
         post.setHeader("Content-Type", "application/json");
@@ -224,21 +225,23 @@ public class OauthUtils {
         return httpRequest(post);
     }
     
-    public String getRequest(final String endpoint) throws IOException {
+    public String getRequest(final String endpoint) throws IOException, 
+        CredentialException {
         return httpRequest(new HttpGet(endpoint));
     }
     
-    public String deleteRequest(final String endpoint) throws IOException {
+    public String deleteRequest(final String endpoint) throws IOException, 
+        CredentialException {
         return httpRequest(new HttpDelete(endpoint));
     }
 
     private String httpRequest(final HttpRequestBase request) 
-            throws IOException {
+            throws IOException, CredentialException {
         final HttpFallbackFunc<String> func = new HttpFallbackFunc<String>() {
 
             @Override
             public String call(final HttpClient client, final String refresh)
-                    throws IOException {
+                    throws IOException, CredentialException {
                 return httpRequest(client, request);
             }
         };
@@ -246,7 +249,8 @@ public class OauthUtils {
     }
     
     private String httpRequest(final HttpClient httpClient,
-            final HttpRequestBase request) throws IOException {
+            final HttpRequestBase request) throws IOException, 
+            CredentialException {
         configureOauth(httpClient, request);
        
         try {
@@ -279,14 +283,16 @@ public class OauthUtils {
     }
  
     private void configureOauth(final HttpClient httpClient, 
-            final HttpRequestBase request) throws IOException {
+            final HttpRequestBase request) throws IOException, 
+            CredentialException {
         final String accessToken = accessToken(httpClient);
         request.setHeader("Authorization", "Bearer "+accessToken);
         request.setHeader("Accept-Charset", "UTF-8");
         request.setHeader("Accept", "application/json");
     }
 
-    public String accessToken(final HttpClient httpClient) throws IOException {
+    public String accessToken(final HttpClient httpClient) throws IOException, 
+        CredentialException {
         final String refresh = this.refreshToken.refreshToken();
         return oauthTokens(httpClient, refresh).getAccessToken();
     } 

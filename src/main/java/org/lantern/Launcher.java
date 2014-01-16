@@ -587,9 +587,10 @@ public class Launcher {
                     } catch (final IOException e) {
                         LOG.debug("Could not login", e);
                     } catch (final CredentialException e) {
-                        LOG.debug("Bad credentials");
+                        LOG.debug("Bad credentials", e);
+                        Events.syncModal(model, Modal.authorize);
                     } catch (final NotInClosedBetaException e) {
-                        LOG.warn("Not in closed beta!!");
+                        LOG.warn("Not in closed beta!!", e);
                         internalState.setNotInvited(true);
                     }
                 }
