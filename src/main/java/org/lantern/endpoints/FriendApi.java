@@ -2,6 +2,8 @@ package org.lantern.endpoints;
 
 import java.io.IOException;
 
+import javax.security.auth.login.CredentialException;
+
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
@@ -39,8 +41,9 @@ public class FriendApi {
      * 
      * @return List of all entities persisted.
      * @throws IOException If there's an error making the call to the server.
+     * @throws CredentialException If the user's credentials are invalid.
      */
-    public ClientFriend[] listFriends() throws IOException {
+    public ClientFriend[] listFriends() throws IOException, CredentialException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return null;
@@ -57,8 +60,10 @@ public class FriendApi {
      * @param id The primary key of the java bean.
      * @return The entity with primary key id.
      * @throws IOException If there's an error making the call to the server.
+     * @throws CredentialException If the user's credentials are invalid.
      */
-    public ClientFriend getFriend(final long id) throws IOException {
+    public ClientFriend getFriend(final long id) throws IOException, 
+        CredentialException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return null;
@@ -75,9 +80,10 @@ public class FriendApi {
      * @param task The entity to be inserted.
      * @return The inserted entity.
      * @throws IOException If there's an error making the call to the server.
+     * @throws CredentialException If the user's credentials are invalid.
      */
     public ClientFriend insertFriend(final ClientFriend friend)
-            throws IOException {
+            throws IOException, CredentialException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return friend;
@@ -93,8 +99,10 @@ public class FriendApi {
      * @param friend The entity to be updated.
      * @return The updated entity.
      * @throws IOException If there's an error making the call to the server.
+     * @throws CredentialException If the user's credentials are invalid.
      */
-    public ClientFriend updateFriend(final ClientFriend friend) throws IOException {
+    public ClientFriend updateFriend(final ClientFriend friend) 
+            throws IOException, CredentialException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return friend;
@@ -105,7 +113,7 @@ public class FriendApi {
     }
 
     private ClientFriend post(final String url, final Friend friend) 
-            throws IOException {
+            throws IOException, CredentialException {
         final String json = JsonUtils.jsonify(friend);
         final String content = this.oauth.postRequest(url, json);
         return processResponse(content, ClientFriend.class);
@@ -118,8 +126,10 @@ public class FriendApi {
      * @param id The primary key of the entity to be deleted.
      * @return The deleted entity.
      * @throws IOException If there's an error making the call to the server.
+     * @throws CredentialException If the user's credentials are invalid.
      */
-    public void removeFriend(final long id) throws IOException {
+    public void removeFriend(final long id) throws IOException, 
+        CredentialException {
         if (LanternUtils.isFallbackProxy()) {
             log.debug("Ignoring friends call from fallback");
             return;

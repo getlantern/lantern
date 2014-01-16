@@ -17,6 +17,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.security.auth.login.CredentialException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
@@ -162,6 +164,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     friends = Collections.emptyList();
                     friendsLoaded.set(false);
                     return Collections.emptyMap();
+                } catch (final CredentialException e) {
+                    log.error("Could not list friends?", e);
+                    friends = Collections.emptyList();
+                    friendsLoaded.set(false);
+                    return Collections.emptyMap();
                 } finally {
                     friendsLoading.set(false);
                     model.setFriends(friends);
@@ -204,6 +211,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
                 remove(email);
                 syncFriends();
+            } catch (final CredentialException e) {
+                this.msgs.error(MessageKey.ERROR_ADDING_FRIEND, e, email);
+                remove(email);
+                syncFriends();
             }
             
         } else {
@@ -229,18 +240,23 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 // to remove any notification dialogs for the friend, for 
                 // example.
                 sync(existingFriend);
+                Exception exc = null;
                 try {
                     update(existingFriend);
-                } catch (IOException e) {
-                    log.error("Could not friend?", e);
-                    this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, e, email);
-                    
-                    // Set the friend back to his or her original status!
-                    existingFriend.setStatus(originalStatus);
-                    sync(existingFriend);
+                    xmppHandler.addToRoster(email);
                     return;
+                } catch (IOException e) {
+                    exc = e;
+                } catch (CredentialException e) {
+                    exc = e;
                 }
-                xmppHandler.addToRoster(email);
+                log.error("Could not friend?", exc);
+                this.msgs.error(MessageKey.ERROR_UPDATING_FRIEND, exc, email);
+                
+                // Set the friend back to his or her original status!
+                existingFriend.setStatus(originalStatus);
+                sync(existingFriend);
+                
                 break;
             default:
                 break;
@@ -257,6 +273,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } catch (final IOException ioe) {
             // We've already messaged the user about an error above.
             //log.error("Error removing "+email+".", ioe);
+        } catch (final CredentialException e) {
+            
         }
     }
 
@@ -405,6 +423,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
             friendNotification(onServer);
         } catch (final IOException e) {
             log.warn("Could not update?", e);
+        } catch (CredentialException e) {
+            log.warn("Could not update?", e);
         }
     }
 
@@ -480,6 +500,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
             put(updated);
             this.msgs.info(MessageKey.REMOVED_FRIEND, email);
         } catch (final IOException e) {
+            this.msgs.error(MessageKey.ERROR_REMOVING_FRIEND, e, email);
+            friend.setStatus(existingStatus);
+            sync(friend);
+        } catch (CredentialException e) {
             this.msgs.error(MessageKey.ERROR_REMOVING_FRIEND, e, email);
             friend.setStatus(existingStatus);
             sync(friend);
@@ -572,6 +596,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
         } catch (final IOException e) {
             friend.setStatus(originalStatus);
             sync(friend);
+        } catch (CredentialException e) {
+            friend.setStatus(originalStatus);
+            sync(friend);
         }
     }
 
@@ -613,13 +640,15 @@ public class DefaultFriendsHandler implements FriendsHandler {
         syncFriends();
     }
 
-    private ClientFriend insert(final ClientFriend friend) throws IOException {
+    private ClientFriend insert(final ClientFriend friend) throws IOException, 
+        CredentialException {
         final ClientFriend updated = this.api.insertFriend(friend);
         put(updated);
         return updated;
     }
 
-    private ClientFriend update(final ClientFriend friend) throws IOException {
+    private ClientFriend update(final ClientFriend friend) throws IOException, 
+        CredentialException {
         final ClientFriend updated = this.api.updateFriend(friend);
         put(updated);
         return updated;
@@ -636,6 +665,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
             try {
                 update(friend);
             } catch (IOException e) {
+                log.warn("Could not update name", e);
+            } catch (CredentialException e) {
                 log.warn("Could not update name", e);
             }
         }

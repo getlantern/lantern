@@ -3,6 +3,7 @@ package org.lantern.oauth;
 import java.io.IOException;
 
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.login.CredentialException;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SASLAuthentication;
@@ -56,7 +57,13 @@ public class LanternSaslGoogleOAuth2Mechanism extends SASLMechanism {
         this.authenticationId = username;
         this.hostname = host;
 
-        final TokenResponse refreshed = oauthUtils.oauthTokens();
+        final TokenResponse refreshed;
+        try {
+            refreshed = oauthUtils.oauthTokens();
+        } catch (CredentialException e) {
+            log.debug("Credentials error", e);
+            throw new XMPPException("Credentials error", e);
+        }
         final String accessToken = refreshed.getAccessToken();
 
         final String raw = "\0" + this.authenticationId + "\0" + accessToken;
