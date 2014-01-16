@@ -84,7 +84,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     public void bytesReceivedFromClient(
                             FlowContext flowContext,
                             int numberOfBytes) {
-                        stats.addDownBytesFromPeers(numberOfBytes);
+                        stats.addDownBytesFromPeers(numberOfBytes,
+                                flowContext.getClientAddress().getAddress());
                         Peer peer = peerFor(flowContext);
                         if (peer != null) {
                             peer.addBytesDn(numberOfBytes);
@@ -107,7 +108,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     @Override
                     public void bytesSentToClient(FlowContext flowContext,
                             int numberOfBytes) {
-                        stats.addUpBytesToPeers(numberOfBytes);
+                        stats.addUpBytesToPeers(numberOfBytes,
+                                flowContext.getClientAddress().getAddress());
                         Peer peer = peerFor(flowContext);
                         if (peer != null) {
                             peer.addBytesUp(numberOfBytes);

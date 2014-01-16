@@ -66,7 +66,7 @@ public class Get extends CliProgram {
                 Integer.parseInt(remote[1]));
         this.authToken = cmd.getOptionValue(OPT_AUTHTOKEN, "534#^#$523590)");
         this.transportProtocol = TransportProtocol.valueOf(cmd
-                .getOptionValue(OPT_PROTOCOL));
+                .getOptionValue(OPT_PROTOCOL, "TCP"));
     }
 
     public Get(int localPort,
