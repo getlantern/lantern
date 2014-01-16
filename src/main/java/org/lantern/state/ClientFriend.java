@@ -178,6 +178,14 @@ public class ClientFriend implements Friend {
         return this.freeToFriend;
     }
     
+    /**
+     * Returns a dynamically calculated reason for a friend suggestion.
+     * 
+     * TODO: since we may end up with more reasons, we may ultimately want
+     * to store this on the controller under LanternFriend.
+     * 
+     * @return
+     */
     public String getReason() {
         return freeToFriend ? "friendedYou" : "runningLantern"; 
     }
