@@ -9,6 +9,7 @@ import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -49,6 +50,7 @@ public class RefreshToken {
         }
     }
     
+    @Subscribe
     public void onRefreshToken(final RefreshTokenEvent rte) {
         log.debug("Received token!");
         synchronized (this) {
@@ -60,6 +62,11 @@ public class RefreshToken {
             this.tok.set(token);
             notifyAll();
         }
+    }
+
+    public void reset() {
+        log.debug("Resetting token");
+        this.tok.set("");
     }
 
 }
