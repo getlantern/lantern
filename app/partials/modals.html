@@ -332,7 +332,7 @@
                   <button ng-click="add(suggestion.email)"
                           class="btn btn-mini btn-success {{!model.remainingFriendingQuota && !suggestion.freeToFriend && 'disabled' || ''}}"
                           tooltip-placement="bottom"
-                          tooltip-html-unsafe="{{(suggestion.freeToFriend && ('FREE_TO_FRIEND' | i18n)) || (!model.remainingFriendingQuota && ('CAN_ADD_NO_MORE_FRIENDS' | i18n)) || ''}}">{{'ADD' | i18n}}</button>
+                          tooltip-html-unsafe="{{(suggestion.freeToFriend && ('FREE_TO_FRIEND' | i18n)) || (!model.remainingFriendingQuota && ('CAN_ADD_NO_MORE_FRIENDS' | i18n)) || ('NOT_FREE_TO_FRIEND' | i18n)}}">{{'ADD' | i18n}}</button>
                   <button ng-click="reject(suggestion.email)" class="btn btn-mini" ng-disabled="pendingFriendUpdate">{{'DISMISS' | i18n}}</button>
                 </div>
               </div>

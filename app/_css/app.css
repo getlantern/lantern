@@ -7281,7 +7281,7 @@ textarea.diagnosticInfo {
   width: 55px;
 }
 #friendlist .vcard {
-  max-width: 465px;
+  max-width: 460px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7295,7 +7295,7 @@ textarea.diagnosticInfo {
   content: ">";
 }
 #friendlist .suggested .vcard {
-  max-width: 345px;
+  max-width: 340px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7340,6 +7340,10 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
 #friendlist .friendConnectedStatus, #friendlist .reason {
   font-size: 11.9px;
   font-family: "Roboto Thin";
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin: 2px 0 0 14px;
 }
 #friendlist .reason {

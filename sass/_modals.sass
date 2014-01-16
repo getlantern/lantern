@@ -261,7 +261,7 @@
       & > .btn
         width: 55px
   .vcard
-    +ellipsisPast(465px)
+    +ellipsisPast(460px)
     display: inline-block
     margin-left: 13px
   .email
@@ -270,7 +270,7 @@
     &:after
       content: '>'
   .suggested .vcard
-    +ellipsisPast(345px)
+    +ellipsisPast(340px)
   .coloredByConnectedStatus
     +single-transition(all, 0.3s, ease)
     body.getMode &.transferringNow
@@ -299,6 +299,7 @@
   .friendConnectedStatus, .reason
     +smaller
     +thin
+    +ellipsisPast(340px)
     margin: 2px 0 0 14px
   .reason
     +gray
