@@ -177,6 +177,10 @@ public class ClientFriend implements Friend {
     public boolean isFreeToFriend() {
         return this.freeToFriend;
     }
+    
+    public String getReason() {
+        return freeToFriend ? "friendedYou" : "runningLantern"; 
+    }
 
     @Override
     public String toString() {
