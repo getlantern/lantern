@@ -123,6 +123,7 @@
   "CAN_ADD_N_MORE_FRIENDS_1": "You can add {} more friend.",
   "CAN_ADD_N_MORE_FRIENDS_OTHER": "You can add {} more friends.",
   "CAN_ADD_NO_MORE_FRIENDS": "You have added all the friends you can.",
+  "FREE_TO_FRIEND": "Friending this user would not count against your limit.",
   "MAY_GET_MORE_FRIENDS": "You may be able to add more as you continue to run Lantern.",
   "FRIEND": "Friend",
   "DECLINE": "Decline",
