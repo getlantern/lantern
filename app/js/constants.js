@@ -139,6 +139,10 @@ var DEFAULT_LANG = 'en_US',
       'unavailable',
       'idle',
       'available']),
+    SUGGESTION_REASON = makeEnum([
+      'runningLantern',
+      'friendedYou'
+      ]),
     ENUMS = {
       MODE: MODE,
       OS: OS,
@@ -148,7 +152,8 @@ var DEFAULT_LANG = 'en_US',
       PEER_TYPE: PEER_TYPE,
       FRIEND_STATUS: FRIEND_STATUS,
       CONNECTIVITY: CONNECTIVITY,
-      GTALK_STATUS: GTALK_STATUS
+      GTALK_STATUS: GTALK_STATUS,
+      SUGGESTION_REASON: SUGGESTION_REASON
     };
 
 if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
@@ -174,6 +179,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('FRIEND_STATUS', FRIEND_STATUS)
     .constant('CONNECTIVITY', CONNECTIVITY)
     .constant('GTALK_STATUS', GTALK_STATUS)
+    .constant('SUGGESTION_REASON', SUGGESTION_REASON)
     // frontend-only
     .constant('GOOGLE_ANALYTICS_WEBPROP_ID', GOOGLE_ANALYTICS_WEBPROP_ID)
     .constant('GOOGLE_ANALYTICS_DISABLE_KEY', GOOGLE_ANALYTICS_DISABLE_KEY)
@@ -202,6 +208,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     PEER_TYPE: PEER_TYPE,
     FRIEND_STATUS: FRIEND_STATUS,
     CONNECTIVITY: CONNECTIVITY,
-    GTALK_STATUS: GTALK_STATUS
+    GTALK_STATUS: GTALK_STATUS,
+    SUGGESTION_REASON: SUGGESTION_REASON
   };
 }

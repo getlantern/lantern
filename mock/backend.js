@@ -380,17 +380,32 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
     if (!data || !data.email) {
       return res.writeHead(400);
     }
-    var email = {email: data.email},
+    var update = [],
+        email = {email: data.email},
         rosterEntry = _.find(this.model.roster, email),
         i = _.findIndex(this.model.friends, email),
         friendEntry = i === -1 ? null : this.model.friends[i],
+        freeToFriend = friendEntry && friendEntry.freeToFriend,
         status = interaction === INTERACTION.friend ? 'friend' : 'rejected',
-        newFriendEntry = _.extend(email, rosterEntry, friendEntry, {status: status}),
-        update;
+        newFriendEntry = _.extend(email, rosterEntry, friendEntry, {status: status});
+
+    if (interaction === INTERACTION.friend && !freeToFriend) { // check/update quota
+      if (this.model.remainingFriendingQuota - 1) {
+        update.push({op: 'replace', path: '/remainingFriendingQuota', value: --this.model.remainingFriendingQuota});
+      } else {
+        var id = nextid(), 
+            msg = 'Friending limit reached, not adding friend.',
+            notification = {type: 'error', message: msg, autoClose: 30};
+        update.push({op: 'add', path: '/notifications/'+id, value: notification});
+        this.sync(update);
+        return;
+      }
+    }
+
     if (i === -1) {
-      update = [{op: 'add', path: '/friends/-', value: newFriendEntry}];
+      update.push({op: 'add', path: '/friends/-', value: newFriendEntry});
     } else {
-      update = [{op: 'replace', path: '/friends/'+i, value: newFriendEntry}];
+      update.push({op: 'replace', path: '/friends/'+i, value: newFriendEntry});
     }
     this.sync(update);
   } else if (interaction === INTERACTION.continue) {

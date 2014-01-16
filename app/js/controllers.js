@@ -278,7 +278,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
   };
 }
 
-function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL) {
+function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL, SUGGESTION_REASON) {
   var log = logFactory('LanternFriendsCtrl'),
       max = Math.max,
       EMAIL = INPUT_PAT.EMAIL_INSIDE,

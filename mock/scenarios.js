@@ -272,36 +272,46 @@ exports.SCENARIOS = {
                            email: 'suggested_friend@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Suggested Friend',
+                           reason: 'runningLantern',
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested2+a_really_really_long_entry@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Another Suggestion',
+                           reason: 'friendedYou',
+                           freeToFriend: true,
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested3@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Third Suggestion',
+                           reason: 'runningLantern',
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested4@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Fourth Suggestion',
+                           reason: 'runningLantern',
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested5@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Fifth Suggestion',
+                           reason: 'friendedYou',
+                           freeToFriend: true,
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested6@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Sixth Suggestion',
+                           reason: 'runningLantern',
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested7@example.com',
                            picture: 'img/default-avatar.png',
                            name: 'Seventh Suggestion',
+                           reason: 'friendedYou',
+                           freeToFriend: true,
                            status: FRIEND_STATUS.pending
                           },{
                            email: 'suggested8@example.com',
