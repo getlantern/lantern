@@ -35,6 +35,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
+import org.lantern.state.Friend.SuggestionReason;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
@@ -393,6 +394,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 log.debug("We already know about the friend");
                 return;
             }
+            friend.setReason(SuggestionReason.runningLantern);
             final ClientFriend onServer = insert(friend);
             syncFriends();
             

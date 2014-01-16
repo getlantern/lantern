@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.lantern.state.Friend.SuggestionReason;
 
 public class ClientFriend implements Friend {
 
@@ -32,6 +33,8 @@ public class ClientFriend implements Friend {
     private org.jivesoftware.smack.packet.Presence.Mode mode;
     
     private boolean freeToFriend = false;
+    
+    private SuggestionReason reason;
 
     public ClientFriend() {
     }
@@ -178,18 +181,16 @@ public class ClientFriend implements Friend {
         return this.freeToFriend;
     }
     
-    /**
-     * Returns a dynamically calculated reason for a friend suggestion.
-     * 
-     * TODO: since we may end up with more reasons, we may ultimately want
-     * to store this on the controller under LanternFriend.
-     * 
-     * @return
-     */
-    public String getReason() {
-        return freeToFriend ? "friendedYou" : "runningLantern"; 
+    @Override
+    public SuggestionReason getReason() {
+        return reason;
     }
 
+    @Override
+    public void setReason(SuggestionReason reason) {
+        this.reason = reason;
+    }
+    
     @Override
     public String toString() {
         return "ClientFriend [email=" + email + ", name=" + name

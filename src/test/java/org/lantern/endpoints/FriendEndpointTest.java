@@ -15,6 +15,7 @@ import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Friend;
+import org.lantern.state.Friend.SuggestionReason;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
@@ -67,6 +68,7 @@ public class FriendEndpointTest {
                 final ClientFriend friend = new ClientFriend();
                 friend.setEmail("test@test.com");
                 friend.setName("Tester");
+                friend.setReason(SuggestionReason.runningLantern);
                 api.insertFriend(friend);
                 
                 final Stopwatch friendsWatch = 
