@@ -7,7 +7,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +35,7 @@ import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.util.PublicIpAddress;
+import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +73,9 @@ public class Roster implements RosterListener {
 
     private final FriendsHandler friendsHandler;
     
+    private final ExecutorService rosterExecutor = 
+            Threads.newSingleThreadExecutor("Unified-Roster-Thread");
+
     /**
      * Creates a new roster.
      */
@@ -94,9 +100,10 @@ public class Roster implements RosterListener {
         final org.jivesoftware.smack.Roster ros = conn.getRoster();
         this.smackRoster = ros;
         
-        final Runnable r = new Runnable() {
+        final Callable<Roster> r = new Callable<Roster>() {
+
             @Override
-            public void run() {
+            public Roster call() throws Exception {
                 ros.setSubscriptionMode(
                     org.jivesoftware.smack.Roster.SubscriptionMode.manual);
                 ros.addRosterListener(Roster.this);
@@ -109,7 +116,7 @@ public class Roster implements RosterListener {
                     final LanternRosterEntry lre = new LanternRosterEntry(entry);
                     addEntry(lre, false);
                     processRosterEntryPresences(entry);
-                    String email = lre.getEmail();
+                    final String email = lre.getEmail();
                     alreadyOnRoster.add(email);
                     log.debug("STATUS OF {}: {}", entry.getUser(), entry.getStatus());
                     if (entry.getStatus() == ItemStatus.SUBSCRIPTION_PENDING) {
@@ -132,16 +139,159 @@ public class Roster implements RosterListener {
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
                 fullRosterSync();
+                
+                return Roster.this;
             }
         };
-        final Thread t = new Thread(r, "Roster-Populating-Thread");
-        t.setDaemon(true);
-        t.start();
+        
+        rosterExecutor.submit(r);
     }
 
     public LanternRosterEntry getRosterEntry(final String key) {
         return this.rosterEntries.get().get(LanternXmppUtils.jidToEmail(key));
     }
+
+    public Collection<LanternRosterEntry> getEntries() {
+        synchronized (this.rosterEntries) {
+            // Note these are sorted loosely according to how frequently we
+            // communicate with them -- see LanternRosterEntry compareTo.
+            final ImmutableSortedSet<LanternRosterEntry> entries = 
+                    ImmutableSortedSet.copyOf(this.rosterEntries.get().values());
+            return entries;
+        }
+    }
+
+    public void setEntries(final Map<String, LanternRosterEntry> entries) {
+        
+        rosterExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (rosterEntries) {
+                    rosterEntries.get().clear();
+                }
+                synchronized (entries) {
+                    final Collection<LanternRosterEntry> vals = entries.values();
+                    for (final LanternRosterEntry entry : vals) {
+                        addEntry(entry, false);
+                    }
+                    updateIndex();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void entriesAdded(final Collection<String> addresses) {
+        log.debug("Adding {} entries to roster", addresses.size());
+        rosterExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (final String address : addresses) {
+                    final RosterEntry entry = smackRoster.getEntry(address);
+                    if (entry == null) {
+                        log.warn("Unexpectedly, an entry that we have added to the" +
+                                  "roster isn't in Smack's roster.  Skipping it");
+                        continue;
+                    }
+                    addEntry(new LanternRosterEntry(entry), false);
+                    friendsHandler.updateName(address, entry.getName());
+                    processRosterEntryPresences(entry);
+                }
+                fullRosterSync();
+                friendsHandler.syncFriends();
+            }
+        });
+    }
+
+    @Override
+    public void entriesDeleted(final Collection<String> entries) {
+        rosterExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                log.debug("Roster entries deleted: {}", entries);
+                for (final String entry : entries) {
+                    final String email = LanternXmppUtils.jidToEmail(entry);
+                    synchronized (rosterEntries) {
+                        rosterEntries.get().remove(email);
+                    }
+                }
+                fullRosterSync();
+            }
+        });
+    }
+
+    @Override
+    public void entriesUpdated(final Collection<String> entries) {
+        rosterExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                log.debug("Entries updated: {} for roster: {}", entries, this);
+                if (smackRoster == null) {
+                    log.error("No roster yet?");
+                    return;
+                }
+                for (final String entry : entries) {
+                    final Presence pres = smackRoster.getPresence(entry);
+                    onPresence(pres, false, false);
+                }
+                fullRosterSync();
+            }
+        });
+    }
+
+    @Override
+    public void presenceChanged(final Presence pres) {
+        log.debug("Got presence changed event.");
+        rosterExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                processPresence(pres, true, true);
+                log.debug("Processed presence changed...");
+            }
+        });
+    }
+
+    public void reset() {
+        synchronized (rosterEntries) {
+            this.rosterEntries.get().clear();
+        }
+        this.kscopeRoutingTable.clear();
+    }
+
+    public boolean autoAcceptSubscription(final String from) {
+        final LanternRosterEntry entry = getRosterEntry(from);
+        if (entry == null) {
+            log.debug("No matching roster entry!");
+            return false;
+        }
+        final String subscriptionStatus = entry.getSubscriptionStatus();
+
+        // If we're not still trying to subscribe or unsubscribe to this node,
+        // then it is a legitimate entry.
+        if (StringUtils.isBlank(subscriptionStatus)) {
+            log.debug("Blank subscription status!");
+            return true;
+        }
+
+        log.debug("Subscription status is: {}", subscriptionStatus);
+        // Otherwise only auto-allow subscription requests if we've requested
+        // to subscribe to them.
+        return subscriptionStatus.equalsIgnoreCase("subscribe");
+    }
+
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        reset();
+    }
+    
+
+    public RosterEntry getEntry(String email) {
+        if (this.smackRoster != null) {
+            return smackRoster.getEntry(email);
+        }
+        return null;
+    }
+    
 
     private void processPresence(final Presence presence, final boolean sync,
         final boolean updateIndex) {
@@ -332,119 +482,8 @@ public class Roster implements RosterListener {
         }
     }
 
-    //@JsonUnwrapped
-    public Collection<LanternRosterEntry> getEntries() {
-        synchronized (this.rosterEntries) {
-            return ImmutableSortedSet.copyOf(this.rosterEntries.get().values());
-        }
-    }
-
-    public void setEntries(final Map<String, LanternRosterEntry> entries) {
-        synchronized (this.rosterEntries) {
-            this.rosterEntries.get().clear();
-        }
-        synchronized (entries) {
-            final Collection<LanternRosterEntry> vals = entries.values();
-            for (final LanternRosterEntry entry : vals) {
-                addEntry(entry, false);
-            }
-            updateIndex();
-        }
-    }
-
-    @Override
-    public void entriesAdded(final Collection<String> addresses) {
-        log.debug("Adding {} entries to roster", addresses.size());
-        for (final String address : addresses) {
-            final RosterEntry entry = smackRoster.getEntry(address);
-            if (entry == null) {
-                log.warn("Unexpectedly, an entry that we have added to the" +
-                          "roster isn't in Smack's roster.  Skipping it");
-                continue;
-            }
-            addEntry(new LanternRosterEntry(entry), false);
-            friendsHandler.updateName(address, entry.getName());
-            processRosterEntryPresences(entry);
-        }
-        fullRosterSync();
-        friendsHandler.syncFriends();
-    }
-
-    public RosterEntry getEntry(String email) {
-        if (this.smackRoster != null) {
-            return smackRoster.getEntry(email);
-        }
-        return null;
-    }
-
     private void fullRosterSync() {
         updateIndex();
         Events.syncRoster(this);
-    }
-
-    @Override
-    public void entriesDeleted(final Collection<String> entries) {
-        log.debug("Roster entries deleted: {}", entries);
-        for (final String entry : entries) {
-            final String email = LanternXmppUtils.jidToEmail(entry);
-            synchronized (rosterEntries) {
-                rosterEntries.get().remove(email);
-            }
-        }
-        fullRosterSync();
-    }
-
-    @Override
-    public void entriesUpdated(final Collection<String> entries) {
-        log.debug("Entries updated: {} for roster: {}", entries, this);
-        if (this.smackRoster == null) {
-            log.error("No roster yet?");
-            return;
-        }
-        for (final String entry : entries) {
-            final Presence pres = this.smackRoster.getPresence(entry);
-            onPresence(pres, false, false);
-        }
-        fullRosterSync();
-    }
-
-    @Override
-    public void presenceChanged(final Presence pres) {
-        log.debug("Got presence changed event.");
-        processPresence(pres, true, true);
-    }
-
-
-    public void reset() {
-        synchronized (rosterEntries) {
-            this.rosterEntries.get().clear();
-        }
-        this.kscopeRoutingTable.clear();
-    }
-
-    public boolean autoAcceptSubscription(final String from) {
-        final LanternRosterEntry entry = getRosterEntry(from);
-        if (entry == null) {
-            log.debug("No matching roster entry!");
-            return false;
-        }
-        final String subscriptionStatus = entry.getSubscriptionStatus();
-
-        // If we're not still trying to subscribe or unsubscribe to this node,
-        // then it is a legitimate entry.
-        if (StringUtils.isBlank(subscriptionStatus)) {
-            log.debug("Blank subscription status!");
-            return true;
-        }
-
-        log.debug("Subscription status is: {}", subscriptionStatus);
-        // Otherwise only auto-allow subscription requests if we've requested
-        // to subscribe to them.
-        return subscriptionStatus.equalsIgnoreCase("subscribe");
-    }
-
-    @Subscribe
-    public void onReset(final ResetEvent event) {
-        reset();
     }
 }
