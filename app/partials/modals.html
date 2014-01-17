@@ -301,12 +301,12 @@
     </div>
 
     <div class="addFriendsControls">
-      <div id="fetchingFriends" class="centered muted" ng-hide="model.friends.length >= 0">
+      <div id="fetchingFriends" class="centered muted" ng-show="model.friends == null">
         <div>{{ 'LOADING_FRIENDS' | i18n }}</div><br><br>
         <img src="img/spinner.gif">
       </div>
 
-      <div ng-show="model.friends.length >= 0 && (nfriends || nfriendSuggestions)">
+      <div ng-show="model.friends != null && (nfriends || nfriendSuggestions)">
         <div ng-class="{hasSearchText: !!searchText}">
           <div id="friendCounts" ng-hide="searchActive || searchText">
             <div id="currentFriendsHeading" ng-show="nfriends">{{ 'NFRIENDS' | i18n:nfriends }}</div>
@@ -366,7 +366,7 @@
 
       </div>
 
-      <div ng-show="model.friends.length >= 0">
+      <div ng-show="model.friends != null">
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
           placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
