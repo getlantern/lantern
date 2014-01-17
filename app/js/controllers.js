@@ -417,6 +417,10 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     var data = _.map(contactCompletions, function (c) {
       return angular.extend({}, c, {id: c.email, text: prettyUserFltr(c)});
     });
+    if ($scope.model.remainingFriendingQuota === 0) {
+      data = _.filter(data, 'freeToFriend');
+      $scope.nFreeToFriend = data.length;
+    }
     angular.copy(data, $scope.select2opts.data);
   });
 
@@ -427,10 +431,19 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       var match = input.match(EMAIL);
       if (match) {
         match = match[0];
+        if ($scope.model.remainingFriendingQuota === 0) {
+          var friend = $scope.friendsByEmail[match];
+          if (!friend || !friend.freeToFriend) {
+            return;
+          }
+        }
         return {id: match, text: match, email: match};
       }
     },
     formatNoMatches: function () {
+      if ($scope.model.remainingFriendingQuota === 0) {
+        return i18nFltr('ONLY_FREE_FRIENDS');
+      }
       return i18nFltr('ENTER_VALID_EMAIL');
     },
     formatSearching: function () {

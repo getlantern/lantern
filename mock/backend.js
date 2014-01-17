@@ -390,7 +390,7 @@ MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, 
         newFriendEntry = _.extend(email, rosterEntry, friendEntry, {status: status});
 
     if (interaction === INTERACTION.friend && !freeToFriend) { // check/update quota
-      if (this.model.remainingFriendingQuota - 1) {
+      if (this.model.remainingFriendingQuota > 0) {
         update.push({op: 'replace', path: '/remainingFriendingQuota', value: --this.model.remainingFriendingQuota});
       } else {
         var id = nextid(), 

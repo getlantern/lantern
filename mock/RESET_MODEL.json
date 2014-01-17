@@ -14,7 +14,7 @@
   "modal":"welcome",
   "notifications":{},
   "showVis": false,
-  "remainingFriendingQuota": 10,
+  "remainingFriendingQuota": 5,
   "connectivity":{
     "gtalkOauthUrl":"/mock/googleOauth.html",
     "pacUrl":"http://127.0.0.1:12345/proxy_on.lantern.pac",
