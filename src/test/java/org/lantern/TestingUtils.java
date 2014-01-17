@@ -17,6 +17,7 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 
 import javax.net.ssl.SSLEngine;
+import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -111,7 +112,7 @@ public class TestingUtils {
         return new CountryService(censored);
     }
 
-    public static XmppHandler newXmppHandler() throws IOException {
+    public static XmppHandler newXmppHandler() throws IOException, CredentialException {
         final Censored censored = new DefaultCensored();
         final Model mod = new Model(new CountryService(censored));
         final Settings set = mod.getSettings();
@@ -244,7 +245,7 @@ public class TestingUtils {
         return ksm;
     }
 
-    public static String accessToken() throws IOException {
+    public static String accessToken() throws IOException, CredentialException {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         final OauthUtils utils = newOauthUtils();
         return utils.oauthTokens(httpClient, getRefreshToken()).getAccessToken();
