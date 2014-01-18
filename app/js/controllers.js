@@ -308,7 +308,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       log.error('missing email');
       return;
     }
-    if ($scope.remainingFriendingQuota === 0) {
+    if (!model.remainingFriendingQuota) {
       var friend = $scope.friendsByEmail[match];
       if (!friend || !friend.freeToFriend) {
         return;
@@ -424,7 +424,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     var data = _.map(contactCompletions, function (c) {
       return angular.extend({}, c, {id: c.email, text: prettyUserFltr(c)});
     });
-    if (model.remainingFriendingQuota === 0) {
+    if (!model.remainingFriendingQuota) {
       data = _.filter(data, 'freeToFriend');
       $scope.nFreeToFriend = data.length;
     }
@@ -438,7 +438,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       var match = input.match(EMAIL);
       if (match) {
         match = match[0];
-        if (model.remainingFriendingQuota === 0) {
+        if (!model.remainingFriendingQuota) {
           var friend = $scope.friendsByEmail[match];
           if (!friend || !friend.freeToFriend) {
             return;
@@ -448,7 +448,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       }
     },
     formatNoMatches: function () {
-      if (model.remainingFriendingQuota === 0) {
+      if (!model.remainingFriendingQuota) {
         return i18nFltr('ONLY_FREE_FRIENDS');
       }
       return i18nFltr('ENTER_VALID_EMAIL');
