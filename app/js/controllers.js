@@ -281,6 +281,7 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
 function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL, SUGGESTION_REASON) {
   var log = logFactory('LanternFriendsCtrl'),
       max = Math.max,
+      model = $scope.model,
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
       i18nFltr = $filter('i18n'),
       prettyUserFltr = $filter('prettyUser');
@@ -417,7 +418,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     var data = _.map(contactCompletions, function (c) {
       return angular.extend({}, c, {id: c.email, text: prettyUserFltr(c)});
     });
-    if ($scope.model.remainingFriendingQuota === 0) {
+    if (model.remainingFriendingQuota === 0) {
       data = _.filter(data, 'freeToFriend');
       $scope.nFreeToFriend = data.length;
     }
@@ -431,7 +432,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       var match = input.match(EMAIL);
       if (match) {
         match = match[0];
-        if ($scope.model.remainingFriendingQuota === 0) {
+        if (model.remainingFriendingQuota === 0) {
           var friend = $scope.friendsByEmail[match];
           if (!friend || !friend.freeToFriend) {
             return;
@@ -441,7 +442,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       }
     },
     formatNoMatches: function () {
-      if ($scope.model.remainingFriendingQuota === 0) {
+      if (model.remainingFriendingQuota === 0) {
         return i18nFltr('ONLY_FREE_FRIENDS');
       }
       return i18nFltr('ENTER_VALID_EMAIL');
