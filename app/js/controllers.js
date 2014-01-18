@@ -308,6 +308,12 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       log.error('missing email');
       return;
     }
+    if ($scope.remainingFriendingQuota === 0) {
+      var friend = $scope.friendsByEmail[match];
+      if (!friend || !friend.freeToFriend) {
+        return;
+      }
+    }
     $scope.errorLabelKey = '';
     $scope.pendingFriendUpdate = true;
     $scope.interaction(INTERACTION.friend, {email: email}).then(

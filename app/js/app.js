@@ -162,7 +162,7 @@ var app = angular.module('app', [
           }
         });
       }
-      completions = _.sortBy(completions, function (i) { return prettyUserFltr(i); }); // XXX sort by contact frequency instead
+      //completions = _.sortBy(completions, function (i) { return prettyUserFltr(i); }); // XXX sort by contact frequency instead
       $rootScope.contactCompletions = completions;
     }
 
