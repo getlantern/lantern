@@ -2,7 +2,10 @@ package org.lantern;
 
 import java.util.Collection;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
+
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class S3Config {
 
     private int serial_no;
