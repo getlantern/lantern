@@ -229,7 +229,20 @@ public class Launcher {
         try {
             copyConfigUrlFile();
         } catch (final IOException e) {
-            LOG.warn("Could not copy config URL file?", e);
+            LOG.warn("Couldn't copy config URL file?", e);
+        }
+
+        File file = new File(LanternClientConstants.CONFIG_DIR,
+                             CONFIGURL_FILENAME);
+        if (file.isFile()) {
+            try {
+                set.setConfigUrl(FileUtils.readFileToString(file, "UTF-8"));
+                LOG.info("Config URL is " + set.getConfigUrl());
+            } catch (IOException e) {
+                LOG.error("Couldn't read config URL file?", e);
+            }
+        } else {
+            LOG.error("No config URL file?");
         }
 
         messageService = instance(MessageService.class);

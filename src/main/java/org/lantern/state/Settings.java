@@ -98,6 +98,8 @@ public class Settings {
     private boolean useCloudProxies = true;
 
     private boolean showFriendPrompts = true;
+
+    private String configUrl;
     
     public Settings() {
         whitelist.applyDefaultEntries();
@@ -414,5 +416,14 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public void setShowFriendPrompts(boolean showFriendPrompts) {
         this.showFriendPrompts = showFriendPrompts;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public String getConfigUrl() {
+        return configUrl;
+    }
+
+    public void setConfigUrl(String configUrl) {
+        this.configUrl = configUrl;
     }
 }
