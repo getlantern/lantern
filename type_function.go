@@ -231,7 +231,7 @@ func (self0 _boundCallFunction) clone(clone *_clone) _callFunction {
 
 // FunctionCall{}
 
-// FunctionCall is an enscapulation of a JavaScript function call.
+// FunctionCall is an encapsulation of a JavaScript function call.
 type FunctionCall struct {
 	runtime     *_runtime
 	_thisObject *_object

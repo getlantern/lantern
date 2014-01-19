@@ -34,7 +34,7 @@ type Value struct {
 //
 // ToValue may be deprecated and removed in the near future.
 //
-// Try Otto.ToValue for a reaplcement.
+// Try Otto.ToValue for a replacement.
 func ToValue(value interface{}) (Value, error) {
 	result := UndefinedValue()
 	err := catchPanic(func() {
@@ -540,7 +540,7 @@ func negativeZeroValue() Value {
 	return Value{valueNumber, __NegativeZero__}
 }
 
-// TrueValue will return a value represting true.
+// TrueValue will return a value representing true.
 //
 // It is equivalent to:
 //
@@ -550,7 +550,7 @@ func TrueValue() Value {
 	return Value{valueBoolean, true}
 }
 
-// FalseValue will return a value represting false.
+// FalseValue will return a value representing false.
 //
 // It is equivalent to:
 //

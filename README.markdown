@@ -124,7 +124,7 @@ type FunctionCall struct {
 }
 ```
 
-FunctionCall is an enscapulation of a JavaScript function call.
+FunctionCall is an encapsulation of a JavaScript function call.
 
 #### func (FunctionCall) Argument
 
@@ -350,7 +350,7 @@ Value is the representation of a JavaScript value.
 ```go
 func FalseValue() Value
 ```
-FalseValue will return a value represting false.
+FalseValue will return a value representing false.
 
 It is equivalent to:
 
@@ -385,14 +385,14 @@ slice/array, etc.) and you probably should not use it.
 
 ToValue may be deprecated and removed in the near future.
 
-Try Otto.ToValue for a reaplcement.
+Try Otto.ToValue for a replacement.
 
 #### func  TrueValue
 
 ```go
 func TrueValue() Value
 ```
-TrueValue will return a value represting true.
+TrueValue will return a value representing true.
 
 It is equivalent to:
 
