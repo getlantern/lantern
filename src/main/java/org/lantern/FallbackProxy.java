@@ -27,6 +27,8 @@ public class FallbackProxy {
     
     private String protocol;
 
+    private String cert;
+
     public FallbackProxy() {}
 
     public FallbackProxy(final String ip, final int port) {
@@ -106,6 +108,14 @@ public class FallbackProxy {
     
     public void setProtocol(String protocol) {
         this.protocol = protocol;
+    }
+
+    public String getCert() {
+        return cert;
+    }
+
+    public void setCert(String cert) {
+        this.cert = cert;
     }
 
     @Override

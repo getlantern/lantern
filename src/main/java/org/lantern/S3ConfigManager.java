@@ -2,17 +2,18 @@ package org.lantern;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.HttpResponse;
-
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.common.io.Files;
 
 import org.lantern.util.HttpClientFactory;
@@ -54,13 +55,25 @@ public class S3ConfigManager {
     public void testHttp() {
         HttpClient client = HttpClientFactory.newDirectClient();
         HttpGet get = new HttpGet(url);
+        ObjectMapper om = new ObjectMapper();
+        InputStream is = null;
         try {
             HttpResponse res = client.execute(get);
-            res.getEntity().writeTo(new FileOutputStream("/home/aranhoide/tmp/prova"));
+            is = res.getEntity().getContent();
+            String cfgStr = IOUtils.toString(is);
+            S3Config cfg = om.readValue(cfgStr, S3Config.class);
+            log.info("Serial number: " + cfg.getSerial_no());
+            log.info("Controller: " + cfg.getController());
+            log.info("Minimum poll time: " + cfg.getMinpoll());
+            log.info("Maximum poll time: " + cfg.getMaxpoll());
+            for (FallbackProxy fp : cfg.getFallbacks()) {
+                log.info("Proxy: " + fp);
+            }
         } catch (Exception e) {
-            log.error("Couldn't fetch config: " + url);
+            log.error("Couldn't fetch config: " + e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
-
     }
 
     private static void copyConfigUrlFile() throws IOException {
