@@ -72,7 +72,6 @@ public class Launcher {
         //Connection.DEBUG_ENABLED = true;
     }
 
-    private static final String CONFIGURL_FILENAME = "configurl.txt";
     public static final long START_TIME = System.currentTimeMillis();
     
     private static final String LOG4J_PROPS_PATH = "src/main/resources/log4j.properties";
@@ -226,24 +225,7 @@ public class Launcher {
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
 
-        try {
-            copyConfigUrlFile();
-        } catch (final IOException e) {
-            LOG.warn("Couldn't copy config URL file?", e);
-        }
-
-        File file = new File(LanternClientConstants.CONFIG_DIR,
-                             CONFIGURL_FILENAME);
-        if (file.isFile()) {
-            try {
-                set.setConfigUrl(FileUtils.readFileToString(file, "UTF-8"));
-                LOG.info("Config URL is " + set.getConfigUrl());
-            } catch (IOException e) {
-                LOG.error("Couldn't read config URL file?", e);
-            }
-        } else {
-            LOG.error("No config URL file?");
-        }
+        new S3ConfigManager().testHttp();
 
         messageService = instance(MessageService.class);
         
@@ -816,31 +798,4 @@ public class Launcher {
         return props.isFile();
     }
 
-    private static void copyConfigUrlFile() throws IOException {
-        LOG.debug("Copying config URL file");
-        final File from;
-
-        final File cur = new File(new File(SystemUtils.USER_HOME),
-                                  CONFIGURL_FILENAME);
-        if (cur.isFile()) {
-            from = cur;
-        } else {
-            LOG.debug("No config URL file found in home - checking runtime user.dir...");
-            final File home = new File(new File(SystemUtils.USER_DIR),
-                                       CONFIGURL_FILENAME);
-            if (home.isFile()) {
-                from = home;
-            } else {
-                LOG.warn("Still could not find config URL file!");
-                return;
-            }
-        }
-        final File par = LanternClientConstants.CONFIG_DIR;
-        final File to = new File(par, from.getName());
-        if (!par.isDirectory() && !par.mkdirs()) {
-            throw new IOException("Could not make config dir?");
-        }
-        LOG.debug("Copying from {} to {}", from, to);
-        Files.copy(from, to);
-    }
 }
