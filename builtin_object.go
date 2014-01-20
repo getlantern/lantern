@@ -134,7 +134,7 @@ func builtinObject_defineProperties(call FunctionCall) Value {
 	}
 
 	properties := call.runtime.toObject(call.Argument(1))
-	properties.enumerate(true, func(name string) bool {
+	properties.enumerate(false, func(name string) bool {
 		descriptor := toPropertyDescriptor(properties.get(name))
 		object.defineOwnProperty(name, descriptor, true)
 		return true
