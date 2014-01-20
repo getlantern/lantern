@@ -65,10 +65,11 @@ func (s *Set) Add(items ...interface{}) {
 	}
 
 	s.l.Lock()
+	defer s.l.Unlock()
+
 	for _, item := range items {
 		s.m[item] = keyExists
 	}
-	s.l.Unlock()
 }
 
 // Remove deletes the specified items from the set.  The underlying Set s is
@@ -79,10 +80,11 @@ func (s *Set) Remove(items ...interface{}) {
 	}
 
 	s.l.Lock()
+	defer s.l.Unlock()
+
 	for _, item := range items {
 		delete(s.m, item)
 	}
-	s.l.Unlock()
 }
 
 // Pop  deletes and return an item from the set. The underlying Set s is
@@ -109,29 +111,32 @@ func (s *Set) Has(items ...interface{}) bool {
 	}
 
 	s.l.RLock()
+	defer s.l.RUnlock()
+
 	has := true
 	for _, item := range items {
 		if _, has = s.m[item]; !has {
 			break
 		}
 	}
-	s.l.RUnlock()
 	return has
 }
 
 // Size returns the number of items in a set.
 func (s *Set) Size() int {
 	s.l.RLock()
+	defer s.l.RUnlock()
+
 	l := len(s.m)
-	s.l.RUnlock()
 	return l
 }
 
 // Clear removes all items from the set.
 func (s *Set) Clear() {
 	s.l.Lock()
+	defer s.l.Unlock()
+
 	s.m = make(map[interface{}]struct{})
-	s.l.Unlock()
 }
 
 // IsEmpty reports whether the Set is empty.
@@ -142,6 +147,7 @@ func (s *Set) IsEmpty() bool {
 // IsEqual test whether s and t are the same in size and have the same items.
 func (s *Set) IsEqual(t Interface) bool {
 	s.l.RLock()
+	defer s.l.RUnlock()
 
 	// Force locking only if given set is threadsafe.
 	if conv, ok := t.(*Set); ok {
@@ -157,13 +163,14 @@ func (s *Set) IsEqual(t Interface) bool {
 		})
 	}
 
-	s.l.RUnlock()
 	return equal
 }
 
 // IsSubset tests whether t is a subset of s.
 func (s *Set) IsSubset(t Interface) (subset bool) {
 	s.l.RLock()
+	defer s.l.RUnlock()
+
 	subset = true
 
 	t.Each(func(item interface{}) bool {
@@ -171,7 +178,6 @@ func (s *Set) IsSubset(t Interface) (subset bool) {
 		return subset
 	})
 
-	s.l.RUnlock()
 	return
 }
 
@@ -208,6 +214,7 @@ func (s *Set) String() string {
 // IntSlice() methods for returning slices of type string or int.
 func (s *Set) List() []interface{} {
 	s.l.RLock()
+	defer s.l.RUnlock()
 
 	list := make([]interface{}, 0, len(s.m))
 
@@ -215,7 +222,6 @@ func (s *Set) List() []interface{} {
 		list = append(list, item)
 	}
 
-	s.l.RUnlock()
 	return list
 }
 
@@ -237,11 +243,12 @@ func (s *Set) Union(t Interface) Interface {
 // with the given t set.
 func (s *Set) Merge(t Interface) {
 	s.l.Lock()
+	defer s.l.Unlock()
+
 	t.Each(func(item interface{}) bool {
 		s.m[item] = keyExists
 		return true
 	})
-	s.l.Unlock()
 }
 
 // Separate removes the set items containing in t from set s. Please aware that
