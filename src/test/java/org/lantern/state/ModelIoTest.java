@@ -8,6 +8,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.CountryService;
+import org.lantern.MockS3ConfigManager;
 import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
@@ -33,7 +34,7 @@ public class ModelIoTest {
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
                 null, countryService, TestingUtils.newCommandLine(), 
-                mock(LocalCipherProvider.class));
+                mock(LocalCipherProvider.class), new MockS3ConfigManager());
 
         Model model = io.get();
 
@@ -51,7 +52,7 @@ public class ModelIoTest {
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null,
                 countryService, TestingUtils.newCommandLine(),
-                mock(LocalCipherProvider.class));
+                mock(LocalCipherProvider.class), new MockS3ConfigManager());
         final Model model2 = io.get();
         system = model2.getSystem();
         connectivity = model2.getConnectivity();

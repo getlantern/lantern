@@ -50,6 +50,14 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
         return config.getFallbacks();
     }
 
+    public String getControllerId() {
+        assureConfigInited();
+        if (config == null) {
+            return LanternClientConstants.DEFAULT_CONTROLLER_ID;
+        }
+        return config.getController();
+    }
+
     public void registerUpdateCallback(Runnable r) {
         updateCallbacks.add(r);
     }

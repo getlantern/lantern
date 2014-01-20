@@ -141,9 +141,10 @@ public class LanternClientConstants {
         STATS_URL = CONTROLLER_URL +"/stats";
     }
 
+    public static String DEFAULT_CONTROLLER_ID = "lanternctrl";
+
     static {
-        //setControllerId("lantern-controller-afisk");
-        setControllerId("lanternctrl");
+        setControllerId(DEFAULT_CONTROLLER_ID);
     }
 
     public static boolean isDevMode() {
