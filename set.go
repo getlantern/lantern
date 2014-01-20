@@ -151,7 +151,7 @@ func (s *Set) IsEqual(t Interface) bool {
 
 	equal := true
 	if equal = len(s.m) == t.Size(); equal {
-		t.Each(func (item interface{}) (equal bool) {
+		t.Each(func(item interface{}) (equal bool) {
 			_, equal = s.m[item]
 			return
 		})
@@ -166,7 +166,7 @@ func (s *Set) IsSubset(t Interface) (subset bool) {
 	s.l.RLock()
 	subset = true
 
-	t.Each(func (item interface{}) bool {
+	t.Each(func(item interface{}) bool {
 		_, subset = s.m[item]
 		return subset
 	})
@@ -234,7 +234,7 @@ func (s *Set) Union(t Interface) Interface {
 // with the given t set.
 func (s *Set) Merge(t Interface) {
 	s.l.Lock()
-	t.Each(func (item interface{}) bool {
+	t.Each(func(item interface{}) bool {
 		s.m[item] = keyExists
 		return true
 	})
@@ -306,7 +306,7 @@ func (s *Set) IntSlice() []int {
 func Union(sets ...Interface) Interface {
 	u := New()
 	for _, set := range sets {
-		set.Each(func (item interface{}) bool {
+		set.Each(func(item interface{}) bool {
 			u.m[item] = keyExists
 			return true
 		})
