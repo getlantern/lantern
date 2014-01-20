@@ -431,3 +431,35 @@ func Test_Difference(t *testing.T) {
 		t.Error("Difference: size should be four")
 	}
 }
+
+func BenchmarkSetEquality(b *testing.B) {
+	s := New()
+	u := New()
+
+	for i := 0; i < b.N; i++ {
+		s.Add(i)
+		u.Add(i)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		s.IsEqual(u)
+	}
+}
+
+func BenchmarkSubset(b *testing.B) {
+	s := New()
+	u := New()
+
+	for i := 0; i < b.N; i++ {
+		s.Add(i)
+		u.Add(i)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		s.IsSubset(u)
+	}
+}
