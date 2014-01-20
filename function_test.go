@@ -17,6 +17,12 @@ func TestFunction(t *testing.T) {
     `, "function,number,0,false,false,false")
 }
 
+func Test_argumentList2parameterList(t *testing.T) {
+	Terst(t)
+
+	Is(argumentList2parameterList([]Value{toValue("abc, def"), toValue("ghi")}), []string{"abc", "def", "ghi"})
+}
+
 func TestFunction_new(t *testing.T) {
 	Terst(t)
 
@@ -24,6 +30,11 @@ func TestFunction_new(t *testing.T) {
 	test(`raise:
         new Function({});
     `, "SyntaxError: Unexpected token Object")
+
+	test(`
+        var abc = Function("def, ghi", "jkl", "return def+ghi+jkl");
+        [ typeof abc, abc instanceof Function, abc("ab", "ba", 1) ];
+    `, "function,true,abba1")
 }
 
 func TestFunction_apply(t *testing.T) {

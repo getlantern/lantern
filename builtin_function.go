@@ -1,5 +1,10 @@
 package otto
 
+import (
+	"strings"
+	"unicode"
+)
+
 // Function
 
 func builtinFunction(call FunctionCall) Value {
@@ -10,16 +15,25 @@ func builtinNewFunction(self *_object, _ Value, argumentList []Value) Value {
 	return toValue_object(builtinNewFunctionNative(self.runtime, argumentList))
 }
 
+func argumentList2parameterList(argumentList []Value) []string {
+	parameterList := make([]string, 0, len(argumentList))
+	for _, value := range argumentList {
+		tmp := strings.FieldsFunc(toString(value), func(chr rune) bool {
+			return chr == ',' || unicode.IsSpace(chr)
+		})
+		parameterList = append(parameterList, tmp...)
+	}
+	return parameterList
+}
+
 func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object {
-	parameterList := []string{}
+	parameterList := []string(nil)
 	bodySource := ""
 	argumentCount := len(argumentList)
 	if argumentCount > 0 {
 		bodySource = toString(argumentList[argumentCount-1])
 		argumentList = argumentList[0 : argumentCount-1]
-		for _, value := range argumentList {
-			parameterList = append(parameterList, toString(value))
-		}
+		parameterList = argumentList2parameterList(argumentList)
 	}
 
 	parser := newParser()
