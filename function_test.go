@@ -17,6 +17,15 @@ func TestFunction(t *testing.T) {
     `, "function,number,0,false,false,false")
 }
 
+func TestFunction_new(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise:
+        new Function({});
+    `, "SyntaxError: Unexpected token Object")
+}
+
 func TestFunction_apply(t *testing.T) {
 	Terst(t)
 

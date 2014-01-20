@@ -124,8 +124,8 @@ func (self *_parser) ParseArrayLiteral() *_arrayNode {
 			continue
 		}
 		nodeList = append(nodeList, self.ParseArrayValue())
-		if self.Accept(",") {
-			continue
+		if !self.Match("]") {
+			self.Expect(",")
 		}
 	}
 	self.Expect("]")

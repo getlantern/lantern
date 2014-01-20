@@ -1437,12 +1437,26 @@ Label '_' has already been declared
 
 	test("/\\1/.source", "---\nInvalid regular expression: invalid escape sequence: `\\1`\n-:-:-")
 
-	test(`var class
----
-Unexpected reserved word
-1:10:10
+	test(`
+    var class
+    ---
+    Unexpected reserved word
+    2:14:15
 	`)
 
+	test(`
+    object Object
+    ---
+	Unexpected token Object
+    2:18:19
+    `)
+
+	test(`
+    [object Object]
+    ---
+	Unexpected token Object
+    2:19:20
+    `)
 }
 
 func TestParseComment(t *testing.T) {
