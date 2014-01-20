@@ -220,6 +220,7 @@ func main() {
 
  * [Fatih Arslan](https://github.com/fatih)
  * [Arne Hormann](https://github.com/arnehormann)
+ * [Sam Boyer](https://github.com/sdboyer)
 
 ## License
 
