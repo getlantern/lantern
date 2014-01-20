@@ -38,8 +38,12 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 		call:      newBoundCallFunction(target, this, argumentList),
 		construct: defaultConstructFunction,
 	}
-	// FIXME
-	self.defineProperty("length", toValue_int(0), 0000, false)
+	length := int(toInt32(target.get("length")))
+	length -= len(argumentList)
+	if length < 0 {
+		length = 0
+	}
+	self.defineProperty("length", toValue_int(length), 0000, false)
 	return self
 }
 

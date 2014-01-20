@@ -210,6 +210,13 @@ func TestFunction_bind(t *testing.T) {
         }
         [ ghi ];
     `, "true")
+
+	test(`
+        var abc = function (def, ghi) {};
+        var jkl = abc.bind({});
+        var mno = abc.bind({}, 1, 2);
+        [ jkl.length, mno.length ];
+    `, "2,0")
 }
 
 func TestFunction_toString(t *testing.T) {
