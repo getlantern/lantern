@@ -212,3 +212,12 @@ func TestFunction_bind(t *testing.T) {
         [ ghi ];
     `, "true")
 }
+
+func TestFunction_toString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise:
+        Function.prototype.toString.call(undefined);
+    `, "TypeError")
+}

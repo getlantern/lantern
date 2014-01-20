@@ -51,6 +51,7 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 }
 
 func builtinFunction_toString(call FunctionCall) Value {
+	call.thisClassObject("Function") // Should throw a TypeError unless Function
 	return toValue_string("[function]")
 }
 
