@@ -167,7 +167,7 @@ sub newContext {
                 $class,
                 "toString", 0,
                 "apply", 2,
-                "call", 2,
+                "call", 1,
                 "bind", 1,
             );
             my @propertyMap = $self->propertyMap(
