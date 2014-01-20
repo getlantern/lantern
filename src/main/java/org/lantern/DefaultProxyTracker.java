@@ -439,6 +439,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
                 fallbackProxy.getPort()), Type.cloud, protocol,
                 fallbackProxy.getAuth_token());
+        lanternTrustStore.addCert(fallbackProxy.getCert());
     }
 
     @Override
