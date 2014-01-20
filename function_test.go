@@ -217,6 +217,10 @@ func TestFunction_bind(t *testing.T) {
         var mno = abc.bind({}, 1, 2);
         [ jkl.length, mno.length ];
     `, "2,0")
+
+	test(`raise:
+        Math.bind();
+    `, "TypeError: undefined is not a function")
 }
 
 func TestFunction_toString(t *testing.T) {
