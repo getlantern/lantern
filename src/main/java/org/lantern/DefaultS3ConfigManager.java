@@ -63,22 +63,29 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
 
     private void scheduleConfigRecheck() {
         assureConfigInited();
-        final double minutesToSleep = lerp(config.getMinpoll(),
-                                           config.getMaxpoll(),
-                                           random.nextDouble());
+        final double minutesToSleep
+            // Temporary network problems?  Let's retry in a few seconds.
+            = (config == null) ? 0.2
+                               : lerp(config.getMinpoll(),
+                                      config.getMaxpoll(),
+                                      random.nextDouble());
+
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
                     Thread.sleep((long)(minutesToSleep * 60000));
                     recheckConfig();
+                    scheduleConfigRecheck();
                 } catch (InterruptedException e) {}
             }
         });
+        t.setName("S3Config-Recheck");
         t.setDaemon(true);
         t.start();
     }
 
     private void recheckConfig() {
+        log.debug("Rechecking configuration");
         S3Config newConfig = fetchConfig();
         if (newConfig == null) {
             log.error("Couldn't get new config.");
@@ -93,6 +100,7 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
         }
         config = newConfig;
         if (changed) {
+            log.info("Configuration changed! Reapplying...");
             for (Runnable r : updateCallbacks) {
                 try {
                     r.run();
@@ -100,6 +108,8 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
                     log.error("Exception running config update callback:", e);
                 }
             }
+        } else {
+            log.debug("Configuration unchanged.");
         }
     }
 
@@ -152,12 +162,12 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
             is = res.getEntity().getContent();
             String cfgStr = IOUtils.toString(is);
             S3Config cfg = om.readValue(cfgStr, S3Config.class);
-            log.info("Serial number: " + cfg.getSerial_no());
-            log.info("Controller: " + cfg.getController());
-            log.info("Minimum poll time: " + cfg.getMinpoll());
-            log.info("Maximum poll time: " + cfg.getMaxpoll());
+            log.debug("Serial number: " + cfg.getSerial_no());
+            log.debug("Controller: " + cfg.getController());
+            log.debug("Minimum poll time: " + cfg.getMinpoll());
+            log.debug("Maximum poll time: " + cfg.getMaxpoll());
             for (FallbackProxy fp : cfg.getFallbacks()) {
-                log.info("Proxy: " + fp);
+                log.debug("Proxy: " + fp);
             }
             return cfg;
         } catch (Exception e) {

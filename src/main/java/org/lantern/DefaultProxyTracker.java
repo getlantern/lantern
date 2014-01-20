@@ -506,9 +506,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void refreshFallbacks() {
+        LOG.debug("Refreshing fallbacks");
         Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
         for (ProxyHolder p : proxies) {
             if (p.getType() == Type.cloud) {
+                LOG.debug("Removing fallback (I may readd it shortly): ", p.getJid());
                 fallbacks.add(p);
             }
         }
