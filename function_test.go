@@ -9,7 +9,6 @@ func TestFunction(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`String.prototype.substring.length`, "2")
 	test(`
         var abc = Object.getOwnPropertyDescriptor(Function, "prototype");
         [   [ typeof Function.prototype, typeof Function.prototype.length, Function.prototype.length ],
