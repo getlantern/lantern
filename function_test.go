@@ -55,6 +55,13 @@ func TestFunction_new(t *testing.T) {
         var ghi = new Function(abc, def);
         ghi;
     `, "SyntaxError: z;x")
+
+	test(`raise:
+        var abc;
+        var def = "return true";
+        var ghi = new Function(null, def);
+        ghi;
+    `, "SyntaxError: null")
 }
 
 func TestFunction_apply(t *testing.T) {

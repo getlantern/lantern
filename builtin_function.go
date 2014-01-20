@@ -36,7 +36,8 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 	if argumentCount > 0 {
 		parameterList = argumentList2parameterList(argumentList[0 : argumentCount-1])
 		for _, value := range parameterList {
-			if !matchIdentifier.MatchString(value) {
+			// TODO: This is extremely hacky... maybe go through the parser directly?
+			if !matchIdentifier.MatchString(value) || keywordTable[value] {
 				panic(newSyntaxError(value))
 			}
 		}
