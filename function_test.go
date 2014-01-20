@@ -93,6 +93,39 @@ func TestFunctionDeclarationInFunction(t *testing.T) {
     `, "function")
 }
 
+func TestArguments_defineOwnProperty(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc;
+        var def = true;
+        var ghi = {};
+        (function (a, b, c) {
+            Object.defineProperty(arguments, "0", {
+                value: 42,
+                writable: false,
+                enumerable: false,
+                configurable: false
+            });
+            Object.defineProperty(arguments, "1", {
+                value: 3.14,
+                configurable: true,
+                enumerable: true
+            });
+            abc = Object.getOwnPropertyDescriptor(arguments, "0");
+            for (var name in arguments) {
+                ghi[name] = (ghi[name] || 0) + 1;
+                if (name === "0") {
+                    def = false;
+                }
+            }
+        }(0, 1, 2));
+        [ abc.value, abc.writable, abc.enumerable, abc.configurable, def, ghi["1"] ];
+    `, "42,false,false,false,true,1")
+}
+
 func TestFunction_bind(t *testing.T) {
 	Terst(t)
 

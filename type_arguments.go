@@ -7,6 +7,11 @@ import (
 func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, environment _environment, length int) *_object {
 	self := runtime.newClassObject("Arguments")
 
+	for index, _ := range indexOfParameterName {
+		name := strconv.FormatInt(int64(index), 10)
+		objectDefineOwnProperty(self, name, _property{Value{}, 0111}, false)
+	}
+
 	self.objectClass = _classArguments
 	self.value = _argumentsObject{
 		indexOfParameterName: indexOfParameterName,
@@ -70,10 +75,11 @@ func argumentsGet(self *_object, name string) Value {
 }
 
 func argumentsGetOwnProperty(self *_object, name string) *_property {
+	property := objectGetOwnProperty(self, name)
 	if value, exists := self.value.(_argumentsObject).get(name); exists {
-		return &_property{value, 0111}
+		property.value = value
 	}
-	return objectGetOwnProperty(self, name)
+	return property
 }
 
 func argumentsDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
@@ -90,23 +96,11 @@ func argumentsDefineOwnProperty(self *_object, name string, descriptor _property
 }
 
 func argumentsDelete(self *_object, name string, throw bool) bool {
+	if !objectDelete(self, name, throw) {
+		return false
+	}
 	if _, exists := self.value.(_argumentsObject).get(name); exists {
 		self.value.(_argumentsObject).delete(name)
-		return true
 	}
-	return objectDelete(self, name, throw)
-}
-
-func argumentsEnumerate(self *_object, all bool, each func(string) bool) {
-	{
-		object := self.value.(_argumentsObject)
-		for index, value := range object.indexOfParameterName {
-			if value != "" {
-				if !each(strconv.FormatInt(int64(index), 10)) {
-					return
-				}
-			}
-		}
-		objectEnumerate(self, all, each)
-	}
+	return true
 }

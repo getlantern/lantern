@@ -420,6 +420,18 @@ func TestObject_defineOwnProperty(t *testing.T) {
 
 		[ abc, def ];
 	`, "true,false")
+
+	test(`
+        var object = [0, 1, 2];
+        Object.defineProperty(object, "0", {
+            value: 42,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+        var abc = Object.getOwnPropertyDescriptor(object, "0");
+        [ abc.value, abc.writable, abc.enumerable, abc.configurable ];
+    `, "42,false,false,false")
 }
 
 func Test_assignmentEvaluationOrder(t *testing.T) {

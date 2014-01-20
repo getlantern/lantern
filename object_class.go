@@ -90,7 +90,8 @@ func init() {
 		objectHasOwnProperty,
 		argumentsDefineOwnProperty,
 		argumentsDelete,
-		argumentsEnumerate,
+		//argumentsEnumerate,
+		objectEnumerate,
 		//argumentsClone
 		objectClone,
 	}
