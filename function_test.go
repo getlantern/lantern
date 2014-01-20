@@ -181,8 +181,8 @@ func TestFunction_bind(t *testing.T) {
             return "abc";
         };
         def = abc.bind();
-        [ typeof def.prototype, typeof def.hasOwnProperty, def() ];
-    `, "object,function,abc")
+        [ typeof def.prototype, typeof def.hasOwnProperty, def.hasOwnProperty("caller"), def.hasOwnProperty("arguments"), def() ];
+    `, "object,function,true,true,abc")
 
 	test(`
         abc = function(){

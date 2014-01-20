@@ -44,6 +44,8 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 		length = 0
 	}
 	self.defineProperty("length", toValue_int(length), 0000, false)
+	self.defineProperty("caller", UndefinedValue(), 0000, false)    // TODO Should throw a TypeError
+	self.defineProperty("arguments", UndefinedValue(), 0000, false) // TODO Should throw a TypeError
 	return self
 }
 
