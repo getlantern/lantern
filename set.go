@@ -180,6 +180,9 @@ func (s *Set) IsSuperset(t Interface) bool {
 	return t.IsSubset(s)
 }
 
+// Each traverses the items in the Set, calling the provided function for each
+// set member. Traversal will continue until all items in the Set have been
+// visited, or if the closure returns false.
 func (s *Set) Each(f func(item interface{}) bool) {
 	s.l.RLock()
 	defer s.l.RUnlock()
