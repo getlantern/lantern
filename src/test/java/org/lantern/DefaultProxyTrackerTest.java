@@ -42,7 +42,7 @@ public class DefaultProxyTrackerTest {
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, lanternTrustStore);
+                peerFactory, lanternTrustStore, new MockS3ConfigManager());
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();

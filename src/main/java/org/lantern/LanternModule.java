@@ -140,6 +140,7 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);
         bind(UdtServerFiveTupleListener.class);
+        bind(S3ConfigManager.class).to(DefaultS3ConfigManager.class);
 
         try {
             copyFireFoxExtension();

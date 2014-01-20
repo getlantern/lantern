@@ -225,7 +225,7 @@ public class Launcher {
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
 
-        new S3ConfigManager().testHttp();
+        instance(S3ConfigManager.class);
 
         messageService = instance(MessageService.class);
         

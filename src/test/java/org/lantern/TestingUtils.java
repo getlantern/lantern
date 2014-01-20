@@ -159,7 +159,7 @@ public class TestingUtils {
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
         final ProxyTracker proxyTracker = 
-            new DefaultProxyTracker(model, peerFactory, trustStore);
+            new DefaultProxyTracker(model, peerFactory, trustStore, new MockS3ConfigManager());
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
                 null, networkTracker);

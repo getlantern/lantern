@@ -73,7 +73,7 @@ public class PublicIpAddress implements PublicIp {
         }
 
         LOG.debug("Attempting to find public IP address");
-        if (!LanternUtils.isFallbackProxy() && FallbackProxy.isConfigured()) {
+        if (!LanternUtils.isFallbackProxy()) {
             LOG.debug("Fallback configured, doing safe lookup");
             return lookupSafe();
         } else {
