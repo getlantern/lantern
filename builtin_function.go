@@ -31,9 +31,8 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 	bodySource := ""
 	argumentCount := len(argumentList)
 	if argumentCount > 0 {
+		parameterList = argumentList2parameterList(argumentList[0 : argumentCount-1])
 		bodySource = toString(argumentList[argumentCount-1])
-		argumentList = argumentList[0 : argumentCount-1]
-		parameterList = argumentList2parameterList(argumentList)
 	}
 
 	parser := newParser()

@@ -35,6 +35,17 @@ func TestFunction_new(t *testing.T) {
         var abc = Function("def, ghi", "jkl", "return def+ghi+jkl");
         [ typeof abc, abc instanceof Function, abc("ab", "ba", 1) ];
     `, "function,true,abba1")
+
+	test(`raise:
+        var abc = {
+            toString: function() { throw 1; }
+        };
+        var def = {
+            toString: function() { throw 2; }
+        };
+        var ghi = new Function(abc, def);
+        ghi;
+    `, "1")
 }
 
 func TestFunction_apply(t *testing.T) {
