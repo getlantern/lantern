@@ -1,6 +1,7 @@
 package otto
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -26,12 +27,19 @@ func argumentList2parameterList(argumentList []Value) []string {
 	return parameterList
 }
 
+var matchIdentifier = regexp.MustCompile(`^[$_\p{L}][$_\p{L}\d}]*$`)
+
 func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object {
 	parameterList := []string(nil)
 	bodySource := ""
 	argumentCount := len(argumentList)
 	if argumentCount > 0 {
 		parameterList = argumentList2parameterList(argumentList[0 : argumentCount-1])
+		for _, value := range parameterList {
+			if !matchIdentifier.MatchString(value) {
+				panic(newSyntaxError(value))
+			}
+		}
 		bodySource = toString(argumentList[argumentCount-1])
 	}
 

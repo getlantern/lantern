@@ -46,6 +46,15 @@ func TestFunction_new(t *testing.T) {
         var ghi = new Function(abc, def);
         ghi;
     `, "1")
+
+	test(`raise:
+        var abc = {
+            toString: function() { return "z;x"; }
+        };
+        var def = "return this";
+        var ghi = new Function(abc, def);
+        ghi;
+    `, "SyntaxError: z;x")
 }
 
 func TestFunction_apply(t *testing.T) {
