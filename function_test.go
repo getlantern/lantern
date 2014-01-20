@@ -135,8 +135,8 @@ func TestFunction_bind(t *testing.T) {
             return "abc";
         };
         def = abc.bind();
-        def();
-    `, "abc")
+        [ typeof def.prototype, typeof def.hasOwnProperty, def() ];
+    `, "object,function,abc")
 
 	test(`
         abc = function(){
@@ -146,4 +146,22 @@ func TestFunction_bind(t *testing.T) {
         ghi = abc.bind(undefined, "abc", "ghi");
         [ def(), def("def"), ghi("def") ];
     `, ",def,ghi")
+
+	test(`
+        var abc = function () {};
+        var ghi;
+        try {
+            Object.defineProperty(Function.prototype, "xyzzy", {
+                value: 1001,
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
+            var def = abc.bind({});
+            ghi = !def.hasOwnProperty("xyzzy") && ghi.xyzzy === 1001;
+        } finally {
+            delete Function.prototype.xyzzy;
+        }
+        [ ghi ];
+    `, "true")
 }

@@ -90,5 +90,5 @@ func builtinFunction_bind(call FunctionCall) Value {
 		this = toValue_object(call.runtime.GlobalObject)
 	}
 
-	return toValue_object(call.runtime.newBoundFunctionObject(targetObject, this, argumentList))
+	return toValue_object(call.runtime.newBoundFunction(targetObject, this, argumentList))
 }

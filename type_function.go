@@ -43,6 +43,15 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 	return self
 }
 
+func (runtime *_runtime) newBoundFunction(target *_object, this Value, argumentList []Value) *_object {
+	self := runtime.newBoundFunctionObject(target, this, argumentList)
+	self.prototype = runtime.Global.FunctionPrototype
+	prototype := runtime.newObject()
+	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
+	prototype.defineProperty("constructor", toValue_object(self), 0100, false)
+	return self
+}
+
 func (self *_object) functionValue() _functionObject {
 	value, _ := self.value.(_functionObject)
 	return value
