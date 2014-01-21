@@ -221,6 +221,27 @@ func TestFunction_bind(t *testing.T) {
 	test(`raise:
         Math.bind();
     `, "TypeError: undefined is not a function")
+
+	test(`
+        function construct(fn, arguments) {
+            var bound = Function.prototype.bind.apply(fn, [null].concat(arguments));
+            return new bound();
+        }
+        var abc = construct(Date, [1957, 4, 27]);
+        Object.prototype.toString.call(abc);
+    `, "[object Date]")
+
+	test(`
+        var fn = function (x, y, z) {
+            var result = {};
+            result.abc = x + y + z;
+            result.def = arguments[0] === "a" && arguments.length === 3;
+            return result;
+        };
+        var newFn = Function.prototype.bind.call(fn, {}, "a", "b", "c");
+        var result = new newFn();
+        [ result.hasOwnProperty("abc"), result.hasOwnProperty("def"), result.abc, result.def ];
+    `, "true,true,abc,true")
 }
 
 func TestFunction_toString(t *testing.T) {

@@ -36,7 +36,7 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 	self := runtime.newClassObject("Function")
 	self.value = _functionObject{
 		call:      newBoundCallFunction(target, this, argumentList),
-		construct: defaultConstructFunction,
+		construct: newBoundConstructFunction(target),
 	}
 	length := int(toInt32(target.get("length")))
 	length -= len(argumentList)
@@ -241,6 +241,18 @@ func (self0 _boundCallFunction) clone(clone *_clone) _callFunction {
 		target:       clone.object(self0.target),
 		this:         clone.value(self0.this),
 		argumentList: clone.valueArray(self0.argumentList),
+	}
+}
+
+func newBoundConstructFunction(target *_object) _constructFunction {
+	// This is not exactly as described in 15.3.4.5.2, we let [[Call]] supply the
+	// bound arguments, etc.
+	return func(self *_object, this Value, argumentList []Value) Value {
+		switch value := target.value.(type) {
+		case _functionObject:
+			return value.construct(self, this, argumentList)
+		}
+		panic(newTypeError())
 	}
 }
 
