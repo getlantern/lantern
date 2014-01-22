@@ -188,30 +188,26 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
 
     private static void copyUrlFile() throws IOException {
         log.debug("Copying config URL file");
-        final File from;
-
-        final File cur = new File(new File(SystemUtils.USER_HOME),
-                                  URL_FILENAME);
-        if (cur.isFile()) {
-            from = cur;
-        } else {
-            log.debug("No config URL file found in home"
-                      + " - checking runtime user.dir...");
-            final File home = new File(new File(SystemUtils.USER_DIR),
-                                       URL_FILENAME);
-            if (home.isFile()) {
-                from = home;
-            } else {
-                log.warn("Still could not find config URL file!");
+        File[] directoriesToTry = {
+            new File(SystemUtils.USER_HOME),
+            new File(SystemUtils.USER_DIR),
+            new File("/opt/lantern/lantern-net-installer")
+        };
+        for (File directory : directoriesToTry) {
+            File from = new File(directory, URL_FILENAME);
+            if (from.isFile()) {
+                File par = LanternClientConstants.CONFIG_DIR;
+                File to = new File(par, from.getName());
+                if (!par.isDirectory() && !par.mkdirs()) {
+                    throw new IOException("Could not make config dir?");
+                }
+                log.debug("Copying from {} to {}", from, to);
+                Files.copy(from, to);
                 return;
+            } else {
+                log.debug("No config file at {}", from);
             }
         }
-        final File par = LanternClientConstants.CONFIG_DIR;
-        final File to = new File(par, from.getName());
-        if (!par.isDirectory() && !par.mkdirs()) {
-            throw new IOException("Could not make config dir?");
-        }
-        log.debug("Copying from {} to {}", from, to);
-        Files.copy(from, to);
+        log.error("Couldn't load config at all!");
     }
 }
