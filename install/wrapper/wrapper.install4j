@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.1.7" transformSequenceNumber="4">
+<install4j version="5.1.8" transformSequenceNumber="4">
   <directoryPresets config="./fallbacks.json" />
   <application name="Lantern" distributionSourceDir="" applicationId="1855-9740-2868-8891" mediaDir=".." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern-net-installer" publisher="" publisherWeb="" version="0.0.1" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
@@ -276,10 +276,10 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/latest.dmg</string>
+                        <string>${installer:sys.userHome}/newest.dmg</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest.dmg</string>
+                        <string>https://s3.amazonaws.com/lantern/newest.dmg</string>
                       </void>
                     </object>
                   </java>
@@ -294,10 +294,10 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/latest.exe</string>
+                        <string>${installer:sys.userHome}/newest.exe</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest.exe</string>
+                        <string>https://s3.amazonaws.com/lantern/newest.exe</string>
                       </void>
                     </object>
                   </java>
@@ -312,10 +312,10 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/latest.deb</string>
+                        <string>${installer:sys.userHome}/newest.deb</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest-64.deb</string>
+                        <string>https://s3.amazonaws.com/lantern/newest-64.deb</string>
                       </void>
                     </object>
                   </java>
@@ -331,10 +331,10 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/latest.deb</string>
+                        <string>${installer:sys.userHome}/newest.deb</string>
                       </void>
                       <void property="url">
-                        <string>https://s3.amazonaws.com/lantern/latest-32.deb</string>
+                        <string>https://s3.amazonaws.com/lantern/newest-32.deb</string>
                       </void>
                     </object>
                   </java>
@@ -366,7 +366,7 @@ return verified;</string>
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/latest.dmg</string>
+                          <string>${installer:sys.userHome}/newest.dmg</string>
                         </object>
                       </void>
                       <void property="workingDirectory">
@@ -385,7 +385,7 @@ return verified;</string>
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/lantern.exe</string>
+                          <string>${installer:sys.userHome}/newest.exe</string>
                         </object>
                       </void>
                       <void property="workingDirectory">
@@ -512,7 +512,7 @@ return result == 0;</string>
                         <array class="java.io.File" length="1">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>fallbacks.json</string>
+                              <string>configurl.txt</string>
                             </object>
                           </void>
                         </array>
@@ -650,7 +650,7 @@ return result == 0;</string>
     </applications>
   </installerGui>
   <mediaSets>
-    <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="" installDir="Wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
+    <macos name="Mac OS X Single Bundle" id="26" customizedId="" mediaFileName="" installDir="Wrapper" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" requiredVmIdPrefix="" customInstallBaseDir="" contentFilesType="1" downloadURL="https://s3.amazonaws.com/lantern/" signLaunchers="true" launcherId="25">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude />

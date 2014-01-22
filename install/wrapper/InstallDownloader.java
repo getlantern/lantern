@@ -31,15 +31,15 @@ public class InstallDownloader {
         final String fileName;
         final String os = System.getProperty("os.name");
         if (os.startsWith("Windows")) {
-            fileName = "latest.exe.sha1";
+            fileName = "newest.exe.sha1";
         } else if (os.startsWith("Mac OS X")) {
-            fileName = "latest.dmg.sha1";
+            fileName = "newest.dmg.sha1";
         } else if (os.startsWith("Linux") || os.startsWith("LINUX")) {
             final String arch = System.getProperty("os.arch");
             if (arch.contains("64")) {
-                fileName = "latest-64.deb.sha1";
+                fileName = "newest-64.deb.sha1";
             } else {
-                fileName = "latest-32.deb.sha1";
+                fileName = "newest-32.deb.sha1";
             }
         } else {
             return false;
@@ -58,7 +58,7 @@ public class InstallDownloader {
         // Just strip the SHA-1 from the calculated name above.
         final String parsed = fileName.substring(0, fileName.length()-5);
         if (parsed.endsWith(".deb")) {
-            localName = "latest.deb";
+            localName = "newest.deb";
         } else {
             localName = parsed;
         }
