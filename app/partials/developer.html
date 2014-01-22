@@ -26,7 +26,7 @@
   <textarea id="model" ui-if="model.dev" ui-toggle="uiState.showModel"
     class="noHeightWhenHidden" lang="en" dir="ltr" readonly>{{ model | json }}</textarea>
 
-    <ul id="langchooser" ui-if="model.dev" ui-toggle="uiState.showLangChooser">
+    <ul id="langchooser" ui-if="model.dev" ui-toggle="uiState.showLangChooser" dir="ltr">
       <li ng-repeat="(langKey, langVal) in LANGS" ng-class="{active: lang == langKey}"><a
           ng-click="lang != langKey && changeLang(langKey)">{{ langVal.name }}</a></li>
     </ul>
