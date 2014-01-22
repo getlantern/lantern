@@ -6589,8 +6589,11 @@ label.checkbox.inline, label.radio.inline {
   visibility: hidden;
 }
 
-.indented {
+body[dir=ltr] .indented {
   margin-left: 20px;
+}
+body[dir=rtl] .indented {
+  margin-right: 20px;
 }
 
 .centered {
@@ -6636,6 +6639,19 @@ label.checkbox.inline, label.radio.inline {
 .tooltip-inner {
   font-size: 12.6px;
   max-width: none;
+}
+
+body[dir=rtl] .btn-group:not([dir=ltr]) > .btn:first-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+body[dir=rtl] .btn-group:not([dir=ltr]) > .btn:last-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
 }
 
 .btn-give {
@@ -6940,6 +6956,29 @@ textarea.diagnosticInfo {
   white-space: nowrap;
 }
 
+.select2-search input {
+  background: url("../bower_components/select2/select2.png") no-repeat 100% -22px;
+}
+
+body[dir=rtl] .select2-search input:focus {
+  padding-right: 22px;
+}
+
+body[dir=rtl] .dl-horizontal dt {
+  float: right;
+  clear: right;
+  text-align: left;
+}
+body[dir=rtl] .dl-horizontal dd {
+  margin-right: 180px;
+}
+
+body[dir=rtl] .radio input[type="radio"], body[dir=rtl] .checkbox input[type="checkbox"] {
+  float: right;
+  margin-right: -20px;
+  margin-left: 0;
+}
+
 @-webkit-keyframes defaultPulse {
   from {
     opacity: 1;
@@ -7028,9 +7067,14 @@ textarea.diagnosticInfo {
 }
 
 .control-extra {
-  margin-left: 30px;
   font-size: 13.3px;
   color: #999999;
+}
+body[dir=ltr] .control-extra {
+  margin-left: 30px;
+}
+body[dir=rtl] .control-extra {
+  margin-right: 30px;
 }
 
 .notify {
@@ -7144,6 +7188,9 @@ textarea.diagnosticInfo {
   -moz-border-radius: 18px;
   border-radius: 18px;
 }
+body[dir=rtl] #proxiedSitesSearch {
+  float: left;
+}
 #proxiedSitesSearch::-webkit-search-decoration {
   -webkit-appearance: searchfield-decoration;
 }
@@ -7155,6 +7202,13 @@ textarea.diagnosticInfo {
 }
 #proxiedSitesSearch.empty {
   opacity: 0.5;
+}
+
+.proxiedSitesTip {
+  float: left;
+}
+body[dir=rtl] .proxiedSitesTip {
+  float: right;
 }
 
 #friendsListSearch {
@@ -7171,6 +7225,9 @@ textarea.diagnosticInfo {
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
+}
+body[dir=rtl] #friendsListSearch {
+  float: left;
 }
 #friendsListSearch::-webkit-search-decoration {
   -webkit-appearance: searchfield-decoration;
@@ -7196,16 +7253,27 @@ textarea.diagnosticInfo {
 
 #friendCounts {
   font-size: 13.3px;
+  white-space: nowrap;
   position: absolute;
-  left: 52px;
   margin-top: 10px;
+}
+body[dir=ltr] #friendCounts {
+  left: 52px;
+}
+body[dir=rtl] #friendCounts {
+  right: 42px;
 }
 
 #currentFriendsHeading {
   font-size: 13.3px;
   color: #999999;
   display: inline-block;
+}
+body[dir=ltr] #currentFriendsHeading {
   margin-right: 10px;
+}
+body[dir=rtl] #currentFriendsHeading {
+  margin-left: 10px;
 }
 
 #suggestedFriendsHeading {
@@ -7277,6 +7345,9 @@ textarea.diagnosticInfo {
   display: inline-block;
   float: right;
 }
+body[dir=rtl] #friendlist .entry .btn-group {
+  float: left;
+}
 #friendlist .entry .btn-group > .btn {
   width: 55px;
 }
@@ -7286,7 +7357,12 @@ textarea.diagnosticInfo {
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-block;
+}
+body[dir=ltr] #friendlist .vcard {
   margin-left: 13px;
+}
+body[dir=rtl] #friendlist .vcard {
+  margin-right: 13px;
 }
 #friendlist .email:before {
   content: "<";
@@ -7344,7 +7420,13 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin: 2px 0 0 14px;
+  margin-top: 2px;
+}
+body[dir=ltr] #friendlist .friendConnectedStatus, body[dir=ltr] #friendlist .reason {
+  margin-left: 14px;
+}
+body[dir=rtl] #friendlist .friendConnectedStatus, body[dir=rtl] #friendlist .reason {
+  margin-right: 14px;
 }
 #friendlist .reason {
   color: #999999;
@@ -7372,8 +7454,11 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
   width: 130px;
 }
 #settings dd {
-  margin: 0 0 24.5px 160px;
+  margin-bottom: 24.5px;
   width: 300px;
+}
+body[dir=ltr] #settings dd {
+  margin-left: 160px;
 }
 #settings dd label {
   font-size: 13.3px;
@@ -7384,27 +7469,48 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
 #settings .summary {
   font-size: 13.3px;
 }
-#settings .collapsible {
+body[dir=ltr] #settings .collapsible {
   margin-left: 20px;
+}
+body[dir=rtl] #settings .collapsible {
+  margin-right: 20px;
 }
 #settings .collapsible * {
   font-size: 11.9px;
 }
-#settings .pacUrl {
+#settings .proxyAllSitesLabel {
+  margin-top: -9px;
+}
+body[dir=rtl] #settings .advanced label {
+  padding-right: 20px;
+}
+body[dir=ltr] #settings .pacUrl {
   margin-left: 12px;
+}
+body[dir=rtl] #settings .pacUrl {
+  margin-right: 12px;
 }
 
 #autoreport-warning {
-  margin-left: 20px;
   color: #c09853 !important;
   font-size: 11.9px;
   margin-top: 3px;
 }
+body[dir=ltr] #autoreport-warning {
+  margin-left: 20px;
+}
+body[dir=rtl] #autoreport-warning {
+  margin-right: 20px;
+}
 
 #manualProxyInfo {
   color: #555555;
+}
+body[dir=ltr] #manualProxyInfo {
   margin-left: 20px;
-  margin-top: -5px;
+}
+body[dir=rtl] #manualProxyInfo {
+  margin-right: 20px;
 }
 
 #updateAvailable h4 {
@@ -7412,8 +7518,13 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
 }
 
 #latestDetails summary {
-  margin-left: 20px;
   font-weight: bold;
+}
+body[dir=ltr] #latestDetails summary {
+  margin-left: 20px;
+}
+body[dir=rtl] #latestDetails summary {
+  margin-right: 20px;
 }
 #latestDetails dt {
   text-transform: capitalize;
@@ -7423,6 +7534,9 @@ body.giveMode #friendlist .coloredByConnectedStatus.connected .friendConnectedSt
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+body[dir=rtl] #latestDetails dd {
+  width: 285px;
 }
 
 #latestDetails:not([open]) {
@@ -7621,6 +7735,9 @@ g.transferring .connection {
 
 .tooltip .vis {
   text-align: left;
+}
+body[dir=rtl] .tooltip .vis {
+  text-align: right;
 }
 .tooltip .vis .picture {
   height: 64px;

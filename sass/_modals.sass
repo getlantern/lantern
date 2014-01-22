@@ -125,6 +125,8 @@
   +ctb-box-sizing(border-box)
   +single-transition(opacity, 0.3s, ease)
   float: right
+  body[dir=rtl] &
+    float: left
   width: 230px
   height: 1.5 * $baseLineHeight
   margin: -3px 0 10px
@@ -138,10 +140,17 @@
   &.empty
     opacity: .5
 
+.proxiedSitesTip
+  float: left
+  body[dir=rtl] &
+    float: right
+
 #friendsListSearch // override bootstrap
   +ctb-box-sizing(border-box)
   +single-transition(all, 0.5s, ease)
   float: right
+  body[dir=rtl] &
+    float: left
   //width: 230px
   width: 30px
   height: 1.5 * $baseLineHeight
@@ -166,15 +175,22 @@
 
 #friendCounts
   +small
+  white-space: nowrap
   position: absolute
-  left: 52px
   margin-top: 10px
+  body[dir=ltr] &
+    left: 52px
+  body[dir=rtl] &
+    right: 42px
 
 #currentFriendsHeading
   +small
   color: $grayLight
   display: inline-block
-  margin-right: 10px
+  body[dir=ltr] &
+    margin-right: 10px
+  body[dir=rtl] &
+    margin-left: 10px
 
 #suggestedFriendsHeading
   +small
@@ -258,12 +274,17 @@
       //opacity: 0
       display: inline-block
       float: right
+      body[dir=rtl] &
+        float: left
       & > .btn
         width: 55px
   .vcard
     +ellipsisPast(460px)
     display: inline-block
-    margin-left: 13px
+    body[dir=ltr] &
+      margin-left: 13px
+    body[dir=rtl] &
+      margin-right: 13px
   .email
     &:before
       content: '<'
@@ -300,7 +321,11 @@
     +smaller
     +thin
     +ellipsisPast(340px)
-    margin: 2px 0 0 14px
+    margin-top: 2px
+    body[dir=ltr] &
+      margin-left: 14px
+    body[dir=rtl] &
+      margin-right: 14px
   .reason
     +gray
 
@@ -351,11 +376,12 @@
 
 #settings
   $dt_width: 130px
-  $dd_margin_left: $dt_width + 30px
   dt
     width: $dt_width
   dd
-    margin: 0 0 $baseFontSize * 1.75 $dd_margin_left
+    margin-bottom: $baseFontSize * 1.75
+    body[dir=ltr] &
+      margin-left: $dt_width + 30px
     width: 300px
     label
       +small
@@ -367,8 +393,15 @@
     +indented
     & *
       +smaller
+  .proxyAllSitesLabel
+    margin-top: -9px
+  body[dir=rtl] & .advanced label
+    padding-right: 20px
   .pacUrl
-    margin-left: 12px
+    body[dir=ltr] &
+      margin-left: 12px
+    body[dir=rtl] &
+      margin-right: 12px
 
 #autoreport-warning
   +indented
@@ -379,7 +412,6 @@
 #manualProxyInfo
   +grayDark
   +indented
-  margin-top: -5px
 
 #updateAvailable
   h4
@@ -393,6 +425,8 @@
     text-transform: capitalize
   dd
     +ellipsisPast(285px)
+    body[dir=rtl] &
+      width: 285px
 
 #latestDetails:not([open])
   margin-bottom: 10px

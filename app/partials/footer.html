@@ -22,7 +22,7 @@
     {{ model.version.installed | version:true }}
     <span ng-show="model.version.updateAvailable" class="update-available">
       · <i class="icon-exclamation-sign"></i>
-      <a ng-click="interaction(INTERACTION.updateAvailable)">Update available</a>
+      <a ng-click="interaction(INTERACTION.updateAvailable)">{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</a>
     </span>
     <span>
       · <a ng-click="interaction(INTERACTION.about)">{{ 'ABOUT' | i18n }}</a>

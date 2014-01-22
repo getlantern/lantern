@@ -248,7 +248,7 @@
       <p>{{ 'CONFIGURE_PROXIED_SITES' | i18n }}</p>
       <div>
         <div id="proxiedSitesLabelAndSearchContainer">
-          <div class="smaller pull-left">{{ 'ENTER_PROXIED_SITES_TIP' | i18n }}</div>
+          <div class="smaller proxiedSitesTip">{{ 'ENTER_PROXIED_SITES_TIP' | i18n }}</div>
           <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
               ng-class="{empty: !searchText}"
               placeholder="{{ 'SEARCH' | i18n }}">
@@ -329,7 +329,7 @@
                   <span class="fn">{{ suggestion.name }}</span>
                   <span class="email">{{ suggestion.email }}</span>
                 </span>
-                <div ng-class="{'pull-right': true, 'btn-group': true, transparent: state.showAddRmIdx != $index}">
+                <div ng-class="{'btn-group': true, transparent: state.showAddRmIdx != $index}">
                   <button ng-click="add(suggestion.email)"
                           class="btn btn-mini btn-success {{!model.remainingFriendingQuota && !suggestion.freeToFriend && 'disabled' || ''}}"
                           tooltip-placement="bottom"
@@ -435,7 +435,7 @@
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body" id="contact" dir="ltr">
+  <div class="modal-body" id="contact" dir="ltr"><!-- XXX -->
     <div class="smaller">
       <!-- XXX i18n -->
       The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation<sup><i class="icon-external-link"></i></sup></a>
@@ -480,7 +480,7 @@
       <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
     </div>
   </div>
-  <div class="modal-body" id="about" dir="ltr">
+  <div class="modal-body" id="about" dir="ltr"><!-- XXX -->
     <div>
       <strong>{{ 'BETA' | i18n }}</strong>
       <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea><!-- XXX remove this when we graduate from beta -->
@@ -520,9 +520,9 @@
                  to properly localize this date string -->
         <dd><time>{{ model.version.latest.releaseDate | date:'longDate' }}</time>&nbsp;</dd>
         <dt>{{ 'URL' | i18n }}</dt>
-        <dd><a title="{{model.version.latest.installerUrl}}" ng-click="openExternal(model.version.latest.installerUrl)">{{ model.version.latest.installerUrl }}</a></dd>
+        <dd dir="ltr"><a title="{{model.version.latest.installerUrl}}" ng-click="openExternal(model.version.latest.installerUrl)">{{ model.version.latest.installerUrl }}</a></dd>
         <dt ng-show="model.version.latest.infoUrl">{{ 'MORE_INFO' | i18n }}</dt>
-        <dd ng-show="model.version.latest.infoUrl"><a title="{{model.version.latest.infoUrl}}" ng-click="openExternal(model.version.latest.infoUrl)">{{ model.version.latest.infoUrl }}</a></dd>
+        <dd ng-show="model.version.latest.infoUrl" dir="ltr"><a title="{{model.version.latest.infoUrl}}" ng-click="openExternal(model.version.latest.infoUrl)">{{ model.version.latest.infoUrl }}</a></dd>
       </dl>
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
@@ -615,7 +615,7 @@
 
       <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
       <dd ng-hide="inCensoringCountry">
-        <div class="btn-group" dir="ltr">
+        <div class="btn-group">
           <button type="button" class="btn btn-mini btn-give"
                   ng-class="{active: inGiveMode}"
                   ng-disabled="inGiveMode"
@@ -642,16 +642,16 @@
         <br>
         <div class="details" ng-init="isExpanded = model.settings.proxyAllSites || model.settings.systemProxy == false">
           <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded = ! isExpanded">{{ 'ADVANCED' | i18n }}</div>
-          <div class="collapsible" collapse="!isExpanded">
+          <div class="collapsible advanced" collapse="!isExpanded">
             <div>
-              <label class="checkbox inline" style="margin-top:-9px"><!-- XXX inline style -->
+              <label class="checkbox inline proxyAllSitesLabel">
                 <input type="checkbox" ng-model="proxyAllSites"
                        ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
                   {{'PROXY_ALL_TRAFFIC' | i18n }}
               </label>
             </div>
             <div>
-              <label class="checkbox">
+              <label class="checkbox inline">
                 <input type="checkbox" ng-model="systemProxy"
                        ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
                 {{ 'SET_AS_SYSTEM_PROXY' | i18n }}

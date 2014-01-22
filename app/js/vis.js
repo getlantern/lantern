@@ -113,6 +113,7 @@ angular.module('app.vis', [])
             if (d.alpha2) {
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'mouse')
+                //.attr('tooltip-trigger', 'click') // uncomment out to make it easier to inspect tooltips when debugging
                 .attr('tooltip-html-unsafe', ttTmpl(d.alpha2));
               $compile(this)(scope);
             } else {

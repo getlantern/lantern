@@ -108,7 +108,10 @@
   text-decoration: underline
 
 =indented($amount: 20px)
-  margin-left: $amount
+  body[dir=ltr] &
+    margin-left: $amount
+  body[dir=rtl] &
+    margin-right: $amount
 
 =aboveModal($delta: 1)
   z-index: $zindexModal + $delta
