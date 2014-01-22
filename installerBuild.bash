@@ -42,9 +42,9 @@ git pull || die "Could not git pull?"
 if [[ $VERSION == "HEAD" ]]; 
 then 
     CHECKOUT=HEAD; 
-elif [[ $VERSION == "latest" ]];
+elif [[ $VERSION == "newest" ]];
 then
-    CHECKOUT=latest;
+    CHECKOUT=newest;
 else 
     CHECKOUT=lantern-$VERSION; 
 fi
@@ -53,7 +53,7 @@ oldbranch=`git rev-parse --abbrev-ref HEAD`
 
 git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
-if [[ $VERSION == "latest" ]];
+if [[ $VERSION == "newest" ]];
 then
     # Exporting it so platform-specific scripts will get the right name.
     export VERSION=$(./parseversionfrompom.py);
