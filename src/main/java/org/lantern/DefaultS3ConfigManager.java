@@ -190,8 +190,7 @@ public class DefaultS3ConfigManager implements S3ConfigManager {
         log.debug("Copying config URL file");
         File[] directoriesToTry = {
             new File(SystemUtils.USER_HOME),
-            new File(SystemUtils.USER_DIR),
-            new File("/opt/lantern/lantern-net-installer")
+            new File(SystemUtils.USER_DIR)
         };
         for (File directory : directoriesToTry) {
             File from = new File(directory, URL_FILENAME);
