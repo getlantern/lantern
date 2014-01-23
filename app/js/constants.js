@@ -60,16 +60,12 @@ var DEFAULT_LANG = 'en_US',
       autoReportPrivacy: 'https://github.com/getlantern/lantern/wiki/Privacy#wiki-optional-information',
       homepage: 'https://www.getlantern.org/',
       userForums: {
-        default: 'https://groups.google.com/group/lantern-users-en',
+        __default: 'https://groups.google.com/group/lantern-users-en',
         en: 'https://groups.google.com/group/lantern-users-en',
         fr: 'https://groups.google.com/group/lantern-users-fr',
-        fr_FR: 'https://groups.google.com/group/lantern-users-fr',
-        fr_CA: 'https://groups.google.com/group/lantern-users-fr',
         ar: 'https://groups.google.com/group/lantern-users-ar',
         fa: 'https://groups.google.com/group/lantern-users-fa',
-        fa_IR: 'https://groups.google.com/group/lantern-users-fa',
-        zh: 'https://groups.google.com/group/lantern-users-zh',
-        zh_CN: 'https://groups.google.com/group/lantern-users-zh'
+        zh: 'https://groups.google.com/group/lantern-users-zh'
       },
       docs: 'https://github.com/getlantern/lantern/wiki',
       getInvolved: 'https://github.com/getlantern/lantern/wiki/Get-Involved',

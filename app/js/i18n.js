@@ -22,8 +22,9 @@ angular.module('app.i18n', [])
     $rootScope.$watch('lang', function (lang) {
       $rootScope.langDirection = LANGS[lang].dir;
       if (!$rootScope.globalState) $rootScope.globalState = {};
-      $rootScope.globalState.forumsUrl = EXTERNAL_URL.userForums[lang] ||
-                                         EXTERNAL_URL.userForums.default;
+      var closest = closestAvailableLang(lang, EXTERNAL_URL.userForums);
+      $rootScope.globalState.forumsUrl = EXTERNAL_URL.userForums[closest] ||
+                                         EXTERNAL_URL.userForums.__default;
     });
 
     function maybeChangeLang(lang) {
@@ -36,9 +37,10 @@ angular.module('app.i18n', [])
       }
     }
 
-    function closestAvailableLang(lang) {
-      for (var lang_ in LANGS) {
-        if (lang === lang_ || lang === lang_.substring(0, 2)) {
+    function closestAvailableLang(lang, keysObj) {
+      keysObj = keysObj || LANGS;
+      for (var lang_ in keysObj) {
+        if (lang === lang_ || lang.substring(0, 2) === lang_.substring(0, 2)) {
           return lang_;
         }
       }
