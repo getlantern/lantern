@@ -2,7 +2,7 @@
 
 angular.module('app.i18n', [])
   .constant('TRANSLATIONS', {}) // populated lazily via ajax
-  .run(function ($http, $log, $rootScope, LANGS, DEFAULT_LANG, TRANSLATIONS, modelSrvc, getByPath) {
+  .run(function ($http, $log, $rootScope, LANGS, DEFAULT_LANG, EXTERNAL_URL, TRANSLATIONS, modelSrvc, getByPath) {
     var model = modelSrvc.model;
 
     $rootScope.LANGS = LANGS;
@@ -21,6 +21,9 @@ angular.module('app.i18n', [])
 
     $rootScope.$watch('lang', function (lang) {
       $rootScope.langDirection = LANGS[lang].dir;
+      if (!$rootScope.globalState) $rootScope.globalState = {};
+      $rootScope.globalState.forumsUrl = EXTERNAL_URL.userForums[lang] ||
+                                         EXTERNAL_URL.userForums.default;
     });
 
     function maybeChangeLang(lang) {

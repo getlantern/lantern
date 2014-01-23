@@ -435,14 +435,8 @@
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body" id="contact" dir="ltr"><!-- XXX -->
-    <div class="smaller">
-      <!-- XXX i18n -->
-      The <a ng-click="openExternal(EXTERNAL_URL.docs)">Lantern documentation<sup><i class="icon-external-link"></i></sup></a>
-      and <a ng-click="openExternal(EXTERNAL_URL.userForums)">user forums<sup><i class="icon-external-link"></i></sup></a>
-      are the best places to search, request, and provide information appropriate
-      for public access. Private messages can be submitted securely through this form.
-    </div>
+  <div class="modal-body" id="contact">
+    <div class="smaller" compile-unsafe="'CONTACT_PRELUDE' | i18n"></div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
         focus-on="show" placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}"
@@ -475,7 +469,7 @@
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
     <div class="smaller">
       <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-      <a ng-click="openExternal(EXTERNAL_URL.userForums)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(globalState.forumsUrl)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
       <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
       <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
     </div>

@@ -1,6 +1,15 @@
 'use strict';
 
 var directives = angular.module('app.directives', [])
+  .directive('compileUnsafe', function ($compile) {
+    return function (scope, element, attr) {
+      scope.$watch(attr.compileUnsafe, function (val, oldVal) {
+        if (!val || (val === oldVal && element[0].innerHTML)) return;
+        element.html(val);
+        $compile(element)(scope);
+      });
+    };
+  })
   .directive('focusOn', function ($parse) {
     return function(scope, element, attr) {
       var val = $parse(attr['focusOn']);

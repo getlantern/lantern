@@ -177,6 +177,7 @@
   "DOWNLOAD": "Download",
   "CONTACT": "Contact",
   "CONTACT_TITLE": "Contact Lantern Developers",
+  "CONTACT_PRELUDE": "The <a ng-click=\"openExternal(EXTERNAL_URL.docs)\">Lantern documentation<sup><i class=\"icon-external-link\"></i></sup></a> and <a ng-click=\"openExternal(globalState.forumsUrl)\">user forums<sup><i class=\"icon-external-link\"></i></sup></a> are the best places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.",
   "MESSAGE_PLACEHOLDER": "[your message here]",
   "DIAGNOSTIC_INFO": "Diagnostic information:",
   "ERROR_TOO_LONG_1": "1 character too long",
