@@ -82,6 +82,7 @@ public class InteractionServlet extends HttpServlet {
         EXCEPTION,
         FRIEND,
         UPDATEAVAILABLE,
+        CHANGELANG, // TODO https://github.com/getlantern/lantern/issues/1088
         REJECT
     }
 
@@ -614,7 +615,6 @@ public class InteractionServlet extends HttpServlet {
         boolean handled = false;
         switch(inter) {
             case EXCEPTION:
-                maybeSubmitToLoggly(json);
                 handleException(json);
                 handled = true;
                 break;
@@ -664,32 +664,8 @@ public class InteractionServlet extends HttpServlet {
     }
 
     private void handleException(final String json) {
-        StringBuilder logMessage = new StringBuilder();
-        Map<String, Object> map;
-        try {
-            map = jsonToMap(json);
-        } catch(Exception e) {
-            log.error("UI Exception (unable to parse json)");
-            return;
-        }
-        for(Map.Entry<String, Object> entry : map.entrySet()) {
-            logMessage.append(
-                String.format("\t%s: %s\n", 
-                    entry.getKey(), entry.getValue()
-                )
-            );
-        }
-        log.error("UI Exception:\n {}", logMessage.toString());
+        log.error("Exception from UI:\n{}", json);
     }
-
-    private Map<String, Object> jsonToMap(final String json) 
-            throws JsonParseException, JsonMappingException, IOException {
-        final ObjectMapper om = new ObjectMapper();
-        Map<String, Object> map;
-        map = om.readValue(json, Map.class);
-        return map;
-    }
-
 
     private boolean handleClose(String json) {
         if (StringUtils.isBlank(json)) {
