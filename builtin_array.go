@@ -17,7 +17,10 @@ func builtinNewArray(self *_object, _ Value, argumentList []Value) Value {
 
 func builtinNewArrayNative(runtime *_runtime, argumentList []Value) *_object {
 	if len(argumentList) == 1 {
-		return runtime.newArray(arrayUint32(argumentList[0]))
+		firstArgument := argumentList[0]
+		if firstArgument.IsNumber() {
+			return runtime.newArray(arrayUint32(firstArgument))
+		}
 	}
 	return runtime.newArrayOf(argumentList)
 }

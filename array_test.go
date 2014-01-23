@@ -502,3 +502,20 @@ func TestArray_defineOwnProperty(t *testing.T) {
         });
     `, "TypeError")
 }
+
+func TestArray_new(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+        var abc = new Array(null);
+        var def = new Array(undefined);
+        [ abc.length, abc[0] === null, def.length, def[0] === undefined ]
+    `, "1,true,1,true")
+
+	test(`
+        var abc = new Array(new Number(0));
+        var def = new Array(new Number(4294967295));
+        [ abc.length, typeof abc[0], abc[0] == 0, def.length, typeof def[0], def[0] == 4294967295 ]
+    `, "1,object,true,1,object,true")
+}
