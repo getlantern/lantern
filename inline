@@ -264,7 +264,7 @@ sub newContext {
                 1,
                 $self->functionDeclare(
                     $class,
-                    "isArray", 0,
+                    "isArray", 1,
                 ),
             ),
         }),

@@ -331,8 +331,12 @@ func TestArray_isArray(t *testing.T) {
 
 	test := runTest()
 	test(`
-        [ Array.isArray(), Array.isArray([]), Array.isArray({}) ];
-    `, "false,true,false")
+       [ Array.isArray.length, Array.isArray(), Array.isArray([]), Array.isArray({}) ];
+    `, "1,false,true,false")
+
+	test(`
+        [ Array.isArray(Math) ];
+    `, "false")
 }
 
 func TestArray_indexOf(t *testing.T) {
