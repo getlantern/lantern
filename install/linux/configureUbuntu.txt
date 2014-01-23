@@ -11,6 +11,6 @@ chmod 4711 /opt/lantern/copyPolicy.exe
 
 test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
 
-cp /opt/lantern-net-installer/configurl.txt ~
+mv /opt/lantern-net-installer/configurl.txt ~
 
 echo "Finished running post install script..." >> $logf
