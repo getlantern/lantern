@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script moves existing installers to be the "latest" release installers
+# This script moves existing installers to be the "newest" release installers
 # users will actually install using the installer wrappers.
 function die() {
   echo $*
@@ -21,26 +21,26 @@ for name in "${names[@]}"
 do
   echo "$name"
   if [ "$name" == "$baseName.exe" ]; then
-    echo "Setting latest"
-    latestName="latest.exe"
+    echo "Setting newest"
+    newestName="newest.exe"
   elif [ "$name" == "$baseName.dmg" ]; then
-    latestName="latest.dmg"
+    newestName="newest.dmg"
   elif [ "$name" == "$baseName-32-bit.deb" ]; then
-    latestName="latest-32.deb"
+    newestName="newest-32.deb"
   elif [ "$name" == "$baseName-64-bit.deb" ]; then
-    latestName="latest-64.deb"
+    newestName="newest-64.deb"
   fi
-  echo "Latest name: $latestName"
+  echo "Latest name: $newestName"
 
   echo "Downloading existing file..."
   test -f $name || curl -O https://s3.amazonaws.com/lantern/$name
 
-  echo "Copying on S3 to latest file"
-  ./copys3file.py $name || die "Could not copy s3 file to latest!"
+  echo "Copying on S3 to newest file"
+  ./copys3file.py $name || die "Could not copy s3 file to newest!"
 
-  shasum $name | cut -d " " -f 1 > $latestName.sha1
-  echo "Uploading SHA-1 `cat $latestName.sha1`"
-  aws -putp $bucket $latestName.sha1
+  shasum $name | cut -d " " -f 1 > $newestName.sha1
+  echo "Uploading SHA-1 `cat $newestName.sha1`"
+  aws -putp $bucket $newestName.sha1
 done
 
 

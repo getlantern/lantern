@@ -18,6 +18,6 @@ ARCH=$2
 name=lantern-$VERSION-$ARCH-bit.deb
 #mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
 
-./installMetaRefresh.bash linux $name latest-$ARCH.deb
+./installMetaRefresh.bash linux $name newest-$ARCH.deb
 
 cp $name ~/Desktop/virtual-machine-files/
