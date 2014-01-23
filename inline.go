@@ -1082,7 +1082,7 @@ func _newContext(runtime *_runtime) {
 					mode: 0,
 					value: Value{
 						_valueType: valueNumber,
-						value:      0,
+						value:      1,
 					},
 				},
 			},

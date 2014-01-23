@@ -237,7 +237,7 @@ sub newContext {
                 "slice", 2,
                 "unshift", 1,
                 "reverse", 0,
-                "sort", 0,
+                "sort", 1,
                 "indexOf", 1,
                 "lastIndexOf", 1,
                 "every", 1,
