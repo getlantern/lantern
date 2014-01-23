@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import com.barchart.udt.ResourceUDT;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -220,6 +221,8 @@ public class Launcher {
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
+
+        instance(S3ConfigManager.class);
 
         messageService = instance(MessageService.class);
         

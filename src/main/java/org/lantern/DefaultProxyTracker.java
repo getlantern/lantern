@@ -84,6 +84,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final LanternTrustStore lanternTrustStore;
 
+    private final S3ConfigManager s3ConfigManager;
+
     /**
      * This is a lock for when we need to block on retrieving a TCP proxy, such
      * as when we need to access a blocked site over HTTP during initial setup.
@@ -99,10 +101,17 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Inject
     public DefaultProxyTracker(final Model model,
             final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore) {
+            final LanternTrustStore lanternTrustStore,
+            final S3ConfigManager s3ConfigManager) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
+        this.s3ConfigManager = s3ConfigManager;
+        s3ConfigManager.registerUpdateCallback(new Runnable() {
+            public void run() {
+                refreshFallbacks();
+            }
+        });
 
         // Periodically restore timed in proxies
         proxyRetryService.scheduleWithFixedDelay(new Runnable() {
@@ -412,11 +421,9 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addFallbackProxies() {
         LOG.debug("Attempting to add fallback proxies");
-        FallbackProxy fallbackProxy = FallbackProxy.readConfigured();
-        if (fallbackProxy == null) {
-            LOG.error("No fallback proxy found!");
+        for (FallbackProxy fp : s3ConfigManager.getFallbackProxies()) {
+            addSingleFallbackProxy(fp);
         }
-        addSingleFallbackProxy(fallbackProxy);
     }
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
@@ -432,15 +439,19 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
                 fallbackProxy.getPort()), Type.cloud, protocol,
                 fallbackProxy.getAuth_token());
+        lanternTrustStore.addCert(fallbackProxy.getCert());
     }
 
     @Override
     public InetSocketAddress addressForConfiguredFallbackProxy() {
-        FallbackProxy fp = FallbackProxy.readConfigured();
-        if (fp == null) {
+        Collection<FallbackProxy> fallbacks
+            = s3ConfigManager.getFallbackProxies();
+        if (fallbacks.isEmpty()) {
             return null;
+        } else {
+            FallbackProxy fp = fallbacks.iterator().next();
+            return new InetSocketAddress(fp.getIp(), fp.getPort());
         }
-        return new InetSocketAddress(fp.getIp(), fp.getPort());
     }
 
     /**
@@ -493,5 +504,18 @@ public class DefaultProxyTracker implements ProxyTracker {
                 return 0;
             }
         }
+    }
+
+    private void refreshFallbacks() {
+        LOG.debug("Refreshing fallbacks");
+        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
+        for (ProxyHolder p : proxies) {
+            if (p.getType() == Type.cloud) {
+                LOG.debug("Removing fallback (I may readd it shortly): ", p.getJid());
+                fallbacks.add(p);
+            }
+        }
+        proxies.removeAll(fallbacks);
+        addFallbackProxies();
     }
 }

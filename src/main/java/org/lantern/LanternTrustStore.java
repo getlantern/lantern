@@ -119,7 +119,24 @@ public class LanternTrustStore {
         final Certificate cert = cf.generateCertificate(bis);
         ks.setCertificateEntry(alias, cert);
     }
-    
+
+    public void addCert(String pemCert) {
+        try {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            InputStream bis
+                = new ByteArrayInputStream(pemCert.getBytes(Charsets.UTF_8));
+            X509Certificate cert
+                = (X509Certificate)cf.generateCertificate(bis);
+            String alias = getCertAlias(cert);
+            this.trustStore.setCertificateEntry(alias, cert);
+            onTrustStoreChanged();
+        } catch (CertificateException e) {
+            log.error("Couldn't create certificate", e);
+        } catch (KeyStoreException e) {
+            log.error("Could not load cert into keystore", e);
+        }
+    }
+
     public void addCert(final String alias, final String pemCert) 
                 throws CertificateException, KeyStoreException {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -197,10 +214,10 @@ public class LanternTrustStore {
     public boolean containsCertificate(final X509Certificate cert) {
         log.debug("Loading trust store...");
         
-        // We could use getCertificateAlias here, but that will iterate through
-        // everything, potentially causing issues when there are a lot of certs.
-        final String alias = 
-            cert.getIssuerDN().getName().substring(3).toLowerCase();
+        // We could use KeyStore.getCertificateAlias here, but that will
+        // iterate through everything, potentially causing issues when there
+        // are a lot of certs.
+        final String alias = getCertAlias(cert);
         log.debug("Looking for alias {}", alias);
         try {
             if (log.isDebugEnabled()) {
@@ -218,7 +235,11 @@ public class LanternTrustStore {
             return false;
         }
     }
-    
+
+    private String getCertAlias(X509Certificate cert) {
+        return cert.getIssuerDN().getName().substring(3).toLowerCase();
+    }
+
     private void listEntries(final KeyStore ks) {
         try {
             final Enumeration<String> aliases = ks.aliases();

@@ -148,7 +148,11 @@ public class Roster implements RosterListener {
     }
 
     public LanternRosterEntry getRosterEntry(final String key) {
-        return this.rosterEntries.get().get(LanternXmppUtils.jidToEmail(key));
+        try {
+            return this.rosterEntries.get().get(LanternXmppUtils.jidToEmail(key));
+        } catch (EmailAddressUtils.NormalizationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Collection<LanternRosterEntry> getEntries() {
@@ -210,9 +214,13 @@ public class Roster implements RosterListener {
             public void run() {
                 log.debug("Roster entries deleted: {}", entries);
                 for (final String entry : entries) {
-                    final String email = LanternXmppUtils.jidToEmail(entry);
-                    synchronized (rosterEntries) {
-                        rosterEntries.get().remove(email);
+                    try {
+                        final String email = LanternXmppUtils.jidToEmail(entry);
+                        synchronized (rosterEntries) {
+                            rosterEntries.get().remove(email);
+                        }
+                    } catch (EmailAddressUtils.NormalizationException e) {
+                        throw new RuntimeException(e);
                     }
                 }
                 fullRosterSync();
@@ -408,7 +416,6 @@ public class Roster implements RosterListener {
 
     private void onPresence(final Presence pres, final boolean sync,
         final boolean updateIndex) {
-        //final String email = LanternXmppUtils.jidToEmail(pres.getFrom());
         final LanternRosterEntry entry = getRosterEntry(pres.getFrom());
         if (entry != null) {
             entry.setAvailable(pres.isAvailable());
@@ -447,15 +454,21 @@ public class Roster implements RosterListener {
         // Completely new roster entries are quite rare, so we do all the
         // work here to set the indexes for each entry.
         synchronized(this.rosterEntries) {
-            final LanternRosterEntry elem =
-                this.rosterEntries.get().put(entry.getEmail(), entry);
-
-            // Only update the index if the element was actually added!
-            if (elem == null) {
-                if (updateIndex) {
-                    updateIndex();
+            try {
+                final LanternRosterEntry elem =
+                    this.rosterEntries.get().put(
+                            EmailAddressUtils.normalizedEmail(entry.getEmail()),
+                            entry);
+                // Only update the index if the element was actually added!
+                if (elem == null) {
+                    if (updateIndex) {
+                        updateIndex();
+                    }
                 }
+            } catch (EmailAddressUtils.NormalizationException e) {
+                throw new RuntimeException(e);
             }
+
         }
     }
     
