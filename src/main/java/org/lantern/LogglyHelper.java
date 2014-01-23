@@ -13,6 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Helper class for submitting messages to Loggly on behalf of the user when
+ * the user submits feedback through the UI.
+ */
 @Singleton
 public class LogglyHelper {
     private static final Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
@@ -22,7 +26,8 @@ public class LogglyHelper {
     @Inject
     public LogglyHelper(Model model) {
         this.model = model;
-        this.loggly = new Loggly(model.isDev(),
+        this.loggly = new Loggly(
+             LanternUtils.isDevMode(),
              model.getSettings().getMode() == Mode.get ?
              LanternConstants.LANTERN_LOCALHOST_ADDR :
              null);

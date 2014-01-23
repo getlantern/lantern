@@ -125,7 +125,6 @@ public class Launcher {
     private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
-    private boolean loggingInTestMode = false;
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -217,9 +216,7 @@ public class Launcher {
         preInstanceWatch.stop();
         
         model = instance(Model.class);
-        if (!isRunningFromCommandLine()) {
-            configureLoggly();
-        }
+        configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -606,10 +603,9 @@ public class Launcher {
     }
 
     void configureDefaultLogger() {
-        if (isRunningFromCommandLine()) {
-            System.out.println("Running from main line");
+        if (LanternUtils.isDevMode()) {
+            System.out.println("Running from source");
             PropertyConfigurator.configure(LOG4J_PROPS_PATH);
-            loggingInTestMode = true;
         } else {
             System.out.println("Not on main line...");
             configureProductionLogger();
@@ -646,7 +642,7 @@ public class Launcher {
     
     private void configureLoggly() {
         LOG.info("Configuring LogglyAppender");
-        LogglyAppender logglyAppender = new  LogglyAppender(model, loggingInTestMode);
+        LogglyAppender logglyAppender = new LogglyAppender(model, LanternUtils.isDevMode());
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(logglyAppender);
         asyncAppender.setThreshold(Level.WARN);
@@ -788,10 +784,5 @@ public class Launcher {
 
     public Injector getInjector() {
         return injector;
-    }
-    
-    private boolean isRunningFromCommandLine() {
-        final File props = new File(LOG4J_PROPS_PATH);
-        return props.isFile();
     }
 }
