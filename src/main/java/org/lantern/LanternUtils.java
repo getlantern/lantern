@@ -435,8 +435,15 @@ public class LanternUtils {
     }
 
     public static boolean isLanternHub(final String jabberid) {
-        final String userid = LanternXmppUtils.jidToEmail(jabberid);
-        return LanternClientConstants.LANTERN_JID.equals(userid);
+        try {
+            final String userid = LanternXmppUtils.jidToEmail(jabberid);
+            return LanternClientConstants.LANTERN_JID.equals(userid);
+        } catch (EmailAddressUtils.NormalizationException e) {
+            LOG.warn("Unnormalizable jabberid: " + jabberid);
+            // Since the controller's id is normalizable, this must be
+            // something else.
+            return false;
+        }
     }
 
     public static Packet activateOtr(final XMPPConnection conn) {
