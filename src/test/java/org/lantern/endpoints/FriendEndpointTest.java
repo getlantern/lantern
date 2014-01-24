@@ -33,12 +33,12 @@ public class FriendEndpointTest {
     
     @BeforeClass
     public static void setUpOnce() {
-        LanternClientConstants.setControllerId("oxlanternctrl");
+        //LanternClientConstants.setControllerId("lanternctrl");
     }
     
     @AfterClass
     public static void tearDownOnce() {
-        LanternClientConstants.setControllerId("lanternctrl");
+        //LanternClientConstants.setControllerId("lanternctrl");
     }
     
     @Test
