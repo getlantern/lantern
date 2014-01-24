@@ -177,6 +177,7 @@
     "DOWNLOAD": "Descarrega",
     "CONTACT": "Contacte",
     "CONTACT_TITLE": "Contactar desenvolupadors de Lantern",
+    "CONTACT_PRELUDE": "La <a ng-click=\"openExternal(EXTERNAL_URL.docs)\">documentació de Lantern<sup><i class=\"icon-external-link\"></i></sup></a> i <a ng-click=\"openExternal(globalState.forumsUrl)\">els fòrums d'usuaris<sup><i class=\"icon-external-link\"></i></sup></a> són els llocs idonis on buscar, demanar i proporcionar la informació de manera pública. Els missatges privats es poden enviar, amb seguretat, a través d'aquest formulari.",
     "MESSAGE_PLACEHOLDER": "[el teu missatge aquí]",
     "DIAGNOSTIC_INFO": "Informació de diagnòstic:",
     "ERROR_TOO_LONG_1": "1 caràcter massa llarg",
