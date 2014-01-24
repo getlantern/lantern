@@ -185,7 +185,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         log.debug("Adding friend...");
         final ClientFriend existingFriend = getFriend(email);
         
-        // If the friend previously didn't exist or was rejected, friend them.
+        // If the friend previously didn't exist, friend them.
         if (existingFriend == null) {
             log.debug("Adding friend...");
             final ClientFriend temp = getOrCreateFriend(email);
