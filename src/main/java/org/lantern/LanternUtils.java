@@ -1073,13 +1073,10 @@ public class LanternUtils {
         }
     }
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-    
-    static {
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
-    
     public static ObjectMapper objectMapper() {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(
+                DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
     }
 }
