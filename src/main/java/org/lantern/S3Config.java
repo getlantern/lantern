@@ -9,7 +9,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class S3Config {
 
-    public static final String DEFAULT_CONTROLLER_ID = "lanternctrl";
+    public static final String DEFAULT_CONTROLLER_ID = "lanternctrl1-2";
     
     private int serial_no;
     private String controller = DEFAULT_CONTROLLER_ID;
