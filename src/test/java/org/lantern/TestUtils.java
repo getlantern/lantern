@@ -201,8 +201,7 @@ public class TestUtils {
         public TestModelIo(EncryptedFileService encryptedFileService,
                 Transfers transfers, CountryService countryService) throws Exception {
             super(file, encryptedFileService, transfers, countryService,
-                    TestingUtils.newCommandLine(), mock(LocalCipherProvider.class),
-                    new MockS3ConfigManager());
+                    TestingUtils.newCommandLine(), mock(LocalCipherProvider.class));
         }
 
         @Override

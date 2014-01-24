@@ -65,9 +65,4 @@ public class ProxyTrackerStub implements ProxyTracker {
     public void onError(URI peerUri) {
     }
 
-    @Override
-    public InetSocketAddress addressForConfiguredFallbackProxy() {
-        return null;
-    }
-
 }

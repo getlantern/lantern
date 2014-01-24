@@ -68,8 +68,7 @@ public class WhitelistTest {
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
         final ModelIo modelIo = new ModelIo(randFile, fileService, null,
-                countryService, null, mock(LocalCipherProvider.class),
-                new MockS3ConfigManager());
+                countryService, null, mock(LocalCipherProvider.class));
         return modelIo;
     }
 

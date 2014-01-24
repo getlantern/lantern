@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import com.barchart.udt.ResourceUDT;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Files;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -125,8 +126,6 @@ public class Launcher {
     private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
-
-    private S3ConfigFetcher s3ConfigManager;
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -223,6 +222,8 @@ public class Launcher {
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
 
+        instance(S3ConfigManager.class);
+
         messageService = instance(MessageService.class);
         
         if (SystemUtils.IS_OS_MAC_OSX) {
@@ -295,9 +296,6 @@ public class Launcher {
         giveModeProxy = instance(GiveModeProxy.class);
         
         friendsHandler = instance(FriendsHandler.class);
-        
-        this.s3ConfigManager = new S3ConfigFetcher(model);
-        this.s3ConfigManager.start();
         
         startServices();
         
@@ -790,4 +788,13 @@ public class Launcher {
     public Injector getInjector() {
         return injector;
     }
+<<<<<<< HEAD
+    
+    private boolean isRunningFromCommandLine() {
+        final File props = new File(LOG4J_PROPS_PATH);
+        return props.isFile();
+    }
+
+=======
+>>>>>>> master
 }

@@ -19,6 +19,7 @@ import org.lantern.LanternUtils;
 import org.lantern.Roster;
 import org.lantern.RosterDeserializer;
 import org.lantern.RosterSerializer;
+import org.lantern.S3Config;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SetupCompleteEvent;
@@ -98,6 +99,8 @@ public class Model {
     private Collection<ClientFriend> friends;
 
     private int remainingFriendingQuota = 0;
+
+    private S3Config s3Config = new S3Config();
     
     @JsonView({Run.class})
     private Transfers getTransfers() {
@@ -388,5 +391,13 @@ public class Model {
     
     public void setRemainingFriendingQuota(int remainingFriendingQuota) {
         this.remainingFriendingQuota = remainingFriendingQuota;
+    }
+
+    public S3Config getS3Config() {
+        return this.s3Config;
+    }
+
+    public void setS3Config(final S3Config s3Config) {
+        this.s3Config = s3Config;
     }
 }

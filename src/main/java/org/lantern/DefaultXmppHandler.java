@@ -182,7 +182,7 @@ public class DefaultXmppHandler implements XmppHandler,
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
     private final Censored censored;
-    
+
     /**
      * Creates a new XMPP handler.
      */
@@ -1278,15 +1278,26 @@ public class DefaultXmppHandler implements XmppHandler,
         String hostAndPort = ip.trim() + ":" + port;
         presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
     }
+    
 
     private void sendFallbackHostAndPort(Presence presence) {
         LOG.info("Sending fallback address to controller.");
-        InetSocketAddress address = proxyTracker
-                .addressForConfiguredFallbackProxy();
+        InetSocketAddress address = addressForConfiguredFallbackProxy();
         String hostAndPort = addressToHostAndPort(address);
         if (hostAndPort != null) {
             presence.setProperty(LanternConstants.FALLBACK_HOST_AND_PORT,
                     hostAndPort);
+        }
+    }
+    
+    private InetSocketAddress addressForConfiguredFallbackProxy() {
+        Collection<FallbackProxy> fallbacks
+            = this.model.getS3Config().getFallbacks();
+        if (fallbacks.isEmpty()) {
+            return null;
+        } else {
+            FallbackProxy fp = fallbacks.iterator().next();
+            return new InetSocketAddress(fp.getIp(), fp.getPort());
         }
     }
     

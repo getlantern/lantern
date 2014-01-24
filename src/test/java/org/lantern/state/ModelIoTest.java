@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
@@ -8,13 +9,11 @@ import org.apache.commons.lang.SystemUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.CountryService;
-import org.lantern.MockS3ConfigManager;
 import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.mockito.Mockito.*;
 
 public class ModelIoTest {
 
@@ -34,7 +33,7 @@ public class ModelIoTest {
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
                 null, countryService, TestingUtils.newCommandLine(), 
-                mock(LocalCipherProvider.class), new MockS3ConfigManager());
+                mock(LocalCipherProvider.class));
 
         Model model = io.get();
 
@@ -52,7 +51,7 @@ public class ModelIoTest {
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null,
                 countryService, TestingUtils.newCommandLine(),
-                mock(LocalCipherProvider.class), new MockS3ConfigManager());
+                mock(LocalCipherProvider.class));
         final Model model2 = io.get();
         system = model2.getSystem();
         connectivity = model2.getConnectivity();

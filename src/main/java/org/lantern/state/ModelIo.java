@@ -12,9 +12,9 @@ import org.json.simple.JSONValue;
 import org.lantern.Cli;
 import org.lantern.Country;
 import org.lantern.CountryService;
-import org.lantern.S3ConfigManager;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.RefreshTokenEvent;
 import org.lantern.privacy.EncryptedFileService;
@@ -25,6 +25,7 @@ import org.littleshoot.proxy.TransportProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -35,7 +36,6 @@ public class ModelIo extends Storage<Model> {
     private final CountryService countryService;
     private final CommandLine commandLine;
     private LocalCipherProvider localCipherProvider;
-    private S3ConfigManager s3ConfigManager;
 
     /**
      * Creates a new instance with all the default operations.
@@ -45,10 +45,9 @@ public class ModelIo extends Storage<Model> {
                    final Transfers transfers,
                    final CountryService countryService,
                    final CommandLine commandLine,
-                   final LocalCipherProvider lcp,
-                   final S3ConfigManager s3ConfigManager) {
+                   final LocalCipherProvider lcp) {
         this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService,
-                transfers, countryService, commandLine, lcp, s3ConfigManager);
+                transfers, countryService, commandLine, lcp);
     }
 
     /**
@@ -67,21 +66,16 @@ public class ModelIo extends Storage<Model> {
                    Transfers transfers,
                    final CountryService countryService,
                    final CommandLine commandLine,
-                   final LocalCipherProvider localCipherProvider,
-                   final S3ConfigManager s3ConfigManager) {
+                   final LocalCipherProvider localCipherProvider) {
         super(encryptedFileService, modelFile, Model.class);
         this.countryService = countryService;
         this.commandLine = commandLine;
         this.localCipherProvider = localCipherProvider;
-        this.s3ConfigManager = s3ConfigManager;
-        s3ConfigManager.registerUpdateCallback(new Runnable() {
-            public void run() {
-                refreshController();
-            }
-        });
-        refreshController();
+        
         obj = read();
         obj.setTransfers(transfers);
+        Events.register(this);
+        onS3ConfigChange(obj.getS3Config());
         log.info("Loaded module");
     }
 
@@ -479,15 +473,13 @@ public class ModelIo extends Storage<Model> {
         obj.loadFrom(newModel);
         return true;
     }
-
-    private void refreshController() {
+    
+    @Subscribe
+    public void onS3ConfigChange(final S3Config config) {
         if (commandLine.hasOption(Cli.OPTION_CONTROLLER_ID)) {
             log.info("Not overriding command-line settings.");
         } else {
-            log.info("Refreshing the controller to " +
-                     s3ConfigManager.getControllerId());
-            LanternClientConstants.setControllerId(
-                s3ConfigManager.getControllerId());
+            LanternClientConstants.setControllerId(config.getController());
         }
     }
 }

@@ -1,7 +1,8 @@
 package org.lantern;
 
-import static org.lantern.state.Peer.Type.*;
-import static org.littleshoot.util.FiveTuple.Protocol.*;
+import static org.lantern.state.Peer.Type.pc;
+import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.littleshoot.util.FiveTuple.Protocol.UDP;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -29,7 +30,6 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -57,9 +57,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
-    private final ExecutorService p2pSocketThreadPool = Threads
-            .newCachedThreadPool("P2P-Socket-Creation-Thread-");
-
     /**
      * Holds all proxies.
      */
@@ -84,8 +81,6 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final LanternTrustStore lanternTrustStore;
 
-    private final S3ConfigManager s3ConfigManager;
-
     /**
      * This is a lock for when we need to block on retrieving a TCP proxy, such
      * as when we need to access a blocked site over HTTP during initial setup.
@@ -101,17 +96,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Inject
     public DefaultProxyTracker(final Model model,
             final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore,
-            final S3ConfigManager s3ConfigManager) {
+            final LanternTrustStore lanternTrustStore) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
-        this.s3ConfigManager = s3ConfigManager;
-        s3ConfigManager.registerUpdateCallback(new Runnable() {
-            public void run() {
-                refreshFallbacks();
-            }
-        });
 
         // Periodically restore timed in proxies
         proxyRetryService.scheduleWithFixedDelay(new Runnable() {
@@ -123,10 +111,19 @@ public class DefaultProxyTracker implements ProxyTracker {
 
         Events.register(this);
     }
-
-    @Override
-    public void start() {
-        prepopulateProxies();
+    
+    @Subscribe
+    public void onNewS3Config(final S3Config config) {
+        LOG.debug("Refreshing fallbacks");
+        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
+        for (ProxyHolder p : proxies) {
+            if (p.getType() == Type.cloud) {
+                LOG.debug("Removing fallback (I may readd it shortly): ", p.getJid());
+                fallbacks.add(p);
+            }
+        }
+        proxies.removeAll(fallbacks);
+        addFallbackProxies(config);
     }
 
     @Override
@@ -134,7 +131,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         proxies.clear();
 
         // We need to add the fallback proxy back in.
-        addFallbackProxies();
+        addFallbackProxies(this.model.getS3Config());
     }
 
     @Override
@@ -236,7 +233,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Subscribe
     public void onModeChanged(final ModeChangedEvent event) {
         LOG.debug("Received mode changed event: {}", event);
-        start();
+        addFallbackProxies(this.model.getS3Config());
     }
 
     @Override
@@ -403,25 +400,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    private void prepopulateProxies() {
-        LOG.debug("Attempting to pre-populate proxies");
-        if (this.proxiesPopulated.get()) {
-            LOG.debug("Proxies already populated!");
+    private void addFallbackProxies(final S3Config config) {
+        if (config == null) {
+            LOG.debug("Ignoring null config");
             return;
         }
-        this.proxiesPopulated.set(true);
-        addFallbackProxies();
-
-        // For now, we don't pre-populate stored proxies that are not standard
-        // fallbacks because we don't have a way to exchange updated
-        // certificates with them yet (we do that
-        // over XMPP, but at this point we don't even have a fallback so may
-        // not be able to connected to XMPP...chicken/egg).
-    }
-
-    private void addFallbackProxies() {
         LOG.debug("Attempting to add fallback proxies");
-        for (FallbackProxy fp : s3ConfigManager.getFallbackProxies()) {
+        for (final FallbackProxy fp : config.getFallbacks()) {
             addSingleFallbackProxy(fp);
         }
     }
@@ -440,18 +425,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                 fallbackProxy.getPort()), Type.cloud, protocol,
                 fallbackProxy.getAuth_token());
         lanternTrustStore.addCert(fallbackProxy.getCert());
-    }
-
-    @Override
-    public InetSocketAddress addressForConfiguredFallbackProxy() {
-        Collection<FallbackProxy> fallbacks
-            = s3ConfigManager.getFallbackProxies();
-        if (fallbacks.isEmpty()) {
-            return null;
-        } else {
-            FallbackProxy fp = fallbacks.iterator().next();
-            return new InetSocketAddress(fp.getIp(), fp.getPort());
-        }
     }
 
     /**
@@ -506,16 +479,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    private void refreshFallbacks() {
-        LOG.debug("Refreshing fallbacks");
-        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
-        for (ProxyHolder p : proxies) {
-            if (p.getType() == Type.cloud) {
-                LOG.debug("Removing fallback (I may readd it shortly): ", p.getJid());
-                fallbacks.add(p);
-            }
-        }
-        proxies.removeAll(fallbacks);
-        addFallbackProxies();
+    @Override
+    public void start() throws Exception {
+        // Do nothing.
     }
 }

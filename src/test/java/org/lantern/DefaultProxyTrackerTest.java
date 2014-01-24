@@ -1,7 +1,9 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -42,7 +44,7 @@ public class DefaultProxyTrackerTest {
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, lanternTrustStore, new MockS3ConfigManager());
+                peerFactory, lanternTrustStore);
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();

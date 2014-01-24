@@ -133,14 +133,12 @@ public class LanternModule extends AbstractModule {
         bind(ConnectivityChecker.class);
         bind(GeoIp.class);
         bind(CountryService.class);
-        //bind(SplashScreen.class);
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
         bind(SslEngineSource.class).to(CertTrackingSslEngineSource.class);
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);
         bind(UdtServerFiveTupleListener.class);
-        bind(S3ConfigManager.class).to(DefaultS3ConfigManager.class);
 
         try {
             copyFireFoxExtension();
