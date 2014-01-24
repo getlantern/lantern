@@ -8,9 +8,11 @@ import java.security.GeneralSecurityException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
+import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.privacy.EncryptedFileService;
 import org.slf4j.Logger;
@@ -84,7 +86,7 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
         if (!file.isFile()) {
             return blank();
         }
-        final ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = LanternUtils.objectMapper();
         InputStream is = null;
         try {
             is = encryptedFileService.localDecryptInputStream(file);

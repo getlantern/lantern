@@ -76,7 +76,7 @@ public class StatsUpdater extends Thread {
             final HttpEntity entity = response.getEntity();
             json = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
-            final ObjectMapper om = new ObjectMapper();
+            final ObjectMapper om = LanternUtils.objectMapper();
             Map<String, Object> stats = om.readValue(json, Map.class);
             Map<String, Object> global = (Map<String, Object>) stats.get("global");
             if (global == null) {

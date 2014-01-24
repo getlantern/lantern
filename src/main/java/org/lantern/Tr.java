@@ -73,7 +73,7 @@ public class Tr {
         final File localeFile = 
                 translated.isFile() ? translated : usLocaleFile;
         
-        final ObjectMapper om = new ObjectMapper();
+        final ObjectMapper om = LanternUtils.objectMapper();
         try {
             final String json = Files.toString(localeFile, Charsets.UTF_8);
             final String usJson = Files.toString(usLocaleFile, Charsets.UTF_8);

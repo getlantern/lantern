@@ -33,7 +33,7 @@ public class JsonModelModifier {
         }
         // The JSON object will only have two fields -- path and value, as in:
         // {"path":"settings.systemProxy","value":true}
-        final ObjectMapper om = new ObjectMapper();
+        final ObjectMapper om = LanternUtils.objectMapper();
         try {
             final Map<String, Object> map = om.readValue(json, Map.class);
             final String path = (String) map.get("path");

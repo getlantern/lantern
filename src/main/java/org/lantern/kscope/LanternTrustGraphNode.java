@@ -9,6 +9,7 @@ import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
+import org.lantern.LanternUtils;
 import org.lantern.XmppHandler;
 import org.lastbamboo.common.p2p.P2PConstants;
 
@@ -46,7 +47,7 @@ public class LanternTrustGraphNode extends TrustGraphNode {
         final String id = neighbor.getNeighborId();
         String payload = message.getPayload();
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = LanternUtils.objectMapper();
         try {
             LanternKscopeAdvertisement ad = mapper.readValue(
                 payload, LanternKscopeAdvertisement.class

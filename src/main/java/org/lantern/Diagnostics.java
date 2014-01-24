@@ -320,7 +320,7 @@ public class Diagnostics {
             return;
         }
 
-        final ObjectMapper om = new ObjectMapper();
+        final ObjectMapper om = LanternUtils.objectMapper();
         InputStream is = null;
         try {
             is = new FileInputStream(file);

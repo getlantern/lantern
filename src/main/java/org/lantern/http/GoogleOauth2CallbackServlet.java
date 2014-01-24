@@ -27,12 +27,12 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.LanternConstants;
+import org.lantern.LanternUtils;
 import org.lantern.MessageKey;
-import org.lantern.Messages;
 import org.lantern.NotInClosedBetaException;
-import org.lantern.Tr;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
+import org.lantern.Tr;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.RefreshTokenEvent;
@@ -76,15 +76,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
-    private final Messages msgs;
-    
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
         final InternalState internalState, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils, final Messages msgs,
-        final GoogleOauth2CallbackServer server) {
+        final ModelUtils modelUtils) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
@@ -93,7 +90,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
-        this.msgs = msgs;
     }
 
     @Override
@@ -199,7 +195,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 return code;
             }
 
-            final ObjectMapper om = new ObjectMapper();
+            final ObjectMapper om = LanternUtils.objectMapper();
             final Profile profile = om.readValue(body, Profile.class);
             this.model.setProfile(profile);
             Events.sync(SyncPath.PROFILE, profile);
@@ -291,7 +287,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final String body = IOUtils.toString(responseEntity.getContent());
             EntityUtils.consume(responseEntity);
 
-            final ObjectMapper om = new ObjectMapper();
+            final ObjectMapper om = LanternUtils.objectMapper();
             final Map<String, String> oauthToks =
                 om.readValue(body, Map.class);
             log.debug("Got oath data: {}", oauthToks);

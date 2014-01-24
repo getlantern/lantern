@@ -671,7 +671,7 @@ public class InteractionServlet extends HttpServlet {
         if (StringUtils.isBlank(json)) {
             return false;
         }
-        final ObjectMapper om = new ObjectMapper();
+        final ObjectMapper om = LanternUtils.objectMapper();
         Map<String, Object> map;
         try {
             map = om.readValue(json, Map.class);

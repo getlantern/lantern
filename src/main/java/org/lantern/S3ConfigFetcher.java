@@ -157,7 +157,7 @@ public class S3ConfigFetcher {
         }
         HttpClient client = HttpClientFactory.newDirectClient();
         HttpGet get = new HttpGet(url.get());
-        ObjectMapper om = new ObjectMapper();
+        final ObjectMapper om = LanternUtils.objectMapper();
         InputStream is = null;
         try {
             HttpResponse res = client.execute(get);

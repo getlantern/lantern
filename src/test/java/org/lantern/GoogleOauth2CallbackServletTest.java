@@ -1,13 +1,12 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.junit.Test;
-import org.lantern.http.GoogleOauth2CallbackServer;
 import org.lantern.http.GoogleOauth2CallbackServlet;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
@@ -22,12 +21,9 @@ public class GoogleOauth2CallbackServletTest {
                final Censored censored = new DefaultCensored();
                final HttpClientFactory factory = new HttpClientFactory(censored);
                Model model = new Model();
-               Messages messages = new Messages(model);
-               GoogleOauth2CallbackServer server = new GoogleOauth2CallbackServer(
-                       null, model, null, null, null, factory, null, messages);
                final GoogleOauth2CallbackServlet servlet = 
                    new GoogleOauth2CallbackServlet(null, null, null, null, null, 
-                       null, factory, null, messages, server);
+                       null, factory, null);
                
                final Map<String, String> allToks = new HashMap<String, String>();
                allToks.put("access_token", "invalidcode");

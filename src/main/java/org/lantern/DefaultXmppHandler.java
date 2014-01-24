@@ -1013,7 +1013,7 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private void processKscopePayload(final String from, final String payload) {
         LOG.debug("Processing payload: {}", payload);
-        final ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = LanternUtils.objectMapper();
         try {
             final LanternKscopeAdvertisement ad =
                 mapper.readValue(payload, LanternKscopeAdvertisement.class);
