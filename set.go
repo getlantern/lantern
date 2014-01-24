@@ -1,5 +1,7 @@
-// Package set is a thread safe SET data structure implementation
-// The thread safety encompasses all operations on one set.
+// Package set provides both threadsafe and non-threadsafe implementations of
+// a generic set data structure.
+
+// In the threadsafe set, safety encompasses all operations on one set.
 // Operations on multiple sets are consistent in that the elements
 // of each set used was valid at exactly one point in time between the
 // start and the end of the operation.
