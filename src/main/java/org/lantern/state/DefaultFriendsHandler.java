@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,7 +148,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 
                 Collection<ClientFriend> friends = Collections.emptyList();
                 try {
-                    final ClientFriend[] serverFriends = api.listFriends();
+                    final Collection<ClientFriend> serverFriends = 
+                            Arrays.asList(api.listFriends());
                     log.debug("All friends from server: {}", serverFriends);
                     for (final ClientFriend friend : serverFriends) {
                         tempFriends.put(friend.getEmail().toLowerCase(), friend);
@@ -163,12 +165,12 @@ public class DefaultFriendsHandler implements FriendsHandler {
                     log.error("Could not list friends?", e);
                     friends = Collections.emptyList();
                     friendsLoaded.set(false);
-                    return Collections.emptyMap();
+                    return new HashMap<String, ClientFriend>();
                 } catch (final CredentialException e) {
                     log.error("Could not list friends?", e);
                     friends = Collections.emptyList();
                     friendsLoaded.set(false);
-                    return Collections.emptyMap();
+                    return new HashMap<String, ClientFriend>();
                 } finally {
                     friendsLoading.set(false);
                     model.setFriends(friends);
