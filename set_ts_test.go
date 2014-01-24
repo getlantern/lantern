@@ -2,19 +2,29 @@ package set
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 )
 
-func TestSetNonTS_NewNonTS_parameters(t *testing.T) {
-	s := NewNonTS("string", "another_string", 1, 3.14)
+func TestSet_New(t *testing.T) {
+	s := New()
+
+	if s.Size() != 0 {
+		t.Error("New: calling without any parameters should create a set with zero size")
+	}
+
+}
+
+func TestSet_New_parameters(t *testing.T) {
+	s := New("string", "another_string", 1, 3.14)
 
 	if s.Size() != 4 {
-		t.Error("NewNonTS: calling with parameters should create a set with size of four")
+		t.Error("New: calling with parameters should create a set with size of four")
 	}
 }
 
-func TestSetNonTS_Add(t *testing.T) {
-	s := NewNonTS()
+func TestSet_Add(t *testing.T) {
+	s := New()
 	s.Add(1)
 	s.Add(2)
 	s.Add(2) // duplicate
@@ -31,8 +41,8 @@ func TestSetNonTS_Add(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Add_multiple(t *testing.T) {
-	s := NewNonTS()
+func TestSet_Add_multiple(t *testing.T) {
+	s := New()
 	s.Add("ankara", "san francisco", 3.14)
 
 	if s.Size() != 3 {
@@ -44,8 +54,8 @@ func TestSetNonTS_Add_multiple(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Remove(t *testing.T) {
-	s := NewNonTS()
+func TestSet_Remove(t *testing.T) {
+	s := New()
 	s.Add(1)
 	s.Add(2)
 	s.Add("fatih")
@@ -69,8 +79,8 @@ func TestSetNonTS_Remove(t *testing.T) {
 	s.Remove("fatih") // try to remove something from a zero length set
 }
 
-func TestSetNonTS_Remove_multiple(t *testing.T) {
-	s := NewNonTS()
+func TestSet_Remove_multiple(t *testing.T) {
+	s := New()
 	s.Add("ankara", "san francisco", 3.14, "istanbul")
 	s.Remove("ankara", "san francisco", 3.14)
 
@@ -83,8 +93,8 @@ func TestSetNonTS_Remove_multiple(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Pop(t *testing.T) {
-	s := NewNonTS()
+func TestSet_Pop(t *testing.T) {
+	s := New()
 	s.Add(1)
 	s.Add(2)
 	s.Add("fatih")
@@ -108,8 +118,8 @@ func TestSetNonTS_Pop(t *testing.T) {
 	s.Pop() // try to remove something from a zero length set
 }
 
-func TestSetNonTS_Has(t *testing.T) {
-	s := NewNonTS("1", "2", "3", "4")
+func TestSet_Has(t *testing.T) {
+	s := New("1", "2", "3", "4")
 
 	if !s.Has("1") {
 		t.Error("Has: the item 1 exist, but 'Has' is returning false")
@@ -120,8 +130,8 @@ func TestSetNonTS_Has(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Clear(t *testing.T) {
-	s := NewNonTS()
+func TestSet_Clear(t *testing.T) {
+	s := New()
 	s.Add(1)
 	s.Add("istanbul")
 	s.Add("san francisco")
@@ -132,8 +142,8 @@ func TestSetNonTS_Clear(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_IsEmpty(t *testing.T) {
-	s := NewNonTS()
+func TestSet_IsEmpty(t *testing.T) {
+	s := New()
 
 	empty := s.IsEmpty()
 	if !empty {
@@ -149,9 +159,9 @@ func TestSetNonTS_IsEmpty(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_IsEqual(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	u := NewNonTS("1", "2", "3")
+func TestSet_IsEqual(t *testing.T) {
+	s := New("1", "2", "3")
+	u := New("1", "2", "3")
 
 	ok := s.IsEqual(u)
 	if !ok {
@@ -159,9 +169,9 @@ func TestSetNonTS_IsEqual(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_IsSubset(t *testing.T) {
-	s := NewNonTS("1", "2", "3", "4")
-	u := NewNonTS("1", "2", "3")
+func TestSet_IsSubset(t *testing.T) {
+	s := New("1", "2", "3", "4")
+	u := New("1", "2", "3")
 
 	ok := s.IsSubset(u)
 	if !ok {
@@ -175,9 +185,9 @@ func TestSetNonTS_IsSubset(t *testing.T) {
 
 }
 
-func TestSetNonTS_IsSuperset(t *testing.T) {
-	s := NewNonTS("1", "2", "3", "4")
-	u := NewNonTS("1", "2", "3")
+func TestSet_IsSuperset(t *testing.T) {
+	s := New("1", "2", "3", "4")
+	u := New("1", "2", "3")
 
 	ok := u.IsSuperset(s)
 	if !ok {
@@ -191,8 +201,8 @@ func TestSetNonTS_IsSuperset(t *testing.T) {
 
 }
 
-func TestSetNonTS_String(t *testing.T) {
-	s := NewNonTS()
+func TestSet_String(t *testing.T) {
+	s := New()
 	if s.String() != "[]" {
 		t.Error("String: output is not what is excepted", s.String())
 	}
@@ -203,8 +213,8 @@ func TestSetNonTS_String(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_List(t *testing.T) {
-	s := NewNonTS("1", "2", "3", "4")
+func TestSet_List(t *testing.T) {
+	s := New("1", "2", "3", "4")
 
 	// this returns a slice of interface{}
 	if len(s.List()) != 4 {
@@ -219,8 +229,8 @@ func TestSetNonTS_List(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Copy(t *testing.T) {
-	s := NewNonTS("1", "2", "3", "4")
+func TestSet_Copy(t *testing.T) {
+	s := New("1", "2", "3", "4")
 	r := s.Copy()
 
 	if !s.IsEqual(r) {
@@ -228,9 +238,9 @@ func TestSetNonTS_Copy(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Union(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "4", "5")
+func TestSet_Union(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "4", "5")
 	u := s.Union(r)
 
 	if u.Size() != 5 {
@@ -242,9 +252,9 @@ func TestSetNonTS_Union(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Merge(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "4", "5")
+func TestSet_Merge(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "4", "5")
 	s.Merge(r)
 
 	if s.Size() != 5 {
@@ -256,9 +266,9 @@ func TestSetNonTS_Merge(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Separate(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "5")
+func TestSet_Separate(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "5")
 	s.Separate(r)
 
 	if s.Size() != 2 {
@@ -270,9 +280,9 @@ func TestSetNonTS_Separate(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Intersection(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "5")
+func TestSet_Intersection(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "5")
 	u := s.Intersection(r)
 
 	if u.Size() != 1 {
@@ -284,9 +294,9 @@ func TestSetNonTS_Intersection(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Difference(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("2", "3", "5")
+func TestSet_Difference(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("2", "3", "5")
 	u := s.Difference(r)
 
 	if u.Size() != 1 {
@@ -298,9 +308,9 @@ func TestSetNonTS_Difference(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_SymmetricDifference(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "4", "5")
+func TestSet_SymmetricDifference(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "4", "5")
 	u := s.SymmetricDifference(r)
 
 	if u.Size() != 4 {
@@ -312,8 +322,8 @@ func TestSetNonTS_SymmetricDifference(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_StringSlice(t *testing.T) {
-	s := NewNonTS("san francisco", "istanbul", 3.14, 1321, "ankara")
+func TestSet_StringSlice(t *testing.T) {
+	s := New("san francisco", "istanbul", 3.14, 1321, "ankara")
 	u := s.StringSlice()
 
 	if len(u) != 3 {
@@ -328,8 +338,8 @@ func TestSetNonTS_StringSlice(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_IntSlice(t *testing.T) {
-	s := NewNonTS("san francisco", "istanbul", 3.14, 1321, "ankara", 8876)
+func TestSet_IntSlice(t *testing.T) {
+	s := New("san francisco", "istanbul", 3.14, 1321, "ankara", 8876)
 	u := s.IntSlice()
 
 	if len(u) != 2 {
@@ -344,86 +354,28 @@ func TestSetNonTS_IntSlice(t *testing.T) {
 	}
 }
 
-func Test_Union(t *testing.T) {
-	s := New("1", "2", "3")
-	r := New("3", "4", "5")
-	x := New("5", "6", "7")
-
-	u := Union(s, r, x)
-
-	if u.Size() != 7 {
-		t.Error("Union: the merged set doesn't have all items in it.")
-	}
-
-	if !u.Has("1", "2", "3", "4", "5", "6", "7") {
-		t.Error("Union: merged items are not availabile in the set.")
-	}
-
-	y := Union()
-	if y.Size() != 0 {
-		t.Error("Union: should have zero items because nothing is passed")
-	}
-
-	z := Union(x)
-	if z.Size() != 3 {
-		t.Error("Union: the merged set doesn't have all items in it.")
-	}
-
-}
-
-func Test_Difference(t *testing.T) {
-	s := New("1", "2", "3")
-	r := New("3", "4", "5")
-	x := New("5", "6", "7")
-	u := Difference(s, r, x)
-
-	if u.Size() != 2 {
-		t.Error("Difference: the set doesn't have all items in it.")
-	}
-
-	if !u.Has("1", "2") {
-		t.Error("Difference: items are not availabile in the set.")
-	}
-
-	y := Difference()
-	if y.Size() != 0 {
-		t.Error("Difference: size should be zero")
-	}
-
-	z := Difference(s)
-	if z.Size() != 3 {
-		t.Error("Difference: size should be four")
-	}
-}
-
-func BenchmarkSetEquality(b *testing.B) {
+func TestSet_RaceAdd(t *testing.T) {
+	// Create two sets. Add concurrently items to each of them. Remove from the
+	// other one.
+	// "go test -race" should detect this if the library is not thread-safe.
 	s := New()
 	u := New()
 
-	for i := 0; i < b.N; i++ {
-		s.Add(i)
-		u.Add(i)
-	}
+	go func() {
+		for i := 0; i < 1000; i++ {
+			item := "item" + strconv.Itoa(i)
+			go func(i int) {
+				s.Add(item)
+				u.Add(item)
+			}(i)
+		}
+	}()
 
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		s.IsEqual(u)
-	}
-}
-
-func BenchmarkSubset(b *testing.B) {
-	s := New()
-	u := New()
-
-	for i := 0; i < b.N; i++ {
-		s.Add(i)
-		u.Add(i)
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		s.IsSubset(u)
+	for i := 0; i < 1000; i++ {
+		item := "item" + strconv.Itoa(i)
+		go func(i int) {
+			s.Add(item)
+			u.Add(item)
+		}(i)
 	}
 }
