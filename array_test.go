@@ -391,6 +391,27 @@ func TestArray_lastIndexOf(t *testing.T) {
         var abc = {0: 'a', 1: 'b', 2: 'c', 3: 'b', length: 4};
 		abc.lastIndexOf('b');
 	`, "3")
+
+	test(`
+        var target = {};
+        Math[3] = target;
+        Math.length = 5;
+        [ Array.prototype.lastIndexOf.call(Math, target) === 3 ];
+    `, "true")
+
+	test(`
+        var _NaN = NaN;
+        var abc = new Array("NaN", undefined, 0, false, null, {toString:function(){return NaN}}, "false", _NaN, NaN);
+        [ abc.lastIndexOf(NaN) ];
+    `, "-1")
+
+	test(`
+        var abc = {toString:function (){return 0}};
+        var def = 1;
+        var ghi = -(4/3);
+        var jkl = new Array(false, undefined, null, "0", abc, -1.3333333333333, "string", -0, true, +0, def, 1, 0, false, ghi, -(4/3));
+        [ jkl.lastIndexOf(-(4/3)), jkl.indexOf(0), jkl.indexOf(-0), jkl.indexOf(1) ];
+    `, "15,7,7,10")
 }
 
 func TestArray_every(t *testing.T) {
