@@ -208,3 +208,15 @@ func TestDate_setMilliseconds(t *testing.T) {
         [ abc, def ];
     `, "Invalid Date,NaN")
 }
+
+func TestDateComparison(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc = Date();
+        var def = (new Date()).toString();
+        [ abc === def, Math.abs(Date.parse(abc) - Date.parse(def)) <= 1000 ];
+    `, "false,true")
+}
