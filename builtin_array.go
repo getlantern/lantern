@@ -73,11 +73,11 @@ func builtinArray_concat(call FunctionCall) Value {
 				length := toInteger(object.get("length")).value
 				for index := int64(0); index < length; index += 1 {
 					name := strconv.FormatInt(index, 10)
-					if !object.hasProperty(name) {
-						continue
+					if object.hasProperty(name) {
+						valueArray = append(valueArray, object.get(name))
+					} else {
+						valueArray = append(valueArray, Value{})
 					}
-					value := object.get(name)
-					valueArray = append(valueArray, value)
 				}
 				continue
 			}

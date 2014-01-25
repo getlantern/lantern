@@ -141,6 +141,15 @@ func TestArray_concat(t *testing.T) {
 	test("mno", "-1,-2,-3,-4,-5,0,1,2")
 
 	test(`
+        var abc = [,1];
+        var def = abc.concat([], [,]);
+
+        def.getClass = Object.prototype.toString;
+
+        [ def.getClass(), typeof def[0], def[1], typeof def[2], def.length ];
+    `, "[object Array],undefined,1,undefined,3")
+
+	test(`
         Object.defineProperty(Array.prototype, "0", {
             value: 100,
             writable: false,
