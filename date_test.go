@@ -219,4 +219,10 @@ func TestDateComparison(t *testing.T) {
         var def = (new Date()).toString();
         [ abc === def, Math.abs(Date.parse(abc) - Date.parse(def)) <= 1000 ];
     `, "false,true")
+
+	test(`
+        var abc = Date(1);
+        var def = (new Date()).toString();
+        [ abc === def, Math.abs(Date.parse(abc) - Date.parse(def)) <= 1000 ];
+    `, "false,true")
 }

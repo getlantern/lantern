@@ -17,13 +17,8 @@ const (
 
 func builtinDate(call FunctionCall) Value {
 	date := &_dateObject{}
-	if len(call.ArgumentList) == 0 {
-		// TODO Should make this prettier
-		date.Set(newDateTime([]Value{}, Time.Local))
-		return toValue_string(date.Time().Format(builtinDate_goDateTimeLayout))
-	}
-	date.Set(newDateTime(call.ArgumentList, Time.Local))
-	return toValue_string(date.Time().Local().Format(builtinDate_goDateTimeLayout))
+	date.Set(newDateTime([]Value{}, Time.Local))
+	return toValue_string(date.Time().Format(builtinDate_goDateTimeLayout))
 }
 
 func builtinNewDate(self *_object, _ Value, argumentList []Value) Value {
