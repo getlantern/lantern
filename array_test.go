@@ -516,6 +516,18 @@ func TestArray_forEach(t *testing.T) {
         });
         [ abc, def ];
     `, "6,0,1,2")
+
+	test(`
+        var def = false;
+        var abc = function(value, index, object) {
+            def = ('[object Math]' === Object.prototype.toString.call(object));
+        };
+
+        Math.length = 1;
+        Math[0] = 1;
+        Array.prototype.forEach.call(Math, abc);
+        [ def ];
+    `, "true")
 }
 
 func TestArray_indexing(t *testing.T) {
