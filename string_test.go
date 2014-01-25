@@ -118,6 +118,17 @@ func TestString_lastIndexOf(t *testing.T) {
 	test(`"abc".lastIndexOf("bc")`, "1")
 	test(`"abc".lastIndexOf("bc", 11)`, "1")
 	test(`"abc".lastIndexOf("bc", 0)`, "-1")
+	test(`"abc".lastIndexOf("abcabcabc", 2)`, "-1")
+	test(`"abc".lastIndexOf("abc", 0)`, "0")
+	test(`"abc".lastIndexOf("abc", 1)`, "0")
+	test(`"abc".lastIndexOf("abc", 2)`, "0")
+	test(`"abc".lastIndexOf("abc", 3)`, "0")
+
+	test(`
+        abc = new Object(true);
+        abc.lastIndexOf = String.prototype.lastIndexOf;
+        abc.lastIndexOf(true, false);
+    `, "0")
 }
 
 func TestString_match(t *testing.T) {
