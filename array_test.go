@@ -424,6 +424,38 @@ func TestArray_every(t *testing.T) {
 	test(`[1,2,3].every(function() { return false })`, "false")
 	test(`[1,2,3].every(function() { return true })`, "true")
 	test(`[1,2,3].every(function(_, index) { if (index === 1) return true })`, "false")
+
+	test(`
+        var abc = function(value, index, object) {
+            return ('[object Math]' !== Object.prototype.toString.call(object));
+        };
+
+        Math.length = 1;
+        Math[0] = 1;
+        [ !Array.prototype.every.call(Math, abc) ];
+    `, "true")
+
+	test(`
+        var def = false;
+
+        var abc = function(value, index, object) {
+            def = true;
+            return this === Math;
+        };
+
+        [ [11].every(abc, Math) && def ];
+    `, "true")
+
+	test(`
+        var def = false;
+
+        var abc = function(value, index, object) {
+            def = true;
+            return Math;
+        };
+
+        [ [11].every(abc) && def ];
+    `, "true")
 }
 
 func TestArray_some(t *testing.T) {
