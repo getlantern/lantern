@@ -491,7 +491,7 @@ sub newContext {
                 7,
                 $self->functionDeclare(
                     $class,
-                    "parse", 0,
+                    "parse", 1,
                     "UTC", 0,
                     "now", 0,
                 ),

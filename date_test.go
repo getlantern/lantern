@@ -123,6 +123,8 @@ func TestDate_parse(t *testing.T) {
 	test(`Date.parse("1970-01-16T14:36:56+00:00")`, "1348616000")
 	test(`Date.parse("1970-01-16T14:36:56.313+00:00")`, "1348616313")
 	test(`Date.parse("1970-01-16T14:36:56.000")`, "1348616000")
+
+	test(`Date.parse.length`, "1")
 }
 
 func TestDate_UTC(t *testing.T) {
