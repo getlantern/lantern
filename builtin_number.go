@@ -25,8 +25,9 @@ func builtinNumber_toString(call FunctionCall) Value {
 	// Will throw a TypeError if ThisObject is not a Number
 	value := call.thisClassObject("Number").primitiveValue()
 	radix := 10
-	if len(call.ArgumentList) > 0 {
-		integer := toIntegerFloat(call.Argument(0))
+	radixArgument := call.Argument(0)
+	if radixArgument.IsDefined() {
+		integer := toIntegerFloat(radixArgument)
 		if integer < 2 || integer > 36 {
 			panic(newRangeError("RangeError: toString() radix must be between 2 and 36"))
 		}

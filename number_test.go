@@ -51,6 +51,19 @@ func TestNumber_toString(t *testing.T) {
 	test(`
         new Number(Infinity).toString(16)
     `, "Infinity")
+
+	test(`
+        [
+            Number.prototype.toString(undefined),
+            new Number().toString(undefined),
+            new Number(0).toString(undefined),
+            new Number(-1).toString(undefined),
+            new Number(1).toString(undefined),
+            new Number(Number.NaN).toString(undefined),
+            new Number(Number.POSITIVE_INFINITY).toString(undefined),
+            new Number(Number.NEGATIVE_INFINITY).toString(undefined)
+        ]
+    `, "0,0,0,-1,1,NaN,Infinity,-Infinity")
 }
 
 func TestNumber_toFixed(t *testing.T) {
