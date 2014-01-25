@@ -89,7 +89,11 @@ func builtinString_indexOf(call FunctionCall) Value {
 		}
 		return toValue_int(-1)
 	}
-	return toValue_int(strings.Index(value[int(start):], target))
+	index := strings.Index(value[int(start):], target)
+	if index >= 0 {
+		index += int(start)
+	}
+	return toValue_int(index)
 }
 
 func builtinString_lastIndexOf(call FunctionCall) Value {

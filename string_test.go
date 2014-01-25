@@ -93,6 +93,17 @@ func TestString_indexOf(t *testing.T) {
 	test(`"abc".indexOf("bc", 11)`, "-1")
 	test(`"$$abcdabcd".indexOf("ab", function(){return -Infinity;}())`, "2")
 	test(`"$$abcdabcd".indexOf("ab", function(){return NaN;}())`, "2")
+
+	test(`
+        var abc = {toString:function(){return "\u0041B";}}
+        var def = {valueOf:function(){return true;}}
+        var ghi = "ABB\u0041BABAB";
+        var jkl;
+        with(ghi) {
+            jkl = indexOf(abc, def);
+        }
+        [ jkl ];
+    `, "3")
 }
 
 func TestString_lastIndexOf(t *testing.T) {
