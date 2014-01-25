@@ -473,8 +473,8 @@ sub newContext {
                 "setMonth", 2,
                 "setUTCMonth", 2,
                 "setYear", 1,
-                "setFullYear", 1,
-                "setUTCFullYear", 1,
+                "setFullYear", 3,
+                "setUTCFullYear", 3,
             );
             return
             ".${class}Prototype =",

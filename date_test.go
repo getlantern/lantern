@@ -280,3 +280,11 @@ func TestDate_setMonth(t *testing.T) {
 	test(`Date.prototype.setMonth.length`, "2")
 	test(`Date.prototype.setUTCMonth.length`, "2")
 }
+
+func TestDate_setFullYear(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Date.prototype.setFullYear.length`, "3")
+	test(`Date.prototype.setUTCFullYear.length`, "3")
+}
