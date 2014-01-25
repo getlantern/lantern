@@ -319,8 +319,10 @@ func builtinString_split(call FunctionCall) Value {
 
 		for _, match := range result {
 			if match[0] == match[1] {
-				// An "empty" match
-				continue
+				// FIXME Ugh, this is a hack
+				if match[0] == 0 || match[0] == targetLength {
+					continue
+				}
 			}
 
 			if lastIndex != match[0] {

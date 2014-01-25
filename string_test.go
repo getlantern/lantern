@@ -189,6 +189,13 @@ func TestString_split(t *testing.T) {
 	test(`_.length`, "13")
 	test(`_[1] === undefined`, "true")
 	test(`_[12] === ""`, "true")
+
+	test(`
+        var abc = new String("one-1 two-2 three-3");
+        var def = abc.split(new RegExp);
+
+        [ def.constructor === Array, abc.length, def.length, def.join('') ];
+    `, "true,19,19,one-1 two-2 three-3")
 }
 
 func TestString_slice(t *testing.T) {
