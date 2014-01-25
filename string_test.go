@@ -147,6 +147,12 @@ func TestString_replace(t *testing.T) {
 			return [a, b, c, d, e, f]
 		})
 	`, "b,,b,0,b,")
+
+	test(`
+        var abc = 'She sells seashells by the seashore.';
+        var def = /sh/;
+        [ abc.replace(def, "$'" + 'sch') ];
+    `, "She sells seaells by the seashore.schells by the seashore.")
 }
 
 func TestString_search(t *testing.T) {

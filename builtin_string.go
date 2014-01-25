@@ -171,7 +171,7 @@ func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int
 		case '`':
 			return target[:match[0]]
 		case '\'':
-			return target[match[1] : len(target)-1]
+			return target[match[1]:len(target)]
 		}
 		matchNumberParse, error := strconv.ParseInt(string(part[1:]), 10, 64)
 		matchNumber := int(matchNumberParse)
