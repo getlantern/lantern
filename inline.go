@@ -4085,7 +4085,7 @@ func _newContext(runtime *_runtime) {
 					mode: 0,
 					value: Value{
 						_valueType: valueNumber,
-						value:      1,
+						value:      3,
 					},
 				},
 			},
@@ -4107,7 +4107,7 @@ func _newContext(runtime *_runtime) {
 					mode: 0,
 					value: Value{
 						_valueType: valueNumber,
-						value:      1,
+						value:      3,
 					},
 				},
 			},

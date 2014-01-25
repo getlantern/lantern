@@ -256,3 +256,11 @@ func TestDate_setSeconds(t *testing.T) {
 	test(`Date.prototype.setSeconds.length`, "2")
 	test(`Date.prototype.setUTCSeconds.length`, "2")
 }
+
+func TestDate_setMinutes(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Date.prototype.setMinutes.length`, "3")
+	test(`Date.prototype.setUTCMinutes.length`, "3")
+}
