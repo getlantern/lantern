@@ -467,6 +467,32 @@ func TestArray_some(t *testing.T) {
 	test(`[1,2,3].some(function() { return false })`, "false")
 	test(`[1,2,3].some(function() { return true })`, "true")
 	test(`[1,2,3].some(function(_, index) { if (index === 1) return true })`, "true")
+
+	test(`
+        var abc = function(value, index, object) {
+            return ('[object Math]' !== Object.prototype.toString.call(object));
+        };
+
+        Math.length = 1;
+        Math[0] = 1;
+        [ !Array.prototype.some.call(Math, abc) ];
+    `, "true")
+
+	test(`
+        var abc = function(value, index, object) {
+            return this === Math;
+        };
+
+        [ [11].some(abc, Math) ];
+    `, "true")
+
+	test(`
+        var abc = function(value, index, object) {
+            return Math;
+        };
+
+        [ [11].some(abc) ];
+    `, "true")
 }
 
 func TestArray_forEach(t *testing.T) {
