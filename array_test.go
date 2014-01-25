@@ -340,6 +340,7 @@ func TestArray_isArray(t *testing.T) {
 	test(`
         [ Array.isArray(Math) ];
     `, "false")
+
 }
 
 func TestArray_indexOf(t *testing.T) {
@@ -355,6 +356,13 @@ func TestArray_indexOf(t *testing.T) {
 		abc.indexOf('c');
 	`, "2")
 	test(`[true].indexOf(true, "-Infinity")`, "0")
+
+	test(`
+        var target = {};
+        Math[3] = target;
+        Math.length = 5;
+        [ Array.prototype.indexOf.call(Math, target) === 3 ];
+    `, "true")
 }
 
 func TestArray_lastIndexOf(t *testing.T) {
