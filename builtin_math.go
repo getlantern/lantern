@@ -110,7 +110,7 @@ func builtinMath_pow(call FunctionCall) Value {
 	// TODO Make sure this works according to the specification (15.8.2.13)
 	x := toFloat(call.Argument(0))
 	y := toFloat(call.Argument(1))
-	if x == 1 && math.IsInf(y, 0) {
+	if math.Abs(x) == 1 && math.IsInf(y, 0) {
 		return NaNValue()
 	}
 	return toValue_float64(math.Pow(x, y))

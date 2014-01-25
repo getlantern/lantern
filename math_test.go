@@ -220,6 +220,10 @@ func TestMath_pow(t *testing.T) {
 	test(`Math.pow(-0, -1)`, "-Infinity")
 	test(`Math.pow(-0, -2)`, "Infinity")
 	test(`Math.pow(-1, 0.1)`, "NaN")
+
+	test(`
+        [ Math.pow(-1, +Infinity), Math.pow(1, Infinity) ];
+    `, "NaN,NaN")
 }
 
 func TestMath_round(t *testing.T) {
