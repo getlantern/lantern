@@ -79,6 +79,29 @@ func TestNumber_toFixed(t *testing.T) {
 	test(`2.34.toFixed(1)`, "2.3")
 	test(`-2.34.toFixed(1)`, "-2.3")
 	test(`(-2.34).toFixed(1)`, "-2.3")
+
+	test(`raise:
+          new Number("a").toFixed(Number.POSITIVE_INFINITY);
+    `, "RangeError: toFixed() precision must be between 0 and 20")
+
+	test(`
+        [
+            new Number(1e21).toFixed(),
+            new Number(1e21).toFixed(0),
+            new Number(1e21).toFixed(1),
+            new Number(1e21).toFixed(1.1),
+            new Number(1e21).toFixed(0.9),
+            new Number(1e21).toFixed("1"),
+            new Number(1e21).toFixed("1.1"),
+            new Number(1e21).toFixed("0.9"),
+            new Number(1e21).toFixed(Number.NaN),
+            new Number(1e21).toFixed("some string")
+        ];
+  `, "1e+21,1e+21,1e+21,1e+21,1e+21,1e+21,1e+21,1e+21,1e+21,1e+21")
+
+	test(`raise:
+	      new Number(1e21).toFixed(Number.POSITIVE_INFINITY);
+    `, "RangeError: toFixed() precision must be between 0 and 20")
 }
 
 func TestNumber_toExponential(t *testing.T) {

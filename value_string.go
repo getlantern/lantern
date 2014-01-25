@@ -8,7 +8,7 @@ import (
 	"unicode/utf16"
 )
 
-var matchLeading0Exponent = regexp.MustCompile(`([eE][\+\-])0+([1-9])`)
+var matchLeading0Exponent = regexp.MustCompile(`([eE][\+\-])0+([1-9])`) // 1e-07 => 1e-7
 
 func floatToString(value float64, bitsize int) string {
 	// TODO Fit to ECMA-262 9.8.1 specification
