@@ -492,7 +492,7 @@ sub newContext {
                 $self->functionDeclare(
                     $class,
                     "parse", 1,
-                    "UTC", 0,
+                    "UTC", 7,
                     "now", 0,
                 ),
             ),

@@ -132,6 +132,8 @@ func TestDate_UTC(t *testing.T) {
 
 	test := runTest()
 	test(`Date.UTC(2009, 9, 25)`, "1256428800000")
+
+	test(`Date.UTC.length`, "7")
 }
 
 func TestDate_now(t *testing.T) {
