@@ -118,3 +118,13 @@ func Test_toInteger(t *testing.T) {
 	Is(integer.valid(), true)
 	Is(integer.exact(), false)
 }
+
+func Test_NaN(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        [ NaN === NaN, NaN == NaN ];
+    `, "false,false")
+}

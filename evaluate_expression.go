@@ -378,6 +378,7 @@ var lessThanTable [4](map[_lessThanResult]bool) = [4](map[_lessThanResult]bool){
 
 func (self *_runtime) calculateComparison(comparator string, left Value, right Value) bool {
 
+	// FIXME Use strictEqualityComparison?
 	// TODO This might be redundant now (with regards to evaluateComparison)
 	x := self.GetValue(left)
 	y := self.GetValue(right)

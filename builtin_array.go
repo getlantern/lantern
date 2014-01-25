@@ -478,7 +478,8 @@ func builtinArray_indexOf(call FunctionCall) Value {
 			if !thisObject.hasProperty(name) {
 				continue
 			}
-			if sameValue(matchValue, thisObject.get(name)) {
+			value := thisObject.get(name)
+			if strictEqualityComparison(matchValue, value) {
 				return toValue_uint32(uint32(index))
 			}
 		}

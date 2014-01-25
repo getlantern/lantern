@@ -593,6 +593,35 @@ func sameValue(x Value, y Value) bool {
 	return result
 }
 
+func strictEqualityComparison(x Value, y Value) bool {
+	if x._valueType != y._valueType {
+		return false
+	}
+	result := false
+	switch x._valueType {
+	case valueUndefined, valueNull:
+		result = true
+	case valueNumber:
+		x := x.toFloat()
+		y := y.toFloat()
+		if math.IsNaN(x) && math.IsNaN(y) {
+			result = false
+		} else {
+			result = x == y
+		}
+	case valueString:
+		result = x.toString() == y.toString()
+	case valueBoolean:
+		result = x.toBoolean() == y.toBoolean()
+	case valueObject:
+		result = x._object() == y._object()
+	default:
+		panic(hereBeDragons())
+	}
+
+	return result
+}
+
 // Export will attempt to convert the value to a Go representation
 // and return it via an interface{} kind.
 //

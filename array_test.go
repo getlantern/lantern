@@ -363,6 +363,20 @@ func TestArray_indexOf(t *testing.T) {
         Math.length = 5;
         [ Array.prototype.indexOf.call(Math, target) === 3 ];
     `, "true")
+
+	test(`
+        var _NaN = NaN;
+        var abc = new Array("NaN", undefined, 0, false, null, {toString:function(){return NaN}}, "false", _NaN, NaN);
+        [ abc.indexOf(NaN) ];
+    `, "-1")
+
+	test(`
+        var abc = {toString:function (){return 0}};
+        var def = 1;
+        var ghi = -(4/3);
+        var jkl = new Array(false, undefined, null, "0", abc, -1.3333333333333, "string", -0, true, +0, def, 1, 0, false, ghi, -(4/3));
+        [ jkl.indexOf(-(4/3)), jkl.indexOf(0), jkl.indexOf(-0), jkl.indexOf(1) ];
+    `, "14,7,7,10")
 }
 
 func TestArray_lastIndexOf(t *testing.T) {
