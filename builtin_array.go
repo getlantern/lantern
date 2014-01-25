@@ -83,7 +83,7 @@ func builtinArray_concat(call FunctionCall) Value {
 			}
 			fallthrough
 		default:
-			valueArray = append(valueArray, toValue_string(toString(item)))
+			valueArray = append(valueArray, item)
 		}
 	}
 	return toValue_object(call.runtime.newArrayOf(valueArray))

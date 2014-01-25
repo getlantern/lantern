@@ -139,6 +139,38 @@ func TestArray_concat(t *testing.T) {
 	test("ghi", "0,1,2,-1,-2,-3")
 	test("jkl", "0,1,2,-1,-2,-3,3,4,5")
 	test("mno", "-1,-2,-3,-4,-5,0,1,2")
+
+	test(`
+        Object.defineProperty(Array.prototype, "0", {
+            value: 100,
+            writable: false,
+            configurable: true
+        });
+
+        var abc = Array.prototype.concat.call(101);
+
+        var hasProperty = abc.hasOwnProperty("0");
+        var instanceOfVerify = typeof abc[0] === "object";
+        var verifyValue = false;
+        verifyValue = abc[0] == 101;
+
+        var verifyEnumerable = false;
+        for (var property in abc) {
+            if (property === "0" && abc.hasOwnProperty("0")) {
+                verifyEnumerable = true;
+            }
+        }
+
+        var verifyWritable = false;
+        abc[0] = 12;
+        verifyWritable = abc[0] === 12;
+
+        var verifyConfigurable = false;
+        delete abc[0];
+        verifyConfigurable = abc.hasOwnProperty("0");
+
+        [ hasProperty, instanceOfVerify, verifyValue, !verifyConfigurable, verifyEnumerable, verifyWritable ];
+    `, "true,true,true,true,true,true")
 }
 
 func TestArray_splice(t *testing.T) {
