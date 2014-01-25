@@ -264,3 +264,11 @@ func TestDate_setMinutes(t *testing.T) {
 	test(`Date.prototype.setMinutes.length`, "3")
 	test(`Date.prototype.setUTCMinutes.length`, "3")
 }
+
+func TestDate_setHours(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Date.prototype.setHours.length`, "4")
+	test(`Date.prototype.setUTCHours.length`, "4")
+}
