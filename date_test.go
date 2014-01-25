@@ -209,6 +209,24 @@ func TestDate_setMilliseconds(t *testing.T) {
     `, "Invalid Date,NaN")
 }
 
+func TestDate_new(t *testing.T) {
+	Terst(t)
+
+	// This is probably incorrect, due to differences in Go date/time handling
+	// versus ECMA date/time handling, but we'll leave this here for
+	// future reference
+	return
+
+	test := runTest()
+	test(`
+        [
+            new Date(1899, 11).valueOf(),
+            new Date(1899, 12).valueOf(),
+            new Date(1900, 0).valueOf()
+        ]
+    `, "-2211638400000,-2208960000000,-2208960000000")
+}
+
 func TestDateComparison(t *testing.T) {
 	Terst(t)
 

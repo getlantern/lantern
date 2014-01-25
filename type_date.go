@@ -130,7 +130,7 @@ func epochToTime(value float64) (time Time.Time, err error) {
 }
 
 func timeToEpoch(time Time.Time) float64 {
-	return float64(time.Unix()*1000 + int64(time.Nanosecond()/1000000))
+	return float64(time.UnixNano() / (1000 * 1000))
 }
 
 func (runtime *_runtime) newDateObject(epoch float64) *_object {
