@@ -528,6 +528,16 @@ func TestArray_forEach(t *testing.T) {
         Array.prototype.forEach.call(Math, abc);
         [ def ];
     `, "true")
+
+	test(`
+        var def = false;
+        var abc = function(value, index, object) {
+            def = this === Math;
+        };
+
+        [11].forEach(abc, Math);
+        [ def ];
+    `, "true")
 }
 
 func TestArray_indexing(t *testing.T) {
@@ -563,6 +573,24 @@ func TestArray_map(t *testing.T) {
 	test(`[].map(function() { return 1 }).length`, "0")
 	test(`[1,2,3].map(function(value) { return value * value })`, "1,4,9")
 	test(`[1,2,3].map(function(value) { return 1 })`, "1,1,1")
+
+	test(`
+        var abc = function(value, index, object) {
+            return ('[object Math]' === Object.prototype.toString.call(object));
+        };
+
+        Math.length = 1;
+        Math[0] = 1;
+        Array.prototype.map.call(Math, abc);
+    `, "true")
+
+	test(`
+        var abc = function(value, index, object) {
+            return this === Math;
+        };
+
+        [11].map(abc, Math);
+    `, "true")
 }
 
 func TestArray_filter(t *testing.T) {
