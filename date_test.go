@@ -248,3 +248,11 @@ func TestDateComparison(t *testing.T) {
         [ abc === def, Math.abs(Date.parse(abc) - Date.parse(def)) <= 1000 ];
     `, "false,true")
 }
+
+func TestDate_setSeconds(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Date.prototype.setSeconds.length`, "2")
+	test(`Date.prototype.setUTCSeconds.length`, "2")
+}
