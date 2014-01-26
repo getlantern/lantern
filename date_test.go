@@ -253,6 +253,31 @@ func TestDate_setSeconds(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setSeconds(10, 12);
+
+        def.setSeconds(10);
+        def.setMilliseconds(12);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setUTCSeconds(10, 12);
+
+        def.setUTCSeconds(10);
+        def.setUTCMilliseconds(12);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
 	test(`Date.prototype.setSeconds.length`, "2")
 	test(`Date.prototype.setUTCSeconds.length`, "2")
 }
@@ -261,6 +286,33 @@ func TestDate_setMinutes(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setMinutes(8, 10, 12);
+
+        def.setMinutes(8);
+        def.setSeconds(10);
+        def.setMilliseconds(12);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setUTCMinutes(8, 10, 12);
+
+        def.setUTCMinutes(8);
+        def.setUTCSeconds(10);
+        def.setUTCMilliseconds(12);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
 	test(`Date.prototype.setMinutes.length`, "3")
 	test(`Date.prototype.setUTCMinutes.length`, "3")
 }
@@ -269,6 +321,35 @@ func TestDate_setHours(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setHours(6, 8, 10, 12);
+
+        def.setHours(6);
+        def.setMinutes(8);
+        def.setSeconds(10);
+        def.setMilliseconds(12);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setUTCHours(6, 8, 10, 12);
+
+        def.setUTCHours(6);
+        def.setUTCMinutes(8);
+        def.setUTCSeconds(10);
+        def.setUTCMilliseconds(12);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
 	test(`Date.prototype.setHours.length`, "4")
 	test(`Date.prototype.setUTCHours.length`, "4")
 }
@@ -277,6 +358,31 @@ func TestDate_setMonth(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setMonth(6, 8);
+
+        def.setMonth(6);
+        def.setDate(8);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setUTCMonth(6, 8);
+
+        def.setUTCMonth(6);
+        def.setUTCDate(8);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
 	test(`Date.prototype.setMonth.length`, "2")
 	test(`Date.prototype.setUTCMonth.length`, "2")
 }
@@ -285,6 +391,33 @@ func TestDate_setFullYear(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setFullYear(1981, 6, 8);
+
+        def.setFullYear(1981);
+        def.setMonth(6);
+        def.setDate(8);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
+	test(`
+        abc = new Date(1980, 10);
+        def = new Date(abc);
+
+        abc.setUTCFullYear(1981, 6, 8);
+
+        def.setUTCFullYear(1981);
+        def.setUTCMonth(6);
+        def.setUTCDate(8);
+
+        [ abc.valueOf() === def.valueOf() ];
+    `, "true")
+
 	test(`Date.prototype.setFullYear.length`, "3")
 	test(`Date.prototype.setUTCFullYear.length`, "3")
 }

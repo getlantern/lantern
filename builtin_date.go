@@ -105,39 +105,42 @@ func builtinDate_setTime(call FunctionCall) Value {
 	return date.Value()
 }
 
-func _builtinDate_beforeSet(call FunctionCall, upToArgument int, timeLocal bool) (*_object, *_dateObject, *_ecmaTime) {
+func _builtinDate_beforeSet(call FunctionCall, argumentLimit int, timeLocal bool) (*_object, *_dateObject, *_ecmaTime, []int) {
 	object := call.thisObject()
 	date := dateObjectOf(object)
 	if date.isNaN {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
-	// upToArgument is actually the index of the last argument we want to include + 1...
-	for index := 0; index < len(call.ArgumentList) && index < upToArgument; index++ {
-		value := call.Argument(index)
+
+	if argumentLimit > len(call.ArgumentList) {
+		argumentLimit = len(call.ArgumentList)
+	}
+
+	if argumentLimit == 0 {
+		object.value = invalidDateObject
+		return nil, nil, nil, nil
+	}
+
+	valueList := make([]int, argumentLimit)
+	for index := 0; index < argumentLimit; index++ {
+		value := call.ArgumentList[index]
 		if value.IsNaN() {
 			object.value = invalidDateObject
+			return nil, nil, nil, nil
 		}
+		integer := toInteger(value)
+		if !integer.valid() {
+			object.value = invalidDateObject
+			return nil, nil, nil, nil
+		}
+		valueList[index] = int(integer.value)
 	}
 	baseTime := date.Time()
 	if timeLocal {
 		baseTime = baseTime.Local()
 	}
 	ecmaTime := ecmaTime(baseTime)
-	return object, &date, &ecmaTime
-}
-
-func _builtinDate_beforeSet1(call FunctionCall, timeLocal bool) (*_object, *_dateObject, *_ecmaTime, int64) {
-	object, date, ecmaTime := _builtinDate_beforeSet(call, 1, timeLocal)
-	if ecmaTime == nil {
-		return nil, nil, nil, 0
-	}
-	integer := toInteger(call.Argument(0))
-	if !integer.valid() {
-		date.SetNaN()
-		object.value = *date
-		return nil, nil, nil, 0
-	}
-	return object, date, ecmaTime, integer.value
+	return object, &date, &ecmaTime, valueList
 }
 
 func builtinDate_parse(call FunctionCall) Value {
@@ -351,169 +354,255 @@ func builtinDate_getTimezoneOffset(call FunctionCall) Value {
 }
 
 func builtinDate_setMilliseconds(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 1, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.millisecond = int(value)
+
+	ecmaTime.millisecond = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCMilliseconds(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 1, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.millisecond = int(value)
+
+	ecmaTime.millisecond = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setSeconds(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 2, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.second = int(value)
+
+	if len(value) > 1 {
+		ecmaTime.millisecond = value[1]
+	}
+	ecmaTime.second = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCSeconds(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 2, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.second = int(value)
+
+	if len(value) > 1 {
+		ecmaTime.millisecond = value[1]
+	}
+	ecmaTime.second = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setMinutes(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 3, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.minute = int(value)
+
+	if len(value) > 2 {
+		ecmaTime.millisecond = value[2]
+		ecmaTime.second = value[1]
+	} else if len(value) > 1 {
+		ecmaTime.second = value[1]
+	}
+	ecmaTime.minute = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCMinutes(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 3, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.minute = int(value)
+
+	if len(value) > 2 {
+		ecmaTime.millisecond = value[2]
+		ecmaTime.second = value[1]
+	} else if len(value) > 1 {
+		ecmaTime.second = value[1]
+	}
+	ecmaTime.minute = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setHours(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 4, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.hour = int(value)
+
+	if len(value) > 3 {
+		ecmaTime.millisecond = value[3]
+		ecmaTime.second = value[2]
+		ecmaTime.minute = value[1]
+	} else if len(value) > 2 {
+		ecmaTime.second = value[2]
+		ecmaTime.minute = value[1]
+	} else if len(value) > 1 {
+		ecmaTime.minute = value[1]
+	}
+	ecmaTime.hour = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCHours(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 4, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.hour = int(value)
+
+	if len(value) > 3 {
+		ecmaTime.millisecond = value[3]
+		ecmaTime.second = value[2]
+		ecmaTime.minute = value[1]
+	} else if len(value) > 2 {
+		ecmaTime.second = value[2]
+		ecmaTime.minute = value[1]
+	} else if len(value) > 1 {
+		ecmaTime.minute = value[1]
+	}
+	ecmaTime.hour = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setDate(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 1, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.day = int(value)
+
+	ecmaTime.day = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCDate(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 1, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.day = int(value)
+
+	ecmaTime.day = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setMonth(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 2, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.month = int(value)
+
+	if len(value) > 1 {
+		ecmaTime.day = value[1]
+	}
+	ecmaTime.month = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCMonth(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 2, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.month = int(value)
+
+	if len(value) > 1 {
+		ecmaTime.day = value[1]
+	}
+	ecmaTime.month = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setYear(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 1, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	year := int(value)
+
+	year := value[0]
 	if 0 <= year && year <= 99 {
 		year += 1900
 	}
 	ecmaTime.year = year
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setFullYear(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, true)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 3, true)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.year = int(value)
+
+	if len(value) > 2 {
+		ecmaTime.day = value[2]
+		ecmaTime.month = value[1]
+	} else if len(value) > 1 {
+		ecmaTime.month = value[1]
+	}
+	ecmaTime.year = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
 }
 
 func builtinDate_setUTCFullYear(call FunctionCall) Value {
-	object, date, ecmaTime, value := _builtinDate_beforeSet1(call, false)
+	object, date, ecmaTime, value := _builtinDate_beforeSet(call, 3, false)
 	if ecmaTime == nil {
 		return NaNValue()
 	}
-	ecmaTime.year = int(value)
+
+	if len(value) > 2 {
+		ecmaTime.day = value[2]
+		ecmaTime.month = value[1]
+	} else if len(value) > 1 {
+		ecmaTime.month = value[1]
+	}
+	ecmaTime.year = value[0]
+
 	date.SetTime(ecmaTime.goTime())
 	object.value = *date
 	return date.Value()
