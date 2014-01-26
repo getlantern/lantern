@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.security.Security;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.Callable;
@@ -32,6 +33,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.endpoints.FriendApi;
@@ -73,6 +75,7 @@ public class TestingUtils {
             "http");
     
     static {
+        Security.addProvider(new BouncyCastleProvider());
         if (LanternClientConstants.TEST_PROPS.isFile()) {
             privatePropsFile = LanternClientConstants.TEST_PROPS;
         } else {
