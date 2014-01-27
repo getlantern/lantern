@@ -480,7 +480,7 @@ public class ModelIo extends Storage<Model> {
             log.info("Not overriding command-line settings.");
         } else if (config != null) {
             final String controller = config.getController();
-            if (StringUtils.isNotBlank(controller)) {
+            if (StringUtils.isNotBlank(controller) && !controller.equalsIgnoreCase("null")) {
                 LanternClientConstants.setControllerId(controller);
             }
         }
