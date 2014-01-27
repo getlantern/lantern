@@ -110,7 +110,6 @@ public class StatsUpdater extends Thread {
     @SuppressWarnings("unchecked")
     private void updateModel(Object dest, Map<String, Object> src)
             throws IllegalAccessException, InvocationTargetException {
-        @SuppressWarnings("unchecked")
         Map<String, Object> map = src;
         try {
             for (Map.Entry<String, Object> entry : map.entrySet()) {

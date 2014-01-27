@@ -309,11 +309,11 @@ public class ModelIo extends Storage<Model> {
         log.debug("Reading client secrets from file \"{}\"", filename);
         try {
             final String json = FileUtils.readFileToString(file, "US-ASCII");
-            JSONObject obj = (JSONObject)JSONValue.parse(json);
+            JSONObject installed = (JSONObject)JSONValue.parse(json);
             final JSONObject ins;
-            final JSONObject temp = (JSONObject)obj.get("installed");
+            final JSONObject temp = (JSONObject)installed.get("installed");
             if (temp == null) {
-                ins = (JSONObject)obj.get("web");
+                ins = (JSONObject)installed.get("web");
             } else {
                 ins = temp;
             }
@@ -348,10 +348,10 @@ public class ModelIo extends Storage<Model> {
         log.info("Reading user credentials from file \"{}\"", filename);
         try {
             final String json = FileUtils.readFileToString(file, "US-ASCII");
-            final JSONObject obj = (JSONObject)JSONValue.parse(json);
-            final String username = (String)obj.get("username");
-            final String accessToken = (String)obj.get("access_token");
-            final String refreshToken = (String)obj.get("refresh_token");
+            final JSONObject creds = (JSONObject)JSONValue.parse(json);
+            final String username = (String)creds.get("username");
+            final String accessToken = (String)creds.get("access_token");
+            final String refreshToken = (String)creds.get("refresh_token");
             // Access token is not strictly necessary, so we allow it to be
             // null.
             if (StringUtils.isBlank(username) || 
