@@ -29,6 +29,7 @@ var DEFAULT_LANG = 'en_US',
       cs: {dir: 'ltr', name: 'čeština'},
       sv: {dir: 'ltr', name: 'Svenska'},
       ja: {dir: 'ltr', name: '日本語'},
+      ua_UK: {dir: 'ltr', name: 'Українська'},
       es: {dir: 'ltr', name: 'español'}
     //ar: {dir: 'rtl', name: 'العربية'}
     },
