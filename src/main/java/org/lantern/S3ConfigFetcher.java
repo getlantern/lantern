@@ -109,7 +109,7 @@ public class S3ConfigFetcher {
             log.warn("Rechecking config with no old one.");
             changed = true;
         } else {
-            changed = (newConfig.get().getSerial_no() != config.getSerial_no());
+            changed = !newConfig.get().equals(config);
         }
         if (changed) {
             log.info("Configuration changed! Reapplying...");
@@ -167,7 +167,6 @@ public class S3ConfigFetcher {
             is = res.getEntity().getContent();
             String cfgStr = IOUtils.toString(is);
             S3Config cfg = om.readValue(cfgStr, S3Config.class);
-            log.debug("Serial number: " + cfg.getSerial_no());
             log.debug("Controller: " + cfg.getController());
             log.debug("Minimum poll time: " + cfg.getMinpoll());
             log.debug("Maximum poll time: " + cfg.getMaxpoll());
@@ -175,10 +174,11 @@ public class S3ConfigFetcher {
                 log.debug("Proxy: " + fp);
             }
             return Optional.of(cfg);
-        } catch (Exception e) {
+        } catch (final IOException e) {
             log.error("Couldn't fetch config: " + e);
         } finally {
             IOUtils.closeQuietly(is);
+            get.reset();
         }
         return Optional.absent();
     }

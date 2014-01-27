@@ -5,13 +5,14 @@ import java.util.Collections;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
+import com.google.common.base.Objects;
+
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class S3Config {
 
     public static final String DEFAULT_CONTROLLER_ID = "lanternctrl1-2";
     
-    private int serial_no;
     private String controller = DEFAULT_CONTROLLER_ID;
     private int minpoll;
     private int maxpoll;
@@ -19,9 +20,6 @@ public class S3Config {
 
     public S3Config() {}
 
-    public int getSerial_no() {
-        return serial_no;
-    }
     public String getController() {
         return controller;
     }
@@ -33,5 +31,25 @@ public class S3Config {
     }
     public Collection<FallbackProxy> getFallbacks() {
         return fallbacks;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(controller, fallbacks, minpoll, maxpoll);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+           return false;
+        }
+        if (getClass() != obj.getClass()){
+           return false;
+        }
+        final S3Config other = (S3Config) obj;
+        return Objects.equal(this.controller, other.controller) &&
+                Objects.equal(this.fallbacks, other.fallbacks) &&
+                Objects.equal(this.minpoll, other.minpoll) &&
+                Objects.equal(this.maxpoll, other.maxpoll);
     }
 }
