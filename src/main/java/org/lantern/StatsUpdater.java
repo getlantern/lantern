@@ -95,7 +95,7 @@ public class StatsUpdater extends Thread {
             Events.sync(SyncPath.GLOBAL, model.getGlobal());
             Events.sync(SyncPath.COUNTRIES, model.getCountries());
         } catch (final IOException e) {
-            log.info("Error getting stats. RESPONSE:\n"+json, e);
+            log.info("Error getting stats from URL "+LanternClientConstants.STATS_URL+" RESPONSE:\n"+json, e);
         } catch (final URISyntaxException e) {
             log.error("URI error", e);
         } catch (IllegalAccessException e) {

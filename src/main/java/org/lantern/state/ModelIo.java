@@ -478,8 +478,11 @@ public class ModelIo extends Storage<Model> {
     public void onS3ConfigChange(final S3Config config) {
         if (hasCommandLineOption(Cli.OPTION_CONTROLLER_ID)) {
             log.info("Not overriding command-line settings.");
-        } else if (config != null){
-            LanternClientConstants.setControllerId(config.getController());
+        } else if (config != null) {
+            final String controller = config.getController();
+            if (StringUtils.isNotBlank(controller)) {
+                LanternClientConstants.setControllerId(controller);
+            }
         }
     }
 

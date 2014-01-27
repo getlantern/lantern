@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class LanternClientConstants {
         new File(System.getProperty("user.home"), ".lantern");
 
     public static final File DEFAULT_MODEL_FILE =
-            new File(CONFIG_DIR, "model-0.0.4");
+            new File(CONFIG_DIR, "model-0.0.5");
 
     public static final File DEFAULT_TRANSFERS_FILE =
             new File(CONFIG_DIR, "transfers");
@@ -136,6 +137,10 @@ public class LanternClientConstants {
     public static String CONTROLLER_URL;
 
     public static void setControllerId(final String id) {
+        if (StringUtils.isBlank(id)) {
+            LOG.warn("Blank controller id?");
+            return;
+        }
         LANTERN_JID = id + "@appspot.com";
         CONTROLLER_URL = "https://" + id + ".appspot.com";
         STATS_URL = CONTROLLER_URL +"/stats";

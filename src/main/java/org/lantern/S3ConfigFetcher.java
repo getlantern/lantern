@@ -130,6 +130,9 @@ public class S3ConfigFetcher {
         if (!file.isFile()) {
             try {
                 copyUrlFile();
+                if (!file.isFile()) {
+                    log.error("Still no config file?");
+                }
             } catch (final IOException e) {
                 log.warn("Couldn't copy config URL file?", e);
                 return Optional.absent();
