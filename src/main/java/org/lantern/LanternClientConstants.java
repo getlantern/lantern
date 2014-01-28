@@ -26,6 +26,10 @@ public class LanternClientConstants {
     public static final String VERSION;
     
     public static final String GIT_VERSION;
+    
+    public static final String BUILD_TIME;
+    
+    public static final String LOG4J_PROPS_PATH = "src/main/resources/log4j.properties";
 
     static {
         final Properties prop = new Properties();
@@ -40,9 +44,12 @@ public class LanternClientConstants {
             if (version.equals("${project.version}")) {
                 VERSION = "0.0.1-SNAPSHOT";
                 isDevMode = true;
+                BUILD_TIME = "1969-01-01";
             } else {
-                isDevMode = version.contains("SNAPSHOT");
+                final File props = new File(LOG4J_PROPS_PATH);
+                isDevMode = props.isFile();
                 VERSION = version + "-" + GIT_VERSION;
+                BUILD_TIME = prop.getProperty("git.build.time");
             }
         } catch (final IOException e) {
             LOG.warn("Could not load version properties file : ", e);
@@ -127,6 +134,7 @@ public class LanternClientConstants {
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
     public static final String LOCALHOST = "127.0.0.1";
     public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
+
 
     // Not final because it may be set from the command line for debugging.
     public static String LANTERN_JID;

@@ -73,8 +73,6 @@ public class Launcher {
 
     public static final long START_TIME = System.currentTimeMillis();
     
-    private static final String LOG4J_PROPS_PATH = "src/main/resources/log4j.properties";
-    
     private static Logger LOG;
     private static Launcher s_instance;
     
@@ -610,7 +608,7 @@ public class Launcher {
     void configureDefaultLogger() {
         if (LanternUtils.isDevMode()) {
             System.out.println("Running from source");
-            PropertyConfigurator.configure(LOG4J_PROPS_PATH);
+            PropertyConfigurator.configure(LanternClientConstants.LOG4J_PROPS_PATH);
         } else {
             System.out.println("Not on main line...");
             configureProductionLogger();

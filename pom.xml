@@ -588,7 +588,7 @@
       <plugin>
 	<groupId>pl.project13.maven</groupId>
 	<artifactId>git-commit-id-plugin</artifactId>
-	<version>2.0.3</version>
+	<version>2.1.7</version>
 	<executions>
 	  <execution>
 	    <goals>
@@ -599,6 +599,7 @@
 	<configuration>
 	  <verbose>true</verbose>
 	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+          <dateFormat>yyyy-MM-dd</dateFormat>
 	</configuration>
       </plugin>
     </plugins>
