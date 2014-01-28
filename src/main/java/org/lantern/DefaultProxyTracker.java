@@ -26,6 +26,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
@@ -424,7 +425,13 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
                 fallbackProxy.getPort()), Type.cloud, protocol,
                 fallbackProxy.getAuth_token());
-        lanternTrustStore.addCert(fallbackProxy.getCert());
+        
+        final String cert = fallbackProxy.getCert();
+        if (StringUtils.isNotBlank(cert)) {
+            lanternTrustStore.addCert(cert);
+        } else {
+            LOG.warn("Fallback with no cert? {}", fallbackProxy);
+        }
     }
 
     /**
