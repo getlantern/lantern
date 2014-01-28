@@ -496,7 +496,7 @@ return verified;</string>
                         <object class="com.install4j.api.beans.ScriptProperty">
                           <void property="value">
                             <string>final File f = new File(context.getInstallationDirectory(), "dpkg.bash");
-final File deb = new File(new File((String)context.getVariable("sys.userHome")), "latest.deb");
+final File deb = new File(new File((String)context.getVariable("sys.userHome")), "newest.deb");
 //final File out = new File(context.getInstallationDirectory(), "dpkg.bash.out");
 
 // Note these messages don't get shown in unattended mode!
