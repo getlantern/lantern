@@ -1,18 +1,13 @@
 package org.lantern.kscope;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.Message;
 import org.kaleidoscope.TrustGraphAdvertisement;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
-import org.lantern.kscope.LanternKscopeAdvertisement;
-import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
-import org.lantern.LanternUtils;
 import org.lantern.XmppHandler;
 import org.lastbamboo.common.p2p.P2PConstants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +42,8 @@ public class LanternTrustGraphNode extends TrustGraphNode {
         final String id = neighbor.getNeighborId();
         String payload = message.getPayload();
 
-        ObjectMapper mapper = LanternUtils.objectMapper();
         try {
-            LanternKscopeAdvertisement ad = mapper.readValue(
+            LanternKscopeAdvertisement ad = JsonUtils.OBJECT_MAPPER.readValue(
                 payload, LanternKscopeAdvertisement.class
             );
             ad.setTtl(ttl);

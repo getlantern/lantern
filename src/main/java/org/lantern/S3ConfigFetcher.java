@@ -13,7 +13,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
@@ -161,13 +160,12 @@ public class S3ConfigFetcher {
         }
         HttpClient client = HttpClientFactory.newDirectClient();
         HttpGet get = new HttpGet(url.get());
-        final ObjectMapper om = LanternUtils.objectMapper();
         InputStream is = null;
         try {
             HttpResponse res = client.execute(get);
             is = res.getEntity().getContent();
             String cfgStr = IOUtils.toString(is);
-            S3Config cfg = om.readValue(cfgStr, S3Config.class);
+            S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
             log.debug("Controller: " + cfg.getController());
             log.debug("Minimum poll time: " + cfg.getMinpoll());
             log.debug("Maximum poll time: " + cfg.getMaxpoll());

@@ -36,7 +36,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.littleshoot.util.ThreadUtils;
@@ -320,12 +319,12 @@ public class Diagnostics {
             return;
         }
 
-        final ObjectMapper om = LanternUtils.objectMapper();
         InputStream is = null;
         try {
             is = new FileInputStream(file);
             final String proxy = IOUtils.toString(is);
-            final FallbackProxy fp = om.readValue(proxy, FallbackProxy.class);
+            final FallbackProxy fp = 
+                    JsonUtils.OBJECT_MAPPER.readValue(proxy, FallbackProxy.class);
             
             fallbackServerHost = fp.getIp();
             fallbackServerPort = fp.getPort();

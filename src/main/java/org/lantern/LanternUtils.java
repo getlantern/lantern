@@ -54,8 +54,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.lantern.state.Mode;
@@ -1071,12 +1069,5 @@ public class LanternUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
-    }
-
-    public static ObjectMapper objectMapper() {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(
-                DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper;
     }
 }

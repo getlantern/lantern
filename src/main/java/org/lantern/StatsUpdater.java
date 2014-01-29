@@ -13,7 +13,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
@@ -76,8 +75,7 @@ public class StatsUpdater extends Thread {
             final HttpEntity entity = response.getEntity();
             json = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
-            final ObjectMapper om = LanternUtils.objectMapper();
-            Map<String, Object> stats = om.readValue(json, Map.class);
+            Map<String, Object> stats = JsonUtils.OBJECT_MAPPER.readValue(json, Map.class);
             Map<String, Object> global = (Map<String, Object>) stats.get("global");
             if (global == null) {
                 log.info("Empty global stats");
