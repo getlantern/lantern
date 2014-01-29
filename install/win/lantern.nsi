@@ -46,7 +46,7 @@ VIAddVersionKey LegalCopyright ""
 Section -Main SEC0000
     SetOutPath $PROFILE
     SetOverwrite on
-    File "../wrapper\fallback.json"
+    File "../wrapper\.lantern-configurl.txt"
     Call GetMainInstaller
 
     #WriteRegStr HKLM "${REGKEY}\Components" Main 1
