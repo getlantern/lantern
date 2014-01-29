@@ -267,6 +267,24 @@
                 </serializedBean>
                 <condition />
               </action>
+              <action name="" id="395" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>File path = new File(System.getProperty("user.home"), "/.lantern-installer");
+return path.exists() ? true : path.mkdir();
+ </string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="344" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.MoveFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -301,7 +319,7 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/newest.dmg</string>
+                        <string>${installer:sys.userHome}/.lantern-installer/newest.dmg</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/newest.dmg</string>
@@ -319,7 +337,7 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/newest.exe</string>
+                        <string>${installer:sys.userHome}/.lantern-installer/newest.exe</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/newest.exe</string>
@@ -337,7 +355,7 @@
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/newest.deb</string>
+                        <string>${installer:sys.userHome}/.lantern-installer/newest.deb</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/newest-64.deb</string>
@@ -356,7 +374,7 @@ return Util.isLinux() &amp;&amp; is64Bit;</condition>
                         <boolean>false</boolean>
                       </void>
                       <void property="targetFile">
-                        <string>${installer:sys.userHome}/newest.deb</string>
+                        <string>${installer:sys.userHome}/.lantern-installer/newest.deb</string>
                       </void>
                       <void property="url">
                         <string>https://s3.amazonaws.com/lantern/newest-32.deb</string>
@@ -374,7 +392,7 @@ return Util.isLinux() &amp;&amp; !is64Bit;</condition>
                       <void property="script">
                         <object class="com.install4j.api.beans.ScriptProperty">
                           <void property="value">
-                            <string>final boolean verified = InstallDownloader.verify(new File((String)context.getVariable("sys.userHome")));
+                            <string>final boolean verified = InstallDownloader.verify(new File(((String)context.getVariable("sys.userHome")) + "/.lantern-installer"));
 
 return verified;</string>
                           </void>
@@ -391,7 +409,7 @@ return verified;</string>
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/newest.dmg</string>
+                          <string>${installer:sys.userHome}/.lantern-installer/newest.dmg</string>
                         </object>
                       </void>
                       <void property="workingDirectory">
@@ -410,7 +428,7 @@ return verified;</string>
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/newest.exe</string>
+                          <string>${installer:sys.userHome}/.lantern-installer/newest.exe</string>
                         </object>
                       </void>
                       <void property="workingDirectory">
@@ -431,7 +449,7 @@ return verified;</string>
                         <object class="com.install4j.api.beans.ScriptProperty">
                           <void property="value">
                             <string>final File f = new File(context.getInstallationDirectory(), "dpkg.bash");
-final File deb = new File(new File((String)context.getVariable("sys.userHome")), "newest.deb");
+final File deb = new File(new File(((String)context.getVariable("sys.userHome")) + "/.lantern-installer"), "newest.deb");
 //final File out = new File(context.getInstallationDirectory(), "dpkg.bash.out");
 
 // Note these messages don't get shown in unattended mode!
