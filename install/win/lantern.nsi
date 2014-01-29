@@ -44,7 +44,7 @@ VIAddVersionKey LegalCopyright ""
 
 # Installer sections
 Section -Main SEC0000
-    SetOutPath "$PROFILE\.lantern-installer"
+    SetOutPath $PROFILE
     SetOverwrite on
     File "../wrapper\.lantern-configurl.txt"
     Call GetMainInstaller
