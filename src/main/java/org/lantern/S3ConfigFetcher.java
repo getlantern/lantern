@@ -33,7 +33,8 @@ public class S3ConfigFetcher {
     private static final Logger log
         = LoggerFactory.getLogger(S3ConfigFetcher.class);
 
-    private static final String URL_FILENAME = "configurl.txt";
+    // DRY: wrapper.install4j and configureUbuntu.txt
+    private static final String URL_FILENAME = ".lantern-configurl.txt";
 
     private final Optional<String> url;
 
