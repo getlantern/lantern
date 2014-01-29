@@ -20,13 +20,12 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.Censored;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
-import org.lantern.LogglyHelper;
 import org.lantern.LanternUtils;
+import org.lantern.LogglyHelper;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.SecurityUtils;
@@ -671,10 +670,9 @@ public class InteractionServlet extends HttpServlet {
         if (StringUtils.isBlank(json)) {
             return false;
         }
-        final ObjectMapper om = LanternUtils.objectMapper();
         Map<String, Object> map;
         try {
-            map = om.readValue(json, Map.class);
+            map = JsonUtils.OBJECT_MAPPER.readValue(json, Map.class);
             final String notification = (String) map.get("notification");
             model.closeNotification(Integer.parseInt(notification));
             Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());

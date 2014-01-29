@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
@@ -1014,10 +1013,9 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private void processKscopePayload(final String from, final String payload) {
         LOG.debug("Processing payload: {}", payload);
-        final ObjectMapper mapper = LanternUtils.objectMapper();
         try {
             final LanternKscopeAdvertisement ad =
-                mapper.readValue(payload, LanternKscopeAdvertisement.class);
+                JsonUtils.OBJECT_MAPPER.readValue(payload, LanternKscopeAdvertisement.class);
 
             final String jid = ad.getJid();
             if (this.kscopeAdHandler.handleAd(jid, ad)) {

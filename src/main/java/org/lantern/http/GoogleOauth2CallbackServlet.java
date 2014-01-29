@@ -25,9 +25,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
-import org.lantern.LanternUtils;
 import org.lantern.MessageKey;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier.ProxyConfigurationError;
@@ -195,8 +194,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 return code;
             }
 
-            final ObjectMapper om = LanternUtils.objectMapper();
-            final Profile profile = om.readValue(body, Profile.class);
+            final Profile profile = JsonUtils.OBJECT_MAPPER.readValue(body, Profile.class);
             this.model.setProfile(profile);
             Events.sync(SyncPath.PROFILE, profile);
             //final String email = profile.getEmail();
@@ -287,9 +285,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final String body = IOUtils.toString(responseEntity.getContent());
             EntityUtils.consume(responseEntity);
 
-            final ObjectMapper om = LanternUtils.objectMapper();
             final Map<String, String> oauthToks =
-                om.readValue(body, Map.class);
+                    JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
             log.debug("Got oath data: {}", oauthToks);
             return oauthToks;
         } finally {
