@@ -39,7 +39,7 @@ VIAddVersionKey FileVersion "${VERSION}"
 VIAddVersionKey FileDescription ""
 VIAddVersionKey LegalCopyright ""
 
-!define INSTALLER_URL "https://s3.amazonaws.com/lantern/latest.exe"
+!define INSTALLER_URL "https://s3.amazonaws.com/lantern/newest.exe"
 !define INSTALLER_LOCAL_PATH "$TEMP\lanternInstaller.exe"
 
 # Installer sections
