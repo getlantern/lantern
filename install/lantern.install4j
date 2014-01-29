@@ -57,21 +57,21 @@
       </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="latest.exe" fileType="regular" />
+          <entry location="newest.exe" fileType="regular" />
           <entry location="log.txt" fileType="regular" />
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="150" file="./osx" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="osx" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="latest.dmg" fileType="regular" />
-          <entry location="latest.dmg.stored" fileType="regular" />
+          <entry location="newest.dmg" fileType="regular" />
+          <entry location="newest.dmg.stored" fileType="regular" />
           <entry location="log.txt" fileType="regular" />
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="790" file="./linux" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="latest-32.deb" fileType="regular" />
-          <entry location="latest-64.deb" fileType="regular" />
+          <entry location="newest-32.deb" fileType="regular" />
+          <entry location="newest-64.deb" fileType="regular" />
           <entry location="linux-amd64-1.7.0_03.tar.gz" fileType="regular" />
         </exclude>
       </dirEntry>
