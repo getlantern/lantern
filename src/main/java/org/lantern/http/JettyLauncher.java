@@ -16,6 +16,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cometd.server.CometdServlet;
+import org.eclipse.jetty.http.HttpContent;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -25,6 +27,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.lantern.BayeuxInitializer;
 import org.lantern.LanternClientConstants;
@@ -141,8 +144,15 @@ public class JettyLauncher implements LanternService {
 
             private static final long serialVersionUID = 4335271390548389540L;
 
+            // disable conditional responses
             @Override
-            protected void doGet(final HttpServletRequest req, 
+            protected boolean passConditionalHeaders(HttpServletRequest request, HttpServletResponse response,
+                                                     Resource resource, HttpContent content) throws IOException {
+                return true;
+            }
+
+            @Override
+            protected void doGet(HttpServletRequest req,
                 final HttpServletResponse resp) throws ServletException, 
                 IOException {
                 final String uri = req.getPathInfo();
@@ -157,13 +167,16 @@ public class JettyLauncher implements LanternService {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                 } else {
                     resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
-                    LanternUtils.addCSPHeader(resp);
+                    if (!resp.containsHeader("Content-Security-Policy")) {
+                        LanternUtils.addCSPHeader(resp);
+                    }
                     super.doGet(req, resp);
                 }
             }
         });
-        ds.setInitParameter("cacheControl", "no-cache");
-        ds.setInitParameter("aliases", "true");
+        // http://dev.eclipse.org/mhonarc/lists/jetty-users/msg01409.html
+        ds.setInitParameter("cacheControl", "no-cache, no-store, must-revalidate");
+        ds.setInitParameter("aliases", "true"); // follow symlinks
 
         ds.setInitOrder(1);
         contextHandler.addServlet(ds, "/*");
