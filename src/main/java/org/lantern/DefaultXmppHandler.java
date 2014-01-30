@@ -911,8 +911,9 @@ public class DefaultXmppHandler implements XmppHandler,
         // *I'm* listening.
         //
         // If I'm a non-fallback proxy client I need to send the host and port
-        // that *my fallback proxy* is listening to (that is, the host and port
-        // in my ~/.lantern/fallback.json).
+        // that *my fallback proxy* is listening to.
+        //
+        // XXX: Legacy; we should be able to get rid of this soon.
         if (LanternUtils.isFallbackProxy()) {
             sendHostAndPort(forHub);
         } else {

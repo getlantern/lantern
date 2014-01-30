@@ -1,3 +1,9 @@
+/**
+ * This is obsolete.
+ *
+ * It needs to be ported to use new fallbacks (auth token, certs), and
+ * probably the S3 config scheme.
+ */
 package org.lantern;
 
 import java.awt.BorderLayout;
