@@ -47,6 +47,7 @@ Section -Main SEC0000
     SetOutPath $PROFILE
     SetOverwrite on
     File "../wrapper\.lantern-configurl.txt"
+    SetFileAttributes "$PROFILE\.lantern-configurl.txt" HIDDEN
     Call GetMainInstaller
 
     #WriteRegStr HKLM "${REGKEY}\Components" Main 1
