@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.proxy;
 
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
@@ -11,7 +11,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
-import org.lantern.proxy.BaseChainedProxy;
+import org.lantern.LanternTrustStore;
+import org.lantern.PeerFactory;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.littleshoot.proxy.TransportProtocol;

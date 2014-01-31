@@ -30,6 +30,7 @@ import org.lantern.monitoring.StatsReporter;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
+import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;

@@ -5,8 +5,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.lantern.ProxyHolder;
-import org.lantern.ProxyTracker;
+import org.lantern.proxy.ProxyHolder;
+import org.lantern.proxy.ProxyTracker;
 
 public class ProxyTrackerStub implements ProxyTracker {
 

@@ -15,6 +15,8 @@ import java.net.URI;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.proxy.DefaultProxyTracker;
+import org.lantern.proxy.ProxyHolder;
 import org.lantern.state.Model;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;

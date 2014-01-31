@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.proxy;
 
 import static org.lantern.state.Peer.Type.pc;
 import static org.littleshoot.util.FiveTuple.Protocol.TCP;
@@ -27,6 +27,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lantern.ConnectivityChangedEvent;
+import org.lantern.ConnectivityStatus;
+import org.lantern.FallbackProxy;
+import org.lantern.LanternTrustStore;
+import org.lantern.LanternUtils;
+import org.lantern.PeerFactory;
+import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;

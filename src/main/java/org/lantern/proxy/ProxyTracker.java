@@ -1,8 +1,10 @@
-package org.lantern;
+package org.lantern.proxy;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
+
+import org.lantern.LanternService;
 
 /**
  * Interface for all classes that keep track of proxies.

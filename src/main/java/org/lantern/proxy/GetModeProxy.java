@@ -4,7 +4,6 @@ import io.netty.handler.codec.http.HttpRequest;
 
 import org.lantern.ClientStats;
 import org.lantern.LanternConstants;
-import org.lantern.ProxyHolder;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
