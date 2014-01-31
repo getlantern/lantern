@@ -49,6 +49,7 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
@@ -1297,7 +1298,7 @@ public class DefaultXmppHandler implements XmppHandler,
             return null;
         } else {
             FallbackProxy fp = fallbacks.iterator().next();
-            return new InetSocketAddress(fp.getIp(), fp.getPort());
+            return new InetSocketAddress(fp.getAddress(), fp.getPort());
         }
     }
     

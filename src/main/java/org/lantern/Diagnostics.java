@@ -45,6 +45,7 @@ import org.apache.http.util.EntityUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.proxy.DefaultProxyTracker;
+import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
@@ -334,7 +335,7 @@ public class Diagnostics {
             final FallbackProxy fp = 
                     JsonUtils.OBJECT_MAPPER.readValue(proxy, FallbackProxy.class);
             
-            fallbackServerHost = fp.getIp();
+            fallbackServerHost = fp.getAddress();
             fallbackServerPort = fp.getPort();
             log.debug("Set fallback proxy to {}", fallbackServerHost);
         } catch (final IOException e) {

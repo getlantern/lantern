@@ -1,8 +1,7 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.Peer.Type.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
-import static org.littleshoot.util.FiveTuple.Protocol.UDP;
+import static org.lantern.state.Peer.Type.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.ConnectivityStatus;
-import org.lantern.FallbackProxy;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
@@ -81,8 +78,6 @@ public class DefaultProxyTracker implements ProxyTracker {
      */
     private final ExecutorService proxyCheckThreadPool = Threads
             .newCachedThreadPool("Proxy-Connection-Check-Pool-");
-
-    private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
     private final ScheduledExecutorService proxyRetryService = Threads
             .newSingleThreadScheduledExecutor("Proxy-Retry");
@@ -421,17 +416,16 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
         LOG.debug("Attempting to add single fallback proxy");
-        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getIp()
+        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getAddress()
                 + "@getlantern.org");
         final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
 
-        LOG.debug("Adding fallback: {}", fallbackProxy.getIp());
-        Protocol protocol = "udp".equalsIgnoreCase(fallbackProxy.getProtocol()) ?
-            UDP : TCP;
-        addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
+        LOG.debug("Adding fallback: {}", fallbackProxy.getAddress());
+        Protocol protocol = fallbackProxy.getProtocol();
+        addProxy(uri, LanternUtils.isa(fallbackProxy.getAddress(),
                 fallbackProxy.getPort()), Type.cloud, protocol,
-                fallbackProxy.getAuth_token());
+                fallbackProxy.getAuthToken());
         
         final String cert = fallbackProxy.getCert();
         if (StringUtils.isNotBlank(cert)) {

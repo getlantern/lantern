@@ -14,6 +14,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.lantern.event.Events;
+import org.lantern.proxy.FallbackProxy;
 import org.lantern.state.Model;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
