@@ -1,6 +1,6 @@
 package org.lantern.endpoints;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.lantern.LanternClientConstants;
 import org.lantern.TestingUtils;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
