@@ -87,3 +87,43 @@ func BenchmarkSubset(b *testing.B) {
 		s.IsSubset(u)
 	}
 }
+
+func benchmarkIntersection(b *testing.B, numberOfItems int) {
+	s := New()
+	u := New()
+
+	for i := 0; i < numberOfItems; i++ {
+		s.Add(i)
+		u.Add(i)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		s.Intersection(u)
+	}
+
+}
+
+func BenchmarkIntersection10(b *testing.B) {
+	benchmarkIntersection(b, 10)
+}
+
+func BenchmarkIntersection100(b *testing.B) {
+	benchmarkIntersection(b, 100)
+}
+
+func BenchmarkIntersection1000(b *testing.B) {
+	benchmarkIntersection(b, 1000)
+}
+
+func BenchmarkIntersection10000(b *testing.B) {
+	benchmarkIntersection(b, 10000)
+}
+
+func BenchmarkIntersection100000(b *testing.B) {
+	benchmarkIntersection(b, 100000)
+}
+
+func BenchmarkIntersection1000000(b *testing.B) {
+	benchmarkIntersection(b, 1000000)
+}
