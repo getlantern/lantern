@@ -214,7 +214,7 @@ func (value Value) isArray() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).class == "Array"
+	return isArray(value.value.(*_object))
 }
 
 func (value Value) isStringObject() bool {
