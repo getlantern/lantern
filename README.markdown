@@ -4,6 +4,8 @@
 
 Package otto is a JavaScript parser and interpreter written natively in Go.
 
+http://godoc.org/github.com/robertkrimen/otto
+
     // Create a new runtime
     Otto := otto.New()
 
