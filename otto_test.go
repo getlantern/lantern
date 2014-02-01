@@ -37,12 +37,13 @@ func newOtto(kind string, setup func(otto *Otto)) *Otto {
 	return otto
 }
 
-func failSet(name string, value interface{}) {
+func failSet(name string, value interface{}) Value {
 	err := _runTestWithOtto.Otto.Set(name, value)
 	Is(err, nil)
 	if err != nil {
 		Terst().TestingT.FailNow()
 	}
+	return _runTestWithOtto.Otto.getValue(name)
 }
 
 func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
@@ -650,6 +651,23 @@ func TestOttoCall_clone(t *testing.T) {
 		Is(err, nil)
 		Is(value, "5")
 	}
+}
+
+func Test_objectLength(t *testing.T) {
+	Terst(t)
+
+	otto, _ := runTestWithOtto()
+	value := failSet("abc", []string{"jkl", "mno"})
+	Is(objectLength(value._object()), 2)
+
+	value, _ = otto.Run(`[1, 2, 3]`)
+	Is(objectLength(value._object()), 3)
+
+	value, _ = otto.Run(`new String("abcdefghi")`)
+	Is(objectLength(value._object()), 9)
+
+	value, _ = otto.Run(`"abcdefghi"`)
+	Is(objectLength(value._object()), 0)
 }
 
 func BenchmarkNew(b *testing.B) {

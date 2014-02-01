@@ -16,6 +16,21 @@ func isArray(object *_object) bool {
 	return object != nil && (object.class == "Array" || object.class == "GoArray")
 }
 
+func objectLength(object *_object) uint32 {
+	if object == nil {
+		return 0
+	}
+	switch object.class {
+	case "Array":
+		return object.get("length").value.(uint32)
+	case "String":
+		return uint32(object.get("length").value.(int))
+	case "GoArray":
+		return uint32(object.get("length").value.(int))
+	}
+	return 0
+}
+
 func arrayUint32(value Value) uint32 {
 	tmp := toInteger(value)
 	if !tmp.exact() || !isUint32(tmp.value) {
