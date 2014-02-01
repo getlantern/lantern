@@ -114,6 +114,57 @@ More information about RE2: https://code.google.com/p/re2/
 JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace
 class (\s), while RE2 does not.
 
+
+### Halting Problem
+
+If you want to stop long running executions (like third-party code), you can use
+the interrupt channel to do this:
+
+    package main
+
+    import (
+        "errors"
+        "fmt"
+        Otto "github.com/robertkrimen/otto"
+        "os"
+        Time "time"
+    )
+
+    var Halt = errors.New("Halt")
+
+    func main() {
+        runUnsafe(`var abc = [];`)
+        runUnsafe(`
+        while (true) {
+            // Loop forever
+        }`)
+    }
+
+    func runUnsafe(unsafe string) {
+        start := Time.Now()
+        defer func() {
+            duration := Time.Since(start)
+            if caught := recover(); caught != nil {
+                if caught == Halt {
+                    fmt.Fprintf(os.Stderr, "Some code took to long! Stopping after: %v\n", duration)
+                    return
+                }
+                panic(caught) // Something else happened, repanic!
+            }
+            fmt.Fprintf(os.Stderr, "Ran code successfully: %v\n", duration)
+        }()
+        otto := Otto.New()
+        otto.Interrupt = make(chan func())
+        go func() {
+            Time.Sleep(2 * Time.Second) // Stop after two seconds
+            otto.Interrupt <- func() {
+                panic(Halt)
+            }
+        }()
+        otto.Run(unsafe) // Here be dragons (risky code)
+        otto.Interrupt = nil
+    }
+
 ## Usage
 
 #### type FunctionCall
@@ -209,6 +260,9 @@ Value will return self as a value.
 
 ```go
 type Otto struct {
+	// Interrupt is a channel for interrupting the runtime. You can use this to halt a long running execution, for example.
+	// See "Halting Problem" for more information.
+	Interrupt chan func()
 }
 ```
 

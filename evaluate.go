@@ -2,6 +2,7 @@ package otto
 
 import (
 	"fmt"
+	"runtime"
 )
 
 func (self *_runtime) evaluateBody(body []_node) Value {
@@ -37,6 +38,18 @@ func (self *_runtime) evaluate(node _node) Value {
 			panic(caught)
 		}
 	}()
+
+	// Allow interpreter interruption
+	// If the Interrupt channel is nil, then
+	// we avoid runtime.Gosched() overhead (if any)
+	if self.Otto.Interrupt != nil {
+		runtime.Gosched()
+		select {
+		case value := <-self.Otto.Interrupt:
+			value()
+		default:
+		}
+	}
 
 	switch node := node.(type) {
 
