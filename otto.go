@@ -98,7 +98,7 @@ Go translates JavaScript-style regular expressions into something that is "regex
 Unfortunately, JavaScript has positive lookahead, negative lookahead, and backreferencing,
 all of which are not supported by Go's RE2-like engine: https://code.google.com/p/re2/wiki/Syntax
 
-A brief discussion of these limitations: "Regexp (?!re)" https://groups.google.com/forum/?fromgroups=#!topic/golang-nuts/7qgSDWPIh_E
+A brief discussion of these limitations: "Regexp (?!re)" https://groups.google.com/forum/?fromgroups=#%21topic/golang-nuts/7qgSDWPIh_E
 
 More information about RE2: https://code.google.com/p/re2/
 
