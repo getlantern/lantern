@@ -165,6 +165,21 @@ the interrupt channel to do this:
         otto.Interrupt = nil
     }
 
+Where is setTimeout/setInterval?
+
+These timing functions are not actually part of the ECMA-262 specification.
+Typically, they belong to the `windows` object (in the browser). It would not be
+difficult to provide something like these via Go, but you probably want to wrap
+otto in an event loop in that case.
+
+Here is some discussion of the problem:
+
+* http://book.mixu.net/node/ch2.html
+
+* http://en.wikipedia.org/wiki/Reentrancy_%28computing%29
+
+* http://aaroncrane.co.uk/2009/02/perl_safe_signals/
+
 ## Usage
 
 #### type FunctionCall
