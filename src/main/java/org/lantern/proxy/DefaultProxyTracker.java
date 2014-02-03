@@ -256,7 +256,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         return null;
     }
 
-    private void doAddProxy(final ProxyHolder proxy) {
+    synchronized private void doAddProxy(final ProxyHolder proxy) {
         LOG.info("Attempting to add proxy {} {}", proxy.getJid(), proxy);
 
         if (proxies.contains(proxy)) {
