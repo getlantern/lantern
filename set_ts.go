@@ -21,9 +21,9 @@ func New(items ...interface{}) *Set {
 	return s
 }
 
-// func (s *set) New(items ...interface{}) Interface {
-// 	return s.New(items...)
-// }
+func (s *Set) New(items ...interface{}) Interface {
+	return New(items...)
+}
 
 // Add includes the specified items (one or more) to the set. The underlying
 // Set s is modified. If passed nothing it silently returns.
