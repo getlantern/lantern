@@ -2,6 +2,7 @@ package org.lantern.kscope;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +18,6 @@ public class LanternKscopeAdvertisement {
     public static final int CURRENT_VERSION = 1;
     public static final int DEFAULT_TTL = 1;
 
-    private String jid;
     private ProxyInfo proxyInfo = new ProxyInfo();
     private int ttl;
     private int version;
@@ -57,7 +57,7 @@ public class LanternKscopeAdvertisement {
     private LanternKscopeAdvertisement(final String jid, final String addr,
             final int port, final String localAddress, final int localPort,
             final boolean requireLocal) {
-        this.jid = jid;
+        this.setJid(jid);
         this.setAddress(addr);
         if (StringUtils.isBlank(localAddress) && requireLocal) {
             throw new IllegalArgumentException(
@@ -73,29 +73,37 @@ public class LanternKscopeAdvertisement {
         this.version = CURRENT_VERSION;
         this.ttl = DEFAULT_TTL;
     }
+    
+    public ProxyInfo getProxyInfo() {
+        return proxyInfo;
+    }
+    
+    public void setProxyInfo(ProxyInfo proxyInfo) {
+        this.proxyInfo = proxyInfo;
+    }
 
     public String getJid() {
-        return jid;
+        return proxyInfo.getJid().toString();
     }
 
     public void setJid(String jid) {
-        this.jid = jid;
+        this.proxyInfo.setJid(URI.create(jid));
     }
 
     public String getAddress() {
-        return proxyInfo.getAddress();
+        return proxyInfo.getWanHost();
     }
 
     public void setAddress(String addr) {
-        proxyInfo.setAddress(addr);
+        proxyInfo.setWanHost(addr);
     }
 
     public int getPort() {
-        return proxyInfo.getPort();
+        return proxyInfo.getWanPort();
     }
 
     public void setPort(int port) {
-        proxyInfo.setPort(port);
+        proxyInfo.setWanPort(port);
     }
 
     public int getVersion() {
@@ -107,11 +115,11 @@ public class LanternKscopeAdvertisement {
     }
 
     public String getLocalAddress() {
-        return proxyInfo.getLocalAddress();
+        return proxyInfo.getLanHost();
     }
 
     public void setLocalAddress(String localAddress) {
-        proxyInfo.setLocalAddress(localAddress);
+        proxyInfo.setLanHost(localAddress);
     }
 
     public int getTtl() {
@@ -136,11 +144,11 @@ public class LanternKscopeAdvertisement {
     }
 
     public int getLocalPort() {
-        return proxyInfo.getLocalPort();
+        return proxyInfo.getLanPort();
     }
 
     public void setLocalPort(int localPort) {
-        proxyInfo.setLocalPort(localPort);
+        proxyInfo.setLanPort(localPort);
     }
 
     @Override
@@ -148,7 +156,7 @@ public class LanternKscopeAdvertisement {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getAddress() == null) ? 0 : getAddress().hashCode());
-        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
+        result = prime * result + ((getJid() == null) ? 0 : getJid().hashCode());
         result = prime * result
                 + ((getLocalAddress() == null) ? 0 : getLocalAddress().hashCode());
         result = prime * result + getPort();
@@ -171,10 +179,10 @@ public class LanternKscopeAdvertisement {
                 return false;
         } else if (!getAddress().equals(other.getAddress()))
             return false;
-        if (jid == null) {
-            if (other.jid != null)
+        if (getJid() == null) {
+            if (other.getJid() != null)
                 return false;
-        } else if (!jid.equals(other.jid))
+        } else if (!getJid().equals(other.getJid()))
             return false;
         if (getLocalAddress() == null) {
             if (other.getLocalAddress() != null)
@@ -192,7 +200,7 @@ public class LanternKscopeAdvertisement {
 
     @Override
     public String toString() {
-        return "LanternKscopeAdvertisement [jid=" + jid + ", ttl=" + ttl
+        return "LanternKscopeAdvertisement [jid=" + getJid() + ", ttl=" + ttl
                 + ", address=" + getAddress() + ", port=" + getPort() + ", version="
                 + version + ", localAddress=" + getLocalAddress() + ", localPort="
                 + getLocalPort() + ", lanternVersion=" + lanternVersion + "]";

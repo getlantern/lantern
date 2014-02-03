@@ -148,17 +148,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void addProxy(URI jid) {
-        this.addProxy(jid, null);
-    }
-
-    @Override
-    public void addProxy(URI jid, InetSocketAddress address) {
-        // We've seen this in weird cases in the field -- might as well
-        // program defensively here.
+    public void addProxy(ProxyInfo info) {
         InetAddress remoteAddress = null;
-        if (address != null) {
-            remoteAddress = address.getAddress();
+        if (info != null && info.getWanAddress() != null) {
+            remoteAddress = info.getWanAddress().getAddress();
         }
         if (remoteAddress != null) {
             if (remoteAddress.isLoopbackAddress()
@@ -166,11 +159,13 @@ public class DefaultProxyTracker implements ProxyTracker {
                 LOG.warn(
                         "Can connect to neither loopback nor 0.0.0.0 address {}",
                         remoteAddress);
-                address = null;
+                info.setWanHost(null);
+                info.setWanPort(0);
             }
         }
-
-        addProxy(jid, address, Type.pc, TCP, null);
+        ProxyHolder proxy = new ProxyHolder(this, peerFactory,
+                lanternTrustStore, info);
+        doAddProxy(proxy);
     }
 
     @Override
@@ -261,24 +256,14 @@ public class DefaultProxyTracker implements ProxyTracker {
         return null;
     }
 
-    private void addProxy(URI jid, InetSocketAddress address, Type type, Protocol protocol, String lanternAuthToken) {
-        boolean natTraversed = address == null || address.getPort() == 0;
-        FiveTuple fiveTuple = !natTraversed ? new FiveTuple(null, address, protocol)
-                : EMPTY_UDP_TUPLE;
-        ProxyHolder proxy = new ProxyHolder(this, peerFactory,
-                lanternTrustStore, jid, fiveTuple, type, natTraversed,
-                lanternAuthToken);
-        doAddProxy(jid, proxy);
-    }
-
-    private void doAddProxy(final URI jid, final ProxyHolder proxy) {
-        LOG.info("Attempting to add proxy {} {}", jid, proxy);
+    private void doAddProxy(final ProxyHolder proxy) {
+        LOG.info("Attempting to add proxy {} {}", proxy.getJid(), proxy);
 
         if (proxies.contains(proxy)) {
             LOG.debug("Proxy already tracked.  Proxies is: {}", proxies);
             return;
         } else {
-            LOG.info("Adding proxy {} {}", jid, proxy);
+            LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
             proxies.add(proxy);
             LOG.info("Proxies is now {}", proxies);
             checkConnectivityToProxy(proxy);
@@ -317,7 +302,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                     onCouldNotConnect(proxy);
 
                     if (proxy.attemptNatTraversalIfConnectionFailed()) {
-                        addProxy(proxy.getJid());
+                        addProxy(new ProxyInfo(proxy.getJid()));
                     }
                 } finally {
                     IOUtils.closeQuietly(sock);
@@ -416,16 +401,13 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
         LOG.debug("Attempting to add single fallback proxy");
-        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getAddress()
-                + "@getlantern.org");
-        final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
+        final Peer cloud = this.peerFactory.addPeer(
+                fallbackProxy.getJid(),
+                Type.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
 
-        LOG.debug("Adding fallback: {}", fallbackProxy.getAddress());
-        Protocol protocol = fallbackProxy.getProtocol();
-        addProxy(uri, LanternUtils.isa(fallbackProxy.getAddress(),
-                fallbackProxy.getPort()), Type.cloud, protocol,
-                fallbackProxy.getAuthToken());
+        LOG.debug("Adding fallback: {}", fallbackProxy.getWanHost());
+        addProxy(fallbackProxy);
         
         final String cert = fallbackProxy.getCert();
         if (StringUtils.isNotBlank(cert)) {

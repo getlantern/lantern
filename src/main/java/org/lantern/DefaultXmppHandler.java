@@ -1298,7 +1298,7 @@ public class DefaultXmppHandler implements XmppHandler,
             return null;
         } else {
             FallbackProxy fp = fallbacks.iterator().next();
-            return new InetSocketAddress(fp.getAddress(), fp.getPort());
+            return new InetSocketAddress(fp.getWanHost(), fp.getWanPort());
         }
     }
     

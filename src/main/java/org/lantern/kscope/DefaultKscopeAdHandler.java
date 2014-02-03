@@ -20,6 +20,7 @@ import org.lantern.event.KscopeAdEvent;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.proxy.ProxyInfo;
 import org.lantern.proxy.ProxyTracker;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -145,14 +146,15 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
     private void addProxy(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
         log.debug("Adding proxy... {}", instance);
-        URI jid = instance.getId();
-        InetSocketAddress address = instance.hasMappedEndpoint() ?
-                instance.getAddressOnInternet() :
+        ProxyInfo info = instance.hasMappedEndpoint() ?
+                instance.getData().getAd().getProxyInfo() :
                 null;
-        this.proxyTracker.addProxy(jid, address);
-        // Also add the local network advertisement in case they're on
-        // the local network.
-        this.proxyTracker.addProxy(jid, instance.getAddressOnLan());
+        this.proxyTracker.addProxy(info);
+        if (info != null) {
+            // Also add the local network advertisement in case they're on
+            // the local network.
+            this.proxyTracker.addProxy(info.onLan());
+        }
     }
 
 }

@@ -335,8 +335,8 @@ public class Diagnostics {
             final FallbackProxy fp = 
                     JsonUtils.OBJECT_MAPPER.readValue(proxy, FallbackProxy.class);
             
-            fallbackServerHost = fp.getAddress();
-            fallbackServerPort = fp.getPort();
+            fallbackServerHost = fp.getWanHost();
+            fallbackServerPort = fp.getWanPort();
             log.debug("Set fallback proxy to {}", fallbackServerHost);
         } catch (final IOException e) {
             log.error("Could not load fallback", e);

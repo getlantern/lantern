@@ -31,35 +31,27 @@ public final class ProxyHolder extends BaseChainedProxy
 
     private final LanternTrustStore lanternTrustStore;
 
-    private final URI jid;
-
-    private final FiveTuple fiveTuple;
+    private final ProxyInfo info;
     
-    private final boolean natTraversed;
+    private final FiveTuple fiveTuple;
 
     // Note - we initialize this to 1 to indicate that the proxy starts out
     // not connected (until we verify it)
     private final AtomicLong timeOfDeath = new AtomicLong(1);
     private final AtomicInteger failures = new AtomicInteger(0);
 
-    private final Type type;
-
     private volatile Peer peer;
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
-            final URI jid, final FiveTuple tuple,
-            final Type type, final boolean natTraversed,
-            final String lanternAuthToken) {
-        super(lanternAuthToken);
+            final ProxyInfo info) {
+        super(info.getAuthToken());
         this.proxyTracker = proxyTracker;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
-        this.jid = jid;
-        this.fiveTuple = tuple;
-        this.type = type;
-        this.natTraversed = natTraversed;
+        this.info = info;
+        this.fiveTuple = info.getFiveTuple();
     }
 
     public FiveTuple getFiveTuple() {
@@ -74,16 +66,16 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     public Peer getPeer() {
         if (peer == null) {
-            peer = peerFactory.peerForJid(jid);
+            peer = peerFactory.peerForJid(getJid());
         }
         return peer;
     }
 
     @Override
     public String toString() {
-        return "ProxyHolder [jid=" + jid + ", fiveTuple=" + fiveTuple
+        return "ProxyHolder [jid=" + getJid() + ", fiveTuple=" + fiveTuple
                 + ", timeOfDeath=" + timeOfDeath + ", failures=" + failures
-                + ", type=" + type + "] connected? " + isConnected();
+                + ", type=" + getType() + "] connected? " + isConnected();
     }
 
     @Override
@@ -92,7 +84,7 @@ public final class ProxyHolder extends BaseChainedProxy
         int result = 1;
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
-        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
+        result = prime * result + ((getJid() == null) ? 0 : getJid().hashCode());
         return result;
     }
 
@@ -110,10 +102,10 @@ public final class ProxyHolder extends BaseChainedProxy
                 return false;
         } else if (!fiveTuple.equals(other.fiveTuple))
             return false;
-        if (jid == null) {
-            if (other.jid != null)
+        if (getJid() == null) {
+            if (other.getJid() != null)
                 return false;
-        } else if (!jid.equals(other.jid))
+        } else if (!getJid().equals(other.getJid()))
             return false;
         return true;
     }
@@ -179,11 +171,11 @@ public final class ProxyHolder extends BaseChainedProxy
     }
 
     public URI getJid() {
-        return jid;
+        return info.getJid();
     }
 
     public Type getType() {
-        return type;
+        return info.getType();
     }
 
     public boolean isConnected() {
@@ -199,7 +191,7 @@ public final class ProxyHolder extends BaseChainedProxy
      * @return
      */
     public boolean isNatTraversed() {
-        return natTraversed;
+        return info.isNatTraversed();
     }
 
     /***************************************************************************
@@ -223,7 +215,7 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     @Override
     public InetSocketAddress getLocalAddress() {
-        return natTraversed ? fiveTuple.getLocal() : null;
+        return isNatTraversed() ? fiveTuple.getLocal() : null;
     }
 
     /**
