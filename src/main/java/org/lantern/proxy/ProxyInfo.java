@@ -58,12 +58,12 @@ public class ProxyInfo {
      * Whether or not we should use the lan address rather than the wan address
      * for this proxy.
      */
-    protected boolean useLanAddress;
+    protected boolean useLanAddress = false;
 
     /**
      * The {@link Protocol} which this proxy uses for clients.
      */
-    protected Protocol protocol;
+    protected Protocol protocol = Protocol.TCP;
 
     /**
      * The authToken used by this proxy to authenticate its clients.
@@ -90,6 +90,12 @@ public class ProxyInfo {
 
     public ProxyInfo(URI jid) {
         this.jid = jid;
+    }
+
+    public ProxyInfo(URI jid, String wanHost, int wanPort) {
+        this(jid);
+        this.wanHost = wanHost;
+        this.wanPort = wanPort;
     }
 
     public ProxyInfo(URI jid, Type type, String wanHost, int wanPort,
