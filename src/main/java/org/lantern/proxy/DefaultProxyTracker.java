@@ -34,7 +34,6 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
-import org.lantern.proxy.pt.PTType;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -62,6 +61,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
+    private final Set<ProxyInfo> configuredProxies = new HashSet<ProxyInfo>();
+    
     /**
      * Holds all proxies.
      */
@@ -149,6 +150,13 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void addProxy(ProxyInfo info) {
+        synchronized (this) {
+            if (configuredProxies.contains(info)) {
+                LOG.debug("Proxy already configured.  Configured proxies is: {}", configuredProxies);
+                return;
+            }
+            configuredProxies.add(info);
+        }
         InetAddress remoteAddress = null;
         if (info != null && info.getWanAddress() != null) {
             remoteAddress = info.getWanAddress().getAddress();
@@ -256,19 +264,12 @@ public class DefaultProxyTracker implements ProxyTracker {
         return null;
     }
 
-    synchronized private void doAddProxy(final ProxyHolder proxy) {
-        LOG.info("Attempting to add proxy {} {}", proxy.getJid(), proxy);
-
-        if (proxies.contains(proxy)) {
-            LOG.debug("Proxy already tracked.  Proxies is: {}", proxies);
-            return;
-        } else {
-            LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
-            proxies.add(proxy);
-            proxy.start();
-            LOG.info("Proxies is now {}", proxies);
-            checkConnectivityToProxy(proxy);
-        }
+    private void doAddProxy(final ProxyHolder proxy) {
+        LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
+        proxies.add(proxy);
+        proxy.start();
+        LOG.info("Proxies is now {}", proxies);
+        checkConnectivityToProxy(proxy);
     }
 
     private void checkConnectivityToProxy(ProxyHolder proxy) {
@@ -401,9 +402,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
-        fallbackProxy.setWanHost("192.168.1.8");
-        fallbackProxy.setWanPort(10091);
-        fallbackProxy.setPtType(PTType.FTE);
         LOG.debug("Attempting to add single fallback proxy");
         final Peer cloud = this.peerFactory.addPeer(
                 fallbackProxy.getJid(),
