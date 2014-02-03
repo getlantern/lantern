@@ -13,6 +13,10 @@ func TestSet_New(t *testing.T) {
 		t.Error("New: calling without any parameters should create a set with zero size")
 	}
 
+	u := s.New()
+	if u.Size() != 0 {
+		t.Error("New: creating a new set via s.New() should create a set with zero size")
+	}
 }
 
 func TestSet_New_parameters(t *testing.T) {

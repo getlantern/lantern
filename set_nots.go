@@ -1,8 +1,8 @@
 package set
 
 import (
-  "fmt"
-  "strings"
+	"fmt"
+	"strings"
 )
 
 // Provides a common set baseline for both threadsafe and non-ts Sets.
@@ -24,6 +24,13 @@ func NewNonTS(items ...interface{}) *SetNonTS {
 
 	s.Add(items...)
 	return s
+}
+
+// New creates and initalizes a new Set interface. It accepts a variable
+// number of arguments to populate the initial set. If nothing is passed a
+// zero size Set based on the struct is created.
+func (s *set) New(items ...interface{}) Interface {
+	return NewNonTS(items...)
 }
 
 // Add includes the specified items (one or more) to the set. The underlying

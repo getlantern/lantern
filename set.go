@@ -9,6 +9,7 @@ package set
 
 // Interface describing a Set. Sets are an unordered, unique list of values.
 type Interface interface {
+	New(items ...interface{}) Interface
 	Add(items ...interface{})
 	Remove(items ...interface{})
 	Pop() interface{}
