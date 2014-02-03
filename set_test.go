@@ -92,8 +92,10 @@ func benchmarkIntersection(b *testing.B, numberOfItems int) {
 	s := New()
 	u := New()
 
-	for i := 0; i < numberOfItems; i++ {
+	for i := 0; i < numberOfItems/2; i++ {
 		s.Add(i)
+	}
+	for i := 0; i < numberOfItems; i++ {
 		u.Add(i)
 	}
 
@@ -101,7 +103,6 @@ func benchmarkIntersection(b *testing.B, numberOfItems int) {
 	for i := 0; i < b.N; i++ {
 		s.Intersection(u)
 	}
-
 }
 
 func BenchmarkIntersection10(b *testing.B) {

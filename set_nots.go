@@ -199,8 +199,15 @@ func (s *set) Separate(t Interface) {
 
 // Intersection returns a new set which contains items which is in both s and t.
 func (s *set) Intersection(t Interface) Interface {
-	u := s.Copy()
-	u.Separate(u.Difference(t))
+	u := s.New()
+
+	s.Each(func(item interface{}) bool {
+		if t.Has(item) {
+			u.Add(item)
+		}
+		return true
+	})
+
 	return u
 }
 
@@ -248,4 +255,3 @@ func (s *set) IntSlice() []int {
 	}
 	return slice
 }
-
