@@ -11,8 +11,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
+import org.lantern.LanternConstants;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
+import org.lantern.proxy.pt.PTType;
+import org.lantern.proxy.pt.PluggableTransport;
+import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.littleshoot.proxy.TransportProtocol;
@@ -23,8 +27,9 @@ import org.slf4j.LoggerFactory;
 public final class ProxyHolder extends BaseChainedProxy
         implements Comparable<ProxyHolder> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProxyHolder.class);
-    
+    private static final Logger LOG = LoggerFactory
+            .getLogger(ProxyHolder.class);
+
     private final ProxyTracker proxyTracker;
 
     private final PeerFactory peerFactory;
@@ -32,7 +37,7 @@ public final class ProxyHolder extends BaseChainedProxy
     private final LanternTrustStore lanternTrustStore;
 
     private final ProxyInfo info;
-    
+
     private final FiveTuple fiveTuple;
 
     // Note - we initialize this to 1 to indicate that the proxy starts out
@@ -42,6 +47,9 @@ public final class ProxyHolder extends BaseChainedProxy
 
     private volatile Peer peer;
 
+    private PluggableTransport pt;
+    private InetSocketAddress ptClientAddress;
+    
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
@@ -53,11 +61,19 @@ public final class ProxyHolder extends BaseChainedProxy
         this.info = info;
         this.fiveTuple = info.getFiveTuple();
     }
+    
+    public void start() {
+        PTType ptType = info.getPtType();
+        if (ptType != null) {
+            pt = PluggableTransports.newTransport(ptType, info.getPtProps());
+            ptClientAddress = pt.startClient(LanternConstants.LANTERN_LOCALHOST_ADDR, fiveTuple.getRemote());
+        }
+    }
 
     public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
-    
+
     /**
      * Get the {@link Peer} for this ProxyHolder, lazily looking it up from our
      * {@link PeerFactory}.
@@ -84,7 +100,8 @@ public final class ProxyHolder extends BaseChainedProxy
         int result = 1;
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
-        result = prime * result + ((getJid() == null) ? 0 : getJid().hashCode());
+        result = prime * result
+                + ((getJid() == null) ? 0 : getJid().hashCode());
         return result;
     }
 
@@ -121,7 +138,7 @@ public final class ProxyHolder extends BaseChainedProxy
     public void setTimeOfDeath(long timeOfDeath) {
         this.timeOfDeath.set(timeOfDeath);
     }
-    
+
     public int getFailures() {
         return failures.get();
     }
@@ -130,7 +147,7 @@ public final class ProxyHolder extends BaseChainedProxy
         setTimeOfDeath(-1);
         resetFailures();
     }
-    
+
     public void resetFailures() {
         this.failures.set(0);
     }
@@ -138,7 +155,7 @@ public final class ProxyHolder extends BaseChainedProxy
     private void incrementFailures() {
         failures.incrementAndGet();
     }
-    
+
     /**
      * If this is a new proxy and our first attempt to connect fails, it is
      * permitted to try falling back to connecting to the same peer via a NAT
@@ -147,7 +164,8 @@ public final class ProxyHolder extends BaseChainedProxy
      * @return
      */
     public boolean attemptNatTraversalIfConnectionFailed() {
-        return !isNatTraversed() && getTimeOfDeath() == 1l && getFailures() == 1;
+        return !isNatTraversed() && getTimeOfDeath() == 1l
+                && getFailures() == 1;
     }
 
     public void addFailure() {
@@ -185,7 +203,7 @@ public final class ProxyHolder extends BaseChainedProxy
     public boolean needsConnectionTest() {
         return getFailures() > 0;
     }
-    
+
     /**
      * 
      * @return
@@ -204,14 +222,20 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     @Override
     public InetSocketAddress getChainedProxyAddress() {
-        return fiveTuple.getRemote();
+        if (ptClientAddress != null) {
+            // If we've got a pluggable transport client running, connect via it
+            return ptClientAddress;
+        } else {
+            // Otherwise connect to the remote proxy
+            return fiveTuple.getRemote();
+        }
     }
 
     /**
-     * If the we are nat traversed, we use the local address of the {@link FiveTuple}
-     * as our local address from which to connect to the chained proxy,
-     * otherwise we leave this null to let the connection proceed from whatever
-     * available port.
+     * If the we are nat traversed, we use the local address of the
+     * {@link FiveTuple} as our local address from which to connect to the
+     * chained proxy, otherwise we leave this null to let the connection proceed
+     * from whatever available port.
      */
     @Override
     public InetSocketAddress getLocalAddress() {
@@ -256,7 +280,7 @@ public final class ProxyHolder extends BaseChainedProxy
         String message = cause != null ? cause.getMessage() : null;
         LOG.debug("Got connectionFailed from LittleProxy: {}", message);
         if (cause instanceof ConnectException) {
-            LOG.info("Could not connect to proxy at ip: "+
+            LOG.info("Could not connect to proxy at ip: " +
                     this.fiveTuple.getRemote(), cause);
             proxyTracker.onCouldNotConnect(this);
         } else {

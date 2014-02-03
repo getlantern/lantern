@@ -701,13 +701,15 @@ public class LanternUtils {
     }
     
     public static boolean waitForServer(final String host, final int port, final int millis) {
+        return waitForServer(new InetSocketAddress(host, port), millis);
+    }
+    
+    public static boolean waitForServer(InetSocketAddress address, int millis) {
         final long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < millis) {
             final Socket sock = new Socket();
             try {
-                final SocketAddress isa =
-                    new InetSocketAddress(host, port);
-                sock.connect(isa, 2000);
+                sock.connect(address, 2000);
                 sock.close();
                 return true;
             } catch (final IOException e) {

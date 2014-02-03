@@ -28,13 +28,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
-import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.proxy.pt.PTType;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -265,6 +265,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         } else {
             LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
             proxies.add(proxy);
+            proxy.start();
             LOG.info("Proxies is now {}", proxies);
             checkConnectivityToProxy(proxy);
         }
@@ -400,6 +401,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
+        fallbackProxy.setWanHost("192.168.1.8");
+        fallbackProxy.setWanPort(10091);
+        fallbackProxy.setPtType(PTType.FTE);
         LOG.debug("Attempting to add single fallback proxy");
         final Peer cloud = this.peerFactory.addPeer(
                 fallbackProxy.getJid(),

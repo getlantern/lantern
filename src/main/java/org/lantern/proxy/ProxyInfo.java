@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.lantern.proxy.pt.PTType;
 import org.lantern.state.Peer.Type;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
@@ -78,12 +79,12 @@ public class ProxyInfo {
     /**
      * The type of pluggable transport used by this proxy.
      */
-    protected PluggableTransportType pluggableTransportType;
+    protected PTType ptType;
 
     /**
      * Configuration parameters for the pluggable transport.
      */
-    protected Map<String, Object> pluggableTransportProperties = new HashMap<String, Object>();
+    protected Map<String, Object> ptProps = new HashMap<String, Object>();
 
     public ProxyInfo() {
     }
@@ -101,8 +102,8 @@ public class ProxyInfo {
     public ProxyInfo(URI jid, Type type, String wanHost, int wanPort,
             String lanHost, int lanPort, InetSocketAddress boundFrom,
             boolean useLanAddress, Protocol protocol, String authToken,
-            String cert, PluggableTransportType pluggableTransportType,
-            Map<String, Object> pluggableTransportProperties) {
+            String cert, PTType ptType,
+            Map<String, Object> ptProps) {
         super();
         this.jid = jid;
         this.type = type;
@@ -115,8 +116,8 @@ public class ProxyInfo {
         this.protocol = protocol;
         this.authToken = authToken;
         this.cert = cert;
-        this.pluggableTransportType = pluggableTransportType;
-        this.pluggableTransportProperties = pluggableTransportProperties;
+        this.ptType = ptType;
+        this.ptProps = ptProps;
     }
 
     /**
@@ -127,7 +128,7 @@ public class ProxyInfo {
     public ProxyInfo onLan() {
         return new ProxyInfo(jid, type, wanHost, wanPort, lanHost, lanPort,
                 boundFrom, true, protocol, authToken, cert,
-                pluggableTransportType, pluggableTransportProperties);
+                ptType, ptProps);
     }
 
     public URI getJid() {
@@ -266,22 +267,20 @@ public class ProxyInfo {
         this.cert = cert;
     }
 
-    public PluggableTransportType getPluggableTransportType() {
-        return pluggableTransportType;
+    public PTType getPtType() {
+        return ptType;
     }
-
-    public void setPluggableTransportType(
-            PluggableTransportType pluggableTransportType) {
-        this.pluggableTransportType = pluggableTransportType;
+    
+    public void setPtType(PTType ptType) {
+        this.ptType = ptType;
     }
-
-    public Map<String, Object> getPluggableTransportProperties() {
-        return pluggableTransportProperties;
+    
+    public Map<String, Object> getPtProps() {
+        return ptProps;
     }
-
-    public void setPluggableTransportProperties(
-            Map<String, Object> pluggableTransportProperties) {
-        this.pluggableTransportProperties = pluggableTransportProperties;
+    
+    public void setPtProps(Map<String, Object> ptProps) {
+        this.ptProps = ptProps;
     }
 
     /**
@@ -311,12 +310,12 @@ public class ProxyInfo {
         result = prime * result + (isNatTraversed() ? 1231 : 1237);
         result = prime
                 * result
-                + ((pluggableTransportProperties == null) ? 0
-                        : pluggableTransportProperties.hashCode());
+                + ((ptProps == null) ? 0
+                        : ptProps.hashCode());
         result = prime
                 * result
-                + ((pluggableTransportType == null) ? 0
-                        : pluggableTransportType.hashCode());
+                + ((ptType == null) ? 0
+                        : ptType.hashCode());
         result = prime * result
                 + ((protocol == null) ? 0 : protocol.hashCode());
         result = prime * result + ((type == null) ? 0 : type.hashCode());
@@ -363,13 +362,13 @@ public class ProxyInfo {
             return false;
         if (isNatTraversed() != other.isNatTraversed())
             return false;
-        if (pluggableTransportProperties == null) {
-            if (other.pluggableTransportProperties != null)
+        if (ptProps == null) {
+            if (other.ptProps != null)
                 return false;
-        } else if (!pluggableTransportProperties
-                .equals(other.pluggableTransportProperties))
+        } else if (!ptProps
+                .equals(other.ptProps))
             return false;
-        if (pluggableTransportType != other.pluggableTransportType)
+        if (ptType != other.ptType)
             return false;
         if (protocol != other.protocol)
             return false;
@@ -392,9 +391,9 @@ public class ProxyInfo {
                 + wanPort + ", lanHost=" + lanHost + ", lanPort=" + lanPort
                 + ", boundFrom=" + boundFrom + ", protocol=" + protocol
                 + ", authToken=" + authToken + ", cert=" + cert
-                + ", pluggableTransportType=" + pluggableTransportType
+                + ", pluggableTransportType=" + ptType
                 + ", pluggableTransportProperties="
-                + pluggableTransportProperties + "]";
+                + ptProps + "]";
     }
 
 }

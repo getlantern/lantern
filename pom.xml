@@ -330,7 +330,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-exec</artifactId>
       <version>1.2</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
