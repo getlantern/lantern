@@ -15,12 +15,6 @@
 */
 package open
 
-import (
-	"os/exec"
-	"path"
-	"runtime"
-)
-
 /*
 	Open a file, directory, or URI using the OS's default
 	application for that object type. Wait for the open
@@ -53,28 +47,4 @@ func RunWith(input string, appName string) error {
 */
 func StartWith(input string, appName string) error {
 	return openWith(input, appName).Start()
-}
-
-func open(input string) *exec.Cmd {
-	switch runtime.GOOS {
-	case "darwin":
-		return exec.Command("open", input)
-	case "windows":
-		return exec.Command("start", "", input)
-	default:
-		_, file, _, _ := runtime.Caller(0)
-		app := path.Join(path.Dir(file), "..", "vendor", "xdg-open")
-		return exec.Command(app, input)
-	}
-}
-
-func openWith(input string, appName string) *exec.Cmd {
-	switch runtime.GOOS {
-	case "darwin":
-		return exec.Command("open", "-a", appName, input)
-	case "windows":
-		return exec.Command("start", "", appName, input)
-	default:
-		return exec.Command(appName, input)
-	}
 }
