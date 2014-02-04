@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.lantern.proxy.pt.PTType;
+import org.lantern.proxy.pt.PtType;
 import org.lantern.state.Peer.Type;
 import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
@@ -79,7 +79,7 @@ public class ProxyInfo {
     /**
      * The type of pluggable transport used by this proxy.
      */
-    protected PTType ptType;
+    protected PtType ptType;
 
     /**
      * Configuration parameters for the pluggable transport.
@@ -102,7 +102,7 @@ public class ProxyInfo {
     public ProxyInfo(URI jid, Type type, String wanHost, int wanPort,
             String lanHost, int lanPort, InetSocketAddress boundFrom,
             boolean useLanAddress, Protocol protocol, String authToken,
-            String cert, PTType ptType,
+            String cert, PtType ptType,
             Map<String, Object> ptProps) {
         super();
         this.jid = jid;
@@ -267,11 +267,11 @@ public class ProxyInfo {
         this.cert = cert;
     }
 
-    public PTType getPtType() {
+    public PtType getPtType() {
         return ptType;
     }
     
-    public void setPtType(PTType ptType) {
+    public void setPtType(PtType ptType) {
         this.ptType = ptType;
     }
     

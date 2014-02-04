@@ -34,6 +34,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.proxy.pt.PtType;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -124,14 +125,25 @@ public class DefaultProxyTracker implements ProxyTracker {
             if (p.getType() == Type.cloud) {
                 LOG.debug("Removing fallback (I may readd it shortly): ", p.getJid());
                 fallbacks.add(p);
+                p.stopPtIfNecessary();
             }
         }
         proxies.removeAll(fallbacks);
+        Iterator<ProxyInfo> it = configuredProxies.iterator();
+        while (it.hasNext()) {
+            ProxyInfo info = it.next();
+            if (info.getType() == Type.cloud) {
+                it.remove();
+            }
+        }
         addFallbackProxies(config);
     }
 
     @Override
     public void clear() {
+        for (ProxyHolder proxy : proxies) {
+            proxy.stopPtIfNecessary();
+        }
         proxies.clear();
 
         // We need to add the fallback proxy back in.
@@ -267,7 +279,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void doAddProxy(final ProxyHolder proxy) {
         LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
         proxies.add(proxy);
-        proxy.start();
         LOG.info("Proxies is now {}", proxies);
         checkConnectivityToProxy(proxy);
     }
@@ -295,8 +306,8 @@ public class DefaultProxyTracker implements ProxyTracker {
                         .getRemote();
                 try {
                     sock.connect(remote, 60 * 1000);
-                    notifyTcpProxyAvailable();
                     successfullyConnectedToProxy(proxy);
+                    notifyTcpProxyAvailable();
                 } catch (final IOException e) {
                     // This can happen if the user has subsequently gone
                     // offline, for example.
@@ -402,6 +413,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
+        fallbackProxy.setPtType(PtType.FTE);
+        fallbackProxy.setWanHost("192.168.1.8");
+        fallbackProxy.setWanPort(10091);
         LOG.debug("Attempting to add single fallback proxy");
         final Peer cloud = this.peerFactory.addPeer(
                 fallbackProxy.getJid(),

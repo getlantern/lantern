@@ -1,5 +1,5 @@
 package org.lantern.proxy.pt;
 
-public enum PTType {
+public enum PtType {
     FTE
 }

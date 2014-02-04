@@ -14,7 +14,7 @@ import javax.net.ssl.SSLEngine;
 import org.lantern.LanternConstants;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
-import org.lantern.proxy.pt.PTType;
+import org.lantern.proxy.pt.PtType;
 import org.lantern.proxy.pt.PluggableTransport;
 import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.state.Peer;
@@ -49,7 +49,7 @@ public final class ProxyHolder extends BaseChainedProxy
 
     private PluggableTransport pt;
     private InetSocketAddress ptClientAddress;
-    
+
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
@@ -61,16 +61,8 @@ public final class ProxyHolder extends BaseChainedProxy
         this.info = info;
         this.fiveTuple = info.getFiveTuple();
     }
-    
-    public void start() {
-        PTType ptType = info.getPtType();
-        if (ptType != null) {
-            pt = PluggableTransports.newTransport(ptType, info.getPtProps());
-            ptClientAddress = pt.startClient(LanternConstants.LANTERN_LOCALHOST_ADDR, fiveTuple.getRemote());
-        }
-    }
 
-    public FiveTuple getFiveTuple() {
+public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
 
@@ -144,6 +136,7 @@ public final class ProxyHolder extends BaseChainedProxy
     }
 
     public void markConnected() {
+        startPtIfNecessary();
         setTimeOfDeath(-1);
         resetFailures();
     }
@@ -173,6 +166,7 @@ public final class ProxyHolder extends BaseChainedProxy
             LOG.debug("Setting proxy as disconnected: {}", fiveTuple);
             long now = new Date().getTime();
             setTimeOfDeath(now);
+            stopPtIfNecessary();
         }
         incrementFailures();
     }
@@ -293,6 +287,37 @@ public final class ProxyHolder extends BaseChainedProxy
         Peer peer = getPeer();
         if (peer != null) {
             peer.disconnected();
+        }
+    }
+    
+    private void startPtIfNecessary() {
+        if (info.getPtType() != null) {
+            startPt();
+        }
+    }
+
+    public void stopPtIfNecessary() {
+        if (info.getPtType() != null) {
+            stopPt();
+        }
+    }
+
+    synchronized private void startPt() {
+        if (pt == null) {
+            LOG.info("Starting pluggable transport");
+            PtType ptType = info.getPtType();
+            pt = PluggableTransports.newTransport(ptType, info.getPtProps());
+            ptClientAddress = pt.startClient(
+                    LanternConstants.LANTERN_LOCALHOST_ADDR,
+                    fiveTuple.getRemote());
+        }
+    }
+
+    synchronized private void stopPt() {
+        if (pt != null) {
+            LOG.info("Stopping pluggable transport");
+            pt.stopServer();
+            pt = null;
         }
     }
 }
