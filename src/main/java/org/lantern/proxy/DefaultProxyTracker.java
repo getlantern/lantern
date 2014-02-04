@@ -413,9 +413,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
-        fallbackProxy.setPtType(PtType.FTE);
-        fallbackProxy.setWanHost("192.168.1.8");
-        fallbackProxy.setWanPort(10091);
         LOG.debug("Attempting to add single fallback proxy");
         final Peer cloud = this.peerFactory.addPeer(
                 fallbackProxy.getJid(),

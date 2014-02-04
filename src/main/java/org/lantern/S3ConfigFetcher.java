@@ -35,6 +35,7 @@ public class S3ConfigFetcher {
 
     // DRY: wrapper.install4j and configureUbuntu.txt
     private static final String URL_FILENAME = ".lantern-configurl.txt";
+    private static final String LOCAL_S3_CONFIG = ".s3config";
 
     private final Optional<String> url;
 
@@ -155,6 +156,10 @@ public class S3ConfigFetcher {
     }
 
     private Optional<S3Config> fetchConfig() {
+        Optional<S3Config> local = fetchLocalConfig();
+        if (local.isPresent()) {
+            return local;
+        }
         if (!url.isPresent()) {
             log.error("URL initialization failed.");
             return Optional.absent();
@@ -166,6 +171,7 @@ public class S3ConfigFetcher {
             HttpResponse res = client.execute(get);
             is = res.getEntity().getContent();
             String cfgStr = IOUtils.toString(is);
+            log.warn(String.format("S3 Config\n--------------------\n%1$s\n------------------", cfgStr));
             S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
             log.debug("Controller: " + cfg.getController());
             log.debug("Minimum poll time: " + cfg.getMinpoll());
@@ -179,6 +185,31 @@ public class S3ConfigFetcher {
         } finally {
             IOUtils.closeQuietly(is);
             get.reset();
+        }
+        return Optional.absent();
+    }
+    
+    /**
+     * Looks for a local S3 configuration in the program's startup folder under
+     * the name .s3config
+     * 
+     * @return
+     */
+    private Optional<S3Config> fetchLocalConfig() {
+        File file = new File(LOCAL_S3_CONFIG);
+        if (file.exists()) {
+            try {
+                String cfgStr = FileUtils.readFileToString(file);
+                S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr,
+                        S3Config.class);
+                log.info("Using local S3 configuration from: "
+                        + file.getAbsolutePath());
+                return Optional.of(cfg);
+            } catch (Exception e) {
+                log.warn(String.format(
+                        "Couldn't read local S3 configuration from %1$s: %2$s",
+                        file.getAbsolutePath(), e.getMessage()), e);
+            }
         }
         return Optional.absent();
     }

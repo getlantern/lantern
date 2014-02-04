@@ -48,6 +48,7 @@ public class Cli {
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
     public static final String OPTION_REPORT_IP = "report-ip";
+    public static final String OPTION_PLUGGABLE_TRANSPORT = "pt";
     
     private CommandLine cmd;
     
