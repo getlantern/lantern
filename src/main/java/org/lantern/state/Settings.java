@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -42,6 +43,8 @@ public class Settings {
     private TransportProtocol proxyProtocol = TransportProtocol.TCP;
     
     private PtType proxyPtType = null;
+    
+    private Properties proxyPtProps = null;
     
     private String proxyAuthToken;
 
@@ -160,6 +163,15 @@ public class Settings {
     
     public void setProxyPtType(PtType proxyPtType) {
         this.proxyPtType = proxyPtType;
+    }
+    
+    @JsonView({Run.class, Persistent.class})
+    public Properties getProxyPtProps() {
+        return proxyPtProps;
+    }
+    
+    public void setProxyPtProps(Properties proxyPtProps) {
+        this.proxyPtProps = proxyPtProps;
     }
     
     @JsonView({Run.class, Persistent.class})

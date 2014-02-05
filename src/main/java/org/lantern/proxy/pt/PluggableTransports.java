@@ -2,6 +2,7 @@ package org.lantern.proxy.pt;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -15,20 +16,20 @@ public class PluggableTransports {
     }
 
     public static PluggableTransport newTransport(PtType type,
-            Map<String, Object> properties) {
+            Properties props) {
         Class<? extends PluggableTransport> clazz = TYPES.get(type);
         if (clazz == null) {
             throw new RuntimeException(String.format(
                     "Unknown transport type: %1$s", type));
         }
         try {
-            Constructor<? extends PluggableTransport> ctor = clazz
-                    .getConstructor(Map.class);
-            return ctor.newInstance(properties);
+            Constructor<? extends PluggableTransport> ctor =
+                    clazz.getConstructor(Properties.class);
+            return ctor.newInstance(props);
         } catch (NoSuchMethodException nsme) {
             throw new RuntimeException(
                     String.format(
-                            "Class %1$s must define a single-argument constructor that takes a Map<String, Object> of configuration properties",
+                            "Class %1$s must define a single-argument constructor that takes a Properties object with configuration parameters",
                             clazz.getName()));
         } catch (Throwable t) {
             Throwable cause = t.getCause();

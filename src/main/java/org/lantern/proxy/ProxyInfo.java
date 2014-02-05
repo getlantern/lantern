@@ -4,8 +4,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -84,7 +84,7 @@ public class ProxyInfo {
     /**
      * Configuration parameters for the pluggable transport.
      */
-    protected Map<String, Object> ptProps = new HashMap<String, Object>();
+    protected Properties ptProps = new Properties();
 
     public ProxyInfo() {
     }
@@ -103,7 +103,7 @@ public class ProxyInfo {
             String lanHost, int lanPort, InetSocketAddress boundFrom,
             boolean useLanAddress, Protocol protocol, String authToken,
             String cert, PtType ptType,
-            Map<String, Object> ptProps) {
+            Properties ptProps) {
         super();
         this.jid = jid;
         this.type = type;
@@ -275,11 +275,11 @@ public class ProxyInfo {
         this.ptType = ptType;
     }
     
-    public Map<String, Object> getPtProps() {
+    public Properties getPtProps() {
         return ptProps;
     }
     
-    public void setPtProps(Map<String, Object> ptProps) {
+    public void setPtProps(Properties ptProps) {
         this.ptProps = ptProps;
     }
 

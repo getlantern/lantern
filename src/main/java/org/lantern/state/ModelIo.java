@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
@@ -171,12 +172,13 @@ public class ModelIo extends Storage<Model> {
         log.info("Running give mode proxy with protocol: {}", proxyProtocol);
         
         if (cmd.hasOption(Cli.OPTION_PLUGGABLE_TRANSPORT)) {
-            String pt = cmd
-                    .getOptionValue(Cli.OPTION_PLUGGABLE_TRANSPORT);
-            if (pt != null) {
-                PtType proxyPtType = PtType.valueOf(pt.toUpperCase());
+            Properties props = cmd.getOptionProperties(Cli.OPTION_PLUGGABLE_TRANSPORT);
+            String type = props.getProperty("type");
+            if (type != null) {
+                PtType proxyPtType = PtType.valueOf(type.toUpperCase());
                 log.info("Running give mode proxy with pluggable transport " + proxyPtType);
                 set.setProxyPtType(proxyPtType);
+                set.setProxyPtProps(props);
             }
         } 
         

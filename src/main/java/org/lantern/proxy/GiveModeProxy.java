@@ -18,6 +18,7 @@ import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
+import org.lantern.state.Settings;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.FlowContext;
 import org.littleshoot.proxy.FullFlowContext;
@@ -57,25 +58,26 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             final Model model,
             final SslEngineSource sslEngineSource,
             final PeerFactory peerFactory) {
-        int configuredPort = model.getSettings().getServerPort();
+        final Settings settings = model.getSettings();
+        int configuredPort = settings.getServerPort();
         int serverPort = configuredPort;
         boolean allowLocalOnly = false;
-        if (model.getSettings().getProxyPtType() != null) {
+        if (settings.getProxyPtType() != null) {
             // When using a pluggable transport, the transport will use the
             // configured port and the server will use some random free port
             // that only allows local connections
             configuredPort = LanternUtils.findFreePort();
             allowLocalOnly = true;
             pluggableTransport =
-                    PluggableTransports.newTransport(model
-                            .getSettings().getProxyPtType(),
-                            new HashMap<String, Object>());
+                    PluggableTransports.newTransport(
+                            settings.getProxyPtType(),
+                            settings.getProxyPtProps());
         }
         setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
                 .withName("GiveModeProxy")
                 .withPort(serverPort)
-                .withTransportProtocol(model.getSettings().getProxyProtocol())
+                .withTransportProtocol(settings.getProxyProtocol())
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
                 .withSslEngineSource(sslEngineSource)
@@ -90,9 +92,9 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         return new GiveModeHttpFilters(originalRequest,
                                 ctx,
                                 model.getReportIp(),
-                                model.getSettings().getProxyPort(),
-                                model.getSettings().getProxyProtocol(),
-                                model.getSettings().getProxyAuthToken());
+                                settings.getProxyPort(),
+                                settings.getProxyProtocol(),
+                                settings.getProxyAuthToken());
                     }
                 })
 
@@ -169,7 +171,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
         Events.register(this);
         log.info(
                 "Creating give mode proxy on port {}, running as fallback: {}",
-                model.getSettings().getServerPort(),
+                settings.getServerPort(),
                 LanternUtils.isFallbackProxy());
     }
 

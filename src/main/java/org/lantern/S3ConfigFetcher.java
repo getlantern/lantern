@@ -171,7 +171,6 @@ public class S3ConfigFetcher {
             HttpResponse res = client.execute(get);
             is = res.getEntity().getContent();
             String cfgStr = IOUtils.toString(is);
-            log.warn(String.format("S3 Config\n--------------------\n%1$s\n------------------", cfgStr));
             S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
             log.debug("Controller: " + cfg.getController());
             log.debug("Minimum poll time: " + cfg.getMinpoll());

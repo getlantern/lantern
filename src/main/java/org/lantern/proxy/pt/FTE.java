@@ -1,7 +1,7 @@
 package org.lantern.proxy.pt;
 
 import java.net.InetSocketAddress;
-import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -16,12 +16,15 @@ import org.slf4j.LoggerFactory;
 
 public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
-    private static final String FTEPROXY_LOCATION = "/Users/ox.to.a.cart/git/fteproxy_master/bin/fteproxy";
+    private static final String FTE_PATH_KEY = "path";
+
     private Executor client;
     private Executor server;
+    private Properties props;
 
-    public FTE(Map<String, Object> properties) {
+    public FTE(Properties props) {
         super();
+        this.props = props;
     }
 
     @Override
@@ -78,7 +81,9 @@ public class FTE implements PluggableTransport {
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
-        CommandLine cmd = new CommandLine(FTEPROXY_LOCATION);
+        String fteProxyLocation = String.format("%1$s/bin/fteproxy",
+                getProp(FTE_PATH_KEY, true));
+        CommandLine cmd = new CommandLine(fteProxyLocation);
         for (Object arg : args) {
             cmd.addArgument(String.format("\"%1$s\"", arg));
         }
@@ -89,5 +94,14 @@ public class FTE implements PluggableTransport {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String getProp(String key, boolean required) {
+        String prop = props.getProperty(key);
+        if (required && prop == null) {
+            throw new RuntimeException(String.format("Missing %1$s in props",
+                    key));
+        }
+        return prop;
     }
 }
