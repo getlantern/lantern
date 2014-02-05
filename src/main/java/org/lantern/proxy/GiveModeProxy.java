@@ -4,7 +4,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 
 import javax.net.ssl.SSLSession;
 
@@ -59,14 +58,13 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             final SslEngineSource sslEngineSource,
             final PeerFactory peerFactory) {
         final Settings settings = model.getSettings();
-        int configuredPort = settings.getServerPort();
-        int serverPort = configuredPort;
+        int serverPort = settings.getServerPort();
         boolean allowLocalOnly = false;
         if (settings.getProxyPtType() != null) {
             // When using a pluggable transport, the transport will use the
             // configured port and the server will use some random free port
             // that only allows local connections
-            configuredPort = LanternUtils.findFreePort();
+            serverPort = LanternUtils.findFreePort();
             allowLocalOnly = true;
             pluggableTransport =
                     PluggableTransports.newTransport(
