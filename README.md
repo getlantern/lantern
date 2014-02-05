@@ -69,7 +69,7 @@ If you want to load the Lantern source code in Eclipse, you can do the following
 
 That should get Lantern building successfully in Eclipse.
 
-## Running Server with [fteproxy](https://fteproxy.org/) (and other [pluggable transports](https://www.torproject.org/docs/pluggable-transports.html.en))
+## Running With [fteproxy](https://fteproxy.org/) (and other [pluggable transports](https://www.torproject.org/docs/pluggable-transports.html.en))
 
 1. Clone and build fteproxy from [GitHub](https://github.com/kpdyer/fteproxy)
 
