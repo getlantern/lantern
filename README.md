@@ -69,6 +69,21 @@ If you want to load the Lantern source code in Eclipse, you can do the following
 
 That should get Lantern building successfully in Eclipse.
 
+## Running Server with [fteproxy](https://fteproxy.org/) (and other [pluggable transports](https://www.torproject.org/docs/pluggable-transports.html.en))
+
+1. Clone and build fteproxy from [GitHub](https://github.com/kpdyer/fteproxy)
+
+2. Run your server with the following flags: `--pt type=FTE --pt path=[path to fteproxy clone, e.g. /Users/ox.to.a.cart/git/fteproxy]`
+
+3. Configure your client's s3 configuration with a section like the following:
+
+```json
+"pt": {
+    "type": "FTE",
+    "path": "/Users/ox.to.a.cart/git/fteproxy"
+}
+```
+
 ## Building Installers
 
 As of this writing, the Lantern installers are built using [install4j](http://www.ej-technologies.com/products/install4j/overview.html).  In addition, the installation scripts require an [Exceptional](http://www.exceptional.io) license.  If you want to build installers using the `(deb|osx|win)Install*.bash` scripts, you need to obtain a license of these programs.  Note that this is not required in order to build and run Lantern from source.  

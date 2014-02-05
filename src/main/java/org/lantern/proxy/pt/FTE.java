@@ -9,6 +9,7 @@ import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
+import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.lantern.LanternUtils;
@@ -74,7 +75,7 @@ public class FTE implements PluggableTransport {
             throw new RuntimeException("Unable to determine interface ip: "
                     + uhe.getMessage(), uhe);
         }
-        if (!LanternUtils.waitForServer(port, 5000)) {
+        if (!LanternUtils.waitForServer(port, 15000)) {
             throw new RuntimeException("Unable to start FTE server");
         }
     }
@@ -86,8 +87,13 @@ public class FTE implements PluggableTransport {
 
     private Executor fteProxy(Object... args) {
         Executor cmdExec = new DefaultExecutor();
-        cmdExec.setStreamHandler(new PumpStreamHandler(System.out, System.err,
-                System.in));
+        cmdExec.setStreamHandler(new PumpStreamHandler(
+                new LogOutputStream() {
+                    @Override
+                    protected void processLine(String line, int level) {
+                        LOGGER.info(line);
+                    }
+                }));
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
