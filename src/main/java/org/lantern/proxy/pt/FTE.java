@@ -1,6 +1,7 @@
 package org.lantern.proxy.pt;
 
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
@@ -11,6 +12,7 @@ import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.lantern.LanternUtils;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,12 +60,20 @@ public class FTE implements PluggableTransport {
     public void startServer(int port, InetSocketAddress giveModeAddress) {
         LOGGER.debug("Starting FTE server");
 
-        server = fteProxy(
-                "--mode", "server",
-                "--server_port", port,
-                "--proxy_ip", giveModeAddress.getAddress().getHostAddress(),
-                "--proxy_port", giveModeAddress.getPort());
+        try {
+            String ip = NetworkUtils.getLocalHost().getHostAddress();
 
+            server = fteProxy(
+                    "--mode", "server",
+                    "--server_ip", ip,
+                    "--server_port", port,
+                    "--proxy_ip",
+                    giveModeAddress.getAddress().getHostAddress(),
+                    "--proxy_port", giveModeAddress.getPort());
+        } catch (UnknownHostException uhe) {
+            throw new RuntimeException("Unable to determine interface ip: "
+                    + uhe.getMessage(), uhe);
+        }
         if (!LanternUtils.waitForServer(port, 5000)) {
             throw new RuntimeException("Unable to start FTE server");
         }

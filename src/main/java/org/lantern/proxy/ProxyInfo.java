@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.Map;
 import java.util.Properties;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -77,14 +76,9 @@ public class ProxyInfo {
     protected String cert;
 
     /**
-     * The type of pluggable transport used by this proxy.
+     * Configuration for pluggable transport
      */
-    protected PtType ptType;
-
-    /**
-     * Configuration parameters for the pluggable transport.
-     */
-    protected Properties ptProps = new Properties();
+    protected Properties pt;
 
     public ProxyInfo() {
     }
@@ -102,8 +96,7 @@ public class ProxyInfo {
     public ProxyInfo(URI jid, Type type, String wanHost, int wanPort,
             String lanHost, int lanPort, InetSocketAddress boundFrom,
             boolean useLanAddress, Protocol protocol, String authToken,
-            String cert, PtType ptType,
-            Properties ptProps) {
+            String cert, Properties pt) {
         super();
         this.jid = jid;
         this.type = type;
@@ -116,8 +109,7 @@ public class ProxyInfo {
         this.protocol = protocol;
         this.authToken = authToken;
         this.cert = cert;
-        this.ptType = ptType;
-        this.ptProps = ptProps;
+        this.pt = pt;
     }
 
     /**
@@ -127,8 +119,7 @@ public class ProxyInfo {
      */
     public ProxyInfo onLan() {
         return new ProxyInfo(jid, type, wanHost, wanPort, lanHost, lanPort,
-                boundFrom, true, protocol, authToken, cert,
-                ptType, ptProps);
+                boundFrom, true, protocol, authToken, cert, pt);
     }
 
     public URI getJid() {
@@ -267,20 +258,20 @@ public class ProxyInfo {
         this.cert = cert;
     }
 
+    public Properties getPt() {
+        return pt;
+    }
+    
+    public void setPt(Properties pt) {
+        this.pt = pt;
+    }
+    
     public PtType getPtType() {
-        return ptType;
-    }
-    
-    public void setPtType(PtType ptType) {
-        this.ptType = ptType;
-    }
-    
-    public Properties getPtProps() {
-        return ptProps;
-    }
-    
-    public void setPtProps(Properties ptProps) {
-        this.ptProps = ptProps;
+        if (pt == null) {
+            return null;
+        } else {
+            return PtType.valueOf(pt.getProperty("type").toUpperCase());
+        }
     }
 
     /**
@@ -310,12 +301,8 @@ public class ProxyInfo {
         result = prime * result + (isNatTraversed() ? 1231 : 1237);
         result = prime
                 * result
-                + ((ptProps == null) ? 0
-                        : ptProps.hashCode());
-        result = prime
-                * result
-                + ((ptType == null) ? 0
-                        : ptType.hashCode());
+                + ((pt == null) ? 0
+                        : pt.hashCode());
         result = prime * result
                 + ((protocol == null) ? 0 : protocol.hashCode());
         result = prime * result + ((type == null) ? 0 : type.hashCode());
@@ -362,13 +349,10 @@ public class ProxyInfo {
             return false;
         if (isNatTraversed() != other.isNatTraversed())
             return false;
-        if (ptProps == null) {
-            if (other.ptProps != null)
+        if (pt == null) {
+            if (other.pt != null)
                 return false;
-        } else if (!ptProps
-                .equals(other.ptProps))
-            return false;
-        if (ptType != other.ptType)
+        } else if (!pt.equals(other.pt))
             return false;
         if (protocol != other.protocol)
             return false;
@@ -391,9 +375,7 @@ public class ProxyInfo {
                 + wanPort + ", lanHost=" + lanHost + ", lanPort=" + lanPort
                 + ", boundFrom=" + boundFrom + ", protocol=" + protocol
                 + ", authToken=" + authToken + ", cert=" + cert
-                + ", pluggableTransportType=" + ptType
-                + ", pluggableTransportProperties="
-                + ptProps + "]";
+                + ", pt=" + pt + "]";
     }
 
 }

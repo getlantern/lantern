@@ -306,7 +306,7 @@ public FiveTuple getFiveTuple() {
         if (pt == null) {
             LOG.info("Starting pluggable transport");
             PtType ptType = info.getPtType();
-            pt = PluggableTransports.newTransport(ptType, info.getPtProps());
+            pt = PluggableTransports.newTransport(ptType, info.getPt());
             ptClientAddress = pt.startClient(
                     LanternConstants.LANTERN_LOCALHOST_ADDR,
                     fiveTuple.getRemote());
