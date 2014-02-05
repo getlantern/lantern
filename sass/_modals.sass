@@ -145,6 +145,8 @@
   body[dir=rtl] &
     float: right
 
+$suggested-bg-color: #f4f9fd
+
 #friendsListSearch // override bootstrap
   +ctb-box-sizing(border-box)
   +single-transition(all, 0.5s, ease)
@@ -197,6 +199,11 @@
   +info-colored
   display: inline-block
 
+#toggleSuggestions
+  color: darken($suggested-bg-color, 20%)
+  font-size: 8pt
+  text-decoration: underline
+
 //.below-friendSuggestionList
   +single-transition(opacity, 0.3s, ease)
   +smaller
@@ -221,6 +228,7 @@
     border: 1px solid #eee
     &:hover
       background-color: #ffffd7
+
 
 //#currentFriends, #friendSuggestionList
 #friendlist
@@ -249,13 +257,13 @@
       padding: 0
     &.suggested
       color: #000
-      background-color: #ede7ff
-      border-top-color: #ede7ff
-      border-bottom-color: lighten(#ede7ff, 10%)
+      background-color: $suggested-bg-color
+      border-top-color: $suggested-bg-color
+      border-bottom-color: lighten($suggested-bg-color, 10%)
       &:hover
-        background-color: darken(#ede7ff, 2%) !important
-        border-top-color: darken(#d0dcff, 10%)
-        border-bottom-color: darken(#d0dcff, 10%)
+        background-color: darken($suggested-bg-color, 2%) !important
+        border-top-color: darken($suggested-bg-color, 10%)
+        border-bottom-color: darken($suggested-bg-color, 10%)
     &:hover
       background-color: #ffffd7 !important
       border-left: 1px solid #ffffd7

@@ -7282,6 +7282,12 @@ body[dir=rtl] #currentFriendsHeading {
   display: inline-block;
 }
 
+#toggleSuggestions {
+  color: #9ecaed;
+  font-size: 8pt;
+  text-decoration: underline;
+}
+
 #friendlist {
   list-style: none;
   max-height: 195px;
@@ -7316,14 +7322,14 @@ body[dir=rtl] #currentFriendsHeading {
 }
 #friendlist .entry.suggested {
   color: black;
-  background-color: #ede7ff;
-  border-top-color: #ede7ff;
+  background-color: #f4f9fd;
+  border-top-color: #f4f9fd;
   border-bottom-color: white;
 }
 #friendlist .entry.suggested:hover {
-  background-color: #e5ddff !important;
-  border-top-color: #9db6ff;
-  border-bottom-color: #9db6ff;
+  background-color: #ebf4fb !important;
+  border-top-color: #c9e1f5;
+  border-bottom-color: #c9e1f5;
 }
 #friendlist .entry:hover {
   background-color: #ffffd7 !important;

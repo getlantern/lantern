@@ -118,6 +118,8 @@
   "NFRIENDS_OTHER": "{} Lantern Friends",
   "NSUGGESTED_1": "1 Friend Suggestion",
   "NSUGGESTED_OTHER": "{} Friend Suggestions",
+  "HIDE": "hide",
+  "SHOW": "show",
   "DISMISS_ALL": "Dismiss all",
   "SUGGESTED_BECAUSE_RUNNING": "Suggested because this contact is a Lantern user.",
   "SUGGESTED_BECAUSE_FRIENDED_YOU": "Suggested because this user added you as a Lantern Friend.",

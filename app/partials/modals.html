@@ -310,7 +310,12 @@
         <div ng-class="{hasSearchText: !!searchText}">
           <div id="friendCounts" ng-hide="searchActive || searchText">
             <div id="currentFriendsHeading" ng-show="nfriends">{{ 'NFRIENDS' | i18n:nfriends }}</div>
-            <div id="suggestedFriendsHeading" ng-show="nfriendSuggestions">{{ 'NSUGGESTED' | i18n:nfriendSuggestions }}</div>
+            <div ng-show="nfriendSuggestions" id="suggestedFriendsHeading">
+              {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
+              <a id="toggleSuggestions" ng-click="toggleSuggestions()">
+                {{showSuggestions && 'HIDE' || 'SHOW' | i18n}}
+              </a>
+            </div>
           </div>
 
           <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"

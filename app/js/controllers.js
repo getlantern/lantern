@@ -295,6 +295,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   });
 
   $scope.state = {showAddRmIdx: 0};
+  $scope.showSuggestions = true; // XXX won't be persisted across loads unless moved to model
 
   $scope.$watch('added', function (added) {
     if (!added) return;
@@ -353,14 +354,21 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
   };
   */
 
+  $scope.toggleSuggestions = function () {
+    $scope.showSuggestions = !$scope.showSuggestions;
+    updateDisplayedFriends();
+  };
+
   function updateDisplayedFriends() {
     if (!$scope.show) return;
     $scope.displayedFriends = _.filter(model.friends, {status: FRIEND_STATUS.friend});
     if ($scope.searchText) {
-      $scope.displayedSuggestions = _.filter($scope.friendSuggestions, matchSearchText);
+      $scope.displayedSuggestions = $scope.showSuggestions ?
+        _.filter($scope.friendSuggestions, matchSearchText) : [];
       $scope.displayedFriends = _.filter($scope.displayedFriends, matchSearchText);
     } else {
-      $scope.displayedSuggestions = $scope.friendSuggestions;
+      $scope.displayedSuggestions = $scope.showSuggestions ?
+        $scope.friendSuggestions : [];
     }
     _.each($scope.displayedFriends, addConnectedStatus);
     $scope.displayedFriends = _.sortBy($scope.displayedFriends, prettyUserFltr);
