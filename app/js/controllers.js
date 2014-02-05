@@ -125,10 +125,6 @@ function SettingsCtrl($scope, MODAL) {
     $scope.runAtSystemStart = runAtSystemStart;
   });
 
-  $scope.$watch('model.settings.showFriendPrompts', function (showFriendPrompts) {
-    $scope.showFriendPrompts = showFriendPrompts;
-  });
-
   $scope.$watch('model.settings.autoReport', function (autoReport) {
     $scope.autoReport = autoReport;
   });
