@@ -72,13 +72,15 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     PluggableTransports.newTransport(
                             settings.getProxyPtType(),
                             settings.getProxyPtProps());
+            log.info("GiveModeProxy will use pluggable transport of type: "
+                    + pluggableTransport.getClass().getName());
         }
         setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
                 .withName("GiveModeProxy")
                 .withPort(serverPort)
                 .withTransportProtocol(settings.getProxyProtocol())
-                .withAllowLocalOnly(false)
+                .withAllowLocalOnly(allowLocalOnly)
                 .withListenOnAllAddresses(false)
                 .withSslEngineSource(sslEngineSource)
                 .withAuthenticateSslClients(!LanternUtils.isFallbackProxy())
@@ -198,7 +200,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             InetSocketAddress giveModeAddress = server.getListenAddress();
             pluggableTransport.startServer(port, giveModeAddress);
         }
-        
+
         running = true;
         log.info("Started GiveModeProxy");
     }
@@ -212,7 +214,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
         if (pluggableTransport != null) {
             pluggableTransport.stopServer();
         }
-        
+
         log.info("Stopped GiveModeProxy");
     }
 
