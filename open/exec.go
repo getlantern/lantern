@@ -9,7 +9,8 @@ import (
 )
 
 func open(input string) *exec.Cmd {
-	_, file, _, _ := runtime.Caller(0)
+	// http://andrewbrookins.com/tech/golang-get-directory-of-the-current-file/
+	_, file, _, _ := runtime.Caller(1)
 	app := path.Join(path.Dir(file), "..", "vendor", "xdg-open")
 	return exec.Command(app, input)
 }
