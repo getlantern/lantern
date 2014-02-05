@@ -26,17 +26,19 @@ public interface PluggableTransport {
      */
     InetSocketAddress startClient(InetSocketAddress getModeAddress,
             InetSocketAddress proxyAddress);
-    
+
     void stopClient();
 
     /**
      * Start the server-side of a pluggable transport
      * 
+     * @param port
+     *            the port on which the transport should listen
      * @param giveModeAddress
      *            the address on which the GiveMode proxy is listening.
      * @return the {@link InetSocketAddress} on which the server is listening.
      */
-    InetSocketAddress startServer(InetSocketAddress giveModeAddress);
-    
+    void startServer(int port, InetSocketAddress giveModeAddress);
+
     void stopServer();
 }

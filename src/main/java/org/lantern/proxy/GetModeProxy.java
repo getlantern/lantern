@@ -23,7 +23,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     public GetModeProxy(
             final ClientStats stats,
             ChainedProxyManager chainedProxyManager) {
-        super(DefaultHttpProxyServer
+        setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
                 .withName("GetModeProxy")
                 .withPort(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT)

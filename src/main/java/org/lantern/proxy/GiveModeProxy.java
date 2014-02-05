@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 
 import javax.net.ssl.SSLSession;
 
@@ -12,6 +13,8 @@ import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
+import org.lantern.proxy.pt.PluggableTransport;
+import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
@@ -46,6 +49,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Model model;
     private volatile boolean running = false;
+    private PluggableTransport pluggableTransport;
 
     @Inject
     public GiveModeProxy(
@@ -53,10 +57,24 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             final Model model,
             final SslEngineSource sslEngineSource,
             final PeerFactory peerFactory) {
-        super(DefaultHttpProxyServer
+        int configuredPort = model.getSettings().getServerPort();
+        int serverPort = configuredPort;
+        boolean allowLocalOnly = false;
+        if (model.getSettings().getProxyPtType() != null) {
+            // When using a pluggable transport, the transport will use the
+            // configured port and the server will use some random free port
+            // that only allows local connections
+            configuredPort = LanternUtils.findFreePort();
+            allowLocalOnly = true;
+            pluggableTransport =
+                    PluggableTransports.newTransport(model
+                            .getSettings().getProxyPtType(),
+                            new HashMap<String, Object>());
+        }
+        setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
                 .withName("GiveModeProxy")
-                .withPort(model.getSettings().getServerPort())
+                .withPort(serverPort)
                 .withTransportProtocol(model.getSettings().getProxyProtocol())
                 .withAllowLocalOnly(false)
                 .withListenOnAllAddresses(false)
@@ -172,6 +190,13 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     next.getPort());
         }
 
+        // Start the pluggable transport if necessary
+        if (pluggableTransport != null) {
+            int port = model.getSettings().getServerPort();
+            InetSocketAddress giveModeAddress = server.getListenAddress();
+            pluggableTransport.startServer(port, giveModeAddress);
+        }
+        
         running = true;
         log.info("Started GiveModeProxy");
     }
@@ -180,6 +205,12 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
     public synchronized void stop() {
         super.stop();
         running = false;
+
+        // Stop the pluggable transport if necessary
+        if (pluggableTransport != null) {
+            pluggableTransport.stopServer();
+        }
+        
         log.info("Stopped GiveModeProxy");
     }
 
@@ -196,4 +227,5 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             }
         }
     }
+
 }

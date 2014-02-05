@@ -13,6 +13,7 @@ import org.lantern.Whitelist;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SystemProxyChangedEvent;
+import org.lantern.proxy.pt.PtType;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.littleshoot.proxy.TransportProtocol;
@@ -39,6 +40,8 @@ public class Settings {
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     
     private TransportProtocol proxyProtocol = TransportProtocol.TCP;
+    
+    private PtType proxyPtType = null;
     
     private String proxyAuthToken;
 
@@ -148,6 +151,15 @@ public class Settings {
     
     public void setProxyProtocol(TransportProtocol proxyProtocol) {
         this.proxyProtocol = proxyProtocol;
+    }
+    
+    @JsonView({Run.class, Persistent.class})
+    public PtType getProxyPtType() {
+        return proxyPtType;
+    }
+    
+    public void setProxyPtType(PtType proxyPtType) {
+        this.proxyPtType = proxyPtType;
     }
     
     @JsonView({Run.class, Persistent.class})

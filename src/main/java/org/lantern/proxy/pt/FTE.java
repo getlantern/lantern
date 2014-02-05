@@ -1,8 +1,6 @@
 package org.lantern.proxy.pt;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
@@ -33,7 +31,7 @@ public class FTE implements PluggableTransport {
         LOGGER.debug("Starting FTE client");
         InetSocketAddress address = new InetSocketAddress(
                 getModeAddress.getAddress(),
-                findFreePort());
+                LanternUtils.findFreePort());
 
         client = fteProxy(
                 "--mode", "client",
@@ -54,23 +52,18 @@ public class FTE implements PluggableTransport {
     }
 
     @Override
-    public InetSocketAddress startServer(InetSocketAddress giveModeAddress) {
+    public void startServer(int port, InetSocketAddress giveModeAddress) {
         LOGGER.debug("Starting FTE server");
-        InetSocketAddress address = new InetSocketAddress(
-                giveModeAddress.getAddress(),
-                findFreePort());
 
         server = fteProxy(
                 "--mode", "server",
-                "--server_port", address.getPort(),
+                "--server_port", port,
                 "--proxy_ip", giveModeAddress.getAddress().getHostAddress(),
                 "--proxy_port", giveModeAddress.getPort());
 
-        if (!LanternUtils.waitForServer(address, 5000)) {
+        if (!LanternUtils.waitForServer(port, 5000)) {
             throw new RuntimeException("Unable to start FTE server");
         }
-
-        return address;
     }
 
     @Override
@@ -96,27 +89,5 @@ public class FTE implements PluggableTransport {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Cargo culted from org.eclipse.jdt.launching.SocketUtil.
-     * 
-     * @return
-     */
-    private int findFreePort() {
-        ServerSocket socket = null;
-        try {
-            socket = new ServerSocket(0);
-            return socket.getLocalPort();
-        } catch (IOException e) {
-        } finally {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-        return -1;
     }
 }

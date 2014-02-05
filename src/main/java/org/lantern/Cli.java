@@ -153,6 +153,8 @@ public class Cli {
             "[XXX: perhaps provisional] path to keystore file where the fallback proxy should find its own keypair.");
         options.addOption(null, OPTION_REPORT_IP, true,
             "(Fallback's listen) IP to report to controller");
+        options.addOption(null, OPTION_PLUGGABLE_TRANSPORT, true,
+            "(Optional) The Pluggable Transport to use for serving clients (e.g. FTE).");
         return options;
     }
 
