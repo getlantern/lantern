@@ -45,7 +45,7 @@ public class FTE implements PluggableTransport {
                 "--server_ip", proxyAddress.getAddress().getHostAddress(),
                 "--server_port", proxyAddress.getPort());
 
-        if (!LanternUtils.waitForServer(address, 5000)) {
+        if (!LanternUtils.waitForServer(address, 60000)) {
             throw new RuntimeException("Unable to start FTE client");
         }
 
@@ -75,7 +75,7 @@ public class FTE implements PluggableTransport {
             throw new RuntimeException("Unable to determine interface ip: "
                     + uhe.getMessage(), uhe);
         }
-        if (!LanternUtils.waitForServer(port, 15000)) {
+        if (!LanternUtils.waitForServer(port, 60000)) {
             throw new RuntimeException("Unable to start FTE server");
         }
     }
