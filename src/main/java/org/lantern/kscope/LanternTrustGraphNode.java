@@ -6,7 +6,7 @@ import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
-import org.lantern.XmppHandler;
+import org.lantern.event.Events;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +24,6 @@ public class LanternTrustGraphNode extends TrustGraphNode {
     private static final int MAX_ROUTE_LENGTH =  4; // aka "w_max"
     private static final int MIN_ROUTE_LENGTH =   2; // aka "w_min"
 
-    private final XmppHandler handler;
-
-    public LanternTrustGraphNode(final XmppHandler handler) {
-        this.handler = handler;
-    }
-    
     @Override
     public void advertiseSelf(TrustGraphAdvertisement message) {
         super.advertiseSelf(message);
@@ -61,7 +55,7 @@ public class LanternTrustGraphNode extends TrustGraphNode {
         msg.setTo(id);
         log.debug("Sending kscope ad to {}.", id);
         log.debug("-- Payload: {}", payload);
-        handler.sendPacket(msg);
+        Events.asyncEventBus().post(msg);
     }
 
     @Override

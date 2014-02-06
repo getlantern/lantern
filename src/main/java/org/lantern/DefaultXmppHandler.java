@@ -1121,19 +1121,6 @@ public class DefaultXmppHandler implements XmppHandler,
         return conn.isAuthenticated();
     }
 
-    private void sendPresence(final Presence pres, final String threadName) {
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-        final Runnable runner = new Runnable() {
-            @Override
-            public void run() {
-                conn.sendPacket(pres);
-            }
-        };
-        final Thread t = new Thread(runner, threadName);
-        t.setDaemon(true);
-        t.start();
-    }
-
     /** Try to reconnect to the xmpp server */
     private void reconnect() {
         //this will trigger XmppP2PClient's internal reconnection logic
@@ -1150,12 +1137,7 @@ public class DefaultXmppHandler implements XmppHandler,
     @Override
     public void subscribe(final String jid) {
         LOG.debug("Sending subscribe message to: {}", jid);
-        final Presence packet = new Presence(Presence.Type.subscribe);
-        packet.setTo(jid);
-        //final String json = JsonUtils.jsonify(this.model.getProfile());
-        //packet.setProperty(XmppMessageConstants.PROFILE, json);
-        final XMPPConnection conn = this.client.get().getXmppConnection();
-        conn.sendPacket(packet);
+        sendTypedPacket(jid, Presence.Type.subscribe);
     }
 
     @Override
@@ -1167,15 +1149,7 @@ public class DefaultXmppHandler implements XmppHandler,
     private void sendTypedPacket(final String jid, final Type type) {
         final Presence packet = new Presence(type);
         packet.setTo(jid);
-        XmppP2PClient<FiveTuple> xmppP2PClient = this.client.get();
-        if (xmppP2PClient == null) {
-            throw new IllegalStateException("Can't send packets without a client");
-        }
-        final XMPPConnection conn = xmppP2PClient.getXmppConnection();
-        if (conn == null) {
-            throw new IllegalStateException("Can't send packets while offline");
-        }
-        conn.sendPacket(packet);
+        sendPacket(packet);
     }
 
     @Override
@@ -1207,9 +1181,17 @@ public class DefaultXmppHandler implements XmppHandler,
         disconnect();
     }
 
-    @Override
+    @Subscribe
     public void sendPacket(final Packet packet) {
-        this.client.get().getXmppConnection().sendPacket(packet);
+        XmppP2PClient<FiveTuple> xmppP2PClient = this.client.get();
+        if (xmppP2PClient == null) {
+            throw new IllegalStateException("Can't send packets without a client");
+        }
+        final XMPPConnection conn = xmppP2PClient.getXmppConnection();
+        if (conn == null) {
+            throw new IllegalStateException("Can't send packets while offline");
+        }
+        conn.sendPacket(packet);
     }
 
     private void peerUnavailable(final String from, final Presence pres) {
@@ -1254,7 +1236,7 @@ public class DefaultXmppHandler implements XmppHandler,
         if (presence.getPropertyNames().size() > 0) {
             LOG.debug("Sending on-demand properties to controller");
             presence.setTo(LanternClientConstants.LANTERN_JID);
-            sendPresence(presence, "SendOnDemandProperties-Thread");
+            sendPacket(presence);
         } else {
             LOG.debug("Not sending on-demand properties to controller");
         }
