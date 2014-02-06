@@ -289,19 +289,11 @@ public class DefaultXmppHandler implements XmppHandler,
             return;
         }
         LOG.info("Connected to internet: {}", e);
-        LOG.info("Logged in? {}", this.isLoggedIn());
-        XmppP2PClient<FiveTuple> xmpp = this.client.get();
-        if (xmpp == null) {
-            LOG.debug("No client?");
-            return; //this is probably at startup
-        }
-
-        final XMPPConnection conn = xmpp.getXmppConnection();
         if (e.isIpChanged()) {
             //definitely need to reconnect here
             reconnect();
         } else {
-            if (conn == null || !conn.isConnected()) {
+            if (!isLoggedIn()) {
                 //definitely need to reconnect here
                 reconnect();
             } else {
@@ -317,38 +309,19 @@ public class DefaultXmppHandler implements XmppHandler,
             reconnectIfNoPong.cancel();
         }
 
-        XmppP2PClient<FiveTuple> client = this.client.get();
-        if (client == null) {
-            //no connection yet, so we'll just return; the connection
-            //will be established when we can
-            return;
-        }
-        XMPPConnection connection = client.getXmppConnection();
-        IQ ping = new IQ() {
+        final IQ ping = new IQ() {
             @Override
             public String getChildElementXML() {
                 return "<ping xmlns='urn:xmpp:ping'/>";
             }
-
         };
+        
         waitingForPong = ping.getPacketID();
         //set up timer to reconnect if we don't hear a pong
         reconnectIfNoPong = new Reconnector();
-        timer.schedule(reconnectIfNoPong, getPingTimeout());
+        timer.schedule(reconnectIfNoPong, pingTimeout);
         //and send the ping
-        connection.sendPacket(ping);
-    }
-
-    /**
-     * How long we wait,
-     * @return
-     */
-    public long getPingTimeout() {
-        return pingTimeout;
-    }
-
-    public void setPingTimeout(long pingTimeout) {
-        this.pingTimeout = pingTimeout;
+        sendPacket(ping);
     }
 
     /**
