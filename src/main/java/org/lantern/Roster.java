@@ -394,7 +394,7 @@ public class Roster implements RosterListener {
             ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
         }
 
-        final TrustGraphNode tgn = new LanternTrustGraphNode(xmppHandler);
+        final TrustGraphNode tgn = new LanternTrustGraphNode();
         // set ttl to max for now
         ad.setTtl(tgn.getMaxRouteLength());
         final String adPayload = JsonUtils.jsonify(ad);
