@@ -40,7 +40,9 @@ import org.json.simple.JSONValue;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.IncomingPeerMessageEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.TypedPacketEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
@@ -50,7 +52,6 @@ import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.UdtServerFiveTupleListener;
-import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
@@ -126,8 +127,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private String lastJson = "";
 
-    private GoogleTalkState state;
-
     private final NatPmpService natPmpService;
 
     private final UpnpService upnpService;
@@ -153,8 +152,6 @@ public class DefaultXmppHandler implements XmppHandler,
     private volatile boolean started;
 
     private final ModelUtils modelUtils;
-
-    private final org.lantern.Roster roster;
 
     private final ProxyTracker proxyTracker;
 
@@ -192,7 +189,6 @@ public class DefaultXmppHandler implements XmppHandler,
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
@@ -208,7 +204,6 @@ public class DefaultXmppHandler implements XmppHandler,
         this.socketsUtil = socketsUtil;
         this.xmppUtil = xmppUtil;
         this.modelUtils = modelUtils;
-        this.roster = roster;
         this.proxyTracker = proxyTracker;
         this.kscopeAdHandler = kscopeAdHandler;
         this.natPmpService = natPmpService;
@@ -251,30 +246,6 @@ public class DefaultXmppHandler implements XmppHandler,
             natPmpService.shutdown();
         }
         LOG.debug("Stopped XMPP handler...");
-    }
-
-    @Subscribe
-    public void onAuthStatus(final GoogleTalkStateEvent ase) {
-        this.state = ase.getState();
-        switch (state) {
-        case connected:
-            // We wait until we're logged in before creating our roster.
-            final XmppP2PClient<FiveTuple> cl = client.get();
-            if (cl == null) {
-                LOG.error("Null client for instance: "+hashCode());
-                return;
-            }
-            this.roster.onRoster(this);
-            break;
-        case notConnected:
-            this.roster.reset();
-            break;
-        case connecting:
-            break;
-        case LOGIN_FAILED:
-            this.roster.reset();
-            break;
-        }
     }
 
     @Subscribe
@@ -329,7 +300,6 @@ public class DefaultXmppHandler implements XmppHandler,
      * indicating that we have already successfully
      * reconnected
      */
-
     private class Reconnector extends TimerTask {
         @Override
         public void run() {
@@ -504,6 +474,8 @@ public class DefaultXmppHandler implements XmppHandler,
             CredentialException {
         try {
             this.client.get().login(credentials);
+            
+            Events.eventBus().post(this.client.get().getXmppConnection());
 
             modelUtils.syncConnectingStatus(Tr.tr(MessageKey.LOGGED_IN));
             // Preemptively create our key.
@@ -600,59 +572,11 @@ public class DefaultXmppHandler implements XmppHandler,
                     if (LanternUtils.isLanternHub(from)) {
                         handleHubMessage(pack, pres, from, type);
                     } else {
-                        handlePeerMessage(pack, pres, from, type);
+                        Events.eventBus().post(new IncomingPeerMessageEvent(pres));
                     }
                 }
             };
             xmppProcessors.execute(runner);
-        }
-
-        private void handlePeerMessage(final Packet pack,
-                final Presence pres, final String from, final Type type) {
-            switch (type) {
-            case available:
-                peerAvailable(from, pres);
-                return;
-            case error:
-                LOG.warn("Got error packet!! {}", pack.toXML());
-                return;
-            case subscribe:
-                LOG.debug("Adding subscription request from: {}", from);
-
-                // Did we originally invite them and they're
-                // subscribing back? Auto-allow if so.
-                if (roster.autoAcceptSubscription(from)) {
-                    subscribed(from);
-                } else {
-                    LOG.debug("We didn't invite " + from);
-                }
-
-                // XMPP requires says that we MUST reply to this request with
-                // either 'subscribed' or 'unsubscribed'. But we don't even know
-                // if this is a Lantern request yet, so we can't reply yet.  But
-                // fortunately, we don't have a timeline to respond.  We need to
-                // mark that we owe this user a reply, so that if we do decide to
-                // friend the user, we can approve the request.
-
-
-                LOG.debug("Adding subscription request");
-                friendsHandler.addIncomingSubscriptionRequest(pres.getFrom());
-                break;
-            case subscribed:
-                break;
-            case unavailable:
-                peerUnavailable(from, pres);
-                return;
-            case unsubscribe:
-                // The user is unsubscribing from us, so we will no longer be
-                // able to send them messages.  However, we still trust them
-                // so there is no reason to remove them from the friends list.
-                // If they later resubscribe to us, we don't need to go
-                // through the whole friending process again.
-                return;
-            case unsubscribed:
-                break;
-            }
         }
 
         /** Allow the hub to subscribe to messages from us. */
@@ -663,8 +587,7 @@ public class DefaultXmppHandler implements XmppHandler,
                     new Presence(Presence.Type.subscribed);
                 packet.setTo(from);
                 packet.setFrom(pack.getTo());
-                XMPPConnection connection = client.get().getXmppConnection();
-                connection.sendPacket(packet);
+                sendPacket(packet);
             } else {
                 LOG.debug("Non-subscribe packet from hub? {}",
                     pres.toXML());
@@ -1107,21 +1030,10 @@ public class DefaultXmppHandler implements XmppHandler,
         return client.get() != null && client.get().getXmppConnection() != null;
     }
 
-    @Override
-    public void subscribe(final String jid) {
-        LOG.debug("Sending subscribe message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.subscribe);
-    }
-
-    @Override
-    public void subscribed(final String jid) {
-        LOG.debug("Sending subscribed message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.subscribed);
-    }
-
-    private void sendTypedPacket(final String jid, final Type type) {
-        final Presence packet = new Presence(type);
-        packet.setTo(jid);
+    @Subscribe
+    public void sendTypedPacket(final TypedPacketEvent event) {
+        final Presence packet = new Presence(event.getType());
+        packet.setTo(event.getRecipient());
         sendPacket(packet);
     }
 
@@ -1165,34 +1077,6 @@ public class DefaultXmppHandler implements XmppHandler,
             throw new IllegalStateException("Can't send packets while offline");
         }
         conn.sendPacket(packet);
-    }
-
-    private void peerUnavailable(final String from, final Presence pres) {
-        if (!LanternXmppUtils.isLanternJid(from)) {
-            return;
-        }
-        final String email = XmppUtils.jidToUser(from);
-        final ClientFriend friend = this.friendsHandler.getFriend(email);
-        if (friend == null) {
-            // Some error occurred!
-            return;
-        }
-        
-        // We don't track logged in or mode separately on our server since
-        // XMPP takes care of it - that's why we don't update the server here.
-        friend.setLoggedIn(false);
-        friend.setMode(pres.getMode());
-        this.friendsHandler.syncFriends();
-    }
-    
-    private void peerAvailable(final String from, final Presence pres) {
-        if (!LanternXmppUtils.isLanternJid(from)) {
-            return;
-        }
-        LOG.debug("Got peer available...");
-        final String email = XmppUtils.jidToUser(from);
-        this.friendsHandler.peerRunningLantern(email, pres);
-
     }
 
     /**
