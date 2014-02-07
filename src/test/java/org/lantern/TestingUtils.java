@@ -195,7 +195,7 @@ public class TestingUtils {
         
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
-            roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
+            proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
             friendsHandler, networkTracker, censored);
         return xmppHandler;

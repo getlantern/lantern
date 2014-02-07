@@ -25,6 +25,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.LanternUtils;
+import org.lantern.LanternXmppUtils;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.Roster;
@@ -32,9 +33,11 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
+import org.lantern.event.IncomingPeerMessageEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.RefreshTokenEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.TypedPacketEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.state.Friend.Status;
@@ -279,6 +282,73 @@ public class DefaultFriendsHandler implements FriendsHandler {
             
         }
     }
+    
+    @Subscribe
+    public void handlePeerMessage(final IncomingPeerMessageEvent event) {
+        final Presence pres = event.getPresence();
+        switch (pres.getType()) {
+        case available:
+            peerAvailable(pres);
+            return;
+        case error:
+            log.warn("Got error packet!! {}", pres.toXML());
+            return;
+        case subscribe:
+            log.debug("Adding subscription request from: {}", pres.getFrom());
+
+
+            // XMPP requires says that we MUST reply to this request with
+            // either 'subscribed' or 'unsubscribed'. But we don't even know
+            // if this is a Lantern request yet, so we can't reply yet.  But
+            // fortunately, we don't have a timeline to respond.  We need to
+            // mark that we owe this user a reply, so that if we do decide to
+            // friend the user, we can approve the request.
+            log.debug("Adding subscription request");
+            addIncomingSubscriptionRequest(pres.getFrom());
+            break;
+        case subscribed:
+            break;
+        case unavailable:
+            peerUnavailable(pres);
+            return;
+        case unsubscribe:
+            // The user is unsubscribing from us, so we will no longer be
+            // able to send them messages.  However, we still trust them
+            // so there is no reason to remove them from the friends list.
+            // If they later resubscribe to us, we don't need to go
+            // through the whole friending process again.
+            return;
+        case unsubscribed:
+            break;
+        }
+    }
+    
+    private void peerUnavailable(final Presence pres) {
+        if (!LanternXmppUtils.isLanternJid(pres.getFrom())) {
+            return;
+        }
+        final String email = XmppUtils.jidToUser(pres.getFrom());
+        final ClientFriend friend = getFriend(email);
+        if (friend == null) {
+            // Some error occurred!
+            return;
+        }
+        
+        // We don't track logged in or mode separately on our server since
+        // XMPP takes care of it - that's why we don't update the server here.
+        friend.setLoggedIn(false);
+        friend.setMode(pres.getMode());
+        syncFriends();
+    }
+    
+    private void peerAvailable(final Presence pres) {
+        if (!LanternXmppUtils.isLanternJid(pres.getFrom())) {
+            return;
+        }
+        log.debug("Got peer available...");
+        final String email = XmppUtils.jidToUser(pres.getFrom());
+        peerRunningLantern(email, pres);
+    }
 
     private void subscribe(final String email) throws IOException {
         if (this.xmppHandler != null) {
@@ -286,11 +356,13 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 this.xmppHandler.addToRoster(email);
                 
                 //if they have requested a subscription to us, we'll accept it.
-                this.xmppHandler.subscribed(email);
+                Events.asyncEventBus().post(
+                        new TypedPacketEvent(email, Presence.Type.subscribed));
     
                 // We also automatically subscribe to them in turn so we know about
                 // their presence.
-                this.xmppHandler.subscribe(email);
+                Events.asyncEventBus().post(
+                        new TypedPacketEvent(email, Presence.Type.subscribe));
             } catch (final IllegalStateException e) {
                 throw new IOException("Error subscribing?", e);
             }

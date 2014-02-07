@@ -25,8 +25,11 @@ import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
+import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.IncomingPeerMessageEvent;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.TypedPacketEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
@@ -91,12 +94,14 @@ public class Roster implements RosterListener {
         Events.register(this);
     }
 
-    public void onRoster(final XmppHandler xmpp) {
-        this.xmppHandler = xmpp;
-        log.info("Got logged in event");
-        // Threaded to avoid this holding up setting the logged-in state in
-        // the UI.
-        final XMPPConnection conn = xmpp.getP2PClient().getXmppConnection();
+    @Subscribe
+    public void onXmppConnection(final XMPPConnection conn) {
+        log.info("Got XMPP connection event");
+        
+        // We could have re-logged in as a different user, for example.
+        this.rosterEntries.get().clear();
+        this.kscopeRoutingTable.clear();
+        
         final org.jivesoftware.smack.Roster ros = conn.getRoster();
         this.smackRoster = ros;
         
@@ -121,7 +126,8 @@ public class Roster implements RosterListener {
                     log.debug("STATUS OF {}: {}", entry.getUser(), entry.getStatus());
                     if (entry.getStatus() == ItemStatus.SUBSCRIPTION_PENDING) {
                         if (friendsHandler.isFriend(email)) {
-                            xmppHandler.subscribed(email);
+                            Events.asyncEventBus().post(
+                                new TypedPacketEvent(email, Presence.Type.subscribed));
                         } else {
                             log.debug("Not sending subscribed message to "
                                     + "non-friend: {}", email);
@@ -133,7 +139,8 @@ public class Roster implements RosterListener {
                 for (Friend friend : friendsHandler.getFriends()) {
                     if (!alreadyOnRoster.contains(friend.getEmail())) {
                         //we have a friend who is not yet on our roster.
-                        xmppHandler.subscribe(friend.getEmail());
+                        Events.asyncEventBus().post(
+                            new TypedPacketEvent(friend.getEmail(), Presence.Type.subscribe));
                     }
                 }
                 log.debug("Finished populating roster");
@@ -145,6 +152,58 @@ public class Roster implements RosterListener {
         };
         
         rosterExecutor.submit(r);
+    }
+    
+    @Subscribe
+    public void handlePeerMessage(final IncomingPeerMessageEvent event) {
+        switch (event.getPresence().getType()) {
+        case subscribe:
+            final String from = event.getPresence().getFrom();
+            log.debug("Adding subscription request from: {}", from);
+
+            // Did we originally invite them and they're
+            // subscribing back? Auto-allow if so.
+            if (autoAcceptSubscription(from)) {
+                Events.asyncEventBus().post(
+                    new TypedPacketEvent(from, Presence.Type.subscribed));
+            } else {
+                log.debug("We didn't invite " + from);
+            }
+            break;
+        case subscribed:
+            break;
+        case unavailable:
+            break;
+        case unsubscribe:
+            break;
+        case unsubscribed:
+            break;
+        case available:
+            break;
+        case error:
+            break;
+        default:
+            break;
+        }
+    }
+    
+    @Subscribe
+    public void onAuthStatus(final GoogleTalkStateEvent ase) {
+        final GoogleTalkState state = ase.getState();
+        switch (state) {
+        case notConnected:
+            reset();
+            break;
+        case connecting:
+            break;
+        case LOGIN_FAILED:
+            reset();
+            break;
+        case connected:
+            break;
+        default:
+            break;
+        }
     }
 
     public LanternRosterEntry getRosterEntry(final String key) {
@@ -259,14 +318,14 @@ public class Roster implements RosterListener {
         });
     }
 
-    public void reset() {
+    private void reset() {
         synchronized (rosterEntries) {
             this.rosterEntries.get().clear();
         }
         this.kscopeRoutingTable.clear();
     }
 
-    public boolean autoAcceptSubscription(final String from) {
+    private boolean autoAcceptSubscription(final String from) {
         final LanternRosterEntry entry = getRosterEntry(from);
         if (entry == null) {
             log.debug("No matching roster entry!");

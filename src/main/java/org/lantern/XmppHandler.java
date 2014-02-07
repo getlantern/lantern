@@ -54,10 +54,6 @@ public interface XmppHandler extends LanternService {
 
     void addToRoster(String jid);
 
-    void subscribe(String jid);
-
-    void subscribed(String jid);
-
     @Override
     void start();
 
@@ -68,7 +64,5 @@ public interface XmppHandler extends LanternService {
 
     MappedServerSocket getMappedServer();
 
-    //void sendPacket(Packet packet);
-    
     ProxyTracker getProxyTracker();
 }
