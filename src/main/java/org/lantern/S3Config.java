@@ -14,8 +14,8 @@ public class S3Config {
     public static final String DEFAULT_CONTROLLER_ID = "lanternctrl1-2";
     
     private String controller = DEFAULT_CONTROLLER_ID;
-    private int minpoll;
-    private int maxpoll;
+    private int minpoll = 5;
+    private int maxpoll = 15;
     private Collection<FallbackProxy> fallbacks = Collections.emptyList();
 
     public S3Config() {}
