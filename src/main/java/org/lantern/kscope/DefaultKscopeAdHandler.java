@@ -15,7 +15,6 @@ import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.ProxyTracker;
-import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.network.InstanceInfo;
@@ -33,7 +32,6 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         NetworkTrackerListener<URI, ReceivedKScopeAd> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final XmppHandler xmppHandler;
 
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
@@ -45,12 +43,10 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
             final ProxyTracker proxyTracker,
             final LanternTrustStore trustStore,
             final RandomRoutingTable routingTable,
-            final XmppHandler xmppHandler,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
-        this.xmppHandler = xmppHandler;
         this.networkTracker = networkTracker;
 
         this.networkTracker.addListener(this);
@@ -136,8 +132,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
                         relayAd.getTtl()
                 );
 
-        final TrustGraphNode tgn =
-                new LanternTrustGraphNode(xmppHandler);
+        final TrustGraphNode tgn = new LanternTrustGraphNode();
 
         tgn.sendAdvertisement(message, nextNid, relayAd.getTtl());
     }

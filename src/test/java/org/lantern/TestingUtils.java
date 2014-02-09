@@ -165,7 +165,7 @@ public class TestingUtils {
             new DefaultProxyTracker(model, peerFactory, trustStore);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                null, networkTracker);
+                networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}
