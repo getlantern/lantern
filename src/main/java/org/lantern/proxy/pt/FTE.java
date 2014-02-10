@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
     private static final String FTE_PATH_KEY = "path";
+    private static final String FTE_KEY_KEY = "key";
 
     private Executor client;
     private Executor server;
@@ -100,6 +101,12 @@ public class FTE implements PluggableTransport {
         String fteProxyLocation = String.format("%1$s/bin/fteproxy",
                 getProp(FTE_PATH_KEY, true));
         CommandLine cmd = new CommandLine(fteProxyLocation);
+        // If a key was configured, set it
+        String key = getProp(FTE_KEY_KEY, false);
+        if (key != null) {
+            cmd.addArgument("--key");
+            cmd.addArgument(key);
+        }
         for (Object arg : args) {
             cmd.addArgument(String.format("\"%1$s\"", arg));
         }

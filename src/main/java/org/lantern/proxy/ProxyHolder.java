@@ -62,7 +62,7 @@ public final class ProxyHolder extends BaseChainedProxy
         this.fiveTuple = info.getFiveTuple();
     }
 
-public FiveTuple getFiveTuple() {
+    public FiveTuple getFiveTuple() {
         return fiveTuple;
     }
 
