@@ -167,7 +167,6 @@
   "GET_INVOLVED_CONTINUED": "page to find out more about ways to help.",
   "LICENSE_STATEMENT": "This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version. The full text of version 3 of the GPL can be found in the file LICENSE.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.",
   "PRIVACY_STATEMENT": "Lantern takes the responsibility of providing internet access very seriously. We have an explicit interest in keeping any personally identifiable information routed through Lantern servers and clients limited, secret, and ephemeral. All Lantern software and infrastructure has been configured with strong security protections and data expungement policies in accordance with that interest. For more information, please see https://github.com/getlantern/lantern/wiki/Privacy.",
-  "COPYRIGHT": "© 2013 Team Lantern",
   "ABOUT_TITLE": "About Lantern",
   "UPDATE_AVAILABLE_TITLE": "Update Available",
   "UPDATE_AVAILABLE_PROMPT": "A new version of Lantern is available!",
