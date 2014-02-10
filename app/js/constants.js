@@ -31,6 +31,7 @@ var DEFAULT_LANG = 'en_US',
       ja: {dir: 'ltr', name: '日本語'},
       uk: {dir: 'ltr', name: 'Український (діаспора)'},
       uk_UA: {dir: 'ltr', name: 'Український (Україна)'},
+      ru_RU: {dir: 'ltr', name: 'Русский язык'},
       es: {dir: 'ltr', name: 'español'},
       ar: {dir: 'rtl', name: 'العربية'}
     },
