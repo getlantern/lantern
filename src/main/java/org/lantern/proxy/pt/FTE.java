@@ -105,10 +105,10 @@ public class FTE implements PluggableTransport {
         String key = getProp(FTE_KEY_KEY, false);
         if (key != null) {
             cmd.addArgument("--key");
-            cmd.addArgument(key);
+            cmd.addArgument(quote(key));
         }
         for (Object arg : args) {
-            cmd.addArgument(String.format("\"%1$s\"", arg));
+            cmd.addArgument(quote(arg));
         }
         DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
         try {
@@ -126,5 +126,9 @@ public class FTE implements PluggableTransport {
                     key));
         }
         return prop;
+    }
+
+    private static String quote(Object value) {
+        return String.format("\"%1$s\"", value);
     }
 }
