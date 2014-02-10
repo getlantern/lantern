@@ -39,12 +39,16 @@ angular.module('app.i18n', [])
 
     function closestAvailableLang(lang, keysObj) {
       keysObj = keysObj || LANGS;
+      var bestMatch = null;
       for (var lang_ in keysObj) {
-        if (lang === lang_ || lang.substring(0, 2) === lang_.substring(0, 2)) {
+        if (lang === lang_) {
           return lang_;
         }
+        if (lang.substring(0, 2) === lang_.substring(0, 2)) {
+          bestMatch = lang_;
+        }
       }
-      return null;
+      return bestMatch;
     }
 
     function loadTranslationsFor(lang) {

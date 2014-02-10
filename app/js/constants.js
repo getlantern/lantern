@@ -18,7 +18,7 @@ var DEFAULT_LANG = 'en_US',
       // http://www.omniglot.com/language/names.htm
       en_US: {dir: 'ltr', name: 'English'},
       de: {dir: 'ltr', name: 'Deutsch'},
-      fr_FR: {dir: 'ltr', name: 'français'},
+      fr_FR: {dir: 'ltr', name: 'français (France)'},
       fr_CA: {dir: 'ltr', name: 'français (Canada)'},
       ca: {dir: 'ltr', name: 'català'},
       pt_BR: {dir: 'ltr', name: 'português'},
