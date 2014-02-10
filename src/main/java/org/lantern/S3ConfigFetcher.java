@@ -65,32 +65,50 @@ public class S3ConfigFetcher {
             return;
         }
         final S3Config config = model.getS3Config();
+        
+        // Always check for a new config right away. We do this on the same
+        // thread here because a lot depends on this value, particularly on
+        // the first run of Lantern, and we want to make sure it takes priority.
         if (config != null) {
             Events.asyncEventBus().post(config);
+            
+            if (config.getFallbacks().isEmpty()) {
+                recheck();
+            } else {
+                // If we've already got valid fallbacks, thread this so we
+                // don't hold up the rest of Lantern initialization.
+                scheduleConfigRecheck(0.0);
+            }
+        } else {
+            recheck();
         }
         
-        // Always check for a new config right away.
-        scheduleConfigRecheck(0);
     }
     
     private void scheduleConfigRecheck(final double minutesToSleep) {
+        log.debug("Scheduling config check...");
         configCheckTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                recheckConfig();
-                final S3Config config = model.getS3Config();
-                final double newMinutesToSleep
-                // Temporary network problems?  Let's retry in a few seconds.
-                = (config == null) ? 0.2
-                                   : lerp(config.getMinpoll(),
-                                          config.getMaxpoll(),
-                                          random.nextDouble());
-                
-                scheduleConfigRecheck(newMinutesToSleep);
+                recheck();
             }
             
         }, (long)(minutesToSleep * 60000));
     }
+
+    private void recheck() {
+        recheckConfig();
+        final S3Config config = model.getS3Config();
+        final double newMinutesToSleep
+        // Temporary network problems?  Let's retry in a few seconds.
+        = (config == null) ? 0.2
+                           : lerp(config.getMinpoll(),
+                                  config.getMaxpoll(),
+                                  random.nextDouble());
+        
+        scheduleConfigRecheck(newMinutesToSleep);
+    }
+
 
     private void recheckConfig() {
         log.debug("Rechecking configuration");
@@ -113,7 +131,7 @@ public class S3ConfigFetcher {
         }
         if (changed) {
             log.info("Configuration changed! Reapplying...");
-            Events.asyncEventBus().post(newConfig.get());
+            Events.eventBus().post(newConfig.get());
         } else {
             log.debug("Configuration unchanged.");
         }

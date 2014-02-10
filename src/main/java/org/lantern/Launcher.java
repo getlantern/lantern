@@ -264,6 +264,10 @@ public class Launcher {
                 LOG.error("Error starting tray?", e);
             }
         }
+        
+        proxyTracker = instance(ProxyTracker.class);
+        this.s3ConfigManager = new S3ConfigFetcher(model);
+        this.s3ConfigManager.start();
 
         xmpp = instance(DefaultXmppHandler.class);
 
@@ -273,7 +277,6 @@ public class Launcher {
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
-        proxyTracker = instance(ProxyTracker.class);
 
         instance(GeoIp.class);
         statsUpdater = instance(StatsUpdater.class);
@@ -293,9 +296,6 @@ public class Launcher {
         giveModeProxy = instance(GiveModeProxy.class);
         
         friendsHandler = instance(FriendsHandler.class);
-        
-        this.s3ConfigManager = new S3ConfigFetcher(model);
-        this.s3ConfigManager.start();
         
         startServices();
         
