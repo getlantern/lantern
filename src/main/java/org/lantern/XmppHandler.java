@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import javax.security.auth.login.CredentialException;
 
-import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.proxy.ProxyTracker;
 import org.lastbamboo.common.ice.MappedServerSocket;
@@ -70,7 +69,7 @@ public interface XmppHandler extends LanternService {
 
     MappedServerSocket getMappedServer();
 
-    void sendPacket(Packet packet);
+    //void sendPacket(Packet packet);
     
     ProxyTracker getProxyTracker();
 }

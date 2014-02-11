@@ -516,11 +516,9 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case updateAvailable:
-
             switch (inter) {
             case CLOSE:
-                this.internalState.setModalCompleted(Modal.updateAvailable);
-                this.internalState.advanceModal(null);
+                Events.syncModal(model, this.internalState.getLastModal());
                 break;
             default:
                 log.error("Did not handle interaction {} for modal {}", inter, modal);
