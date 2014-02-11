@@ -108,13 +108,13 @@
       </div>
       <div ng-hide="inCensoringCountry">
         <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-          class="btn btn-large btn-give-inverse enter-give-mode" focus-on="show">
+          class="btn btn-large btn-give-inverse enter-give-mode" focus-on="show" tabindex="{{show && 1 || ''}}">
           <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
           {{ 'GIVE_ACCESS' | i18n }}
         </button>
         <div class="orIfYouNeed">
           {{ 'OR_IF_YOU_NEED' | i18n }}
-          <a class="get-colored always-underlined enter-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</a>
+          <a href="#" class="get-colored always-underlined enter-get-mode" ng-click="interaction(MODE.get)" tabindex="{{show && 2 || ''}}">{{ 'GET_ACCESS' | i18n }}</a>
         </div>
       </div>
     </div>
@@ -412,24 +412,22 @@
   </div>
   <div class="modal-body" id="finished">
     <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</p>
-    <div id="finished-autoReport">
-      <label class="checkbox inline">
+  </div>
+  <div class="modal-footer">
+    <div class="modal-status smallest">
+      <label class="checkbox smallest">
         <input type="checkbox" ng-model="autoReport"
                ng-change="changeSetting(SETTING.autoReport, autoReport)">
-        {{ 'AUTOREPORT_PROMPT' | i18n }}
-        <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
-          {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
+          {{ 'AUTOREPORT_PROMPT' | i18n }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
         </a>
       </label>
-      <div class="smaller indented warning-colored" style="margin-top: 5px" collapse="autoReport">
+      <div class="smallest indented warning-colored" style="margin-top: 5px" collapse="autoReport">
         <i class="icon-exclamation-sign"></i>
         {{ 'NO_AUTOREPORT_WARNING' | i18n }}
       </div>
     </div>
-  </div>
-  <div class="modal-footer">
     <button id="finishSetup"
-            type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
+            type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode
             focus-on="show"
             ng-click="finish()">{{ 'FINISH' | i18n }}</button>
   </div>
@@ -664,7 +662,7 @@
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET_ELLIPSIS' | i18n }}
     </button>
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" id="settings-close" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>
 

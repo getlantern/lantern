@@ -21,6 +21,7 @@ angular.module('app.i18n', [])
 
     $rootScope.$watch('lang', function (lang) {
       $rootScope.langDirection = LANGS[lang].dir;
+      $rootScope.rtl = $rootScope.langDirection === 'rtl';
       if (!$rootScope.globalState) $rootScope.globalState = {};
       var closest = closestAvailableLang(lang, EXTERNAL_URL.userForums);
       $rootScope.globalState.forumsUrl = EXTERNAL_URL.userForums[closest] ||

@@ -8,6 +8,10 @@
 .modal-header
   +border-top-radius(6px)
 
+body[dir=rtl] .modal-footer
+  button, a.btn
+    float: left
+
 // override slide effect
 .modal.fade
   +single-transition(opacity, 0.3s, ease)
@@ -41,9 +45,13 @@
 
 .modal-status
   width: 365px
-  text-align: left
   margin-top: 4px
   float: left
+  text-align: left
+  body[dir=rtl] &
+    float: right
+    text-align: right
+    margin-right: 15px
 
 .control-extra
   +indented(30px)
@@ -371,16 +379,8 @@ $suggested-bg-color: #f4f9fd
     line-height: 1.4
     +smaller
 
-#finished-autoReport
-  margin: 20px 0 10px 35px
-  color: #666
-  label
-    +smaller
-    white-space: normal // override bootstrap
-  input[type=checkbox]
-    margin-left: -15px
-    margin-top: 3px
-
+#finished
+  min-height: 50px
 
 #settings
   $dt_width: 130px
@@ -410,6 +410,9 @@ $suggested-bg-color: #f4f9fd
       margin-left: 12px
     body[dir=rtl] &
       margin-right: 12px
+
+#settings-close
+  float: right !important
 
 #autoreport-warning
   +indented

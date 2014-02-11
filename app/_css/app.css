@@ -6493,6 +6493,10 @@ small, .small {
   font-size: 11.9px;
 }
 
+.smallest {
+  font-size: 10.5px;
+}
+
 .bigger {
   font-size: 14.7px;
 }
@@ -6502,8 +6506,11 @@ small, .small {
   width: 16px;
 }
 
-i.icon-external-link {
+body[dir=ltr] i.icon-external-link {
   margin-left: 2px;
+}
+body[dir=rtl] i.icon-external-link {
+  margin-right: 2px;
 }
 
 i[class*=icon] {
@@ -7016,6 +7023,10 @@ body[dir=rtl] .radio input[type="radio"], body[dir=rtl] .checkbox input[type="ch
   border-top-right-radius: 6px;
 }
 
+body[dir=rtl] .modal-footer button, body[dir=rtl] .modal-footer a.btn {
+  float: left;
+}
+
 .modal.fade {
   -webkit-transition: opacity 0.3s ease;
   transition: opacity 0.3s ease;
@@ -7061,9 +7072,14 @@ body[dir=rtl] .radio input[type="radio"], body[dir=rtl] .checkbox input[type="ch
 
 .modal-status {
   width: 365px;
-  text-align: left;
   margin-top: 4px;
   float: left;
+  text-align: left;
+}
+body[dir=rtl] .modal-status {
+  float: right;
+  text-align: right;
+  margin-right: 15px;
 }
 
 .control-extra {
@@ -7443,17 +7459,8 @@ body[dir=rtl] #friendlist .friendConnectedStatus, body[dir=rtl] #friendlist .rea
   background-color: whitesmoke;
 }
 
-#finished-autoReport {
-  margin: 20px 0 10px 35px;
-  color: #666666;
-}
-#finished-autoReport label {
-  font-size: 11.9px;
-  white-space: normal;
-}
-#finished-autoReport input[type=checkbox] {
-  margin-left: -15px;
-  margin-top: 3px;
+#finished {
+  min-height: 50px;
 }
 
 #settings dt {
@@ -7495,6 +7502,10 @@ body[dir=ltr] #settings .pacUrl {
 }
 body[dir=rtl] #settings .pacUrl {
   margin-right: 12px;
+}
+
+#settings-close {
+  float: right !important;
 }
 
 #autoreport-warning {

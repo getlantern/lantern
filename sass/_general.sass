@@ -13,6 +13,9 @@ small, .small
 .smaller
   +smaller
 
+.smallest
+  +smallest
+
 .bigger
   +bigger
 
@@ -21,7 +24,10 @@ small, .small
   width: 16px
 
 i.icon-external-link
-  margin-left: 2px
+  body[dir=ltr] &
+    margin-left: 2px
+  body[dir=rtl] &
+    margin-right: 2px
 
 i[class*=icon]
   +single-transition(all, 0.5s, ease)
