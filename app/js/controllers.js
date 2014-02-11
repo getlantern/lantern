@@ -138,17 +138,28 @@ function SettingsCtrl($scope, MODAL) {
   });
 }
 
-function AuthorizeCtrl($scope, $timeout, MODAL) {
+function AuthorizeCtrl($scope, $timeout, MODAL, CONNECTIVITY) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.authorize;
   });
 
-  var SPINNER_DURATION = 10000; // ms
+  var signInClicked = false;
   $scope.signInClicked = function () {
+    signInClicked = true;
     $scope.showSpinner = true;
-    $timeout(function () { $scope.showSpinner = false; }, SPINNER_DURATION);
   }
+
+  $scope.$watch('model.connectivity.gtalk', function (valNew, valOld) {
+    if (valNew === CONNECTIVITY.connected && valOld === CONNECTIVITY.connecting) {
+      signInClicked = false;
+    }
+    if (signInClicked || valNew === CONNECTIVITY.connecting) {
+      $scope.showSpinner = true;
+    } else {
+      $scope.showSpinner = false;
+    }
+  });
 }
 
 function AboutCtrl($scope, MODAL) {
