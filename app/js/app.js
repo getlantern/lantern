@@ -114,8 +114,10 @@ var app = angular.module('app', [
       for (var i=0, l=friends.length, ii=friends[i]; ii; ii=friends[++i]) {
         $rootScope.friendsByEmail[ii.email] = ii;
         if (ii.status === FRIEND_STATUS.pending) {
-          $rootScope.nfriendSuggestions++;
-          $rootScope.friendSuggestions.push(ii);
+          if (model.remainingFriendingQuota || ii.freeToFriend) {
+            $rootScope.nfriendSuggestions++;
+            $rootScope.friendSuggestions.push(ii);
+          }
         } else if (ii.status == FRIEND_STATUS.friend) {
           $rootScope.nfriends++;
         }

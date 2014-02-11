@@ -306,7 +306,7 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
       return;
     }
     if (!model.remainingFriendingQuota) {
-      var friend = $scope.friendsByEmail[match];
+      var friend = $scope.friendsByEmail[email];
       if (!friend || !friend.freeToFriend) {
         return;
       }
@@ -368,9 +368,6 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     }
     _.each($scope.displayedFriends, addConnectedStatus);
     $scope.displayedFriends = _.sortBy($scope.displayedFriends, prettyUserFltr);
-    if (!model.remainingFriendingQuota) {
-      $scope.displayedSuggestions = _.filter($scope.displayedSuggestions, 'freeToFriend');
-    }
     $scope.displayedSuggestions = _.sortBy($scope.displayedSuggestions, prettyUserFltr);
   }
   $scope.$watch('model.peers', updateDisplayedFriends, true);
