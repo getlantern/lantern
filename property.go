@@ -134,6 +134,8 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	getterSetter := false
 
 	if objectDescriptor.hasProperty("get") {
+		// FIXME
+		panic(newTypeError("get: is not supported by otto (yet)"))
 		value := objectDescriptor.get("get")
 		if value.IsDefined() {
 			if !value.isCallable() {
@@ -145,6 +147,8 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	}
 
 	if objectDescriptor.hasProperty("set") {
+		// FIXME
+		panic(newTypeError("set: is not supported by otto (yet)"))
 		value := objectDescriptor.get("set")
 		if value.IsDefined() {
 			if !value.isCallable() {

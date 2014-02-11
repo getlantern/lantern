@@ -670,6 +670,24 @@ func Test_objectLength(t *testing.T) {
 	Is(objectLength(value._object()), 0)
 }
 
+func Test_setGet(t *testing.T) {
+	Terst(t)
+
+	_, test := runTestWithOtto()
+	test(`raise:
+        Object.defineProperty({}, 'abc', {
+            get: function () {}
+        });
+        
+    `, "TypeError: get: is not supported by otto (yet)")
+
+	test(`raise:
+        Object.defineProperty({}, 'def', {
+            set: function (value) {}
+        });
+    `, "TypeError: set: is not supported by otto (yet)")
+}
+
 func BenchmarkNew(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		New()
