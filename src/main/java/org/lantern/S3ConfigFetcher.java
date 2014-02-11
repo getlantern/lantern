@@ -34,8 +34,15 @@ public class S3ConfigFetcher {
         = LoggerFactory.getLogger(S3ConfigFetcher.class);
 
     // DRY: wrapper.install4j and configureUbuntu.txt
+    private static final File[] CONFIG_DIRS = {
+        new File(SystemUtils.USER_HOME),
+        new File(SystemUtils.USER_DIR)
+    };
+    
     private static final String URL_FILENAME = ".lantern-configurl.txt";
     private static final String LOCAL_S3_CONFIG = ".s3config";
+    
+    
 
     private final Optional<String> url;
 
@@ -195,19 +202,21 @@ public class S3ConfigFetcher {
      * @return
      */
     private Optional<S3Config> fetchLocalConfig() {
-        File file = new File(LOCAL_S3_CONFIG);
-        if (file.exists()) {
-            try {
-                String cfgStr = FileUtils.readFileToString(file);
-                S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr,
-                        S3Config.class);
-                log.info("Using local S3 configuration from: "
-                        + file.getAbsolutePath());
-                return Optional.of(cfg);
-            } catch (Exception e) {
-                log.warn(String.format(
-                        "Couldn't read local S3 configuration from %1$s: %2$s",
-                        file.getAbsolutePath(), e.getMessage()), e);
+        for (File directory : CONFIG_DIRS) {
+            File file = new File(directory, LOCAL_S3_CONFIG);
+            if (file.exists()) {
+                try {
+                    String cfgStr = FileUtils.readFileToString(file);
+                    S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr,
+                            S3Config.class);
+                    log.info("Using local S3 configuration from: "
+                            + file.getAbsolutePath());
+                    return Optional.of(cfg);
+                } catch (Exception e) {
+                    log.warn(String.format(
+                            "Couldn't read local S3 configuration from %1$s: %2$s",
+                            file.getAbsolutePath(), e.getMessage()), e);
+                }
             }
         }
         return Optional.absent();
@@ -215,11 +224,7 @@ public class S3ConfigFetcher {
 
     private static void copyUrlFile() throws IOException {
         log.debug("Copying config URL file");
-        final File[] directoriesToTry = {
-            new File(SystemUtils.USER_HOME),
-            new File(SystemUtils.USER_DIR)
-        };
-        for (File directory : directoriesToTry) {
+        for (File directory : CONFIG_DIRS) {
             final File from = new File(directory, URL_FILENAME);
             if (from.isFile()) {
                 File par = LanternClientConstants.CONFIG_DIR;
