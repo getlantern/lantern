@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
+    private static final String DEFAULT_FTE_PATH = "pt/fteproxy/fteproxy";
     private static final String FTE_PATH_KEY = "path";
     private static final String FTE_KEY_KEY = "key";
 
@@ -98,11 +99,10 @@ public class FTE implements PluggableTransport {
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
-        String fteProxyLocation = String.format("%1$s/bin/fteproxy",
-                getProp(FTE_PATH_KEY, true));
-        CommandLine cmd = new CommandLine(fteProxyLocation);
+        String ftePath = props.getProperty(FTE_PATH_KEY, DEFAULT_FTE_PATH);
+        CommandLine cmd = new CommandLine(ftePath);
         // If a key was configured, set it
-        String key = getProp(FTE_KEY_KEY, false);
+        String key = props.getProperty(FTE_KEY_KEY);
         if (key != null) {
             cmd.addArgument("--key");
             cmd.addArgument(quote(key));
@@ -117,15 +117,6 @@ public class FTE implements PluggableTransport {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String getProp(String key, boolean required) {
-        String prop = props.getProperty(key);
-        if (required && prop == null) {
-            throw new RuntimeException(String.format("Missing %1$s in props",
-                    key));
-        }
-        return prop;
     }
 
     private static String quote(Object value) {
