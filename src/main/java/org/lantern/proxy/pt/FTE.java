@@ -1,5 +1,6 @@
 package org.lantern.proxy.pt;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -86,6 +87,11 @@ public class FTE implements PluggableTransport {
     public void stopServer() {
         server.getWatchdog().destroyProcess();
     }
+    
+    @Override
+    public boolean suppliesEncryption() {
+        return true;
+    }
 
     private Executor fteProxy(Object... args) {
         Executor cmdExec = new DefaultExecutor();
@@ -99,7 +105,20 @@ public class FTE implements PluggableTransport {
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
+        cmdExec.setStreamHandler(new PumpStreamHandler(new LogOutputStream() {
+            @Override
+            protected void processLine(String line, int level) {
+                LOGGER.debug("(From fteproxy): {}", line);
+            }
+        }));
         String ftePath = props.getProperty(FTE_PATH_KEY, DEFAULT_FTE_PATH);
+        File fte = new File(ftePath);
+        ftePath = fte.getAbsolutePath();
+        if (!fte.exists()) {
+            String message = String.format("fteproxy executable not found at %1$s", ftePath);
+            LOGGER.error(String.format("fteproxy executable not found at %1$s", ftePath));
+            throw new Error(message);
+        }
         CommandLine cmd = new CommandLine(ftePath);
         // If a key was configured, set it
         String key = props.getProperty(FTE_KEY_KEY);
@@ -111,6 +130,7 @@ public class FTE implements PluggableTransport {
             cmd.addArgument(quote(arg));
         }
         DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+        LOGGER.debug("About to run cmd: {}", cmd);
         try {
             cmdExec.execute(cmd, resultHandler);
             return cmdExec;

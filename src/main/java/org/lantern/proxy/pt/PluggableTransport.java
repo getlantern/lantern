@@ -41,4 +41,10 @@ public interface PluggableTransport {
     void startServer(int port, InetSocketAddress giveModeAddress);
 
     void stopServer();
+ 
+    /**
+     * @return true if the transport takes care of encryption so that Lantern
+     * doesn't have to.
+     */
+    boolean suppliesEncryption();
 }

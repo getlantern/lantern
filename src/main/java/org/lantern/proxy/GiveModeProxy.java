@@ -23,6 +23,7 @@ import org.littleshoot.proxy.FlowContext;
 import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
+import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.SslEngineSource;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
@@ -60,6 +61,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
         final Settings settings = model.getSettings();
         int serverPort = settings.getServerPort();
         boolean allowLocalOnly = false;
+        boolean encryptionRequired = true;
         if (settings.getProxyPtType() != null) {
             // When using a pluggable transport, the transport will use the
             // configured port and the server will use some random free port
@@ -70,103 +72,116 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     PluggableTransports.newTransport(
                             settings.getProxyPtType(),
                             settings.getProxyPtProps());
+            encryptionRequired = !pluggableTransport.suppliesEncryption();
             log.info("GiveModeProxy will use pluggable transport of type: "
                     + pluggableTransport.getClass().getName());
         }
-        setBootstrap(DefaultHttpProxyServer
-                .bootstrap()
-                .withName("GiveModeProxy")
-                .withPort(serverPort)
-                .withTransportProtocol(settings.getProxyProtocol())
-                .withAllowLocalOnly(allowLocalOnly)
-                .withListenOnAllAddresses(false)
-                .withSslEngineSource(sslEngineSource)
-                .withAuthenticateSslClients(!LanternUtils.isFallbackProxy())
+        
+        HttpProxyServerBootstrap bootstrap =
+                DefaultHttpProxyServer
+                        .bootstrap()
+                        .withName("GiveModeProxy")
+                        .withPort(serverPort)
+                        .withTransportProtocol(settings.getProxyProtocol())
+                        .withAllowLocalOnly(allowLocalOnly)
+                        .withListenOnAllAddresses(false)
 
-                // Use a filter to deny requests to non-public ips
-                .withFiltersSource(new HttpFiltersSourceAdapter() {
-                    @Override
-                    public HttpFilters filterRequest(
-                            HttpRequest originalRequest,
-                            ChannelHandlerContext ctx) {
-                        return new GiveModeHttpFilters(originalRequest,
-                                ctx,
-                                model.getReportIp(),
-                                settings.getProxyPort(),
-                                settings.getProxyProtocol(),
-                                settings.getProxyAuthToken());
-                    }
-                })
+                        // Use a filter to deny requests to non-public ips
+                        .withFiltersSource(new HttpFiltersSourceAdapter() {
+                            @Override
+                            public HttpFilters filterRequest(
+                                    HttpRequest originalRequest,
+                                    ChannelHandlerContext ctx) {
+                                return new GiveModeHttpFilters(originalRequest,
+                                        ctx,
+                                        model.getReportIp(),
+                                        settings.getProxyPort(),
+                                        settings.getProxyProtocol(),
+                                        settings.getProxyAuthToken());
+                            }
+                        })
 
-                // Keep stats up to date
-                .plusActivityTracker(new ActivityTrackerAdapter() {
-                    @Override
-                    public void bytesReceivedFromClient(
-                            FlowContext flowContext,
-                            int numberOfBytes) {
-                        stats.addDownBytesFromPeers(numberOfBytes,
-                                flowContext.getClientAddress().getAddress());
-                        Peer peer = peerFor(flowContext);
-                        if (peer != null) {
-                            peer.addBytesDn(numberOfBytes);
-                        }
-                    }
+                        // Keep stats up to date
+                        .plusActivityTracker(new ActivityTrackerAdapter() {
+                            @Override
+                            public void bytesReceivedFromClient(
+                                    FlowContext flowContext,
+                                    int numberOfBytes) {
+                                stats.addDownBytesFromPeers(numberOfBytes,
+                                        flowContext.getClientAddress()
+                                                .getAddress());
+                                Peer peer = peerFor(flowContext);
+                                if (peer != null) {
+                                    peer.addBytesDn(numberOfBytes);
+                                }
+                            }
 
-                    @Override
-                    public void bytesSentToServer(FullFlowContext flowContext,
-                            int numberOfBytes) {
-                        stats.addUpBytesForPeers(numberOfBytes);
-                    }
+                            @Override
+                            public void bytesSentToServer(
+                                    FullFlowContext flowContext,
+                                    int numberOfBytes) {
+                                stats.addUpBytesForPeers(numberOfBytes);
+                            }
 
-                    @Override
-                    public void bytesReceivedFromServer(
-                            FullFlowContext flowContext,
-                            int numberOfBytes) {
-                        stats.addDownBytesForPeers(numberOfBytes);
-                    }
+                            @Override
+                            public void bytesReceivedFromServer(
+                                    FullFlowContext flowContext,
+                                    int numberOfBytes) {
+                                stats.addDownBytesForPeers(numberOfBytes);
+                            }
 
-                    @Override
-                    public void bytesSentToClient(FlowContext flowContext,
-                            int numberOfBytes) {
-                        stats.addUpBytesToPeers(numberOfBytes,
-                                flowContext.getClientAddress().getAddress());
-                        Peer peer = peerFor(flowContext);
-                        if (peer != null) {
-                            peer.addBytesUp(numberOfBytes);
-                        }
-                    }
+                            @Override
+                            public void bytesSentToClient(
+                                    FlowContext flowContext,
+                                    int numberOfBytes) {
+                                stats.addUpBytesToPeers(numberOfBytes,
+                                        flowContext.getClientAddress()
+                                                .getAddress());
+                                Peer peer = peerFor(flowContext);
+                                if (peer != null) {
+                                    peer.addBytesUp(numberOfBytes);
+                                }
+                            }
 
-                    @Override
-                    public void clientSSLHandshakeSucceeded(
-                            InetSocketAddress clientAddress,
-                            SSLSession sslSession) {
-                        Peer peer = peerFor(sslSession);
-                        if (peer != null) {
-                            peer.connected();
-                        }
-                        stats.addProxiedClientAddress(clientAddress
-                                .getAddress());
-                    }
+                            @Override
+                            public void clientSSLHandshakeSucceeded(
+                                    InetSocketAddress clientAddress,
+                                    SSLSession sslSession) {
+                                Peer peer = peerFor(sslSession);
+                                if (peer != null) {
+                                    peer.connected();
+                                }
+                                stats.addProxiedClientAddress(clientAddress
+                                        .getAddress());
+                            }
 
-                    @Override
-                    public void clientDisconnected(
-                            InetSocketAddress clientAddress,
-                            SSLSession sslSession) {
-                        Peer peer = peerFor(sslSession);
-                        if (peer != null) {
-                            peer.disconnected();
-                        }
-                    }
+                            @Override
+                            public void clientDisconnected(
+                                    InetSocketAddress clientAddress,
+                                    SSLSession sslSession) {
+                                Peer peer = peerFor(sslSession);
+                                if (peer != null) {
+                                    peer.disconnected();
+                                }
+                            }
 
-                    private Peer peerFor(FlowContext flowContext) {
-                        return peerFor(flowContext.getClientSslSession());
-                    }
+                            private Peer peerFor(FlowContext flowContext) {
+                                return peerFor(flowContext
+                                        .getClientSslSession());
+                            }
 
-                    private Peer peerFor(SSLSession sslSession) {
-                        return sslSession != null ? peerFactory
-                                .peerForSession(sslSession) : null;
-                    }
-                }));
+                            private Peer peerFor(SSLSession sslSession) {
+                                return sslSession != null ? peerFactory
+                                        .peerForSession(sslSession) : null;
+                            }
+                        });
+        if (encryptionRequired) {
+            bootstrap
+                    .withSslEngineSource(sslEngineSource)
+                    .withAuthenticateSslClients(!LanternUtils.isFallbackProxy());
+        }
+        setBootstrap(bootstrap);
+        
         this.model = model;
         Events.register(this);
         log.info(

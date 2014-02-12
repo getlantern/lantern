@@ -204,6 +204,7 @@ public class S3ConfigFetcher {
     private Optional<S3Config> fetchLocalConfig() {
         for (File directory : CONFIG_DIRS) {
             File file = new File(directory, LOCAL_S3_CONFIG);
+            log.debug("Checking for config at: {}", file.getAbsolutePath());
             if (file.exists()) {
                 try {
                     String cfgStr = FileUtils.readFileToString(file);

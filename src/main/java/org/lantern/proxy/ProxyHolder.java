@@ -252,7 +252,7 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     @Override
     public boolean requiresEncryption() {
-        return true;
+        return pt == null || !pt.suppliesEncryption();
     }
 
     @Override
