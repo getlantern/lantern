@@ -100,10 +100,10 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 if [[ $VERSION == "HEAD" ]] || [[ $VERSION == "local" ]];
 then
-    cp -f target/lantern-*-small.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp -f `ls -1t target/lantern-*-small.jar | head -1` install/common/lantern.jar || die "Could not copy jar?"
 elif [[ $VERSION == "quick" ]];
 then
-	cp -f target/lantern-*.jar install/common/lantern.jar || die "Could not copy jar?"
+	cp -f `ls -1t target/lantern-*.jar | head -1` install/common/lantern.jar || die "Could not copy jar?"
 else
     cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
 fi
