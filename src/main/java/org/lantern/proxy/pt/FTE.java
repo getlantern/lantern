@@ -37,7 +37,7 @@ public class FTE implements PluggableTransport {
     public InetSocketAddress startClient(
             InetSocketAddress getModeAddress,
             InetSocketAddress proxyAddress) {
-        LOGGER.debug("Starting FTE client");
+        LOGGER.info("Starting FTE client");
         InetSocketAddress address = new InetSocketAddress(
                 getModeAddress.getAddress(),
                 LanternUtils.findFreePort());
@@ -57,12 +57,13 @@ public class FTE implements PluggableTransport {
 
     @Override
     public void stopClient() {
+        LOGGER.info("Stopping FTE client");
         client.getWatchdog().destroyProcess();
     }
 
     @Override
     public void startServer(int port, InetSocketAddress giveModeAddress) {
-        LOGGER.debug("Starting FTE server");
+        LOGGER.info("Starting FTE server");
 
         try {
             String ip = NetworkUtils.getLocalHost().getHostAddress();
@@ -85,6 +86,7 @@ public class FTE implements PluggableTransport {
 
     @Override
     public void stopServer() {
+        LOGGER.info("Stopping FTE server");
         server.getWatchdog().destroyProcess();
     }
     
@@ -130,7 +132,7 @@ public class FTE implements PluggableTransport {
             cmd.addArgument(quote(arg));
         }
         DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-        LOGGER.debug("About to run cmd: {}", cmd);
+        LOGGER.info("About to run cmd: {}", cmd);
         try {
             cmdExec.execute(cmd, resultHandler);
             return cmdExec;

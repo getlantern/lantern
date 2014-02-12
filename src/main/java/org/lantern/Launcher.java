@@ -624,7 +624,7 @@ public class Launcher {
         try {
             final String logPath = logFile.getCanonicalPath();
             props.put("log4j.appender.RollingTextFile.File", logPath);
-            props.put("log4j.rootLogger", "warn, RollingTextFile");
+            props.put("log4j.rootLogger", "info, RollingTextFile");
             props.put("log4j.appender.RollingTextFile",
                     "org.apache.log4j.RollingFileAppender");
             props.put("log4j.appender.RollingTextFile.MaxFileSize", "1MB");
