@@ -290,7 +290,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         } else {
             if (proxy.getType() == Peer.Type.cloud) {
                 // Assume cloud proxies to be connected
-                proxy.markConnected();
+                successfullyConnectedToProxy(proxy);
             } else if (proxy.getFiveTuple().getProtocol() == TCP) {
                 checkConnectivityToTcpProxy(proxy);
             } else {
