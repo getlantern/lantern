@@ -288,7 +288,10 @@ public class DefaultProxyTracker implements ProxyTracker {
             // NAT traversed UDP proxies are currently disabled
             // checkConnectivityToNattedProxy(proxy);
         } else {
-            if (proxy.getFiveTuple().getProtocol() == TCP) {
+            if (proxy.getType() == Peer.Type.cloud) {
+                // Assume cloud proxies to be connected
+                proxy.markConnected();
+            } else if (proxy.getFiveTuple().getProtocol() == TCP) {
                 checkConnectivityToTcpProxy(proxy);
             } else {
                 // TODO: need to actually test UDT connectivity somehow
