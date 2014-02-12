@@ -38,20 +38,25 @@ VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 
-git pull || die "Could not git pull?"
-if [[ $VERSION == "HEAD" ]]; 
-then 
-    CHECKOUT=HEAD; 
-elif [[ $VERSION == "newest" ]];
+if [[ $VERSION == "local" ]];
 then
-    CHECKOUT=newest;
-else 
-    CHECKOUT=lantern-$VERSION; 
+	echo "Building from local code, not performing git ops"
+else
+	git pull || die "Could not git pull?"
+	if [[ $VERSION == "HEAD" ]]; 
+	then 
+	    CHECKOUT=HEAD; 
+	elif [[ $VERSION == "newest" ]];
+	then
+	    CHECKOUT=newest;
+	else 
+	    CHECKOUT=lantern-$VERSION; 
+	fi
+	
+	oldbranch=`git rev-parse --abbrev-ref HEAD`
+	
+	git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 fi
-
-oldbranch=`git rev-parse --abbrev-ref HEAD`
-
-git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
 if [[ $VERSION == "newest" ]];
 then
@@ -81,7 +86,7 @@ mvn $MVN_ARGS -Drelease install -Dmaven.test.skip=true || die "Could not build?"
 echo "Reverting constants file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
-if [[ $VERSION == "HEAD" ]];
+if [[ $VERSION == "HEAD" ]] || [[ $VERSION == "local" ]];
 then
     cp -f target/lantern-*-small.jar install/common/lantern.jar || die "Could not copy jar?"
 else
