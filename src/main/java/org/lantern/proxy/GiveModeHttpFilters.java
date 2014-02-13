@@ -119,7 +119,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             String authToken = req
                     .headers()
                     .get(BaseChainedProxy.X_LANTERN_AUTH_TOKEN);
-            if (!expectedAuthToken.equals(authToken)) {
+            if (expectedAuthToken != null && !expectedAuthToken.equals(authToken)) {
                 if (shouldMimicApache) {
                     return mimicApache(req, port);
                 } else {
