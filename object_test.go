@@ -445,6 +445,22 @@ func TestObjectGetterSetter(t *testing.T) {
     var def = Object.getOwnPropertyDescriptor(abc, "def");
     [ abc.def, typeof def.get, typeof def.set, typeof def.value, def.configurable, def.enumerable, typeof def.writable ];
     `, "5,function,undefined,undefined,true,false,undefined")
+
+	test(`
+    var abc = {};
+    Object.defineProperty(abc, "def", {
+        get: function() {
+            return 5;
+        }
+        configurable: true
+    });
+    Object.preventExtensions(abc);
+    Object.defineProperty(abc, "def", {
+        value: "xyzzy",
+    });
+    var def = Object.getOwnPropertyDescriptor(abc, "def");
+    [ abc.def, typeof def.get, typeof def.set, def.value, def.configurable, def.enumerable, def.writable ];
+    `, "xyzzy,undefined,undefined,xyzzy,true,false,false")
 }
 
 func TestProperty(t *testing.T) {

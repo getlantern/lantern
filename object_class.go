@@ -306,7 +306,11 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				property.writeClear()
 				property.value = descriptor.value
 			} else {
-				property.writeOn()
+				if descriptor.writable() {
+					property.writeOn()
+				} else {
+					property.writeOff()
+				}
 				property.value = descriptor.value
 			}
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {
