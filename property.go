@@ -32,6 +32,10 @@ func (self *_property) writeOff() {
 	self.mode &= ^modeWriteMask
 }
 
+func (self *_property) writeClear() {
+	self.mode = (self.mode & ^modeWriteMask) | (modeWriteMask & modeSetMask)
+}
+
 func (self _property) writeSet() bool {
 	return 0 == self.mode&modeWriteMask&modeSetMask
 }
@@ -191,8 +195,16 @@ func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
 		object.defineProperty("writable", toValue_bool(descriptor.writable()), 0111, false)
 	} else if descriptor.isAccessorDescriptor() {
 		getSet := descriptor.value.(_propertyGetSet)
-		object.defineProperty("get", toValue_object(getSet[0]), 0111, false)
-		object.defineProperty("set", toValue_object(getSet[1]), 0111, false)
+		get := UndefinedValue()
+		if getSet[0] != nil {
+			get = toValue_object(getSet[0])
+		}
+		set := UndefinedValue()
+		if getSet[1] != nil {
+			set = toValue_object(getSet[1])
+		}
+		object.defineProperty("get", get, 0111, false)
+		object.defineProperty("set", set, 0111, false)
 	}
 	object.defineProperty("enumerable", toValue_bool(descriptor.enumerable()), 0111, false)
 	object.defineProperty("configurable", toValue_bool(descriptor.configurable()), 0111, false)

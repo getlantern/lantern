@@ -298,17 +298,19 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 		if descriptor.isGenericDescriptor() {
 			// GenericDescriptor
 		} else if isDataDescriptor != descriptor.isDataDescriptor() {
-			// FIXME This branch is non-functioning
-			panic("isDataDescriptor != descriptor.isDataDescriptor")
-			var interface_ interface{}
+			// DataDescriptor <=> AccessorDescriptor
+			if !configurable {
+				goto Reject
+			}
 			if isDataDescriptor {
-				property.writeOff()
-				property.value = interface_
+				property.writeClear()
+				property.value = descriptor.value
 			} else {
 				property.writeOn()
-				property.value = interface_
+				property.value = descriptor.value
 			}
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {
+			// DataDescriptor <=> DataDescriptor
 			if !configurable {
 				if !property.writable() && descriptor.writable() {
 					goto Reject
@@ -320,6 +322,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				}
 			}
 		} else {
+			// AccessorDescriptor <=> AccessorDescriptor
 			if !configurable {
 				defineGetSet, _ := descriptor.value.(_propertyGetSet)
 				if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
@@ -340,7 +343,10 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				// (Maybe put into switch ...)
 				mode0 := property.mode
 				if mode1&0200 != 0 {
-					mode1 |= (mode0 & 0100)
+					if descriptor.isDataDescriptor() {
+						mode1 &= ^0200 // Turn off "writable" missing
+						mode1 |= (mode0 & 0100)
+					}
 				}
 				if mode1&020 != 0 {
 					mode1 |= (mode0 & 010)
@@ -348,7 +354,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				if mode1&02 != 0 {
 					mode1 |= (mode0 & 01)
 				}
-				mode1 &= 0111
+				mode1 &= 0311 // 0311 to preserve the non-setting on "writable"
 			}
 			self._write(name, value1, mode1)
 		}

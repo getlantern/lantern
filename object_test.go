@@ -429,4 +429,37 @@ func TestObjectGetterSetter(t *testing.T) {
 	    def.xyz = true;
         [ abc ];
 	`, "true")
+
+	test(`
+    var abc = {};
+    Object.defineProperty(abc, "def", {
+        value: "xyzzy",
+        configurable: true
+    });
+    Object.preventExtensions(abc);
+    Object.defineProperty(abc, "def", {
+        get: function() {
+            return 5;
+        }
+    });
+    var def = Object.getOwnPropertyDescriptor(abc, "def");
+    [ abc.def, typeof def.get, typeof def.set, typeof def.value, def.configurable, def.enumerable, typeof def.writable ];
+    `, "5,function,undefined,undefined,true,false,undefined")
+}
+
+func TestProperty(t *testing.T) {
+	Terst(t)
+
+	property := _property{}
+	property.writeOn()
+	Is(property.writeSet(), true)
+
+	property.writeClear()
+	Is(property.writeSet(), false)
+
+	property.writeOff()
+	Is(property.writeSet(), true)
+
+	property.writeClear()
+	Is(property.writeSet(), false)
 }
