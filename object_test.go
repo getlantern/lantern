@@ -587,6 +587,24 @@ func TestObjectGetterSetter(t *testing.T) {
 
         [ hasOwn, typeof descriptor.get ];
     `, "true,undefined")
+
+	test(`
+        var abc = "xyzzy";
+        Object.defineProperty(Array.prototype, "abc", {
+            get: function () {
+                return abc;
+            },
+            set: function (value) {
+                abc = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        var def = [];
+        def.abc = 3.14159;
+        [ def.hasOwnProperty("abc"), def.abc, abc ];
+    `, "false,3.14159,3.14159")
+
 }
 
 func TestProperty(t *testing.T) {

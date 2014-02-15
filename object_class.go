@@ -188,53 +188,95 @@ func objectGet(self *_object, name string) Value {
 
 // 8.12.4
 func objectCanPut(self *_object, name string) bool {
+	canPut, _, _ := _objectCanPut(self, name)
+	return canPut
+}
 
-	property := self.getOwnProperty(name)
+func _objectCanPut(self *_object, name string) (canPut bool, property *_property, setter *_object) {
+	property = self.getOwnProperty(name)
 	if property != nil {
 		switch propertyValue := property.value.(type) {
 		case Value:
-			return property.writable()
+			canPut = property.writable()
+			return
 		case _propertyGetSet:
-			return propertyValue[1] != nil
+			setter = propertyValue[1]
+			canPut = setter != nil
+			return
 		default:
 			panic(newTypeError())
 		}
 	}
 
 	if self.prototype == nil {
-		return self.extensible
+		return self.extensible, nil, nil
 	}
 
-	property = self.prototype.getOwnProperty(name)
+	property = self.prototype.getProperty(name)
 	if property == nil {
-		return self.extensible
+		return self.extensible, nil, nil
 	}
 
 	switch propertyValue := property.value.(type) {
 	case Value:
 		if !self.extensible {
-			return false
+			return false, nil, nil
 		}
-		return property.writable()
+		return property.writable(), nil, nil
 	case _propertyGetSet:
-		return propertyValue[1] != nil
+		setter = propertyValue[1]
+		canPut = setter != nil
+		return
 	default:
 		panic(newTypeError())
 	}
 
-	return false
+	return false, nil, nil
 }
 
 // 8.12.5
 func objectPut(self *_object, name string, value Value, throw bool) {
+
+	if true {
+		// Shortcut...
+		//
+		// So, right now, every class is using objectCanPut and every class
+		// is using objectPut.
+		//
+		// If that were to no longer be the case, we would have to have
+		// something to detect that here, so that we do not use an
+		// incompatible canPut routine
+		canPut, property, setter := _objectCanPut(self, name)
+		if !canPut {
+			typeErrorResult(throw)
+		} else if setter != nil {
+			setter.callSet(toValue(self), value)
+		} else if property != nil {
+			property.value = value
+			self.defineOwnProperty(name, *property, throw)
+		} else {
+			self.defineProperty(name, value, 0111, throw)
+		}
+		return
+	}
+
+	// The long way...
+	//
+	// Right now, code should never get here, see above
 	if !self.canPut(name) {
 		typeErrorResult(throw)
 		return
 	}
-	// TODO This is not exacting to the specification
-	// TODO Shortcut?
+
 	property := self.getOwnProperty(name)
 	if property == nil {
+		property = self.getProperty(name)
+		if property != nil {
+			if getSet, isAccessor := property.value.(_propertyGetSet); isAccessor {
+				getSet[1].callSet(toValue(self), value)
+				return
+			}
+		}
 		self.defineProperty(name, value, 0111, throw)
 	} else {
 		switch propertyValue := property.value.(type) {
