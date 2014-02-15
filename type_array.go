@@ -50,7 +50,11 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		if descriptor.value == nil {
 			return objectDefineOwnProperty(self, name, descriptor, throw)
 		}
-		newLength := arrayUint32(descriptor.value.(Value))
+		newLengthValue, isValue := descriptor.value.(Value)
+		if !isValue {
+			panic(newTypeError())
+		}
+		newLength := arrayUint32(newLengthValue)
 		descriptor.value = toValue_uint32(newLength)
 		if newLength > length {
 			return objectDefineOwnProperty(self, name, descriptor, throw)

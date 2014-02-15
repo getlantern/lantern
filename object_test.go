@@ -490,6 +490,15 @@ func TestObjectGetterSetter(t *testing.T) {
         var descriptor = Object.getOwnPropertyDescriptor(abc, "ghi");
         [ typeof descriptor.set ];
     `, "function")
+
+	test(`raise:
+        var abc = [];
+        Object.defineProperty(abc, "length", {
+            get: function () {
+                return 2;
+            }
+        });
+    `, "TypeError")
 }
 
 func TestProperty(t *testing.T) {
