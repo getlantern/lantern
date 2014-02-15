@@ -512,8 +512,7 @@ func TestObjectGetterSetter(t *testing.T) {
             configurable: false
         });
 
-        var jkl;
-
+        var jkl = undefined;
         try {
             Object.defineProperty(abc, "def", {
                 get: undefined
@@ -542,9 +541,33 @@ func TestObjectGetterSetter(t *testing.T) {
         });
 
         var ghi = Object.getOwnPropertyDescriptor(abc, "def");
-
         [ ghi.get === getter, ghi.set === undefined, ghi.configurable, ghi.enumerable ];
     `, "true,true,false,false")
+
+	test(`
+        var abc = {};
+
+        var getter = function() {
+            return 1;
+        };
+
+        Object.defineProperty(abc, "def", {
+            get: getter
+        });
+
+        var jkl = undefined;
+        try {
+            Object.defineProperty(abc, "def", {
+                set: function() {}
+            });
+        }
+        catch (err) {
+            jkl = err;
+        }
+
+        var ghi = Object.getOwnPropertyDescriptor(abc, "def");
+        [ jkl instanceof TypeError, ghi.get === getter, ghi.set, ghi.configurable, ghi.enumerable ];
+    `, "true,true,,false,false")
 }
 
 func TestProperty(t *testing.T) {

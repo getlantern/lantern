@@ -328,18 +328,25 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 		} else {
 			// AccessorDescriptor <=> AccessorDescriptor
 			newGetSet, _ := descriptor.value.(_propertyGetSet)
+			presentGet, presentSet := true, true
 			if newGetSet[0] == &_nilGetSetObject {
+				// Present, but nil
 				newGetSet[0] = nil
 			} else if newGetSet[0] == nil {
+				// Missing, not even nil
 				newGetSet[0] = getSet[0]
+				presentGet = false
 			}
 			if newGetSet[1] == &_nilGetSetObject {
+				// Present, but nil
 				newGetSet[1] = nil
 			} else if newGetSet[1] == nil {
+				// Missing, not even nil
 				newGetSet[1] = getSet[1]
+				presentSet = false
 			}
 			if !configurable {
-				if (getSet[0] != nil && (getSet[0] != newGetSet[0])) || (getSet[1] != nil && (getSet[1] != newGetSet[1])) {
+				if (presentGet && (getSet[0] != newGetSet[0])) || (presentSet && (getSet[1] != newGetSet[1])) {
 					goto Reject
 				}
 			}
