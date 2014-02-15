@@ -15,6 +15,8 @@ const (
 
 type _propertyGetSet [2]*_object
 
+var _nilGetSetObject _object = _object{}
+
 type _property struct {
 	value interface{}
 	mode  _propertyMode
@@ -157,6 +159,8 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 			}
 			getter = value._object()
 			getterSetter = getterSetter || getter != nil
+		} else {
+			getter = &_nilGetSetObject
 		}
 	}
 
@@ -168,6 +172,8 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 			}
 			setter = value._object()
 			getterSetter = getterSetter || setter != nil
+		} else {
+			setter = &_nilGetSetObject
 		}
 	}
 

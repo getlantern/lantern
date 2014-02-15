@@ -431,36 +431,65 @@ func TestObjectGetterSetter(t *testing.T) {
 	`, "true")
 
 	test(`
-    var abc = {};
-    Object.defineProperty(abc, "def", {
-        value: "xyzzy",
-        configurable: true
-    });
-    Object.preventExtensions(abc);
-    Object.defineProperty(abc, "def", {
-        get: function() {
-            return 5;
-        }
-    });
-    var def = Object.getOwnPropertyDescriptor(abc, "def");
-    [ abc.def, typeof def.get, typeof def.set, typeof def.value, def.configurable, def.enumerable, typeof def.writable ];
+        var abc = {};
+        Object.defineProperty(abc, "def", {
+            value: "xyzzy",
+            configurable: true
+        });
+        Object.preventExtensions(abc);
+        Object.defineProperty(abc, "def", {
+            get: function() {
+                return 5;
+            }
+        });
+        var def = Object.getOwnPropertyDescriptor(abc, "def");
+        [ abc.def, typeof def.get, typeof def.set, typeof def.value, def.configurable, def.enumerable, typeof def.writable ];
     `, "5,function,undefined,undefined,true,false,undefined")
 
 	test(`
-    var abc = {};
-    Object.defineProperty(abc, "def", {
-        get: function() {
-            return 5;
-        }
-        configurable: true
-    });
-    Object.preventExtensions(abc);
-    Object.defineProperty(abc, "def", {
-        value: "xyzzy",
-    });
-    var def = Object.getOwnPropertyDescriptor(abc, "def");
-    [ abc.def, typeof def.get, typeof def.set, def.value, def.configurable, def.enumerable, def.writable ];
+        var abc = {};
+        Object.defineProperty(abc, "def", {
+            get: function() {
+                return 5;
+            }
+            configurable: true
+        });
+        Object.preventExtensions(abc);
+        Object.defineProperty(abc, "def", {
+            value: "xyzzy",
+        });
+        var def = Object.getOwnPropertyDescriptor(abc, "def");
+        [ abc.def, typeof def.get, typeof def.set, def.value, def.configurable, def.enumerable, def.writable ];
     `, "xyzzy,undefined,undefined,xyzzy,true,false,false")
+
+	test(`
+        var abc = {};
+
+        function _get0() {
+            return 10;
+        }
+
+        function _set(value) {
+            abc.def = value;
+        }
+
+        Object.defineProperty(abc, "ghi", {
+            get: _get0,
+            set: _set,
+            configurable: true
+        });
+
+        function _get1() {
+            return 20;
+        }
+
+        Object.defineProperty(abc, "ghi", {
+            get: _get0
+        });
+
+        var descriptor = Object.getOwnPropertyDescriptor(abc, "ghi");
+        [ typeof descriptor.set ];
+    `, "function")
 }
 
 func TestProperty(t *testing.T) {

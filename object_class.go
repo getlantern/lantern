@@ -327,11 +327,30 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 			}
 		} else {
 			// AccessorDescriptor <=> AccessorDescriptor
+			newGetSet, _ := descriptor.value.(_propertyGetSet)
 			if !configurable {
-				defineGetSet, _ := descriptor.value.(_propertyGetSet)
-				if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
+				if newGetSet[0] == &_nilGetSetObject {
+					newGetSet[0] = nil
+				}
+				if newGetSet[1] == &_nilGetSetObject {
+					newGetSet[1] = nil
+				}
+				if getSet[0] != newGetSet[0] || getSet[1] != newGetSet[1] {
 					goto Reject
 				}
+			} else {
+				newGetSet, _ := descriptor.value.(_propertyGetSet)
+				if newGetSet[0] == &_nilGetSetObject {
+					newGetSet[0] = nil
+				} else if newGetSet[0] == nil {
+					newGetSet[0] = getSet[0]
+				}
+				if newGetSet[1] == &_nilGetSetObject {
+					newGetSet[1] = nil
+				} else if newGetSet[1] == nil {
+					newGetSet[1] = getSet[1]
+				}
+				descriptor.value = newGetSet
 			}
 		}
 		{
