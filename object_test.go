@@ -568,6 +568,25 @@ func TestObjectGetterSetter(t *testing.T) {
         var ghi = Object.getOwnPropertyDescriptor(abc, "def");
         [ jkl instanceof TypeError, ghi.get === getter, ghi.set, ghi.configurable, ghi.enumerable ];
     `, "true,true,,false,false")
+
+	test(`
+        var abc = {};
+        var def = "xyzzy";
+
+        Object.defineProperty(abc, "ghi", {
+            get: undefined,
+            set: function(value) {
+                def = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        var hasOwn = abc.hasOwnProperty("ghi");
+        var descriptor = Object.getOwnPropertyDescriptor(abc, "ghi");
+
+        [ hasOwn, typeof descriptor.get ];
+    `, "true,undefined")
 }
 
 func TestProperty(t *testing.T) {

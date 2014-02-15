@@ -272,6 +272,15 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 			if !self.extensible {
 				goto Reject
 			}
+			if newGetSet, isAccessor := descriptor.value.(_propertyGetSet); isAccessor {
+				if newGetSet[0] == &_nilGetSetObject {
+					newGetSet[0] = nil
+				}
+				if newGetSet[1] == &_nilGetSetObject {
+					newGetSet[1] = nil
+				}
+				descriptor.value = newGetSet
+			}
 			self._write(name, descriptor.value, descriptor.mode)
 			return true
 		}
@@ -301,17 +310,6 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 			// DataDescriptor <=> AccessorDescriptor
 			if !configurable {
 				goto Reject
-			}
-			if isDataDescriptor {
-				property.writeClear()
-				property.value = descriptor.value
-			} else {
-				if descriptor.writable() {
-					property.writeOn()
-				} else {
-					property.writeOff()
-				}
-				property.value = descriptor.value
 			}
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {
 			// DataDescriptor <=> DataDescriptor
@@ -358,6 +356,14 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 			value1 := descriptor.value
 			if value1 == nil {
 				value1 = property.value
+			} else if newGetSet, isAccessor := descriptor.value.(_propertyGetSet); isAccessor {
+				if newGetSet[0] == &_nilGetSetObject {
+					newGetSet[0] = nil
+				}
+				if newGetSet[1] == &_nilGetSetObject {
+					newGetSet[1] = nil
+				}
+				value1 = newGetSet
 			}
 			mode1 := descriptor.mode
 			if mode1&0222 != 0 {
