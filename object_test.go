@@ -499,6 +499,32 @@ func TestObjectGetterSetter(t *testing.T) {
             }
         });
     `, "TypeError")
+
+	test(`
+        var abc = {};
+
+        var getter = function() {
+            return 1;
+        }
+
+        Object.defineProperty(abc, "def", {
+            get: getter,
+            configurable: false
+        });
+
+        var jkl;
+
+        try {
+            Object.defineProperty(abc, "def", {
+                get: undefined
+            });
+        }
+        catch (err) {
+            jkl = err;
+        }
+        var ghi = Object.getOwnPropertyDescriptor(abc, "def");
+        [ jkl instanceof TypeError, ghi.get === getter, ghi.configurable, ghi.enumerable ];
+    `, "true,true,false,false")
 }
 
 func TestProperty(t *testing.T) {

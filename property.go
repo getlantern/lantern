@@ -93,7 +93,7 @@ func (self _property) get(this *_object) Value {
 
 func (self _property) isAccessorDescriptor() bool {
 	setGet, test := self.value.(_propertyGetSet)
-	return test && setGet[0] != nil || setGet[1] != nil
+	return test && (setGet[0] != nil || setGet[1] != nil)
 }
 
 func (self _property) isDataDescriptor() bool {
@@ -158,9 +158,10 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 				panic(newTypeError())
 			}
 			getter = value._object()
-			getterSetter = getterSetter || getter != nil
+			getterSetter = true
 		} else {
 			getter = &_nilGetSetObject
+			getterSetter = true
 		}
 	}
 
@@ -171,9 +172,10 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 				panic(newTypeError())
 			}
 			setter = value._object()
-			getterSetter = getterSetter || setter != nil
+			getterSetter = true
 		} else {
 			setter = &_nilGetSetObject
+			getterSetter = true
 		}
 	}
 
