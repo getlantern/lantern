@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -149,7 +151,7 @@ public class S3ConfigFetcher {
             try {
                 copyUrlFile();
                 if (!file.isFile()) {
-                    log.error("Still no config file?");
+                    log.error("Still no config file at {}", file);
                 }
             } catch (final IOException e) {
                 log.warn("Couldn't copy config URL file?", e);
@@ -158,15 +160,15 @@ public class S3ConfigFetcher {
         }
         if (file.isFile()) {
             try {
-                String folder = FileUtils.readFileToString(file, "UTF-8");
+                final String folder = FileUtils.readFileToString(file, "UTF-8");
                 return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
                     + folder
                     + "/config.json");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 log.error("Couldn't read config URL file?", e);
             }
         } else {
-            log.error("No config URL file?");
+            log.error("No config URL file at {}", file);
         }
         return Optional.absent();
     }
@@ -176,23 +178,24 @@ public class S3ConfigFetcher {
             log.error("URL initialization failed.");
             return Optional.absent();
         }
-        HttpClient client = HttpClientFactory.newDirectClient();
-        HttpGet get = new HttpGet(url.get());
+        final HttpClient client = HttpClientFactory.newDirectClient();
+        final HttpGet get = new HttpGet(url.get());
         InputStream is = null;
         try {
-            HttpResponse res = client.execute(get);
+            final HttpResponse res = client.execute(get);
             is = res.getEntity().getContent();
-            String cfgStr = IOUtils.toString(is);
-            S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
+            final String cfgStr = IOUtils.toString(is);
+            final S3Config cfg = 
+                JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
             log.debug("Controller: " + cfg.getController());
             log.debug("Minimum poll time: " + cfg.getMinpoll());
             log.debug("Maximum poll time: " + cfg.getMaxpoll());
-            for (FallbackProxy fp : cfg.getFallbacks()) {
+            for (final FallbackProxy fp : cfg.getFallbacks()) {
                 log.debug("Proxy: " + fp);
             }
             return Optional.of(cfg);
         } catch (final IOException e) {
-            log.error("Couldn't fetch config: " + e);
+            log.error("Couldn't fetch config at "+url.get(), e);
         } finally {
             IOUtils.closeQuietly(is);
             get.reset();
@@ -202,18 +205,20 @@ public class S3ConfigFetcher {
 
     private static void copyUrlFile() throws IOException {
         log.debug("Copying config URL file");
-        final File[] directoriesToTry = {
+        final Collection<File> directoriesToTry = Arrays.asList(
             new File(SystemUtils.USER_HOME),
             new File(SystemUtils.USER_DIR)
-        };
-        for (File directory : directoriesToTry) {
+        );
+        final File par = LanternClientConstants.CONFIG_DIR;
+        final File to = new File(par, URL_FILENAME);
+        if (!par.isDirectory() && !par.mkdirs()) {
+            log.error("Could not make config dir at "+par);
+            throw new IOException("Could not make config dir at "+par);
+        }
+        
+        for (final File directory : directoriesToTry) {
             final File from = new File(directory, URL_FILENAME);
             if (from.isFile()) {
-                File par = LanternClientConstants.CONFIG_DIR;
-                File to = new File(par, from.getName());
-                if (!par.isDirectory() && !par.mkdirs()) {
-                    throw new IOException("Could not make config dir?");
-                }
                 log.debug("Copying from {} to {}", from, to);
                 Files.copy(from, to);
                 return;
@@ -221,6 +226,9 @@ public class S3ConfigFetcher {
                 log.debug("No config file at {}", from);
             }
         }
-        log.error("Couldn't load config at all!");
+        
+        // If we exit the loop and end up here it means we could not find
+        // a config file to copy in any of the expected locations.
+        log.error("Config file not found in any of {}", directoriesToTry);
     }
 }
