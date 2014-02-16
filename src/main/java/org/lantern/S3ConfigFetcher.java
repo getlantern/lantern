@@ -41,6 +41,9 @@ public class S3ConfigFetcher {
 
     private final SecureRandom random = new SecureRandom();
     
+    private static final File URL_CONFIG_FILE = 
+            new File(LanternClientConstants.CONFIG_DIR, URL_FILENAME);
+    
     private final Timer configCheckTimer = new Timer("S3-Config-Check", true);
 
     private final Model model;
@@ -145,31 +148,29 @@ public class S3ConfigFetcher {
     }
 
     private static Optional<String> readUrl() {
-        File file = new File(LanternClientConstants.CONFIG_DIR,
-                             URL_FILENAME);
-        if (!file.isFile()) {
+        if (!URL_CONFIG_FILE.isFile()) {
             try {
                 copyUrlFile();
-                if (!file.isFile()) {
-                    log.error("Still no config file at {}", file);
+                if (!URL_CONFIG_FILE.isFile()) {
+                    log.error("Still no config file at {}", URL_CONFIG_FILE);
+                    return Optional.absent();
                 }
             } catch (final IOException e) {
                 log.warn("Couldn't copy config URL file?", e);
                 return Optional.absent();
             }
         }
-        if (file.isFile()) {
-            try {
-                final String folder = FileUtils.readFileToString(file, "UTF-8");
-                return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
-                    + folder
-                    + "/config.json");
-            } catch (final IOException e) {
-                log.error("Couldn't read config URL file?", e);
-            }
-        } else {
-            log.error("No config URL file at {}", file);
+        
+        try {
+            final String folder = 
+                    FileUtils.readFileToString(URL_CONFIG_FILE, "UTF-8");
+            return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
+                + folder
+                + "/config.json");
+        } catch (final IOException e) {
+            log.error("Couldn't read config URL file?", e);
         }
+
         return Optional.absent();
     }
 
@@ -210,7 +211,6 @@ public class S3ConfigFetcher {
             new File(SystemUtils.USER_DIR)
         );
         final File par = LanternClientConstants.CONFIG_DIR;
-        final File to = new File(par, URL_FILENAME);
         if (!par.isDirectory() && !par.mkdirs()) {
             log.error("Could not make config dir at "+par);
             throw new IOException("Could not make config dir at "+par);
@@ -219,8 +219,8 @@ public class S3ConfigFetcher {
         for (final File directory : directoriesToTry) {
             final File from = new File(directory, URL_FILENAME);
             if (from.isFile()) {
-                log.debug("Copying from {} to {}", from, to);
-                Files.copy(from, to);
+                log.debug("Copying from {} to {}", from, URL_CONFIG_FILE);
+                Files.copy(from, URL_CONFIG_FILE);
                 return;
             } else {
                 log.debug("No config file at {}", from);
