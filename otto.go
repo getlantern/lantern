@@ -383,9 +383,11 @@ func (self Otto) ToValue(value interface{}) (Value, error) {
 // and reallocating and then relinking everything back together. Please report if you
 // notice any inadvertent sharing of data between copies.
 func (self *Otto) Copy() *Otto {
-	return &Otto{
+	otto := &Otto{
 		runtime: self.runtime.clone(),
 	}
+	otto.runtime.Otto = otto
+	return otto
 }
 
 // Object{}
