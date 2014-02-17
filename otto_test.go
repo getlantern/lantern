@@ -552,6 +552,51 @@ func TestOttoCall_throw(t *testing.T) {
     `, "false,,,object,3.14159,true")
 }
 
+func TestOttoCopy(t *testing.T) {
+	Terst(t)
+
+	otto0 := New()
+	otto0.Run(`
+        var abc = function() {
+            return "Xyzzy";
+        };
+
+        function def() {
+            return abc() + (0 + {});
+        }
+    `)
+
+	value, err := otto0.Run(`
+        def();
+    `)
+	Is(err, nil)
+	Is(value, "Xyzzy0[object Object]")
+
+	otto1 := otto0.Copy()
+	value, err = otto1.Run(`
+        def();
+    `)
+	Is(err, nil)
+	Is(value, "Xyzzy0[object Object]")
+
+	otto1.Run(`
+        abc = function() {
+            return 3.14159;
+        };
+    `)
+	value, err = otto1.Run(`
+        def();
+    `)
+	Is(err, nil)
+	Is(value, "3.141590[object Object]")
+
+	value, err = otto0.Run(`
+        def();
+    `)
+	Is(err, nil)
+	Is(value, "Xyzzy0[object Object]")
+}
+
 func TestOttoCall_clone(t *testing.T) {
 	Terst(t)
 
