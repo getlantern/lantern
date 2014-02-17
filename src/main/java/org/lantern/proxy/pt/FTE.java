@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
-    private static final String DEFAULT_FTE_PATH = "pt/fteproxy/fteproxy";
+    private static final String DEFAULT_FTE_PATH = "pt/fteproxy";
     private static final String FTE_PATH_KEY = "path";
     private static final String FTE_KEY_KEY = "key";
 
@@ -89,7 +89,7 @@ public class FTE implements PluggableTransport {
         LOGGER.info("Stopping FTE server");
         server.getWatchdog().destroyProcess();
     }
-    
+
     @Override
     public boolean suppliesEncryption() {
         return true;
@@ -97,13 +97,9 @@ public class FTE implements PluggableTransport {
 
     private Executor fteProxy(Object... args) {
         Executor cmdExec = new DefaultExecutor();
-        cmdExec.setStreamHandler(new PumpStreamHandler(
-                new LogOutputStream() {
-                    @Override
-                    protected void processLine(String line, int level) {
-                        LOGGER.info(line);
-                    }
-                }));
+        cmdExec.setStreamHandler(new PumpStreamHandler(System.out,
+                System.err,
+                System.in));
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
@@ -114,11 +110,13 @@ public class FTE implements PluggableTransport {
             }
         }));
         String ftePath = props.getProperty(FTE_PATH_KEY, DEFAULT_FTE_PATH);
-        File fte = new File(ftePath);
+        File fte = new File(ftePath + "/fteproxy");
         ftePath = fte.getAbsolutePath();
         if (!fte.exists()) {
-            String message = String.format("fteproxy executable not found at %1$s", ftePath);
-            LOGGER.error(String.format("fteproxy executable not found at %1$s", ftePath));
+            String message = String.format(
+                    "fteproxy executable not found at %1$s", ftePath);
+            LOGGER.error(String.format("fteproxy executable not found at %1$s",
+                    ftePath));
             throw new Error(message);
         }
         CommandLine cmd = new CommandLine(ftePath);
@@ -126,10 +124,10 @@ public class FTE implements PluggableTransport {
         String key = props.getProperty(FTE_KEY_KEY);
         if (key != null) {
             cmd.addArgument("--key");
-            cmd.addArgument(quote(key));
+            cmd.addArgument(stringify(key));
         }
         for (Object arg : args) {
-            cmd.addArgument(quote(arg));
+            cmd.addArgument(stringify(arg));
         }
         DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
         LOGGER.info("About to run cmd: {}", cmd);
@@ -141,7 +139,7 @@ public class FTE implements PluggableTransport {
         }
     }
 
-    private static String quote(Object value) {
-        return String.format("\"%1$s\"", value);
+    private static String stringify(Object value) {
+        return String.format("%1$s", value);
     }
 }
