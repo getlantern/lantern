@@ -209,6 +209,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
 
         // Start the pluggable transport if necessary
         if (pluggableTransport != null) {
+            log.info("Starting PluggableTransport");
             int port = model.getSettings().getServerPort();
             InetSocketAddress giveModeAddress = server.getListenAddress();
             pluggableTransport.startServer(port, giveModeAddress);
