@@ -54,8 +54,8 @@ public class FTE implements PluggableTransport {
     private static final String LANTERN_DEFS_RELEASE = "19700101";
     // Note - I'm using the default format names here because of this bug:
     // https://github.com/kpdyer/fteproxy/issues/117
-    private static final String LANTERN_UPSTREAM_FORMAT_KEY = "manual-http-request";
-    private static final String LANTERN_DOWNSTREAM_FORMAT_KEY = "manual-http-response";
+    private static final String LANTERN_UPSTREAM_FORMAT_KEY = "lantern-request";
+    private static final String LANTERN_DOWNSTREAM_FORMAT_KEY = "lantern-response";
 
     public static final String UPSTREAM_REGEX_KEY = "upstream-regex";
     public static final String UPSTREAM_FIXED_SLICE_KEY = "upstream-fixed-slice";
@@ -239,6 +239,10 @@ public class FTE implements PluggableTransport {
         if (useCustomFormat) {
             cmd.addArgument("--release");
             cmd.addArgument(LANTERN_DEFS_RELEASE);
+            cmd.addArgument("--upstream-format");
+            cmd.addArgument(LANTERN_UPSTREAM_FORMAT_KEY);
+            cmd.addArgument("--downstream-format");
+            cmd.addArgument(LANTERN_DOWNSTREAM_FORMAT_KEY);
         }
         for (Object arg : args) {
             cmd.addArgument(stringify(arg));
