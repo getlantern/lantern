@@ -1,16 +1,19 @@
 package set
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 func Test_Union(t *testing.T) {
 	s := New("1", "2", "3")
 	r := New("3", "4", "5")
-	x := New("5", "6", "7")
+	x := NewNonTS("5", "6", "7")
 
 	u := Union(s, r, x)
+	if settype := reflect.TypeOf(u).String(); settype != "*set.Set" {
+		t.Error("Union should derive its set type from the first passed set, got", settype)
+	}
 
 	if u.Size() != 7 {
 		t.Error("Union: the merged set doesn't have all items in it.")
@@ -24,10 +27,16 @@ func Test_Union(t *testing.T) {
 	if y.Size() != 0 {
 		t.Error("Union: should have zero items because nothing is passed")
 	}
+	if settype := reflect.TypeOf(y).String(); settype != "*set.Set" {
+		t.Error("Union with no parameters should return a threadsafe set, got", settype)
+	}
 
 	z := Union(x)
 	if z.Size() != 3 {
 		t.Error("Union: the merged set doesn't have all items in it.")
+	}
+	if settype := reflect.TypeOf(z).String(); settype != "*set.SetNonTS" {
+		t.Error("Union should derive its set type from the first passed set, got", settype)
 	}
 
 }

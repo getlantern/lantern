@@ -29,15 +29,21 @@ type Interface interface {
 // helpful to not write everywhere struct{}{}
 var keyExists = struct{}{}
 
-// Union is the merger of multiple sets. It returns a new set with the
-// element in combined in all sets that are passed. Unlike the Union() method
-// you can use this function seperatly with multiple sets. If no items are
-// passed an empty set is returned.
+// Union is the merger of multiple sets. It returns a new set with all the
+// elements present in all the sets that are passed. If no items are passed,
+// an empty set is returned.
+//
+// The dynamic type of the returned set is determined by the first passed set's
+// implementation of the New() method.
 func Union(sets ...Interface) Interface {
-	u := New()
+	if len(sets) == 0 {
+		return New()
+	}
+
+	u := sets[0].New()
 	for _, set := range sets {
 		set.Each(func(item interface{}) bool {
-			u.m[item] = keyExists
+			u.Add(item)
 			return true
 		})
 	}
@@ -105,4 +111,3 @@ func IntSlice(s Interface) []int {
 	}
 	return slice
 }
-
