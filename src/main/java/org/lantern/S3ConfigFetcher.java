@@ -75,11 +75,13 @@ public class S3ConfigFetcher {
         // thread here because a lot depends on this value, particularly on
         // the first run of Lantern, and we want to make sure it takes priority.
         if (config != null) {
-            Events.asyncEventBus().post(config);
-            
-            if (config.getFallbacks().isEmpty()) {
+            // The config in the model could just be the default, so check
+            // for actual fallbacks.
+            final Collection<FallbackProxy> fallbacks = config.getFallbacks();
+            if (fallbacks == null || fallbacks.isEmpty()) {
                 recheck();
             } else {
+                Events.asyncEventBus().post(config);
                 // If we've already got valid fallbacks, thread this so we
                 // don't hold up the rest of Lantern initialization.
                 scheduleConfigRecheck(0.0);
