@@ -37,6 +37,8 @@ public class FTEMain extends ChainedMain {
 
         // Common Properties
         Properties props = new Properties();
+        props.put("upstream_regex", "^GET\\ \\/([a-z\\.\\/]*) HTTP/1\\.1\\r\\n\\r\\n$");
+        props.put("downstream_regex", "^HTTP/1\\.1\\ 200 OK\\r\\nContent-Type:\\ ([a-z]+)\\r\\n\\r\\n\\C*$");
 
         // Client
         FTE client = new FTE(props);
