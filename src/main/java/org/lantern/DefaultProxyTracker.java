@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -74,8 +73,6 @@ public class DefaultProxyTracker implements ProxyTracker {
      */
     private final ExecutorService proxyCheckThreadPool = Threads
             .newCachedThreadPool("Proxy-Connection-Check-Pool-");
-
-    private final AtomicBoolean proxiesPopulated = new AtomicBoolean(false);
 
     private final ScheduledExecutorService proxyRetryService = Threads
             .newSingleThreadScheduledExecutor("Proxy-Retry");
@@ -417,6 +414,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
         LOG.debug("Attempting to add single fallback proxy");
+        final String cert = fallbackProxy.getCert();
+        if (StringUtils.isNotBlank(cert)) {
+            lanternTrustStore.addCert(cert);
+        } else {
+            LOG.warn("Fallback with no cert? {}", fallbackProxy);
+        }
         final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getIp()
                 + "@getlantern.org");
         final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
@@ -428,13 +431,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
                 fallbackProxy.getPort()), Type.cloud, protocol,
                 fallbackProxy.getAuth_token());
-        
-        final String cert = fallbackProxy.getCert();
-        if (StringUtils.isNotBlank(cert)) {
-            lanternTrustStore.addCert(cert);
-        } else {
-            LOG.warn("Fallback with no cert? {}", fallbackProxy);
-        }
     }
 
     /**
