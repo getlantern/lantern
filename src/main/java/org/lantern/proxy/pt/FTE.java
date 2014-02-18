@@ -52,8 +52,8 @@ public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
     private static final String FTE_BASE_PATH = "pt/fteproxy";
     private static final String LANTERN_DEFS_RELEASE = "19700101";
-    // Note - I'm using the default format names here because of this bug:
-    // https://github.com/kpdyer/fteproxy/issues/117
+    // Note - custom format names need to end with "-request" and "-response"
+    // respectively, otherwise fteproxy won't recognize them.
     private static final String LANTERN_UPSTREAM_FORMAT_KEY = "lantern-request";
     private static final String LANTERN_DOWNSTREAM_FORMAT_KEY = "lantern-response";
 
