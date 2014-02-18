@@ -8,7 +8,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.params.CoreConnectionPNames;
-import org.lantern.FallbackProxy;
 import org.lantern.LanternUtils;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.util.PublicIp;
@@ -93,8 +92,18 @@ public class PublicIpAddress implements PublicIp {
                     .execute(TEST_HOST, request);
             Header header = response
                     .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
+
+            final int responseCode = response.getStatusLine().getStatusCode();
+            boolean twoHundredResponse = true;
+            if (responseCode < 200 || responseCode > 299) {
+                LOG.warn("Error on proxied request. No proxies working? {}, {}", 
+                        response.getStatusLine(), responseCode);
+                twoHundredResponse = false;
+            } 
             if (header == null) {
-                LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
+                if (twoHundredResponse) {
+                    LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
+                }
                 return InetAddress.getLocalHost();
             } else {
                 return InetAddress.getByName(header.getValue());
