@@ -1,14 +1,13 @@
 // Package set provides both threadsafe and non-threadsafe implementations of
-// a generic set data structure.
-
-// In the threadsafe set, safety encompasses all operations on one set.
-// Operations on multiple sets are consistent in that the elements
-// of each set used was valid at exactly one point in time between the
-// start and the end of the operation.
+// a generic set data structure. In the threadsafe set, safety encompasses all
+// operations on one set. Operations on multiple sets are consistent in that
+// the elements of each set used was valid at exactly one point in time
+// between the start and the end of the operation.
 package set
 
 // Interface describing a Set. Sets are an unordered, unique list of values.
 type Interface interface {
+	New(items ...interface{}) Interface
 	Add(items ...interface{})
 	Remove(items ...interface{})
 	Pop() interface{}

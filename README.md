@@ -1,14 +1,16 @@
 # Set [![GoDoc](https://godoc.org/github.com/fatih/set?status.png)](http://godoc.org/github.com/fatih/set) [![Build Status](https://travis-ci.org/fatih/set.png)](https://travis-ci.org/fatih/set)
 
-Set is a basic and simple, hash-based, *thread safe*,  **Set** data structure
-implementation in Go (Golang). The thread safety encompasses all operations on one set.
+Set is a basic and simple, hash-based, **Set** data structure implementation
+in Go (Golang).
+
+Set provides both threadsafe and non-threadsafe implementations of a generic
+set data structure. The thread safety encompasses all operations on one set.
 Operations on multiple sets are consistent in that the elements of each set
 used was valid at exactly one point in time between the start and the end of
 the operation. Because it's thread safe, you can use it concurrently with your
 goroutines.
 
 For usage see examples below or click on the godoc badge.
-
 
 ## Install
 
@@ -220,6 +222,7 @@ func main() {
 
  * [Fatih Arslan](https://github.com/fatih)
  * [Arne Hormann](https://github.com/arnehormann)
+ * [Sam Boyer](https://github.com/sdboyer)
 
 ## License
 

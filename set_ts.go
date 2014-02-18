@@ -21,6 +21,13 @@ func New(items ...interface{}) *Set {
 	return s
 }
 
+// New creates and initalizes a new Set interface. It accepts a variable
+// number of arguments to populate the initial set. If nothing is passed a
+// zero size Set based on the struct is created.
+func (s *Set) New(items ...interface{}) Interface {
+	return New(items...)
+}
+
 // Add includes the specified items (one or more) to the set. The underlying
 // Set s is modified. If passed nothing it silently returns.
 func (s *Set) Add(items ...interface{}) {
@@ -185,4 +192,3 @@ func (s *Set) Merge(t Interface) {
 		return true
 	})
 }
-
