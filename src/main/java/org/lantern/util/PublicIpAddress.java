@@ -86,8 +86,10 @@ public class PublicIpAddress implements PublicIp {
         try {
             request.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
-            request.getParams().setParameter(
-                    CoreConnectionPNames.SO_TIMEOUT, 60000);
+            // Unable to set SO_TIMEOUT because of bug in Java 7
+            // See https://github.com/getlantern/lantern/issues/942
+//            request.getParams().setParameter(
+//                    CoreConnectionPNames.SO_TIMEOUT, 60000);
             HttpResponse response = HttpClientFactory.newProxiedClient()
                     .execute(TEST_HOST, request);
             Header header = response

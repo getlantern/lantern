@@ -63,7 +63,6 @@ public class DefaultProxyTrackerTest {
         proxy = waitForProxy(tracker);
         
         assertEquals(55021, getProxyPort(proxy));
-        assertEquals(0, proxy.getFailures());
 
         //now let's force the proxy to fail.
         //miniproxy1.pause();
