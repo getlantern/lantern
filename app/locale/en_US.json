@@ -247,6 +247,7 @@
   "BACKEND_ICONLOC_MENUBAR":"menu bar at the top of the screen",
   "BACKEND_ICONLOC_SYSTRAY":"system tray at the bottom right of your screen",
   "BACKEND_ICONLOC_UNKNOWN":"(unsupported OS: Lantern icon may not be visible)",
+  "BACKEND_NO_CONFIG":"No configuration file found. Lantern cannot start! Please notify the Lantern developers at team@getlantern.org or at the Lantern user forums",
   "P": "petabyte",
   "T": "terabyte",
   "G": "gigabyte",
