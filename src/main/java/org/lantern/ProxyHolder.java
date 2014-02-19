@@ -37,17 +37,24 @@ public final class ProxyHolder extends BaseChainedProxy
     private final boolean natTraversed;
 
     /**
+     * <p>
      * Once connecting to this proxy fails, this tracks the first time that
      * connecting started failing. Once a connection is successful, this is set
      * to 0.
+     * </p>
+     * 
+     * <p>
+     * We start this at 1 on the assumption that the proxy is disconnected until
+     * proven otherwise.
+     * </p>
      */
-    private final AtomicLong timeOfOldestConsecFailure = new AtomicLong(0);
+    private final AtomicLong timeOfOldestConsecFailure = new AtomicLong(1);
 
     /**
      * Tracks the time of the most recent failure since connecting to this proxy
      * started failing.
      */
-    private final AtomicLong timeOfNewestConsecFailure = new AtomicLong(0);
+    private final AtomicLong timeOfNewestConsecFailure = new AtomicLong(1);
 
     private final Type type;
 
@@ -167,7 +174,7 @@ public final class ProxyHolder extends BaseChainedProxy
                 timeOfNewestConsecFailure.get() == 1l;
     }
 
-    public void failedToConnect() {
+    synchronized public void failedToConnect() {
         if (isConnected()) {
             LOG.debug("Setting proxy as disconnected: {}", fiveTuple);
             failuresStarted();
