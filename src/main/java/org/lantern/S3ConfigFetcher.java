@@ -16,7 +16,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.lantern.event.Events;
+import org.lantern.event.MessageEvent;
 import org.lantern.state.Model;
+import org.lantern.state.Notification.MessageType;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,11 +126,11 @@ public class S3ConfigFetcher {
             log.error("Couldn't get new config.");
             return;
         }
-        
+
         final S3Config config = this.model.getS3Config();
         this.model.setS3Config(newConfig.get());
-        
-        
+
+
         boolean changed;
         if (config == null) {
             log.warn("Rechecking config with no old one.");
@@ -149,18 +151,16 @@ public class S3ConfigFetcher {
         return a + (b - a) * t;
     }
 
-    private static Optional<String> readUrl() {
-        if (!URL_CONFIG_FILE.isFile()) {
-            try {
-                copyUrlFile();
-                if (!URL_CONFIG_FILE.isFile()) {
-                    log.error("Still no config file at {}", URL_CONFIG_FILE);
-                    return Optional.absent();
-                }
-            } catch (final IOException e) {
-                log.warn("Couldn't copy config URL file?", e);
+    private Optional<String> readUrl() {
+        try {
+            copyUrlFile();
+            if (!URL_CONFIG_FILE.isFile()) {
+                log.error("Still no config file at {}", URL_CONFIG_FILE);
                 return Optional.absent();
             }
+        } catch (final IOException e) {
+            log.warn("Couldn't copy config URL file?", e);
+            return Optional.absent();
         }
         
         try {
@@ -206,11 +206,11 @@ public class S3ConfigFetcher {
         return Optional.absent();
     }
 
-    private static void copyUrlFile() throws IOException {
+    private void copyUrlFile() throws IOException {
         log.debug("Copying config URL file");
-        final Collection<File> directoriesToTry = Arrays.asList(
-            new File(SystemUtils.USER_HOME),
-            new File(SystemUtils.USER_DIR)
+        final Collection<File> filesToTry = Arrays.asList(
+            new File(SystemUtils.USER_HOME, URL_FILENAME),
+            new File(SystemUtils.USER_DIR, URL_FILENAME)
         );
         final File par = LanternClientConstants.CONFIG_DIR;
         if (!par.isDirectory() && !par.mkdirs()) {
@@ -218,9 +218,8 @@ public class S3ConfigFetcher {
             throw new IOException("Could not make config dir at "+par);
         }
         
-        for (final File directory : directoriesToTry) {
-            final File from = new File(directory, URL_FILENAME);
-            if (from.isFile()) {
+        for (final File from : filesToTry) {
+            if (from.isFile() && isFileNewer(from, URL_CONFIG_FILE)) {
                 log.debug("Copying from {} to {}", from, URL_CONFIG_FILE);
                 Files.copy(from, URL_CONFIG_FILE);
                 return;
@@ -229,8 +228,20 @@ public class S3ConfigFetcher {
             }
         }
         
-        // If we exit the loop and end up here it means we could not find
-        // a config file to copy in any of the expected locations.
-        log.error("Config file not found in any of {}", directoriesToTry);
+        if (!URL_CONFIG_FILE.isFile()) {
+            //  If we exit the loop and end up here it means we could not find
+            // a config file to copy in any of the expected locations.
+            log.error("Config file not found at any of {}", filesToTry);
+            Events.asyncEventBus().post(
+                new MessageEvent(Tr.tr(MessageKey.NO_CONFIG), MessageType.error));
+        }
+    }
+
+
+    private boolean isFileNewer(final File file, final File reference) {
+        if (reference == null || !reference.isFile()) {
+            return true;
+        }
+        return FileUtils.isFileNewer(file, reference);
     }
 }

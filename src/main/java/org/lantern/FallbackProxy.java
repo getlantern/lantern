@@ -35,6 +35,26 @@ public class FallbackProxy {
         return cert;
     }
 
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setAuth_token(String auth_token) {
+        this.auth_token = auth_token;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    public void setCert(String cert) {
+        this.cert = cert;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

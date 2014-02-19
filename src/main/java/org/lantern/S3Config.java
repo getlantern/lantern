@@ -32,6 +32,23 @@ public class S3Config {
     public Collection<FallbackProxy> getFallbacks() {
         return fallbacks;
     }
+    
+
+    public void setController(String controller) {
+        this.controller = controller;
+    }
+
+    public void setMinpoll(int minpoll) {
+        this.minpoll = minpoll;
+    }
+
+    public void setMaxpoll(int maxpoll) {
+        this.maxpoll = maxpoll;
+    }
+
+    public void setFallbacks(Collection<FallbackProxy> fallbacks) {
+        this.fallbacks = fallbacks;
+    }
 
     @Override
     public int hashCode() {
