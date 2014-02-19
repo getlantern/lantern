@@ -167,7 +167,7 @@ public class S3ConfigFetcher {
             final String folder = 
                     FileUtils.readFileToString(URL_CONFIG_FILE, "UTF-8");
             return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
-                + folder
+                + folder.trim()
                 + "/config.json");
         } catch (final IOException e) {
             log.error("Couldn't read config URL file?", e);
