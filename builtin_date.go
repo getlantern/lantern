@@ -100,8 +100,10 @@ func builtinDate_getTime(call FunctionCall) Value {
 }
 
 func builtinDate_setTime(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	object := call.thisObject()
+	date := dateObjectOf(object)
 	date.Set(toFloat(call.Argument(0)))
+	object.value = date
 	return date.Value()
 }
 

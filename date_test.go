@@ -421,3 +421,20 @@ func TestDate_setFullYear(t *testing.T) {
 	test(`Date.prototype.setFullYear.length`, "3")
 	test(`Date.prototype.setUTCFullYear.length`, "3")
 }
+
+func TestDate_setTime(t *testing.T) {
+	Terst(t)
+
+	defer mockTimeLocal(Time.UTC)()
+
+	test := runTest()
+
+	test(`
+        var abc = new Date(1999, 6, 1);
+        var def = new Date();
+        def.setTime(abc.getTime());
+        [ def, abc.valueOf() == def.valueOf() ];
+    `, "Thu, 01 Jul 1999 00:00:00 UTC,true")
+
+	test(`Date.prototype.setTime.length`, "1")
+}
