@@ -121,7 +121,7 @@ public class DefaultProxyTrackerTest {
             if (proxy != null) {
                 return proxy;
             }
-            this.wait(6000);
+            Thread.sleep(6000);
             return tracker.firstConnectedTcpProxy();
         }
     }

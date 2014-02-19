@@ -96,7 +96,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             public void run() {
                 restoreTimedInProxies();
             }
-        }, 1000, 100, TimeUnit.MILLISECONDS);
+        }, 100, 100, TimeUnit.MILLISECONDS);
 
         Events.register(this);
     }

@@ -54,7 +54,7 @@ public final class ProxyHolder extends BaseChainedProxy
      * Tracks the time of the most recent failure since connecting to this proxy
      * started failing.
      */
-    private final AtomicLong timeOfNewestConsecFailure = new AtomicLong(1);
+    private final AtomicLong timeOfNewestConsecFailure = new AtomicLong(0);
 
     private final Type type;
 
@@ -216,7 +216,8 @@ public final class ProxyHolder extends BaseChainedProxy
     }
 
     public boolean needsConnectionTest() {
-        return timeOfNewestConsecFailure.get() > 0;
+        return timeOfOldestConsecFailure.get() > 0 &&
+                timeOfNewestConsecFailure.get() > 0;
     }
 
     /**
