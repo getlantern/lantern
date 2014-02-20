@@ -22,6 +22,9 @@ func NewNonTS(items ...interface{}) *SetNonTS {
 	s := &SetNonTS{}
 	s.m = make(map[interface{}]struct{})
 
+	// Ensure interface compliance
+	var _ Interface = s
+
 	s.Add(items...)
 	return s
 }

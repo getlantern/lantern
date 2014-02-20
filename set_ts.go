@@ -17,6 +17,9 @@ func New(items ...interface{}) *Set {
 	s := &Set{}
 	s.m = make(map[interface{}]struct{})
 
+	// Ensure interface compliance
+	var _ Interface = s
+
 	s.Add(items...)
 	return s
 }
