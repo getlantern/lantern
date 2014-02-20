@@ -34,8 +34,9 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
     @Override
     public void lookupChainedProxies(HttpRequest httpRequest,
             Queue<ChainedProxy> chainedProxies) {
+        String host = httpRequest.headers().get("Host");
         Collection<ProxyHolder> proxyHolders = proxyTracker
-                .getConnectedProxiesInOrderOfFallbackPreference();
+                .getConnectedProxiesInOrderOfFallbackPreference(host);
 
         // Add all connected ProxyHolders to our queue of chained proxies
         chainedProxies.addAll(proxyHolders);

@@ -36,13 +36,10 @@ import org.lantern.state.Connectivity;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
-import org.lantern.state.LocationChangedEvent;
 import org.lantern.state.Modal;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Desktop;
 import org.slf4j.Logger;
@@ -59,8 +56,7 @@ public class InteractionServlet extends HttpServlet {
 
     // XXX DRY: these are also defined in lantern-ui/app/js/constants.js
     private enum Interaction {
-        GET,
-        GIVE,
+        GETSTARTED,
         CONTINUE,
         SETTINGS,
         CLOSE,
@@ -254,8 +250,8 @@ public class InteractionServlet extends HttpServlet {
 
         final Modal modal = this.model.getModal();
 
-        log.debug("processRequest: modal = {}, inter = {}, mode = {}", 
-            modal, inter, this.model.getSettings().getMode());
+        log.debug("processRequest: modal = {}, inter = {}", 
+            modal, inter);
         
         if (handleExceptionInteractions(modal, inter, json)) {
             return; 
@@ -278,17 +274,7 @@ public class InteractionServlet extends HttpServlet {
 
         switch (modal) {
         case welcome:
-            this.model.getSettings().setMode(Mode.unknown);
-            switch (inter) {
-            case GET:
-                log.debug("Setting get mode");
-                handleSetModeWelcome(Mode.get);
-                break;
-            case GIVE:
-                log.debug("Setting give mode");
-                handleSetModeWelcome(Mode.give);
-                break;
-            }
+            handleWelcome();
             break;
         case authorize:
            log.debug("Processing authorize modal...");
@@ -424,32 +410,6 @@ public class InteractionServlet extends HttpServlet {
             break;
         case settings:
             switch (inter) {
-            case GET:
-                log.debug("Setting get mode");
-                // Only deal with a mode change if the mode has changed!
-                if (modelService.getMode() == Mode.give) {
-                    // Break this out because it's set in the subsequent 
-                    // setMode call
-                    final boolean everGet = model.isEverGetMode();
-                    this.modelService.setMode(Mode.get);
-                    if (!everGet) {
-                        // need to do more setup to switch to get mode from 
-                        // give mode
-                        model.setSetupComplete(false);
-                        model.setModal(Modal.proxiedSites);
-                        Events.syncModel(model);
-                    } else {
-                        // This primarily just triggers a setup complete event,
-                        // which triggers connecting to proxies, setting up
-                        // the local system proxy, etc.
-                        model.setSetupComplete(true);
-                    }
-                }
-                break;
-            case GIVE:
-                log.debug("Setting give mode");
-                this.modelService.setMode(Mode.give);
-                break;
             case CLOSE:
                 log.debug("Processing settings close");
                 Events.syncModal(model, Modal.none);
@@ -570,16 +530,6 @@ public class InteractionServlet extends HttpServlet {
 
             }
             break;
-        case giveModeForbidden:
-            if (inter == Interaction.CONTINUE) {
-                //  need to do more setup to switch to get mode from give mode
-                model.getSettings().setMode(Mode.get);
-                model.setSetupComplete(false);
-                this.internalState.advanceModal(null);
-                Events.syncModal(model, Modal.proxiedSites);
-                Events.sync(SyncPath.SETUPCOMPLETE, false);
-            }
-            break;
         default:
             log.error("No matching modal for {}", modal);
         }
@@ -685,10 +635,9 @@ public class InteractionServlet extends HttpServlet {
         return false;
     }
 
-    private void handleSetModeWelcome(final Mode mode) {
+    private void handleWelcome() {
         this.model.setModal(Modal.authorize);
         this.internalState.setModalCompleted(Modal.welcome);
-        this.modelService.setMode(mode);
         Events.syncModal(model);
     }
 
@@ -710,7 +659,6 @@ public class InteractionServlet extends HttpServlet {
         }
         resetOauth();
         final Model base = new Model(model.getCountryService());
-        model.setEverGetMode(false);
         model.setLaunchd(base.isLaunchd());
         model.setModal(base.getModal());
         model.setNodeId(base.getNodeId());
@@ -730,20 +678,6 @@ public class InteractionServlet extends HttpServlet {
     }
 
     @Subscribe
-    public void onLocationChanged(final LocationChangedEvent e) {
-        Events.sync(SyncPath.LOCATION, e.getNewLocation());
-
-        if (censored.isCountryCodeCensored(e.getNewCountry())) {
-            if (!censored.isCountryCodeCensored(e.getOldCountry())) {
-                //moving from uncensored to censored
-                if (model.getSettings().getMode() == Mode.give) {
-                    Events.syncModal(model, Modal.giveModeForbidden);
-                }
-            }
-        }
-    }
-
-    @Subscribe
     public void onConnectivityChanged(final ConnectivityChangedEvent e) {
         Connectivity connectivity = model.getConnectivity();
         if (!e.isConnected()) {
@@ -756,19 +690,5 @@ public class InteractionServlet extends HttpServlet {
 
         connectivity.setInternet(true);
         Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-
-        Settings set = model.getSettings();
-
-        if (set.getMode() == null || set.getMode() == Mode.unknown) {
-            if (censored.isCensored()) {
-                set.setMode(Mode.get);
-            }
-        } else if (set.getMode() == Mode.give && censored.isCensored()) {
-            // want to set the mode to get now so that we don't mistakenly
-            // proxy any more than necessary
-            set.setMode(Mode.get);
-            log.info("Disconnected; setting giveModeForbidden");
-            Events.syncModal(model, Modal.giveModeForbidden);
-        }
     }
 }

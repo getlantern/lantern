@@ -2,7 +2,6 @@ package org.lantern.proxy;
 
 import java.net.Socket;
 
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.OfferAnswer;
 import org.lastbamboo.common.offer.answer.OfferAnswerListener;
@@ -54,18 +53,14 @@ public class UdtServerFiveTupleListener
     @Override
     public void onUdpSocket(final FiveTuple sock) {
         log.info("Received inbound P2P UDT connection from: {}", sock);
-        if (Mode.give == model.getSettings().getMode()) {
-            giveModeProxy.getServer().clone()
-                    .withTransportProtocol(TransportProtocol.UDT)
-                    .withAddress(sock.getLocal())
-                    .start();
-            log.info("Now listening for UDT traffic at: {}", sock.getLocal());
-            // note - we don't need to hang on to the clone because it will
-            // get shut down automatically when the giveModeProxy gets shut
-            // down.
-        } else {
-            log.info("Not in Give mode, not adding listen address to  GiveModeProxy");
-        }
+        giveModeProxy.getServer().clone()
+                .withTransportProtocol(TransportProtocol.UDT)
+                .withAddress(sock.getLocal())
+                .start();
+        log.info("Now listening for UDT traffic at: {}", sock.getLocal());
+        // note - we don't need to hang on to the clone because it will
+        // get shut down automatically when the giveModeProxy gets shut
+        // down.
     }
 
     @Override

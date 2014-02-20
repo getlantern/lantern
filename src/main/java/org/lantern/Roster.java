@@ -25,14 +25,12 @@ import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
-import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.util.PublicIpAddress;
 import org.lantern.util.Threads;
@@ -136,6 +134,8 @@ public class Roster implements RosterListener {
                         xmppHandler.subscribe(friend.getEmail());
                     }
                 }
+                
+                sendKscopeAdToAllPeers();
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
                 fullRosterSync();
@@ -322,24 +322,6 @@ public class Roster implements RosterListener {
         }
     }
     
-    @Subscribe
-    public void onModeChangedEvent(final ModeChangedEvent event) {
-        switch (event.getNewMode()) {
-        case get:
-            log.debug("Nothing to do on roster when switched to get mode");
-            return;
-        case give:
-            log.debug("Switched to give mode");
-            sendKscopeAdToAllPeers();
-            break;
-        case unknown:
-            break;
-        default:
-            break;
-        
-        };
-    }
-
     private void sendKscopeAdToAllPeers() {
         log.debug("Sending KScope ads to all peers");
         final Collection<LanternRosterEntry> entries = getEntries();
@@ -365,11 +347,6 @@ public class Roster implements RosterListener {
             log.debug("Not sending kscope advertisement in censored mode");
             return;
         }
-        // don't advertise if we're in GET mode
-        if(model.getSettings().getMode() != Mode.give) {
-            log.debug("Not sending kscope advertisement in get mode");
-            return;
-        }
         
         if (xmppHandler == null) {
             log.warn("Null xmppHandler?");
@@ -386,12 +363,14 @@ public class Roster implements RosterListener {
         final String user = xmppHandler.getJid();
         final LanternKscopeAdvertisement ad;
         final MappedServerSocket ms = xmppHandler.getMappedServer();
+        String[] proxiedSites = Whitelist.getDefaultWhitelistedSites();
         if (ms.isPortMapped()) {
             ad = new LanternKscopeAdvertisement(user, address, 
-                ms.getMappedPort(), ms.getHostAddress()
+                ms.getMappedPort(), ms.getHostAddress(), proxiedSites
             );
         } else {
-            ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
+            ad = new LanternKscopeAdvertisement(user, address,
+                    ms.getHostAddress(), proxiedSites);
         }
 
         final TrustGraphNode tgn = new LanternTrustGraphNode();

@@ -231,7 +231,7 @@ public class DefaultXmppHandler implements XmppHandler,
     public void start() {
         this.modelUtils.loadClientSecrets();
 
-        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
+        boolean alwaysUseProxy = this.censored.isCensored();
         XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
 
@@ -877,7 +877,6 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setProperty(LanternConstants.ARCH_KEY, model.getSystem().getArch());
 
         forHub.setProperty("instanceId", model.getInstanceId());
-        forHub.setProperty("mode", model.getSettings().getMode().toString());
         // Counterintuitive as it might seem at first glance, this is correct.
         //
         // If I'm a fallback proxy I need to send the host and port at which

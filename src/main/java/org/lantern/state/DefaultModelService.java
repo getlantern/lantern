@@ -10,8 +10,6 @@ import org.lantern.LanternUtils;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.event.Events;
-import org.lantern.event.ModeChangedEvent;
-import org.lantern.event.SyncEvent;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,30 +136,6 @@ public class DefaultModelService implements ModelService {
         }
         log.info("Setting system proxy");
         this.model.getSettings().setSystemProxy(isSystemProxy);
-    }
-
-    @Override
-    public Mode getMode() {
-        return model.getSettings().getMode();
-    }
-
-    @Override
-    public void setMode(final Mode mode) {
-        log.debug("Calling set mode. Mode is: {}", mode);
-        // One thing we want to do when we switch to 
-        final Settings set = this.model.getSettings();
-        
-        // We rely on this to determine whether or not the user needs to
-        // do more configuration when switching modes.
-        if (mode == Mode.get) {
-            model.setEverGetMode(true);
-        }
-        if (set.getMode() != mode) {
-            log.debug("Propagating events for mode change...");
-            set.setMode(mode);
-            Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
-            Events.asyncEventBus().post(new ModeChangedEvent(mode));
-        }
     }
 
     @Override

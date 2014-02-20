@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternRosterEntry;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
+import org.lantern.proxy.ProxiedSitesList;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 import org.lantern.util.Counter;
@@ -26,64 +27,64 @@ public class Peer {
     private String peerid = "";
 
     private String country = "";
-    
+
     @Keep
     public enum Type {
         pc,
         cloud,
         laeproxy
     }
-    
-    //private final Collection<PeerSocketWrapper> sockets = 
-    //    new HashSet<PeerSocketWrapper>();
 
-    //private final String base64Cert;
+    // private final Collection<PeerSocketWrapper> sockets =
+    // new HashSet<PeerSocketWrapper>();
+
+    // private final String base64Cert;
 
     private double lat = 0.0;
 
     private double lon = 0.0;
-    
-    private String type;
-    
+
+    private Type type;
+
     private boolean online;
 
     private boolean mapped;
 
     private String ip = "";
-    
-    private Mode mode;
-    
+
     private boolean incoming;
 
     private long bytesUp;
-    
+
     private Counter bytesUpCounter = Counter.averageOverOneSecond();
-    
+
     private long bytesDn;
-    
+
     private Counter bytesDnCounter = Counter.averageOverOneSecond();
-    
+
     private String version = "";
 
     private LanternRosterEntry rosterEntry;
 
     private int port;
-    
+
     private AtomicInteger numberOfOpenConnections = new AtomicInteger();
-    
+
     private AtomicLong lastConnected = new AtomicLong(0L);
-    
+
     private long lastConnectedLong;
-    
+
+    private volatile ProxiedSitesList proxiedSites = new ProxiedSitesList();
+
     public Peer() {
-        
+
     }
-    
-    public Peer(final URI peerId,final String countryCode,
-        final boolean mapped, final double latitude,
-        final double longitude, final Type type,
-        final String ip, final int port, final Mode mode, final boolean incoming,
-        final LanternRosterEntry rosterEntry) {
+
+    public Peer(final URI peerId, final String countryCode,
+            final boolean mapped, final double latitude,
+            final double longitude, final Type type,
+            final String ip, final int port, final boolean incoming,
+            final LanternRosterEntry rosterEntry, String[] proxiedSites) {
         this.mapped = mapped;
         this.lat = latitude;
         this.lon = longitude;
@@ -91,12 +92,12 @@ public class Peer {
         this.rosterEntry = rosterEntry;
         this.peerid = peerId.toASCIIString();
         this.ip = ip;
-        this.mode = mode;
         this.incoming = incoming;
-        this.type = type.toString();
+        this.type = type;
         this.country = countryCode.toUpperCase(Locale.US);
-        
-        // Peers are online when constructed this way (because we presumably 
+        this.setProxiedSites(proxiedSites);
+
+        // Peers are online when constructed this way (because we presumably
         // just received some type of message from them).
         this.online = true;
     }
@@ -124,17 +125,17 @@ public class Peer {
     public void setLon(double longitude) {
         this.lon = longitude;
     }
-    
+
     @JsonIgnore
     public boolean hasGeoData() {
         return lat != 0.0 || lon != 0.0;
     }
 
-    public String getType() {
+    public Type getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Type type) {
         this.type = type;
     }
 
@@ -162,15 +163,7 @@ public class Peer {
         this.ip = ip;
     }
 
-    public Mode getMode() {
-        return mode;
-    }
-
-    public void setMode(Mode mode) {
-        this.mode = mode;
-    }
-
-    @JsonView({Run.class})
+    @JsonView({ Run.class })
     public boolean isConnected() {
         return numberOfOpenConnections.get() > 0;
     }
@@ -183,17 +176,17 @@ public class Peer {
         this.incoming = incoming;
     }
 
-    @JsonView({Run.class})
+    @JsonView({ Run.class })
     public long getBpsUp() {
         return bytesUpCounter.getRate();
     }
 
-    @JsonView({Run.class})
+    @JsonView({ Run.class })
     public long getBpsDown() {
         return bytesDnCounter.getRate();
     }
 
-    @JsonView({Run.class})
+    @JsonView({ Run.class })
     public long getBpsUpDn() {
         return getBpsUp() + getBpsDown();
     }
@@ -205,7 +198,7 @@ public class Peer {
     public void setBytesUp(long bytesUp) {
         this.bytesUp = bytesUp;
     }
-    
+
     public void addBytesUp(long numberOfBytes) {
         this.bytesUpCounter.add(numberOfBytes);
     }
@@ -217,48 +210,49 @@ public class Peer {
     public void setBytesDn(long bytesDn) {
         this.bytesDn = bytesDn;
     }
-    
+
     public void addBytesDn(long numberOfBytes) {
         this.bytesDnCounter.add(numberOfBytes);
     }
 
-    @JsonView({Run.class})
+    @JsonView({ Run.class })
     public long getBytesUpDn() {
         return bytesDnCounter.getTotal() + bytesUpCounter.getTotal();
     }
 
-    @JsonView({Run.class})
+    @JsonView({ Run.class })
     public int getNSockets() {
         return numberOfOpenConnections.get();
     }
-    
+
     public void connected() {
         numberOfOpenConnections.incrementAndGet();
         lastConnected.set(System.currentTimeMillis());
     }
-    
+
     public void disconnected() {
         numberOfOpenConnections.decrementAndGet();
     }
-    
-    @JsonView({Run.class})
-    @JsonSerialize(include=Inclusion.NON_NULL)
+
+    @JsonView({ Run.class })
+    @JsonSerialize(include = Inclusion.NON_NULL)
     public String getLastConnected() {
         long lastConnected = getLastConnectedLong();
         if (lastConnected == 0) {
             return null;
         }
         return FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ssZ").format(
-            lastConnected);
+                lastConnected);
     }
-    
-    @JsonView({Persistent.class})
+
+    @JsonView({ Persistent.class })
     public long getLastConnectedLong() {
         long result = lastConnected.get();
-        if (result == 0l) result = lastConnectedLong;
+        if (result == 0l)
+            result = lastConnectedLong;
         return result;
     }
-    
+
     public void setLastConnectedLong(final long lastConnectedLong) {
         this.lastConnectedLong = lastConnectedLong;
         Events.eventBus().post(new PeerLastConnectedChangedEvent(this));
@@ -280,8 +274,8 @@ public class Peer {
         this.version = version;
     }
 
-    @JsonSerialize(include=Inclusion.NON_NULL)
-    //@JsonView({Run.class})
+    @JsonSerialize(include = Inclusion.NON_NULL)
+    // @JsonView({Run.class})
     public LanternRosterEntry getRosterEntry() {
         return rosterEntry;
     }
@@ -294,8 +288,8 @@ public class Peer {
     public String toString() {
         return "Peer [peerid=" + peerid + ", country=" + country + ", lat="
                 + lat + ", lon=" + lon + ", type=" + type + ", online="
-                + online + ", mapped=" + mapped + ", ip=" + ip + ", mode="
-                + mode + ", incoming=" + incoming + ", bytesUp=" + bytesUp
+                + online + ", mapped=" + mapped + ", ip=" + ip
+                + ", incoming=" + incoming + ", bytesUp=" + bytesUp
                 + ", bytesDn=" + bytesDn + ", version=" + version
                 + ", lastConnectedLong=" + lastConnectedLong + ", rosterEntry="
                 + rosterEntry + "]";
@@ -309,4 +303,21 @@ public class Peer {
         this.port = port;
     }
 
+    public void setProxiedSites(String[] proxiedSites) {
+        this.proxiedSites = proxiedSites == null ?
+                null : new ProxiedSitesList(proxiedSites);
+    }
+
+    /**
+     * Determine whether or not this peer proxies the given host.
+     * 
+     * @param host
+     * @return
+     */
+    public boolean proxiesHost(String host) {
+        boolean isFallback = Type.cloud == this.type;
+        boolean noProxiedSitesConfigured = proxiedSites == null;
+        return isFallback || noProxiedSitesConfigured ||
+                proxiedSites.includes(host);
+    }
 }

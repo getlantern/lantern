@@ -11,8 +11,6 @@ import org.lantern.ClientStats;
 import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.event.Events;
-import org.lantern.event.ModeChangedEvent;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
@@ -26,7 +24,6 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -183,17 +180,4 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
         log.info("Stopped GiveModeProxy");
     }
 
-    @Subscribe
-    public void modeChanged(ModeChangedEvent event) {
-        log.debug("Got mode change");
-        if (Mode.give == event.getNewMode()) {
-            if (!running) {
-                start();
-            }
-        } else {
-            if (running) {
-                stop();
-            }
-        }
-    }
 }

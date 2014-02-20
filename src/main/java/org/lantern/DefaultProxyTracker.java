@@ -25,7 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.event.Events;
-import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
@@ -220,32 +219,19 @@ public class DefaultProxyTracker implements ProxyTracker {
         proxyRetryService.shutdownNow();
     }
 
-    @Subscribe
-    public void onModeChanged(final ModeChangedEvent event) {
-        LOG.debug("Received mode changed event: {}", event);
-        addFallbackProxies(this.model.getS3Config());
-    }
-
     @Override
-    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
+    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference(
+            String host) {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
         for (ProxyHolder proxy : proxies) {
             if (proxy.isConnected()) {
-                result.add(proxy);
+                if (proxy.getPeer().proxiesHost(host)) {
+                    result.add(proxy);
+                }
             }
         }
         Collections.sort(result, PROXY_PRIORITIZER);
         return result;
-    }
-
-    @Override
-    public ProxyHolder firstConnectedTcpProxy() {
-        for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference()) {
-            if (ph.getFiveTuple().getProtocol() == Protocol.TCP) {
-                return ph;
-            }
-        }
-        return null;
     }
 
     private void addProxy(URI jid, InetSocketAddress address, Type type,
@@ -418,9 +404,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getIp()
                 + "@getlantern.org");
-        final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
-        cloud.setMode(org.lantern.state.Mode.give);
-
+        this.peerFactory.addPeer(uri, Type.cloud);
+        
         LOG.debug("Adding fallback: {}", fallbackProxy.getIp());
         Protocol protocol = "udp".equalsIgnoreCase(fallbackProxy.getProtocol()) ?
                 UDP

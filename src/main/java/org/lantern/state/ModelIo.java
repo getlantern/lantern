@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.Cli;
-import org.lantern.Country;
 import org.lantern.CountryService;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
@@ -99,17 +98,6 @@ public class ModelIo extends Storage<Model> {
             final Peers peers = read.getPeerCollector();
             peers.reset();
             if (read.getModal() == Modal.settingsLoadFailure) {
-                read.setModal(Modal.none);
-            }
-            boolean isCensored = false;
-            String countryCode = read.getLocation().getCountry();
-            if (countryCode != null) {
-                Country country = countryService.getCountryByCode(countryCode);
-                if (country != null) {
-                    isCensored = country.isCensors();
-                }
-            }
-            if (!isCensored && read.getModal() == Modal.giveModeForbidden) {
                 read.setModal(Modal.none);
             }
             LanternUtils.setModel(read);
@@ -265,12 +253,6 @@ public class ModelIo extends Storage<Model> {
             model.setLaunchd(true);
         } else {
             model.setLaunchd(false);
-        }
-
-        if (cmd.hasOption(Cli.OPTION_GIVE)) {
-            model.getSettings().setMode(Mode.give);
-        } else if (cmd.hasOption(Cli.OPTION_GET)) {
-            model.getSettings().setMode(Mode.get);
         }
     }
     

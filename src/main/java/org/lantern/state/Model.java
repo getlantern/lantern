@@ -76,13 +76,13 @@ public class Model {
 
     private Transfers transfers;
 
-    private boolean isEverGetMode;
-
     private boolean welcomeMessageShown;
 
     private String xsrfToken;
 
     private CountryService countryService;
+    
+    private boolean restrictProxyingToDefaultWhitelist;
 
     public Model() {
         //used for JSON loading
@@ -309,14 +309,6 @@ public class Model {
 
     }
 
-    public boolean isEverGetMode() {
-        return isEverGetMode;
-    }
-
-    public void setEverGetMode(boolean b) {
-        this.isEverGetMode = b;
-    }
-
     public String getXsrfToken() {
         if (xsrfToken == null) {
             byte[] bytes = new byte[16];
@@ -337,6 +329,16 @@ public class Model {
 
     public void setCountryService(CountryService countryService) {
         this.countryService = countryService;
+    }
+    
+    @JsonView({Persistent.class})
+    public boolean isRestrictProxyingToDefaultWhitelist() {
+        return restrictProxyingToDefaultWhitelist;
+    }
+    
+    public void setRestrictProxyingToDefaultWhitelist(
+            boolean restrictProxyingToDefaultWhitelist) {
+        this.restrictProxyingToDefaultWhitelist = restrictProxyingToDefaultWhitelist;
     }
 
     @JsonView({Persistent.class})

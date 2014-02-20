@@ -47,16 +47,10 @@ public interface ProxyTracker extends LanternService {
      * Return a collection of all connected proxies in order of preference for
      * using them.
      * 
+     * @param host the host to which we're trying to connect
      * @return
      */
-    Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference();
-
-    /**
-     * Gets the first proxy in order of fallback preference.
-     * 
-     * @return
-     */
-    ProxyHolder firstConnectedTcpProxy();
+    Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference(String host);
 
     /**
      * Called when a connection to a proxy fails.

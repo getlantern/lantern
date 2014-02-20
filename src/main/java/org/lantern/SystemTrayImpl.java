@@ -23,7 +23,6 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,11 +279,6 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
 
     @Subscribe
     public void onGoogleTalkState(final GoogleTalkStateEvent event) {
-        if (model.getSettings().getMode() == Mode.get) {
-            log.debug("Not linking Google Talk state to connectivity " +
-                    "state in get mode");
-            return;
-        }
         final GoogleTalkState state = event.getState();
         final ConnectivityStatus cs;
         switch (state) {

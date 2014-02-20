@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
 @Keep
 public class Whitelist {
 
-    private final Logger log = LoggerFactory.getLogger(Whitelist.class);
+    private static final Logger log = LoggerFactory.getLogger(Whitelist.class);
 
     /**
      * Lists all the whitelists from src/main/resources/whitelist that are used
@@ -50,6 +51,63 @@ public class Whitelist {
     };
     
     private static final String ORIGINAL_WHITELIST = "original.txt";
+    
+    private static final String[] DEFAULT_WHITELISTED_SITES;
+    
+    static {
+        // Initialize DEFAULT_WHITELISTED_SITES
+        Set<String> result = new HashSet<String>();
+        try {
+            result.addAll(readWhitelist(ORIGINAL_WHITELIST));
+            for (String whitelist : WHITELISTS) {
+                result.addAll(readWhitelist(whitelist));
+            }
+        } catch (Throwable t) {
+            log.error("Unable to initialize DEFAULT_WHITELISTED_SITES");
+        }
+        DEFAULT_WHITELISTED_SITES = result.toArray(new String[0]);
+    }
+    
+
+    /**
+     * Returns a list of all default whitelisted domains.
+     * 
+     * @return
+     */
+    public static String[] getDefaultWhitelistedSites() {
+        return DEFAULT_WHITELISTED_SITES;
+    }
+    
+    private static Set<String> readWhitelist(String whitelistName) {
+        Set<String> result = new HashSet<String>();
+        ClassLoader cl = Whitelist.class.getClassLoader();
+        String whitelistPath = "whitelists/" + whitelistName;
+        BufferedReader reader = null;
+        try {
+            InputStream is = cl.getResourceAsStream(whitelistPath);
+            reader = new BufferedReader(new InputStreamReader(is));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!StringUtils.isBlank(line)) {
+                    if (!line.startsWith("#")) {
+                        // Line has data and is not commented, create entry
+                        result.add(line);
+                    }
+                }
+            }
+            return result;
+        } catch (Throwable t) {
+            log.warn("Unable to read whitelist {}", whitelistPath, t);
+            return new HashSet<String>();
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException ioe) {
+                log.info("Unable to close whitelist reader", ioe);
+            }
+        }
+    }
 
     /**
      * Keeps track of which whitelists from {@link #WHITELISTS} have been
@@ -103,8 +161,6 @@ public class Whitelist {
             log.info("Applied whitelist {}", whitelistPath);
         } catch (Throwable t) {
             log.warn("Unable to apply whitelist {}", whitelistPath, t);
-        } finally {
-
         }
     }
 

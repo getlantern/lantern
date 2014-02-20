@@ -56,7 +56,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
@@ -1045,14 +1044,6 @@ public class LanternUtils {
         LanternUtils.model = model;
     }
 
-    public static boolean isGet() {
-        if (model == null) {
-            LOG.error("Calling isGet before model populated! Testing?");
-            return true;
-        }
-        return model.getSettings().getMode() == Mode.get;
-    }
-    
     public static Certificate certFromBase64(String base64Cert)
             throws CertificateException {
         return certFromBytes(Base64.decodeBase64(base64Cert));

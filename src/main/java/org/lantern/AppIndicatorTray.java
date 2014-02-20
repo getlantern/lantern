@@ -12,7 +12,6 @@ import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
 import org.lantern.linux.Gobject;
 import org.lantern.linux.Gtk;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -272,11 +271,6 @@ public class AppIndicatorTray implements SystemTray {
     
     @Subscribe
     public void onGoogleTalkState(final GoogleTalkStateEvent event) {
-        if (model.getSettings().getMode() == Mode.get) {
-            LOG.debug("Not linking Google Talk state to connectivity " +
-                "state in get mode");
-            return;
-        }
         final GoogleTalkState state = event.getState();
         final ConnectivityStatus cs;
         switch (state) {

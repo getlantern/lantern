@@ -34,8 +34,6 @@ public class Settings {
 
     private boolean autoReport = true;
 
-    private Mode mode = Mode.unknown;
-
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     
     private TransportProtocol proxyProtocol = TransportProtocol.TCP;
@@ -121,15 +119,6 @@ public class Settings {
 
     public void setAutoReport(final boolean autoReport) {
         this.autoReport = autoReport;
-    }
-
-    @JsonView({Run.class, Persistent.class})
-    public Mode getMode() {
-        return mode;
-    }
-
-    public void setMode(final Mode mode) {
-        this.mode = mode;
     }
 
     @JsonView({Run.class, Persistent.class})

@@ -35,8 +35,6 @@ public class Cli {
     public static final String OPTION_TCP = "disable-tcp";
     public static final String OPTION_USER = "user";
     public static final String OPTION_PASS = "pass";
-    public static final String OPTION_GET = "force-get";
-    public static final String OPTION_GIVE = "force-give";
     public static final String OPTION_VERSION = "version";
     public static final String OPTION_NEW_UI = "new-ui";
     public static final String OPTION_REFRESH_TOK = "refresh-tok";
@@ -128,8 +126,6 @@ public class Cli {
             "Google user name -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
         options.addOption(null, OPTION_PASS, true,
             "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
-        options.addOption(null, OPTION_GET, false, "Force running in get mode");
-        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
         options.addOption(null, OPTION_VERSION, false,
             "Print the Lantern version");
         options.addOption(null, OPTION_NEW_UI, false,

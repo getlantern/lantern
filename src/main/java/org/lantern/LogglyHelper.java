@@ -5,7 +5,6 @@ import java.util.Date;
 import org.apache.commons.lang.StringUtils;
 import org.lantern.loggly.Loggly;
 import org.lantern.loggly.LogglyMessage;
-import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +27,7 @@ public class LogglyHelper {
         this.model = model;
         this.loggly = new Loggly(
              LanternUtils.isDevMode(),
-             model.getSettings().getMode() == Mode.get ?
-             LanternConstants.LANTERN_LOCALHOST_ADDR :
-             null);
+             LanternConstants.LANTERN_LOCALHOST_ADDR);
     }
 
     public void submit(String json) {

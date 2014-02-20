@@ -42,7 +42,7 @@ public class HttpClientFactory {
      * @throws IOException If we could not obtain a proxied client.
      */
     public HttpClient newClient() {
-        if (this.censored.isCensored() || LanternUtils.isGet()) {
+        if (this.censored.isCensored()) {
             return newProxiedClient();
         } else {
             return newDirectClient();
