@@ -228,20 +228,6 @@ func TestSetNonTS_Copy(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Union(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "4", "5")
-	u := s.Union(r)
-
-	if u.Size() != 5 {
-		t.Error("Union: the merged set doesn't have all items in it.")
-	}
-
-	if !u.Has("1", "2", "3", "4", "5") {
-		t.Error("Union: merged items are not availabile in the set.")
-	}
-}
-
 func TestSetNonTS_Merge(t *testing.T) {
 	s := NewNonTS("1", "2", "3")
 	r := NewNonTS("3", "4", "5")
@@ -270,76 +256,3 @@ func TestSetNonTS_Separate(t *testing.T) {
 	}
 }
 
-func TestSetNonTS_Intersection(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "5")
-	u := s.Intersection(r)
-
-	if u.Size() != 1 {
-		t.Error("Intersection: the set doesn't have all items in it.")
-	}
-
-	if !u.Has("3") {
-		t.Error("Intersection: items after intersection are not availabile in the set.")
-	}
-}
-
-func TestSetNonTS_Difference(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("2", "3", "5")
-	u := s.Difference(r)
-
-	if u.Size() != 1 {
-		t.Error("Difference: the set doesn't have all items in it.")
-	}
-
-	if !u.Has("1") {
-		t.Error("Difference: items are not availabile in the set.")
-	}
-}
-
-func TestSetNonTS_SymmetricDifference(t *testing.T) {
-	s := NewNonTS("1", "2", "3")
-	r := NewNonTS("3", "4", "5")
-	u := s.SymmetricDifference(r)
-
-	if u.Size() != 4 {
-		t.Error("SymmetricDifference: the set doesn't have all items in it.")
-	}
-
-	if !u.Has("1", "2", "4", "5") {
-		t.Error("SymmetricDifference: items are not availabile in the set.")
-	}
-}
-
-func TestSetNonTS_StringSlice(t *testing.T) {
-	s := NewNonTS("san francisco", "istanbul", 3.14, 1321, "ankara")
-	u := s.StringSlice()
-
-	if len(u) != 3 {
-		t.Error("StringSlice: slice should only have three items")
-	}
-
-	for _, item := range u {
-		r := reflect.TypeOf(item)
-		if r.Kind().String() != "string" {
-			t.Error("StringSlice: slice item should be a string")
-		}
-	}
-}
-
-func TestSetNonTS_IntSlice(t *testing.T) {
-	s := NewNonTS("san francisco", "istanbul", 3.14, 1321, "ankara", 8876)
-	u := s.IntSlice()
-
-	if len(u) != 2 {
-		t.Error("IntSlice: slice should only have two items")
-	}
-
-	for _, item := range u {
-		r := reflect.TypeOf(item)
-		if r.Kind().String() != "int" {
-			t.Error("Intslice: slice item should be a int")
-		}
-	}
-}

@@ -173,15 +173,6 @@ func (s *set) Copy() Interface {
 	return NewNonTS(s.List()...)
 }
 
-// Union is the merger of two sets. It returns a new set with the element in s
-// and t combined. It doesn't modify s. Use Merge() if  you want to change the
-// underlying set s.
-func (s *set) Union(t Interface) Interface {
-	u := s.Copy()
-	u.Merge(t)
-	return u
-}
-
 // Merge is like Union, however it modifies the current set it's applied on
 // with the given t set.
 func (s *set) Merge(t Interface) {
@@ -195,63 +186,4 @@ func (s *set) Merge(t Interface) {
 // Separate removes the set items containing in t from set s. Please aware that
 func (s *set) Separate(t Interface) {
 	s.Remove(t.List()...)
-}
-
-// Intersection returns a new set which contains items which is in both s and t.
-func (s *set) Intersection(t Interface) Interface {
-	u := s.New()
-
-	s.Each(func(item interface{}) bool {
-		if t.Has(item) {
-			u.Add(item)
-		}
-		return true
-	})
-
-	return u
-}
-
-// Difference returns a new set which contains items which are in s but not in t.
-func (s *set) Difference(t Interface) Interface {
-	u := s.Copy()
-	u.Separate(t)
-	return u
-}
-
-// SymmetricDifference returns a new set which s is the difference of items which are in
-// one of either, but not in both.
-func (s *set) SymmetricDifference(t Interface) Interface {
-	u := s.Difference(t)
-	v := t.Difference(s)
-	return u.Union(v)
-}
-
-// StringSlice is a helper function that returns a slice of strings of s. If
-// the set contains mixed types of items only items of type string are returned.
-func (s *set) StringSlice() []string {
-	slice := make([]string, 0)
-	for _, item := range s.List() {
-		v, ok := item.(string)
-		if !ok {
-			continue
-		}
-
-		slice = append(slice, v)
-	}
-	return slice
-}
-
-// IntSlice is a helper function that returns a slice of ints of s. If
-// the set contains mixed types of items only items of type int are returned.
-func (s *set) IntSlice() []int {
-	slice := make([]int, 0)
-	for _, item := range s.List() {
-		v, ok := item.(int)
-		if !ok {
-			continue
-		}
-
-		slice = append(slice, v)
-	}
-	return slice
 }
