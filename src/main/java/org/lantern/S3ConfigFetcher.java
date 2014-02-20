@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
 /**
@@ -56,7 +56,7 @@ public class S3ConfigFetcher {
      * @param model The persistent settings.
      */
     public S3ConfigFetcher(final Model model) {
-        log.debug("Creating s3 config manager...");
+        log.debug("Creating s3 config fetcher...");
         this.model = model;
         this.url = readUrl();
     }
@@ -83,6 +83,7 @@ public class S3ConfigFetcher {
             if (fallbacks == null || fallbacks.isEmpty()) {
                 recheck();
             } else {
+                log.debug("Using existing config...");
                 Events.asyncEventBus().post(config);
                 // If we've already got valid fallbacks, thread this so we
                 // don't hold up the rest of Lantern initialization.
@@ -91,7 +92,6 @@ public class S3ConfigFetcher {
         } else {
             recheck();
         }
-        
     }
     
     private void scheduleConfigRecheck(final double minutesToSleep) {
@@ -208,10 +208,14 @@ public class S3ConfigFetcher {
 
     private void copyUrlFile() throws IOException {
         log.debug("Copying config URL file");
-        final Collection<File> filesToTry = Arrays.asList(
-            new File(SystemUtils.USER_HOME, URL_FILENAME),
-            new File(SystemUtils.USER_DIR, URL_FILENAME)
+        
+        final Collection<File> filesToTry = Lists.newArrayList(
+            new File(SystemUtils.getUserHome(), URL_FILENAME),
+            new File(SystemUtils.getUserDir(), URL_FILENAME)
         );
+        if (SystemUtils.IS_OS_WINDOWS) {
+            filesToTry.add(new File(System.getenv("APPDATA")));
+        }
         final File par = LanternClientConstants.CONFIG_DIR;
         if (!par.isDirectory() && !par.mkdirs()) {
             log.error("Could not make config dir at "+par);
@@ -219,6 +223,10 @@ public class S3ConfigFetcher {
         }
         
         for (final File from : filesToTry) {
+            if (!from.getParentFile().isDirectory()) {
+                log.error("Parent file is not a directory at {}", 
+                        from.getParentFile());
+            }
             if (from.isFile() && isFileNewer(from, URL_CONFIG_FILE)) {
                 log.debug("Copying from {} to {}", from, URL_CONFIG_FILE);
                 Files.copy(from, URL_CONFIG_FILE);
