@@ -180,7 +180,7 @@ func (self *_parser) ParseBracketMember(left _node) _node {
 
 func (self *_parser) ParseNewExpression() _node {
 	self.Expect("new")
-	node := newnewNode(self.ParseLeftHandSideExpression())
+	node := newNewNode(self.ParseLeftHandSideExpression())
 	self.markNode(node)
 	if self.Match("(") {
 		node.ArgumentList = self.ParseArgumentList()

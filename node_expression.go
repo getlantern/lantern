@@ -232,7 +232,7 @@ type _newNode struct {
 	ArgumentList []_node
 }
 
-func newnewNode(callee _node) *_newNode {
+func newNewNode(callee _node) *_newNode {
 	return &_newNode{
 		_nodeType:    nodeNew,
 		Callee:       callee,
