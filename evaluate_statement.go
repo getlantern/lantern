@@ -28,7 +28,7 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 	}
 
 	if exception {
-		panic(tryCatchValue)
+		panic(newException(tryCatchValue))
 	}
 
 	return tryCatchValue
@@ -54,7 +54,8 @@ func (self *_runtime) evaluateVariableDeclaration(node *_variableDeclarationNode
 }
 
 func (self *_runtime) evaluateThrow(node *_throwNode) Value {
-	panic(self.GetValue(self.evaluate(node.Argument)))
+	value := self.GetValue(self.evaluate(node.Argument))
+	panic(newException(value))
 }
 
 func (self *_runtime) evaluateReturn(node *_returnNode) Value {

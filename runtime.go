@@ -187,6 +187,9 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 	// Otherwise, some sort of unknown panic happened, we'll just propagate it
 	defer func() {
 		if caught := recover(); caught != nil {
+			if exception, ok := caught.(*_exception); ok {
+				caught = exception.eject()
+			}
 			switch caught := caught.(type) {
 			case _error:
 				exception = true

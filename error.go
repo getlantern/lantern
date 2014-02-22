@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+type _exception struct {
+	value interface{}
+}
+
+func newException(value interface{}) *_exception {
+	return &_exception{
+		value: value,
+	}
+}
+
+func (self *_exception) eject() interface{} {
+	value := self.value
+	self.value = nil // Prevent Go from holding on to the value, whatever it is
+	return value
+}
+
 type _error struct {
 	Name    string
 	Message string
@@ -96,6 +112,9 @@ func typeErrorResult(throw bool) bool {
 func catchPanic(function func()) (err error) {
 	defer func() {
 		if caught := recover(); caught != nil {
+			if exception, ok := caught.(*_exception); ok {
+				caught = exception.eject()
+			}
 			switch caught := caught.(type) {
 			case *_syntaxError:
 				err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+0))

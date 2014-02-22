@@ -53,6 +53,9 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 		raise := false
 		defer func() {
 			if caught := recover(); caught != nil {
+				if exception, ok := caught.(*_exception); ok {
+					caught = exception.eject()
+				}
 				if raise {
 					if len(expect) > 0 {
 						Is(caught, expect[0])
