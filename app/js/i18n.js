@@ -22,11 +22,12 @@ angular.module('app.i18n', [])
     $rootScope.$watch('lang', function (lang) {
       $rootScope.langDirection = LANGS[lang].dir;
       $rootScope.rtl = $rootScope.langDirection === 'rtl';
-      if (!$rootScope.globalState) $rootScope.globalState = {};
       var closest = closestAvailableLang(lang, EXTERNAL_URL.userForums);
-      $rootScope.globalState.forumsUrl = EXTERNAL_URL.userForums[closest] ||
-                                         EXTERNAL_URL.userForums.__default;
     });
+
+    $rootScope.valByLang = function (mapping) {
+      return mapping[$rootScope.lang] || mapping[DEFAULT_LANG];
+    };
 
     function maybeChangeLang(lang) {
       var closest = closestAvailableLang(lang);

@@ -472,7 +472,7 @@
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
     <div class="smaller">
       <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-      <a ng-click="openExternal(globalState.forumsUrl)">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(valByLang(EXTERNAL_URL.userForums))">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
       <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
       <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
     </div>

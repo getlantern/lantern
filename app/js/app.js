@@ -43,8 +43,6 @@ var app = angular.module('app', [
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
 
-    if (!$rootScope.globalState) $rootScope.globalState = {};
-
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
     $window.model = model;
