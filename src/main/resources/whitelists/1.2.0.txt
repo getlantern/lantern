@@ -1,4 +1,5 @@
 ytimg.com
+manoto1.com
 
 # Blogger Country-specific Domains
 blogger.bj
