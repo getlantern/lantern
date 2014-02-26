@@ -66,6 +66,7 @@
           <entry location=".DS_Store" fileType="regular" />
           <entry location="lantern-installer.ex_" fileType="regular" />
           <entry location="lantern-installer.exe.zip" fileType="regular" />
+          <entry location="pt" fileType="regular" />
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="149" file="./win/pt" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="pt" excludeSuffixes="" dirMode="755" overrideDirMode="false">
