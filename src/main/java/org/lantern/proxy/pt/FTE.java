@@ -51,6 +51,8 @@ import org.slf4j.LoggerFactory;
 public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
     private static final String FTE_BASE_PATH = "pt/fteproxy";
+    private static final String[] FTE_EXECUTABLE_NAMES =
+            new String[] { "fteproxy", "fteproxy.exe" };
     private static final String LANTERN_DEFS_RELEASE = "19700101";
     // Note - custom format names need to end with "-request" and "-response"
     // respectively, otherwise fteproxy won't recognize them.
@@ -170,13 +172,21 @@ public class FTE implements PluggableTransport {
     }
 
     private void initFtePath() {
-        File fte = new File(FTE_BASE_PATH + "/fteproxy");
-        ftePath = fte.getAbsolutePath();
-        if (!fte.exists()) {
-            String message = String.format(
-                    "fteproxy executable not found at %1$s", ftePath);
-            LOGGER.error(String.format("fteproxy executable not found at %1$s",
-                    ftePath));
+        File fte = null;
+        for (String name : FTE_EXECUTABLE_NAMES) {
+            fte = new File(FTE_BASE_PATH + "/" + name);
+            ftePath = fte.getAbsolutePath();
+            if (fte.exists()) {
+                break;
+            } else {
+                LOGGER.info("fteproxy executable not found at {}", ftePath);
+                fte = null;
+                ftePath = null;
+            }
+        }
+        if (fte == null) {
+            String message = "fteproxy executable not found in search path";
+            LOGGER.error(message, ftePath);
             throw new Error(message);
         }
     }
