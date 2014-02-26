@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.proxy;
 
 import static org.lantern.state.Peer.Type.*;
 import static org.littleshoot.util.FiveTuple.Protocol.*;
@@ -24,6 +24,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lantern.ConnectivityChangedEvent;
+import org.lantern.ConnectivityStatus;
+import org.lantern.LanternTrustStore;
+import org.lantern.LanternUtils;
+import org.lantern.PeerFactory;
+import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
@@ -55,6 +61,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
+    private final Set<ProxyInfo> configuredProxies = new HashSet<ProxyInfo>();
+    
     /**
      * Holds all proxies.
      */
@@ -110,14 +118,25 @@ public class DefaultProxyTracker implements ProxyTracker {
                 LOG.debug("Removing fallback (I may readd it shortly): ",
                         p.getJid());
                 fallbacks.add(p);
+                p.stopPtIfNecessary();
             }
         }
         proxies.removeAll(fallbacks);
+        Iterator<ProxyInfo> it = configuredProxies.iterator();
+        while (it.hasNext()) {
+            ProxyInfo info = it.next();
+            if (info.getType() == Type.cloud) {
+                it.remove();
+            }
+        }
         addFallbackProxies(config);
     }
 
     @Override
     public void clear() {
+        for (ProxyHolder proxy : proxies) {
+            proxy.stopPtIfNecessary();
+        }
         proxies.clear();
 
         // We need to add the fallback proxy back in.
@@ -135,17 +154,17 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public void addProxy(URI jid) {
-        this.addProxy(jid, null);
-    }
-
-    @Override
-    public void addProxy(URI jid, InetSocketAddress address) {
-        // We've seen this in weird cases in the field -- might as well
-        // program defensively here.
+    public void addProxy(ProxyInfo info) {
+        synchronized (this) {
+            if (configuredProxies.contains(info)) {
+                LOG.debug("Proxy already configured.  Configured proxies is: {}", configuredProxies);
+                return;
+            }
+            configuredProxies.add(info);
+        }
         InetAddress remoteAddress = null;
-        if (address != null) {
-            remoteAddress = address.getAddress();
+        if (info != null && info.getWanAddress() != null) {
+            remoteAddress = info.getWanAddress().getAddress();
         }
         if (remoteAddress != null) {
             if (remoteAddress.isLoopbackAddress()
@@ -153,11 +172,13 @@ public class DefaultProxyTracker implements ProxyTracker {
                 LOG.warn(
                         "Can connect to neither loopback nor 0.0.0.0 address {}",
                         remoteAddress);
-                address = null;
+                info.setWanHost(null);
+                info.setWanPort(0);
             }
         }
-
-        addProxy(jid, address, Type.pc, TCP, null);
+        ProxyHolder proxy = new ProxyHolder(this, peerFactory,
+                lanternTrustStore, info);
+        doAddProxy(proxy);
     }
 
     @Override
@@ -248,38 +269,20 @@ public class DefaultProxyTracker implements ProxyTracker {
         return null;
     }
 
-    private void addProxy(URI jid, InetSocketAddress address, Type type,
-            Protocol protocol, String lanternAuthToken) {
-        boolean natTraversed = address == null || address.getPort() == 0;
-        FiveTuple fiveTuple = !natTraversed ? new FiveTuple(null, address,
-                protocol)
-                : EMPTY_UDP_TUPLE;
-        ProxyHolder proxy = new ProxyHolder(this, peerFactory,
-                lanternTrustStore, jid, fiveTuple, type, natTraversed,
-                lanternAuthToken);
-        doAddProxy(jid, proxy);
-    }
-
-    private void doAddProxy(final URI jid, final ProxyHolder proxy) {
-        LOG.info("Attempting to add proxy {} {}", jid, proxy);
-
-        if (proxies.contains(proxy)) {
-            LOG.debug("Proxy already tracked.  Proxies is: {}", proxies);
-            return;
+    private void doAddProxy(final ProxyHolder proxy) {
+        LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
+        proxies.add(proxy);
+        LOG.info("Proxies is now {}", proxies);
+        if (proxy.getType() == Peer.Type.cloud) {
+            // Assume cloud proxies to be connected
+            successfullyConnectedToProxy(proxy);
         } else {
-            LOG.info("Adding proxy {} {}", jid, proxy);
-            proxies.add(proxy);
-            LOG.info("Proxies is now {}", proxies);
-            if (proxy.getType() == Peer.Type.cloud) {
-                // Assume cloud proxies to be connected
-                successfullyConnectedToProxy(proxy);
-            } else {
-                // Assume other proxies to not be connected and let the
-                // {@link #restoreTimedInProxies()} logic pick it up on its next
-                // run
-                onCouldNotConnect(proxy);
-            }
+            // Assume other proxies to not be connected and let the
+            // {@link #restoreTimedInProxies()} logic pick it up on its next
+            // run
+            onCouldNotConnect(proxy);
         }
+
     }
 
     private void checkConnectivityToProxy(ProxyHolder proxy) {
@@ -287,7 +290,10 @@ public class DefaultProxyTracker implements ProxyTracker {
             // NAT traversed UDP proxies are currently disabled
             // checkConnectivityToNattedProxy(proxy);
         } else {
-            if (proxy.getFiveTuple().getProtocol() == TCP) {
+            if (proxy.getType() == Peer.Type.cloud) {
+                // Assume cloud proxies to be connected
+                proxy.markConnected();
+            } else if (proxy.getFiveTuple().getProtocol() == TCP) {
                 checkConnectivityToTcpProxy(proxy);
             } else {
                 // TODO: need to actually test UDT connectivity somehow
@@ -311,7 +317,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             onCouldNotConnect(proxy);
 
             if (proxy.attemptNatTraversalIfConnectionFailed()) {
-                addProxy(proxy.getJid());
+                addProxy(new ProxyInfo(proxy.getJid()));
             }
         } finally {
             IOUtils.closeQuietly(sock);
@@ -410,24 +416,21 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
         LOG.debug("Attempting to add single fallback proxy");
+
         final String cert = fallbackProxy.getCert();
         if (StringUtils.isNotBlank(cert)) {
             lanternTrustStore.addCert(cert);
         } else {
             LOG.warn("Fallback with no cert? {}", fallbackProxy);
         }
-        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getIp()
+        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getWanHost()
                 + "@getlantern.org");
+        fallbackProxy.setJid(uri);
         final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
 
-        LOG.debug("Adding fallback: {}", fallbackProxy.getIp());
-        Protocol protocol = "udp".equalsIgnoreCase(fallbackProxy.getProtocol()) ?
-                UDP
-                : TCP;
-        addProxy(uri, LanternUtils.isa(fallbackProxy.getIp(),
-                fallbackProxy.getPort()), Type.cloud, protocol,
-                fallbackProxy.getAuth_token());
+        LOG.debug("Adding fallback: {}", fallbackProxy.getWanHost());
+        addProxy(fallbackProxy);
     }
 
     /**

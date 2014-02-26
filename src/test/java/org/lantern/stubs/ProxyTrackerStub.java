@@ -1,12 +1,12 @@
 package org.lantern.stubs;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.lantern.ProxyHolder;
-import org.lantern.ProxyTracker;
+import org.lantern.proxy.ProxyHolder;
+import org.lantern.proxy.ProxyInfo;
+import org.lantern.proxy.ProxyTracker;
 
 public class ProxyTrackerStub implements ProxyTracker {
 
@@ -27,15 +27,7 @@ public class ProxyTrackerStub implements ProxyTracker {
     }
 
     @Override
-    public void addProxy(URI jid) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void addProxy(URI jid, InetSocketAddress address) {
-        // TODO Auto-generated method stub
-
+    public void addProxy(ProxyInfo info) {
     }
 
     @Override

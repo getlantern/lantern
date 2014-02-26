@@ -30,6 +30,7 @@ import org.lantern.monitoring.StatsReporter;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
+import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
@@ -623,7 +624,7 @@ public class Launcher {
         try {
             final String logPath = logFile.getCanonicalPath();
             props.put("log4j.appender.RollingTextFile.File", logPath);
-            props.put("log4j.rootLogger", "warn, RollingTextFile");
+            props.put("log4j.rootLogger", "info, RollingTextFile");
             props.put("log4j.appender.RollingTextFile",
                     "org.apache.log4j.RollingFileAppender");
             props.put("log4j.appender.RollingTextFile.MaxFileSize", "1MB");

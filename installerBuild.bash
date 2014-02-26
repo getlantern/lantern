@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
 CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
+LOCAL_BUILD=false
+
+if [[ $VERSION == "local" ]] || [[ $VERSION == "quick" ]];
+then
+	LOCAL_BUILD=true
+fi
 
 function die() {
   echo $*
@@ -38,20 +44,25 @@ VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 
-git pull || die "Could not git pull?"
-if [[ $VERSION == "HEAD" ]]; 
-then 
-    CHECKOUT=HEAD; 
-elif [[ $VERSION == "newest" ]];
+if [[ LOCAL_BUILD ]];
 then
-    CHECKOUT=newest;
-else 
-    CHECKOUT=lantern-$VERSION; 
+	echo "Building from local code, not performing git ops"
+else
+	git pull || die "Could not git pull?"
+	if [[ $VERSION == "HEAD" ]]; 
+	then 
+	    CHECKOUT=HEAD; 
+	elif [[ $VERSION == "newest" ]];
+	then
+	    CHECKOUT=newest;
+	else 
+	    CHECKOUT=lantern-$VERSION; 
+	fi
+	
+	oldbranch=`git rev-parse --abbrev-ref HEAD`
+	
+	git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 fi
-
-oldbranch=`git rev-parse --abbrev-ref HEAD`
-
-git checkout $CHECKOUT || die "Could not checkout branch at $CHECKOUT"
 
 if [[ $VERSION == "newest" ]];
 then
@@ -61,15 +72,24 @@ fi
 
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE || die "Could not set exceptional key"
 
-mvn clean || die "Could not clean?"
-mvn $MVN_ARGS -Drelease install -Dmaven.test.skip=true || die "Could not build?"
+if [[ $VERSION == "quick" ]];
+then
+	echo "Skipping maven for quick build"
+else
+	echo "Version is $VERSION"
+	mvn clean || die "Could not clean?"
+	mvn $MVN_ARGS -Drelease install -Dmaven.test.skip=true || die "Could not build?"
+fi
 
 echo "Reverting constants file"
 git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
-if [[ $VERSION == "HEAD" ]];
+if [[ $VERSION == "HEAD" ]] || [[ $VERSION == "local" ]];
 then
-    cp -f target/lantern-*-small.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp -f `ls -1t target/lantern-*-small.jar | head -1` install/common/lantern.jar || die "Could not copy jar?"
+elif [[ $VERSION == "quick" ]];
+then
+	cp -f `ls -1t target/lantern-*.jar | head -1` install/common/lantern.jar || die "Could not copy jar?"
 else
     cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
 fi

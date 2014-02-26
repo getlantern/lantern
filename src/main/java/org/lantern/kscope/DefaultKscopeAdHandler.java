@@ -1,6 +1,5 @@
 package org.lantern.kscope;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.Certificate;
@@ -14,12 +13,13 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
-import org.lantern.ProxyTracker;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.proxy.ProxyInfo;
+import org.lantern.proxy.ProxyTracker;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,10 +67,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
                             jid,
                             new InstanceInfo<URI, ReceivedKScopeAd>(
                                     jid,
-                                    new InetSocketAddress(ad.getLocalAddress(),
-                                            ad.getLocalPort()),
-                                    new InetSocketAddress(ad.getAddress(), ad
-                                            .getPort()),
+                                    ad.getProxyInfo().getLanAddress(),
+                                    ad.getProxyInfo().getWanAddress(),
                                     new ReceivedKScopeAd(from, ad)));
         } catch (final URISyntaxException e) {
             log.error("Could not create URI from: {}", from);
@@ -140,14 +138,15 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
     private void addProxy(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
         log.debug("Adding proxy... {}", instance);
-        URI jid = instance.getId();
-        InetSocketAddress address = instance.hasMappedEndpoint() ?
-                instance.getAddressOnInternet() :
+        ProxyInfo info = instance.hasMappedEndpoint() ?
+                instance.getData().getAd().getProxyInfo() :
                 null;
-        this.proxyTracker.addProxy(jid, address);
-        // Also add the local network advertisement in case they're on
-        // the local network.
-        this.proxyTracker.addProxy(jid, instance.getAddressOnLan());
+        this.proxyTracker.addProxy(info);
+        if (info != null) {
+            // Also add the local network advertisement in case they're on
+            // the local network.
+            this.proxyTracker.addProxy(info.onLan());
+        }
     }
 
 }

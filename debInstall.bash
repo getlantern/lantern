@@ -16,7 +16,7 @@ BUILD_ID=$4
 
 source ./installerBuild.bash $VERSION "-Dbuildos=linux -Dsun.arch.data.model=$ARCH -Plinux,-mac,-windows" $RELEASE || die "Could not build!!"
 
-if [[ $VERSION == "HEAD" ]];
+if [[ $VERSION == "HEAD" ]] || [[ $VERSION == "local" ]] || [[ $VERSION == "quick" ]];
 then
     INSTALLVERSION=0.0.1;
 else

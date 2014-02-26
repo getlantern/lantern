@@ -1,8 +1,9 @@
-package org.lantern;
+package org.lantern.proxy;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
+
+import org.lantern.LanternService;
 
 /**
  * Interface for all classes that keep track of proxies.
@@ -14,25 +15,14 @@ public interface ProxyTracker extends LanternService {
     void clearPeerProxySet();
 
     /**
-     * Adds a proxy for the given JabberID at the given address. If the
-     * <code>address</code> isn't given, we will attempt to do a NAT Traversal
-     * to find an address for the given Jabber ID.
+     * Adds a proxy for the given {@link ProxyInfo}. Depending on whether or not
+     * there's a mapped address available for the given ProxyInfo, this may
+     * result in a NAT traversal.
      * 
-     * @param jid
-     *            Jabber ID for the peer
-     * @param address
-     *            (optional) address at which we expect the proxy to be
-     *            listening
+     * @param info
+     *            information identifying the proxy
      */
-    void addProxy(URI jid, InetSocketAddress address);
-
-    /**
-     * Adds a proxy for the given JabberID at an unknown address. We will
-     * attempt to do a NAT Traversal to find an address for the given Jabber ID.
-     * 
-     * @param jid
-     */
-    void addProxy(URI jid);
+    void addProxy(ProxyInfo info);
 
     /**
      * Remove the NAT traversed proxy for the peer identified by the given URI.

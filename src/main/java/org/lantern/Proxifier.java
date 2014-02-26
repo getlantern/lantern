@@ -13,6 +13,7 @@ import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SystemProxyChangedEvent;
+import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;

@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.security.auth.login.CredentialException;
 
 import org.jivesoftware.smack.packet.Presence;
+import org.lantern.proxy.ProxyTracker;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.util.FiveTuple;

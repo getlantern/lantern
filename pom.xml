@@ -326,6 +326,11 @@
       <artifactId>geoip-api</artifactId>
       <version>1.2.11</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-exec</artifactId>
+      <version>1.2</version>
+    </dependency>
   </dependencies>
 
   <prerequisites>

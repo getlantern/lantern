@@ -15,6 +15,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.lantern.event.Events;
+import org.lantern.proxy.FallbackProxy;
 import org.lantern.event.MessageEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Notification.MessageType;
@@ -37,7 +38,13 @@ public class S3ConfigFetcher {
         = LoggerFactory.getLogger(S3ConfigFetcher.class);
 
     // DRY: wrapper.install4j and configureUbuntu.txt
+    private static final File[] CONFIG_DIRS = {
+        new File(SystemUtils.USER_HOME),
+        new File(SystemUtils.USER_DIR)
+    };
+    
     private static final String URL_FILENAME = ".lantern-configurl.txt";
+    private static final String LOCAL_S3_CONFIG = ".s3config";
 
     private final Optional<String> url;
 
@@ -177,6 +184,10 @@ public class S3ConfigFetcher {
     }
 
     private Optional<S3Config> fetchConfig() {
+        Optional<S3Config> local = fetchLocalConfig();
+        if (local.isPresent()) {
+            return local;
+        }
         if (!url.isPresent()) {
             log.error("URL initialization failed.");
             return Optional.absent();
@@ -188,6 +199,7 @@ public class S3ConfigFetcher {
             final HttpResponse res = client.execute(get);
             is = res.getEntity().getContent();
             final String cfgStr = IOUtils.toString(is);
+            //log.error("S3 Config is***********************\n{}\n**********************", cfgStr);
             final S3Config cfg = 
                 JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
             log.debug("Controller: " + cfg.getController());
@@ -202,6 +214,34 @@ public class S3ConfigFetcher {
         } finally {
             IOUtils.closeQuietly(is);
             get.reset();
+        }
+        return Optional.absent();
+    }
+    
+    /**
+     * Looks for a local S3 configuration in the program's startup folder under
+     * the name .s3config
+     * 
+     * @return
+     */
+    private Optional<S3Config> fetchLocalConfig() {
+        for (File directory : CONFIG_DIRS) {
+            File file = new File(directory, LOCAL_S3_CONFIG);
+            log.debug("Checking for config at: {}", file.getAbsolutePath());
+            if (file.exists()) {
+                try {
+                    String cfgStr = FileUtils.readFileToString(file);
+                    S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr,
+                            S3Config.class);
+                    log.info("Using local S3 configuration from: "
+                            + file.getAbsolutePath());
+                    return Optional.of(cfg);
+                } catch (Exception e) {
+                    log.warn(String.format(
+                            "Couldn't read local S3 configuration from %1$s: %2$s",
+                            file.getAbsolutePath(), e.getMessage()), e);
+                }
+            }
         }
         return Optional.absent();
     }

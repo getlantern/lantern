@@ -2,10 +2,12 @@ package org.lantern.kscope;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.proxy.ProxyInfo;
 
 /**
  * Advertisement for a Lantern node to be distributed using the Kaleidoscope
@@ -16,20 +18,9 @@ public class LanternKscopeAdvertisement {
     public static final int CURRENT_VERSION = 1;
     public static final int DEFAULT_TTL = 1;
 
-    private String jid;
-
+    private ProxyInfo proxyInfo = new ProxyInfo();
     private int ttl;
-    
-    private String address;
-
-    private int port;
-
     private int version;
-
-    private String localAddress;
-    
-    private int localPort;
-
     private String lanternVersion = LanternClientConstants.VERSION;
 
     public static LanternKscopeAdvertisement makeRelayAd(
@@ -66,8 +57,8 @@ public class LanternKscopeAdvertisement {
     private LanternKscopeAdvertisement(final String jid, final String addr,
             final int port, final String localAddress, final int localPort,
             final boolean requireLocal) {
-        this.jid = jid;
-        this.address = addr;
+        this.setJid(jid);
+        this.setAddress(addr);
         if (StringUtils.isBlank(localAddress) && requireLocal) {
             throw new IllegalArgumentException(
                 "Should always have a local address!");
@@ -76,35 +67,43 @@ public class LanternKscopeAdvertisement {
             throw new IllegalArgumentException(
                 "Should always have a local port but was: "+localPort);
         }
-        this.port = port;
-        this.localAddress = localAddress;
-        this.localPort = localPort;
+        this.setPort(port);
+        this.setLocalAddress(localAddress);
+        this.setLocalPort(localPort);
         this.version = CURRENT_VERSION;
         this.ttl = DEFAULT_TTL;
     }
+    
+    public ProxyInfo getProxyInfo() {
+        return proxyInfo;
+    }
+    
+    public void setProxyInfo(ProxyInfo proxyInfo) {
+        this.proxyInfo = proxyInfo;
+    }
 
     public String getJid() {
-        return jid;
+        return proxyInfo.getJid().toString();
     }
 
     public void setJid(String jid) {
-        this.jid = jid;
+        this.proxyInfo.setJid(URI.create(jid));
     }
 
     public String getAddress() {
-        return address;
+        return proxyInfo.getWanHost();
     }
 
     public void setAddress(String addr) {
-        this.address = addr;
+        proxyInfo.setWanHost(addr);
     }
 
     public int getPort() {
-        return port;
+        return proxyInfo.getWanPort();
     }
 
     public void setPort(int port) {
-        this.port = port;
+        proxyInfo.setWanPort(port);
     }
 
     public int getVersion() {
@@ -116,11 +115,11 @@ public class LanternKscopeAdvertisement {
     }
 
     public String getLocalAddress() {
-        return localAddress;
+        return proxyInfo.getLanHost();
     }
 
     public void setLocalAddress(String localAddress) {
-        this.localAddress = localAddress;
+        proxyInfo.setLanHost(localAddress);
     }
 
     public int getTtl() {
@@ -133,8 +132,8 @@ public class LanternKscopeAdvertisement {
 
     public boolean hasMappedEndpoint() {
         try {
-            InetAddress.getAllByName(address);
-            return this.port > 1;
+            InetAddress.getAllByName(getAddress());
+            return getPort() > 1;
         } catch (final UnknownHostException e) {
             return false;
         }
@@ -145,22 +144,22 @@ public class LanternKscopeAdvertisement {
     }
 
     public int getLocalPort() {
-        return localPort;
+        return proxyInfo.getLanPort();
     }
 
     public void setLocalPort(int localPort) {
-        this.localPort = localPort;
+        proxyInfo.setLanPort(localPort);
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((address == null) ? 0 : address.hashCode());
-        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
+        result = prime * result + ((getAddress() == null) ? 0 : getAddress().hashCode());
+        result = prime * result + ((getJid() == null) ? 0 : getJid().hashCode());
         result = prime * result
-                + ((localAddress == null) ? 0 : localAddress.hashCode());
-        result = prime * result + port;
+                + ((getLocalAddress() == null) ? 0 : getLocalAddress().hashCode());
+        result = prime * result + getPort();
         result = prime * result + ttl;
         result = prime * result + version;
         return result;
@@ -175,22 +174,22 @@ public class LanternKscopeAdvertisement {
         if (getClass() != obj.getClass())
             return false;
         LanternKscopeAdvertisement other = (LanternKscopeAdvertisement) obj;
-        if (address == null) {
-            if (other.address != null)
+        if (getAddress() == null) {
+            if (other.getAddress() != null)
                 return false;
-        } else if (!address.equals(other.address))
+        } else if (!getAddress().equals(other.getAddress()))
             return false;
-        if (jid == null) {
-            if (other.jid != null)
+        if (getJid() == null) {
+            if (other.getJid() != null)
                 return false;
-        } else if (!jid.equals(other.jid))
+        } else if (!getJid().equals(other.getJid()))
             return false;
-        if (localAddress == null) {
-            if (other.localAddress != null)
+        if (getLocalAddress() == null) {
+            if (other.getLocalAddress() != null)
                 return false;
-        } else if (!localAddress.equals(other.localAddress))
+        } else if (!getLocalAddress().equals(other.getLocalAddress()))
             return false;
-        if (port != other.port)
+        if (getPort() != other.getPort())
             return false;
         if (ttl != other.ttl)
             return false;
@@ -201,10 +200,10 @@ public class LanternKscopeAdvertisement {
 
     @Override
     public String toString() {
-        return "LanternKscopeAdvertisement [jid=" + jid + ", ttl=" + ttl
-                + ", address=" + address + ", port=" + port + ", version="
-                + version + ", localAddress=" + localAddress + ", localPort="
-                + localPort + ", lanternVersion=" + lanternVersion + "]";
+        return "LanternKscopeAdvertisement [jid=" + getJid() + ", ttl=" + ttl
+                + ", address=" + getAddress() + ", port=" + getPort() + ", version="
+                + version + ", localAddress=" + getLocalAddress() + ", localPort="
+                + getLocalPort() + ", lanternVersion=" + lanternVersion + "]";
     }
     
 }

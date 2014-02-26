@@ -1,9 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,6 +13,9 @@ import java.net.URI;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.proxy.DefaultProxyTracker;
+import org.lantern.proxy.ProxyHolder;
+import org.lantern.proxy.ProxyInfo;
 import org.lantern.state.Model;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
@@ -59,7 +60,7 @@ public class DefaultProxyTrackerTest {
         LanternUtils.waitForServer(miniproxy2.port, 4000);
 
         InetAddress localhost = org.littleshoot.proxy.impl.NetworkUtils.getLocalHost();
-        tracker.addProxy(new URI("proxy1@example.com"), new InetSocketAddress(localhost, 55021));
+        tracker.addProxy(new ProxyInfo(new URI("proxy1@example.com"), localhost.getHostAddress(), 55021));
         proxy = waitForProxy(tracker);
         
         assertEquals(55021, getProxyPort(proxy));
@@ -96,7 +97,7 @@ public class DefaultProxyTrackerTest {
 
         // with multiple proxies, we get a different proxy for each getProxy()
         // call
-        tracker.addProxy(new URI("proxy2@example.com"), new InetSocketAddress(localhost, 55022));
+        tracker.addProxy(new ProxyInfo(new URI("proxy2@example.com"), localhost.getHostAddress(), 55022));
         /*
         Thread.sleep(50);
         ProxyHolder proxy1 = waitForProxy(tracker);

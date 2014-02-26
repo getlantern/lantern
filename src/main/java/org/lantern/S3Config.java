@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.lantern.proxy.FallbackProxy;
 
 import com.google.common.base.Objects;
 

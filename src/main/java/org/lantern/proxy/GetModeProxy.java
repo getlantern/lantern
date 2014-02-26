@@ -4,7 +4,6 @@ import io.netty.handler.codec.http.HttpRequest;
 
 import org.lantern.ClientStats;
 import org.lantern.LanternConstants;
-import org.lantern.ProxyHolder;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -24,7 +23,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     public GetModeProxy(
             final ClientStats stats,
             ChainedProxyManager chainedProxyManager) {
-        super(DefaultHttpProxyServer
+        setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
                 .withName("GetModeProxy")
                 .withPort(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT)
