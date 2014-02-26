@@ -71,16 +71,19 @@ That should get Lantern building successfully in Eclipse.
 
 ## Running With [fteproxy](https://fteproxy.org/) (and other [pluggable transports](https://www.torproject.org/docs/pluggable-transports.html.en))
 
-1. Clone and build fteproxy from [GitHub](https://github.com/kpdyer/fteproxy)
+1. In your lantern clone, create a symlink from pt to your platform's fteproxy
 
-2. Run your server with the following flags: `--pt type=FTE --pt path=[path to fteproxy clone, e.g. /Users/ox.to.a.cart/git/fteproxy]`
+For example:
 
-3. Configure your client's s3 configuration with a section like the following:
+`ln -s install/osx/pt pt`
+
+3. Run your server with the following flags: `--pt type=FTE`
+
+4. Configure your client's s3 configuration with a section like the following:
 
 ```json
 "pt": {
-    "type": "FTE",
-    "path": "/Users/ox.to.a.cart/git/fteproxy"
+    "type": "FTE"
 }
 ```
 
