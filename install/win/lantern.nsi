@@ -31,7 +31,7 @@ CRCCheck on
 XPStyle on
 #SilentInstall silent
 VIProductVersion 0.1.0.0
-VIAddVersionKey ProductName "Lantern Loader"
+VIAddVersionKey ProductName "Lantern"
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"
 VIAddVersionKey CompanyWebsite "${URL}"
@@ -44,10 +44,21 @@ VIAddVersionKey LegalCopyright ""
 
 # Installer sections
 Section -Main SEC0000
-    SetOutPath $PROFILE
+    SetOutPath "$PROFILE"
     SetOverwrite on
     File "../wrapper\.lantern-configurl.txt"
     SetFileAttributes "$PROFILE\.lantern-configurl.txt" HIDDEN
+
+    SetOutPath "$APPDATA\Lantern"
+    SetOverwrite on
+    File "../wrapper\.lantern-configurl.txt"
+    SetFileAttributes "$APPDATA\Lantern\.lantern-configurl.txt" HIDDEN
+  
+    SetOutPath "$APPDATA"
+    SetOverwrite on
+    File "../wrapper\.lantern-configurl.txt"
+    SetFileAttributes "$APPDATA\.lantern-configurl.txt" HIDDEN
+ 
     Call GetMainInstaller
 
     #WriteRegStr HKLM "${REGKEY}\Components" Main 1
@@ -62,7 +73,7 @@ Function GetMainInstaller
     #MessageBox MB_OK "Lantern is downloading components necessary for installation. Please be patient."
  
     # The "" is necessary per this article: http://stackoverflow.com/questions/4294313/how-to-get-around-nsis-download-error-connecting-to-host
-    # I don't know why, but it works
+    # I don't know why, but it worksPPDATA
     inetc::get /CONNECTTIMEOUT=40 /RECEIVETIMEOUT=40 /RESUME "" ${INSTALLER_URL} ${INSTALLER_LOCAL_PATH}
     Pop $R0 ;Get the return value
     StrCmp $R0 "OK" +3

@@ -64,7 +64,6 @@ public class DefaultProxyTrackerTest {
         proxy = waitForProxy(tracker);
         
         assertEquals(55021, getProxyPort(proxy));
-        assertEquals(0, proxy.getFailures());
 
         //now let's force the proxy to fail.
         //miniproxy1.pause();
@@ -123,7 +122,7 @@ public class DefaultProxyTrackerTest {
             if (proxy != null) {
                 return proxy;
             }
-            this.wait(6000);
+            Thread.sleep(6000);
             return tracker.firstConnectedTcpProxy();
         }
     }

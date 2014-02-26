@@ -46,7 +46,8 @@ public class Whitelist {
      * to populate default whitelist entries.  The order does not matter.
      */
     private static final String[] WHITELISTS = new String[] {
-            "1.0.1.txt"
+            "1.0.1.txt",
+            "1.2.0.txt"
     };
     
     private static final String ORIGINAL_WHITELIST = "original.txt";

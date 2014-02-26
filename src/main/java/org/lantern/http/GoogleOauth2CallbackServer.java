@@ -9,7 +9,6 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
-import org.lantern.Messages;
 import org.lantern.ProxyService;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
@@ -48,13 +47,11 @@ public class GoogleOauth2CallbackServer {
 
     private final ModelUtils modelUtils;
 
-    private final Messages msgs;
-    
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils, final Messages msgs) {
+        final ModelUtils modelUtils) {
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
@@ -62,7 +59,6 @@ public class GoogleOauth2CallbackServer {
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
-        this.msgs = msgs;
     }
     
     public void start() {

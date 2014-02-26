@@ -87,14 +87,26 @@ public class PublicIpAddress implements PublicIp {
         try {
             request.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
-            request.getParams().setParameter(
-                    CoreConnectionPNames.SO_TIMEOUT, 60000);
+            // Unable to set SO_TIMEOUT because of bug in Java 7
+            // See https://github.com/getlantern/lantern/issues/942
+//            request.getParams().setParameter(
+//                    CoreConnectionPNames.SO_TIMEOUT, 60000);
             HttpResponse response = HttpClientFactory.newProxiedClient()
                     .execute(TEST_HOST, request);
             Header header = response
                     .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
+
+            final int responseCode = response.getStatusLine().getStatusCode();
+            boolean twoHundredResponse = true;
+            if (responseCode < 200 || responseCode > 299) {
+                LOG.warn("Error on proxied request. No proxies working? {}, {}", 
+                        response.getStatusLine(), responseCode);
+                twoHundredResponse = false;
+            } 
             if (header == null) {
-                LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
+                if (twoHundredResponse) {
+                    LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
+                }
                 return InetAddress.getLocalHost();
             } else {
                 return InetAddress.getByName(header.getValue());
