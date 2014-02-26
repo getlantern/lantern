@@ -77,6 +77,10 @@ For example:
 
 `ln -s install/osx/pt pt`
 
+2. As a quick smoke test to make sure things are working in your environment, run `org.lantern.proxy.pt.FTEMain`, then try to curl something:
+
+`curl -x localhost:8080 http://www.google.com`
+
 3. Run your server with the following flags: `--pt type=FTE`
 
 4. Configure your client's s3 configuration with a section like the following:
