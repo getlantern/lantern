@@ -1,0 +1,28 @@
+{
+    "manual-http-request": {
+        "regex": "^GET\\ \\/([a-zA-Z0-9\\.\\/]*) HTTP/1\\.1\\r\\n\\r\\n$"
+    },
+    "manual-http-response": {
+        "regex": "^HTTP/1\\.1\\ 200 OK\\r\\nContent-Type:\\ ([a-zA-Z0-9]+)\\r\\n\\r\\n\\C*$"
+    },
+    "manual-smb-request": {
+        "regex": "^\\x00\\x00\\x00\\x7c\\xFF\\x53\\x4d\\x42[\\x25\\x72]\\x00\\x00\\x00\\x00\\C{115}$",
+        "fixed_slice": 128
+    },
+    "manual-smb-response": {
+        "regex": "^\\x00\\x00\\x00\\x7c\\xFF\\x53\\x4d\\x42[\\x25\\x72]\\x00\\x00\\x00\\x00\\C{115}$",
+        "fixed_slice": 128
+    },
+    "manual-ssh-request": {
+        "regex": "^SSH\\-2\\.0\\C*$"
+    },
+    "manual-ssh-response": {
+        "regex": "^SSH\\-2\\.0\\C*$"
+    },
+    "dummy-request": {
+        "regex": "^\\C+$"
+    },
+    "dummy-response": {
+        "regex": "^\\C+$"
+    }
+}

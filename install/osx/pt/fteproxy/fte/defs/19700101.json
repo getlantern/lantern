@@ -1,0 +1,8 @@
+{
+  "lantern-response" : {
+    "regex" : "^HTTP/1\\.1\\ 200 OK\\r\\nContent-Type:\\ ([a-z]+)\\r\\n\\r\\n\\C*$"
+  },
+  "lantern-request" : {
+    "regex" : "^GET\\ \\/([a-z\\.\\/]*) HTTP/1\\.1\\r\\n\\r\\n$"
+  }
+}

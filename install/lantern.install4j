@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.1.8" transformSequenceNumber="4">
-  <directoryPresets config="./win" />
+<install4j version="5.1.10" transformSequenceNumber="4">
+  <directoryPresets config="." />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.20.0" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -22,17 +22,23 @@
       <fileset name="Windows File Set" id="145" customizedId="" />
       <fileset name="OSX File Set" id="147" customizedId="" />
       <fileset name="Ubuntu File Set" id="788" customizedId="" />
+      <fileset name="Ubuntu x86_64" id="1534" customizedId="" />
+      <fileset name="Ubuntu x86_32" id="1536" customizedId="" />
     </filesets>
     <roots>
       <root id="146" fileset="145" location="" />
       <root id="148" fileset="147" location="" />
       <root id="789" fileset="788" location="" />
+      <root id="1535" fileset="1534" location="" />
+      <root id="1537" fileset="1536" location="" />
     </roots>
     <mountPoints>
       <mountPoint id="25" root="" location="" mode="755" />
       <mountPoint id="149" root="146" location="" mode="755" />
       <mountPoint id="150" root="148" location="" mode="755" />
       <mountPoint id="790" root="789" location="" mode="755" />
+      <mountPoint id="1538" root="1535" location="" mode="755" />
+      <mountPoint id="1539" root="1537" location="" mode="755" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="25" file="./common" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="common" excludeSuffixes="" dirMode="755" overrideDirMode="false">
@@ -57,23 +63,31 @@
       </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="newest.exe" fileType="regular" />
-          <entry location="log.txt" fileType="regular" />
+          <entry location=".DS_Store" fileType="regular" />
+          <entry location="lantern-installer.ex_" fileType="regular" />
+          <entry location="lantern-installer.exe.zip" fileType="regular" />
+          <entry location="pt" fileType="regular" />
         </exclude>
+      </dirEntry>
+      <dirEntry mountPoint="149" file="./win/pt" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="pt" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
       </dirEntry>
       <dirEntry mountPoint="150" file="./osx" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="osx" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="newest.dmg" fileType="regular" />
-          <entry location="newest.dmg.stored" fileType="regular" />
-          <entry location="log.txt" fileType="regular" />
+          <entry location="pt" fileType="regular" />
         </exclude>
       </dirEntry>
+      <dirEntry mountPoint="150" file="./osx/pt" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="pt" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
       <dirEntry mountPoint="790" file="./linux" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude>
-          <entry location="newest-32.deb" fileType="regular" />
-          <entry location="newest-64.deb" fileType="regular" />
-          <entry location="linux-amd64-1.7.0_03.tar.gz" fileType="regular" />
-        </exclude>
+        <exclude />
+      </dirEntry>
+      <dirEntry mountPoint="1538" file="./linux_x86_64" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux_x86_64" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
+      <dirEntry mountPoint="1539" file="./linux_x86_32" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
       </dirEntry>
     </entries>
     <components />
@@ -1413,6 +1427,8 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <exclude>
         <entry location=".i4j_fileset_147" fileType="regular" />
         <entry location=".i4j_fileset_788" fileType="regular" />
+        <entry location=".i4j_fileset_1534" fileType="regular" />
+        <entry location=".i4j_fileset_1536" fileType="regular" />
       </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
@@ -1427,6 +1443,9 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
         <entry location=".i4j_fileset_145" fileType="regular" />
+        <entry location=".i4j_fileset_788" fileType="regular" />
+        <entry location=".i4j_fileset_1534" fileType="regular" />
+        <entry location=".i4j_fileset_1536" fileType="regular" />
       </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
@@ -1446,6 +1465,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <exclude>
         <entry location=".i4j_fileset_145" fileType="regular" />
         <entry location=".i4j_fileset_147" fileType="regular" />
+        <entry location=".i4j_fileset_1536" fileType="regular" />
       </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
@@ -1475,6 +1495,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <exclude>
         <entry location=".i4j_fileset_145" fileType="regular" />
         <entry location=".i4j_fileset_147" fileType="regular" />
+        <entry location=".i4j_fileset_1534" fileType="regular" />
       </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
