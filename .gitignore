@@ -32,3 +32,4 @@ src//tags
 */Build/
 19700101.json
 fte.props
+*.pyc
