@@ -605,9 +605,7 @@
 		  <verbose>true</verbose>
 		  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
 	      <dateFormat>yyyy-MM-dd</dateFormat>
-	      <gitDescribe>
-	          <always>false</always>
-	      </gitDescribe>    
+	      <skip>true</skip>    
 		</configuration>
       </plugin>
     </plugins>
