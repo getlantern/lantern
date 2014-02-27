@@ -606,8 +606,8 @@
 	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
           <dateFormat>yyyy-MM-dd</dateFormat>
 	</configuration>
-      </plugin>
-    </plugins> -->
+      </plugin> -->
+    </plugins>
 
     <resources>
       <resource>
