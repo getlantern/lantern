@@ -648,7 +648,7 @@
                     <ignore />
                   </action>
                 </pluginExecution>
-                <pluginExecution>
+                <!-- <pluginExecution>
                   <pluginExecutionFilter>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
@@ -660,7 +660,7 @@
                   <action>
                     <execute />
                   </action>
-                </pluginExecution>
+                </pluginExecution> -->
                 <pluginExecution>
                   <pluginExecutionFilter>
                     <groupId>com.github.wvengen</groupId>
