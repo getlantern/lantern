@@ -21,6 +21,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

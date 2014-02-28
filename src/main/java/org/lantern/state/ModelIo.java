@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
@@ -20,6 +21,7 @@ import org.lantern.event.RefreshTokenEvent;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.proxy.pt.PtType;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.TransportProtocol;
 import org.slf4j.Logger;
@@ -168,6 +170,17 @@ public class ModelIo extends Storage<Model> {
         }
         set.setProxyProtocol(proxyProtocol);
         log.info("Running give mode proxy with protocol: {}", proxyProtocol);
+        
+        if (cmd.hasOption(Cli.OPTION_PLUGGABLE_TRANSPORT)) {
+            Properties props = cmd.getOptionProperties(Cli.OPTION_PLUGGABLE_TRANSPORT);
+            String type = props.getProperty("type");
+            if (type != null) {
+                PtType proxyPtType = PtType.valueOf(type.toUpperCase());
+                log.info("Running give mode proxy with pluggable transport " + proxyPtType);
+                set.setProxyPtType(proxyPtType);
+                set.setProxyPtProps(props);
+            }
+        } 
         
         final String authTokenOpt = Cli.OPTION_SERVER_AUTHTOKEN_FILE;
         if (cmd.hasOption(authTokenOpt)) {

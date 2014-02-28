@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.proxy;
 
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
@@ -10,7 +10,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
 
-import org.lantern.proxy.BaseChainedProxy;
+import org.lantern.LanternConstants;
+import org.lantern.LanternTrustStore;
+import org.lantern.PeerFactory;
+import org.lantern.proxy.pt.PluggableTransport;
+import org.lantern.proxy.pt.PluggableTransports;
+import org.lantern.proxy.pt.PtType;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.littleshoot.proxy.TransportProtocol;
@@ -30,11 +35,9 @@ public final class ProxyHolder extends BaseChainedProxy
 
     private final LanternTrustStore lanternTrustStore;
 
-    private final URI jid;
+    private final ProxyInfo info;
 
     private final FiveTuple fiveTuple;
-
-    private final boolean natTraversed;
 
     /**
      * <p>
@@ -56,24 +59,21 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     private final AtomicLong timeOfNewestConsecFailure = new AtomicLong(0);
 
-    private final Type type;
-
     private volatile Peer peer;
+
+    private PluggableTransport pt;
+    private InetSocketAddress ptClientAddress;
 
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
-            final URI jid, final FiveTuple tuple,
-            final Type type, final boolean natTraversed,
-            final String lanternAuthToken) {
-        super(lanternAuthToken);
+            final ProxyInfo info) {
+        super(info.getAuthToken());
         this.proxyTracker = proxyTracker;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
-        this.jid = jid;
-        this.fiveTuple = tuple;
-        this.type = type;
-        this.natTraversed = natTraversed;
+        this.info = info;
+        this.fiveTuple = info.getFiveTuple();
     }
 
     public FiveTuple getFiveTuple() {
@@ -88,7 +88,7 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     public Peer getPeer() {
         if (peer == null) {
-            peer = peerFactory.peerForJid(jid);
+            peer = peerFactory.peerForJid(getJid());
         }
         return peer;
     }
@@ -103,11 +103,11 @@ public final class ProxyHolder extends BaseChainedProxy
             newestConsecFailure = new Date(timeOfNewestConsecFailure.get());
             retryTime = new Date(getRetryTime());
         }
-        return "ProxyHolder [jid=" + jid + ", fiveTuple=" + fiveTuple
+        return "ProxyHolder [jid=" + getJid() + ", fiveTuple=" + fiveTuple
                 + ", timeOfOldestConsecFailure=" + oldestConsecFailure
                 + ", timeOfNewestConsecFailure=" + newestConsecFailure
                 + ", retryTime=" + retryTime
-                + ", type=" + type + "] connected? " + isConnected();
+                + ", type=" + getType() + "] connected? " + isConnected();
     }
 
     @Override
@@ -116,7 +116,8 @@ public final class ProxyHolder extends BaseChainedProxy
         int result = 1;
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
-        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
+        result = prime * result
+                + ((getJid() == null) ? 0 : getJid().hashCode());
         return result;
     }
 
@@ -134,10 +135,10 @@ public final class ProxyHolder extends BaseChainedProxy
                 return false;
         } else if (!fiveTuple.equals(other.fiveTuple))
             return false;
-        if (jid == null) {
-            if (other.jid != null)
+        if (getJid() == null) {
+            if (other.getJid() != null)
                 return false;
-        } else if (!jid.equals(other.jid))
+        } else if (!getJid().equals(other.getJid()))
             return false;
         return true;
     }
@@ -153,6 +154,7 @@ public final class ProxyHolder extends BaseChainedProxy
     }
 
     synchronized public void markConnected() {
+        startPtIfNecessary();
         timeOfOldestConsecFailure.set(0l);
         timeOfNewestConsecFailure.set(0l);
     }
@@ -178,6 +180,7 @@ public final class ProxyHolder extends BaseChainedProxy
         if (isConnected()) {
             LOG.debug("Setting proxy as disconnected: {}", fiveTuple);
             failuresStarted();
+            stopPtIfNecessary();
         } else {
             failuresContinued();
         }
@@ -204,11 +207,11 @@ public final class ProxyHolder extends BaseChainedProxy
     }
 
     public URI getJid() {
-        return jid;
+        return info.getJid();
     }
 
     public Type getType() {
-        return type;
+        return info.getType();
     }
 
     public boolean isConnected() {
@@ -225,7 +228,7 @@ public final class ProxyHolder extends BaseChainedProxy
      * @return
      */
     public boolean isNatTraversed() {
-        return natTraversed;
+        return info.isNatTraversed();
     }
 
     /***************************************************************************
@@ -238,7 +241,13 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     @Override
     public InetSocketAddress getChainedProxyAddress() {
-        return fiveTuple.getRemote();
+        if (ptClientAddress != null) {
+            // If we've got a pluggable transport client running, connect via it
+            return ptClientAddress;
+        } else {
+            // Otherwise connect to the remote proxy
+            return fiveTuple.getRemote();
+        }
     }
 
     /**
@@ -249,7 +258,7 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     @Override
     public InetSocketAddress getLocalAddress() {
-        return natTraversed ? fiveTuple.getLocal() : null;
+        return isNatTraversed() ? fiveTuple.getLocal() : null;
     }
 
     /**
@@ -268,7 +277,7 @@ public final class ProxyHolder extends BaseChainedProxy
      */
     @Override
     public boolean requiresEncryption() {
-        return true;
+        return pt == null || !pt.suppliesEncryption();
     }
 
     @Override
@@ -303,6 +312,37 @@ public final class ProxyHolder extends BaseChainedProxy
         Peer peer = getPeer();
         if (peer != null) {
             peer.disconnected();
+        }
+    }
+    
+    private void startPtIfNecessary() {
+        if (info.getPtType() != null) {
+            startPt();
+        }
+    }
+
+    public void stopPtIfNecessary() {
+        if (info.getPtType() != null) {
+            stopPt();
+        }
+    }
+
+    synchronized private void startPt() {
+        if (pt == null) {
+            LOG.info("Starting pluggable transport");
+            PtType ptType = info.getPtType();
+            pt = PluggableTransports.newTransport(ptType, info.getPt());
+            ptClientAddress = pt.startClient(
+                    LanternConstants.LANTERN_LOCALHOST_ADDR,
+                    fiveTuple.getRemote());
+        }
+    }
+
+    synchronized private void stopPt() {
+        if (pt != null) {
+            LOG.info("Stopping pluggable transport");
+            pt.stopServer();
+            pt = null;
         }
     }
 }

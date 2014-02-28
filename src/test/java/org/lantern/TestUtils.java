@@ -21,6 +21,8 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.proxy.DefaultProxyTracker;
+import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;

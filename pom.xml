@@ -326,6 +326,11 @@
       <artifactId>geoip-api</artifactId>
       <version>1.2.11</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-exec</artifactId>
+      <version>1.2</version>
+    </dependency>
   </dependencies>
 
   <prerequisites>
@@ -866,6 +871,16 @@
       <name>AWS Snapshot Repository</name>
       <url>s3://lantern-mvn-repo/snapshot</url>
     </snapshotRepository>
+  </distributionManagement>
+
+  <parent>
+    <groupId>org.getlantern</groupId>
+    <artifactId>lantern-common</artifactId>
+    <version>0.0.20</version>
+    <relativePath>lantern-common</relativePath>
+  </parent>
+</project>
+/snapshotRepository>
   </distributionManagement>
 
   <parent>

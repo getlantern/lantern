@@ -12,7 +12,7 @@ public abstract class AbstractHttpProxyServerAdapter implements LanternService {
     private HttpProxyServerBootstrap bootstrap;
     protected HttpProxyServer server;
 
-    public AbstractHttpProxyServerAdapter(HttpProxyServerBootstrap bootstrap) {
+    protected void setBootstrap(HttpProxyServerBootstrap bootstrap) {
         this.bootstrap = bootstrap;
     }
 

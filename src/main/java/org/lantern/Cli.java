@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
@@ -48,6 +49,7 @@ public class Cli {
     public static final String OPTION_AS_FALLBACK = "as-fallback-proxy";
     public static final String OPTION_KEYSTORE = "keystore";
     public static final String OPTION_REPORT_IP = "report-ip";
+    public static final String OPTION_PLUGGABLE_TRANSPORT = "pt";
     
     private CommandLine cmd;
     
@@ -152,6 +154,13 @@ public class Cli {
             "[XXX: perhaps provisional] path to keystore file where the fallback proxy should find its own keypair.");
         options.addOption(null, OPTION_REPORT_IP, true,
             "(Fallback's listen) IP to report to controller");
+        options.addOption(OptionBuilder
+                .withLongOpt(OPTION_PLUGGABLE_TRANSPORT)
+                .withArgName("property=value")
+                .hasArgs(2)
+                .withValueSeparator()
+                .withDescription("(Optional) Specify pluggable transport properties")
+                .create());
         return options;
     }
 
