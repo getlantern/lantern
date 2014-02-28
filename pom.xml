@@ -591,25 +591,21 @@
         </executions>
       </plugin>
       <plugin>
-		<groupId>pl.project13.maven</groupId>
-		<artifactId>git-commit-id-plugin</artifactId>
-		<version>2.1.7</version>
-		<executions>
-		  <execution>
-		    <goals>
-		      <goal>revision</goal>
-		    </goals>
-		  </execution>
-		</executions>
-		<configuration>
-		  <verbose>true</verbose>
-		  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-	      <dateFormat>yyyy-MM-dd</dateFormat>
-	      <skip>true</skip>
-	      <gitDescribe>
-	          <skip>true</skip>
-	      </gitDescribe>    
-		</configuration>
+	<groupId>pl.project13.maven</groupId>
+	<artifactId>git-commit-id-plugin</artifactId>
+	<version>2.1.7</version>
+	<executions>
+	  <execution>
+	    <goals>
+	      <goal>revision</goal>
+	    </goals>
+	  </execution>
+	</executions>
+	<configuration>
+	  <verbose>true</verbose>
+	  <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+          <dateFormat>yyyy-MM-dd</dateFormat>
+	</configuration>
       </plugin>
     </plugins>
 
@@ -875,6 +871,16 @@
       <name>AWS Snapshot Repository</name>
       <url>s3://lantern-mvn-repo/snapshot</url>
     </snapshotRepository>
+  </distributionManagement>
+
+  <parent>
+    <groupId>org.getlantern</groupId>
+    <artifactId>lantern-common</artifactId>
+    <version>0.0.20</version>
+    <relativePath>lantern-common</relativePath>
+  </parent>
+</project>
+/snapshotRepository>
   </distributionManagement>
 
   <parent>
