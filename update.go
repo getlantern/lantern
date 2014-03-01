@@ -36,6 +36,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 )
@@ -411,6 +412,11 @@ func FromStream(newBinary io.Reader) (err error, errRecover error) {
 	err = os.Rename(thisExecPath, oldExecPath)
 	if err != nil {
 		return
+	}
+
+	//for windows, make old executable hidden
+	if runtime.GOOS == "windows" {
+		_ = exec.Command("attrib", "+H", oldExecPath).Run()
 	}
 
 	// move the new exectuable in to become the new program
