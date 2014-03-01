@@ -46,7 +46,7 @@ public class S3ConfigFetcher {
     private static final String URL_FILENAME = ".lantern-configurl.txt";
     private static final String LOCAL_S3_CONFIG = ".s3config";
 
-    private final Optional<String> url;
+    private Optional<String> url;
 
     private final SecureRandom random = new SecureRandom();
     
@@ -65,7 +65,6 @@ public class S3ConfigFetcher {
     public S3ConfigFetcher(final Model model) {
         log.debug("Creating s3 config fetcher...");
         this.model = model;
-        this.url = readUrl();
     }
     
 
@@ -188,6 +187,7 @@ public class S3ConfigFetcher {
         if (local.isPresent()) {
             return local;
         }
+        this.url = readUrl();
         if (!url.isPresent()) {
             log.error("URL initialization failed.");
             return Optional.absent();
