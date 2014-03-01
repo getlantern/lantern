@@ -73,10 +73,6 @@ public class S3ConfigFetcher {
         if (LanternUtils.isFallbackProxy()) {
             return;
         }
-        if (!this.url.isPresent()) {
-            log.debug("No url to use for downloading config");
-            return;
-        }
         final S3Config config = model.getS3Config();
         
         // Always check for a new config right away. We do this on the same
@@ -188,6 +184,10 @@ public class S3ConfigFetcher {
             return local;
         }
         this.url = readUrl();
+        if (!this.url.isPresent()) {
+            log.debug("No url to use for downloading config");
+            return Optional.absent();
+        }
         if (!url.isPresent()) {
             log.error("URL initialization failed.");
             return Optional.absent();
