@@ -51,20 +51,13 @@ public class AppIndicatorTray implements SystemTray {
     private static AppIndicator libappindicator = null;
     
     static {
-        if (SystemUtils.IS_OS_LINUX) {
-            try {
-                libappindicator = (AppIndicator) Native.loadLibrary("appindicator", AppIndicator.class);
-                libgtk = (Gtk) Native.loadLibrary("gtk-x11-2.0", Gtk.class);
-                libgobject = (Gobject) Native.loadLibrary("gobject-2.0", Gobject.class);
-                libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
-                //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
-                
-                libgtk.gtk_init(0, null);
-            }
-            catch (final Throwable ex) {
-                LOG.warn("no supported version of appindicator libs found", ex);
-            }
-        }
+        libappindicator = (AppIndicator) Native.loadLibrary("appindicator", AppIndicator.class);
+        libgtk = (Gtk) Native.loadLibrary("gtk-x11-2.0", Gtk.class);
+        libgobject = (Gobject) Native.loadLibrary("gobject-2.0", Gobject.class);
+        libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
+        //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
+
+        libgtk.gtk_init(0, null);
     }
     
     @Override
