@@ -175,7 +175,6 @@ public class ChromeRunner {
                 commands.add("--disable-plugins");
                 commands.add("--disable-java");
                 commands.add("--disable-extensions");
-                commands.add("--no-default-browser-check");
                 commands.add("--app=" + endpoint + "/index.html");
             }
     
