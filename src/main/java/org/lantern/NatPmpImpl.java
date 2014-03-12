@@ -3,6 +3,7 @@ package org.lantern;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lantern.state.Model;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import fr.free.miniupnp.libnatpmp.NatPmp;
 import fr.free.miniupnp.libnatpmp.NatPmpResponse;
 
@@ -32,7 +34,7 @@ public class NatPmpImpl implements NatPmpService {
 
     //private NatPmp pmpDevice = null;
 
-    private final ClientStats stats;
+    private final Model model;
     private final List<MapRequest> requests = new ArrayList<MapRequest>();
 
     private NatPmp loadedNatPmp;
@@ -45,8 +47,8 @@ public class NatPmpImpl implements NatPmpService {
      * @throws NatPmpException If we could not start NAT-PMP for any reason.
      */
     @Inject
-    public NatPmpImpl(final ClientStats stats) {
-        this.stats = stats;
+    public NatPmpImpl(final Model model) {
+        this.model = model;
     }
     
     private NatPmp loadNatPmp() {
@@ -191,12 +193,12 @@ public class NatPmpImpl implements NatPmpService {
                     localPort, response.mappedpublicport);
             map.externalPort = response.mappedpublicport;
             portMapListener.onPortMap(map.externalPort);
-            stats.setNatpmp(true);
+            model.getInstanceStats().setUsingNATPMP(true);
         } else {
             log.debug("Did not receive port mapping response for local {}", 
                     localPort);
             portMapListener.onPortMapError();
-            stats.setNatpmp(false);
+            model.getInstanceStats().setUsingNATPMP(false);
         }
         // We have to add it whether it succeeded or not to keep the indices
         // in sync.

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.lantern.annotation.Keep;
+import org.lantern.state.Model;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
@@ -26,14 +27,14 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     private static final int UPNP_DELAY = 2000;
 
-    private final ClientStats stats;
+    private final Model model;
 
     private String publicIp;
 
     private final Set<UpnpMapping> mappings = new HashSet<UpnpMapping>();
 
-    public Upnp(final ClientStats stats) {
-        this.stats = stats;
+    public Upnp(final Model model) {
+        this.model = model;
     }
 
     public void removeAllMappings() {
@@ -197,7 +198,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
                     + zeroTerminatedString(intPort.array()) + " ("
                     + zeroTerminatedString(desc.array()) + ")");
 
-            stats.setUpnp(true);
+            model.getInstanceStats().setUsingUPnP(true);
             
             final UpnpMapping mapping = new UpnpMapping();
             mapping.prot = prot;

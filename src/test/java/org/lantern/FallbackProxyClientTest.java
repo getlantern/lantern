@@ -19,7 +19,7 @@ public class FallbackProxyClientTest {
         final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
-            new LanternSocketsUtil(null, trustStore);
+            new LanternSocketsUtil(trustStore);
 
         Launcher.configureCipherSuites();
         //trustStore.listEntries();

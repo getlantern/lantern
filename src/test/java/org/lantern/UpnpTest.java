@@ -1,7 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.lantern.state.Model;
 import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -49,8 +49,7 @@ public class UpnpTest {
         log.debug("Local host name is: {}", NetworkUtils.getLocalHost().getHostName());
         //System.setProperty("java.util.logging.config.file",
         //        "src/test/resources/logging.properties");
-        final ClientStats statsTracker = mock(ClientStats.class);
-        final Upnp up = new Upnp(statsTracker);
+        final Upnp up = new Upnp(new Model());
         final AtomicBoolean mapped = new AtomicBoolean(false);
         final AtomicBoolean error = new AtomicBoolean(false);
 

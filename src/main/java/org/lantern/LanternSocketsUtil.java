@@ -27,8 +27,6 @@ public class LanternSocketsUtil {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ClientStats stats;
-
     private final ExecutorService threadPool =
         Executors.newCachedThreadPool(new ThreadFactory() {
         private final AtomicInteger threadNumber = new AtomicInteger();
@@ -45,9 +43,7 @@ public class LanternSocketsUtil {
     private final LanternTrustStore trustStore;
 
     @Inject
-    public LanternSocketsUtil(final ClientStats stats,
-        final LanternTrustStore trustStore) {
-        this.stats = stats;
+    public LanternSocketsUtil(final LanternTrustStore trustStore) {
         this.trustStore = trustStore;
     }
 

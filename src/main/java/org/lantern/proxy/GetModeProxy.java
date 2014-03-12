@@ -2,8 +2,9 @@ package org.lantern.proxy;
 
 import io.netty.handler.codec.http.HttpRequest;
 
-import org.lantern.ClientStats;
 import org.lantern.LanternConstants;
+import org.lantern.state.InstanceStats;
+import org.lantern.state.Model;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -21,8 +22,9 @@ import com.google.inject.Singleton;
 public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     @Inject
     public GetModeProxy(
-            final ClientStats stats,
+            Model model,
             ChainedProxyManager chainedProxyManager) {
+        final InstanceStats stats = model.getInstanceStats(); 
         setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
                 .withName("GetModeProxy")
@@ -38,7 +40,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                             FullFlowContext flowContext,
                             HttpRequest httpRequest) {
                         if (proxyFor(flowContext) != null) {
-                            stats.incrementProxiedRequests();
+                            stats.incrementRequestGotten();
                         }
                     }
 
@@ -47,9 +49,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                             int numberOfBytes) {
                         ProxyHolder proxy = proxyFor(flowContext);
                         if (proxy != null) {
-                            stats.addUpBytesViaProxies(numberOfBytes);
-                            stats.addBytesProxied(numberOfBytes,
-                                    flowContext.getClientAddress());
+                            stats.addBytesGotten(numberOfBytes);
                             proxy.getPeer().addBytesUp(numberOfBytes);
                         } else {
                             stats.addDirectBytes(numberOfBytes);
@@ -62,9 +62,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                             int numberOfBytes) {
                         ProxyHolder proxy = proxyFor(flowContext);
                         if (proxy != null) {
-                            stats.addDownBytesViaProxies(numberOfBytes);
-                            stats.addBytesProxied(numberOfBytes,
-                                    flowContext.getClientAddress());
+                            stats.addBytesGotten(numberOfBytes);
                             proxy.getPeer().addBytesDn(numberOfBytes);
                         } else {
                             stats.addDirectBytes(numberOfBytes);

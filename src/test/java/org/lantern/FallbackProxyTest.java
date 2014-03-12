@@ -24,6 +24,7 @@ import org.apache.http.util.EntityUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
@@ -106,7 +107,7 @@ public class FallbackProxyTest {
                 fail("Could not get server on expected port?");
             }
             
-            final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+            final LanternSocketsUtil util = new LanternSocketsUtil(trustStore);
             
             final DefaultHttpClient httpClient = new DefaultHttpClient();
             
@@ -210,9 +211,8 @@ public class FallbackProxyTest {
         final SslEngineSource sslEngineSource = 
             new CertTrackingSslEngineSource(trustStore, keyStoreManager);
         PeerFactory peerFactory = mock(PeerFactory.class);
-        final ClientStats stats = mock(ClientStats.class);
         final GiveModeProxy proxy = 
-                new GiveModeProxy(stats, model, sslEngineSource, peerFactory);
+                new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService());
         
         proxy.start();
         return proxy;

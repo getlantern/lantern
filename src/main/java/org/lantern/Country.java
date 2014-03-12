@@ -1,8 +1,7 @@
 package org.lantern;
 
 import org.lantern.annotation.Keep;
-import org.lantern.state.NPeers;
-import org.lantern.state.NUsers;
+import org.lantern.monitoring.Stats;
 
 @Keep
 public class Country {
@@ -10,12 +9,7 @@ public class Country {
     private String code;
     private String name;
     private boolean censors;
-
-    private long bps;
-    private long bytesEver;
-
-    private NUsers nusers = new NUsers();
-    private NPeers npeers = new NPeers();
+    private Stats stats;
 
     public Country() {
 
@@ -51,36 +45,12 @@ public class Country {
         return censors;
     }
 
-    public long getBps() {
-        return bps;
+    public void setStats(Stats stats) {
+        this.stats = stats;
     }
-
-    public void setBps(long bps) {
-        this.bps = bps;
-    }
-
-    public long getBytesEver() {
-        return bytesEver;
-    }
-
-    public void setBytesEver(long bytesEver) {
-        this.bytesEver = bytesEver;
-    }
-
-    public NUsers getNusers() {
-        return nusers;
-    }
-
-    public void setNusers(NUsers nusers) {
-        this.nusers = nusers;
-    }
-
-    public NPeers getNpeers() {
-        return npeers;
-    }
-
-    public void setNpeers(NPeers npeers) {
-        this.npeers = npeers;
+    
+    public Stats getStats() {
+        return stats;
     }
 
 }

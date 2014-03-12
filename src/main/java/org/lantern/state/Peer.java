@@ -13,9 +13,9 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternRosterEntry;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
+import org.lantern.monitoring.Counter;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.lantern.util.Counter;
 
 /**
  * Class containing data for an individual peer, including active connections,

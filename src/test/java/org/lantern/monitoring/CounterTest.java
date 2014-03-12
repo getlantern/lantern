@@ -1,8 +1,9 @@
-package org.lantern.util;
+package org.lantern.monitoring;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.lantern.monitoring.Counter;
 
 public class CounterTest {
     @Test

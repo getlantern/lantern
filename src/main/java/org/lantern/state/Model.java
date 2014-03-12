@@ -23,9 +23,8 @@ import org.lantern.S3Config;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SetupCompleteEvent;
+import org.lantern.monitoring.Stats;
 import org.lantern.state.Notification.MessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,8 +32,6 @@ import org.slf4j.LoggerFactory;
  */
 @Keep
 public class Model {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static class Persistent {}
 
@@ -64,7 +61,7 @@ public class Model {
 
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
-    private final Global global = new Global();
+    private Stats globalStats = new Stats();
 
     private Peers peerCollector = new Peers();
 
@@ -74,7 +71,7 @@ public class Model {
 
     private Roster roster;
 
-    private Transfers transfers;
+    private InstanceStats instanceStats = new InstanceStats();
 
     private boolean isEverGetMode;
 
@@ -102,9 +99,9 @@ public class Model {
 
     private S3Config s3Config = new S3Config();
     
-    @JsonView({Run.class})
-    private Transfers getTransfers() {
-        return transfers;
+    @JsonView({Run.class, Persistent.class})
+    public InstanceStats getInstanceStats() {
+        return instanceStats;
     }
 
     @JsonView({Run.class})
@@ -223,8 +220,12 @@ public class Model {
         return;
     }
 
-    public Global getGlobal() {
-        return global;
+    public Stats getGlobalStats() {
+        return globalStats;
+    }
+    
+    public void setGlobalStats(Stats globalStats) {
+        this.globalStats = globalStats;
     }
 
     /*
@@ -289,8 +290,8 @@ public class Model {
         this.roster = roster;
     }
 
-    public void setTransfers(Transfers transfers) {
-        this.transfers = transfers;
+    public void setInstanceStats(InstanceStats instanceStats) {
+        this.instanceStats = instanceStats;
     }
 
     @SuppressWarnings("unchecked")

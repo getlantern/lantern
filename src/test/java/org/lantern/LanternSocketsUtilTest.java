@@ -46,7 +46,7 @@ public class LanternSocketsUtilTest {
         final String testId = "test@gmail.com/somejidresource";
         trustStore.addCert(new URI(testId), LanternUtils.certFromBase64(ksm.getBase64Cert(testId)));
         
-        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+        final LanternSocketsUtil util = new LanternSocketsUtil(trustStore);
         
         final AtomicReference<String> data = new AtomicReference<String>();
         accept(util, data);

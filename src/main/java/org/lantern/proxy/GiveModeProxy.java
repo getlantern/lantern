@@ -3,24 +3,25 @@ package org.lantern.proxy;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import javax.net.ssl.SSLSession;
 
-import org.lantern.ClientStats;
 import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.proxy.pt.PluggableTransport;
 import org.lantern.proxy.pt.PluggableTransports;
+import org.lantern.state.InstanceStats;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Settings;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.FlowContext;
-import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
@@ -54,10 +55,11 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
 
     @Inject
     public GiveModeProxy(
-            final ClientStats stats,
             final Model model,
             final SslEngineSource sslEngineSource,
-            final PeerFactory peerFactory) {
+            final PeerFactory peerFactory,
+            final GeoIpLookupService lookupService) {
+        final InstanceStats stats = model.getInstanceStats(); 
         final Settings settings = model.getSettings();
         int serverPort = settings.getServerPort();
         boolean allowLocalOnly = false;
@@ -107,9 +109,10 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                             public void bytesReceivedFromClient(
                                     FlowContext flowContext,
                                     int numberOfBytes) {
-                                stats.addDownBytesFromPeers(numberOfBytes,
-                                        flowContext.getClientAddress()
-                                                .getAddress());
+                                InetAddress peerAddress = flowContext.getClientAddress().getAddress();
+                                stats.addBytesGivenForLocation(
+                                        lookupService.getGeoData(peerAddress),
+                                        numberOfBytes);
                                 Peer peer = peerFor(flowContext);
                                 if (peer != null) {
                                     peer.addBytesDn(numberOfBytes);
@@ -117,26 +120,13 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                             }
 
                             @Override
-                            public void bytesSentToServer(
-                                    FullFlowContext flowContext,
-                                    int numberOfBytes) {
-                                stats.addUpBytesForPeers(numberOfBytes);
-                            }
-
-                            @Override
-                            public void bytesReceivedFromServer(
-                                    FullFlowContext flowContext,
-                                    int numberOfBytes) {
-                                stats.addDownBytesForPeers(numberOfBytes);
-                            }
-
-                            @Override
                             public void bytesSentToClient(
                                     FlowContext flowContext,
                                     int numberOfBytes) {
-                                stats.addUpBytesToPeers(numberOfBytes,
-                                        flowContext.getClientAddress()
-                                                .getAddress());
+                                InetAddress peerAddress = flowContext.getClientAddress().getAddress();
+                                stats.addBytesGivenForLocation(
+                                        lookupService.getGeoData(peerAddress),
+                                        numberOfBytes);
                                 Peer peer = peerFor(flowContext);
                                 if (peer != null) {
                                     peer.addBytesUp(numberOfBytes);

@@ -1,4 +1,4 @@
-package org.lantern.util;
+package org.lantern.monitoring;
 
 import java.lang.ref.WeakReference;
 import java.util.Queue;
@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

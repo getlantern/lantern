@@ -136,11 +136,10 @@ public class TestingUtils {
         //trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         
         final LanternSocketsUtil socketsUtil = 
-            new LanternSocketsUtil(null, trustStore);
+            new LanternSocketsUtil(trustStore);
         
         // Using a mock here creates an OOME and/or stack overflow when trying
         // to convert to JSON. Use a stub instead.
-        final ClientStats stats = new StatsStub();
         final java.util.Timer updateTimer = new java.util.Timer();
 
         //final ProxyTracker proxyTracker = newProxyTracker();
@@ -196,7 +195,7 @@ public class TestingUtils {
                 proxySocketFactory);
         
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
-            updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
+            updateTimer, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
             friendsHandler, networkTracker, censored);
@@ -292,7 +291,6 @@ public class TestingUtils {
 
         LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        ClientStats clientStats = new StatsStub();
         ChainedProxyManager proxyManager =
                 new ChainedProxyManager() {
             @Override
@@ -316,7 +314,7 @@ public class TestingUtils {
                 });
             }
         };
-        GetModeProxy getModeProxy = new GetModeProxy(clientStats, proxyManager);
+        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager);
         getModeProxy.start();
         try {
             return work.call();
