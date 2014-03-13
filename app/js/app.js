@@ -123,28 +123,6 @@ var app = angular.module('app', [
       updateContactCompletions();
     }, true);
     
-    $rootScope.$watch('model.countries', function(countries) {
-      // Calculate total number of users across all countries and add to scope
-      // We do this because model.global.nusers is currently inaccurate
-      var ever = 0,
-          online = 0,
-          countryCode,
-          country;
-      if (countries) {
-        for (countryCode in countries) {
-          country = countries[countryCode];
-          if (country.nusers) {
-            ever += country.nusers.ever || 0;
-            online += country.nusers.online || 0;
-          }
-        }
-      }
-      $rootScope.nusersAcrossCountries = {
-          ever: ever,
-          online: online
-      };
-    }, true);
-
     function updateContactCompletions() {
       var roster = model.roster;
       if (!roster) return;

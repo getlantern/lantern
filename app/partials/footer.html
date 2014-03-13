@@ -11,9 +11,9 @@
       -->
     </div>
     <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
-      {{ 'NUSERS_ONLINE' | i18n:nusersAcrossCountries.online }} ·
-      {{ 'NUSERS_EVER' | i18n:nusersAcrossCountries.ever }} ·
-      {{ model.global.bytesEver | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
+      {{ 'NUSERS_ONLINE' | i18n:model.globalStats.gauge.online }} ·
+      {{ 'NUSERS_EVER' | i18n:model.globalStats.gauge.everOnline }} ·
+      {{ model.globalStats.counter.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
     </div>
   </div>
 

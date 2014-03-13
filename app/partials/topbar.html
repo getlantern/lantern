@@ -3,11 +3,11 @@
     {{ model.profile.email }}
   </div>
   <div id="bpsUpDn" class="{{ model.settings.mode }}">
-    <div ng-class="{inactive: !model.transfers.bpsUp}">
-      <i class="icon icon-upload-alt"></i> {{ model.transfers.bpsUp | prettyBps:model.transfers.bpsUpDn }}
+    <div ng-class="{inactive: !model.instanceStats.bytesGiven.rate}">
+      <i class="icon icon-upload-alt"></i> {{ model.instanceStats.bytesGiven.rate | prettyBps }}
     </div>
-    <div ng-class="{inactive: !model.transfers.bpsDn}">
-      <i class="icon icon-download-alt"></i> {{ model.transfers.bpsDn | prettyBps:model.transfers.bpsUpDn }}
+    <div ng-class="{inactive: !model.transfers.bytesGotten.rate}">
+      <i class="icon icon-download-alt"></i> {{ model.instanceStats.bytesGotten.rate | prettyBps }}
     </div>
   </div>
 </div>
