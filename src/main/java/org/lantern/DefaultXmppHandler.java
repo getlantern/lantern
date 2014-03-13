@@ -190,7 +190,7 @@ public class DefaultXmppHandler implements XmppHandler,
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final org.lantern.Roster roster,
+        final org.lantern.Roster roster, 
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
@@ -758,6 +758,7 @@ public class DefaultXmppHandler implements XmppHandler,
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
+        model.setUserGuid((String) json.get(LanternConstants.USER_GUID));
         sendOnDemandValuesToControllerIfNecessary(json);
     }
 
@@ -873,6 +874,7 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setProperty(LanternConstants.ARCH_KEY, model.getSystem().getArch());
 
         forHub.setProperty("instanceId", model.getInstanceId());
+        forHub.setProperty("countryCode", model.getLocation().getCountry());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
         // Counterintuitive as it might seem at first glance, this is correct.
         //

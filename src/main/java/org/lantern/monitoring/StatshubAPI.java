@@ -40,18 +40,19 @@ public class StatshubAPI {
     /**
      * Submits stats to statshub.
      * 
-     * @param counters
-     * @param gauges
+     * @param id the id (instance or user)
+     * @param countryCode (the country code, xx for unknown)
+     * @param stats the stats
      * @return true if stats were successfully submitted
      */
-    public boolean postStats(String instanceId, String countryCode, Stats stats) {
+    public boolean postStats(String id, String countryCode, Stats stats) {
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("countryCode", countryCode);
         request.put("counter", stats.getCounter());
         request.put("gauge", stats.getGauge());
 
         HttpClient client = clientFactory.newClient();
-        HttpPost post = new HttpPost(urlFor(instanceId));
+        HttpPost post = new HttpPost(urlFor(id));
         byte[] requestJson = JsonUtils.toBytes(request);
         HttpEntity entity = new ByteArrayEntity(requestJson,
                 ContentType.APPLICATION_JSON);

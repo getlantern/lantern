@@ -90,6 +90,8 @@ public class Model {
     }
 
     private String instanceId;
+    
+    private String userGuid;
 
     private String reportIp;
 
@@ -366,6 +368,15 @@ public class Model {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+    
+    @JsonView({Persistent.class})
+    public String getUserGuid() {
+        return userGuid;
+    }
+    
+    public void setUserGuid(String userGuid) {
+        this.userGuid = userGuid;
     }
 
     @JsonView({Persistent.class})

@@ -24,7 +24,6 @@ public class InstanceStats {
     private Counter bytesGotten = Counter.averageOverOneSecond();
     private Counter directBytes = Counter.averageOverOneSecond();
 
-    private AtomicBoolean online = new AtomicBoolean(false);
     private AtomicBoolean usingUPnP = new AtomicBoolean(false);
     private AtomicBoolean usingNATPMP = new AtomicBoolean(false);
 
@@ -32,10 +31,6 @@ public class InstanceStats {
 
     private final Map<String, Long> bytesGivenPerCountry = new HashMap<String, Long>();
 
-    public InstanceStats() {
-        System.out.println("Constructing instance stats");
-    }
-    
     @JsonView({ Run.class, Persistent.class })
     public Counter getRequestsGiven() {
         return requestsGiven;
@@ -114,15 +109,6 @@ public class InstanceStats {
     }
 
     @JsonView({ Run.class })
-    public boolean getOnline() {
-        return online.get();
-    }
-
-    public void setOnline(boolean online) {
-        this.online.set(online);
-    }
-
-    @JsonView({ Run.class })
     public boolean getUsingUPnP() {
         return usingUPnP.get();
     }
@@ -163,7 +149,6 @@ public class InstanceStats {
                     entry.getValue());
         }
 
-        stats.setGauge("online", online.get() ? 1 : 0);
         stats.setGauge("usingUPnP", usingUPnP.get() ? 1 : 0);
         stats.setGauge("usingNATPMP", usingNATPMP.get() ? 1 : 0);
 
@@ -171,6 +156,17 @@ public class InstanceStats {
         stats.setGauge("bpsGotten", bytesGotten.getRate());
 
         stats.setGauge("distinctPeers", getDistinctPeers());
+
+        return stats;
+    }
+
+    public Stats userStats(Stats instanceStats) {
+        Stats stats = new Stats();
+        stats.setCounter(instanceStats.getCounter());
+
+        // We always report that we're online, because if we can report it,
+        // we must be online!
+        stats.setGauge("online", 1);
 
         return stats;
     }

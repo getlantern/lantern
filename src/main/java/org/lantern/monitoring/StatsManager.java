@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
 import org.lantern.LanternService;
 import org.lantern.event.Events;
@@ -56,7 +57,8 @@ public class StatsManager implements LanternService {
                 TimeUnit.MINUTES);
         postScheduler.scheduleAtFixedRate(
                 postStats,
-                0,
+                1, // wait 1 minute before first posting stats, to give the
+                   // system a chance to initialize metadata
                 POST_INTERVAL,
                 TimeUnit.MINUTES);
     }
@@ -95,14 +97,22 @@ public class StatsManager implements LanternService {
     private final Runnable postStats = new Runnable() {
         public void run() {
             try {
-                Stats stats = model.getInstanceStats().toStats();
-                addSystemStats(stats);
                 String countryCode = model.getLocation().getCountry();
-                if ("--".equals(countryCode) || "".equals(countryCode)) {
-                    countryCode = "unknown";
+                if (StringUtils.isBlank(countryCode)
+                        || "--".equals(countryCode)) {
+                    countryCode = "xx";
                 }
+
                 String instanceId = model.getInstanceId();
-                statshub.postStats(instanceId, countryCode, stats);
+                Stats instanceStats = model.getInstanceStats().toStats();
+                addSystemStats(instanceStats);
+                statshub.postStats(instanceId, countryCode, instanceStats);
+
+                String userGuid = model.getUserGuid();
+                if (!StringUtils.isBlank(userGuid)) {
+                    statshub.postStats(userGuid, countryCode, model
+                            .getInstanceStats().userStats(instanceStats));
+                }
             } catch (Exception e) {
                 LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
             }
