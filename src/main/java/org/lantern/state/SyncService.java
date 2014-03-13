@@ -71,7 +71,7 @@ public class SyncService implements LanternService {
                     //sync();
                     delegateSync(SyncType.ADD, SyncPath.PEERS,
                         model.getPeers());
-                    delegateSync(SyncType.ADD, SyncPath.PEERS,
+                    delegateSync(SyncType.ADD, SyncPath.INSTANCE_STATS,
                             model.getInstanceStats());
                 }
             }, 3000, LanternClientConstants.SYNC_INTERVAL_SECONDS * 1000);

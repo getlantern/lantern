@@ -95,12 +95,14 @@ public class StatsManager implements LanternService {
     private final Runnable postStats = new Runnable() {
         public void run() {
             try {
-            Stats stats = model.getInstanceStats().toStats();
-            addSystemStats(stats);
-            statshub.postStats(
-                    model.getInstanceId(),
-                    model.getLocation().getCountry(),
-                    stats);
+                Stats stats = model.getInstanceStats().toStats();
+                addSystemStats(stats);
+                String countryCode = model.getLocation().getCountry();
+                if ("--".equals(countryCode) || "".equals(countryCode)) {
+                    countryCode = "unknown";
+                }
+                String instanceId = model.getInstanceId();
+                statshub.postStats(instanceId, countryCode, stats);
             } catch (Exception e) {
                 LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
             }
