@@ -113,9 +113,9 @@ func underscoreTest() func(string, ...interface{}) Value {
                         arguments[1]()
                     }
                 }
-                catch (tmp) {
+                finally {
+                    _teardown()
                 }
-                _teardown()
             }
 
             function deepEqual(a, b, emit) {

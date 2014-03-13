@@ -611,12 +611,13 @@ func builtinArray_reduce(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
+		initial := len(call.ArgumentList) > 1
 		start := call.Argument(1)
 		length := int64(toUint32(thisObject.get("length")))
 		index := int64(0)
-		if length > 0 || start.IsDefined() {
+		if length > 0 || initial {
 			var accumulator Value
-			if !start.IsDefined() {
+			if !initial {
 				for ; index < length; index++ {
 					if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 						accumulator = thisObject.get(key)
@@ -642,12 +643,13 @@ func builtinArray_reduceRight(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	this := toValue_object(thisObject)
 	if iterator := call.Argument(0); iterator.isCallable() {
+		initial := len(call.ArgumentList) > 1
 		start := call.Argument(1)
 		length := int64(toUint32(thisObject.get("length")))
-		if length > 0 || start.IsDefined() {
+		if length > 0 || initial {
 			index := length - 1
 			var accumulator Value
-			if !start.IsDefined() {
+			if !initial {
 				for ; index >= 0; index-- {
 					if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 						accumulator = thisObject.get(key)

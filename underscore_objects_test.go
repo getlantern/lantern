@@ -557,7 +557,7 @@ func Test_underscore_objects_16(t *testing.T) {
 
 	test(`
   test("isString", function() {
-    ok(!_.isString(document.body), 'the document body is not a string');
+    //ok(!_.isString(document.body), 'the document body is not a string');
     ok(_.isString([1, 2, 3].join(', ')), 'but strings are');
     //ok(_.isString(iString), 'even from another frame');
   });

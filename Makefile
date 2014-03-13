@@ -2,7 +2,11 @@
 .PHONY: test test-race test-check test-all
 .PHONY: underscore
 
+TESTS := \
+	~
+
 TEST := -v --run
+TEST := -v --run Test\($(subst $(eval) ,\|,$(TESTS))\)
 TEST := .
 
 CHECK_GO := GOROOT= GOPATH=$(PWD)/.test/check/:$(GOPATH) $(HOME)/go/release/bin/go
