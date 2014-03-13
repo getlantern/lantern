@@ -9,8 +9,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GeoData;
+import org.lantern.LanternUtils;
 import org.lantern.monitoring.Counter;
 import org.lantern.monitoring.Stats;
+import org.lantern.monitoring.Stats.CounterKey;
+import org.lantern.monitoring.Stats.GaugeKey;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
@@ -18,6 +21,7 @@ import org.lantern.state.Model.Run;
  * Tracks statistics for this instance of Lantern.
  */
 public class InstanceStats {
+    private Counter allBytes = Counter.averageOverOneSecond();
     private Counter requestsGiven = Counter.averageOverOneSecond();
     private Counter bytesGiven = Counter.averageOverOneSecond();
     private Counter requestsGotten = Counter.averageOverOneSecond();
@@ -30,6 +34,19 @@ public class InstanceStats {
     private final Set<InetAddress> distinctProxiedClientAddresses = new HashSet<InetAddress>();
 
     private final Map<String, Long> bytesGivenPerCountry = new HashMap<String, Long>();
+
+    @JsonView({ Run.class, Persistent.class })
+    public Counter getAllBytes() {
+        return allBytes;
+    }
+
+    public void setAllBytes(Counter allBytes) {
+        this.allBytes = allBytes;
+    }
+
+    public void addAllBytes(long bytes) {
+        allBytes.add(bytes);
+    }
 
     @JsonView({ Run.class, Persistent.class })
     public Counter getRequestsGiven() {
@@ -138,24 +155,42 @@ public class InstanceStats {
     public Stats toStats() {
         Stats stats = new Stats();
 
-        stats.setCounter("requestsGiven", requestsGiven.captureDelta());
-        stats.setCounter("bytesGiven", bytesGiven.captureDelta());
-        stats.setCounter("requestsGotten", requestsGotten.captureDelta());
-        stats.setCounter("bytesGotten", bytesGotten.captureDelta());
-        stats.setCounter("directBytes", directBytes.captureDelta());
+        long requestsGiven = this.requestsGiven.captureDelta();
+        long bytesGiven = this.bytesGiven.captureDelta();
+
+        stats.setCounter(CounterKey.requestsGiven, requestsGiven);
+        stats.setCounter(CounterKey.bytesGiven, bytesGiven);
+        if (LanternUtils.isFallbackProxy()) {
+            stats.setCounter(CounterKey.requestsGivenByFallback, requestsGiven);
+            stats.setCounter(CounterKey.bytesGivenByFallback, bytesGiven);
+        } else {
+            stats.setCounter(CounterKey.requestsGivenByPeer, requestsGiven);
+            stats.setCounter(CounterKey.bytesGivenByPeer, bytesGiven);
+        }
+        stats.setCounter(CounterKey.requestsGotten,
+                requestsGotten.captureDelta());
+        stats.setCounter(CounterKey.bytesGotten, bytesGotten.captureDelta());
+        stats.setCounter(CounterKey.directBytes, directBytes.captureDelta());
 
         for (Map.Entry<String, Long> entry : bytesGivenPerCountry.entrySet()) {
-            stats.setCounter("bytesGiven_" + entry.getKey().toLowerCase(),
+            stats.setCounter(CounterKey.bytesGiven,
+                    entry.getKey().toLowerCase(),
                     entry.getValue());
         }
 
-        stats.setGauge("usingUPnP", usingUPnP.get() ? 1 : 0);
-        stats.setGauge("usingNATPMP", usingNATPMP.get() ? 1 : 0);
+        stats.setGauge(GaugeKey.usingUPnP, usingUPnP.get() ? 1 : 0);
+        stats.setGauge(GaugeKey.usingNATPMP, usingNATPMP.get() ? 1 : 0);
 
-        stats.setGauge("bpsGiven", bytesGiven.getRate());
-        stats.setGauge("bpsGotten", bytesGotten.getRate());
+        stats.setGauge(GaugeKey.bpsGiven, this.bytesGiven.getRate());
+        if (LanternUtils.isFallbackProxy()) {
+            stats.setGauge(GaugeKey.bpsGivenByFallback,
+                    this.bytesGiven.getRate());
+        } else {
+            stats.setGauge(GaugeKey.bpsGivenByPeer, this.bytesGiven.getRate());
+        }
+        stats.setGauge(GaugeKey.bpsGotten, bytesGotten.getRate());
 
-        stats.setGauge("distinctPeers", getDistinctPeers());
+        stats.setGauge(GaugeKey.distinctPeers, getDistinctPeers());
 
         return stats;
     }
@@ -166,7 +201,7 @@ public class InstanceStats {
 
         // We always report that we're online, because if we can report it,
         // we must be online!
-        stats.setGauge("online", 1);
+        stats.setGauge(GaugeKey.online, 1);
 
         return stats;
     }

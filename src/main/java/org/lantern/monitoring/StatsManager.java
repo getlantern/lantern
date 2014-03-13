@@ -9,8 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
+import org.lantern.LanternConstants;
 import org.lantern.LanternService;
 import org.lantern.event.Events;
+import org.lantern.monitoring.Stats.GaugeKey;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
@@ -30,7 +32,7 @@ public class StatsManager implements LanternService {
     private static final long POST_INTERVAL = 5;
 
     private final Model model;
-    private final StatshubAPI statshub;
+    private final StatshubAPI statshub = new StatshubAPI(LanternConstants.LANTERN_LOCALHOST_ADDR);
 
     private final MemoryMXBean memoryMXBean = ManagementFactory
             .getMemoryMXBean();
@@ -43,9 +45,8 @@ public class StatsManager implements LanternService {
             .newSingleThreadScheduledExecutor("StatsManager-Post");
 
     @Inject
-    public StatsManager(Model model, StatshubAPI statshub) {
+    public StatsManager(Model model) {
         this.model = model;
-        this.statshub = statshub;
     }
 
     @Override
@@ -110,7 +111,7 @@ public class StatsManager implements LanternService {
 
                 String userGuid = model.getUserGuid();
                 if (!StringUtils.isBlank(userGuid)) {
-                    statshub.postStats(userGuid, countryCode, model
+                    statshub.postStats(Stats.idForUser(userGuid), countryCode, model
                             .getInstanceStats().userStats(instanceStats));
                 }
             } catch (Exception e) {
@@ -120,18 +121,18 @@ public class StatsManager implements LanternService {
     };
 
     private void addSystemStats(Stats stats) {
-        stats.setGauge("processCPUUsage",
+        stats.setGauge(GaugeKey.processCPUUsage,
                 scalePercent(getSystemStat("getProcessCpuLoad")));
-        stats.setGauge("systemCPUUsage",
+        stats.setGauge(GaugeKey.systemCPUUsage,
                 scalePercent(getSystemStat("getSystemCpuLoad")));
-        stats.setGauge("systemLoadAverage",
+        stats.setGauge(GaugeKey.systemLoadAverage,
                 scalePercent(osStats.getSystemLoadAverage()));
-        stats.setGauge("memoryUsage", memoryMXBean
+        stats.setGauge(GaugeKey.memoryUsage, memoryMXBean
                 .getHeapMemoryUsage()
                 .getCommitted() +
                 memoryMXBean.getNonHeapMemoryUsage()
                         .getCommitted());
-        stats.setGauge("openFileDescriptors",
+        stats.setGauge(GaugeKey.openFileDescriptors,
                 (Long) getSystemStat("getOpenFileDescriptorCount"));
     }
 

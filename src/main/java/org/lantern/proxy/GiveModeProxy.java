@@ -22,6 +22,7 @@ import org.lantern.state.Peer;
 import org.lantern.state.Settings;
 import org.littleshoot.proxy.ActivityTrackerAdapter;
 import org.littleshoot.proxy.FlowContext;
+import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
@@ -59,7 +60,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             final SslEngineSource sslEngineSource,
             final PeerFactory peerFactory,
             final GeoIpLookupService lookupService) {
-        final InstanceStats stats = model.getInstanceStats(); 
+        final InstanceStats stats = model.getInstanceStats();
         final Settings settings = model.getSettings();
         int serverPort = settings.getServerPort();
         boolean allowLocalOnly = false;
@@ -78,7 +79,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
             log.info("GiveModeProxy will use pluggable transport of type: "
                     + pluggableTransport.getClass().getName());
         }
-        
+
         HttpProxyServerBootstrap bootstrap =
                 DefaultHttpProxyServer
                         .bootstrap()
@@ -109,7 +110,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                             public void bytesReceivedFromClient(
                                     FlowContext flowContext,
                                     int numberOfBytes) {
-                                InetAddress peerAddress = flowContext.getClientAddress().getAddress();
+                                InetAddress peerAddress = flowContext
+                                        .getClientAddress().getAddress();
                                 stats.addBytesGivenForLocation(
                                         lookupService.getGeoData(peerAddress),
                                         numberOfBytes);
@@ -117,13 +119,15 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                                 if (peer != null) {
                                     peer.addBytesDn(numberOfBytes);
                                 }
+                                stats.addAllBytes(numberOfBytes);
                             }
 
                             @Override
                             public void bytesSentToClient(
                                     FlowContext flowContext,
                                     int numberOfBytes) {
-                                InetAddress peerAddress = flowContext.getClientAddress().getAddress();
+                                InetAddress peerAddress = flowContext
+                                        .getClientAddress().getAddress();
                                 stats.addBytesGivenForLocation(
                                         lookupService.getGeoData(peerAddress),
                                         numberOfBytes);
@@ -131,6 +135,21 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                                 if (peer != null) {
                                     peer.addBytesUp(numberOfBytes);
                                 }
+                                stats.addAllBytes(numberOfBytes);
+                            }
+
+                            @Override
+                            public void bytesSentToServer(
+                                    FullFlowContext flowContext,
+                                    int numberOfBytes) {
+                                stats.addAllBytes(numberOfBytes);
+                            }
+
+                            @Override
+                            public void bytesReceivedFromServer(
+                                    FullFlowContext flowContext,
+                                    int numberOfBytes) {
+                                stats.addAllBytes(numberOfBytes);
                             }
 
                             @Override
@@ -171,7 +190,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                     .withAuthenticateSslClients(!LanternUtils.isFallbackProxy());
         }
         setBootstrap(bootstrap);
-        
+
         this.model = model;
         Events.register(this);
         log.info(

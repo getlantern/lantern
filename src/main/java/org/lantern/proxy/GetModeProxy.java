@@ -54,6 +54,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                         } else {
                             stats.addDirectBytes(numberOfBytes);
                         }
+                        stats.addAllBytes(numberOfBytes);
                     }
 
                     @Override
@@ -67,6 +68,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                         } else {
                             stats.addDirectBytes(numberOfBytes);
                         }
+                        stats.addAllBytes(numberOfBytes);
                     }
 
                     ProxyHolder proxyFor(FullFlowContext flowContext) {
