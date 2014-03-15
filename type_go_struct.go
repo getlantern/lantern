@@ -27,11 +27,23 @@ func _newGoStructObject(value reflect.Value) *_goStructObject {
 }
 
 func (self _goStructObject) getValue(name string) reflect.Value {
-	return reflect.Indirect(self.value).FieldByName(name)
+	if field := reflect.Indirect(self.value).FieldByName(name); (field != reflect.Value{}) {
+		return field
+	}
+
+	if method := self.value.MethodByName(name); (method != reflect.Value{}) {
+		return method
+	}
+
+	return reflect.Value{}
 }
 
 func (self _goStructObject) field(name string) (reflect.StructField, bool) {
 	return reflect.Indirect(self.value).Type().FieldByName(name)
+}
+
+func (self _goStructObject) method(name string) (reflect.Method, bool) {
+	return reflect.Indirect(self.value).Type().MethodByName(name)
 }
 
 func (self _goStructObject) setValue(name string, value Value) bool {
@@ -60,10 +72,17 @@ func goStructGetOwnProperty(self *_object, name string) *_property {
 
 func goStructEnumerate(self *_object, all bool, each func(string) bool) {
 	object := self.value.(*_goStructObject)
-	count := object.value.NumField()
-	type_ := object.value.Type()
-	for index := 0; index < count; index++ {
-		if !each(type_.Field(index).Name) {
+
+	// Enumerate fields
+	for index := 0; index < reflect.Indirect(object.value).NumField(); index++ {
+		if !each(reflect.Indirect(object.value).Type().Field(index).Name) {
+			return
+		}
+	}
+
+	// Enumerate methods
+	for index := 0; index < object.value.NumMethod(); index++ {
+		if !each(object.value.Type().Method(index).Name) {
 			return
 		}
 	}

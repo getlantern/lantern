@@ -14,6 +14,34 @@ type testStruct struct {
 	Jkl interface{}
 }
 
+func (t *testStruct) FuncPointerReciever() string {
+	return "abc"
+}
+
+func (t testStruct) FuncNoArgsNoRet() {
+	return
+}
+
+func (t testStruct) FuncNoArgs() string {
+	return "abc"
+}
+
+func (t testStruct) FuncNoArgsMultRet() (string, error) {
+	return "def", nil
+}
+
+func (t testStruct) FuncOneArgs(a string) string {
+	return a
+}
+
+func (t testStruct) FuncMultArgs(a, b string) string {
+	return a + b
+}
+
+func (t testStruct) FuncVarArgs(as ...string) int {
+	return len(as)
+}
+
 func TestReflect(t *testing.T) {
 	Terst(t)
 
@@ -34,6 +62,10 @@ func Test_reflectStruct(t *testing.T) {
 	{
 		abc := &testStruct{}
 		failSet("abc", abc)
+
+		test(`
+			abc.FuncPointerReciever();
+		`, "abc")
 
 		test(`
             [ abc.Abc, abc.Ghi ];
@@ -78,6 +110,26 @@ func Test_reflectStruct(t *testing.T) {
             [ abc.Def, abc.abc ];
         `, "451,")
 		Is(abc.Def, 451)
+
+		test(`
+			abc.FuncNoArgsNoRet();
+		`, "undefined")
+		test(`
+			abc.FuncNoArgs();
+		`, "abc")
+		test(`
+			abc.FuncOneArgs("abc");
+		`, "abc")
+		test(`
+			abc.FuncMultArgs("abc", "def");
+		`, "abcdef")
+		test(`
+			abc.FuncVarArgs("abc", "def", "ghi");
+		`, "3")
+
+		test(`raise:
+            abc.FuncNoArgsMultRet();
+        `, "TypeError")
 	}
 }
 
