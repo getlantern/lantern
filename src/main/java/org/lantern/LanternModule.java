@@ -195,10 +195,14 @@ public class LanternModule extends AbstractModule {
     SystemTray provideSystemTray(final BrowserService browserService,
         final Model model) {
         if (SystemUtils.IS_OS_LINUX) {
-            return new AppIndicatorTray(browserService, model);
-        } else {
-            return new SystemTrayImpl(browserService, model);
+            try {
+                return new AppIndicatorTray(browserService, model);
+            } catch (final java.lang.UnsatisfiedLinkError ex) {
+                log.warn("no supported version of appindicator libs found, "
+                         + "falling back to generic system tray");
+            }
         }
+        return new SystemTrayImpl(browserService, model);
     }
 
     @Provides @Singleton
