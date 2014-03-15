@@ -31,10 +31,10 @@ func TestObject(t *testing.T) {
 	//Is(newStringObject("Hello, World.").Value(), "Hello, World.")
 }
 
+type intAlias int
+
 func TestToValue(t *testing.T) {
 	Terst(t)
-
-	//Is(toValue(newObjectValue()), "[object]")
 
 	otto, _ := runTestWithOtto()
 
@@ -43,6 +43,45 @@ func TestToValue(t *testing.T) {
 
 	value, _ = otto.ToValue((*byte)(nil))
 	Is(value, "undefined")
+
+	value, _ = otto.ToValue(intAlias(5))
+	Is(value, "5")
+
+	{
+		tmp := new(int)
+
+		value, _ = otto.ToValue(&tmp)
+		Is(value, "0")
+
+		*tmp = 1
+
+		value, _ = otto.ToValue(&tmp)
+		Is(value, "1")
+
+		tmp = nil
+
+		value, _ = otto.ToValue(&tmp)
+		Is(value, "undefined")
+	}
+
+	{
+		tmp0 := new(int)
+		tmp1 := &tmp0
+		tmp2 := &tmp1
+
+		value, _ = otto.ToValue(&tmp2)
+		Is(value, "0")
+
+		*tmp0 = 1
+
+		value, _ = otto.ToValue(&tmp2)
+		Is(value, "1")
+
+		tmp0 = nil
+
+		value, _ = otto.ToValue(&tmp2)
+		Is(value, "undefined")
+	}
 }
 
 func TestToBoolean(t *testing.T) {

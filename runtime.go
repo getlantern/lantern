@@ -310,6 +310,7 @@ func (self *_runtime) toValue(value interface{}) Value {
 		return toValue_object(self.newNativeFunction(value))
 	case Object, *Object, _object, *_object:
 		// Nothing happens.
+		// FIXME
 	default:
 		{
 			value := reflect.ValueOf(value)

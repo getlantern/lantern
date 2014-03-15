@@ -321,7 +321,17 @@ func toValue(value interface{}) Value {
 		// TODO Ugh.
 		return UndefinedValue()
 	case reflect.Value:
-		value = reflect.Indirect(value)
+		for value.Kind() == reflect.Ptr {
+			// We were given a pointer, so we'll drill down until we get a non-pointer
+			//
+			// These semantics might change if we want to start supporting pointers to values transparently
+			// (It would be best not to depend on this behavior)
+			// FIXME: UNDEFINED
+			if value.IsNil() {
+				return UndefinedValue()
+			}
+			value = value.Elem()
+		}
 		switch value.Kind() {
 		case reflect.Bool:
 			return Value{valueBoolean, bool(value.Bool())}
@@ -355,15 +365,7 @@ func toValue(value interface{}) Value {
 			toValue_reflectValuePanic(value.Interface(), value.Kind())
 		}
 	default:
-		{
-			value := reflect.ValueOf(value)
-			if value.IsNil() {
-				return UndefinedValue()
-			}
-
-			value = reflect.Indirect(value)
-			toValue_reflectValuePanic(value.Interface(), value.Kind())
-		}
+		return toValue(reflect.ValueOf(value))
 	}
 	panic(newTypeError("Invalid value: Unsupported: %v (%T)", value, value))
 }
