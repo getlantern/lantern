@@ -153,7 +153,7 @@ public class InstanceStats {
         return distinctProxiedClientAddresses.size();
     }
 
-    public Stats toInstanceStats(String userGuid) {
+    public Stats toInstanceStats() {
         Stats stats = new Stats();
 
         long requestsGiven = this.requestsGiven.captureDelta();

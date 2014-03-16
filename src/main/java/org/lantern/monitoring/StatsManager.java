@@ -4,6 +4,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
 import org.lantern.LanternConstants;
 import org.lantern.LanternService;
+import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Model;
@@ -105,6 +107,7 @@ public class StatsManager implements LanternService {
     private final Runnable postStats = new Runnable() {
         public void run() {
             try {
+                String userGuid = model.getUserGuid();
                 String countryCode = model.getLocation().getCountry();
                 if (StringUtils.isBlank(countryCode)
                         || "--".equals(countryCode)) {
@@ -112,19 +115,24 @@ public class StatsManager implements LanternService {
                 }
 
                 String instanceId = model.getInstanceId();
-                String userGuid = model.getUserGuid();
+                Map<String, String> dims = new HashMap<String, String>();
+                dims.put("country", countryCode);
                 if (userGuid != null) {
-                    Stats instanceStats = model.getInstanceStats()
-                            .toInstanceStats(
-                                    userGuid);
-                    addSystemStats(instanceStats);
-                    statshub.postStats(instanceId, userGuid,
-                            countryCode, instanceStats);
+                    dims.put("user", userGuid);
+                }
+                if (LanternUtils.isFallbackProxy()) {
+                    dims.put("fallback", model.getInstanceId());
+                }
 
-                    Stats userStats = model.getInstanceStats().toUserStats(
-                            userGuid);
-                    statshub.postStats(userGuid, userGuid,
-                            countryCode, userStats);
+                Stats instanceStats =
+                        model.getInstanceStats().toInstanceStats();
+                addSystemStats(instanceStats);
+                statshub.postStats(instanceId, dims, instanceStats);
+
+                if (userGuid != null) {
+                    Stats userStats =
+                            model.getInstanceStats().toUserStats(userGuid);
+                    statshub.postStats(userGuid, dims, userStats);
                 }
             } catch (Exception e) {
                 LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
