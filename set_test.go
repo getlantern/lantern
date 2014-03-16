@@ -67,16 +67,16 @@ func Test_Difference(t *testing.T) {
 }
 
 func Test_Intersection(t *testing.T) {
-	s1 := New(3, 6, 7, 9)
-	s2 := New(6, 7, 9, 10)
-	s3 := New(7, 9, 10, 11)
+	s1 := New("1", "3", "4", "5")
+	s2 := New("2", "3", "5", "6")
+	s3 := New("4", "5", "6", "7")
 	u := Intersection(s1, s2, s3)
 
-	if u.Size() != 2 {
+	if u.Size() != 1 {
 		t.Error("Intersection: the set doesn't have all items in it.")
 	}
 
-	if !u.Has(7, 9) {
+	if !u.Has("5") {
 		t.Error("Intersection: items after intersection are not availabile in the set.")
 	}
 }

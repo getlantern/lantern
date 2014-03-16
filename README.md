@@ -144,18 +144,21 @@ a.Separate(b)
 #### Multiple Set Operations
 
 ```go
-a := set.New("1", "2", "3")
-b := set.New("3", "4", "5")
-c := set.New("5", "6", "7")
-
+a := set.New("1", "3", "4", "5")
+b := set.New("2", "3", "4", "5")
+c := set.New("4", "5", "6", "7")
 
 // creates a new set with items in a, b and c
 // [1 2 3 4 5 6 7]
 u := set.Union(a, b, c)
 
 // creates a new set with items in a but not in b and c
-// [1 2]
+// [1]
 u := set.Difference(a, b, c)
+
+// creates a new set with items that are common to a, b and c
+// [5]
+u := set.Intersection(a, b, c)
 ```
 
 #### Helper methods

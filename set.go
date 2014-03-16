@@ -75,6 +75,7 @@ func Intersection(sets ...Interface) Interface {
 
 	all := Union(sets...)
 	result := Union(sets...)
+
 	all.Each(func(item interface{}) bool {
 		for _, set := range sets {
 			if !set.Has(item) {
