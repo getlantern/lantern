@@ -26,9 +26,11 @@ go get github.com/fatih/set
 
 // create a set with zero items
 s := set.New()
+s := set.NewNonTS() // non thread-safe version
 
 // ... or with some initial values
 s := set.New("istanbul", "frankfurt", 30.123, "san francisco", 1234)
+s := set.NewNonTS("kenya", "ethiopia", "sumatra")
 
 ```
 
@@ -114,19 +116,19 @@ b := set.New("frankfurt", "berlin")
 
 // creates a new set with the items in a and b combined.
 // [frankfurt, berlin, ankara, san francisco]
-c := a.Union(b)
+c := set.Union(a, b)
 
 // contains items which is in both a and b
 // [berlin]
-c := a.Intersection(b)
+c := set.Intersection(a, b)
 
 // contains items which are in a but not in b
 // [ankara, san francisco]
-c := a.Difference(b)
+c := set.Difference(a, b)
 
 // contains items which are in one of either, but not in both.
 // [frankfurt, ankara, san francisco]
-c := a.SymmetricDifference(b)
+c := set.SymmetricDifference(a, b)
 
 ```
 
@@ -169,12 +171,12 @@ s := set.New("ankara", "5", "8", "san francisco", 13, 21)
 
 // convert s into a slice of strings (type is []string)
 // [ankara 5 8 san francisco]
-t := s.StringSlice()
+t := set.StringSlice(s)
 
 
 // u contains a slice of ints (type is []int)
 // [13, 21]
-u := s.IntSlice()
+u := set.IntSlice(s)
 
 ```
 
@@ -197,7 +199,7 @@ import (
 func main() {
 	var wg sync.WaitGroup // this is just for waiting until all goroutines finish
 
-	// Initialize our Set
+	// Initialize our thread safe Set
 	s := set.New()
 
 	// Add items concurrently (item1, item2, and so on)
@@ -216,7 +218,6 @@ func main() {
 	fmt.Println(s)
 }
 ```
-
 
 ## Credits
 
