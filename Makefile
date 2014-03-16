@@ -36,7 +36,7 @@ test-all: inline.go
 	go test -i
 	go test
 
-release: test-check test-race test-all test-synopsis
+release: test-race test-all test-synopsis
 	for package in . underscore registry; do (cd $$package && godocdown --signature > README.markdown); done
 
 test-race:
