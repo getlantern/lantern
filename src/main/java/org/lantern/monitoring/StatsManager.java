@@ -4,6 +4,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +13,7 @@ import org.lantern.Country;
 import org.lantern.LanternConstants;
 import org.lantern.LanternService;
 import org.lantern.event.Events;
-import org.lantern.monitoring.Stats.GaugeKey;
+import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
@@ -32,7 +33,8 @@ public class StatsManager implements LanternService {
     private static final long POST_INTERVAL = 5;
 
     private final Model model;
-    private final StatshubAPI statshub = new StatshubAPI(LanternConstants.LANTERN_LOCALHOST_ADDR);
+    private final StatshubAPI statshub = new StatshubAPI(
+            LanternConstants.LANTERN_LOCALHOST_ADDR);
 
     private final MemoryMXBean memoryMXBean = ManagementFactory
             .getMemoryMXBean();
@@ -79,15 +81,20 @@ public class StatsManager implements LanternService {
     private final Runnable getStats = new Runnable() {
         public void run() {
             try {
-                StatsResponse resp = statshub.getStats(model.getInstanceId());
+                StatsResponse resp = statshub.getStats("country");
                 if (resp != null) {
-                    model.setGlobalStats(resp.getRollups().getGlobal());
-                    for (Country country : model.getCountries().values()) {
-                        country.setStats(resp.getRollups().getPerCountry().get(
-                                country.getCode()));
+                    Map<String, Stats> countryDim = resp.getDims().get(
+                            "country");
+                    if (countryDim != null) {
+                        model.setGlobalStats(countryDim.get("total"));
+                        for (Country country : model.getCountries().values()) {
+                            country.setStats(countryDim.get(
+                                    country.getCode()));
+                        }
+                        Events.sync(SyncPath.GLOBAL_STATS,
+                                model.getGlobalStats());
+                        Events.sync(SyncPath.COUNTRIES, model.getCountries());
                     }
-                    Events.sync(SyncPath.GLOBAL_STATS, model.getGlobalStats());
-                    Events.sync(SyncPath.COUNTRIES, model.getCountries());
                 }
             } catch (Exception e) {
                 LOGGER.warn("Unable to getStats: " + e.getMessage(), e);
@@ -105,14 +112,19 @@ public class StatsManager implements LanternService {
                 }
 
                 String instanceId = model.getInstanceId();
-                Stats instanceStats = model.getInstanceStats().toStats();
-                addSystemStats(instanceStats);
-                statshub.postStats(instanceId, countryCode, instanceStats);
-
                 String userGuid = model.getUserGuid();
-                if (!StringUtils.isBlank(userGuid)) {
-                    statshub.postStats(Stats.idForUser(userGuid), countryCode, model
-                            .getInstanceStats().userStats(instanceStats));
+                if (userGuid != null) {
+                    Stats instanceStats = model.getInstanceStats()
+                            .toInstanceStats(
+                                    userGuid);
+                    addSystemStats(instanceStats);
+                    statshub.postStats(instanceId, userGuid,
+                            countryCode, instanceStats);
+
+                    Stats userStats = model.getInstanceStats().toUserStats(
+                            userGuid);
+                    statshub.postStats(userGuid, userGuid,
+                            countryCode, userStats);
                 }
             } catch (Exception e) {
                 LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
@@ -121,18 +133,18 @@ public class StatsManager implements LanternService {
     };
 
     private void addSystemStats(Stats stats) {
-        stats.setGauge(GaugeKey.processCPUUsage,
+        stats.setGauge(Gauges.processCPUUsage,
                 scalePercent(getSystemStat("getProcessCpuLoad")));
-        stats.setGauge(GaugeKey.systemCPUUsage,
+        stats.setGauge(Gauges.systemCPUUsage,
                 scalePercent(getSystemStat("getSystemCpuLoad")));
-        stats.setGauge(GaugeKey.systemLoadAverage,
+        stats.setGauge(Gauges.systemLoadAverage,
                 scalePercent(osStats.getSystemLoadAverage()));
-        stats.setGauge(GaugeKey.memoryUsage, memoryMXBean
+        stats.setGauge(Gauges.memoryUsage, memoryMXBean
                 .getHeapMemoryUsage()
                 .getCommitted() +
                 memoryMXBean.getNonHeapMemoryUsage()
                         .getCommitted());
-        stats.setGauge(GaugeKey.openFileDescriptors,
+        stats.setGauge(Gauges.openFileDescriptors,
                 (Long) getSystemStat("getOpenFileDescriptorCount"));
     }
 

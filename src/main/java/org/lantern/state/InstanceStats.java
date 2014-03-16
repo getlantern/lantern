@@ -12,8 +12,9 @@ import org.lantern.GeoData;
 import org.lantern.LanternUtils;
 import org.lantern.monitoring.Counter;
 import org.lantern.monitoring.Stats;
-import org.lantern.monitoring.Stats.CounterKey;
-import org.lantern.monitoring.Stats.GaugeKey;
+import org.lantern.monitoring.Stats.Counters;
+import org.lantern.monitoring.Stats.Gauges;
+import org.lantern.monitoring.Stats.Members;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
@@ -152,57 +153,54 @@ public class InstanceStats {
         return distinctProxiedClientAddresses.size();
     }
 
-    public Stats toStats() {
+    public Stats toInstanceStats(String userGuid) {
         Stats stats = new Stats();
 
         long requestsGiven = this.requestsGiven.captureDelta();
         long bytesGiven = this.bytesGiven.captureDelta();
 
-        stats.setCounter(CounterKey.requestsGiven, requestsGiven);
-        stats.setCounter(CounterKey.bytesGiven, bytesGiven);
+        stats.setIncrement(Counters.requestsGiven, requestsGiven);
+        stats.setIncrement(Counters.bytesGiven, bytesGiven);
         if (LanternUtils.isFallbackProxy()) {
-            stats.setCounter(CounterKey.requestsGivenByFallback, requestsGiven);
-            stats.setCounter(CounterKey.bytesGivenByFallback, bytesGiven);
+            stats.setIncrement(Counters.requestsGivenByFallback,
+                    requestsGiven);
+            stats.setIncrement(Counters.bytesGivenByFallback, bytesGiven);
         } else {
-            stats.setCounter(CounterKey.requestsGivenByPeer, requestsGiven);
-            stats.setCounter(CounterKey.bytesGivenByPeer, bytesGiven);
+            stats.setIncrement(Counters.requestsGivenByPeer, requestsGiven);
+            stats.setIncrement(Counters.bytesGivenByPeer, bytesGiven);
         }
-        stats.setCounter(CounterKey.requestsGotten,
+        stats.setIncrement(Counters.requestsGotten,
                 requestsGotten.captureDelta());
-        stats.setCounter(CounterKey.bytesGotten, bytesGotten.captureDelta());
-        stats.setCounter(CounterKey.directBytes, directBytes.captureDelta());
+        stats.setIncrement(Counters.bytesGotten, bytesGotten.captureDelta());
+        stats.setIncrement(Counters.directBytes, directBytes.captureDelta());
 
         for (Map.Entry<String, Long> entry : bytesGivenPerCountry.entrySet()) {
-            stats.setCounter(CounterKey.bytesGiven,
+            stats.setIncrement(Counters.bytesGiven,
                     entry.getKey().toLowerCase(),
                     entry.getValue());
         }
 
-        stats.setGauge(GaugeKey.usingUPnP, usingUPnP.get() ? 1 : 0);
-        stats.setGauge(GaugeKey.usingNATPMP, usingNATPMP.get() ? 1 : 0);
+        stats.setGauge(Gauges.usingUPnP, usingUPnP.get() ? 1 : 0);
+        stats.setGauge(Gauges.usingNATPMP, usingNATPMP.get() ? 1 : 0);
 
-        stats.setGauge(GaugeKey.bpsGiven, this.bytesGiven.getRate());
+        stats.setGauge(Gauges.bpsGiven, this.bytesGiven.getRate());
         if (LanternUtils.isFallbackProxy()) {
-            stats.setGauge(GaugeKey.bpsGivenByFallback,
+            stats.setGauge(Gauges.bpsGivenByFallback,
                     this.bytesGiven.getRate());
         } else {
-            stats.setGauge(GaugeKey.bpsGivenByPeer, this.bytesGiven.getRate());
+            stats.setGauge(Gauges.bpsGivenByPeer, this.bytesGiven.getRate());
         }
-        stats.setGauge(GaugeKey.bpsGotten, bytesGotten.getRate());
+        stats.setGauge(Gauges.bpsGotten, bytesGotten.getRate());
 
-        stats.setGauge(GaugeKey.distinctPeers, getDistinctPeers());
+        stats.setGauge(Gauges.distinctPeers, getDistinctPeers());
 
         return stats;
     }
 
-    public Stats userStats(Stats instanceStats) {
+    public Stats toUserStats(String userGuid) {
         Stats stats = new Stats();
-        stats.setCounter(instanceStats.getCounter());
-
-        // We always report that we're online, because if we can report it,
-        // we must be online!
-        stats.setGauge(GaugeKey.online, 1);
-
+        stats.setGauge(Gauges.online, 1);
+        stats.setMember(Members.everOnline, userGuid);
         return stats;
     }
 
