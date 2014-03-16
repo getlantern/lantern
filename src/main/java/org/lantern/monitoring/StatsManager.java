@@ -4,7 +4,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -115,24 +114,20 @@ public class StatsManager implements LanternService {
                 }
 
                 String instanceId = model.getInstanceId();
-                Map<String, String> dims = new HashMap<String, String>();
-                dims.put("country", countryCode);
-                if (userGuid != null) {
-                    dims.put("user", userGuid);
-                }
-                if (LanternUtils.isFallbackProxy()) {
-                    dims.put("fallback", model.getInstanceId());
-                }
-
                 Stats instanceStats =
                         model.getInstanceStats().toInstanceStats();
                 addSystemStats(instanceStats);
-                statshub.postStats(instanceId, dims, instanceStats);
+                statshub.postInstanceStats(
+                        instanceId,
+                        userGuid,
+                        countryCode,
+                        LanternUtils.isFallbackProxy(),
+                        instanceStats);
 
                 if (userGuid != null) {
                     Stats userStats =
                             model.getInstanceStats().toUserStats(userGuid);
-                    statshub.postStats(userGuid, dims, userStats);
+                    statshub.postUserStats(userGuid, countryCode, userStats);
                 }
             } catch (Exception e) {
                 LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
