@@ -67,15 +67,16 @@ func Test_Difference(t *testing.T) {
 }
 
 func Test_Intersection(t *testing.T) {
-	s := New("1", "2", "3")
-	r := New("3", "5")
-	u := Intersection(s, r)
+	s1 := New(3, 6, 7, 9)
+	s2 := New(6, 7, 9, 10)
+	s3 := New(7, 9, 10, 11)
+	u := Intersection(s1, s2, s3)
 
-	if u.Size() != 1 {
+	if u.Size() != 2 {
 		t.Error("Intersection: the set doesn't have all items in it.")
 	}
 
-	if !u.Has("3") {
+	if !u.Has(7, 9) {
 		t.Error("Intersection: items after intersection are not availabile in the set.")
 	}
 }
@@ -159,19 +160,19 @@ func BenchmarkSubset(b *testing.B) {
 }
 
 func benchmarkIntersection(b *testing.B, numberOfItems int) {
-	s := New()
-	u := New()
+	s1 := New()
+	s2 := New()
 
 	for i := 0; i < numberOfItems/2; i++ {
-		s.Add(i)
+		s1.Add(i)
 	}
 	for i := 0; i < numberOfItems; i++ {
-		u.Add(i)
+		s2.Add(i)
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Intersection(s, u)
+		Intersection(s1, s2)
 	}
 }
 

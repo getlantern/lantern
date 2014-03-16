@@ -5,7 +5,7 @@
 // between the start and the end of the operation.
 package set
 
-// Interface describing a Set. Sets are an unordered, unique list of values.
+// Interface is describing a Set. Sets are an unordered, unique list of values.
 type Interface interface {
 	New(items ...interface{}) Interface
 	Add(items ...interface{})
@@ -67,11 +67,24 @@ func Difference(sets ...Interface) Interface {
 	return s
 }
 
-// Intersection returns a new set which contains items which is in both s and t.
-func Intersection(s Interface, t Interface) Interface {
-	u := s.Copy()
-	u.Separate(Difference(u, t))
-	return u
+// Intersection returns a new set which contains items that only exist in all given sets.
+func Intersection(sets ...Interface) Interface {
+	if len(sets) == 0 {
+		return New()
+	}
+
+	all := Union(sets...)
+	result := Union(sets...)
+	all.Each(func(item interface{}) bool {
+		for _, set := range sets {
+			if !set.Has(item) {
+				result.Remove(item)
+			}
+		}
+		return true
+	})
+
+	return result
 }
 
 // SymmetricDifference returns a new set which s is the difference of items which are in
