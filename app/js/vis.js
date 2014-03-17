@@ -48,8 +48,8 @@ angular.module('app.vis', [])
         '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
         '<div class="give-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0:true }} {{ "GIVING_ACCESS" | i18n }}</div>'+
         '<div class="get-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0:true }} {{ "GETTING_ACCESS" | i18n }}</div>'+
-        '<div class="nusers {{ (!model.countries.'+alpha2+'.stats.gauges.userOnlineEver) && \'gray\' || \'\' }}">'+
-          '{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineEver }}'+
+        '<div class="nusers {{ (!model.countries.'+alpha2+'.stats.gauges.userOnlineEver && !model.countries.'+alpha2+'.stats.counters.userOnlineEverOld) && \'gray\' || \'\' }}">'+
+          '{{ "NUSERS_EVER" | i18n:(model.countries.'+alpha2+'.stats.gauges.userOnlineEver + model.countries.'+alpha2+'.stats.gauges.userOnlineEverOld) }}'+
         '</div>'+
         '<div class="stats">'+
           '<div class="bps{{ model.countries.'+alpha2+'.bps || 0 }}">'+
