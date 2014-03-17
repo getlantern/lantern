@@ -15,6 +15,7 @@ import org.lantern.LanternService;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
 import org.lantern.monitoring.Stats.Gauges;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
@@ -127,8 +128,13 @@ public class StatsManager implements LanternService {
                             instanceStats);
 
                     if (userGuid != null) {
-                        Stats userStats =
-                                model.getInstanceStats().toUserStats(userGuid);
+                        Stats userStats = model.getInstanceStats()
+                                .toUserStats(
+                                        userGuid,
+                                        Mode.give == model.getSettings()
+                                                .getMode(),
+                                        Mode.get == model.getSettings()
+                                                .getMode());
                         statshub.postUserStats(userGuid, countryCode, userStats);
                     }
                 } catch (Exception e) {

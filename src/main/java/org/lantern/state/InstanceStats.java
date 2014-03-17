@@ -197,10 +197,19 @@ public class InstanceStats {
         return stats;
     }
 
-    public Stats toUserStats(String userGuid) {
+    public Stats toUserStats(
+            String userGuid,
+            boolean giving,
+            boolean getting) {
         Stats stats = new Stats();
-        stats.setGauge(Gauges.online, 1);
-        stats.setMember(Members.everOnline, userGuid);
+        stats.setGauge(Gauges.userOnline, 1);
+        if (giving) {
+            stats.setGauge(Gauges.userOnlineGiving, 1);
+        }
+        if (getting) {
+            stats.setGauge(Gauges.userOnlineGetting, 1);
+        }
+        stats.setMember(Members.userOnlineEver, userGuid);
         return stats;
     }
 
