@@ -218,6 +218,8 @@
   "TRANSFERRED_EVER": "transferred ever",
   "SENT": "sent",
   "RECEIVED": "received",
+  "GIVEN": "given",
+  "GOTTEN": "gotten",
   "TRANSFERRED_GLOBALLY": "transferred globally",
   "BACKEND_ALREADY_ADDED":"You have already added %s.",
   "BACKEND_ERROR_CONNECTING_TO":"Error connecting to %s.",

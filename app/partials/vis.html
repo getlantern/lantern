@@ -18,12 +18,11 @@
               </div>
               <div class=stats>
                 <div class=bps{{model.transfers.bpsUpDn}}>
-                  {{model.transfers.bpsUp | prettyBps}} {{'UP' | i18n}},
-                  {{model.transfers.bpsDn | prettyBps}} {{'DN' | i18n}}
+                  {{model.instanceStats.allBytes.rate | prettyBps}}
                 </div>
                 <div class=bytes{{model.transfers.bytesUpDn}}>
-                  {{model.transfers.bytesUp | prettyBytes}} {{'SENT' | i18n}},
-                  {{model.transfers.bytesDn | prettyBytes}} {{'RECEIVED' | i18n}}
+                  {{model.instanceStats.bytesGiven.total | prettyBytes}} {{'GIVEN' | i18n}},
+                  {{model.instanceStats.bytesGotten.total | prettyBytes}} {{'GOTTEN' | i18n}}
                 </div>
                 <div class=lastConnected>
                   {{model.connectivity.lastConnected && ('LAST_CONNECTED' | i18n) || '' }}
