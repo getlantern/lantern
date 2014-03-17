@@ -206,6 +206,8 @@
   "NUSERS_ONLINE_OTHER": "{} users online",
   "NUSERS_EVER_1": "1 user ever",
   "NUSERS_EVER_OTHER": "{} users ever",
+  "GIVING_ACCESS": "giving access",
+  "GETTING_ACCESS": "getting access",
   "LAST_CONNECTED": "Last connected:",
   "PCGIVE": "Lantern user giving access",
   "PCGET": "Lantern user getting access",

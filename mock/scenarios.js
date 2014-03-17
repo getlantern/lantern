@@ -504,9 +504,8 @@ exports.SCENARIOS = {
                       var bpsUp = peer.bpsUp || 0,
                           bpsDn = peer.bpsDn || 0,
                           bpsUpDn = peer.bpsUpDn || 0,
-                          bytesUp = getByPath(this_.model, '/transfers/bytesUp') || 0,
-                          bytesDn = getByPath(this_.model, '/transfers/bytesDn') || 0,
-                          bytesUpDn = getByPath(this_.model, '/transfers/bytesUpDn') || 0;
+                          bytesGiven = getByPath(this_.model, '/instanceStats/bytesGiven/total') || 0,
+                          allBytes = getByPath(this_.model, '/instanceStats/allBytes/total') || 0;
                       bpsUp = Math.max(0, bpsUp + _.random(-1024*2, 1024*2));
                       bpsDn = Math.max(0, bpsDn + _.random(-1024*2, 1024*2));
                       bpsUpDn = bpsUp + bpsDn;
@@ -516,31 +515,26 @@ exports.SCENARIOS = {
                       peer.bytesUp = (peer.bytesUp || 0) + bpsUp;
                       peer.bytesDn = (peer.bytesDn || 0) + bpsDn;
                       peer.bytesUpDn = (peer.bytesUpDn || 0) + bpsUpDn;
-                      bytesUp += bpsUp;
-                      bytesDn += bpsDn;
-                      bytesUpDn += bpsUpDn;
+                      bytesGiven += bpsUpDn;
+                      allBytes += bpsUpDn;
                       update.push({op: 'add', path: '/peers/'+i+'/bpsUp', value: bpsUp});
                       update.push({op: 'add', path: '/peers/'+i+'/bpsDn', value: bpsDn});
                       update.push({op: 'add', path: '/peers/'+i+'/bpsUpDn', value: bpsUpDn});
                       update.push({op: 'add', path: '/peers/'+i+'/bytesUp', value: peer.bytesUp});
                       update.push({op: 'add', path: '/peers/'+i+'/bytesDn', value: peer.bytesDn});
                       update.push({op: 'add', path: '/peers/'+i+'/bytesUpDn', value: peer.bytesUpDn});
-                      update.push({op: 'add', path: '/transfers/bytesUp', value: bytesUp});
-                      update.push({op: 'add', path: '/transfers/bytesDn', value: bytesDn});
-                      update.push({op: 'add', path: '/transfers/bytesUpDn', value: bytesUpDn});
+                      update.push({op: 'add', path: '/instanceStats/bytesGiven/total', value: bytesGiven});
+                      update.push({op: 'add', path: '/instanceStats/allBytes/total', value: allBytes});
                     }
                     //log('update:', update);
                   });
 
-                  var bpsUp = 0, bpsDn = 0, bpsUpDn = 0;
+                  var bps = 0;
                   for (var i=0, p=peersCurrent[i]; p; p=peersCurrent[++i]) {
-                    bpsUp += p.bpsUp;
-                    bpsDn += p.bpsDn;
-                    bpsUpDn += p.bpsUpDn;
+                    bps += p.bpsUpDn;
                   }
-                  update.push({op: 'add', path: '/transfers/bpsUp', value: bpsUp});
-                  update.push({op: 'add', path: '/transfers/bpsDn', value: bpsDn});
-                  update.push({op: 'add', path: '/transfers/bpsUpDn', value: bpsUpDn});
+                  update.push({op: 'add', path: '/instanceStats/bytesGiven/rate', value: bps});
+                  update.push({op: 'add', path: '/instanceStats/allBytes/rate', value: bps});
                   //update.push({op: 'replace', path: '/connectivity/nproxies', value:
                   //  _.filter(peersCurrent, {mode: MODE.give}).length});
                   this_.sync(update);
@@ -617,17 +611,17 @@ exports.SCENARIOS = {
 
         // XXX do this on reset
         _.each(this.model.countries, function(country, alpha2) {
-          var npeersPath = '/countries/'+alpha2+'/npeers',
-              nusersPath = '/countries/'+alpha2+'/nusers';
+          var statsPath = '/countries/'+alpha2+'/stats';
           if (/*Math.random() < .1 ||*/ _.contains(initialCountries, alpha2)) {
-            var ever = {get: _.random(200, 1000)};
-            ever.give = country.censors ? 0 : _.random(500, 1000);
-            ever.giveGet = ever.give + ever.get;
-            update[npeersPath] = {online: {}, ever: ever};
+            var everGet = _.random(200, 1000);
+            var everGive = country.censors ? 0 : _.random(500, 1000);
+            var ever = everGive + everGet;
+            update[statsPath] = {gauges: {userOnlineGetting: 0, userOnlineGiving: 0, userOnlineEver: ever},
+                                 counters: {bytesGiven: 0, bytesGotten: 0}};
             updateCountry(alpha2, update);
           } else {
-            update[npeersPath] = {online: {give: 0, get: 0, giveGet: 0}, ever: {give: 0, get: 0, giveGet: 0}};
-            update[nusersPath] = {online: 0, ever:  0};
+            update[statsPath] = {gauges: {userOnlineGetting: 0, userOnlineGiving: 0, userOnlineEver: 0},
+                                 counters: {bytesGiven: 0, bytesGotten: 0}};
           }
         });
         this_.sync(update);
@@ -647,34 +641,48 @@ exports.SCENARIOS = {
         function updateCountry(country, update) {
           var stats = this_.model.countries[country],
               censors = stats.censors,
-              npeersOnlineGive = getByPath(stats, '/npeers/online/give'),
-              npeersOnlineGet = getByPath(stats, '/npeers/online/get'),
-              npeersOnlineGlobal = getByPath(this_.model, '/global/nusers/online'),
-              giveDelta = censors ? 0 : _.random(-Math.min(50, npeersOnlineGive), 50),
-              getDelta = _.random(-Math.min(50, npeersOnlineGet), 50);
-          if (_.isUndefined(npeersOnlineGive)) {
-            npeersOnlineGive = npeersOnlineGive || censors ? 0 : _.random(0, 100);
-            npeersOnlineGet = npeersOnlineGet || censors ? _.random(0, 100) : _.random(0, 50);
+              usersOnlineGiving = getByPath(stats, '/stats/gauges/userOnlineGiving'),
+              usersOnlineGetting = getByPath(stats, '/stats/gauges/userOnlineGetting'),
+              userOnlineGlobal = getByPath(this_.model, '/globalStats/gauges/userOnline'),
+              giveDelta = censors ? 0 : _.random(-Math.min(50, usersOnlineGiving), 50),
+              getDelta = _.random(-Math.min(50, usersOnlineGetting), 50);
+          if (_.isUndefined(usersOnlineGiving)) {
+            usersOnlineGiving = usersOnlineGiving || censors ? 0 : _.random(0, 100);
+            usersOnlineGetting = usersOnlineGetting || censors ? _.random(0, 100) : _.random(0, 50);
           }
-          npeersOnlineGive += giveDelta;
-          npeersOnlineGet += getDelta;
-          var npeersOnlineGiveGet = npeersOnlineGive + npeersOnlineGet;
-          update['/countries/'+country+'/npeers/online'] = {
-            give: npeersOnlineGive,
-            get: npeersOnlineGet,
-            giveGet: npeersOnlineGiveGet
+          usersOnlineGiving += giveDelta;
+          usersOnlineGetting += getDelta;
+          statsUpdate = {
+              gauges: {
+                userOnlineGiving: usersOnlineGiving,
+                userOnlineGetting: usersOnlineGetting,
+              }
           };
-          update['/countries/'+country+'/nusers'] = {
-            online: npeersOnlineGiveGet,
-            ever: _.random(npeersOnlineGiveGet, npeersOnlineGiveGet*2)
-          };
-          npeersOnlineGlobal += giveDelta + getDelta;
-          this_.sync({'/global/nusers/online': npeersOnlineGlobal});
-          if (npeersOnlineGiveGet) {
-            var bytesEverDelta =  _.random(1024, 1000*1048576); /* 1000 MB */
-            update['/countries/'+country+'/bytesEver'] = (getByPath(stats, '/bytesEver') || 0) + bytesEverDelta;
+          userOnlineGlobal += giveDelta + getDelta;
+          this_.sync({'/globalStats/gauges/userOnline': userOnlineGlobal});
+          if (userOnlineGlobal) {
+            var bytesGivenDelta =  _.random(1024, (country.censors ? 10 : 1000) * 1048576); /* 1000 MB */
+            var bytesGottenDelta =  _.random(1024, (country.censors ? 1000 : 10)*1048576); /* 1000 MB */
+            var bytesEverDelta = bytesGivenDelta + bytesGottenDelta;
+            var bytesGotten = 0,
+                bytesGiven = 0,
+                bytesEver = 0;
+            try {
+              bytesGiven = (getByPath(stats, 'bytesEver') || 0)
+              bytesGotten = (getByPath(stats, 'bytesEver') || 0)
+              bytesEver = (getByPath(stats, 'bytesEver') || 0)
+            } catch (e) {
+              // ignore
+            }
+            update['/countries/'+country+'/bytesEver'] = bytesEver + bytesEverDelta;
             update['/countries/'+country+'/bps'] = _.random(1000, 10*1048576);
+            statsUpdate.counters = {
+                bytesGiven: bytesGiven + bytesGivenDelta,
+                bytesGotten: bytesGotten + bytesGottenDelta
+            };
           }
+          
+          update['/countries/'+country+'/stats'] = statsUpdate;
         }
       }
     }

@@ -46,17 +46,18 @@ angular.module('app.vis', [])
     function ttTmpl(alpha2) {
       return '<div class="vis">'+
         '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
-        '<div class="give-colored">{{ "NPEERS_ONLINE_GIVE" | i18n:model.countries.'+alpha2+'.npeers.online.give:true }}</div>'+
-        '<div class="get-colored">{{ "NPEERS_ONLINE_GET" | i18n:model.countries.'+alpha2+'.npeers.online.get:true }}</div>'+
-        '<div class="nusers {{ (!model.countries.'+alpha2+'.nusers.ever) && \'gray\' || \'\' }}">'+
-          '{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.nusers.ever }}'+
+        '<div class="give-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0:true }} {{ "GIVING_ACCESS" | i18n }}</div>'+
+        '<div class="get-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0:true }} {{ "GETTING_ACCESS" | i18n }}</div>'+
+        '<div class="nusers {{ (!model.countries.'+alpha2+'.stats.gauges.userOnlineEver) && \'gray\' || \'\' }}">'+
+          '{{ "NUSERS_EVER" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineEver }}'+
         '</div>'+
         '<div class="stats">'+
           '<div class="bps{{ model.countries.'+alpha2+'.bps || 0 }}">'+
             '{{ model.countries.'+alpha2+'.bps || 0 | prettyBps }} {{ "TRANSFERRING_NOW" | i18n }}'+
           '</div>'+
           '<div class="bytes{{ model.countries.'+alpha2+'.bytesEver || 0 }}">'+
-            '{{ model.countries.'+alpha2+'.bytesEver || 0 | prettyBytes }} {{ "TRANSFERRED_EVER" | i18n }}'+
+            '{{model.countries.'+alpha2+'.stats.counters.bytesGiven | prettyBytes}} {{"GIVEN" | i18n}}, ' +
+            '{{model.countries.'+alpha2+'.stats.counters.bytesGotten | prettyBytes}} {{"GOTTEN" | i18n}}' +
           '</div>'+
         '</div>'+
       '</div>';

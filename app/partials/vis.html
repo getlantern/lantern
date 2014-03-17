@@ -17,10 +17,10 @@
                 <div class=type>{{model.connectivity.type && model.settings.mode && (((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n) || ''}}</div>
               </div>
               <div class=stats>
-                <div class=bps{{model.transfers.bpsUpDn}}>
+                <div class=bps{{model.instanceStats.allBytes.rate}}>
                   {{model.instanceStats.allBytes.rate | prettyBps}}
                 </div>
-                <div class=bytes{{model.transfers.bytesUpDn}}>
+                <div class=bytes{{model.instanceStats.allBytes.total}}>
                   {{model.instanceStats.bytesGiven.total | prettyBytes}} {{'GIVEN' | i18n}},
                   {{model.instanceStats.bytesGotten.total | prettyBytes}} {{'GOTTEN' | i18n}}
                 </div>

@@ -22,13 +22,19 @@
     "gtalk":"notConnected"
   },
   "peers":[],
-  "transfers":{
-    "bpsUp":0,
-    "bpsDn":0,
-    "bpsTotal":0,
-    "bytesUp":0,
-    "bytesDn":0,
-    "bytesTotal":0
+  "instanceStats":{
+    "allBytes":{
+      "rate": 0,
+      "total": 0
+    },
+    "bytesGiven":{
+      "rate": 0,
+      "total": 0
+    },
+    "bytesGotten":{
+      "rate": 0,
+      "total": 0
+    }
   },
   "roster":[],
   "nproxiedSitesMax":1000,
@@ -57,13 +63,14 @@
       "api":{}
     }
   },
-  "global":{
-    "nusers":{
-      "online":0,
-      "ever":123456789
+  "globalStats":{
+    "counters":{
+      "bytesGotten": 1234567890 
     },
-    "npeers":{},
-    "bytesEver":1234567890
+    "gauges":{
+      "userOnline": 0,
+      "userOnlineEver": 123456789
+    }
   },
   "countries":{
     "AD": {"censors": false},
