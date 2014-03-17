@@ -370,7 +370,12 @@ public class Model {
         this.instanceId = instanceId;
     }
     
-    @JsonView({Persistent.class})
+    /**
+     * userGuid is a unique identifier for a user, assigned by the controller.
+     * 
+     * @return
+     */
+    @JsonView({ Persistent.class })
     public String getUserGuid() {
         return userGuid;
     }
