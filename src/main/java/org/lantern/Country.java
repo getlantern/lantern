@@ -2,6 +2,8 @@ package org.lantern;
 
 import org.lantern.annotation.Keep;
 import org.lantern.monitoring.Stats;
+import org.lantern.monitoring.Stats.Counters;
+import org.lantern.monitoring.Stats.Gauges;
 
 @Keep
 public class Country {
@@ -48,9 +50,25 @@ public class Country {
     public void setStats(Stats stats) {
         this.stats = stats;
     }
-    
+
     public Stats getStats() {
         return stats;
+    }
+
+    public Long getBps() {
+        if (stats == null) {
+            return null;
+        }
+        return stats.getGauge(Gauges.bpsGivenByPeer)
+                + stats.getGauge(Gauges.bpsGotten);
+    }
+
+    public Long getBytesEver() {
+        if (stats == null) {
+            return null;
+        }
+        return stats.getCounter(Counters.bytesGivenByPeer)
+                + stats.getCounter(Counters.bytesGotten);
     }
 
 }

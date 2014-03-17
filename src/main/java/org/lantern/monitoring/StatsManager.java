@@ -29,7 +29,7 @@ public class StatsManager implements LanternService {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
     // Get stats every minute
-    private static final long GET_INTERVAL = 1;
+    private static final long GET_INTERVAL = 60;
     // Post stats every 5 minutes
     private static final long POST_INTERVAL = 5;
 
@@ -56,9 +56,9 @@ public class StatsManager implements LanternService {
     public void start() {
         getScheduler.scheduleAtFixedRate(
                 getStats,
-                0,
+                30,
                 GET_INTERVAL,
-                TimeUnit.MINUTES);
+                TimeUnit.SECONDS);
         postScheduler.scheduleAtFixedRate(
                 postStats,
                 1, // wait 1 minute before first posting stats, to give the
@@ -90,7 +90,7 @@ public class StatsManager implements LanternService {
                         model.setGlobalStats(countryDim.get("total"));
                         for (Country country : model.getCountries().values()) {
                             country.setStats(countryDim.get(
-                                    country.getCode()));
+                                    country.getCode().toLowerCase()));
                         }
                         Events.sync(SyncPath.GLOBAL_STATS,
                                 model.getGlobalStats());
@@ -105,32 +105,35 @@ public class StatsManager implements LanternService {
 
     private final Runnable postStats = new Runnable() {
         public void run() {
-            try {
-                String userGuid = model.getUserGuid();
-                String countryCode = model.getLocation().getCountry();
-                if (StringUtils.isBlank(countryCode)
-                        || "--".equals(countryCode)) {
-                    countryCode = "xx";
-                }
+            // Only report stats if user enabled auto-reporting
+            if (model.getSettings().isAutoReport()) {
+                try {
+                    String userGuid = model.getUserGuid();
+                    String countryCode = model.getLocation().getCountry();
+                    if (StringUtils.isBlank(countryCode)
+                            || "--".equals(countryCode)) {
+                        countryCode = "xx";
+                    }
 
-                String instanceId = model.getInstanceId();
-                Stats instanceStats =
-                        model.getInstanceStats().toInstanceStats();
-                addSystemStats(instanceStats);
-                statshub.postInstanceStats(
-                        instanceId,
-                        userGuid,
-                        countryCode,
-                        LanternUtils.isFallbackProxy(),
-                        instanceStats);
+                    String instanceId = model.getInstanceId();
+                    Stats instanceStats =
+                            model.getInstanceStats().toInstanceStats();
+                    addSystemStats(instanceStats);
+                    statshub.postInstanceStats(
+                            instanceId,
+                            userGuid,
+                            countryCode,
+                            LanternUtils.isFallbackProxy(),
+                            instanceStats);
 
-                if (userGuid != null) {
-                    Stats userStats =
-                            model.getInstanceStats().toUserStats(userGuid);
-                    statshub.postUserStats(userGuid, countryCode, userStats);
+                    if (userGuid != null) {
+                        Stats userStats =
+                                model.getInstanceStats().toUserStats(userGuid);
+                        statshub.postUserStats(userGuid, countryCode, userStats);
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
                 }
-            } catch (Exception e) {
-                LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
             }
         }
     };
