@@ -40,7 +40,7 @@ public class CometDTest {
         final CountryService countryService = new CountryService(censored);
         final Model model = new Model(countryService);
         final SyncService syncer =
-            new SyncService(new CometDSyncStrategy(), model, new Timer(), null);
+            new SyncService(new CometDSyncStrategy(), model, new Timer());
         final JettyLauncher jl = new JettyLauncher(syncer, null, null, model, null);
         startJetty(jl, port);
         final HttpClient httpClient = new HttpClient();

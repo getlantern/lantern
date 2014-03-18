@@ -26,7 +26,7 @@ import org.lantern.event.MessageEvent;
 import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
-import org.lantern.monitoring.StatsReporter;
+import org.lantern.monitoring.StatsManager;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
@@ -83,8 +83,7 @@ public class Launcher {
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
-    private StatsUpdater statsUpdater;
-    private StatsReporter statsReporter;
+    private StatsManager statsManager;
     private FriendsHandler friendsHandler;
     
     /**
@@ -280,9 +279,8 @@ public class Launcher {
 
 
         instance(GeoIp.class);
-        statsUpdater = instance(StatsUpdater.class);
-        statsReporter = instance(StatsReporter.class);
-
+        statsManager = instance(StatsManager.class);
+        
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
         if (stunServers != null && !stunServers.isEmpty()) {
@@ -342,11 +340,7 @@ public class Launcher {
                 }
 
                 syncService.start();
-                statsUpdater.start();
-                
-                if (LanternUtils.isFallbackProxy()) {
-                    statsReporter.start();
-                }
+                statsManager.start();
                 
                 gnomeAutoStart();
                 

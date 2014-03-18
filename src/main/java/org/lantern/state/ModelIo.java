@@ -44,12 +44,11 @@ public class ModelIo extends Storage<Model> {
      */
     @Inject
     public ModelIo(final EncryptedFileService encryptedFileService,
-                   final Transfers transfers,
                    final CountryService countryService,
                    final CommandLine commandLine,
                    final LocalCipherProvider lcp) {
         this(LanternClientConstants.DEFAULT_MODEL_FILE, encryptedFileService,
-                transfers, countryService, commandLine, lcp);
+                countryService, commandLine, lcp);
     }
 
     /**
@@ -65,7 +64,6 @@ public class ModelIo extends Storage<Model> {
      */
     public ModelIo(final File modelFile,
                    final EncryptedFileService encryptedFileService,
-                   Transfers transfers,
                    final CountryService countryService,
                    final CommandLine commandLine,
                    final LocalCipherProvider localCipherProvider) {
@@ -75,7 +73,6 @@ public class ModelIo extends Storage<Model> {
         this.localCipherProvider = localCipherProvider;
         
         obj = read();
-        obj.setTransfers(transfers);
         Events.register(this);
         onS3ConfigChange(obj.getS3Config());
         log.info("Loaded module");

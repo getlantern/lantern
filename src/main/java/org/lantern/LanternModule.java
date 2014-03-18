@@ -20,7 +20,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.http.PhotoServlet;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
-import org.lantern.monitoring.StatsReporter;
+import org.lantern.monitoring.StatsManager;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.privacy.DefaultEncryptedFileService;
@@ -49,8 +49,6 @@ import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
-import org.lantern.state.Transfers;
-import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwingMessageService;
 import org.lastbamboo.common.portmapping.NatPmpService;
@@ -94,8 +92,6 @@ public class LanternModule extends AbstractModule {
 
         bind(NetworkTracker.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
-        bind(ClientStats.class).to(StatsTracker.class);
-        bind(StatsReporter.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwingMessageService.class);
@@ -106,10 +102,8 @@ public class LanternModule extends AbstractModule {
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
-        bind(TransfersIo.class);
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
         bind(BrowserService.class).to(ChromeBrowserService.class);
-        bind(Transfers.class).toProvider(TransfersIo.class).in(Singleton.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
 
         bind(ModelService.class).to(DefaultModelService.class);
@@ -131,7 +125,7 @@ public class LanternModule extends AbstractModule {
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
         bind(GetModeProxy.class);
-        bind(StatsUpdater.class);
+        bind(StatsManager.class);
         bind(ConnectivityChecker.class);
         bind(GeoIp.class);
         bind(CountryService.class);
@@ -164,21 +158,21 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public UpnpService provideUpnpService(final ClientStats stats) {
+    public UpnpService provideUpnpService(final Model model) {
         // Testing.
         if (this.upnpService != null) {
             return this.upnpService;
         }
-        return new Upnp(stats);
+        return new Upnp(model);
     }
 
     @Provides @Singleton
-    public NatPmpService provideNatPmpService(final ClientStats stats) {
+    public NatPmpService provideNatPmpService(final Model model) {
         // Testing.
         if (this.natPmpService != null) {
             return this.natPmpService;
         }
-        natPmpService = new NatPmpImpl(stats);
+        natPmpService = new NatPmpImpl(model);
         return natPmpService;
     }
 

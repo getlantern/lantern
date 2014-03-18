@@ -78,7 +78,6 @@ public class LanternClientConstants {
 
     public static final long START_TIME = System.currentTimeMillis();
 
-
     public static final int SYNC_INTERVAL_SECONDS = 6;
 
     /**

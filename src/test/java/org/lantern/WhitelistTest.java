@@ -67,7 +67,7 @@ public class WhitelistTest {
         
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
-        final ModelIo modelIo = new ModelIo(randFile, fileService, null,
+        final ModelIo modelIo = new ModelIo(randFile, fileService,
                 countryService, null, mock(LocalCipherProvider.class));
         return modelIo;
     }

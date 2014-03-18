@@ -46,7 +46,7 @@ public class UdtSslTest {
         final String testId = "test@gmail.com/test";
         trustStore.addCert(new URI(testId), LanternUtils.certFromBase64(ksm.getBase64Cert(testId)));
         
-        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+        final LanternSocketsUtil util = new LanternSocketsUtil(trustStore);
         
         startServer(util);
         ///LanternUtils.waitForServer(SERVER_PORT);

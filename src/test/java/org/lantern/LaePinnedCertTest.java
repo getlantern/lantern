@@ -27,7 +27,7 @@ public class LaePinnedCertTest {
           //      trustStore.TRUSTSTORE_FILE.getAbsolutePath());
         
         final LanternSocketsUtil socketsUtil = 
-            new LanternSocketsUtil(null, trustStore);
+            new LanternSocketsUtil(trustStore);
         
         final SSLSocketFactory tls = socketsUtil.newTlsSocketFactoryJavaCipherSuites();
         final SSLSocket sock = (SSLSocket) tls.createSocket();

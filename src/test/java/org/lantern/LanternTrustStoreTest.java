@@ -35,7 +35,7 @@ public class LanternTrustStoreTest {
         final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
-            new LanternSocketsUtil(null, trustStore);
+            new LanternSocketsUtil(trustStore);
 
         //System.setProperty("javax.net.ssl.trustStore",
           //      trustStore.TRUSTSTORE_FILE.getAbsolutePath());

@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
-import java.util.Timer;
 
 import javax.security.auth.login.CredentialException;
 
@@ -28,8 +27,6 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
-import org.lantern.state.Transfers;
-import org.lantern.state.TransfersIo;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -71,8 +68,6 @@ public class TestUtils {
     private static JettyLauncher jettyLauncher;
     
     private static MessageService messageService;
-
-    private static ClientStats statsTracker;
 
     private static Roster roster;
 
@@ -157,7 +152,6 @@ public class TestUtils {
         model = instance(Model.class);
         jettyLauncher = instance(JettyLauncher.class);
         messageService = instance(MessageService.class);
-        statsTracker = instance(ClientStats.class);
         roster = instance(Roster.class);
         modelService = instance(ModelService.class);
         proxifier = instance(Proxifier.class);
@@ -180,29 +174,14 @@ public class TestUtils {
         start(start);
     }
 
-    static class TestTransfersIo extends TransfersIo {
-
-        private static File file = new File(LanternClientConstants.DEFAULT_TRANSFERS_FILE + ".test");
-
-        @Inject
-        public TestTransfersIo(ClientStats tracker,
-                EncryptedFileService encryptedFileService, Timer timer) {
-            super(file, tracker, encryptedFileService, timer);
-        }
-        @Override
-        public void write() {
-            //do not write anything in test mode
-        }
-    }
-
     static class TestModelIo extends ModelIo {
 
         private static File file = new File(LanternClientConstants.DEFAULT_MODEL_FILE + ".test");
 
         @Inject
         public TestModelIo(EncryptedFileService encryptedFileService,
-                Transfers transfers, CountryService countryService) throws Exception {
-            super(file, encryptedFileService, transfers, countryService,
+                CountryService countryService) throws Exception {
+            super(file, encryptedFileService, countryService,
                     TestingUtils.newCommandLine(), mock(LocalCipherProvider.class));
         }
 
@@ -251,7 +230,6 @@ public class TestUtils {
         @Override
         public void configure(Binder binder) {
             binder.bind(ModelIo.class).to(TestModelIo.class);
-            binder.bind(TransfersIo.class).to(TestTransfersIo.class);
         }
     }
 
@@ -384,11 +362,6 @@ public class TestUtils {
         return messageService;
     }
 
-    public static ClientStats getStatsTracker() {
-        if (!loaded) load();
-        return statsTracker;
-    }
-    
     public static Roster getRoster() {
         if (!loaded) load();
         return roster;

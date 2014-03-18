@@ -17,7 +17,7 @@ done
 
 ls *.hprof &> /dev/null && echo "don't run now, there's an hprof file:" && ls *.hprof && die
 
-jar=`ls target/lantern-*SNAPSHOT.jar | sort | tail -n 1`
+jar=`ls target/lantern*.jar | sort | tail -n 1`
 
 echo "Running jar $jar" 
 

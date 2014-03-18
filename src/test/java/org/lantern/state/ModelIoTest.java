@@ -32,7 +32,7 @@ public class ModelIoTest {
     public void testModelIo() throws Exception {
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
-                null, countryService, TestingUtils.newCommandLine(), 
+                countryService, TestingUtils.newCommandLine(), 
                 mock(LocalCipherProvider.class));
 
         Model model = io.get();
@@ -49,7 +49,7 @@ public class ModelIoTest {
         model.getSettings().setRefreshToken("refreshToken");
         io.write();
 
-        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), null,
+        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
                 countryService, TestingUtils.newCommandLine(),
                 mock(LocalCipherProvider.class));
         final Model model2 = io.get();

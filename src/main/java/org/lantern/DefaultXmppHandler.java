@@ -126,8 +126,6 @@ public class DefaultXmppHandler implements XmppHandler,
         }
     };
 
-    private String lastJson = "";
-
     private GoogleTalkState state;
 
     private final NatPmpService natPmpService;
@@ -141,8 +139,6 @@ public class DefaultXmppHandler implements XmppHandler,
     private MappedServerSocket mappedServer;
 
     private final Timer timer;
-
-    private final ClientStats stats;
 
     private final LanternKeyStoreManager keyStoreManager;
 
@@ -189,12 +185,12 @@ public class DefaultXmppHandler implements XmppHandler,
      */
     @Inject
     public DefaultXmppHandler(final Model model,
-        final Timer updateTimer, final ClientStats stats,
+        final Timer updateTimer,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final org.lantern.Roster roster,
+        final org.lantern.Roster roster, 
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
@@ -205,7 +201,6 @@ public class DefaultXmppHandler implements XmppHandler,
         final Censored censored) {
         this.model = model;
         this.timer = updateTimer;
-        this.stats = stats;
         this.keyStoreManager = keyStoreManager;
         this.socketsUtil = socketsUtil;
         this.xmppUtil = xmppUtil;
@@ -712,7 +707,6 @@ public class DefaultXmppHandler implements XmppHandler,
     @Override
     public void disconnect() {
         LOG.debug("Disconnecting!!");
-        lastJson = "";
         /*
         LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
@@ -764,6 +758,7 @@ public class DefaultXmppHandler implements XmppHandler,
                 Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             }
         }
+        model.setUserGuid((String) json.get(LanternConstants.USER_GUID));
         sendOnDemandValuesToControllerIfNecessary(json);
     }
 
@@ -879,6 +874,7 @@ public class DefaultXmppHandler implements XmppHandler,
         forHub.setProperty(LanternConstants.ARCH_KEY, model.getSystem().getArch());
 
         forHub.setProperty("instanceId", model.getInstanceId());
+        forHub.setProperty("countryCode", model.getLocation().getCountry());
         forHub.setProperty("mode", model.getSettings().getMode().toString());
         // Counterintuitive as it might seem at first glance, this is correct.
         //
@@ -896,16 +892,7 @@ public class DefaultXmppHandler implements XmppHandler,
         }
         forHub.setProperty(LanternConstants.IS_FALLBACK_PROXY,
                            LanternUtils.isFallbackProxy());
-        final String str = JsonUtils.jsonify(stats);
-        LOG.debug("Reporting data: {}", str);
-        if (!this.lastJson.equals(str)) {
-            this.lastJson = str;
-            forHub.setProperty("stats", str);
-            stats.resetCumulativeStats();
-        } else {
-            LOG.info("No new stats to report");
-        }
-
+        
         /*
         final FriendsHandler friends = model.getFriends();
         if (friends.needsSync()) {

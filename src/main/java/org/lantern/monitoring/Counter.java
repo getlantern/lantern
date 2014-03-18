@@ -1,4 +1,4 @@
-package org.lantern.util;
+package org.lantern.monitoring;
 
 import java.lang.ref.WeakReference;
 import java.util.Queue;
@@ -7,6 +7,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.state.Model.Persistent;
+import org.lantern.state.Model.Run;
+import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +38,7 @@ public class Counter {
     private final AtomicLong total = new AtomicLong(0);
     private final AtomicLong rate = new AtomicLong(0);
     private volatile Snapshot latestSnapshot = new Snapshot();
+    private volatile AtomicLong lastCapturedTotal = new AtomicLong(0);
 
     /**
      * Create a counter that keeps a moving average over the given window.
@@ -42,6 +48,16 @@ public class Counter {
     public Counter(long movingAverageWindowInMillis) {
         this.movingAverageWindowInMillis = movingAverageWindowInMillis;
         ALL_COUNTERS.add(new WeakReference<Counter>(this));
+    }
+
+    public Counter(
+            @JsonProperty("movingAverageWindowInMillis") long movingAverageWindowInMillis,
+            @JsonProperty("total") long total,
+            @JsonProperty("lastCapturedTotal") long lastCapturedTotal) {
+        this(movingAverageWindowInMillis);
+        this.total.set(total);
+        this.lastCapturedTotal.set(lastCapturedTotal);
+        this.latestSnapshot = new Snapshot(null, total);
     }
 
     /**
@@ -67,8 +83,31 @@ public class Counter {
      * 
      * @return
      */
+    @JsonView({ Run.class, Persistent.class })
     public long getTotal() {
         return total.get();
+    }
+
+    @JsonView({ Run.class, Persistent.class })
+    public long getLastCapturedTotal() {
+        return lastCapturedTotal.get();
+    }
+
+    public long getMovingAverageWindowInMillis() {
+        return movingAverageWindowInMillis;
+    }
+    
+    /**
+     * Get delta since last captureDelta().
+     * 
+     * @return
+     */
+    synchronized public long captureDelta() {
+        long newTotal = total.get();
+        long oldTotal = lastCapturedTotal.get();
+        long delta = newTotal - oldTotal;
+        lastCapturedTotal.set(newTotal);
+        return delta;
     }
 
     /**
@@ -79,6 +118,15 @@ public class Counter {
      */
     public long getRate() {
         return rate.get();
+    }
+
+    /**
+     * Resets this counter to 0.
+     */
+    synchronized public void reset() {
+        total.set(0);
+        rate.set(0);
+        latestSnapshot = new Snapshot();
     }
 
     private void calculateRate() {

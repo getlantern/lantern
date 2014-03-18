@@ -1,12 +1,12 @@
 package org.lantern;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+import org.lantern.state.Model;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
@@ -23,8 +23,7 @@ public class NatPmpTest {
             return;
         }
 
-        final ClientStats statsTracker = mock(ClientStats.class);
-        final NatPmpImpl pmp = new NatPmpImpl(statsTracker);
+        final NatPmpImpl pmp = new NatPmpImpl(new Model());
         final AtomicInteger ai = new AtomicInteger(-1);
         final AtomicBoolean error = new AtomicBoolean();
         final PortMapListener portMapListener = new PortMapListener() {
