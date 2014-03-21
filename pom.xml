@@ -880,13 +880,3 @@
     <relativePath>lantern-common</relativePath>
   </parent>
 </project>
-/snapshotRepository>
-  </distributionManagement>
-
-  <parent>
-    <groupId>org.getlantern</groupId>
-    <artifactId>lantern-common</artifactId>
-    <version>0.0.20</version>
-    <relativePath>lantern-common</relativePath>
-  </parent>
-</project>
