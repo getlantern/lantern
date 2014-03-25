@@ -7,6 +7,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.LanternUtils;
 import org.lantern.proxy.FallbackProxy;
@@ -87,6 +88,8 @@ public class PublicIpAddress implements PublicIp {
         try {
             request.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
+            request.getParams().setParameter(
+                    ClientPNames.HANDLE_REDIRECTS, false);
             // Unable to set SO_TIMEOUT because of bug in Java 7
             // See https://github.com/getlantern/lantern/issues/942
 //            request.getParams().setParameter(
