@@ -244,7 +244,7 @@
     "BACKEND_ICONLOC_SYSTRAY": "системный лоток справа внизу окна",
     "BACKEND_ICONLOC_UNKNOWN": "(неподдерживаемая ОС: значок Lantern может не отображаться)",
     "BACKEND_LOAD_SETTINGS_ERROR": "Сбой повторной загрузки настроек",
-    "BACKEND_NO_CONFIG": "No configuration file found. Lantern cannot start! Please notify the Lantern developers at team@getlantern.org or at the Lantern user forums",
+    "BACKEND_NO_CONFIG": "Конфигурационный файл не найден. Lantern не запускается! Пожалуйста, сообщите разработчикам Lantern на team@getlantern.org или на форум пользователей Lantern",
     "P": "петабайт",
     "T": "терабайт",
     "G": "гигабайт",

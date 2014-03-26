@@ -244,7 +244,7 @@
     "BACKEND_ICONLOC_SYSTRAY": "علبة النظام في أسفل شاشتك على اليمين",
     "BACKEND_ICONLOC_UNKNOWN": "(نظام التشغيل غير معتمد : قد لا تكون أيقونة Lantern ظاهرة)",
     "BACKEND_LOAD_SETTINGS_ERROR": "فشلت إعادة تحميل الإعدادات",
-    "BACKEND_NO_CONFIG": "No configuration file found. Lantern cannot start! Please notify the Lantern developers at team@getlantern.org or at the Lantern user forums",
+    "BACKEND_NO_CONFIG": "ملف التهيئة غير موجود. لن يتمكن Lantern من الاشتغال ! رجاءً أبلغ مطوري Lantern عبر team@getlantern.org أو عبر منتديات مستخدمي Lantern.",
     "P": "بيتابايت",
     "T": "تيرابايت",
     "G": "جيجابايت",
