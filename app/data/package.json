@@ -25,11 +25,11 @@
     "lantern"
   ],
   "dependencies": {
-    "faye": "0.8.9",
-    "sleep": "1.1.1"
+    "faye": "1.0.1",
+    "sleep": "1.1.3"
   },
   "devDependencies": {
-    "karma": "0.10.1",
+    "karma": "0.12.1",
     "karma-ng-scenario": "0.1.0"
   },
   "analyze": false,
