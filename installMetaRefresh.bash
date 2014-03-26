@@ -19,7 +19,7 @@ echo "Release version: $release"
 bucket=lantern
 url=https://s3.amazonaws.com/$bucket/$name
 echo "Uploading to http://cdn.getlantern.org/$name..."
-aws -putp $bucket $name
+aws -putp $bucket $name || die "Could not upload"
 echo "Uploaded lantern to http://cdn.getlantern.org/$name"
 echo "Also available at $url"
 
@@ -43,7 +43,7 @@ if $release ; then
   shasum $name | cut -d " " -f 1 > $newestName.sha1
 
   echo "Uploading SHA-1 `cat $newestName.sha1`"
-  aws -putp $bucket $newestName.sha1
+  aws -putp $bucket $newestName.sha1 || die "Could not upload sha1"
 
 #  md5 -q $name > $newestName.md5
 #  echo "Uploading MD5 `cat $newestName.md5`"
