@@ -230,7 +230,7 @@ public class S3ConfigFetcher {
         return Optional.absent();
     }
 
-    private Optional<String> fetchLocalConfig(File localS3File) {
+    public static Optional<String> fetchLocalConfig(File localS3File) {
         try {
             return Optional.of(FileUtils.readFileToString(localS3File));
         } catch (Exception e) {
@@ -241,7 +241,7 @@ public class S3ConfigFetcher {
         return Optional.absent();
     }
 
-    private Optional<S3Config> parseConfig(String cfgStr) {
+    public static Optional<S3Config> parseConfig(String cfgStr) {
         try {
             final S3Config cfg =
                     JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);

@@ -44,6 +44,7 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
+import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.ProxyTracker;
@@ -60,10 +61,11 @@ import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Optional;
 
 public class TestingUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestingUtils.class);
@@ -291,15 +293,28 @@ public class TestingUtils {
 
         LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
+        
+        Optional<String> s3ConfigString = S3ConfigFetcher.fetchLocalConfig(new File(".s3config"));
+        if (!s3ConfigString.isPresent()) {
+            throw new RuntimeException("No S3 configuration found a .s3config!");
+        }
+        Optional<S3Config> s3ConfigOpt = S3ConfigFetcher.parseConfig(s3ConfigString.get());
+        if (!s3ConfigOpt.isPresent()) {
+            throw new RuntimeException("Unable to parse S3 configuration!");
+        }
+        S3Config s3Config = s3ConfigOpt.get();
+        
+        final org.lantern.proxy.FallbackProxy fallback = s3Config.getFallbacks().iterator().next();
+        trustStore.addCert(fallback.getCert());
         ChainedProxyManager proxyManager =
                 new ChainedProxyManager() {
             @Override
             public void lookupChainedProxies(HttpRequest httpRequest,
                     Queue<ChainedProxy> chainedProxies) {
-                chainedProxies.add(new ChainedProxyAdapter() {
+                chainedProxies.add(new BaseChainedProxy(fallback.getAuthToken()) {
                     @Override
                     public InetSocketAddress getChainedProxyAddress() {
-                        return new InetSocketAddress("54.254.96.14", 16589);
+                        return fallback.getWanAddress();
                     }
                     
                     @Override
