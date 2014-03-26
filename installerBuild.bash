@@ -3,6 +3,7 @@
 CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
 LOCAL_BUILD=false
 
+
 if [[ $VERSION == "local" ]] || [[ $VERSION == "quick" ]];
 then
 	LOCAL_BUILD=true
@@ -44,7 +45,7 @@ VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 
-if [[ LOCAL_BUILD ]];
+if [ "$LOCAL_BUILD" = true  ];
 then
 	echo "Building from local code, not performing git ops"
 else
