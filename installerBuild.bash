@@ -91,7 +91,7 @@ elif [[ $VERSION == "quick" ]];
 then
 	cp -f `ls -1t target/lantern-*.jar | head -1` install/common/lantern.jar || die "Could not copy jar?"
 else
-    cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar from lantern-$VERSION-small.jar"
 fi
 
 cp -f GeoIP.dat install/common/ || die "Could not copy GeoIP.dat?"
