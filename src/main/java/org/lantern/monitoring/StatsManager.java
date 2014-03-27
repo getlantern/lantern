@@ -36,7 +36,8 @@ public class StatsManager implements LanternService {
 
     private final Model model;
     private final StatshubAPI statshub = new StatshubAPI(
-            LanternConstants.LANTERN_LOCALHOST_ADDR);
+            LanternUtils.isFallbackProxy() ? null :
+                    LanternConstants.LANTERN_LOCALHOST_ADDR);
 
     private final MemoryMXBean memoryMXBean = ManagementFactory
             .getMemoryMXBean();
