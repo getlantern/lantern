@@ -35,11 +35,6 @@ printenv | grep INSTALL4J_KEY || die "Must have INSTALL4J_KEY defined with the I
 printenv | grep INSTALL4J_MAC_PASS || die "Must have OSX signing key password defined in INSTALL4J_MAC_PASS"
 printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key password defined in INSTALL4J_WIN_PASS"
 test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
-GE_API_KEY=`cat lantern_getexceptional.txt`
-if [ ! -n "$GE_API_KEY" ]
-  then
-  die "No API key!!" 
-fi
 
 VERSION=$1
 MVN_ARGS=$2
@@ -70,8 +65,6 @@ then
     # Exporting it so platform-specific scripts will get the right name.
     export VERSION=$(./parseversionfrompom.py);
 fi
-
-perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE || die "Could not set exceptional key"
 
 if [[ $VERSION == "quick" ]];
 then
