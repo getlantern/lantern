@@ -13,7 +13,10 @@
     </searchSequence>
     <variables />
     <mergedProjects />
+    <!-- DISABLE Windows; we're building that with NSIS as a separate step.
     <codeSigning macEnabled="true" macPkcs12File="../../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../../secure/bns_cert.p12" />
+    -->
+    <codeSigning macEnabled="true" macPkcs12File="../../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="false" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../../secure/bns_cert.p12" />
   </application>
   <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
     <filesets>
@@ -615,6 +618,7 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
+    <!-- DISABLE Windows; we're building that with NSIS as a separate step.
     <windows name="Windows" id="79" customizedId="" mediaFileName="" installDir="wrapper" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="https://s3.amazonaws.com/lantern/windows-x86-1.7.0_21.tar.gz" jreShared="true" directDownload="false" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="25" />
@@ -632,6 +636,7 @@ return result == 0;</string>
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
+    -->
     <unixInstaller name="Unix Installer" id="127" customizedId="" mediaFileName="" installDir="lantern-net-installer" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="">
       <excludedLaunchers>
         <launcher id="25" />
