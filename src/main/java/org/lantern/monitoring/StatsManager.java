@@ -158,7 +158,14 @@ public class StatsManager implements LanternService {
                 memoryMXBean.getNonHeapMemoryUsage()
                         .getCommitted());
         stats.setGauge(Gauges.openFileDescriptors,
-                (Long) getSystemStat("getOpenFileDescriptorCount"));
+                getOpenFileDescriptors());
+    }
+
+    private long getOpenFileDescriptors() {
+        if (!isOnUnix()) {
+            return 0L;
+        }
+        return (Long) getSystemStat("getOpenFileDescriptorCount");
     }
 
     private Long scalePercent(Number value) {
