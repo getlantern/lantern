@@ -141,7 +141,11 @@ public class FTE implements PluggableTransport {
         if (SystemUtils.IS_OS_WINDOWS) {
             return new File("./install/win", FTE_RELATIVE_PATH);
         }
-        return new File("./install/linux", FTE_RELATIVE_PATH);
+        
+        if (SystemUtils.OS_ARCH.contains("64")) {
+            return new File("./install/linux_x86_64", FTE_RELATIVE_PATH);
+        }
+        return new File("./install/linux_x86_32", FTE_RELATIVE_PATH);
     }
 
     @Override
