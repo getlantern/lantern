@@ -17,7 +17,9 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
+import org.apache.commons.io.FileUtils;
 import org.lantern.JsonUtils;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
@@ -50,7 +52,11 @@ import org.slf4j.LoggerFactory;
  */
 public class FTE implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
-    private static final String FTE_BASE_PATH = "pt/fteproxy";
+    private static final String FTE_RELATIVE_PATH = "pt/fteproxy";
+    private static final String FTE_BASE_PATH =
+            LanternClientConstants.CONFIG_DIR
+                    + File.separator
+                    + FTE_RELATIVE_PATH;
     private static final String[] FTE_EXECUTABLE_NAMES =
             new String[] { "fteproxy", "fteproxy.exe" };
     private static final String LANTERN_DEFS_RELEASE = "19700101";
@@ -70,6 +76,22 @@ public class FTE implements PluggableTransport {
     private CommandLine cmd;
     private Executor cmdExec;
     private boolean useCustomFormat;
+
+    static {
+        // Copy fte folder to .lantern to allow overwriting the custom
+        // transports defs.
+        File from = new File(FTE_RELATIVE_PATH);
+        File to = new File(FTE_BASE_PATH);
+        LOGGER.info("Copying fteproxy from {} to {}",
+                from.getAbsolutePath(),
+                to.getAbsolutePath());
+        try {
+            FileUtils.copyDirectory(from, to);
+        } catch (Exception e) {
+            LOGGER.error("Unable to stage fteproxy to .lantern: {}",
+                    e.getMessage(), e);
+        }
+    }
 
     /**
      * Construct a new FTE pluggable transport using the given configuration
@@ -166,6 +188,7 @@ public class FTE implements PluggableTransport {
 
     private void startFteProxy(Object... args) {
         initFtePath();
+        LanternUtils.chmod(ftePath, 0755);
         updateCustomFormatsIfNecessary();
         buildCmdLine(args);
         exec();

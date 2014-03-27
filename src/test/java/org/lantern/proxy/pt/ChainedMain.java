@@ -34,7 +34,7 @@ public class ChainedMain {
             LOCALHOST = InetAddress.getByName("127.0.0.1");
         } catch (Exception e) {
             LOCALHOST = null;
-            System.err.println("Unable to parse LOCALHOSt");
+            System.err.println("Unable to parse LOCALHOST");
         }
     }
 

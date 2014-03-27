@@ -14,11 +14,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -1093,5 +1093,29 @@ public class LanternUtils {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Based on this article:
+     * http://stackoverflow.com/questions/664432/how-do-i-
+     * programmatically-change-file-permissions
+     * 
+     * @param filename
+     * @param mode
+     * @return
+     */
+    public static boolean chmod(String filename, int mode) {
+        try {
+            Class<?> fspClass = Class
+                    .forName("java.util.prefs.FileSystemPreferences");
+            Method chmodMethod = fspClass.getDeclaredMethod("chmod",
+                    String.class, Integer.TYPE);
+            chmodMethod.setAccessible(true);
+            boolean succeeded =
+                    mode == ((Integer) chmodMethod.invoke(null, filename, mode));
+            return succeeded;
+        } catch (Throwable ex) {
+            return false;
+        }
     }
 }
