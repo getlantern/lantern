@@ -71,12 +71,9 @@ public class InstanceStats {
         this.bytesGiven = bytesGiven;
     }
 
-    public void addBytesGiven(long bytes) {
-        bytesGiven.add(bytes);
-    }
-
     synchronized public void addBytesGivenForLocation(GeoData geoData,
             long bytes) {
+        bytesGiven.add(bytes);
         if (geoData != null) {
             String countryCode = geoData.getCountrycode();
             Long originalBytes = bytesGivenPerCountry.get(countryCode);
