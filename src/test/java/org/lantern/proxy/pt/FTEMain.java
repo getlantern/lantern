@@ -32,7 +32,8 @@ public class FTEMain extends ChainedMain {
 
         InetSocketAddress getModeAddress = new InetSocketAddress("localhost",
                 FTEPROXY_CLIENT_PORT);
-        InetSocketAddress serverAddress = new InetSocketAddress(NetworkUtils.getLocalHost().getHostAddress(),
+        InetSocketAddress serverAddress = new InetSocketAddress(NetworkUtils
+                .getLocalHost().getHostAddress(),
                 FTEPROXY_SERVER_PORT);
         InetSocketAddress upstreamProxyAddress = new InetSocketAddress(
                 "localhost", LITTLEPROXY_UPSTREAM_PORT);
