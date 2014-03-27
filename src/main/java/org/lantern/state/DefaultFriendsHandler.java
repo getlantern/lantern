@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
+import org.lantern.EmailAddressUtils;
 import org.lantern.LanternUtils;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
@@ -181,8 +182,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     @Override
-    public void addFriend(final String email) {
+    public void addFriend(String email) {
         log.debug("Adding friend...");
+        email = EmailAddressUtils.normalizedEmail(email);
         final ClientFriend existingFriend = getFriend(email);
         
         // If the friend previously didn't exist, friend them.
