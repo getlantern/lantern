@@ -18,6 +18,7 @@ import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
@@ -80,7 +81,7 @@ public class FTE implements PluggableTransport {
     static {
         // Copy fte folder to .lantern to allow overwriting the custom
         // transports defs.
-        File from = new File(FTE_RELATIVE_PATH);
+        File from = loadFrom();
         File to = new File(FTE_BASE_PATH);
         LOGGER.info("Copying fteproxy from {} to {}",
                 from.getAbsolutePath(),
@@ -122,6 +123,29 @@ public class FTE implements PluggableTransport {
                                 propsFile, ioe.getMessage()), ioe);
             }
         }
+    }
+
+    /**
+     * If we're running from the command line, the FTE binaries are in 
+     * platform-specific directories. We need to test that and load the correct
+     * one.
+     * 
+     * @return The directory to load binaries from.
+     */
+    private static File loadFrom() {
+        final File rel = new File(FTE_RELATIVE_PATH);
+        if (rel.isDirectory()) return rel;
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            return new File("./install/osx", FTE_RELATIVE_PATH);
+        } 
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return new File("./install/win", FTE_RELATIVE_PATH);
+        }
+        
+        if (SystemUtils.OS_ARCH.contains("64")) {
+            return new File("./install/linux_x86_64", FTE_RELATIVE_PATH);
+        }
+        return new File("./install/linux_x86_32", FTE_RELATIVE_PATH);
     }
 
     @Override
