@@ -73,7 +73,7 @@ public final class ProxyHolder extends BaseChainedProxy
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         this.info = info;
-        this.fiveTuple = info.getFiveTuple();
+        this.fiveTuple = info.fiveTuple();
     }
 
     public FiveTuple getFiveTuple() {
