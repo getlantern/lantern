@@ -14,6 +14,7 @@ public class JsonUtilTest {
 
         private String propertyA;
         private String propertyB;
+        private String propertyC;
 
         @JsonView({ Include.class })
         public Child getChild() {
@@ -33,12 +34,21 @@ public class JsonUtilTest {
             this.propertyA = propertyA;
         }
 
+        @JsonView()
         public String getPropertyB() {
             return propertyB;
         }
 
         public void setPropertyB(String propertyB) {
             this.propertyB = propertyB;
+        }
+
+        public String getPropertyC() {
+            return propertyC;
+        }
+
+        public void setPropertyC(String propertyC) {
+            this.propertyC = propertyC;
         }
 
     }
@@ -67,21 +77,21 @@ public class JsonUtilTest {
 
     @Test
     public void testJsonView() {
-        Child child = new Child();
-        child.setPropertyA("Child A");
-        child.setPropertyB("Child B");
-        Container container = new Container();
-        child.setPropertyA("Container A");
-        child.setPropertyB("Container B");
-        container.setChild(child);
+        Container orig = new Container();
+        orig.setPropertyA("Val A");
+        orig.setPropertyB("Val B");
+        orig.setPropertyC("Val C");
 
-        String json = JsonUtils.jsonify(container, Include.class);
+        String json = JsonUtils.jsonify(orig, Include.class);
         Container roundTripped = JsonUtils.decode(json, Container.class);
 
-        assertEquals(container.propertyA, roundTripped.propertyA);
-        assertEquals(container.child.propertyA, roundTripped.child.propertyA);
-
-        assertNull(container.propertyB);
-        assertNull(container.child.propertyB);
+        assertEquals(orig.propertyA, roundTripped.propertyA);
+        
+        // propertyB is omitted because it's not in the required JsonView
+        assertNull(roundTripped.propertyB);
+        
+        // propertyC is not subjected to the JsonView mechanism because it
+        // doesn't have a JsonView annotation
+        assertEquals(orig.propertyC, roundTripped.propertyC);
     }
 }
