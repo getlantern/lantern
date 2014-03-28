@@ -171,10 +171,19 @@ public class InstanceStats {
         stats.setIncrement(Counters.bytesGotten, bytesGotten.captureDelta());
         stats.setIncrement(Counters.directBytes, directBytes.captureDelta());
 
-        for (Map.Entry<String, Long> entry : bytesGivenPerCountry.entrySet()) {
-            stats.setIncrement(Counters.bytesGiven,
-                    entry.getKey().toLowerCase(),
-                    entry.getValue());
+        synchronized (bytesGivenPerCountry) {
+            for (Map.Entry<String, Long> entry : bytesGivenPerCountry
+                    .entrySet()) {
+                stats.setIncrement(Counters.bytesGiven,
+                        entry.getKey().toLowerCase(),
+                        entry.getValue());
+                if (LanternUtils.isFallbackProxy()) {
+                    stats.setIncrement(Counters.bytesGivenByFallback,
+                            entry.getKey().toLowerCase(),
+                            entry.getValue());
+                }
+            }
+            bytesGivenPerCountry.clear();
         }
 
         stats.setGauge(Gauges.usingUPnP, usingUPnP.get() ? 1 : 0);
