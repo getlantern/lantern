@@ -200,11 +200,10 @@ public class JettyLauncher implements LanternService {
             contextHandler.addServlet(photo, "/photo/*");
         }
 
-        
         final BayeuxInitializer bi = new BayeuxInitializer(this.syncer);
         final ServletHolder bayeux = new ServletHolder(bi);
         bayeux.setInitParameter("jsonContext", 
-            "org.cometd.server.JacksonJSONContextServer");
+            "org.lantern.SettingsJSONContextServer");
         bayeux.setInitOrder(-1);
         contextHandler.getServletHandler().addServlet(bayeux);
         
@@ -277,7 +276,7 @@ public class JettyLauncher implements LanternService {
         params.put("org.eclipse.jetty.servlet.Default.welcomeServlets", "false");
         params.put("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
         params.put("org.eclipse.jetty.servlet.Default.aliases", "false");
-        params.put("jsonContext", "org.cometd.server.JacksonJSONContextServer");
+        params.put("jsonContext", "org.lantern.SettingsJSONContextServer");
         context.setContextPath(path);
         context.setConnectorNames(new String[] {name});
         return context;
