@@ -71,7 +71,7 @@ public class InstanceStats {
         this.bytesGiven = bytesGiven;
     }
 
-    synchronized public void addBytesGivenForLocation(GeoData geoData,
+    public void addBytesGivenForLocation(GeoData geoData,
             long bytes) {
         bytesGiven.add(bytes);
         if (geoData != null) {
@@ -171,18 +171,21 @@ public class InstanceStats {
         stats.setIncrement(Counters.bytesGotten, bytesGotten.captureDelta());
         stats.setIncrement(Counters.directBytes, directBytes.captureDelta());
 
-        synchronized (bytesGivenPerCountry) {
+        synchronized(this) {
             for (Map.Entry<String, Long> entry : bytesGivenPerCountry
                     .entrySet()) {
-                stats.setIncrement(Counters.bytesGiven,
-                        entry.getKey().toLowerCase(),
-                        entry.getValue());
+                String country = entry.getKey().toLowerCase();
+                Long bytes = entry.getValue();
+                stats.setIncrement(Counters.bytesGiven, 
+                        country, 
+                        bytes);
                 if (LanternUtils.isFallbackProxy()) {
                     stats.setIncrement(Counters.bytesGivenByFallback,
-                            entry.getKey().toLowerCase(),
-                            entry.getValue());
+                            country,
+                            bytes);
                 }
             }
+            // Clear bytesGivenPerCountry to reset counters
             bytesGivenPerCountry.clear();
         }
 
