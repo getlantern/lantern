@@ -342,7 +342,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
      * @param email The email address of the peer
      * @param pres The presence event
      */
-    private void handlePeer(final String email, final Presence pres) {
+    private void handlePeer(String email, final Presence pres) {
+        email = EmailAddressUtils.normalizedEmail(email);
         final ClientFriend existing = getFriend(email);
         if (existing != null) {
             log.debug("We already know about the peer...");
