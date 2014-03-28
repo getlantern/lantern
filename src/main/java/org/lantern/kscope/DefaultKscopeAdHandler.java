@@ -67,8 +67,8 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
                             jid,
                             new InstanceInfo<URI, ReceivedKScopeAd>(
                                     jid,
-                                    ad.getProxyInfo().getLanAddress(),
-                                    ad.getProxyInfo().getWanAddress(),
+                                    ad.getProxyInfo().lanAddress(),
+                                    ad.getProxyInfo().wanAddress(),
                                     new ReceivedKScopeAd(from, ad)));
         } catch (final URISyntaxException e) {
             log.error("Could not create URI from: {}", from);

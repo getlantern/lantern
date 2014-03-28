@@ -314,7 +314,7 @@ public class TestingUtils {
                 chainedProxies.add(new BaseChainedProxy(fallback.getAuthToken()) {
                     @Override
                     public InetSocketAddress getChainedProxyAddress() {
-                        return fallback.getWanAddress();
+                        return fallback.wanAddress();
                     }
                     
                     @Override
