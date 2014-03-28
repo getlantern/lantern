@@ -163,8 +163,8 @@ public class DefaultProxyTracker implements ProxyTracker {
             configuredProxies.add(info);
         }
         InetAddress remoteAddress = null;
-        if (info != null && info.getWanAddress() != null) {
-            remoteAddress = info.getWanAddress().getAddress();
+        if (info != null && info.wanAddress() != null) {
+            remoteAddress = info.wanAddress().getAddress();
         }
         if (remoteAddress != null) {
             if (remoteAddress.isLoopbackAddress()
