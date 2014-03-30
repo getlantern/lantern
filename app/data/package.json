@@ -29,8 +29,6 @@
     "sleep": "1.1.3"
   },
   "devDependencies": {
-    "karma": "0.12.1",
-    "karma-ng-scenario": "0.1.0"
   },
   "analyze": false,
   "license": "GPLv3",

@@ -2,17 +2,14 @@ language: node_js
 node_js:
   - "0.10"
 
-before_script:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - npm install --quiet -g karma #bower
-  #- bower install
-  - ./scripts/web-server.js > /dev/null &
-  - sleep 1 # give server time to start
-
-script:
-  - karma start config/karma.conf.js --no-auto-watch --single-run --reporters=dots
-  - karma start config/karma-e2e.conf.js --reporters=dots
+#before_script:
+#  - npm install --quiet karma karma-jasmine
+#  - ./scripts/web-server.js > /dev/null &
+#  - sleep 1 # give server time to start
+#
+#script:
+#  - ./node_modules/karma/bin/karma start config/karma.conf.js --no-auto-watch --single-run --reporters=dots
+#  - ./node_modules/karma/bin/karma start config/karma-e2e.conf.js --reporters=dots
 
 notifications:
   irc: "irc.freenode.net#lantern"
