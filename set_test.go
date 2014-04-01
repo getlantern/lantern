@@ -14,7 +14,6 @@ func Test_Union(t *testing.T) {
 	if settype := reflect.TypeOf(u).String(); settype != "*set.Set" {
 		t.Error("Union should derive its set type from the first passed set, got", settype)
 	}
-
 	if u.Size() != 7 {
 		t.Error("Union: the merged set doesn't have all items in it.")
 	}
@@ -23,17 +22,9 @@ func Test_Union(t *testing.T) {
 		t.Error("Union: merged items are not availabile in the set.")
 	}
 
-	y := Union()
-	if y.Size() != 0 {
-		t.Error("Union: should have zero items because nothing is passed")
-	}
-	if settype := reflect.TypeOf(y).String(); settype != "*set.Set" {
-		t.Error("Union with no parameters should return a threadsafe set, got", settype)
-	}
-
-	z := Union(x)
-	if z.Size() != 3 {
-		t.Error("Union: the merged set doesn't have all items in it.")
+	z := Union(x, r)
+	if z.Size() != 5 {
+		t.Error("Union: Union of 2 sets doesn't have the proper number of items.")
 	}
 	if settype := reflect.TypeOf(z).String(); settype != "*set.SetNonTS" {
 		t.Error("Union should derive its set type from the first passed set, got", settype)
@@ -55,15 +46,11 @@ func Test_Difference(t *testing.T) {
 		t.Error("Difference: items are not availabile in the set.")
 	}
 
-	y := Difference()
+	y := Difference(r, r)
 	if y.Size() != 0 {
 		t.Error("Difference: size should be zero")
 	}
 
-	z := Difference(s)
-	if z.Size() != 3 {
-		t.Error("Difference: size should be four")
-	}
 }
 
 func Test_Intersection(t *testing.T) {
