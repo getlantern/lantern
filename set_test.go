@@ -22,7 +22,7 @@ func Test_Union(t *testing.T) {
 		t.Error("Union: merged items are not availabile in the set.")
 	}
 
-	z := Union(x,r)
+	z := Union(x, r)
 	if z.Size() != 5 {
 		t.Error("Union: Union of 2 sets doesn't have the proper number of items.")
 	}
@@ -46,7 +46,7 @@ func Test_Difference(t *testing.T) {
 		t.Error("Difference: items are not availabile in the set.")
 	}
 
-	y := Difference(r,r)
+	y := Difference(r, r)
 	if y.Size() != 0 {
 		t.Error("Difference: size should be zero")
 	}
@@ -59,7 +59,6 @@ func Test_Intersection(t *testing.T) {
 	s3 := New("4", "5", "6", "7")
 	u := Intersection(s1, s2, s3)
 
-    
 	if u.Size() != 1 {
 		t.Error("Intersection: the set doesn't have all items in it.")
 	}

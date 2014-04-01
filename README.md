@@ -227,6 +227,7 @@ func main() {
  * [Fatih Arslan](https://github.com/fatih)
  * [Arne Hormann](https://github.com/arnehormann)
  * [Sam Boyer](https://github.com/sdboyer)
+ * [Ralph Loizzo](https://github.com/friartech
 
 ## License
 

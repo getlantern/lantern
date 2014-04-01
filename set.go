@@ -30,19 +30,16 @@ type Interface interface {
 var keyExists = struct{}{}
 
 // Union is the merger of multiple sets. It returns a new set with all the
-// elements present in all the sets that are passed. 
+// elements present in all the sets that are passed.
 //
 // The dynamic type of the returned set is determined by the first passed set's
 // implementation of the New() method.
 func Union(set1, set2 Interface, sets ...Interface) Interface {
-
 	u := set1.Copy()
-
-    set2.Each(func(item interface{}) bool {
-        u.Add(item)
-        return true
-    })
-    
+	set2.Each(func(item interface{}) bool {
+		u.Add(item)
+		return true
+	})
 	for _, set := range sets {
 		set.Each(func(item interface{}) bool {
 			u.Add(item)
@@ -55,12 +52,10 @@ func Union(set1, set2 Interface, sets ...Interface) Interface {
 
 // Difference returns a new set which contains items which are in in the first
 // set but not in the others. Unlike the Difference() method you can use this
-// function separately with multiple sets. 
+// function separately with multiple sets.
 func Difference(set1, set2 Interface, sets ...Interface) Interface {
-
 	s := set1.Copy()
-    s.Separate(set2)
-
+	s.Separate(set2)
 	for _, set := range sets {
 		s.Separate(set) // seperate is thread safe
 	}
@@ -69,10 +64,8 @@ func Difference(set1, set2 Interface, sets ...Interface) Interface {
 
 // Intersection returns a new set which contains items that only exist in all given sets.
 func Intersection(set1, set2 Interface, sets ...Interface) Interface {
- 
 	all := Union(set1, set2, sets...)
 	result := Union(set1, set2, sets...)
-
 	all.Each(func(item interface{}) bool {
 		for _, set := range sets {
 			if !set.Has(item) || !set1.Has(item) || !set2.Has(item) {
@@ -81,7 +74,6 @@ func Intersection(set1, set2 Interface, sets ...Interface) Interface {
 		}
 		return true
 	})
-
 	return result
 }
 
