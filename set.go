@@ -30,17 +30,19 @@ type Interface interface {
 var keyExists = struct{}{}
 
 // Union is the merger of multiple sets. It returns a new set with all the
-// elements present in all the sets that are passed. If no items are passed,
-// an empty set is returned.
+// elements present in all the sets that are passed. 
 //
 // The dynamic type of the returned set is determined by the first passed set's
 // implementation of the New() method.
-func Union(sets ...Interface) Interface {
-	if len(sets) == 0 {
-		return New()
-	}
+func Union(set1, set2 Interface, sets ...Interface) Interface {
 
-	u := sets[0].New()
+	u := set1.Copy()
+
+    set2.Each(func(item interface{}) bool {
+        u.Add(item)
+        return true
+    })
+    
 	for _, set := range sets {
 		set.Each(func(item interface{}) bool {
 			u.Add(item)
@@ -53,32 +55,27 @@ func Union(sets ...Interface) Interface {
 
 // Difference returns a new set which contains items which are in in the first
 // set but not in the others. Unlike the Difference() method you can use this
-// function seperatly with multiple sets. If no items are passed an empty set
-// is returned.
-func Difference(sets ...Interface) Interface {
-	if len(sets) == 0 {
-		return New()
-	}
+// function separately with multiple sets. 
+func Difference(set1, set2 Interface, sets ...Interface) Interface {
 
-	s := sets[0].Copy()
-	for _, set := range sets[1:] {
+	s := set1.Copy()
+    s.Separate(set2)
+
+	for _, set := range sets {
 		s.Separate(set) // seperate is thread safe
 	}
 	return s
 }
 
 // Intersection returns a new set which contains items that only exist in all given sets.
-func Intersection(sets ...Interface) Interface {
-	if len(sets) == 0 {
-		return New()
-	}
-
-	all := Union(sets...)
-	result := Union(sets...)
+func Intersection(set1, set2 Interface, sets ...Interface) Interface {
+ 
+	all := Union(set1, set2, sets...)
+	result := Union(set1, set2, sets...)
 
 	all.Each(func(item interface{}) bool {
 		for _, set := range sets {
-			if !set.Has(item) {
+			if !set.Has(item) || !set1.Has(item) || !set2.Has(item) {
 				result.Remove(item)
 			}
 		}
