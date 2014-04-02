@@ -1,4 +1,4 @@
-# Set [![GoDoc](https://godoc.org/github.com/fatih/set?status.png)](http://godoc.org/github.com/fatih/set) [![Build Status](https://travis-ci.org/fatih/set.png)](https://travis-ci.org/fatih/set)
+# Set [![GoDoc](https://godoc.org/gopkg.in/fatih/set.v1?status.png)](https://godoc.org/gopkg.in/fatih/set.v1) [![Build Status](https://travis-ci.org/fatih/set.png)](https://travis-ci.org/fatih/set)
 
 Set is a basic and simple, hash-based, **Set** data structure implementation
 in Go (Golang).
@@ -12,11 +12,21 @@ goroutines.
 
 For usage see examples below or click on the godoc badge.
 
-## Install
+## Install and Usage
+
+Install the package with:
 
 ```bash
-go get github.com/fatih/set
+go get gopkg.in/fatih/set.v1
 ```
+
+Import it with:
+
+```go
+import "gopkg.in/fatih/set.v1"
+```
+
+and use `set` as the package name inside the code.
 
 ## Examples
 
