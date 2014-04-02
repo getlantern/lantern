@@ -17,13 +17,13 @@ For usage see examples below or click on the godoc badge.
 Install the package with:
 
 ```bash
-go get gopkg.in/fatih/set.v1
+go get gopkg.in/fatih/set.v0
 ```
 
 Import it with:
 
 ```go
-import "gopkg.in/fatih/set.v1"
+import "gopkg.in/fatih/set.v0"
 ```
 
 and use `set` as the package name inside the code.
