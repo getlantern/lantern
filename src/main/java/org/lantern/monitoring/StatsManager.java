@@ -32,7 +32,8 @@ public class StatsManager implements LanternService {
     // Get stats every minute
     private static final long GET_INTERVAL = 60;
     // Post stats every 5 minutes
-    private static final long POST_INTERVAL = 5;
+    private static final long POST_INTERVAL = 5 * 60;
+    private static final long FALLBACK_POST_INTERVAL = 20;
 
     private final Model model;
     private final StatshubAPI statshub = new StatshubAPI(
@@ -63,10 +64,10 @@ public class StatsManager implements LanternService {
                 TimeUnit.SECONDS);
         postScheduler.scheduleAtFixedRate(
                 postStats,
-                1, // wait 1 minute before first posting stats, to give the
+                60, // wait 1 minute before first posting stats, to give the
                    // system a chance to initialize metadata
-                POST_INTERVAL,
-                TimeUnit.MINUTES);
+                LanternUtils.isFallbackProxy() ? FALLBACK_POST_INTERVAL : POST_INTERVAL,
+                TimeUnit.SECONDS);
     }
 
     @Override
