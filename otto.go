@@ -457,6 +457,18 @@ func (self Object) Set(name string, value interface{}) error {
 	}
 }
 
+// Get the keys for the object
+//
+// Equivalent to calling Object.keys on the object
+func (self Object) Keys() []string {
+	var keys []string
+	self.object.enumerate(false, func(name string) bool {
+		keys = append(keys, name)
+		return true
+	})
+	return keys
+}
+
 // Class will return the class string of the object.
 //
 // The return value will (generally) be one of:

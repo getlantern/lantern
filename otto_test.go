@@ -342,6 +342,31 @@ func TestAPI(t *testing.T) {
 	object = value.Object() // Object xyzzy
 	result, _ = object.Value().Call(def, 3)
 	Is(result, "30")
+
+	test(`
+        abc = {
+            'abc': 1,
+            'def': false,
+            3.14159: NaN,
+        };
+        abc['abc'];
+    `, "1")
+	abc, err := Otto.Get("abc")
+	Is(err, nil)
+	object = abc.Object() // Object abc
+	value, err = object.Get("abc")
+	Is(err, nil)
+	Is(value, "1")
+	Is(object.Keys(), []string{"abc", "def", "3.14159"})
+
+	test(`
+        abc = [ 0, 1, 2, 3.14159, "abc", , ];
+        abc.def = true;
+    `)
+	abc, err = Otto.Get("abc")
+	Is(err, nil)
+	object = abc.Object() // Object abc
+	Is(object.Keys(), []string{"0", "1", "2", "3", "4", "def"})
 }
 
 func TestUnicode(t *testing.T) {

@@ -254,6 +254,15 @@ func (self Object) Get(name string) (Value, error)
 ```
 Get the value of the property with the given name.
 
+#### func (Object) Keys
+
+```go
+func (self Object) Keys() []string
+```
+Get the keys for the object
+
+Equivalent to calling Object.keys on the object
+
 #### func (Object) Set
 
 ```go
