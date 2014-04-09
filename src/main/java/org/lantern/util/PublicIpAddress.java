@@ -10,7 +10,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.LanternUtils;
-import org.lantern.proxy.FallbackProxy;
+import org.lantern.http.HttpUtils;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
@@ -102,13 +102,14 @@ public class PublicIpAddress implements PublicIp {
             final int responseCode = response.getStatusLine().getStatusCode();
             boolean twoHundredResponse = true;
             if (responseCode < 200 || responseCode > 299) {
-                LOG.warn("Error on proxied request. No proxies working? {}, {}", 
-                        response.getStatusLine(), responseCode);
                 twoHundredResponse = false;
             } 
             if (header == null) {
                 if (twoHundredResponse) {
                     LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
+                } else {
+                    LOG.warn("Error on proxied request. No proxies working? {}, {}", 
+                            response.getStatusLine(), HttpUtils.httpHeaders(response));
                 }
                 return InetAddress.getLocalHost();
             } else {
