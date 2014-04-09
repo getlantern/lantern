@@ -11,9 +11,18 @@
       -->
     </div>
     <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
-      {{ 'NUSERS_ONLINE' | i18n:(model.globalStats.gauges.userOnline || 0) }} ·
-      {{ 'NUSERS_EVER' | i18n:(model.globalStats.gauges.userOnlineEver + model.globalStats.counters.userOnlineEverOld) }} ·
-      {{ model.globalStats.counters.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
+      <div ng-show="statsLoaded">
+        {{ 'NUSERS_ONLINE' | i18n:(model.globalStats.gauges.userOnline || 0) }} ·
+        {{ 'NUSERS_EVER' | i18n:(model.globalStats.gauges.userOnlineEver + model.globalStats.counters.userOnlineEverOld) }} ·
+        {{ model.globalStats.counters.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
+      </div>
+      <div ng-hide="statsLoaded">
+        <!-- just show an empty line instead of "Loading stats..." -->
+        &nbsp;
+        <!--
+        {{ 'LOADING_STATS' | i18n }}
+        -->
+      </div>
     </div>
   </div>
 

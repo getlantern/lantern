@@ -98,6 +98,10 @@ var app = angular.module('app', [
       }
     });
 
+    $rootScope.$watch('model.globalStats', function (stats) {
+      $rootScope.statsLoaded = !!stats && !_.isEmpty(stats.gauges);
+    });
+
     $rootScope.$watch('model.roster', function (roster) {
       if (!roster) return;
       updateContactCompletions();
