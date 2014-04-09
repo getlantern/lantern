@@ -140,16 +140,7 @@ public class ProxyInfo {
 
     @JsonIgnore
     public boolean isNatTraversed() {
-        return getAddress() == null;
-    }
-
-    /**
-     * Gets the address at which to connect to this proxy.
-     * 
-     * @return
-     */
-    public InetSocketAddress getAddress() {
-        return useLanAddress ? lanAddress() : wanAddress();
+        return useLanAddress ? lanAddress() == null : wanAddress() == null;
     }
 
     public InetSocketAddress wanAddress() {
