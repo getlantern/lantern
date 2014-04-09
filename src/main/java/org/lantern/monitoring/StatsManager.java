@@ -59,7 +59,7 @@ public class StatsManager implements LanternService {
     public void start() {
         getScheduler.scheduleAtFixedRate(
                 getStats,
-                30,
+                0,
                 GET_INTERVAL,
                 TimeUnit.SECONDS);
         postScheduler.scheduleAtFixedRate(
