@@ -13,6 +13,7 @@ import org.lantern.Country;
 import org.lantern.LanternConstants;
 import org.lantern.LanternService;
 import org.lantern.LanternUtils;
+import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Mode;
@@ -22,6 +23,7 @@ import org.lantern.util.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -29,10 +31,6 @@ import com.google.inject.Singleton;
 public class StatsManager implements LanternService {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
-    // Get stats every minute
-    private static final long GET_INTERVAL = 60;
-    // Post stats every 5 minutes
-    private static final long POST_INTERVAL = 5 * 60;
     private static final long FALLBACK_POST_INTERVAL = 20;
 
     private final Model model;
@@ -53,20 +51,34 @@ public class StatsManager implements LanternService {
     @Inject
     public StatsManager(Model model) {
         this.model = model;
+        Events.register(this);
+    }
+    
+    /**
+     * This just signals that the config has changed, prompting the loading
+     * of the new values. 
+     * 
+     * @param config The new config.
+     */
+    @Subscribe
+    public void onS3Config(final S3Config config) {
+        stop();
+        start();
     }
 
     @Override
     public void start() {
         getScheduler.scheduleAtFixedRate(
                 getStats,
-                0,
-                GET_INTERVAL,
+                12,
+                this.model.getS3Config().getStatsGetInterval(),
                 TimeUnit.SECONDS);
         postScheduler.scheduleAtFixedRate(
                 postStats,
                 60, // wait 1 minute before first posting stats, to give the
                    // system a chance to initialize metadata
-                LanternUtils.isFallbackProxy() ? FALLBACK_POST_INTERVAL : POST_INTERVAL,
+                LanternUtils.isFallbackProxy() ? FALLBACK_POST_INTERVAL : 
+                    this.model.getS3Config().getStatsPostInterval(),
                 TimeUnit.SECONDS);
     }
 
