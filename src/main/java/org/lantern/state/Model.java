@@ -410,6 +410,7 @@ public class Model {
         this.remainingFriendingQuota = remainingFriendingQuota;
     }
 
+    @JsonView({Persistent.class})
     public S3Config getS3Config() {
         return this.s3Config;
     }

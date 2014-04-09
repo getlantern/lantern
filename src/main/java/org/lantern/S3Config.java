@@ -6,9 +6,6 @@ import java.util.Collections;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.lantern.proxy.FallbackProxy;
 
-import com.google.common.base.Objects;
-
-
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class S3Config {
 
@@ -18,7 +15,18 @@ public class S3Config {
     private int minpoll = 5;
     private int maxpoll = 15;
     private Collection<FallbackProxy> fallbacks = Collections.emptyList();
-
+    
+    /**
+     * Get stats every minute.
+     */
+    private int statsGetInterval = 60;
+    
+    /**
+     * Wait 1 minute before first posting stats, to give the system a 
+     * chance to initialize metadata.
+     */
+    private int statsPostInterval = 5 * 60;
+    
     public S3Config() {}
 
     public String getController() {
@@ -51,23 +59,64 @@ public class S3Config {
         this.fallbacks = fallbacks;
     }
 
+    public int getStatsGetInterval() {
+        return statsGetInterval;
+    }
+
+    public void setStatsGetInterval(int statsGetInterval) {
+        this.statsGetInterval = statsGetInterval;
+    }
+
+    public int getStatsPostInterval() {
+        return statsPostInterval;
+    }
+
+    public void setStatsPostInterval(int statsPostInterval) {
+        this.statsPostInterval = statsPostInterval;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hashCode(controller, fallbacks, minpoll, maxpoll);
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((controller == null) ? 0 : controller.hashCode());
+        result = prime * result
+                + ((fallbacks == null) ? 0 : fallbacks.hashCode());
+        result = prime * result + maxpoll;
+        result = prime * result + minpoll;
+        result = prime * result + statsGetInterval;
+        result = prime * result + statsPostInterval;
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-           return false;
-        }
-        if (getClass() != obj.getClass()){
-           return false;
-        }
-        final S3Config other = (S3Config) obj;
-        return Objects.equal(this.controller, other.controller) &&
-                Objects.equal(this.fallbacks, other.fallbacks) &&
-                Objects.equal(this.minpoll, other.minpoll) &&
-                Objects.equal(this.maxpoll, other.maxpoll);
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        S3Config other = (S3Config) obj;
+        if (controller == null) {
+            if (other.controller != null)
+                return false;
+        } else if (!controller.equals(other.controller))
+            return false;
+        if (fallbacks == null) {
+            if (other.fallbacks != null)
+                return false;
+        } else if (!fallbacks.equals(other.fallbacks))
+            return false;
+        if (maxpoll != other.maxpoll)
+            return false;
+        if (minpoll != other.minpoll)
+            return false;
+        if (statsGetInterval != other.statsGetInterval)
+            return false;
+        if (statsPostInterval != other.statsPostInterval)
+            return false;
+        return true;
     }
 }
