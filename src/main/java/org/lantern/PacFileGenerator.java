@@ -55,7 +55,7 @@ public class PacFileGenerator {
             fr = new FileInputStream(file);
             return IOUtils.toString(fr);
         } catch (final IOException e) {
-            
+            LOG.error("Could not find template?", e);
         } finally {
             IOUtils.closeQuietly(fr);
         }
