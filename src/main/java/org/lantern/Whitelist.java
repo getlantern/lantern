@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.annotation.Keep;
@@ -105,7 +106,7 @@ public class Whitelist {
         } catch (Throwable t) {
             log.warn("Unable to apply whitelist {}", whitelistPath, t);
         } finally {
-
+            IOUtils.closeQuietly(reader);
         }
     }
 
