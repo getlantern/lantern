@@ -1,11 +1,11 @@
 package otto
 
 import (
-	"bytes"
 	"fmt"
 	"regexp"
-	"strings"
 	"unicode/utf8"
+
+	"github.com/robertkrimen/otto/parser"
 )
 
 type _regExpObject struct {
@@ -25,6 +25,8 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 	ignoreCase := false
 	multiline := false
 	re2flags := ""
+
+	// TODO Maybe clean up the panicking here... TypeError, SyntaxError, ?
 
 	for _, chr := range flags {
 		switch chr {
@@ -48,7 +50,10 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		}
 	}
 
-	re2pattern := transformRegExp(pattern)
+	re2pattern, err := parser.TransformRegExp(pattern)
+	if err != nil {
+		panic(newTypeError("Invalid regular expression: %s", err.Error()))
+	}
 	if len(re2flags) > 0 {
 		re2pattern = fmt.Sprintf("(?%s:%s)", re2flags, re2pattern)
 	}
@@ -138,111 +143,4 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 	match.defineProperty("input", toValue_string(target), 0111, false)
 	match.defineProperty("index", toValue_int(matchIndex), 0111, false)
 	return match
-}
-
-// 0031,0032,0033,0034,0035,0036,0037,0038,0039 // 1 - 9
-// 0043,0045,0046,0047,0048,0049,004A,004B,004C,004D,004E,004F
-// 0050,0052,0054,0055,0056,0058,0059,005A
-// 0063,0065,0067,0068,0069,006A,006B,006C,006D,006F
-// 0070,0071,0075,0078,0079
-// 0080,0081,0082,0083,0084,0085,0086,0087,0088,0089,008A,008B,008C,008D,008E,008F
-// 0090,0091,0092,0093,0094,0095,0096,0097,0098,0099,009A,009B,009C,009D,009E,009F
-// 00A0,00A1,00A2,00A3,00A4,00A5,00A6,00A7,00A8,00A9,00AA,00AB,00AC,00AD,00AE,00AF
-// 00B0,00B1,00B2,00B3,00B4,00B5,00B6,00B7,00B8,00B9,00BA,00BB,00BC,00BD,00BE,00BF
-// 00C0,00C1,00C2,00C3,00C4,00C5,00C6,00C7,00C8,00C9,00CA,00CB,00CC,00CD,00CE,00CF
-// ...
-// c = 63* c[A-Z]
-// p = 70
-// u = 75* u[:xdigit:]{4}
-// x = 78* x[:xdigit:]{2}
-//\x{0031}-\x{0039}
-
-var transformRegExp_matchSlashU = regexp.MustCompile(`\\u([[:xdigit:]]{1,4})`)
-var transformRegExp_escape_c = regexp.MustCompile(`\\c([A-Za-z])`)
-var transformRegExp_unescape_c = regexp.MustCompile(`\\c`)
-var transformRegExp_unescape = []*regexp.Regexp{
-	regexp.MustCompile(strings.NewReplacer("\n", "", "\t", "", " ", "").Replace(`
-		\\(
-		[
-			\x{0043}\x{0045}-\x{004F}
-			\x{0050}\x{0052}\x{0054}-\x{0056}\x{0058}-\x{005A}
-			\x{0065}\x{0067}-\x{006D}\x{006F}
-			\x{0070}\x{0071}\x{0079}
-			\x{0080}-\x{FFFF}
-		]
-		)()
-	`)),
-	regexp.MustCompile(`\\(u)([^[:xdigit:]])`),
-	regexp.MustCompile(`\\(u)([[:xdigit:]][^[:xdigit:]])`),
-	regexp.MustCompile(`\\(u)([[:xdigit:]][[:xdigit:]][^[:xdigit:]])`),
-	regexp.MustCompile(`\\(u)([[:xdigit:]][[:xdigit:]][[:xdigit:]][^[:xdigit:]])`),
-	regexp.MustCompile(`\\(x)([^[:xdigit:]])`),
-	regexp.MustCompile(`\\(x)([[:xdigit:]][^[:xdigit:]])`),
-}
-
-var transformRegExp_unescapeDollar = regexp.MustCompile(`\\([cux])$`)
-
-// TODO Go "regexp" bug? Can't do: (?:)|(?:$)
-
-func transformRegExp(ecmaRegExp string) (goRegExp string) {
-	// https://bugzilla.mozilla.org/show_bug.cgi/show_bug.cgi?id=334158
-	tmp := []byte(ecmaRegExp)
-	for _, value := range transformRegExp_unescape {
-		tmp = value.ReplaceAll(tmp, []byte(`$1$2`))
-	}
-	tmp = transformRegExp_escape_c.ReplaceAllFunc(tmp, func(in []byte) []byte {
-		in = bytes.ToUpper(in)
-		// in = [ \, c, A-Z ]
-		in[2] -= 64 // 64 => 01
-		return []byte(fmt.Sprintf("\\0%o", in[2]))
-	})
-	tmp = transformRegExp_unescape_c.ReplaceAll(tmp, []byte(`c`))
-	tmp = transformRegExp_unescapeDollar.ReplaceAll(tmp, []byte(`$1`))
-	tmp = transformRegExp_matchSlashU.ReplaceAll(tmp, []byte(`\x{$1}`))
-	return string(tmp)
-}
-
-func isValidRegExp(ecmaRegExp string) bool {
-	shibboleth := 0 // The shibboleth in this case is (?
-	// Since we're looking for (?! / (?=
-	inSet := false // In a bracketed set, e.g. [0-9]
-	escape := false
-	for _, chr := range ecmaRegExp {
-		if escape {
-			escape = false
-			shibboleth = 0
-			continue
-		}
-		if chr == '\\' {
-			escape = true
-			continue
-		}
-		if inSet {
-			if chr == ']' {
-				inSet = false
-				shibboleth = 0
-			}
-			continue
-		}
-		switch chr {
-		case '[':
-			inSet = true
-			continue
-		case '(':
-			shibboleth = 1
-			continue
-		case '?':
-			if shibboleth == 1 {
-				shibboleth = 2
-			}
-			continue
-		case '=', '!':
-			if shibboleth == 2 {
-				return false
-			}
-		}
-		shibboleth = 0
-	}
-
-	return true
 }

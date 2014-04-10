@@ -3,14 +3,16 @@ package otto
 import (
 	"strconv"
 	Time "time"
+
+	"github.com/robertkrimen/otto/ast"
 )
 
 var (
 	prototypeValueObject   = interface{}(nil)
 	prototypeValueFunction = _functionObject{
-		call: _nativeCallFunction(func(_ FunctionCall) Value {
+		call: _nativeCallFunction{"", func(_ FunctionCall) Value {
 			return UndefinedValue()
-		}),
+		}},
 	}
 	prototypeValueString = _stringObject{
 		value: Value{
@@ -59,6 +61,7 @@ func newContext() *_runtime {
 
 	self.eval = self.GlobalObject.property["eval"].value.(Value).value.(*_object)
 	self.GlobalObject.prototype = self.Global.ObjectPrototype
+	//self.parser = ast.NewParser()
 
 	return self
 }
@@ -198,8 +201,8 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 	return self
 }
 
-func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction) *_object {
-	self := runtime.newNativeFunctionObject(_nativeFunction, 0)
+func (runtime *_runtime) newNativeFunction(name string, _nativeFunction _nativeFunction) *_object {
+	self := runtime.newNativeFunctionObject(name, _nativeFunction, 0)
 	self.prototype = runtime.Global.FunctionPrototype
 	prototype := runtime.newObject()
 	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
@@ -207,7 +210,7 @@ func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction) *_ob
 	return self
 }
 
-func (runtime *_runtime) newNodeFunction(node *_functionNode, scopeEnvironment _environment) *_object {
+func (runtime *_runtime) newNodeFunction(node *ast.FunctionExpression, scopeEnvironment _environment) *_object {
 	// TODO Implement 13.2 fully
 	self := runtime.newNodeFunctionObject(node, scopeEnvironment)
 	self.prototype = runtime.Global.FunctionPrototype

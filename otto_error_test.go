@@ -27,7 +27,7 @@ func TestOttoError(t *testing.T) {
 			return abcdef.length
 		})()
 	`)
-	Is(err, "ReferenceError: abcdef is not defined (line 3)")
+	Is(err, "ReferenceError: abcdef is not defined")
 
 	_, err = Otto.Run(`
 	function start() {
@@ -37,13 +37,13 @@ func TestOttoError(t *testing.T) {
 
 		xyzzy()
 	`)
-	Is(err, "ReferenceError: xyzzy is not defined (line 7)")
+	Is(err, "ReferenceError: xyzzy is not defined")
 
 	_, err = Otto.Run(`
 		// Just a comment
 
 		xyzzy
 	`)
-	Is(err, "ReferenceError: xyzzy is not defined (line 4)")
+	Is(err, "ReferenceError: xyzzy is not defined")
 
 }

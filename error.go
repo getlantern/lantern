@@ -3,6 +3,8 @@ package otto
 import (
 	"errors"
 	"fmt"
+
+	"github.com/robertkrimen/otto/ast"
 )
 
 type _exception struct {
@@ -60,10 +62,10 @@ func (self _error) String() string {
 
 func newError(name string, argumentList ...interface{}) _error {
 	description := ""
-	var node _node = nil
+	var node ast.Node = nil
 	length := len(argumentList)
 	if length > 0 {
-		if node, _ = argumentList[length-1].(_node); node != nil || argumentList[length-1] == nil {
+		if node, _ = argumentList[length-1].(ast.Node); node != nil || argumentList[length-1] == nil {
 			argumentList = argumentList[0 : length-1]
 			length -= 1
 		}
@@ -71,15 +73,20 @@ func newError(name string, argumentList ...interface{}) _error {
 			description, argumentList = argumentList[0].(string), argumentList[1:]
 		}
 	}
-	error := _error{
+	return _error{
 		Name:    name,
 		Message: messageFromDescription(description, argumentList...),
 		Line:    -1,
 	}
-	if node != nil {
-		error.Line = node.position()
-	}
-	return error
+	//error := _error{
+	//    Name:    name,
+	//    Message: messageFromDescription(description, argumentList...),
+	//    Line:    -1,
+	//}
+	//if node != nil {
+	//    error.Line = ast.position()
+	//}
+	//return error
 }
 
 func newReferenceError(argumentList ...interface{}) _error {
@@ -110,15 +117,16 @@ func typeErrorResult(throw bool) bool {
 }
 
 func catchPanic(function func()) (err error) {
+	// FIXME
 	defer func() {
 		if caught := recover(); caught != nil {
 			if exception, ok := caught.(*_exception); ok {
 				caught = exception.eject()
 			}
 			switch caught := caught.(type) {
-			case *_syntaxError:
-				err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+0))
-				return
+			//case *_syntaxError:
+			//    err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+0))
+			//    return
 			case _error:
 				if caught.Line == -1 {
 					err = errors.New(caught.String())
@@ -130,36 +138,15 @@ func catchPanic(function func()) (err error) {
 			case Value:
 				err = errors.New(toString(caught))
 				return
+				//case string:
+				//    if strings.HasPrefix(caught, "SyntaxError:") {
+				//        err = errors.New(caught)
+				//        return
+				//    }
 			}
 			panic(caught)
 		}
 	}()
 	function()
 	return nil
-}
-
-// SyntaxError
-
-type _syntaxError struct {
-	Message   string
-	Line      int
-	Column    int
-	Character int
-}
-
-func (self _syntaxError) String() string {
-	name := "SyntaxError"
-	if len(self.Message) == 0 {
-		return name
-	}
-	return fmt.Sprintf("%s: %s", name, self.Message)
-}
-
-func (self _token) newSyntaxError(description string, argumentList ...interface{}) *_syntaxError {
-	return &_syntaxError{
-		Message:   messageFromDescription(description, argumentList...),
-		Line:      self.Line,
-		Column:    self.Column,
-		Character: self.Character,
-	}
 }

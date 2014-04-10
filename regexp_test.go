@@ -10,26 +10,30 @@ func TestRegExp(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`
-		abc = new RegExp("abc").exec("123abc456")
-		def = new RegExp("xyzzy").exec("123abc456")
-		ghi = new RegExp("1(\\d+)").exec("123abc456")
-		jkl = new RegExp("xyzzy").test("123abc456")
-		mno = new RegExp("1(\\d+)").test("123abc456")
-	`)
-	test(`new RegExp("abc").exec("123abc456")`, "abc")
-	test("def", "null")
-	test("ghi", "123,23")
-	test("jkl", "false")
-	test("mno", "true")
+        [
+            /abc/.toString(),
+            /abc/gim.toString(),
+            ""+/abc/gi.toString(),
+            new RegExp("1(\\d+)").toString(),
+        ];
+    `, "/abc/,/abc/gim,/abc/gi,/1(\\d+)/")
+
+	test(`
+        [
+            new RegExp("abc").exec("123abc456"),
+            null === new RegExp("xyzzy").exec("123abc456"),
+            new RegExp("1(\\d+)").exec("123abc456"),
+            new RegExp("xyzzy").test("123abc456"),
+            new RegExp("1(\\d+)").test("123abc456"),
+            new RegExp("abc").exec("123abc456"),
+        ];
+	`, "abc,true,123,23,false,true,abc")
 
 	test(`new RegExp("abc").toString()`, "/abc/")
 	test(`new RegExp("abc", "g").toString()`, "/abc/g")
 	test(`new RegExp("abc", "mig").toString()`, "/abc/gim")
-
-	test(`/abc/.toString()`, "/abc/")
-	test(`/abc/gim.toString()`, "/abc/gim")
-	test(`""+/abc/gi`, "/abc/gi")
 
 	result := test(`/(a)?/.exec('b')`, ",")
 	Is(result._object().get("0"), "")
@@ -157,7 +161,7 @@ func TestRegExp_zaacbbbcac(t *testing.T) {
 
 	test := runTest()
 	if false {
-		// TODO /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac")
+		// FIXME? TODO /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac")
 		test(`
             var abc = /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac");
             [ abc.length, abc.index, abc ];
@@ -177,7 +181,7 @@ func TestRegExpCopying(t *testing.T) {
     `, "1,1")
 
 	test(`raise:
-        RegExp(new RegExp("\d"), "1");
+        RegExp(new RegExp("\\d"), "1");
     `, "TypeError: Cannot supply flags when constructing one RegExp from another")
 }
 
@@ -262,6 +266,7 @@ func TestRegExp_notNotEmptyCharacterClass(t *testing.T) {
 
 func TestRegExp_compile(t *testing.T) {
 	Terst(t)
+
 	test := runTest()
 	test(`
         var abc = /[\s\S]a/;

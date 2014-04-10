@@ -704,30 +704,28 @@ func (self Value) export() interface{} {
 	return self
 }
 
-func (self Value) evaluateBreakContinue(labelSet _labelSet) _resultKind {
-	if result, valid := self.value.(_result); valid {
-		switch result.kind {
-		case resultBreak, resultContinue:
-			if labelSet[result.target] {
+func (self Value) evaluateBreakContinue(labels []string) _resultKind {
+	result := self.value.(_result)
+	if result.kind == resultBreak || result.kind == resultContinue {
+		for _, label := range labels {
+			if label == result.target {
 				return result.kind
 			}
 		}
-		return resultReturn
 	}
-	return resultNormal
+	return resultReturn
 }
 
-func (self Value) evaluateBreak(labelSet _labelSet) _resultKind {
-	if result, valid := self.value.(_result); valid {
-		switch result.kind {
-		case resultBreak:
-			if labelSet[result.target] {
+func (self Value) evaluateBreak(labels []string) _resultKind {
+	result := self.value.(_result)
+	if result.kind == resultBreak {
+		for _, label := range labels {
+			if label == result.target {
 				return result.kind
 			}
 		}
-		return resultReturn
 	}
-	return resultNormal
+	return resultReturn
 }
 
 func (self Value) exportNative() interface{} {

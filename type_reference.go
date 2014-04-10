@@ -1,5 +1,9 @@
 package otto
 
+import (
+	"github.com/robertkrimen/otto/ast"
+)
+
 type _reference interface {
 	GetBase() interface{}      // GetBase
 	GetName() string           // GetReferencedName
@@ -31,10 +35,10 @@ func (self _referenceDefault) IsStrict() bool {
 type _propertyReference struct {
 	_referenceDefault
 	Base *_object
-	node _node
+	node ast.Node
 }
 
-func newPropertyReference(base *_object, name string, strict bool, node _node) *_propertyReference {
+func newPropertyReference(base *_object, name string, strict bool, node ast.Node) *_propertyReference {
 	return &_propertyReference{
 		Base: base,
 		_referenceDefault: _referenceDefault{
@@ -92,10 +96,10 @@ func newArgumentReference(base *_object, name string, strict bool) *_propertyRef
 type _environmentReference struct {
 	_referenceDefault
 	Base _environment
-	node _node
+	node ast.Node
 }
 
-func newEnvironmentReference(base _environment, name string, strict bool, node _node) *_environmentReference {
+func newEnvironmentReference(base _environment, name string, strict bool, node ast.Node) *_environmentReference {
 	return &_environmentReference{
 		Base: base,
 		_referenceDefault: _referenceDefault{
@@ -144,7 +148,7 @@ func (self *_environmentReference) Delete() bool {
 
 // getIdentifierReference
 
-func getIdentifierReference(environment _environment, name string, strict bool, node _node) _reference {
+func getIdentifierReference(environment _environment, name string, strict bool, node ast.Node) _reference {
 	if environment == nil {
 		return newPropertyReference(nil, name, strict, node)
 	}

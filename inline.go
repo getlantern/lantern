@@ -45,7 +45,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_valueOf),
+				call: _nativeCallFunction{"valueOf", builtinObject_valueOf},
 			},
 		}
 		toString_function := &_object{
@@ -67,7 +67,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_toString),
+				call: _nativeCallFunction{"toString", builtinObject_toString},
 			},
 		}
 		toLocaleString_function := &_object{
@@ -89,7 +89,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_toLocaleString),
+				call: _nativeCallFunction{"toLocaleString", builtinObject_toLocaleString},
 			},
 		}
 		hasOwnProperty_function := &_object{
@@ -111,7 +111,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_hasOwnProperty),
+				call: _nativeCallFunction{"hasOwnProperty", builtinObject_hasOwnProperty},
 			},
 		}
 		isPrototypeOf_function := &_object{
@@ -133,7 +133,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_isPrototypeOf),
+				call: _nativeCallFunction{"isPrototypeOf", builtinObject_isPrototypeOf},
 			},
 		}
 		propertyIsEnumerable_function := &_object{
@@ -155,7 +155,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_propertyIsEnumerable),
+				call: _nativeCallFunction{"propertyIsEnumerable", builtinObject_propertyIsEnumerable},
 			},
 		}
 		runtime.Global.ObjectPrototype.property = map[string]_property{
@@ -236,7 +236,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinFunction_toString),
+				call: _nativeCallFunction{"toString", builtinFunction_toString},
 			},
 		}
 		apply_function := &_object{
@@ -258,7 +258,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinFunction_apply),
+				call: _nativeCallFunction{"apply", builtinFunction_apply},
 			},
 		}
 		call_function := &_object{
@@ -280,7 +280,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinFunction_call),
+				call: _nativeCallFunction{"call", builtinFunction_call},
 			},
 		}
 		bind_function := &_object{
@@ -302,7 +302,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinFunction_bind),
+				call: _nativeCallFunction{"bind", builtinFunction_bind},
 			},
 		}
 		runtime.Global.FunctionPrototype.property = map[string]_property{
@@ -375,7 +375,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_getPrototypeOf),
+				call: _nativeCallFunction{"getPrototypeOf", builtinObject_getPrototypeOf},
 			},
 		}
 		getOwnPropertyDescriptor_function := &_object{
@@ -397,7 +397,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_getOwnPropertyDescriptor),
+				call: _nativeCallFunction{"getOwnPropertyDescriptor", builtinObject_getOwnPropertyDescriptor},
 			},
 		}
 		defineProperty_function := &_object{
@@ -419,7 +419,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_defineProperty),
+				call: _nativeCallFunction{"defineProperty", builtinObject_defineProperty},
 			},
 		}
 		defineProperties_function := &_object{
@@ -441,7 +441,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_defineProperties),
+				call: _nativeCallFunction{"defineProperties", builtinObject_defineProperties},
 			},
 		}
 		create_function := &_object{
@@ -463,7 +463,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_create),
+				call: _nativeCallFunction{"create", builtinObject_create},
 			},
 		}
 		isExtensible_function := &_object{
@@ -485,7 +485,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_isExtensible),
+				call: _nativeCallFunction{"isExtensible", builtinObject_isExtensible},
 			},
 		}
 		preventExtensions_function := &_object{
@@ -507,7 +507,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_preventExtensions),
+				call: _nativeCallFunction{"preventExtensions", builtinObject_preventExtensions},
 			},
 		}
 		isSealed_function := &_object{
@@ -529,7 +529,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_isSealed),
+				call: _nativeCallFunction{"isSealed", builtinObject_isSealed},
 			},
 		}
 		seal_function := &_object{
@@ -551,7 +551,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_seal),
+				call: _nativeCallFunction{"seal", builtinObject_seal},
 			},
 		}
 		isFrozen_function := &_object{
@@ -573,7 +573,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_isFrozen),
+				call: _nativeCallFunction{"isFrozen", builtinObject_isFrozen},
 			},
 		}
 		freeze_function := &_object{
@@ -595,7 +595,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_freeze),
+				call: _nativeCallFunction{"freeze", builtinObject_freeze},
 			},
 		}
 		keys_function := &_object{
@@ -617,7 +617,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_keys),
+				call: _nativeCallFunction{"keys", builtinObject_keys},
 			},
 		}
 		getOwnPropertyNames_function := &_object{
@@ -639,7 +639,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinObject_getOwnPropertyNames),
+				call: _nativeCallFunction{"getOwnPropertyNames", builtinObject_getOwnPropertyNames},
 			},
 		}
 		runtime.Global.Object = &_object{
@@ -649,7 +649,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinObject),
+				call:      _nativeCallFunction{"Object", builtinObject},
 				construct: builtinNewObject,
 			},
 			property: map[string]_property{
@@ -794,7 +794,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinFunction),
+				call:      _nativeCallFunction{"Function", builtinFunction},
 				construct: builtinNewFunction,
 			},
 			property: map[string]_property{
@@ -848,7 +848,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_toString),
+				call: _nativeCallFunction{"toString", builtinArray_toString},
 			},
 		}
 		toLocaleString_function := &_object{
@@ -870,7 +870,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_toLocaleString),
+				call: _nativeCallFunction{"toLocaleString", builtinArray_toLocaleString},
 			},
 		}
 		concat_function := &_object{
@@ -892,7 +892,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_concat),
+				call: _nativeCallFunction{"concat", builtinArray_concat},
 			},
 		}
 		join_function := &_object{
@@ -914,7 +914,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_join),
+				call: _nativeCallFunction{"join", builtinArray_join},
 			},
 		}
 		splice_function := &_object{
@@ -936,7 +936,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_splice),
+				call: _nativeCallFunction{"splice", builtinArray_splice},
 			},
 		}
 		shift_function := &_object{
@@ -958,7 +958,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_shift),
+				call: _nativeCallFunction{"shift", builtinArray_shift},
 			},
 		}
 		pop_function := &_object{
@@ -980,7 +980,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_pop),
+				call: _nativeCallFunction{"pop", builtinArray_pop},
 			},
 		}
 		push_function := &_object{
@@ -1002,7 +1002,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_push),
+				call: _nativeCallFunction{"push", builtinArray_push},
 			},
 		}
 		slice_function := &_object{
@@ -1024,7 +1024,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_slice),
+				call: _nativeCallFunction{"slice", builtinArray_slice},
 			},
 		}
 		unshift_function := &_object{
@@ -1046,7 +1046,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_unshift),
+				call: _nativeCallFunction{"unshift", builtinArray_unshift},
 			},
 		}
 		reverse_function := &_object{
@@ -1068,7 +1068,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_reverse),
+				call: _nativeCallFunction{"reverse", builtinArray_reverse},
 			},
 		}
 		sort_function := &_object{
@@ -1090,7 +1090,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_sort),
+				call: _nativeCallFunction{"sort", builtinArray_sort},
 			},
 		}
 		indexOf_function := &_object{
@@ -1112,7 +1112,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_indexOf),
+				call: _nativeCallFunction{"indexOf", builtinArray_indexOf},
 			},
 		}
 		lastIndexOf_function := &_object{
@@ -1134,7 +1134,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_lastIndexOf),
+				call: _nativeCallFunction{"lastIndexOf", builtinArray_lastIndexOf},
 			},
 		}
 		every_function := &_object{
@@ -1156,7 +1156,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_every),
+				call: _nativeCallFunction{"every", builtinArray_every},
 			},
 		}
 		some_function := &_object{
@@ -1178,7 +1178,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_some),
+				call: _nativeCallFunction{"some", builtinArray_some},
 			},
 		}
 		forEach_function := &_object{
@@ -1200,7 +1200,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_forEach),
+				call: _nativeCallFunction{"forEach", builtinArray_forEach},
 			},
 		}
 		map_function := &_object{
@@ -1222,7 +1222,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_map),
+				call: _nativeCallFunction{"map", builtinArray_map},
 			},
 		}
 		filter_function := &_object{
@@ -1244,7 +1244,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_filter),
+				call: _nativeCallFunction{"filter", builtinArray_filter},
 			},
 		}
 		reduce_function := &_object{
@@ -1266,7 +1266,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_reduce),
+				call: _nativeCallFunction{"reduce", builtinArray_reduce},
 			},
 		}
 		reduceRight_function := &_object{
@@ -1288,7 +1288,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_reduceRight),
+				call: _nativeCallFunction{"reduceRight", builtinArray_reduceRight},
 			},
 		}
 		isArray_function := &_object{
@@ -1310,7 +1310,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinArray_isArray),
+				call: _nativeCallFunction{"isArray", builtinArray_isArray},
 			},
 		}
 		runtime.Global.ArrayPrototype = &_object{
@@ -1508,7 +1508,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinArray),
+				call:      _nativeCallFunction{"Array", builtinArray},
 				construct: builtinNewArray,
 			},
 			property: map[string]_property{
@@ -1569,7 +1569,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_toString),
+				call: _nativeCallFunction{"toString", builtinString_toString},
 			},
 		}
 		valueOf_function := &_object{
@@ -1591,7 +1591,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_valueOf),
+				call: _nativeCallFunction{"valueOf", builtinString_valueOf},
 			},
 		}
 		charAt_function := &_object{
@@ -1613,7 +1613,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_charAt),
+				call: _nativeCallFunction{"charAt", builtinString_charAt},
 			},
 		}
 		charCodeAt_function := &_object{
@@ -1635,7 +1635,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_charCodeAt),
+				call: _nativeCallFunction{"charCodeAt", builtinString_charCodeAt},
 			},
 		}
 		concat_function := &_object{
@@ -1657,7 +1657,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_concat),
+				call: _nativeCallFunction{"concat", builtinString_concat},
 			},
 		}
 		indexOf_function := &_object{
@@ -1679,7 +1679,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_indexOf),
+				call: _nativeCallFunction{"indexOf", builtinString_indexOf},
 			},
 		}
 		lastIndexOf_function := &_object{
@@ -1701,7 +1701,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_lastIndexOf),
+				call: _nativeCallFunction{"lastIndexOf", builtinString_lastIndexOf},
 			},
 		}
 		match_function := &_object{
@@ -1723,7 +1723,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_match),
+				call: _nativeCallFunction{"match", builtinString_match},
 			},
 		}
 		replace_function := &_object{
@@ -1745,7 +1745,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_replace),
+				call: _nativeCallFunction{"replace", builtinString_replace},
 			},
 		}
 		search_function := &_object{
@@ -1767,7 +1767,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_search),
+				call: _nativeCallFunction{"search", builtinString_search},
 			},
 		}
 		split_function := &_object{
@@ -1789,7 +1789,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_split),
+				call: _nativeCallFunction{"split", builtinString_split},
 			},
 		}
 		slice_function := &_object{
@@ -1811,7 +1811,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_slice),
+				call: _nativeCallFunction{"slice", builtinString_slice},
 			},
 		}
 		substring_function := &_object{
@@ -1833,7 +1833,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_substring),
+				call: _nativeCallFunction{"substring", builtinString_substring},
 			},
 		}
 		toLowerCase_function := &_object{
@@ -1855,7 +1855,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_toLowerCase),
+				call: _nativeCallFunction{"toLowerCase", builtinString_toLowerCase},
 			},
 		}
 		toUpperCase_function := &_object{
@@ -1877,7 +1877,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_toUpperCase),
+				call: _nativeCallFunction{"toUpperCase", builtinString_toUpperCase},
 			},
 		}
 		substr_function := &_object{
@@ -1899,7 +1899,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_substr),
+				call: _nativeCallFunction{"substr", builtinString_substr},
 			},
 		}
 		trim_function := &_object{
@@ -1921,7 +1921,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_trim),
+				call: _nativeCallFunction{"trim", builtinString_trim},
 			},
 		}
 		trimLeft_function := &_object{
@@ -1943,7 +1943,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_trimLeft),
+				call: _nativeCallFunction{"trimLeft", builtinString_trimLeft},
 			},
 		}
 		trimRight_function := &_object{
@@ -1965,7 +1965,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_trimRight),
+				call: _nativeCallFunction{"trimRight", builtinString_trimRight},
 			},
 		}
 		localeCompare_function := &_object{
@@ -1987,7 +1987,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_localeCompare),
+				call: _nativeCallFunction{"localeCompare", builtinString_localeCompare},
 			},
 		}
 		toLocaleLowerCase_function := &_object{
@@ -2009,7 +2009,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_toLocaleLowerCase),
+				call: _nativeCallFunction{"toLocaleLowerCase", builtinString_toLocaleLowerCase},
 			},
 		}
 		toLocaleUpperCase_function := &_object{
@@ -2031,7 +2031,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_toLocaleUpperCase),
+				call: _nativeCallFunction{"toLocaleUpperCase", builtinString_toLocaleUpperCase},
 			},
 		}
 		fromCharCode_function := &_object{
@@ -2053,7 +2053,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinString_fromCharCode),
+				call: _nativeCallFunction{"fromCharCode", builtinString_fromCharCode},
 			},
 		}
 		runtime.Global.StringPrototype = &_object{
@@ -2259,7 +2259,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinString),
+				call:      _nativeCallFunction{"String", builtinString},
 				construct: builtinNewString,
 			},
 			property: map[string]_property{
@@ -2320,7 +2320,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinBoolean_toString),
+				call: _nativeCallFunction{"toString", builtinBoolean_toString},
 			},
 		}
 		valueOf_function := &_object{
@@ -2342,7 +2342,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinBoolean_valueOf),
+				call: _nativeCallFunction{"valueOf", builtinBoolean_valueOf},
 			},
 		}
 		runtime.Global.BooleanPrototype = &_object{
@@ -2380,7 +2380,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinBoolean),
+				call:      _nativeCallFunction{"Boolean", builtinBoolean},
 				construct: builtinNewBoolean,
 			},
 			property: map[string]_property{
@@ -2433,7 +2433,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinNumber_toString),
+				call: _nativeCallFunction{"toString", builtinNumber_toString},
 			},
 		}
 		valueOf_function := &_object{
@@ -2455,7 +2455,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinNumber_valueOf),
+				call: _nativeCallFunction{"valueOf", builtinNumber_valueOf},
 			},
 		}
 		toFixed_function := &_object{
@@ -2477,7 +2477,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinNumber_toFixed),
+				call: _nativeCallFunction{"toFixed", builtinNumber_toFixed},
 			},
 		}
 		toExponential_function := &_object{
@@ -2499,7 +2499,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinNumber_toExponential),
+				call: _nativeCallFunction{"toExponential", builtinNumber_toExponential},
 			},
 		}
 		toPrecision_function := &_object{
@@ -2521,7 +2521,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinNumber_toPrecision),
+				call: _nativeCallFunction{"toPrecision", builtinNumber_toPrecision},
 			},
 		}
 		toLocaleString_function := &_object{
@@ -2543,7 +2543,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinNumber_toLocaleString),
+				call: _nativeCallFunction{"toLocaleString", builtinNumber_toLocaleString},
 			},
 		}
 		runtime.Global.NumberPrototype = &_object{
@@ -2613,7 +2613,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinNumber),
+				call:      _nativeCallFunction{"Number", builtinNumber},
 				construct: builtinNewNumber,
 			},
 			property: map[string]_property{
@@ -2706,7 +2706,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_abs),
+				call: _nativeCallFunction{"abs", builtinMath_abs},
 			},
 		}
 		acos_function := &_object{
@@ -2728,7 +2728,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_acos),
+				call: _nativeCallFunction{"acos", builtinMath_acos},
 			},
 		}
 		asin_function := &_object{
@@ -2750,7 +2750,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_asin),
+				call: _nativeCallFunction{"asin", builtinMath_asin},
 			},
 		}
 		atan_function := &_object{
@@ -2772,7 +2772,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_atan),
+				call: _nativeCallFunction{"atan", builtinMath_atan},
 			},
 		}
 		atan2_function := &_object{
@@ -2794,7 +2794,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_atan2),
+				call: _nativeCallFunction{"atan2", builtinMath_atan2},
 			},
 		}
 		ceil_function := &_object{
@@ -2816,7 +2816,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_ceil),
+				call: _nativeCallFunction{"ceil", builtinMath_ceil},
 			},
 		}
 		cos_function := &_object{
@@ -2838,7 +2838,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_cos),
+				call: _nativeCallFunction{"cos", builtinMath_cos},
 			},
 		}
 		exp_function := &_object{
@@ -2860,7 +2860,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_exp),
+				call: _nativeCallFunction{"exp", builtinMath_exp},
 			},
 		}
 		floor_function := &_object{
@@ -2882,7 +2882,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_floor),
+				call: _nativeCallFunction{"floor", builtinMath_floor},
 			},
 		}
 		log_function := &_object{
@@ -2904,7 +2904,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_log),
+				call: _nativeCallFunction{"log", builtinMath_log},
 			},
 		}
 		max_function := &_object{
@@ -2926,7 +2926,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_max),
+				call: _nativeCallFunction{"max", builtinMath_max},
 			},
 		}
 		min_function := &_object{
@@ -2948,7 +2948,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_min),
+				call: _nativeCallFunction{"min", builtinMath_min},
 			},
 		}
 		pow_function := &_object{
@@ -2970,7 +2970,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_pow),
+				call: _nativeCallFunction{"pow", builtinMath_pow},
 			},
 		}
 		random_function := &_object{
@@ -2992,7 +2992,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_random),
+				call: _nativeCallFunction{"random", builtinMath_random},
 			},
 		}
 		round_function := &_object{
@@ -3014,7 +3014,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_round),
+				call: _nativeCallFunction{"round", builtinMath_round},
 			},
 		}
 		sin_function := &_object{
@@ -3036,7 +3036,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_sin),
+				call: _nativeCallFunction{"sin", builtinMath_sin},
 			},
 		}
 		sqrt_function := &_object{
@@ -3058,7 +3058,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_sqrt),
+				call: _nativeCallFunction{"sqrt", builtinMath_sqrt},
 			},
 		}
 		tan_function := &_object{
@@ -3080,7 +3080,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinMath_tan),
+				call: _nativeCallFunction{"tan", builtinMath_tan},
 			},
 		}
 		runtime.Global.Math = &_object{
@@ -3323,7 +3323,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toString),
+				call: _nativeCallFunction{"toString", builtinDate_toString},
 			},
 		}
 		toDateString_function := &_object{
@@ -3345,7 +3345,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toDateString),
+				call: _nativeCallFunction{"toDateString", builtinDate_toDateString},
 			},
 		}
 		toTimeString_function := &_object{
@@ -3367,7 +3367,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toTimeString),
+				call: _nativeCallFunction{"toTimeString", builtinDate_toTimeString},
 			},
 		}
 		toUTCString_function := &_object{
@@ -3389,7 +3389,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toUTCString),
+				call: _nativeCallFunction{"toUTCString", builtinDate_toUTCString},
 			},
 		}
 		toISOString_function := &_object{
@@ -3411,7 +3411,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toISOString),
+				call: _nativeCallFunction{"toISOString", builtinDate_toISOString},
 			},
 		}
 		toJSON_function := &_object{
@@ -3433,7 +3433,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toJSON),
+				call: _nativeCallFunction{"toJSON", builtinDate_toJSON},
 			},
 		}
 		toGMTString_function := &_object{
@@ -3455,7 +3455,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toGMTString),
+				call: _nativeCallFunction{"toGMTString", builtinDate_toGMTString},
 			},
 		}
 		toLocaleString_function := &_object{
@@ -3477,7 +3477,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toLocaleString),
+				call: _nativeCallFunction{"toLocaleString", builtinDate_toLocaleString},
 			},
 		}
 		toLocaleDateString_function := &_object{
@@ -3499,7 +3499,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toLocaleDateString),
+				call: _nativeCallFunction{"toLocaleDateString", builtinDate_toLocaleDateString},
 			},
 		}
 		toLocaleTimeString_function := &_object{
@@ -3521,7 +3521,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_toLocaleTimeString),
+				call: _nativeCallFunction{"toLocaleTimeString", builtinDate_toLocaleTimeString},
 			},
 		}
 		valueOf_function := &_object{
@@ -3543,7 +3543,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_valueOf),
+				call: _nativeCallFunction{"valueOf", builtinDate_valueOf},
 			},
 		}
 		getTime_function := &_object{
@@ -3565,7 +3565,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getTime),
+				call: _nativeCallFunction{"getTime", builtinDate_getTime},
 			},
 		}
 		getYear_function := &_object{
@@ -3587,7 +3587,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getYear),
+				call: _nativeCallFunction{"getYear", builtinDate_getYear},
 			},
 		}
 		getFullYear_function := &_object{
@@ -3609,7 +3609,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getFullYear),
+				call: _nativeCallFunction{"getFullYear", builtinDate_getFullYear},
 			},
 		}
 		getUTCFullYear_function := &_object{
@@ -3631,7 +3631,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCFullYear),
+				call: _nativeCallFunction{"getUTCFullYear", builtinDate_getUTCFullYear},
 			},
 		}
 		getMonth_function := &_object{
@@ -3653,7 +3653,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getMonth),
+				call: _nativeCallFunction{"getMonth", builtinDate_getMonth},
 			},
 		}
 		getUTCMonth_function := &_object{
@@ -3675,7 +3675,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCMonth),
+				call: _nativeCallFunction{"getUTCMonth", builtinDate_getUTCMonth},
 			},
 		}
 		getDate_function := &_object{
@@ -3697,7 +3697,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getDate),
+				call: _nativeCallFunction{"getDate", builtinDate_getDate},
 			},
 		}
 		getUTCDate_function := &_object{
@@ -3719,7 +3719,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCDate),
+				call: _nativeCallFunction{"getUTCDate", builtinDate_getUTCDate},
 			},
 		}
 		getDay_function := &_object{
@@ -3741,7 +3741,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getDay),
+				call: _nativeCallFunction{"getDay", builtinDate_getDay},
 			},
 		}
 		getUTCDay_function := &_object{
@@ -3763,7 +3763,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCDay),
+				call: _nativeCallFunction{"getUTCDay", builtinDate_getUTCDay},
 			},
 		}
 		getHours_function := &_object{
@@ -3785,7 +3785,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getHours),
+				call: _nativeCallFunction{"getHours", builtinDate_getHours},
 			},
 		}
 		getUTCHours_function := &_object{
@@ -3807,7 +3807,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCHours),
+				call: _nativeCallFunction{"getUTCHours", builtinDate_getUTCHours},
 			},
 		}
 		getMinutes_function := &_object{
@@ -3829,7 +3829,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getMinutes),
+				call: _nativeCallFunction{"getMinutes", builtinDate_getMinutes},
 			},
 		}
 		getUTCMinutes_function := &_object{
@@ -3851,7 +3851,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCMinutes),
+				call: _nativeCallFunction{"getUTCMinutes", builtinDate_getUTCMinutes},
 			},
 		}
 		getSeconds_function := &_object{
@@ -3873,7 +3873,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getSeconds),
+				call: _nativeCallFunction{"getSeconds", builtinDate_getSeconds},
 			},
 		}
 		getUTCSeconds_function := &_object{
@@ -3895,7 +3895,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCSeconds),
+				call: _nativeCallFunction{"getUTCSeconds", builtinDate_getUTCSeconds},
 			},
 		}
 		getMilliseconds_function := &_object{
@@ -3917,7 +3917,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getMilliseconds),
+				call: _nativeCallFunction{"getMilliseconds", builtinDate_getMilliseconds},
 			},
 		}
 		getUTCMilliseconds_function := &_object{
@@ -3939,7 +3939,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getUTCMilliseconds),
+				call: _nativeCallFunction{"getUTCMilliseconds", builtinDate_getUTCMilliseconds},
 			},
 		}
 		getTimezoneOffset_function := &_object{
@@ -3961,7 +3961,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_getTimezoneOffset),
+				call: _nativeCallFunction{"getTimezoneOffset", builtinDate_getTimezoneOffset},
 			},
 		}
 		setTime_function := &_object{
@@ -3983,7 +3983,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setTime),
+				call: _nativeCallFunction{"setTime", builtinDate_setTime},
 			},
 		}
 		setMilliseconds_function := &_object{
@@ -4005,7 +4005,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setMilliseconds),
+				call: _nativeCallFunction{"setMilliseconds", builtinDate_setMilliseconds},
 			},
 		}
 		setUTCMilliseconds_function := &_object{
@@ -4027,7 +4027,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCMilliseconds),
+				call: _nativeCallFunction{"setUTCMilliseconds", builtinDate_setUTCMilliseconds},
 			},
 		}
 		setSeconds_function := &_object{
@@ -4049,7 +4049,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setSeconds),
+				call: _nativeCallFunction{"setSeconds", builtinDate_setSeconds},
 			},
 		}
 		setUTCSeconds_function := &_object{
@@ -4071,7 +4071,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCSeconds),
+				call: _nativeCallFunction{"setUTCSeconds", builtinDate_setUTCSeconds},
 			},
 		}
 		setMinutes_function := &_object{
@@ -4093,7 +4093,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setMinutes),
+				call: _nativeCallFunction{"setMinutes", builtinDate_setMinutes},
 			},
 		}
 		setUTCMinutes_function := &_object{
@@ -4115,7 +4115,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCMinutes),
+				call: _nativeCallFunction{"setUTCMinutes", builtinDate_setUTCMinutes},
 			},
 		}
 		setHours_function := &_object{
@@ -4137,7 +4137,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setHours),
+				call: _nativeCallFunction{"setHours", builtinDate_setHours},
 			},
 		}
 		setUTCHours_function := &_object{
@@ -4159,7 +4159,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCHours),
+				call: _nativeCallFunction{"setUTCHours", builtinDate_setUTCHours},
 			},
 		}
 		setDate_function := &_object{
@@ -4181,7 +4181,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setDate),
+				call: _nativeCallFunction{"setDate", builtinDate_setDate},
 			},
 		}
 		setUTCDate_function := &_object{
@@ -4203,7 +4203,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCDate),
+				call: _nativeCallFunction{"setUTCDate", builtinDate_setUTCDate},
 			},
 		}
 		setMonth_function := &_object{
@@ -4225,7 +4225,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setMonth),
+				call: _nativeCallFunction{"setMonth", builtinDate_setMonth},
 			},
 		}
 		setUTCMonth_function := &_object{
@@ -4247,7 +4247,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCMonth),
+				call: _nativeCallFunction{"setUTCMonth", builtinDate_setUTCMonth},
 			},
 		}
 		setYear_function := &_object{
@@ -4269,7 +4269,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setYear),
+				call: _nativeCallFunction{"setYear", builtinDate_setYear},
 			},
 		}
 		setFullYear_function := &_object{
@@ -4291,7 +4291,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setFullYear),
+				call: _nativeCallFunction{"setFullYear", builtinDate_setFullYear},
 			},
 		}
 		setUTCFullYear_function := &_object{
@@ -4313,7 +4313,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_setUTCFullYear),
+				call: _nativeCallFunction{"setUTCFullYear", builtinDate_setUTCFullYear},
 			},
 		}
 		parse_function := &_object{
@@ -4335,7 +4335,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_parse),
+				call: _nativeCallFunction{"parse", builtinDate_parse},
 			},
 		}
 		UTC_function := &_object{
@@ -4357,7 +4357,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_UTC),
+				call: _nativeCallFunction{"UTC", builtinDate_UTC},
 			},
 		}
 		now_function := &_object{
@@ -4379,7 +4379,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinDate_now),
+				call: _nativeCallFunction{"now", builtinDate_now},
 			},
 		}
 		runtime.Global.DatePrototype = &_object{
@@ -4769,7 +4769,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinDate),
+				call:      _nativeCallFunction{"Date", builtinDate},
 				construct: builtinNewDate,
 			},
 			property: map[string]_property{
@@ -4846,7 +4846,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinRegExp_toString),
+				call: _nativeCallFunction{"toString", builtinRegExp_toString},
 			},
 		}
 		exec_function := &_object{
@@ -4868,7 +4868,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinRegExp_exec),
+				call: _nativeCallFunction{"exec", builtinRegExp_exec},
 			},
 		}
 		test_function := &_object{
@@ -4890,7 +4890,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinRegExp_test),
+				call: _nativeCallFunction{"test", builtinRegExp_test},
 			},
 		}
 		compile_function := &_object{
@@ -4912,7 +4912,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinRegExp_compile),
+				call: _nativeCallFunction{"compile", builtinRegExp_compile},
 			},
 		}
 		runtime.Global.RegExpPrototype = &_object{
@@ -4966,7 +4966,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinRegExp),
+				call:      _nativeCallFunction{"RegExp", builtinRegExp},
 				construct: builtinNewRegExp,
 			},
 			property: map[string]_property{
@@ -5019,7 +5019,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinError_toString),
+				call: _nativeCallFunction{"toString", builtinError_toString},
 			},
 		}
 		runtime.Global.ErrorPrototype = &_object{
@@ -5065,7 +5065,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinError),
+				call:      _nativeCallFunction{"Error", builtinError},
 				construct: builtinNewError,
 			},
 			property: map[string]_property{
@@ -5126,7 +5126,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinEvalError),
+				call:      _nativeCallFunction{"EvalError", builtinEvalError},
 				construct: builtinNewEvalError,
 			},
 			property: map[string]_property{
@@ -5187,7 +5187,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinTypeError),
+				call:      _nativeCallFunction{"TypeError", builtinTypeError},
 				construct: builtinNewTypeError,
 			},
 			property: map[string]_property{
@@ -5248,7 +5248,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinRangeError),
+				call:      _nativeCallFunction{"RangeError", builtinRangeError},
 				construct: builtinNewRangeError,
 			},
 			property: map[string]_property{
@@ -5309,7 +5309,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinReferenceError),
+				call:      _nativeCallFunction{"ReferenceError", builtinReferenceError},
 				construct: builtinNewReferenceError,
 			},
 			property: map[string]_property{
@@ -5370,7 +5370,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinSyntaxError),
+				call:      _nativeCallFunction{"SyntaxError", builtinSyntaxError},
 				construct: builtinNewSyntaxError,
 			},
 			property: map[string]_property{
@@ -5431,7 +5431,7 @@ func _newContext(runtime *_runtime) {
 			prototype:   runtime.Global.FunctionPrototype,
 			extensible:  true,
 			value: _functionObject{
-				call:      _nativeCallFunction(builtinURIError),
+				call:      _nativeCallFunction{"URIError", builtinURIError},
 				construct: builtinNewURIError,
 			},
 			property: map[string]_property{
@@ -5484,7 +5484,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinJSON_parse),
+				call: _nativeCallFunction{"parse", builtinJSON_parse},
 			},
 		}
 		stringify_function := &_object{
@@ -5506,7 +5506,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinJSON_stringify),
+				call: _nativeCallFunction{"stringify", builtinJSON_stringify},
 			},
 		}
 		runtime.Global.JSON = &_object{
@@ -5557,7 +5557,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_eval),
+				call: _nativeCallFunction{"eval", builtinGlobal_eval},
 			},
 		}
 		parseInt_function := &_object{
@@ -5579,7 +5579,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_parseInt),
+				call: _nativeCallFunction{"parseInt", builtinGlobal_parseInt},
 			},
 		}
 		parseFloat_function := &_object{
@@ -5601,7 +5601,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_parseFloat),
+				call: _nativeCallFunction{"parseFloat", builtinGlobal_parseFloat},
 			},
 		}
 		isNaN_function := &_object{
@@ -5623,7 +5623,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_isNaN),
+				call: _nativeCallFunction{"isNaN", builtinGlobal_isNaN},
 			},
 		}
 		isFinite_function := &_object{
@@ -5645,7 +5645,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_isFinite),
+				call: _nativeCallFunction{"isFinite", builtinGlobal_isFinite},
 			},
 		}
 		decodeURI_function := &_object{
@@ -5667,7 +5667,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_decodeURI),
+				call: _nativeCallFunction{"decodeURI", builtinGlobal_decodeURI},
 			},
 		}
 		decodeURIComponent_function := &_object{
@@ -5689,7 +5689,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_decodeURIComponent),
+				call: _nativeCallFunction{"decodeURIComponent", builtinGlobal_decodeURIComponent},
 			},
 		}
 		encodeURI_function := &_object{
@@ -5711,7 +5711,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_encodeURI),
+				call: _nativeCallFunction{"encodeURI", builtinGlobal_encodeURI},
 			},
 		}
 		encodeURIComponent_function := &_object{
@@ -5733,7 +5733,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_encodeURIComponent),
+				call: _nativeCallFunction{"encodeURIComponent", builtinGlobal_encodeURIComponent},
 			},
 		}
 		escape_function := &_object{
@@ -5755,7 +5755,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_escape),
+				call: _nativeCallFunction{"escape", builtinGlobal_escape},
 			},
 		}
 		unescape_function := &_object{
@@ -5777,7 +5777,7 @@ func _newContext(runtime *_runtime) {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinGlobal_unescape),
+				call: _nativeCallFunction{"unescape", builtinGlobal_unescape},
 			},
 		}
 		runtime.GlobalObject.property = map[string]_property{
@@ -6055,7 +6055,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_log),
+				call: _nativeCallFunction{"log", builtinConsole_log},
 			},
 		}
 		debug_function := &_object{
@@ -6077,7 +6077,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_log),
+				call: _nativeCallFunction{"debug", builtinConsole_log},
 			},
 		}
 		info_function := &_object{
@@ -6099,7 +6099,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_log),
+				call: _nativeCallFunction{"info", builtinConsole_log},
 			},
 		}
 		error_function := &_object{
@@ -6121,7 +6121,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_error),
+				call: _nativeCallFunction{"error", builtinConsole_error},
 			},
 		}
 		warn_function := &_object{
@@ -6143,7 +6143,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_error),
+				call: _nativeCallFunction{"warn", builtinConsole_error},
 			},
 		}
 		dir_function := &_object{
@@ -6165,7 +6165,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_dir),
+				call: _nativeCallFunction{"dir", builtinConsole_dir},
 			},
 		}
 		time_function := &_object{
@@ -6187,7 +6187,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_time),
+				call: _nativeCallFunction{"time", builtinConsole_time},
 			},
 		}
 		timeEnd_function := &_object{
@@ -6209,7 +6209,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_timeEnd),
+				call: _nativeCallFunction{"timeEnd", builtinConsole_timeEnd},
 			},
 		}
 		trace_function := &_object{
@@ -6231,7 +6231,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_trace),
+				call: _nativeCallFunction{"trace", builtinConsole_trace},
 			},
 		}
 		assert_function := &_object{
@@ -6253,7 +6253,7 @@ func newConsoleObject(runtime *_runtime) *_object {
 				"length",
 			},
 			value: _functionObject{
-				call: _nativeCallFunction(builtinConsole_assert),
+				call: _nativeCallFunction{"assert", builtinConsole_assert},
 			},
 		}
 		return &_object{

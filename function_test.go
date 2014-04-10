@@ -28,7 +28,7 @@ func TestFunction_new(t *testing.T) {
 	test := runTest()
 	test(`raise:
         new Function({});
-    `, "SyntaxError: Unexpected token Object")
+    `, "SyntaxError: Unexpected identifier")
 
 	test(`
         var abc = Function("def, ghi", "jkl", "return def+ghi+jkl");
@@ -46,6 +46,7 @@ func TestFunction_new(t *testing.T) {
         ghi;
     `, "1")
 
+	// S15.3.2.1_A3_T10
 	test(`raise:
         var abc = {
             toString: function() { return "z;x"; }
@@ -53,14 +54,14 @@ func TestFunction_new(t *testing.T) {
         var def = "return this";
         var ghi = new Function(abc, def);
         ghi;
-    `, "SyntaxError: z;x")
+    `, "SyntaxError: Unexpected token ;")
 
 	test(`raise:
         var abc;
         var def = "return true";
         var ghi = new Function(null, def);
         ghi;
-    `, "SyntaxError: null")
+    `, "SyntaxError: Unexpected token null")
 }
 
 func TestFunction_apply(t *testing.T) {
@@ -251,4 +252,11 @@ func TestFunction_toString(t *testing.T) {
 	test(`raise:
         Function.prototype.toString.call(undefined);
     `, "TypeError")
+
+	test(`
+        abc = function()   {       return -1    ;
+}
+        1;
+        abc.toString();
+    `, "function()   {       return -1    ;\n}")
 }

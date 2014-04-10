@@ -21,7 +21,7 @@ func TestDate(t *testing.T) {
 		test(run, fmt.Sprintf("%d", value))
 	}
 
-	test(`Date`, "[function]")
+	test(`Date`, "function Date() { [native code] }")
 	test(`new Date(0).toUTCString()`, "Thu, 01 Jan 1970 00:00:00 UTC")
 	test(`new Date(0).toGMTString()`, "Thu, 01 Jan 1970 00:00:00 GMT")
 	if false {

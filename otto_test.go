@@ -2,7 +2,7 @@ package otto
 
 import (
 	. "./terst"
-	"github.com/robertkrimen/otto/underscore"
+	//"github.com/robertkrimen/otto/underscore"
 	"math"
 	"strings"
 	"testing"
@@ -67,6 +67,7 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 			}
 		}()
 		var value Value
+		var err error
 		if isIdentifier(name) {
 			value = Otto.getValue(name)
 		} else {
@@ -77,7 +78,10 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 				source = source[6:]
 				source = strings.TrimLeft(source, " ")
 			}
-			value = Otto.runtime.run(source)
+			value, err = Otto.runtime.run(source)
+			if err != nil {
+				panic(err)
+			}
 		}
 		value = Otto.runtime.GetValue(value)
 		if len(expect) > 0 {
@@ -93,28 +97,6 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 func runTest() func(string, ...interface{}) Value {
 	_, test := runTestWithOtto()
 	return test
-}
-
-func TestTransformRegExp(t *testing.T) {
-	Terst(t)
-
-	Is(transformRegExp(`\\|'|\r|\n|\t|\u2028|\u2029`), `\\|'|\r|\n|\t|\x{2028}|\x{2029}`)
-	Is(transformRegExp(`\x`), `x`)
-	Is(transformRegExp(`\u0z01\x\undefined`), `u0z01xundefined`)
-}
-
-func TestIsValidRegExp(t *testing.T) {
-	Terst(t)
-
-	IsTrue(isValidRegExp(""))
-	IsTrue(isValidRegExp("[0-9]"))
-	IsTrue(isValidRegExp("[(?=(?!]"))
-	IsTrue(isValidRegExp("\\(?="))
-	IsTrue(isValidRegExp("(\\?!"))
-	IsTrue(isValidRegExp("(?\\="))
-	IsFalse(isValidRegExp("(?="))
-	IsFalse(isValidRegExp("\\((?!"))
-	IsFalse(isValidRegExp("[0-9](?!"))
 }
 
 func TestOtto(t *testing.T) {
@@ -155,29 +137,581 @@ func TestOtto(t *testing.T) {
 	`, "undefined")
 }
 
-func TestSpeed(t *testing.T) {
+func TestFunction__(t *testing.T) {
 	Terst(t)
 
-	return
-	test := underscoreTest()
+	test := runTest()
+
 	test(`
-		size = 300000
-		if (false) {
-			array = new Array(size)
-			for (i = 0; i < array.length; i++) {
-				array[i] = i
-			}
-		}
-		else if (true) {
-			Math.max.apply(Math, _.range(1, size))
-		}
-		else if (true) {
-			_.max(_.range(1,size))
+        function abc() {
+            return 1;
+        };
+        abc();
+    `, "1")
+}
+
+func TestIf(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        abc = undefined;
+        def = undefined;
+        if (true) abc = 1
+        else abc = 2;
+        if (false) {
+            def = 3;
+        }
+        else def = 4;
+
+        [ abc, def ];
+    `, "1,4")
+
+	test(`
+		if (1) {
+			abc = 1;
 		}
 		else {
-			_.range(1,size)
+			abc = 0;
 		}
+        [ abc ];
+	`, "1")
+
+	test(`
+		if (0) {
+			abc = 1;
+		}
+		else {
+			abc = 0;
+		}
+        [ abc ];
 	`)
+
+	test(`
+		abc = 0;
+		if (0) {
+			abc = 1;
+		}
+        [ abc ];
+	`, "0")
+
+	test(`
+		abc = 0;
+		if (abc) {
+			abc = 1;
+		}
+        [ abc ];
+	`, "0")
+}
+
+func TestSequence(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        1, 2, 3;
+    `, "3")
+}
+
+func TestCall(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        [ Math.pow(3, 2) ];
+    `, "9")
+}
+
+func TestMember(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        abc = [ 0, 1, 2 ];
+        def = {
+            "abc": 0,
+            "def": 1,
+            "ghi": 2,
+        };
+        [ abc[2], def.abc, abc[1], def.def ];
+    `, "2,0,1,1")
+}
+
+func Test_this(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        [ typeof this ];
+    `, "object")
+}
+
+func TestWhile(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		limit = 4
+		abc = 0
+		while (limit) {
+			abc = abc + 1
+			limit = limit - 1
+		}
+        abc;
+	`, "4")
+}
+
+func TestSwitch_break(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		var abc = true;
+		var ghi = "Xyzzy";
+		while (abc) {
+			switch ('def') {
+			case 'def':
+				break;
+			}
+			ghi = "Nothing happens.";
+			abc = false;
+		}
+		ghi;
+	`, "Nothing happens.")
+
+	test(`
+		var abc = true;
+		var ghi = "Xyzzy";
+		WHILE:
+		while (abc) {
+			switch ('def') {
+			case 'def':
+				break WHILE;
+			}
+			ghi = "Nothing happens."
+			abc = false
+		}
+		ghi;
+	`, "Xyzzy")
+
+	test(`
+		var ghi = "Xyzzy";
+		FOR:
+		for (;;) {
+			switch ('def') {
+			case 'def':
+				break FOR;
+				ghi = "";
+			}
+			ghi = "Nothing happens.";
+		}
+		ghi;
+	`, "Xyzzy")
+
+	test(`
+		var ghi = "Xyzzy";
+		FOR:
+		for (var jkl in {}) {
+			switch ('def') {
+			case 'def':
+				break FOR;
+				ghi = "Something happens.";
+			}
+			ghi = "Nothing happens.";
+		}
+		ghi;
+	`, "Xyzzy")
+
+	test(`
+		var ghi = "Xyzzy";
+		function jkl() {
+			switch ('def') {
+			case 'def':
+				break;
+				ghi = "";
+			}
+			ghi = "Nothing happens.";
+		}
+		while (abc) {
+			jkl();
+			abc = false;
+			ghi = "Something happens.";
+		}
+		ghi;
+	`, "Something happens.")
+}
+
+func TestTryFinally(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc;
+		try {
+			abc = 1;
+		}
+		finally {
+			abc = 2;
+		}
+        abc;
+	`, "2")
+
+	test(`
+		var abc = false, def = 0;
+		do {
+			def += 1;
+			if (def > 100) {
+				break;
+			}
+			try {
+				continue;
+			}
+			finally {
+				abc = true;
+			}
+		}
+		while(!abc && def < 10)
+		def;
+	`, "1")
+
+	test(`
+		var abc = false, def = 0, ghi = 0;
+		do {
+			def += 1;
+			if (def > 100) {
+				break;
+			}
+			try {
+				throw 0;
+			}
+			catch (jkl) {
+				continue;
+			}
+			finally {
+				abc = true;
+				ghi = 11;
+			}
+			ghi -= 1;
+		}
+		while(!abc && def < 10)
+		ghi;
+	`, "11")
+
+	test(`
+        var abc = 0, def = 0;
+        do {
+            try {
+                abc += 1;
+                throw "ghi";
+            }
+            finally {
+                def = 1;
+                continue;
+            }   
+            def -= 1;
+        }
+        while (abc < 2)
+        [ abc, def ];
+    `, "2,1")
+}
+
+func TestTryCatch(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		var abc = 1;
+		try {
+			throw 4;
+			abc = -1;
+		}
+		catch (xyzzy) {
+			abc += xyzzy + 1;
+		}
+        abc;
+	`, "6")
+
+	test(`
+		abc = 1;
+        var def;
+		try {
+			try {
+				throw 4;
+				abc = -1;
+			}
+			catch (xyzzy) {
+				abc += xyzzy + 1;
+				throw 64;
+			}
+		}
+		catch (xyzzy) {
+			def = xyzzy;
+			abc = -2;
+		}
+        [ def, abc ];
+	`, "64,-2")
+}
+
+func TestWith(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		var def;
+		with({ abc: 9 }) {
+			def = abc;
+		}
+		def;
+	`, "9")
+
+	test(`
+		var def;
+		with({ abc: function(){
+			return 11;
+		} }) {
+			def = abc();
+		}
+		def;
+	`, "11")
+}
+
+func TestSwitch(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		var abc = 0;
+		switch (0) {
+		default:
+			abc += 1;
+		case 1:
+			abc += 2;
+		case 2:
+			abc += 4;
+		case 3:
+			abc += 8;
+		}
+        abc;
+	`, "15")
+
+	test(`
+		abc = 0;
+		switch (3) {
+		default:
+			abc += 1;
+		case 1:
+			abc += 2;
+		case 2:
+			abc += 4;
+		case 3:
+			abc += 8;
+		}
+        abc;
+	`, "8")
+
+	test(`
+		abc = 0;
+		switch (60) {
+		case 1:
+			abc += 2;
+		case 2:
+			abc += 4;
+		case 3:
+			abc += 8;
+		}
+        abc;
+	`, "0")
+}
+
+func TestForIn(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc;
+		for (property in { a: 1 }) {
+			abc = property;
+		}
+        abc;
+	`, "a")
+
+	test(`
+        var ghi;
+		for (property in new String("xyzzy")) {
+			ghi = property;
+		}
+        ghi;
+	`, "4")
+}
+
+func TestFor(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		var abc = 7;
+		for (i = 0; i < 3; i += 1) {
+			abc += 1;
+		}
+        abc;
+    `, "10")
+
+	test(`
+		abc = 7;
+		for (i = 0; i < 3; i += 1) {
+			abc += 1;
+			if (i == 1) {
+				break;
+			}
+		}
+        abc;
+	`, "9")
+
+	test(`
+		abc = 7;
+		for (i = 0; i < 3; i += 1) {
+			if (i == 2) {
+				continue;
+			}
+			abc += 1;
+		}
+        abc;
+	`, "9")
+
+	test(`
+		abc = 0;
+		for (;;) {
+			abc += 1;
+			if (abc == 3)
+				break;
+		}
+        abc;
+	`, "3")
+
+	test(`
+		for (abc = 0; ;) {
+			abc += 1;
+			if (abc == 3)
+				break;
+		}
+        abc;
+	`, "3")
+
+	test(`
+		for (abc = 0; ; abc += 1) {
+			abc += 1;
+			if (abc == 3)
+				break;
+		}
+        abc;
+	`, "3")
+}
+
+func TestLabelled(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	// TODO Add emergency break
+
+	test(`
+    xyzzy: for (var abc = 0; abc <= 0; abc++) {
+        for (var def = 0; def <= 1; def++) {
+            if (def === 0) {
+                continue xyzzy;
+            } else {
+            }
+        }
+    }
+    `)
+
+	test(`
+		abc = 0
+        def:
+		while (true) {
+            while (true) {
+			    abc = abc + 1
+                if (abc > 11) {
+                    break def;
+                }
+            }
+		}
+        [ abc ];
+	`, "12")
+
+	test(`
+		abc = 0
+        def:
+        do {
+            do {
+			    abc = abc + 1
+                if (abc > 11) {
+                    break def;
+                }
+            } while (true)
+		} while (true)
+        [ abc ];
+	`, "12")
+}
+
+func TestConditional(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        [ true ? false : true, true ? 1 : 0, false ? 3.14159 : "abc" ];
+    `, "false,1,abc")
+}
+
+func TestArrayLiteral(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        [ 1, , 3.14159 ];
+    `, "1,,3.14159")
+}
+
+func TestAssignment(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var abc = 1;
+        abc;
+    `, "1")
+
+	test(`
+        abc += 2;
+        abc;
+    `, "3")
+}
+
+func TestBinaryOperation(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`0 == 1`, "false")
+	test(`1 == "1"`, "true")
+	test(`0 === 1`, "false")
+	test(`1 === "1"`, "false")
+	test(`"1" === "1"`, "true")
 }
 
 func Test_typeof(t *testing.T) {
@@ -204,37 +738,32 @@ func Test_eval(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = 1
+		var abc = 1;
 	`)
 
 	test(`
-		eval("abc += 1")
+		eval("abc += 1");
 	`, "2")
 
 	test(`
 		(function(){
-			var abc = 11
-			eval("abc += 1")
-			return abc
-		})()
+			var abc = 11;
+			eval("abc += 1");
+			return abc;
+		})();
 	`, "12")
 	test(`abc`, "2")
 
 	test(`
-		var ghi;
 		(function(){
 			try {
 				eval("var prop = \\u2029;");
 				return false;
 			} catch (abc) {
-				ghi = abc.toString()
-				return abc instanceof SyntaxError;
+                return [ abc instanceof SyntaxError, abc.toString() ];
 			}
-		})()
-	`, "true")
-
-	// TODO Should be: ReferenceError: ghi is not defined
-	test(`ghi`, "SyntaxError: Unexpected token ILLEGAL ()")
+		})();
+    `, "true,SyntaxError: Unexpected token ILLEGAL")
 
 	test(`
         function abc(){
@@ -256,7 +785,7 @@ func Test_evalDirectIndirect(t *testing.T) {
                 var _eval = eval;
                 var abc = "function";
                 if (
-                    _eval("\'global\' === abc") === true &&  // eval (Indirect)
+                    _eval("\'global\' === abc") === true && // eval (Indirect)
                     eval("\'function\' === abc") === true // eval (Direct)
                 ) {
                     return true;
@@ -539,6 +1068,10 @@ func TestOttoCall_new(t *testing.T) {
 func TestOttoCall_throw(t *testing.T) {
 	Terst(t)
 
+	// FIXME? (Been broken for a while)
+	// Looks like this has been broken for a while... what
+	// behavior do we want here?
+
 	return
 
 	_, test := runTestWithOtto()
@@ -724,6 +1257,37 @@ func TestOttoCall_clone(t *testing.T) {
 		Is(err, nil)
 		Is(value, "5")
 	}
+
+	{
+		otto1 := New()
+		_, err := otto1.Run(`
+            var abc = function() { return "abc"; };
+            var def = function() { return "def"; };
+        `)
+		Is(err, nil)
+
+		otto2 := otto1.clone()
+		value, err := otto2.Run(`
+            [ abc.toString(), def.toString() ];
+        `)
+		Is(value, `function() { return "abc"; },function() { return "def"; }`)
+
+		_, err = otto2.Run(`
+            var def = function() { return "ghi"; };
+        `)
+		Is(err, nil)
+
+		value, err = otto1.Run(`
+            [ abc.toString(), def.toString() ];
+        `)
+		Is(value, `function() { return "abc"; },function() { return "def"; }`)
+
+		value, err = otto2.Run(`
+            [ abc.toString(), def.toString() ];
+        `)
+		Is(value, `function() { return "abc"; },function() { return "ghi"; }`)
+	}
+
 }
 
 func Test_objectLength(t *testing.T) {
@@ -757,18 +1321,18 @@ func BenchmarkClone(b *testing.B) {
 	}
 }
 
-func BenchmarkNew_(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		otto := New()
-		otto.Run(underscore.Source())
-	}
-}
+//func BenchmarkNew_(b *testing.B) {
+//    for i := 0; i < b.N; i++ {
+//        otto := New()
+//        otto.Run(underscore.Source())
+//    }
+//}
 
-func BenchmarkClone_(b *testing.B) {
-	otto := New()
-	otto.Run(underscore.Source())
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		otto.clone()
-	}
-}
+//func BenchmarkClone_(b *testing.B) {
+//    otto := New()
+//    otto.Run(underscore.Source())
+//    b.ResetTimer()
+//    for i := 0; i < b.N; i++ {
+//        otto.clone()
+//    }
+//}

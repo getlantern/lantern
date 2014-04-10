@@ -38,3 +38,12 @@ func toBoolean(value Value) bool {
 	}
 	panic(fmt.Errorf("toBoolean(%T)", value.value))
 }
+
+func stringToBoolean(value string) bool {
+	if value == "true" {
+		return true
+	} else if value == "false" {
+		return false
+	}
+	panic(fmt.Errorf("stringToBoolean(%s)", value))
+}

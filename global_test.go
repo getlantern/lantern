@@ -24,7 +24,7 @@ func TestGlobal(t *testing.T) {
 		Is(result._object().prototype == runtime.Global.ObjectPrototype, true)
 		Is(result._object().prototype == runtime.Global.Object.get("prototype")._object(), true)
 		Is(runtime.newObject().prototype == runtime.Global.Object.get("prototype")._object(), true)
-		Is(result._object().get("toString"), "[function]")
+		Is(result._object().get("toString"), "function toString() { [native code] }")
 		//Is(result.Object().CallMethod("hasOwnProperty", "hasOwnProperty"), falseValue)
 		//Is(result.Object().get("toString").Object().prototype.CallMethod("toString"), "[function]")
 		//Is(result.Object().get("toString").Object().get("toString").Object(), "[function]")
@@ -46,11 +46,11 @@ func TestGlobal(t *testing.T) {
 
 	test(`new Number().constructor == Number`, "true")
 
-	test(`this.hasOwnProperty`, "[function]")
+	test(`this.hasOwnProperty`, "function hasOwnProperty() { [native code] }")
 
 	test(`eval.length === 1`, "true")
 	test(`eval.prototype === undefined`, "true")
-	test(`raise: new eval()`, "TypeError: [function] is not a constructor")
+	test(`raise: new eval()`, "TypeError: function eval() { [native code] } is not a constructor")
 
 	test(`
         [
@@ -182,7 +182,7 @@ func Test_parseInt(t *testing.T) {
 	test(`parseInt("0x0aXyzzy", 16)`, "10")
 	test(`parseInt("0x1", 0)`, "1")
 	if false {
-		// TODO parseInt("0x10000000000000000000", 16)
+		// FIXME TODO parseInt("0x10000000000000000000", 16)
 		test(`parseInt("0x10000000000000000000", 16)`, "75557863725914323419136")
 	}
 
@@ -235,7 +235,6 @@ func Test_encodeURI(t *testing.T) {
 func Test_encodeURIComponent(t *testing.T) {
 	Terst(t)
 
-	return
 	test := runTest()
 	test(`encodeURIComponent("http://example.com/ Nothing happens.")`, "http%3A%2F%2Fexample.com%2F%20Nothing%20happens.")
 	test(`encodeURIComponent("http://example.com/ _^#")`, "http%3A%2F%2Fexample.com%2F%20_%5E%23")

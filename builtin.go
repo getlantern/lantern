@@ -14,20 +14,12 @@ import (
 
 // Global
 func builtinGlobal_eval(call FunctionCall) Value {
-	source := call.Argument(0)
-	if !source.IsString() {
-		return source
-	}
-	program, err := parse(toString(source))
-	if err != nil {
-		switch err := err.(type) {
-		case *_syntaxError, *_error, _error:
-			panic(err)
-		default:
-			panic(&_syntaxError{Message: fmt.Sprintf("%v", err)})
-		}
+	src := call.Argument(0)
+	if !src.IsString() {
+		return src
 	}
 	runtime := call.runtime
+	program := runtime.parseOrThrow(toString(src))
 	if call.evalHint {
 		runtime.EnterEvalExecutionContext(call)
 		defer runtime.LeaveExecutionContext()

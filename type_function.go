@@ -1,8 +1,18 @@
 package otto
 
+import (
+	"fmt"
+
+	"github.com/robertkrimen/otto/ast"
+)
+
 type _functionObject struct {
 	call      _callFunction
 	construct _constructFunction
+}
+
+func (self _functionObject) source(object *_object) string {
+	return self.call.Source(object)
 }
 
 func (self0 _functionObject) clone(clone *_clone) _functionObject {
@@ -12,7 +22,7 @@ func (self0 _functionObject) clone(clone *_clone) _functionObject {
 	}
 }
 
-func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length int) *_object {
+func (runtime *_runtime) newNativeFunctionObject(name string, native _nativeFunction, length int) *_object {
 	self := runtime.newClassObject("Function")
 	self.value = _functionObject{
 		call:      newNativeCallFunction(native),
@@ -22,13 +32,13 @@ func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length 
 	return self
 }
 
-func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnvironment _environment) *_object {
+func (runtime *_runtime) newNodeFunctionObject(node *ast.FunctionExpression, scopeEnvironment _environment) *_object {
 	self := runtime.newClassObject("Function")
 	self.value = _functionObject{
 		call:      newNodeCallFunction(node, scopeEnvironment),
 		construct: defaultConstructFunction,
 	}
-	self.defineProperty("length", toValue_int(len(node.ParameterList)), 0000, false)
+	self.defineProperty("length", toValue_int(len(node.Cache_ParameterList)), 0000, false)
 	return self
 }
 
@@ -139,20 +149,23 @@ type _constructFunction func(*_object, Value, []Value) Value
 // _callFunction
 type _callFunction interface {
 	Dispatch(*_object, *_functionEnvironment, *_runtime, Value, []Value, bool) Value
-	Source() string
+	Source(*_object) string
 	ScopeEnvironment() _environment
 	clone(clone *_clone) _callFunction
 }
 
 // _nativeCallFunction
-type _nativeCallFunction _nativeFunction
+type _nativeCallFunction struct {
+	name     string
+	function _nativeFunction
+}
 
 func newNativeCallFunction(native _nativeFunction) _nativeCallFunction {
-	return _nativeCallFunction(native)
+	return _nativeCallFunction{"", native}
 }
 
 func (self _nativeCallFunction) Dispatch(_ *_object, _ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, evalHint bool) Value {
-	return self(FunctionCall{
+	return self.function(FunctionCall{
 		runtime:  runtime,
 		evalHint: evalHint,
 
@@ -166,8 +179,8 @@ func (self _nativeCallFunction) ScopeEnvironment() _environment {
 	return nil
 }
 
-func (self _nativeCallFunction) Source() string {
-	return ""
+func (self _nativeCallFunction) Source(*_object) string {
+	return fmt.Sprintf("function %s() { [native code] }", self.name)
 }
 
 func (self0 _nativeCallFunction) clone(clone *_clone) _callFunction {
@@ -176,11 +189,11 @@ func (self0 _nativeCallFunction) clone(clone *_clone) _callFunction {
 
 // _nodeCallFunction
 type _nodeCallFunction struct {
-	node             *_functionNode
+	node             *ast.FunctionExpression
 	scopeEnvironment _environment // Can be either Lexical or Variable
 }
 
-func newNodeCallFunction(node *_functionNode, scopeEnvironment _environment) *_nodeCallFunction {
+func newNodeCallFunction(node *ast.FunctionExpression, scopeEnvironment _environment) *_nodeCallFunction {
 	self := &_nodeCallFunction{
 		node: node,
 	}
@@ -196,8 +209,8 @@ func (self _nodeCallFunction) ScopeEnvironment() _environment {
 	return self.scopeEnvironment
 }
 
-func (self _nodeCallFunction) Source() string {
-	return ""
+func (self _nodeCallFunction) Source(object *_object) string {
+	return self.node.Source
 }
 
 func (self0 _nodeCallFunction) clone(clone *_clone) _callFunction {
@@ -232,7 +245,7 @@ func (self _boundCallFunction) ScopeEnvironment() _environment {
 	return nil
 }
 
-func (self _boundCallFunction) Source() string {
+func (self _boundCallFunction) Source(*_object) string {
 	return ""
 }
 

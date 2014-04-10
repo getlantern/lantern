@@ -782,7 +782,7 @@ sub globalFunction {
     objectClass: _classObject,
     prototype: runtime.Global.FunctionPrototype,
     extensible: true,
-    value: @{[ $self->functionOf($self->nativeCallFunction($builtin), $builtinNew) ]},
+    value: @{[ $self->functionOf($self->nativeCallFunction($name, $builtin), $builtinNew) ]},
     $propertyMap
 }
 _END_
@@ -790,9 +790,10 @@ _END_
 
 sub nativeCallFunction {
     my $self = shift;
+    my $name = shift;
     my $func = shift;
     return trim <<_END_;
-_nativeCallFunction($func)
+_nativeCallFunction{ "$name", $func }
 _END_
 }
 
@@ -872,7 +873,7 @@ sub newFunction {
     extensible: true,
     property: @{[ join "\n", $self->propertyMap(@propertyMap) ]},
     $propertyOrder
-    value: @{[ $self->functionOf($self->nativeCallFunction($func)) ]},
+    value: @{[ $self->functionOf($self->nativeCallFunction($name, $func)) ]},
 } 
 _END_
     );

@@ -22,7 +22,10 @@ func underscoreTest() func(string, ...interface{}) Value {
 	if cache.Otto == nil {
 		Otto, test := runTestWithOtto()
 		cache.Otto, cache.test = Otto, test
-		Otto.Run(underscore.Source())
+		_, err := Otto.Run(underscore.Source())
+		if err != nil {
+			panic(err)
+		}
 		Otto.Set("assert", func(call FunctionCall) Value {
 			if !toBoolean(call.Argument(0)) {
 				message := "Assertion failed"
@@ -147,7 +150,6 @@ func Test_underscore(t *testing.T) {
 	test(`_.isEqual(['b', 'd'], ['b', 'd'])`, "true")
 	test(`_.isEqual(['b', 'd', 'c'], ['b', 'd', 'e'])`, "false")
 	test(`_.isFunction(function(){})`, "true")
-
 	test(`_.template('<p>\u2028<%= "\\u2028\\u2029" %>\u2029</p>')()`, "<p>\u2028\u2028\u2029\u2029</p>")
 }
 

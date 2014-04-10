@@ -3,65 +3,79 @@ Package otto is a JavaScript parser and interpreter written natively in Go.
 
 http://godoc.org/github.com/robertkrimen/otto
 
-	// Create a new runtime
-	Otto := otto.New()
+    import (
+        "github.com/robertkrimen/otto"
+    )
 
-	Otto.Run(`
-		abc = 2 + 2
-		console.log("The value of abc is " + abc)
-		// The value of abc is 4
-	`)
+Run something in the VM
 
-	value, err := Otto.Get("abc")
-	{
-		// value is an int64 with a value of 4
-		value, _ := value.ToInteger()
-	}
+    vm := otto.New()
+    vm.Run(`
+        abc = 2 + 2;
+    	console.log("The value of abc is " + abc); // 4
+    `)
 
-	Otto.Set("def", 11)
-	Otto.Run(`
-		console.log("The value of def is " + def)
-		// The value of def is 11
-	`)
+Get a value out of the VM
 
-	Otto.Set("xyzzy", "Nothing happens.")
-	Otto.Run(`
-		console.log(xyzzy.length) // 16
-	`)
+    value, err := vm.Get("abc")
+    	value, _ := value.ToInteger()
+    }
 
-	value, _ = Otto.Run("xyzzy.length")
-	{
-		// value is an int64 with a value of 16
-		value, _ := value.ToInteger()
-	}
+Set a number
 
-	value, err = Otto.Run("abcdefghijlmnopqrstuvwxyz.length")
-	if err != nil {
-		// err = ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined
-		// If there is an error, then value.IsUndefined() is true
-		...
-	}
+    vm.Set("def", 11)
+    vm.Run(`
+    	console.log("The value of def is " + def);
+    	// The value of def is 11
+    `)
 
-Embedding a Go function in JavaScript:
+Set a string
 
-	Otto.Set("sayHello", func(call otto.FunctionCall) otto.Value {
-		fmt.Printf("Hello, %s.\n", call.Argument(0).String())
-		return otto.UndefinedValue()
-	})
+    vm.Set("xyzzy", "Nothing happens.")
+    vm.Run(`
+    	console.log(xyzzy.length); // 16
+    `)
 
-	Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
-		right, _ := call.Argument(0).ToInteger()
-		result, _ := Otto.ToValue(2 + right)
-		return result
-	})
+Get the value of an expression
 
-	result, _ = Otto.Run(`
-		// First, say a greeting
-		sayHello("Xyzzy") // Hello, Xyzzy.
-		sayHello() // Hello, undefined
+    value, _ = vm.Run("xyzzy.length")
+    {
+    	// value is an int64 with a value of 16
+    	value, _ := value.ToInteger()
+    }
 
-		result = twoPlus(2.0) // 4
-	`)
+An error happens
+
+    value, err = vm.Run("abcdefghijlmnopqrstuvwxyz.length")
+    if err != nil {
+    	// err = ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined
+    	// If there is an error, then value.IsUndefined() is true
+    	...
+    }
+
+Set a Go function
+
+    vm.Set("sayHello", func(call otto.FunctionCall) otto.Value {
+        fmt.Printf("Hello, %s.\n", call.Argument(0).String())
+        return otto.UndefinedValue()
+    })
+
+Set a Go function that returns something useful
+
+    vm.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
+        right, _ := call.Argument(0).ToInteger()
+        result, _ := vm.ToValue(2 + right)
+        return result
+    })
+
+Use the functions in JavaScript
+
+    result, _ = vm.Run(`
+        sayHello("Xyzzy");      // Hello, Xyzzy.
+        sayHello();             // Hello, undefined
+
+        result = twoPlus(2.0); // 4
+    `)
 
 You can run (Go) JavaScript from the commandline with: http://github.com/robertkrimen/otto/tree/master/otto
 
@@ -84,25 +98,29 @@ For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 
 Caveat Emptor
 
-    * For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
-    * For example, "use strict" will parse, but does nothing.
+The following are some limitations with otto:
+
+    * "use strict" will parse, but does nothing.
     * Error reporting needs to be improved.
-    * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
-    * JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
-    * Really, error reporting could use some improvement.
+    * The regular expression engine (re2/regexp) is not fully compatible with the ECMA5 specification.
 
-Regular Expression Syntax
+Regular Expression Incompatibility
 
-Go translates JavaScript-style regular expressions into something that is "regexp" package compatible.
+Go translates JavaScript-style regular expressions into something that is "regexp" compatible via `parser.TransformRegExp`.
+Unfortunately, RegExp requires backtracking for some patterns, and backtracking is not supported by the standard Go engine: https://code.google.com/p/re2/wiki/Syntax
 
-Unfortunately, JavaScript has positive lookahead, negative lookahead, and backreferencing,
-all of which are not supported by Go's RE2-like engine: https://code.google.com/p/re2/wiki/Syntax
+Therefore, the following syntax is incompatible:
+
+    (?=)  // Lookahead (positive), currently a parsing error
+    (?!)  // Lookahead (backhead), currently a parsing error
+    \1    // Backreference (\1, \2, \3, ...), currently a parsing error
 
 A brief discussion of these limitations: "Regexp (?!re)" https://groups.google.com/forum/?fromgroups=#%21topic/golang-nuts/7qgSDWPIh_E
 
-More information about RE2: https://code.google.com/p/re2/
+More information about re2: https://code.google.com/p/re2/
 
-JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
+In addition to the above, re2 (Go) has a different definition for \s: [\t\n\f\r ].
+The JavaScript definition, on the other hand, also includes \v, Unicode "Separator, Space", etc.
 
 Halting Problem
 
@@ -113,9 +131,10 @@ If you want to stop long running executions (like third-party code), you can use
     import (
         "errors"
         "fmt"
-        Otto "github.com/robertkrimen/otto"
         "os"
-        Time "time"
+        "time"
+
+        "github.com/robertkrimen/otto"
     )
 
     var Halt = errors.New("Halt")
@@ -129,9 +148,9 @@ If you want to stop long running executions (like third-party code), you can use
     }
 
     func runUnsafe(unsafe string) {
-        start := Time.Now()
+        start := time.Now()
         defer func() {
-            duration := Time.Since(start)
+            duration := time.Since(start)
             if caught := recover(); caught != nil {
                 if caught == Halt {
                     fmt.Fprintf(os.Stderr, "Some code took to long! Stopping after: %v\n", duration)
@@ -141,16 +160,16 @@ If you want to stop long running executions (like third-party code), you can use
             }
             fmt.Fprintf(os.Stderr, "Ran code successfully: %v\n", duration)
         }()
-        otto := Otto.New()
-        otto.Interrupt = make(chan func())
+        vm := otto.New()
+        vm.Interrupt = make(chan func())
         go func() {
-            Time.Sleep(2 * Time.Second) // Stop after two seconds
-            otto.Interrupt <- func() {
+            time.Sleep(2 * time.Second) // Stop after two seconds
+            vm.Interrupt <- func() {
                 panic(Halt)
             }
         }()
-        otto.Run(unsafe) // Here be dragons (risky code)
-        otto.Interrupt = nil
+        vm.Run(unsafe) // Here be dragons (risky code)
+        vm.Interrupt = nil
     }
 
 Where is setTimeout/setInterval?
@@ -171,8 +190,10 @@ package otto
 
 import (
 	"fmt"
-	"github.com/robertkrimen/otto/registry"
 	"strings"
+
+	"github.com/robertkrimen/otto/ast"
+	"github.com/robertkrimen/otto/registry"
 )
 
 // Otto is the representation of the JavaScript runtime. Each instance of Otto has a self-contained namespace.
@@ -220,7 +241,7 @@ func Run(source string) (*Otto, Value, error) {
 // If the runtime is unable to parse source, then this function will return undefined and the parse error (nothing
 // will be evaluated in this case).
 func (self Otto) Run(source string) (Value, error) {
-	return self.runtime.runSafe(source)
+	return self.runtime.run(source)
 }
 
 // Get the value of the top-level binding of the given name.
@@ -267,8 +288,6 @@ func (self Otto) setValue(name string, value Value) {
 
 // Call the given JavaScript with a given this and arguments.
 //
-// WARNING: 2013-05-19: This function is rough, and is in beta.
-//
 // If this is nil, then some special handling takes place to determine the proper
 // this value, falling back to a "standard" invocation if necessary (where this is
 // undefined).
@@ -277,40 +296,41 @@ func (self Otto) setValue(name string, value Value) {
 // Call will invoke the function constructor rather than performing a function call.
 // In this case, the this argument has no effect.
 //
-//      // value is a String object                                                       
-//      value, _ := Otto.Call("Object", nil, "Hello, World.")                             
-//                                                                                        
-//      // Likewise...                                                                    
-//      value, _ := Otto.Call("new Object", nil, "Hello, World.")                         
-//                                                                                        
-//      // This will perform a concat on the given array and return the result            
-//      // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]                             
-//      value, _ := Otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")    
+//      // value is a String object
+//      value, _ := vm.Call("Object", nil, "Hello, World.")
+//
+//      // Likewise...
+//      value, _ := vm.Call("new Object", nil, "Hello, World.")
+//
+//      // This will perform a concat on the given array and return the result
+//      // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
+//      value, _ := vm.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
 //
 func (self Otto) Call(source string, this interface{}, argumentList ...interface{}) (Value, error) {
 
 	thisValue := UndefinedValue()
 
-	new_ := false
-	switch {
-	case strings.HasPrefix(source, "new "):
+	construct := false
+	if strings.HasPrefix(source, "new ") {
 		source = source[4:]
-		new_ = true
+		construct = true
 	}
 
-	if !new_ && this == nil {
-		value := UndefinedValue()
-		fallback := false
-		err := catchPanic(func() {
-			programNode := mustParse(source + "()")
-			if callNode, valid := programNode.Body[0].(*_callNode); valid {
-				value = self.runtime.evaluateCall(callNode, argumentList)
-			} else {
-				fallback = true
+	if !construct && this == nil {
+		program, err := self.runtime.parse(source + "()")
+		if err == nil {
+			if node, ok := program.Body[0].(*ast.ExpressionStatement); ok {
+				if node, ok := node.Expression.(*ast.CallExpression); ok {
+					var value Value
+					err := catchPanic(func() {
+						value = self.runtime.evaluateCall(node, argumentList)
+					})
+					if err != nil {
+						return UndefinedValue(), err
+					}
+					return value, nil
+				}
 			}
-		})
-		if !fallback && err == nil {
-			return value, nil
 		}
 	} else {
 		value, err := self.ToValue(this)
@@ -320,46 +340,49 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 		thisValue = value
 	}
 
-	fnValue, err := self.Run(source)
-	if err != nil {
-		return UndefinedValue(), err
-	}
+	{
+		this := thisValue
 
-	value := UndefinedValue()
-	if new_ {
-		value, err = fnValue.constructSafe(thisValue, argumentList...)
+		fn, err := self.Run(source)
 		if err != nil {
 			return UndefinedValue(), err
 		}
-	} else {
-		value, err = fnValue.Call(thisValue, argumentList...)
+
+		if construct {
+			result, err := fn.constructSafe(this, argumentList...)
+			if err != nil {
+				return UndefinedValue(), err
+			}
+			return result, nil
+		}
+
+		result, err := fn.Call(this, argumentList...)
 		if err != nil {
 			return UndefinedValue(), err
 		}
+		return result, nil
 	}
-
-	return value, nil
 }
 
 // Object will run the given source and return the result as an object.
 //
 // For example, accessing an existing object:
 //
-//		object, _ := Otto.Object(`Number`)
+//		object, _ := vm.Object(`Number`)
 //
 // Or, creating a new object:
 //
-//		object, _ := Otto.Object(`({ xyzzy: "Nothing happens." })`)
+//		object, _ := vm.Object(`({ xyzzy: "Nothing happens." })`)
 //
 // Or, creating and assigning an object:
 //
-//		object, _ := Otto.Object(`xyzzy = {}`)
+//		object, _ := vm.Object(`xyzzy = {}`)
 //		object.Set("volume", 11)
 //
 // If there is an error (like the source does not result in an object), then
 // nil and an error is returned.
 func (self Otto) Object(source string) (*Object, error) {
-	value, err := self.runtime.runSafe(source)
+	value, err := self.runtime.run(source)
 	if err != nil {
 		return nil, err
 	}
@@ -406,11 +429,12 @@ func _newObject(object *_object, value Value) *Object {
 	}
 }
 
-// Call the method specified by the given name, using self as the this value.
+// Call a method on the object.
+//
 // It is essentially equivalent to:
 //
-//		var method, _ := self.Get(name)
-//		method.Call(self, argumentList...)
+//		var method, _ := object.Get(name)
+//		method.Call(object, argumentList...)
 //
 // An undefined value and an error will result if:
 //
@@ -419,6 +443,9 @@ func _newObject(object *_object, value Value) *Object {
 //		3. An (uncaught) exception is thrown
 //
 func (self Object) Call(name string, argumentList ...interface{}) (Value, error) {
+	// TODO: Insert an example using JavaScript below...
+	// e.g., Object("JSON").Call("stringify", ...)
+
 	function, err := self.Get(name)
 	if err != nil {
 		return UndefinedValue(), err

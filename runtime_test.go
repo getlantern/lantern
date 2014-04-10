@@ -228,48 +228,6 @@ func TestFunction_(t *testing.T) {
     `, "6")
 }
 
-func TestIf(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		if (1) {
-			result = 1
-		}
-		else {
-			result = 0
-		}
-	`)
-	test("result", "1")
-
-	test(`
-		if (0) {
-			result = 1
-		}
-		else {
-			result = 0
-		}
-	`)
-	test("result", "0")
-
-	test(`
-		result = 0
-		if (0) {
-			result = 1
-		}
-	`)
-	test("result", "0")
-
-	test(`
-		result = 0
-		if (result) {
-			result = 1
-		}
-	`)
-	test("result", "0")
-}
-
 func TestDoWhile(t *testing.T) {
 	Terst(t)
 
@@ -289,22 +247,6 @@ func TestDoWhile(t *testing.T) {
         result = eval("do {abc=1; break; abc=2;} while (0);");
         [ result, abc ];
     `, "1,1")
-}
-
-func TestWhile(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		limit = 4
-		result = 0
-		while (limit) {
-			result = result + 1
-			limit = limit - 1
-		}
-	`)
-	test("result", "4")
 }
 
 func TestContinueBreak(t *testing.T) {
@@ -334,10 +276,10 @@ func TestContinueBreak(t *testing.T) {
 		while (limit) {
 			limit = limit - 1
 			if (limit) {
-				continue
+                continue
 			}
 			else {
-				break
+                break
 			}
 			result = result + 1
 		}
@@ -359,199 +301,6 @@ func TestContinueBreak(t *testing.T) {
 		} while (limit)
 	`)
 	test("result", "0")
-}
-
-func TestSwitchBreak(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		var abc = true;
-		var ghi = "Xyzzy";
-		while (abc) {
-			switch ('def') {
-			case 'def':
-				break;
-			}
-			ghi = "Nothing happens."
-			abc = false
-		}
-		ghi
-	`, "Nothing happens.")
-
-	test(`
-		var abc = true;
-		var ghi = "Xyzzy";
-		WHILE:
-		while (abc) {
-			switch ('def') {
-			case 'def':
-				break WHILE;
-			}
-			ghi = "Nothing happens."
-			abc = false
-		}
-		ghi
-	`, "Xyzzy")
-
-	test(`
-		var ghi = "Xyzzy";
-		FOR:
-		for (;;) {
-			switch ('def') {
-			case 'def':
-				break FOR;
-				ghi = ""
-			}
-			ghi = "Nothing happens."
-		}
-		ghi
-	`, "Xyzzy")
-
-	test(`
-		var ghi = "Xyzzy";
-		FOR:
-		for (var jkl in {}) {
-			switch ('def') {
-			case 'def':
-				break FOR;
-				ghi = "Something happens."
-			}
-			ghi = "Nothing happens."
-		}
-		ghi
-	`, "Xyzzy")
-
-	test(`
-		var ghi = "Xyzzy";
-		function jkl() {
-			switch ('def') {
-			case 'def':
-				break;
-				ghi = ""
-			}
-			ghi = "Nothing happens."
-		}
-		while (abc) {
-			jkl()
-			abc = false
-			ghi = "Something happens."
-		}
-		ghi
-	`, "Something happens.")
-}
-
-func TestTryFinally(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		try {
-			result = 1
-		}
-		finally {
-			result = 2
-		}
-	`)
-	test("result", "2")
-
-	test(`
-		var abc = false, def = 0;
-		do {
-			def += 1;
-			if (def > 100) {
-				break;
-			}
-			try {
-				continue;
-			}
-			finally {
-				abc = true;
-			}
-		}
-		while(!abc && def < 10)
-		def;
-	`, "1")
-
-	test(`
-		var abc = false, def = 0, ghi = 0;
-		do {
-			def += 1;
-			if (def > 100) {
-				break;
-			}
-			try {
-				throw 0;
-			}
-			catch (jkl) {
-				continue;
-			}
-			finally {
-				abc = true;
-				ghi = 11;
-			}
-			ghi -= 1;
-		}
-		while(!abc && def < 10)
-		ghi;
-	`, "11")
-
-	test(`
-        var abc = 0, def = 0;
-        do {
-            try {
-                abc += 1;
-                throw "ghi";
-            }
-            finally {
-                def = 1;
-                continue;
-            }   
-            def -= 1;
-        }
-        while (abc < 2)
-        [ abc, def ];
-    `, "2,1")
-}
-
-func TestTryCatch(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		result = 1
-		try {
-			throw 4
-			result = -1
-		}
-		catch (xyzzy) {
-			result += xyzzy + 1
-		}
-	`)
-	test("result", "6")
-
-	test(`
-		result = 1
-		try {
-			try {
-				throw 4
-				result = -1
-			}
-			catch (xyzzy) {
-				result += xyzzy + 1
-				throw 64
-			}
-		}
-		catch (xyzzy) {
-			resultXyzzy = xyzzy
-			result = -2
-		}
-	`)
-	test("resultXyzzy", "64")
-	test("result", "-2")
 }
 
 func TestTryCatchError(t *testing.T) {
@@ -636,7 +385,7 @@ func TestComparison(t *testing.T) {
 	Is(stringToFloat("-1"), -1)
 
 	test("result = 0+Object")
-	test("result", "0[function]")
+	test("result", "0function Object() { [native code] }")
 }
 
 func TestComparisonRelational(t *testing.T) {
@@ -661,130 +410,6 @@ func TestComparisonRelational(t *testing.T) {
 
 	test("result = '_   0' >= 0")
 	test("result", "false")
-}
-
-func TestSwitch(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		result = 0
-		switch (0) {
-		default:
-			result += 1 
-		case 1:
-			result += 2
-		case 2:
-			result += 4
-		case 3:
-			result += 8 
-		}
-	`)
-	test("result", "15")
-
-	test(`
-		result = 0
-		switch (3) {
-		default:
-			result += 1 
-		case 1:
-			result += 2
-		case 2:
-			result += 4
-		case 3:
-			result += 8 
-		}
-	`)
-	test("result", "8")
-
-	test(`
-		result = 0
-		switch (60) {
-		case 1:
-			result += 2
-		case 2:
-			result += 4
-		case 3:
-			result += 8 
-		}
-	`)
-	test("result", "0")
-}
-
-func TestFor(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-    xyzzy: for (var abc = 0; abc <= 0; abc++) {
-    for (var def = 0; def <= 1; def++) {
-        if (def === 0) {
-            continue xyzzy;
-            } else {
-            }
-        }  
-    }
-    `)
-
-	test(`
-		result = 7
-		for (i = 0; i < 3; i += 1) {
-			result += 1
-		}
-	`)
-	test("result", "10")
-
-	test(`
-		result = 7
-		for (i = 0; i < 3; i += 1) {
-			result += 1
-			if (i == 1) {
-				break
-			}
-		}
-	`)
-	test("result", "9")
-
-	test(`
-		result = 7
-		for (i = 0; i < 3; i += 1) {
-			if (i == 2) {
-				continue
-			}
-			result += 1
-		}
-	`)
-	test("result", "9")
-
-	test(`
-		abc = 0
-		for (;;) {
-			abc += 1
-			if (abc == 3)
-				break
-		}
-		abc
-	`, "3")
-
-	test(`
-		for (abc = 0; ;) {
-			abc += 1
-			if (abc == 3)
-				break
-		}
-		abc
-	`, "3")
-
-	test(`
-		for (abc = 0; ; abc+=1) {
-			abc += 1
-			if (abc == 3)
-				break
-		}
-		abc
-	`, "3")
 }
 
 func TestArguments(t *testing.T) {
@@ -839,46 +464,42 @@ func TestArguments(t *testing.T) {
 func TestObjectLiteral(t *testing.T) {
 	Terst(t)
 
-	Otto := New()
-	Otto.Run(`
-		result = {}
-	`)
-	IsTrue(Otto.getValue("result").IsObject())
-
-	Otto.Run(`
-		result = { xyzzy: "Nothing happens.", 0: 1 }
-	`)
-	Is(Otto.getValue("result")._object().get("xyzzy"), "Nothing happens.")
-}
-
-func TestArrayLiteral(t *testing.T) {
-	Terst(t)
-
 	test := runTest()
-	test(`
-		result = []
-	`)
-	IsTrue(test("result").IsObject())
 
 	test(`
-		result = [ "Nothing happens.", 0, 1 ]
-	`)
-	Is(test("result")._object().get("0"), "Nothing happens.")
+        ({});
+    `, "[object Object]")
 
 	test(`
-		xyzzy = [ "Nothing happens.", 0, 1 ]
-		result = xyzzy[1]
-	`)
-	test("result", "0")
+        var abc = {
+            xyzzy: "Nothing happens.",
+            get 1e2() {
+                return 3.14159;
+            },
+            get null() {
+                return true;
+            },
+            get "[\n]"() {
+                return "<>";
+            }
+        };
+        [ abc["1e2"], abc.null, abc["[\n]"] ]; 
+    `, "3.14159,true,<>")
 
 	test(`
-		xyzzy = [ "Nothing happens.", 0, 1 ]
-		xyzzy[10] = 2
-		_6 = xyzzy[6]
-		result = xyzzy[10]
-	`)
-	test("result", "2")
-	test("_6", "undefined")
+        var abc = {
+            xyzzy: "Nothing happens.",
+            set 1e2() {
+                this[3.14159] = 100;
+                return Math.random();
+            },
+            set null(def) {
+                this.def = def;
+                return Math.random();
+            },
+        };
+        [ abc["1e2"] = Infinity, abc[3.14159], abc.null = "xyz", abc.def ];
+    `, "Infinity,100,xyz,xyz")
 }
 
 func TestUnaryPrefix(t *testing.T) {
@@ -972,7 +593,7 @@ func TestBinaryBitwiseOperation(t *testing.T) {
 	test(`
 		abc = 1 & 2
 		def = 1 & 3
-		ghi = 1 | 3
+        ghi = 1 | 3
 		jkl = 1 ^ 2
 		mno = 1 ^ 3
 
@@ -1068,42 +689,7 @@ func TestIn(t *testing.T) {
 	test("def", "false")
 }
 
-func TestForIn(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-        var abc;
-		for (property in { a: 1 }) {
-			abc = property;
-		}
-        abc;
-	`, "a")
-
-	test(`
-        var ghi;
-		for (property in new String("xyzzy")) {
-			ghi = property;
-		}
-        ghi;
-	`, "4")
-}
-
-func TestAssignment(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		abc = 1
-		def = abc
-	`)
-	test("abc", "1")
-	test("def", "1")
-}
-
-func Testnew(t *testing.T) {
+func Test_new(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1114,19 +700,6 @@ func Testnew(t *testing.T) {
 	`)
 	test("abc", "false")
 	test("def", "true")
-}
-
-func TestConditional(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		abc = true ? 1 : 0
-		def = 0 ? 2 : 3
-	`)
-	test("abc", "1")
-	test("def", "3")
 }
 
 func TestNewFunction(t *testing.T) {
@@ -1194,30 +767,6 @@ func TestBlock(t *testing.T) {
         }
         [ abc,ghi ];
     `, "10,")
-}
-
-func TestWith(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-
-	test(`
-		var def
-		with({ abc: 9 }) {
-			def = abc
-		}
-		def
-	`, "9")
-
-	test(`
-		var def
-		with({ abc: function(){
-			return 11
-		} }) {
-			def = abc()
-		}
-		def
-	`, "11")
 }
 
 func Test_toString(t *testing.T) {

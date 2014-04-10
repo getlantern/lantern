@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/robertkrimen/otto/parser"
 )
 
 // Function
@@ -30,29 +32,26 @@ func argumentList2parameterList(argumentList []Value) []string {
 var matchIdentifier = regexp.MustCompile(`^[$_\p{L}][$_\p{L}\d}]*$`)
 
 func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object {
-	parameterList := []string(nil)
-	bodySource := ""
-	argumentCount := len(argumentList)
-	if argumentCount > 0 {
-		parameterList = argumentList2parameterList(argumentList[0 : argumentCount-1])
-		for _, value := range parameterList {
-			// TODO: This is extremely hacky... maybe go through the parser directly?
-			if !matchIdentifier.MatchString(value) || keywordTable[value] {
-				panic(newSyntaxError(value))
-			}
+	var parameterList, body string
+	count := len(argumentList)
+	if count > 0 {
+		tmp := make([]string, 0, count-1)
+		for _, value := range argumentList[0 : count-1] {
+			tmp = append(tmp, toString(value))
 		}
-		bodySource = toString(argumentList[argumentCount-1])
+		parameterList = strings.Join(tmp, ",")
+		body = toString(argumentList[count-1])
 	}
 
-	parser := newParser()
-	parser.lexer.Source = bodySource
-	_programNode := parser.ParseAsFunction()
-	return runtime.newNodeFunction(_programNode.toFunction(parameterList), runtime.GlobalEnvironment)
+	function, err := parser.ParseFunction(parameterList, body)
+	runtime.parseThrow(err) // Will panic/throw appropriately
+
+	return runtime.newNodeFunction(function, runtime.GlobalEnvironment)
 }
 
 func builtinFunction_toString(call FunctionCall) Value {
-	call.thisClassObject("Function") // Should throw a TypeError unless Function
-	return toValue_string("[function]")
+	object := call.thisClassObject("Function") // Should throw a TypeError unless Function
+	return toValue_string(object.value.(_functionObject).source(object))
 }
 
 func builtinFunction_apply(call FunctionCall) Value {

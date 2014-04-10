@@ -1,6 +1,6 @@
-.PHONY: assets todo fixme otto run test-all release test-synopsis test262
-.PHONY: test test-race test-check test-all
-.PHONY: underscore
+.PHONY: test test-race test-release release release-check
+.PHONY: parser
+.PHONY: otto assets underscore
 
 TESTS := \
 	~
@@ -9,56 +9,50 @@ TEST := -v --run
 TEST := -v --run Test\($(subst $(eval) ,\|,$(TESTS))\)
 TEST := .
 
-CHECK_GO := GOROOT= GOPATH=$(PWD)/.test/check/:$(GOPATH) $(HOME)/go/release/bin/go
-CHECK_OTTO := $(PWD)/.test/check/src/github.com/robertkrimen/otto
-
-test: inline.go
+test: parser inline.go
 	go test -i
 	go test $(TEST)
+	@echo PASS
 
-assets:
-	mkdir -p .assets
-	for file in underscore/test/*.js; do tr "\`" "_" < $$file > .assets/`basename $$file`; done
+parser:
+	$(MAKE) -C parser
 
-todo:
-	ack -l TODO *.go
+inline.go: inline
+	./$< > $@
 
-fixme:
-	ack -l FIXME *.go
+#################
+# release, test #
+#################
 
-otto:
-	$(MAKE) -C otto
+release: test-race test-release
+	for package in . parser token ast file underscore registry; do (cd $$package && godocdown --signature > README.markdown); done
+	@echo \*\*\* make release-check
+	@echo PASS
 
-run:
-	go run -a ./otto/main.go ./otto.js
+release-check: .test
+	$(MAKE) -C test build test
+	$(MAKE) -C .test/test262 build test
+	@echo PASS
 
-test-all: inline.go
+test-release:
 	go test -i
 	go test
-
-release: test-race test-all test-synopsis
-	for package in . underscore registry; do (cd $$package && godocdown --signature > README.markdown); done
 
 test-race:
 	go test -race -i
 	go test -race
 
-test-check:
-	@mkdir -p $(CHECK_OTTO)
-	@find . -name \*.go ! -path ./.\* -maxdepth 2 | rsync -a --files-from -  ./ $(CHECK_OTTO)/
-	$(CHECK_GO) version
-	$(CHECK_GO) test -i
-	$(CHECK_GO) test
+#################################
+# otto, assets, underscore, ... #
+#################################
 
-test-synopsis: .test otto
-	$(MAKE) -C .test/synopsis 1>/dev/null
+otto:
+	$(MAKE) -C otto
 
-test262: .test
-	$(MAKE) -C .test/test262 test
+assets:
+	mkdir -p .assets
+	for file in underscore/test/*.js; do tr "\`" "_" < $$file > .assets/`basename $$file`; done
 
 underscore:
 	$(MAKE) -C $@
-
-inline.go: inline
-	./$< > $@
 

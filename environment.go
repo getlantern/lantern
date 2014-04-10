@@ -23,6 +23,7 @@ type _environment interface {
 
 	newReference(string, bool) _reference
 	clone(clone *_clone) _environment
+	runtimeOf() *_runtime
 }
 
 // _functionEnvironment
@@ -51,6 +52,10 @@ func (self0 _functionEnvironment) clone(clone *_clone) _environment {
 	}
 }
 
+func (self _functionEnvironment) runtimeOf() *_runtime {
+	return self._declarativeEnvironment.runtimeOf()
+}
+
 //func (self *_functionEnvironment) newReference(name string, strict bool) _reference {
 //    index, exists := self.indexOfArgumentName[name]
 //    if !exists {
@@ -74,6 +79,10 @@ type _objectEnvironment struct {
 	outer       _environment
 	Object      *_object
 	ProvideThis bool
+}
+
+func (self *_objectEnvironment) runtimeOf() *_runtime {
+	return self.runtime
 }
 
 func (runtime *_runtime) newObjectEnvironment(object *_object, outer _environment) *_objectEnvironment {
@@ -205,6 +214,10 @@ type _declarativeEnvironment struct {
 func (self *_declarativeEnvironment) HasBinding(name string) bool {
 	_, exists := self.property[name]
 	return exists
+}
+
+func (self *_declarativeEnvironment) runtimeOf() *_runtime {
+	return self.runtime
 }
 
 func (self *_declarativeEnvironment) CreateMutableBinding(name string, deletable bool) {

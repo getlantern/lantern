@@ -289,7 +289,7 @@ func Test_reflectArray(t *testing.T) {
 	_, test := runTestWithOtto()
 
 	// []bool
-	if false {
+	{
 		abc := [4]bool{
 			false,
 			true,
@@ -316,7 +316,7 @@ func Test_reflectArray(t *testing.T) {
 	}
 
 	// []int32
-	if false {
+	{
 		abc := make([]int32, 4)
 		failSet("abc", abc)
 

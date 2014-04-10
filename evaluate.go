@@ -3,9 +3,12 @@ package otto
 import (
 	"fmt"
 	"runtime"
+
+	"github.com/robertkrimen/otto/ast"
+	"github.com/robertkrimen/otto/token"
 )
 
-func (self *_runtime) evaluateBody(body []_node) Value {
+func (self *_runtime) evaluateBody(body []ast.Statement) Value {
 	bodyValue := Value{}
 	for _, node := range body {
 		value := self.evaluate(node)
@@ -23,7 +26,7 @@ func (self *_runtime) evaluateBody(body []_node) Value {
 	return bodyValue
 }
 
-func (self *_runtime) evaluate(node _node) Value {
+func (self *_runtime) evaluate(node ast.Node) Value {
 	defer func() {
 		// This defer is lame (unecessary overhead)
 		// It would be better to mark the errors at the source
@@ -31,7 +34,7 @@ func (self *_runtime) evaluate(node _node) Value {
 			switch caught := caught.(type) {
 			case _error:
 				if caught.Line == -1 {
-					caught.Line = node.position()
+					//caught.Line = ast.position()
 				}
 				panic(caught) // Panic the modified _error
 			}
@@ -53,111 +56,143 @@ func (self *_runtime) evaluate(node _node) Value {
 
 	switch node := node.(type) {
 
-	case *_variableDeclarationListNode:
-		return self.evaluateVariableDeclarationList(node)
+	case *ast.VariableExpression:
+		return self.evaluateVariableExpression(node)
 
-	case *_variableDeclarationNode:
-		return self.evaluateVariableDeclaration(node)
+	case *ast.VarStatement:
+		// Variables are already defined, this is initialization only
+		for _, variable := range node.List {
+			self.evaluateVariableExpression(variable.(*ast.VariableExpression))
+		}
+		return Value{}
 
-	case *_programNode:
-		self.declare("function", node.FunctionList)
-		self.declare("variable", node.VariableList)
+	case *ast.Program:
+		self.functionDeclaration(node.FunctionList)
+		self.variableDeclaration(node.VariableList)
 		return self.evaluateBody(node.Body)
 
-	case *_blockNode:
-		return self.evaluateBlock(node)
+	case *ast.ExpressionStatement:
+		return self.evaluate(node.Expression)
 
-	case *_valueNode:
-		return self.evaluateValue(node)
+	case *ast.BlockStatement:
+		return self.evaluateBlockStatement(node)
 
-	case *_identifierNode:
-		return self.evaluateIdentifier(node)
+	case *ast.NullLiteral:
+		return NullValue()
 
-	case *_functionNode:
-		return self.evaluateFunction(node)
+	case *ast.BooleanLiteral:
+		return toValue_bool(node.Value)
 
-	case *_binaryOperationNode:
-		return self.evaluateBinaryOperation(node)
+	case *ast.StringLiteral:
+		return toValue_string(node.Value)
 
-	case *_assignmentNode:
-		return self.evaluateAssignment(node)
+	case *ast.NumberLiteral:
+		return toValue_float64(stringToFloat(node.Literal))
 
-	case *_unaryOperationNode:
-		return self.evaluateUnaryOperation(node)
-
-	case *_comparisonNode:
-		return self.evaluateComparison(node)
-
-	case *_returnNode:
-		value := self.evaluateReturn(node)
-		return value
-		return self.evaluateReturn(node)
-
-	case *_ifNode:
-		return self.evaluateIf(node)
-
-	case *_doWhileNode:
-		return self.evaluateDoWhile(node)
-
-	case *_whileNode:
-		return self.evaluateWhile(node)
-
-	case *_callNode:
-		return self.evaluateCall(node, nil)
-
-	case *_continueNode:
-		return toValue(newContinueResult(node.Target))
-
-	case *_switchNode:
-		return self.evaluateSwitch(node)
-
-	case *_forNode:
-		return self.evaluateFor(node)
-
-	case *_forInNode:
-		return self.evaluateForIn(node)
-
-	case *_breakNode:
-		return toValue(newBreakResult(node.Target))
-
-	case *_throwNode:
-		return self.evaluateThrow(node)
-
-	case *_emptyNode:
-		return emptyValue()
-
-	case *_tryCatchNode:
-		return self.evaluateTryCatch(node)
-
-	case *_dotMemberNode:
-		return self.evaluateDotMember(node)
-
-	case *_bracketMemberNode:
-		return self.evaluateBracketMember(node)
-
-	case *_objectNode:
+	case *ast.ObjectLiteral:
 		return self.evaluateObject(node)
 
-	case *_regExpNode:
-		return self.evaluateRegExp(node)
+	case *ast.RegExpLiteral:
+		return self.evaluateRegExpLiteral(node)
 
-	case *_arrayNode:
+	case *ast.ArrayLiteral:
 		return self.evaluateArray(node)
 
-	case *_newNode:
+	case *ast.Identifier:
+		return self.evaluateIdentifier(node)
+
+	case *ast.LabelledStatement:
+		self.labels = append(self.labels, node.Label.Name)
+		defer func() {
+			if len(self.labels) > 0 {
+				self.labels = self.labels[:len(self.labels)-1] // Pop the label
+			} else {
+				self.labels = nil
+			}
+		}()
+		return self.evaluate(node.Statement)
+
+	case *ast.BinaryExpression:
+		if node.Comparison {
+			return self.evaluateComparison(node)
+		} else {
+			return self.evaluateBinaryExpression(node)
+		}
+
+	case *ast.AssignExpression:
+		return self.evaluateAssignExpression(node)
+
+	case *ast.UnaryExpression:
+		return self.evaluateUnaryExpression(node)
+
+	case *ast.ReturnStatement:
+		return self.evaluateReturnStatement(node)
+
+	case *ast.IfStatement:
+		return self.evaluateIfStatement(node)
+
+	case *ast.DoWhileStatement:
+		return self.evaluateDoWhileStatement(node)
+
+	case *ast.WhileStatement:
+		return self.evaluateWhileStatement(node)
+
+	case *ast.CallExpression:
+		return self.evaluateCall(node, nil)
+
+	case *ast.BranchStatement:
+		target := ""
+		if node.Label != nil {
+			target = node.Label.Name
+		}
+		switch node.Token {
+		case token.BREAK:
+			return toValue(newBreakResult(target))
+		case token.CONTINUE:
+			return toValue(newContinueResult(target))
+		}
+
+	case *ast.SwitchStatement:
+		return self.evaluateSwitchStatement(node)
+
+	case *ast.ForStatement:
+		return self.evaluateForStatement(node)
+
+	case *ast.ForInStatement:
+		return self.evaluateForInStatement(node)
+
+	case *ast.ThrowStatement:
+		return self.evaluateThrowStatement(node)
+
+	case *ast.EmptyStatement:
+		return Value{}
+
+	case *ast.TryStatement:
+		return self.evaluateTryStatement(node)
+
+	case *ast.DotExpression:
+		return self.evaluateDotExpression(node)
+
+	case *ast.BracketExpression:
+		return self.evaluateBracketExpression(node)
+
+	case *ast.NewExpression:
 		return self.evaluateNew(node)
 
-	case *_conditionalNode:
-		return self.evaluateConditional(node)
+	case *ast.ConditionalExpression:
+		return self.evaluateConditionalExpression(node)
 
-	case *_thisNode:
+	case *ast.ThisExpression:
 		return toValue_object(self._executionContext(0).this)
 
-	case *_commaNode:
-		return self.evaluateComma(node)
+	case *ast.SequenceExpression:
+		return self.evaluateSequenceExpression(node)
 
-	case *_withNode:
-		return self.evaluateWith(node)
+	case *ast.WithStatement:
+		return self.evaluateWithStatement(node)
+
+	case *ast.FunctionExpression:
+		return self.evaluateFunction(node)
 
 	}
 

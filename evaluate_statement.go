@@ -1,8 +1,13 @@
 package otto
 
-func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
+import (
+	"github.com/robertkrimen/otto/ast"
+	"github.com/robertkrimen/otto/token"
+)
+
+func (self *_runtime) evaluateTryStatement(node *ast.TryStatement) Value {
 	tryCatchValue, exception := self.tryCatchEvaluate(func() Value {
-		return self.evaluate(node.Try)
+		return self.evaluate(node.Body)
 	})
 
 	if exception && node.Catch != nil {
@@ -13,7 +18,7 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 		}()
 		// TODO If necessary, convert TypeError<runtime> => TypeError
 		// That, is, such errors can be thrown despite not being JavaScript "native"
-		self.localSet(node.Catch.Identifier, tryCatchValue)
+		self.localSet(node.Catch.Parameter.Name, tryCatchValue)
 
 		tryCatchValue, exception = self.tryCatchEvaluate(func() Value {
 			return self.evaluate(node.Catch.Body)
@@ -34,31 +39,19 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 	return tryCatchValue
 }
 
-func (self *_runtime) evaluateVariableDeclarationList(node *_variableDeclarationListNode) Value {
-	for _, node := range node.VariableList {
-		self.evaluateVariableDeclaration(node)
-	}
-	return emptyValue()
-}
+//func (self *_runtime) evaluateVariableDeclarationList(node *_variableDeclarationListNode) Value {
+//    for _, node := range node.VariableList {
+//        self.evaluateVariableDeclaration(node)
+//    }
+//    return emptyValue()
+//}
 
-func (self *_runtime) evaluateVariableDeclaration(node *_variableDeclarationNode) Value {
-	if node.Operator != "" {
-		// FIXME If reference is nil
-		left := getIdentifierReference(self.LexicalEnvironment(), node.Identifier, false, node)
-		right := self.evaluate(node.Initializer)
-		rightValue := self.GetValue(right)
-
-		self.PutValue(left, rightValue)
-	}
-	return toValue_string(node.Identifier)
-}
-
-func (self *_runtime) evaluateThrow(node *_throwNode) Value {
+func (self *_runtime) evaluateThrowStatement(node *ast.ThrowStatement) Value {
 	value := self.GetValue(self.evaluate(node.Argument))
 	panic(newException(value))
 }
 
-func (self *_runtime) evaluateReturn(node *_returnNode) Value {
+func (self *_runtime) evaluateReturnStatement(node *ast.ReturnStatement) Value {
 	value := UndefinedValue()
 	if node.Argument != nil {
 		value = self.GetValue(self.evaluate(node.Argument))
@@ -67,7 +60,7 @@ func (self *_runtime) evaluateReturn(node *_returnNode) Value {
 	return toValue(newReturnResult(value))
 }
 
-func (self *_runtime) evaluateIf(node *_ifNode) Value {
+func (self *_runtime) evaluateIfStatement(node *ast.IfStatement) Value {
 	test := self.evaluate(node.Test)
 	testValue := self.GetValue(test)
 	if toBoolean(testValue) {
@@ -76,10 +69,10 @@ func (self *_runtime) evaluateIf(node *_ifNode) Value {
 		return self.evaluate(node.Alternate)
 	}
 
-	return emptyValue()
+	return Value{}
 }
 
-func (self *_runtime) evaluateWith(node *_withNode) Value {
+func (self *_runtime) evaluateWithStatement(node *ast.WithStatement) Value {
 	object := self.evaluate(node.Object)
 	objectValue := self.GetValue(object)
 	previousLexicalEnvironment, lexicalEnvironment := self._executionContext(0).newLexicalEnvironment(self.toObject(objectValue))
@@ -91,40 +84,50 @@ func (self *_runtime) evaluateWith(node *_withNode) Value {
 	return self.evaluate(node.Body)
 }
 
-func (self *_runtime) evaluateBlock(node *_blockNode) Value {
+func (self *_runtime) evaluateBlockStatement(node *ast.BlockStatement) Value {
 
-	body := node.Body
-	labelSet := node.labelSet
+	//labelSet := node.labelSet
 
-	blockValue := self.evaluateBody(body)
-	if blockValue.evaluateBreak(labelSet) == resultBreak {
-		return Value{}
-	}
-	return blockValue
+	value := self.evaluateBody(node.List)
+	return value
+	//if blockValue.evaluateBreak(labelSet) == resultBreak {
+	//    return Value{}
+	//}
+	//return value
 }
 
-func (self *_runtime) evaluateDoWhile(node *_doWhileNode) Value {
+func (self *_runtime) evaluateDoWhileStatement(node *ast.DoWhileStatement) Value {
+
+	labels := append(self.labels, "")
+	self.labels = nil
 
 	test := node.Test
-	body := node.body
-	labelSet := node.labelSet
+	var body []ast.Statement
+	switch tmp := node.Body.(type) {
+	case *ast.BlockStatement:
+		body = tmp.List
+	default:
+		body = append(body, node.Body)
+	}
 
-	doWhileValue := Value{}
+	result := Value{}
 resultBreak:
 	for {
 		for _, node := range body {
 			value := self.evaluate(node)
-			switch value.evaluateBreakContinue(labelSet) {
-			case resultReturn:
-				return value
-			case resultBreak:
-				break resultBreak
-			case resultContinue:
-				goto resultContinue
-			default: // resultNormal
-			}
-			if !value.isEmpty() {
-				doWhileValue = value
+			switch value._valueType {
+			case valueResult:
+				switch value.evaluateBreakContinue(labels) {
+				case resultReturn:
+					return value
+				case resultBreak:
+					break resultBreak
+				case resultContinue:
+					goto resultContinue
+				}
+			case valueEmpty:
+			default:
+				result = value
 			}
 		}
 	resultContinue:
@@ -133,16 +136,24 @@ resultBreak:
 			break
 		}
 	}
-	return doWhileValue
+	return result
 }
 
-func (self *_runtime) evaluateWhile(node *_whileNode) Value {
+func (self *_runtime) evaluateWhileStatement(node *ast.WhileStatement) Value {
 
 	test := node.Test
-	body := node.body
-	labelSet := node.labelSet
+	labels := append(self.labels, "")
+	self.labels = nil
 
-	whileValue := Value{}
+	var body []ast.Statement
+	switch tmp := node.Body.(type) {
+	case *ast.BlockStatement:
+		body = tmp.List
+	default:
+		body = append(body, node.Body)
+	}
+
+	result := Value{}
 resultBreakContinue:
 	for {
 		if !self.GetValue(self.evaluate(test)).isTrue() {
@@ -151,37 +162,48 @@ resultBreakContinue:
 		}
 		for _, node := range body {
 			value := self.evaluate(node)
-			switch value.evaluateBreakContinue(labelSet) {
-			case resultReturn:
-				return value
-			case resultBreak:
-				break resultBreakContinue
-			case resultContinue:
-				continue resultBreakContinue
-			default: // resultNormal
-			}
-			if !value.isEmpty() {
-				whileValue = value
+			switch value._valueType {
+			case valueResult:
+				switch value.evaluateBreakContinue(labels) {
+				case resultReturn:
+					return value
+				case resultBreak:
+					break resultBreakContinue
+				case resultContinue:
+					continue resultBreakContinue
+				}
+			case valueEmpty:
+			default:
+				result = value
 			}
 		}
 	}
-	return whileValue
+	return result
 }
 
-func (self *_runtime) evaluateFor(node *_forNode) Value {
+func (self *_runtime) evaluateForStatement(node *ast.ForStatement) Value {
 
-	initial := node.Initial
+	labels := append(self.labels, "")
+	self.labels = nil
+
+	initializer := node.Initializer
 	test := node.Test
-	body := node.body
 	update := node.Update
-	labelSet := node.labelSet
 
-	if initial != nil {
-		initialResult := self.evaluate(initial)
+	if initializer != nil {
+		initialResult := self.evaluate(initializer)
 		self.GetValue(initialResult) // Side-effect trigger
 	}
 
-	forValue := Value{}
+	var body []ast.Statement
+	switch tmp := node.Body.(type) {
+	case *ast.BlockStatement:
+		body = tmp.List
+	default:
+		body = append(body, node.Body)
+	}
+
+	result := Value{}
 resultBreak:
 	for {
 		if test != nil {
@@ -193,17 +215,19 @@ resultBreak:
 		}
 		for _, node := range body {
 			value := self.evaluate(node)
-			switch value.evaluateBreakContinue(labelSet) {
-			case resultReturn:
-				return value
-			case resultBreak:
-				break resultBreak
-			case resultContinue:
-				goto resultContinue
-			default: // resultNormal
-			}
-			if !value.isEmpty() {
-				forValue = value
+			switch value._valueType {
+			case valueResult:
+				switch value.evaluateBreakContinue(labels) {
+				case resultReturn:
+					return value
+				case resultBreak:
+					break resultBreak
+				case resultContinue:
+					goto resultContinue
+				}
+			case valueEmpty:
+			default:
+				result = value
 			}
 		}
 	resultContinue:
@@ -212,10 +236,13 @@ resultBreak:
 			self.GetValue(updateResult) // Side-effect trigger
 		}
 	}
-	return forValue
+	return result
 }
 
-func (self *_runtime) evaluateForIn(node *_forInNode) Value {
+func (self *_runtime) evaluateForInStatement(node *ast.ForInStatement) Value {
+
+	labels := append(self.labels, "")
+	self.labels = nil
 
 	source := self.evaluate(node.Source)
 	sourceValue := self.GetValue(source)
@@ -228,10 +255,16 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 	sourceObject := self.toObject(sourceValue)
 
 	into := node.Into
-	body := node.body
-	labelSet := node.labelSet
 
-	forInValue := Value{}
+	var body []ast.Statement
+	switch tmp := node.Body.(type) {
+	case *ast.BlockStatement:
+		body = tmp.List
+	default:
+		body = append(body, node.Body)
+	}
+
+	result := Value{}
 	object := sourceObject
 	for object != nil {
 		enumerateValue := Value{}
@@ -246,18 +279,20 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 			self.PutValue(into.reference(), toValue_string(name))
 			for _, node := range body {
 				value := self.evaluate(node)
-				switch value.evaluateBreakContinue(labelSet) {
-				case resultReturn:
-					enumerateValue = value
-					return false
-				case resultBreak:
-					object = nil
-					return false
-				case resultContinue:
-					return true
-				default: // resultNormal
-				}
-				if !value.isEmpty() {
+				switch value._valueType {
+				case valueResult:
+					switch value.evaluateBreakContinue(labels) {
+					case resultReturn:
+						enumerateValue = value
+						return false
+					case resultBreak:
+						object = nil
+						return false
+					case resultContinue:
+						return true
+					}
+				case valueEmpty:
+				default:
 					enumerateValue = value
 				}
 			}
@@ -268,44 +303,50 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 		}
 		object = object.prototype
 		if !enumerateValue.isEmpty() {
-			forInValue = enumerateValue
+			result = enumerateValue
 		}
 	}
-	return forInValue
+	return result
 }
 
-func (self *_runtime) evaluateSwitch(node *_switchNode) Value {
+func (self *_runtime) evaluateSwitchStatement(node *ast.SwitchStatement) Value {
+
+	labels := append(self.labels, "")
+	self.labels = nil
 
 	discriminantResult := self.evaluate(node.Discriminant)
 	target := node.Default
 
-	for index, clause := range node.CaseList {
+	for index, clause := range node.Body {
 		test := clause.Test
 		if test != nil {
-			if self.calculateComparison("===", discriminantResult, self.evaluate(test)) {
+			if self.calculateComparison(token.STRICT_EQUAL, discriminantResult, self.evaluate(test)) {
 				target = index
 				break
 			}
 		}
 	}
 
-	switchValue := Value{}
+	result := Value{}
 	if target != -1 {
-		labelSet := node.labelSet
-
-		for _, clause := range node.CaseList[target:] {
-			value := self.evaluateBody(clause.Body)
-			switch value.evaluateBreak(labelSet) {
-			case resultReturn:
-				return value
-			case resultBreak:
-				return Value{}
-			}
-			if !value.isEmpty() {
-				switchValue = value
+		for _, clause := range node.Body[target:] {
+			for _, statement := range clause.Consequent {
+				value := self.evaluate(statement)
+				switch value._valueType {
+				case valueResult:
+					switch value.evaluateBreak(labels) {
+					case resultReturn:
+						return value
+					case resultBreak:
+						return Value{}
+					}
+				case valueEmpty:
+				default:
+					result = value
+				}
 			}
 		}
 	}
 
-	return switchValue
+	return result
 }

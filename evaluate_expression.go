@@ -1,11 +1,15 @@
 package otto
 
 import (
+	"fmt"
 	"math"
 	"strings"
+
+	"github.com/robertkrimen/otto/ast"
+	"github.com/robertkrimen/otto/token"
 )
 
-func (self *_runtime) evaluateConditional(node *_conditionalNode) Value {
+func (self *_runtime) evaluateConditionalExpression(node *ast.ConditionalExpression) Value {
 	test := self.evaluate(node.Test)
 	testValue := self.GetValue(test)
 	if toBoolean(testValue) {
@@ -14,7 +18,19 @@ func (self *_runtime) evaluateConditional(node *_conditionalNode) Value {
 	return self.evaluate(node.Alternate)
 }
 
-func (self *_runtime) evaluateNew(node *_newNode) Value {
+func (self *_runtime) evaluateVariableExpression(node *ast.VariableExpression) Value {
+	if node.Initializer != nil {
+		// FIXME If reference is nil
+		left := getIdentifierReference(self.LexicalEnvironment(), node.Name, false, node)
+		right := self.evaluate(node.Initializer)
+		rightValue := self.GetValue(right)
+
+		self.PutValue(left, rightValue)
+	}
+	return toValue_string(node.Name)
+}
+
+func (self *_runtime) evaluateNew(node *ast.NewExpression) Value {
 	callee := self.evaluate(node.Callee)
 	calleeValue := self.GetValue(callee)
 	argumentList := []Value{}
@@ -28,12 +44,16 @@ func (self *_runtime) evaluateNew(node *_newNode) Value {
 	return calleeValue._object().Construct(this, argumentList)
 }
 
-func (self *_runtime) evaluateArray(node *_arrayNode) Value {
+func (self *_runtime) evaluateArray(node *ast.ArrayLiteral) Value {
 
 	valueArray := []Value{}
 
-	for _, node := range node.nodeList {
-		valueArray = append(valueArray, self.GetValue(self.evaluate(node)))
+	for _, node := range node.Value {
+		if node == nil {
+			valueArray = append(valueArray, Value{})
+		} else {
+			valueArray = append(valueArray, self.GetValue(self.evaluate(node)))
+		}
 	}
 
 	result := self.newArrayOf(valueArray)
@@ -41,28 +61,45 @@ func (self *_runtime) evaluateArray(node *_arrayNode) Value {
 	return toValue_object(result)
 }
 
-func (self *_runtime) evaluateObject(node *_objectNode) Value {
+func (self *_runtime) evaluateObject(node *ast.ObjectLiteral) Value {
 
 	result := self.newObject()
 
-	for _, property := range node.propertyList {
-		result.defineProperty(property.Key, self.GetValue(self.evaluate(property.Value)), 0111, false)
+	for _, property := range node.Value {
+		switch property.Kind {
+		case "value":
+			result.defineProperty(property.Key, self.GetValue(self.evaluate(property.Value)), 0111, false)
+		case "get":
+			getter := self.newNodeFunction(property.Value.(*ast.FunctionExpression), self.LexicalEnvironment())
+			descriptor := _property{}
+			descriptor.mode = 0211
+			descriptor.value = _propertyGetSet{getter, nil}
+			result.defineOwnProperty(property.Key, descriptor, false)
+		case "set":
+			setter := self.newNodeFunction(property.Value.(*ast.FunctionExpression), self.LexicalEnvironment())
+			descriptor := _property{}
+			descriptor.mode = 0211
+			descriptor.value = _propertyGetSet{nil, setter}
+			result.defineOwnProperty(property.Key, descriptor, false)
+		default:
+			panic(fmt.Errorf("evaluateObject: invalid property.Kind: %v", property.Kind))
+		}
 	}
 
 	return toValue_object(result)
 }
 
-func (self *_runtime) evaluateRegExp(node *_regExpNode) Value {
+func (self *_runtime) evaluateRegExpLiteral(node *ast.RegExpLiteral) Value {
 	return toValue_object(self._newRegExp(node.Pattern, node.Flags))
 }
 
-func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
+func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 
-	target := self.evaluate(node.Target)
+	target := self.evaluate(node.Operand)
 	switch node.Operator {
-	case "typeof", "delete":
+	case token.TYPEOF, token.DELETE:
 		if target._valueType == valueReference && target.reference().IsUnresolvable() {
-			if node.Operator == "typeof" {
+			if node.Operator == token.TYPEOF {
 				return toValue_string("undefined")
 			}
 			return TrueValue()
@@ -72,17 +109,17 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 	targetValue := self.GetValue(target)
 
 	switch node.Operator {
-	case "!":
+	case token.NOT:
 		if targetValue.toBoolean() {
 			return FalseValue()
 		}
 		return TrueValue()
-	case "~":
+	case token.BITWISE_NOT:
 		integerValue := toInt32(targetValue)
 		return toValue_int32(^integerValue)
-	case "+":
+	case token.PLUS:
 		return toValue_float64(targetValue.toFloat())
-	case "-":
+	case token.MINUS:
 		value := targetValue.toFloat()
 		// TODO Test this
 		sign := float64(-1)
@@ -90,33 +127,41 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 			sign = 1
 		}
 		return toValue_float64(math.Copysign(value, sign))
-	case "++=": // Prefix ++
-		newValue := toValue_float64(+1 + targetValue.toFloat())
-		self.PutValue(target.reference(), newValue)
-		return newValue
-	case "--=": // Prefix --
-		newValue := toValue_float64(-1 + targetValue.toFloat())
-		self.PutValue(target.reference(), newValue)
-		return newValue
-	case "=++": // Postfix ++
-		oldValue := targetValue.toFloat()
-		newValue := toValue_float64(+1 + oldValue)
-		self.PutValue(target.reference(), newValue)
-		return toValue_float64(oldValue)
-	case "=--": // Postfix --
-		oldValue := targetValue.toFloat()
-		newValue := toValue_float64(-1 + oldValue)
-		self.PutValue(target.reference(), newValue)
-		return toValue_float64(oldValue)
-	case "void":
+	case token.INCREMENT:
+		if node.Postfix {
+			// Postfix++
+			oldValue := targetValue.toFloat()
+			newValue := toValue_float64(+1 + oldValue)
+			self.PutValue(target.reference(), newValue)
+			return toValue_float64(oldValue)
+		} else {
+			// ++Prefix
+			newValue := toValue_float64(+1 + targetValue.toFloat())
+			self.PutValue(target.reference(), newValue)
+			return newValue
+		}
+	case token.DECREMENT:
+		if node.Postfix {
+			// Postfix--
+			oldValue := targetValue.toFloat()
+			newValue := toValue_float64(-1 + oldValue)
+			self.PutValue(target.reference(), newValue)
+			return toValue_float64(oldValue)
+		} else {
+			// --Prefix
+			newValue := toValue_float64(-1 + targetValue.toFloat())
+			self.PutValue(target.reference(), newValue)
+			return newValue
+		}
+	case token.VOID:
 		return UndefinedValue()
-	case "delete":
+	case token.DELETE:
 		reference := target.reference()
 		if reference == nil {
 			return TrueValue()
 		}
 		return toValue_bool(target.reference().Delete())
-	case "typeof":
+	case token.TYPEOF:
 		switch targetValue._valueType {
 		case valueUndefined:
 			return toValue_string("undefined")
@@ -185,14 +230,14 @@ func (self *_runtime) evaluateModulo(left float64, right float64) Value {
 	return UndefinedValue()
 }
 
-func (self *_runtime) calculateBinaryOperation(operator string, left Value, right Value) Value {
+func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value, right Value) Value {
 
 	leftValue := self.GetValue(left)
 
 	switch operator {
 
 	// Additive
-	case "+":
+	case token.PLUS:
 		leftValue = toPrimitive(leftValue)
 		rightValue := self.GetValue(right)
 		rightValue = toPrimitive(rightValue)
@@ -202,67 +247,67 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 		} else {
 			return toValue_float64(leftValue.toFloat() + rightValue.toFloat())
 		}
-	case "-":
+	case token.MINUS:
 		rightValue := self.GetValue(right)
 		return toValue_float64(leftValue.toFloat() - rightValue.toFloat())
 
-	// Multiplicative
-	case "*":
+		// Multiplicative
+	case token.MULTIPLY:
 		rightValue := self.GetValue(right)
 		return toValue_float64(leftValue.toFloat() * rightValue.toFloat())
-	case "/":
+	case token.SLASH:
 		rightValue := self.GetValue(right)
 		return self.evaluateDivide(leftValue.toFloat(), rightValue.toFloat())
-	case "%":
+	case token.REMAINDER:
 		rightValue := self.GetValue(right)
 		return toValue_float64(math.Mod(leftValue.toFloat(), rightValue.toFloat()))
 
-	// Logical
-	case "&&":
+		// Logical
+	case token.LOGICAL_AND:
 		left := toBoolean(leftValue)
 		if !left {
 			return FalseValue()
 		}
 		return toValue_bool(toBoolean(self.GetValue(right)))
-	case "||":
+	case token.LOGICAL_OR:
 		left := toBoolean(leftValue)
 		if left {
 			return TrueValue()
 		}
 		return toValue_bool(toBoolean(self.GetValue(right)))
 
-	// Bitwise
-	case "&":
+		// Bitwise
+	case token.AND:
 		rightValue := self.GetValue(right)
 		return toValue_int32(toInt32(leftValue) & toInt32(rightValue))
-	case "|":
+	case token.OR:
 		rightValue := self.GetValue(right)
 		return toValue_int32(toInt32(leftValue) | toInt32(rightValue))
-	case "^":
+	case token.EXCLUSIVE_OR:
 		rightValue := self.GetValue(right)
 		return toValue_int32(toInt32(leftValue) ^ toInt32(rightValue))
 
-	// Shift
-	// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
-	case "<<":
+		// Shift
+		// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
+	case token.SHIFT_LEFT:
 		rightValue := self.GetValue(right)
 		return toValue_int32(toInt32(leftValue) << (toUint32(rightValue) & 0x1f))
-	case ">>":
+	case token.SHIFT_RIGHT:
 		rightValue := self.GetValue(right)
 		return toValue_int32(toInt32(leftValue) >> (toUint32(rightValue) & 0x1f))
-	case ">>>":
+	case token.UNSIGNED_SHIFT_RIGHT:
 		rightValue := self.GetValue(right)
 		// Shifting an unsigned integer is a logical shift
 		return toValue_uint32(toUint32(leftValue) >> (toUint32(rightValue) & 0x1f))
 
-	case "instanceof":
+	case token.INSTANCEOF:
 		rightValue := self.GetValue(right)
 		if !rightValue.IsObject() {
 			panic(newTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
 		}
 		return toValue_bool(rightValue._object().HasInstance(leftValue))
 
-	case "in":
+	case token.IN:
 		rightValue := self.GetValue(right)
 		if !rightValue.IsObject() {
 			panic(newTypeError())
@@ -273,15 +318,15 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 	panic(hereBeDragons(operator))
 }
 
-func (self *_runtime) evaluateAssignment(node *_assignmentNode) Value {
+func (self *_runtime) evaluateAssignExpression(node *ast.AssignExpression) Value {
 
 	left := self.evaluate(node.Left)
 	right := self.evaluate(node.Right)
 	rightValue := self.GetValue(right)
 
 	result := rightValue
-	if node.Operator != "" {
-		result = self.calculateBinaryOperation(node.Operator, left, rightValue)
+	if node.Operator != token.ASSIGN {
+		result = self.calculateBinaryExpression(node.Operator, left, rightValue)
 	}
 
 	self.PutValue(left.reference(), result)
@@ -376,7 +421,7 @@ var lessThanTable [4](map[_lessThanResult]bool) = [4](map[_lessThanResult]bool){
 	},
 }
 
-func (self *_runtime) calculateComparison(comparator string, left Value, right Value) bool {
+func (self *_runtime) calculateComparison(comparator token.Token, left Value, right Value) bool {
 
 	// FIXME Use strictEqualityComparison?
 	// TODO This might be redundant now (with regards to evaluateComparison)
@@ -388,27 +433,27 @@ func (self *_runtime) calculateComparison(comparator string, left Value, right V
 	negate := false
 
 	switch comparator {
-	case "<":
+	case token.LESS:
 		result = lessThanTable[0][calculateLessThan(x, y, true)]
-	case ">":
+	case token.GREATER:
 		result = lessThanTable[1][calculateLessThan(y, x, false)]
-	case "<=":
+	case token.LESS_OR_EQUAL:
 		result = lessThanTable[2][calculateLessThan(y, x, false)]
-	case ">=":
+	case token.GREATER_OR_EQUAL:
 		result = lessThanTable[3][calculateLessThan(x, y, true)]
-	case "!==":
+	case token.STRICT_NOT_EQUAL:
 		negate = true
 		fallthrough
-	case "===":
+	case token.STRICT_EQUAL:
 		if x._valueType != y._valueType {
 			result = false
 		} else {
 			kindEqualKind = true
 		}
-	case "!=":
+	case token.NOT_EQUAL:
 		negate = true
 		fallthrough
-	case "==":
+	case token.EQUAL:
 		if x._valueType == y._valueType {
 			kindEqualKind = true
 		} else if x._valueType <= valueUndefined && y._valueType <= valueUndefined {
@@ -418,16 +463,18 @@ func (self *_runtime) calculateComparison(comparator string, left Value, right V
 		} else if x._valueType <= valueString && y._valueType <= valueString {
 			result = x.toFloat() == y.toFloat()
 		} else if x._valueType == valueBoolean {
-			result = self.calculateComparison("==", toValue_float64(x.toFloat()), y)
+			result = self.calculateComparison(token.EQUAL, toValue_float64(x.toFloat()), y)
 		} else if y._valueType == valueBoolean {
-			result = self.calculateComparison("==", x, toValue_float64(y.toFloat()))
+			result = self.calculateComparison(token.EQUAL, x, toValue_float64(y.toFloat()))
 		} else if x._valueType == valueObject {
-			result = self.calculateComparison("==", toPrimitive(x), y)
+			result = self.calculateComparison(token.EQUAL, toPrimitive(x), y)
 		} else if y._valueType == valueObject {
-			result = self.calculateComparison("==", x, toPrimitive(y))
+			result = self.calculateComparison(token.EQUAL, x, toPrimitive(y))
 		} else {
 			panic(hereBeDragons("Unable to test for equality: %v ==? %v", x, y))
 		}
+	default:
+		panic(fmt.Errorf("Unknown comparator %s", comparator.String()))
 	}
 
 	if kindEqualKind {
@@ -463,28 +510,28 @@ ERROR:
 	panic(hereBeDragons("%v (%v) %s %v (%v)", x, x._valueType, comparator, y, y._valueType))
 }
 
-func (self *_runtime) evaluateComparison(node *_comparisonNode) Value {
+func (self *_runtime) evaluateComparison(node *ast.BinaryExpression) Value {
 
 	left := self.GetValue(self.evaluate(node.Left))
 	right := self.GetValue(self.evaluate(node.Right))
 
-	return toValue_bool(self.calculateComparison(node.Comparator, left, right))
+	return toValue_bool(self.calculateComparison(node.Operator, left, right))
 }
 
-func (self *_runtime) evaluateBinaryOperation(node *_binaryOperationNode) Value {
+func (self *_runtime) evaluateBinaryExpression(node *ast.BinaryExpression) Value {
 
 	left := self.evaluate(node.Left)
 	leftValue := self.GetValue(left)
 
 	switch node.Operator {
 	// Logical
-	case "&&":
+	case token.LOGICAL_AND:
 		if !toBoolean(leftValue) {
 			return leftValue
 		}
 		right := self.evaluate(node.Right)
 		return self.GetValue(right)
-	case "||":
+	case token.LOGICAL_OR:
 		if toBoolean(leftValue) {
 			return leftValue
 		}
@@ -492,10 +539,10 @@ func (self *_runtime) evaluateBinaryOperation(node *_binaryOperationNode) Value 
 		return self.GetValue(right)
 	}
 
-	return self.calculateBinaryOperation(node.Operator, leftValue, self.evaluate(node.Right))
+	return self.calculateBinaryExpression(node.Operator, leftValue, self.evaluate(node.Right))
 }
 
-func (self *_runtime) evaluateCall(node *_callNode, withArgumentList []interface{}) Value {
+func (self *_runtime) evaluateCall(node *ast.CallExpression, withArgumentList []interface{}) Value {
 	callee := self.evaluate(node.Callee)
 	calleeValue := self.GetValue(callee)
 	argumentList := []Value{}
@@ -526,19 +573,23 @@ func (self *_runtime) evaluateCall(node *_callNode, withArgumentList []interface
 	return self.Call(calleeValue._object(), this, argumentList, evalHint)
 }
 
-func (self *_runtime) evaluateFunction(node *_functionNode) Value {
+func (self *_runtime) evaluateFunction(node *ast.FunctionExpression) Value {
 	return toValue_object(self.newNodeFunction(node, self.LexicalEnvironment()))
 }
 
-func (self *_runtime) evaluateDotMember(node *_dotMemberNode) Value {
-	target := self.evaluate(node.Target)
+func (self *_runtime) evaluateDotExpression(node *ast.DotExpression) Value {
+	target := self.evaluate(node.Left)
 	targetValue := self.GetValue(target)
 	// TODO Pass in base value as-is, and defer toObject till later?
-	return toValue(newPropertyReference(self.toObject(targetValue), node.Member, false, node))
+	object, err := self.objectCoerce(targetValue)
+	if err != nil {
+		panic(newTypeError(fmt.Sprintf("Cannot access member '%s' of %s", node.Identifier.Name, err.Error())))
+	}
+	return toValue(newPropertyReference(object, node.Identifier.Name, false, node))
 }
 
-func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
-	target := self.evaluate(node.Target)
+func (self *_runtime) evaluateBracketExpression(node *ast.BracketExpression) Value {
+	target := self.evaluate(node.Left)
 	targetValue := self.GetValue(target)
 	member := self.evaluate(node.Member)
 	memberValue := self.GetValue(member)
@@ -547,8 +598,8 @@ func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
 	return toValue(newPropertyReference(self.toObject(targetValue), toString(memberValue), false, node))
 }
 
-func (self *_runtime) evaluateIdentifier(node *_identifierNode) Value {
-	name := node.Value
+func (self *_runtime) evaluateIdentifier(node *ast.Identifier) Value {
+	name := node.Name
 	// TODO Should be true or false (strictness) depending on context
 	// getIdentifierReference should not return nil, but we check anyway and panic
 	// so as not to propagate the nil into something else
@@ -560,11 +611,7 @@ func (self *_runtime) evaluateIdentifier(node *_identifierNode) Value {
 	return toValue(reference)
 }
 
-func (self *_runtime) evaluateValue(node *_valueNode) Value {
-	return node.Value
-}
-
-func (self *_runtime) evaluateComma(node *_commaNode) Value {
+func (self *_runtime) evaluateSequenceExpression(node *ast.SequenceExpression) Value {
 	var result Value
 	for _, node := range node.Sequence {
 		result = self.evaluate(node)

@@ -6,64 +6,78 @@ Package otto is a JavaScript parser and interpreter written natively in Go.
 
 http://godoc.org/github.com/robertkrimen/otto
 
-    // Create a new runtime
-    Otto := otto.New()
+    import (
+        "github.com/robertkrimen/otto"
+    )
 
-    Otto.Run(`
-    	abc = 2 + 2
-    	console.log("The value of abc is " + abc)
-    	// The value of abc is 4
+Run something in the VM
+
+    vm := otto.New()
+    vm.Run(`
+        abc = 2 + 2;
+    	console.log("The value of abc is " + abc); // 4
     `)
 
-    value, err := Otto.Get("abc")
-    {
-    	// value is an int64 with a value of 4
+Get a value out of the VM
+
+    value, err := vm.Get("abc")
     	value, _ := value.ToInteger()
     }
 
-    Otto.Set("def", 11)
-    Otto.Run(`
-    	console.log("The value of def is " + def)
+Set a number
+
+    vm.Set("def", 11)
+    vm.Run(`
+    	console.log("The value of def is " + def);
     	// The value of def is 11
     `)
 
-    Otto.Set("xyzzy", "Nothing happens.")
-    Otto.Run(`
-    	console.log(xyzzy.length) // 16
+Set a string
+
+    vm.Set("xyzzy", "Nothing happens.")
+    vm.Run(`
+    	console.log(xyzzy.length); // 16
     `)
 
-    value, _ = Otto.Run("xyzzy.length")
+Get the value of an expression
+
+    value, _ = vm.Run("xyzzy.length")
     {
     	// value is an int64 with a value of 16
     	value, _ := value.ToInteger()
     }
 
-    value, err = Otto.Run("abcdefghijlmnopqrstuvwxyz.length")
+An error happens
+
+    value, err = vm.Run("abcdefghijlmnopqrstuvwxyz.length")
     if err != nil {
     	// err = ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined
     	// If there is an error, then value.IsUndefined() is true
     	...
     }
 
-Embedding a Go function in JavaScript:
+Set a Go function
 
-    Otto.Set("sayHello", func(call otto.FunctionCall) otto.Value {
-    	fmt.Printf("Hello, %s.\n", call.Argument(0).String())
-    	return otto.UndefinedValue()
+    vm.Set("sayHello", func(call otto.FunctionCall) otto.Value {
+        fmt.Printf("Hello, %s.\n", call.Argument(0).String())
+        return otto.UndefinedValue()
     })
 
-    Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
-    	right, _ := call.Argument(0).ToInteger()
-    	result, _ := Otto.ToValue(2 + right)
-    	return result
+Set a Go function that returns something useful
+
+    vm.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
+        right, _ := call.Argument(0).ToInteger()
+        result, _ := vm.ToValue(2 + right)
+        return result
     })
 
-    result, _ = Otto.Run(`
-    	// First, say a greeting
-    	sayHello("Xyzzy") // Hello, Xyzzy.
-    	sayHello() // Hello, undefined
+Use the functions in JavaScript
 
-    	result = twoPlus(2.0) // 4
+    result, _ = vm.Run(`
+        sayHello("Xyzzy");      // Hello, Xyzzy.
+        sayHello();             // Hello, undefined
+
+        result = twoPlus(2.0); // 4
     `)
 
 You can run (Go) JavaScript from the commandline with:
@@ -87,32 +101,37 @@ import:
 
 For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 
+
 ### Caveat Emptor
 
-    * For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
-    * For example, "use strict" will parse, but does nothing.
+The following are some limitations with otto:
+
+    * "use strict" will parse, but does nothing.
     * Error reporting needs to be improved.
-    * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
-    * JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
-    * Really, error reporting could use some improvement.
+    * The regular expression engine (re2/regexp) is not fully compatible with the ECMA5 specification.
 
 
-### Regular Expression Syntax
+### Regular Expression Incompatibility
 
 Go translates JavaScript-style regular expressions into something that is
-"regexp" package compatible.
+"regexp" compatible via `parser.TransformRegExp`. Unfortunately, RegExp requires
+backtracking for some patterns, and backtracking is not supported by the
+standard Go engine: https://code.google.com/p/re2/wiki/Syntax
 
-Unfortunately, JavaScript has positive lookahead, negative lookahead, and
-backreferencing, all of which are not supported by Go's RE2-like engine:
-https://code.google.com/p/re2/wiki/Syntax
+Therefore, the following syntax is incompatible:
+
+    (?=)  // Lookahead (positive), currently a parsing error
+    (?!)  // Lookahead (backhead), currently a parsing error
+    \1    // Backreference (\1, \2, \3, ...), currently a parsing error
 
 A brief discussion of these limitations: "Regexp (?!re)"
 https://groups.google.com/forum/?fromgroups=#%21topic/golang-nuts/7qgSDWPIh_E
 
-More information about RE2: https://code.google.com/p/re2/
+More information about re2: https://code.google.com/p/re2/
 
-JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace
-class (\s), while RE2 does not.
+In addition to the above, re2 (Go) has a different definition for \s: [\t\n\f\r
+]. The JavaScript definition, on the other hand, also includes \v, Unicode
+"Separator, Space", etc.
 
 
 ### Halting Problem
@@ -125,9 +144,10 @@ the interrupt channel to do this:
     import (
         "errors"
         "fmt"
-        Otto "github.com/robertkrimen/otto"
         "os"
-        Time "time"
+        "time"
+
+        "github.com/robertkrimen/otto"
     )
 
     var Halt = errors.New("Halt")
@@ -141,9 +161,9 @@ the interrupt channel to do this:
     }
 
     func runUnsafe(unsafe string) {
-        start := Time.Now()
+        start := time.Now()
         defer func() {
-            duration := Time.Since(start)
+            duration := time.Since(start)
             if caught := recover(); caught != nil {
                 if caught == Halt {
                     fmt.Fprintf(os.Stderr, "Some code took to long! Stopping after: %v\n", duration)
@@ -153,16 +173,16 @@ the interrupt channel to do this:
             }
             fmt.Fprintf(os.Stderr, "Ran code successfully: %v\n", duration)
         }()
-        otto := Otto.New()
-        otto.Interrupt = make(chan func())
+        vm := otto.New()
+        vm.Interrupt = make(chan func())
         go func() {
-            Time.Sleep(2 * Time.Second) // Stop after two seconds
-            otto.Interrupt <- func() {
+            time.Sleep(2 * time.Second) // Stop after two seconds
+            vm.Interrupt <- func() {
                 panic(Halt)
             }
         }()
-        otto.Run(unsafe) // Here be dragons (risky code)
-        otto.Interrupt = nil
+        vm.Run(unsafe) // Here be dragons (risky code)
+        vm.Interrupt = nil
     }
 
 Where is setTimeout/setInterval?
@@ -217,11 +237,12 @@ Object is the representation of a JavaScript object.
 ```go
 func (self Object) Call(name string, argumentList ...interface{}) (Value, error)
 ```
-Call the method specified by the given name, using self as the this value. It is
-essentially equivalent to:
+Call a method on the object.
 
-    var method, _ := self.Get(name)
-    method.Call(self, argumentList...)
+It is essentially equivalent to:
+
+    var method, _ := object.Get(name)
+    method.Call(object, argumentList...)
 
 An undefined value and an error will result if:
 
@@ -315,8 +336,6 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 ```
 Call the given JavaScript with a given this and arguments.
 
-WARNING: 2013-05-19: This function is rough, and is in beta.
-
 If this is nil, then some special handling takes place to determine the proper
 this value, falling back to a "standard" invocation if necessary (where this is
 undefined).
@@ -326,14 +345,14 @@ will invoke the function constructor rather than performing a function call. In
 this case, the this argument has no effect.
 
     // value is a String object
-    value, _ := Otto.Call("Object", nil, "Hello, World.")
+    value, _ := vm.Call("Object", nil, "Hello, World.")
 
     // Likewise...
-    value, _ := Otto.Call("new Object", nil, "Hello, World.")
+    value, _ := vm.Call("new Object", nil, "Hello, World.")
 
     // This will perform a concat on the given array and return the result
     // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
-    value, _ := Otto.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
+    value, _ := vm.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
 
 #### func (*Otto) Copy
 
@@ -368,15 +387,15 @@ Object will run the given source and return the result as an object.
 
 For example, accessing an existing object:
 
-    object, _ := Otto.Object(`Number`)
+    object, _ := vm.Object(`Number`)
 
 Or, creating a new object:
 
-    object, _ := Otto.Object(`({ xyzzy: "Nothing happens." })`)
+    object, _ := vm.Object(`({ xyzzy: "Nothing happens." })`)
 
 Or, creating and assigning an object:
 
-    object, _ := Otto.Object(`xyzzy = {}`)
+    object, _ := vm.Object(`xyzzy = {}`)
     object.Set("volume", 11)
 
 If there is an error (like the source does not result in an object), then nil
