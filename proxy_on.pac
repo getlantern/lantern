@@ -102,6 +102,8 @@ proxyDomains[i++] = "wordpress.com";
 proxyDomains[i++] = "wordpress.org";
 proxyDomains[i++] = "wretch.cc";
 proxyDomains[i++] = "youtube.com";
+proxyDomains[i++] = "ytimg.com";
+proxyDomains[i++] = "ggpht.com";
 proxyDomains[i++] = "yzzk.com";
 
 for(i in proxyDomains) {
