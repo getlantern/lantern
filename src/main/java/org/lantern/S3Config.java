@@ -22,7 +22,7 @@ public class S3Config {
     private int statsGetInterval = 60;
     
     /**
-     * Wait 1 minute before first posting stats, to give the system a 
+     * Wait a bit before first posting stats, to give the system a 
      * chance to initialize metadata.
      */
     private int statsPostInterval = 5 * 60;
