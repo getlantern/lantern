@@ -28,6 +28,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
@@ -211,6 +212,7 @@ public class Launcher {
         //    do not show the UI, but do put the app in the system tray.
         final boolean uiDisabled = cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
+        final boolean testFallbacks = cmd.hasOption(Cli.OPTION_TEST_FALLBACKS);
 
         configureCipherSuites();
         preInstanceWatch.stop();
@@ -266,6 +268,13 @@ public class Launcher {
         }
         
         proxyTracker = instance(ProxyTracker.class);
+
+        if (testFallbacks) {
+            // TODO: force get mode (and disable ui?)
+            Thread t = new Thread(new FallbackTester((DefaultProxyTracker)proxyTracker));
+            t.start();
+        }
+
         this.s3ConfigManager = new S3ConfigFetcher(model);
         this.s3ConfigManager.start();
 

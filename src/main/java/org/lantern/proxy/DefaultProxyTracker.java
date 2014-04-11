@@ -414,7 +414,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
+    public void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
         LOG.debug("Attempting to add single fallback proxy");
 
         final String cert = fallbackProxy.getCert();
