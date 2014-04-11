@@ -16,7 +16,7 @@ public class HostSpoofingTest {
 
     public static void main(final String... args) throws Exception {
         final SSLSocket sock = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
-        sock.connect(new InetSocketAddress("www.google.com", 443), 10000);
+        sock.connect(new InetSocketAddress("github.global.ssl.fastly.net", 443), 10000);
         
         OutputStream os = null;
         try {
@@ -45,9 +45,7 @@ public class HostSpoofingTest {
 
     private static void writeHttpRequest(final OutputStream os) throws IOException {
         os.write("GET / HTTP/1.1\r\n".getBytes(Charsets.UTF_8));
-        //os.write("Host: lantern-compute-engine-test.c.o59bxf5.internal\r\n".getBytes(Charsets.UTF_8));
-        //os.write("Host: 23.236.59.9\r\n".getBytes(Charsets.UTF_8));
-        os.write("Host: 10.240.200.99\r\n".getBytes(Charsets.UTF_8));
+        os.write("Host: www.getlantem.org\r\n".getBytes(Charsets.UTF_8));
         os.write("\r\n".getBytes(Charsets.UTF_8));
     }
 
