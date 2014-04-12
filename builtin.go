@@ -57,6 +57,18 @@ var parseInt_alphabetTable = func() []string {
 	return table
 }()
 
+func digitValue(chr rune) int {
+	switch {
+	case '0' <= chr && chr <= '9':
+		return int(chr - '0')
+	case 'a' <= chr && chr <= 'z':
+		return int(chr - 'a' + 10)
+	case 'A' <= chr && chr <= 'Z':
+		return int(chr - 'A' + 10)
+	}
+	return 36 // Larger than any legal digit value
+}
+
 func builtinGlobal_parseInt(call FunctionCall) Value {
 	input := strings.TrimSpace(toString(call.Argument(0)))
 	if len(input) == 0 {
@@ -65,13 +77,12 @@ func builtinGlobal_parseInt(call FunctionCall) Value {
 
 	radix := int(toInt32(call.Argument(1)))
 
-	sign := int64(1)
+	negative := false
 	switch input[0] {
 	case '+':
-		sign = 1
 		input = input[1:]
 	case '-':
-		sign = -1
+		negative = true
 		input = input[1:]
 	}
 
@@ -99,18 +110,40 @@ func builtinGlobal_parseInt(call FunctionCall) Value {
 		}
 	}
 
-	alphabet := parseInt_alphabetTable[radix]
-	if index := strings.IndexFunc(input, func(chr rune) bool {
-		return !strings.ContainsRune(alphabet, chr)
-	}); index != -1 {
-		input = input[0:index]
+	base := radix
+	index := 0
+	for ; index < len(input); index++ {
+		digit := digitValue(rune(input[index])) // If not ASCII, then an error anyway
+		if digit >= base {
+			break
+		}
 	}
+	input = input[0:index]
 
 	value, err := strconv.ParseInt(input, radix, 64)
 	if err != nil {
+		if err.(*strconv.NumError).Err == strconv.ErrRange {
+			base := float64(base)
+			// Could just be a very large number (e.g. 0x8000000000000000)
+			var value float64
+			for _, chr := range input {
+				digit := float64(digitValue(chr))
+				if digit >= base {
+					goto error
+				}
+				value = value*base + digit
+			}
+			if negative {
+				value *= -1
+			}
+			return toValue_float64(value)
+		}
+	error:
 		return NaNValue()
 	}
-	value *= sign
+	if negative {
+		value *= -1
+	}
 
 	return toValue_int64(value)
 }

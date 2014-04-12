@@ -181,10 +181,8 @@ func Test_parseInt(t *testing.T) {
 	test(`parseInt(" 0x11\n", 16)`, "17")
 	test(`parseInt("0x0aXyzzy", 16)`, "10")
 	test(`parseInt("0x1", 0)`, "1")
-	if false {
-		// FIXME TODO parseInt("0x10000000000000000000", 16)
-		test(`parseInt("0x10000000000000000000", 16)`, "75557863725914323419136")
-	}
+	// TODO Fix test(...) so we avoid using fmt.Sprintf
+	test(`parseInt("0x10000000000000000000", 16)`, fmt.Sprintf("%v", float64(75557863725914323419136)))
 
 	test(`parseInt.length === 2`, "true")
 	test(`parseInt.prototype === undefined`, "true")
