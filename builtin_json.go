@@ -196,8 +196,17 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 	value := holder.get(key)
 
 	if value.IsObject() {
-		if toJSON := value._object().get("toJSON"); toJSON.IsFunction() {
+		object := value._object()
+		if toJSON := object.get("toJSON"); toJSON.IsFunction() {
 			value = toJSON.call(value, key)
+		} else {
+			// If the object is a GoStruct or something that implements json.Marshaler
+			if object.objectClass.marshalJSON != nil {
+				marshaler := object.objectClass.marshalJSON(object)
+				if marshaler != nil {
+					return marshaler, true
+				}
+			}
 		}
 	}
 

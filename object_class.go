@@ -1,5 +1,9 @@
 package otto
 
+import (
+	"encoding/json"
+)
+
 type _objectClass struct {
 	getOwnProperty    func(*_object, string) *_property
 	getProperty       func(*_object, string) *_property
@@ -12,6 +16,7 @@ type _objectClass struct {
 	delete            func(*_object, string, bool) bool
 	enumerate         func(*_object, bool, func(string) bool)
 	clone             func(*_object, *_object, *_clone) *_object
+	marshalJSON       func(*_object) json.Marshaler
 }
 
 func objectEnumerate(self *_object, all bool, each func(string) bool) {
@@ -49,6 +54,7 @@ func init() {
 		objectDelete,
 		objectEnumerate,
 		objectClone,
+		nil,
 	}
 
 	_classArray = &_objectClass{
@@ -63,6 +69,7 @@ func init() {
 		objectDelete,
 		objectEnumerate,
 		objectClone,
+		nil,
 	}
 
 	_classString = &_objectClass{
@@ -77,7 +84,7 @@ func init() {
 		objectDelete,
 		stringEnumerate,
 		objectClone,
-		//stringClone,
+		nil,
 	}
 
 	_classArguments = &_objectClass{
@@ -90,10 +97,9 @@ func init() {
 		objectHasOwnProperty,
 		argumentsDefineOwnProperty,
 		argumentsDelete,
-		//argumentsEnumerate,
 		objectEnumerate,
-		//argumentsClone
 		objectClone,
+		nil,
 	}
 
 	_classGoStruct = &_objectClass{
@@ -108,6 +114,7 @@ func init() {
 		objectDelete,
 		goStructEnumerate,
 		objectClone,
+		goStructMarshalJSON,
 	}
 
 	_classGoMap = &_objectClass{
@@ -122,6 +129,7 @@ func init() {
 		goMapDelete,
 		goMapEnumerate,
 		objectClone,
+		nil,
 	}
 
 	_classGoArray = &_objectClass{
@@ -136,6 +144,7 @@ func init() {
 		goArrayDelete,
 		goArrayEnumerate,
 		objectClone,
+		nil,
 	}
 
 	_classGoSlice = &_objectClass{
@@ -150,6 +159,7 @@ func init() {
 		goSliceDelete,
 		goSliceEnumerate,
 		objectClone,
+		nil,
 	}
 }
 

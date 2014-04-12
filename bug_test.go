@@ -3,6 +3,7 @@ package otto
 import (
 	. "./terst"
 	"testing"
+	"time"
 )
 
 func Test_262(t *testing.T) {
@@ -259,6 +260,7 @@ func Test_issue24(t *testing.T) {
 
 func Test_issue39(t *testing.T) {
 	Terst(t)
+
 	test := runTest()
 
 	test(`
@@ -278,6 +280,35 @@ func Test_issue39(t *testing.T) {
 		}
 		def;
 	`, "1,2,3,4")
+}
+
+func Test_issue64(t *testing.T) {
+	Terst(t)
+
+	defer mockTimeLocal(time.UTC)()
+
+	otto, test := runTestWithOtto()
+
+	abc := map[string]interface{}{
+		"time": time.Unix(0, 0),
+	}
+	otto.Set("abc", abc)
+
+	def := struct {
+		Public  string
+		private string
+	}{
+		"Public", "private",
+	}
+	otto.Set("def", def)
+
+	test(`"sec" in abc.time`, false)
+
+	test(`
+        [ "Public" in def, "private" in def, def.Public, def.private ];
+    `, "true,false,Public,")
+
+	test(`JSON.stringify(abc)`, `{"time":"1970-01-01T00:00:00Z"}`)
 }
 
 func Test_7_3_1(t *testing.T) {

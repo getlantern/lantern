@@ -1,6 +1,7 @@
 package otto
 
 import (
+	"encoding/json"
 	"reflect"
 )
 
@@ -27,12 +28,15 @@ func _newGoStructObject(value reflect.Value) *_goStructObject {
 }
 
 func (self _goStructObject) getValue(name string) reflect.Value {
-	if field := reflect.Indirect(self.value).FieldByName(name); (field != reflect.Value{}) {
-		return field
-	}
+	if validGoStructName(name) {
+		// Do not reveal hidden or unexported fields
+		if field := reflect.Indirect(self.value).FieldByName(name); (field != reflect.Value{}) {
+			return field
+		}
 
-	if method := self.value.MethodByName(name); (method != reflect.Value{}) {
-		return method
+		if method := self.value.MethodByName(name); (method != reflect.Value{}) {
+			return method
+		}
 	}
 
 	return reflect.Value{}
@@ -70,20 +74,33 @@ func goStructGetOwnProperty(self *_object, name string) *_property {
 	return objectGetOwnProperty(self, name)
 }
 
+func validGoStructName(name string) bool {
+	if name == "" {
+		return false
+	}
+	return 'A' <= name[0] && name[0] <= 'Z' // TODO What about Unicode?
+}
+
 func goStructEnumerate(self *_object, all bool, each func(string) bool) {
 	object := self.value.(*_goStructObject)
 
 	// Enumerate fields
 	for index := 0; index < reflect.Indirect(object.value).NumField(); index++ {
-		if !each(reflect.Indirect(object.value).Type().Field(index).Name) {
-			return
+		name := reflect.Indirect(object.value).Type().Field(index).Name
+		if validGoStructName(name) {
+			if !each(name) {
+				return
+			}
 		}
 	}
 
 	// Enumerate methods
 	for index := 0; index < object.value.NumMethod(); index++ {
-		if !each(object.value.Type().Method(index).Name) {
-			return
+		name := object.value.Type().Method(index).Name
+		if validGoStructName(name) {
+			if !each(name) {
+				return
+			}
 		}
 	}
 
@@ -107,4 +124,14 @@ func goStructPut(self *_object, name string, value Value, throw bool) {
 	}
 
 	objectPut(self, name, value, throw)
+}
+
+func goStructMarshalJSON(self *_object) json.Marshaler {
+	object := self.value.(*_goStructObject)
+	goValue := reflect.Indirect(object.value).Interface()
+	switch marshaler := goValue.(type) {
+	case json.Marshaler:
+		return marshaler
+	}
+	return nil
 }
