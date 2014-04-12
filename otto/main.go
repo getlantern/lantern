@@ -3,37 +3,39 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/robertkrimen/otto"
-	"github.com/robertkrimen/otto/underscore"
 	"io/ioutil"
 	"os"
+
+	"github.com/robertkrimen/otto"
+	"github.com/robertkrimen/otto/underscore"
 )
 
-var underscoreFlag *bool = flag.Bool("underscore", true, "Load underscore into the runtime environment")
+var flag_underscore *bool = flag.Bool("underscore", true, "Load underscore into the runtime environment")
+
+func readSource(filename string) ([]byte, error) {
+	if filename == "" || filename == "-" {
+		return ioutil.ReadAll(os.Stdin)
+	}
+	return ioutil.ReadFile(filename)
+}
 
 func main() {
 	flag.Parse()
-	var script []byte
-	var err error
-	filename := flag.Arg(0)
-	if filename == "" || filename == "-" {
-		script, err = ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			fmt.Printf("Can't read stdin: %v\n", err)
-			os.Exit(64)
-		}
-	} else {
-		script, err = ioutil.ReadFile(filename)
-		if err != nil {
-			fmt.Printf("Can't open file \"%v\": %v\n", filename, err)
-			os.Exit(64)
-		}
-	}
-	if !*underscoreFlag {
+
+	if !*flag_underscore {
 		underscore.Disable()
 	}
-	Otto := otto.New()
-	_, err = Otto.Run(string(script))
+
+	err := func() error {
+		src, err := readSource(flag.Arg(0))
+		if err != nil {
+			return err
+		}
+
+		vm := otto.New()
+		_, err = vm.Run(src)
+		return err
+	}()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(64)
