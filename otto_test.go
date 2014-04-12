@@ -2,10 +2,14 @@ package otto
 
 import (
 	. "./terst"
+	"bytes"
 	"fmt"
+	"io"
 	"math"
 	"strings"
 	"testing"
+
+	"github.com/robertkrimen/otto/parser"
 )
 
 var (
@@ -1330,6 +1334,53 @@ func TestOttoCall_clone(t *testing.T) {
 		Is(value, `function() { return "abc"; },function() { return "ghi"; }`)
 	}
 
+}
+
+func TestOttoRun(t *testing.T) {
+	Terst(t)
+
+	vm := New()
+
+	program, err := parser.ParseFile(nil, "", "", 0)
+	Is(err, nil)
+	value, err := vm.Run(program)
+	Is(err, nil)
+	Is(value, UndefinedValue())
+
+	program, err = parser.ParseFile(nil, "", "2 + 2", 0)
+	Is(err, nil)
+	value, err = vm.Run(program)
+	Is(err, nil)
+	is(value, 4)
+	value, err = vm.Run(program)
+	Is(err, nil)
+	is(value, 4)
+
+	program, err = parser.ParseFile(nil, "", "var abc; if (!abc) abc = 0; abc += 2; abc;", 0)
+	value, err = vm.Run(program)
+	Is(err, nil)
+	is(value, 2)
+	value, err = vm.Run(program)
+	Is(err, nil)
+	is(value, 4)
+	value, err = vm.Run(program)
+	Is(err, nil)
+	is(value, 6)
+
+	{
+		src := []byte("var abc; if (!abc) abc = 0; abc += 2; abc;")
+		value, err = vm.Run(src)
+		Is(err, nil)
+		is(value, 8)
+
+		value, err = vm.Run(bytes.NewBuffer(src))
+		Is(err, nil)
+		is(value, 10)
+
+		value, err = vm.Run(io.Reader(bytes.NewBuffer(src)))
+		Is(err, nil)
+		is(value, 12)
+	}
 }
 
 func Test_objectLength(t *testing.T) {

@@ -34,6 +34,11 @@ node types are concerned) and may change in the future.
 package parser
 
 import (
+	"bytes"
+	"errors"
+	"io"
+	"io/ioutil"
+
 	"github.com/robertkrimen/otto/ast"
 	"github.com/robertkrimen/otto/file"
 	"github.com/robertkrimen/otto/token"
@@ -88,6 +93,29 @@ func newParser(filename, src string) *_parser {
 	return _newParser(filename, src, 1)
 }
 
+func readSource(filename string, src interface{}) ([]byte, error) {
+	if src != nil {
+		switch src := src.(type) {
+		case string:
+			return []byte(src), nil
+		case []byte:
+			return src, nil
+		case *bytes.Buffer:
+			if src != nil {
+				return src.Bytes(), nil
+			}
+		case io.Reader:
+			var bfr bytes.Buffer
+			if _, err := io.Copy(&bfr, src); err != nil {
+				return nil, err
+			}
+			return bfr.Bytes(), nil
+		}
+		return nil, errors.New("invalid source")
+	}
+	return ioutil.ReadFile(filename)
+}
+
 // ParseFile parses the source code of a single JavaScript/ECMAScript source file and returns
 // the corresponding ast.Program node.
 //
@@ -96,19 +124,28 @@ func newParser(filename, src string) *_parser {
 //
 // The filename argument is optional and is used for labelling errors, etc.
 //
-// src MUST be a UTF-8 string.
+// src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST always be in UTF-8.
 //
 //      // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
 //      program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
 //
-func ParseFile(fileSet *file.FileSet, filename, src string, mode Mode) (*ast.Program, error) {
-	base := 1
-	if fileSet != nil {
-		base = fileSet.AddFile(filename, src)
+func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mode) (*ast.Program, error) {
+	str, err := readSource(filename, src)
+	if err != nil {
+		return nil, err
 	}
-	parser := _newParser(filename, src, base)
-	parser.mode = mode
-	return parser.parse()
+	{
+		str := string(str)
+
+		base := 1
+		if fileSet != nil {
+			base = fileSet.AddFile(filename, str)
+		}
+
+		parser := _newParser(filename, str, base)
+		parser.mode = mode
+		return parser.parse()
+	}
 }
 
 // ParseFunction parses a given parameter list and body as a function and returns the

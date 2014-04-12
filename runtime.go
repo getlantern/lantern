@@ -398,13 +398,21 @@ func (runtime *_runtime) newGoArray(value reflect.Value) *_object {
 	return self
 }
 
-func (runtime *_runtime) parse(src string) (*ast.Program, error) {
+func (runtime *_runtime) parse(src interface{}) (*ast.Program, error) {
 	return parser.ParseFile(nil, "", src, 0)
 }
 
-func (self *_runtime) run(source string) (Value, error) {
+func (self *_runtime) parseSource(src interface{}) (ast.Node, error) {
+	switch src := src.(type) {
+	case ast.Node:
+		return src, nil
+	}
+	return self.parse(src)
+}
+
+func (self *_runtime) run(src interface{}) (Value, error) {
 	result := UndefinedValue()
-	program, err := self.parse(source)
+	program, err := self.parseSource(src)
 	if err != nil {
 		return result, err
 	}
@@ -412,6 +420,8 @@ func (self *_runtime) run(source string) (Value, error) {
 		result = self.evaluate(program)
 	})
 	switch result._valueType {
+	case valueEmpty:
+		result = UndefinedValue()
 	case valueReference:
 		result = self.GetValue(result)
 	}

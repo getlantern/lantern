@@ -80,6 +80,34 @@ Use the functions in JavaScript
         result = twoPlus(2.0); // 4
     `)
 
+
+### Parser
+
+A separate parser is available in the parser package if you're just interested
+in building an AST.
+
+http://godoc.org/github.com/robertkrimen/otto/parser
+
+Parse and return an AST
+
+    filename := "" // A filename is optional
+    src := `
+        // Sample xyzzy example
+        (function(){
+            if (3.14159 > 0) {
+                console.log("Hello, World.");
+                return;
+            }
+
+            var xyzzy = NaN;
+            console.log("Nothing happens.");
+            return xyzzy;
+        })();
+    `
+
+    // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
+    program, err := parser.ParseFile(nil, filename, src, 0)
+
 You can run (Go) JavaScript from the commandline with:
 http://github.com/robertkrimen/otto/tree/master/otto
 
@@ -324,10 +352,19 @@ New will allocate a new JavaScript runtime
 #### func  Run
 
 ```go
-func Run(source string) (*Otto, Value, error)
+func Run(src interface{}) (*Otto, Value, error)
 ```
 Run will allocate a new JavaScript runtime, run the given source on the
 allocated runtime, and return the runtime, resulting value, and error (if any).
+
+src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST
+always be in UTF-8.
+
+If src is a Node, then runtime behavior is undefined if the AST has been
+modified.
+
+src may also be a node, but if the AST has been modified, then runtime behavior
+is undefined.
 
 #### func (Otto) Call
 
@@ -404,13 +441,19 @@ and an error is returned.
 #### func (Otto) Run
 
 ```go
-func (self Otto) Run(source string) (Value, error)
+func (self Otto) Run(src interface{}) (Value, error)
 ```
-Run will run the given source (parsing it first), returning the resulting value
-and error (if any)
+Run will run the given source (parsing it first if necessary), returning the
+resulting value and error (if any)
+
+src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST
+always be in UTF-8.
 
 If the runtime is unable to parse source, then this function will return
 undefined and the parse error (nothing will be evaluated in this case).
+
+src may also be a node, but if the AST has been modified, then runtime behavior
+is undefined.
 
 #### func (Otto) Set
 

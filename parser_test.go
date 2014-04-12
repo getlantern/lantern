@@ -39,5 +39,5 @@ func TestPersistence(t *testing.T) {
 
 
 
-    */`, Value{})
+    */`, UndefinedValue())
 }

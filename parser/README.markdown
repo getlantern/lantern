@@ -39,7 +39,7 @@ node types are concerned) and may change in the future.
 #### func  ParseFile
 
 ```go
-func ParseFile(fileSet *file.FileSet, filename, src string, mode Mode) (*ast.Program, error)
+func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mode) (*ast.Program, error)
 ```
 ParseFile parses the source code of a single JavaScript/ECMAScript source file
 and returns the corresponding ast.Program node.
@@ -49,7 +49,8 @@ ParseFile first adds filename and src to fileSet.
 
 The filename argument is optional and is used for labelling errors, etc.
 
-src MUST be a UTF-8 string.
+src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST
+always be in UTF-8.
 
     // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
     program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
