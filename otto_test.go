@@ -2,7 +2,7 @@ package otto
 
 import (
 	. "./terst"
-	//"github.com/robertkrimen/otto/underscore"
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -35,6 +35,48 @@ func newOtto(kind string, setup func(otto *Otto)) *Otto {
 		setup(otto)
 	}
 	return otto
+}
+
+func is(got Value, expect interface{}) bool {
+	switch expect := expect.(type) {
+	case float32, float64:
+		switch got.value.(type) {
+		case float32, float64:
+			return Is(
+				fmt.Sprintf("%g", expect),
+				fmt.Sprintf("%g", got.value),
+			)
+		case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64:
+			return Is(
+				fmt.Sprintf("%g", expect),
+				fmt.Sprintf("%d", got.value),
+			)
+		}
+	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64:
+		switch got.value.(type) {
+		case float32, float64:
+			return Is(
+				fmt.Sprintf("%d", expect),
+				fmt.Sprintf("%g", got.value),
+			)
+		case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64:
+			return Is(
+				fmt.Sprintf("%d", expect),
+				fmt.Sprintf("%d", got.value),
+			)
+		}
+	case string:
+		switch value := got.value.(type) {
+		case string:
+			return Is(value, expect)
+		}
+	case bool:
+		switch value := got.value.(type) {
+		case bool:
+			return Is(value, expect)
+		}
+	}
+	return Is(got, expect)
 }
 
 func failSet(name string, value interface{}) Value {
@@ -85,7 +127,7 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 		}
 		value = Otto.runtime.GetValue(value)
 		if len(expect) > 0 {
-			Is(value, expect[0])
+			is(value, expect[0])
 		}
 		return value
 	}

@@ -10,6 +10,7 @@ func Test_262(t *testing.T) {
 
 	// 11.13.1-1-1
 	test := runTest()
+
 	test(`raise:
         eval("42 = 42;");
     `, "ReferenceError: Invalid left-hand side in assignment")
@@ -19,14 +20,16 @@ func Test_issue5(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`'abc' === 'def'`, "false")
-	test(`'\t' === '\r'`, "false")
+
+	test(`'abc' === 'def'`, false)
+	test(`'\t' === '\r'`, false)
 }
 
 func Test_issue13(t *testing.T) {
 	Terst(t)
 
 	otto, test := runTestWithOtto()
+
 	value, err := otto.ToValue(map[string]interface{}{
 		"string": "Xyzzy",
 		"number": 42,
@@ -35,14 +38,16 @@ func Test_issue13(t *testing.T) {
 	if err != nil {
 		FailNow(err)
 	}
+
 	fn, err := otto.Object(`
-    (function(value){
-        return ""+[value.string, value.number, value.array]
-    })
+        (function(value){
+            return ""+[value.string, value.number, value.array]
+        })
     `)
 	if err != nil {
 		FailNow(err)
 	}
+
 	result, err := fn.Value().Call(fn.Value(), value)
 	if err != nil {
 		FailNow(err)
@@ -64,6 +69,7 @@ func Test_issue13(t *testing.T) {
 			"ghi": -1,
 		},
 	}
+
 	otto.Set("anything", anything)
 	test(`
         [
@@ -79,13 +85,13 @@ func Test_issue13(t *testing.T) {
         ];
         `, "[object Object],~,[object Object],~,a,b,c,,d,e,[object Object],~,Nothing happens.,~,-1",
 	)
-
 }
 
 func Test_issue16(t *testing.T) {
 	Terst(t)
 
 	otto, test := runTestWithOtto()
+
 	test(`
         var def = {
             "abc": ["abc"],
@@ -95,6 +101,7 @@ func Test_issue16(t *testing.T) {
     `, "abc,xyz")
 
 	otto.Set("ghi", []string{"jkl", "mno"})
+
 	test(`
         def.abc.concat(def.xyz).concat(ghi);
     `, "abc,xyz,jkl,mno")
@@ -104,13 +111,14 @@ func Test_issue16(t *testing.T) {
     `, "jkl,mno,abc,xyz")
 
 	otto.Set("pqr", []interface{}{"jkl", 42, 3.14159, true})
+
 	test(`
         pqr.concat(ghi, def.abc, def, def.xyz);
     `, "jkl,42,3.14159,true,jkl,mno,abc,[object Object],xyz")
 
 	test(`
         pqr.concat(ghi, def.abc, def, def.xyz).length;
-    `, "9")
+    `, 9)
 }
 
 func Test_issue21(t *testing.T) {
@@ -145,7 +153,7 @@ func Test_issue21(t *testing.T) {
 
 	jkl, err := otto1.Get("jkl")
 	Is(err, nil)
-	Is(jkl, "3")
+	is(jkl, 3)
 
 	_, err = otto1.Run(`
         abc.mno();
@@ -156,7 +164,7 @@ func Test_issue21(t *testing.T) {
 
 	pqr, err := otto2.Get("pqr")
 	Is(err, nil)
-	Is(pqr, "-3")
+	is(pqr, -3)
 }
 
 func Test_issue24(t *testing.T) {
@@ -356,12 +364,12 @@ func Test_7_3_10(t *testing.T) {
 	test(`
         eval("var \u0061\u0062\u0063 = 3.14159;");
         abc;
-    `, "3.14159")
+    `, 3.14159)
 	test(`
         abc = undefined;
         eval("var \\u0061\\u0062\\u0063 = 3.14159;");
         abc;
-    `, "3.14159")
+    `, 3.14159)
 }
 
 func Test_bug(t *testing.T) {
@@ -393,7 +401,7 @@ def"
         }
         } while(function def(){});
         abc;
-    `, "1")
+    `, 1)
 
 	// S12.7_A7
 	test(`raise:
@@ -412,7 +420,7 @@ def"
 	test(`
         var abc = { "AB\n\\cd": 1 };
         Object.getOwnPropertyDescriptor(abc, "AB\n\\cd").value;
-    `, "1")
+    `, 1)
 
 	// S15.3_A2_T1
 	test(`raise:

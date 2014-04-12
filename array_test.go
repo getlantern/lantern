@@ -14,19 +14,20 @@ func TestArray(t *testing.T) {
 	test(`
         var abc = [ undefined, "Nothing happens." ];
         abc.length;
-    `, "2")
+    `, 2)
 
 	test(`
 		abc = ""+[0, 1, 2, 3];
 		def = [].toString();
 		ghi = [null, 4, "null"].toString();
-	`)
-	test("abc", "0,1,2,3")
-	test("def", "")
-	test("ghi", ",4,null")
-	test(`new Array(0).length`, "0")
-	test(`new Array(11).length`, "11")
-	test(`new Array(11, 1).length`, "2")
+        [ abc, def, ghi ];
+	`, "0,1,2,3,,,4,null")
+
+	test(`new Array(0).length`, 0)
+
+	test(`new Array(11).length`, 11)
+
+	test(`new Array(11, 1).length`, 2)
 
 	test(`
         abc = [0, 1, 2, 3];
@@ -58,7 +59,7 @@ func TestArray(t *testing.T) {
         });
         abc = [101];
         abc.hasOwnProperty("0") && abc[0] === 101;
-    `, "true")
+    `, true)
 
 	test(`
         abc = [,,undefined];
@@ -81,16 +82,14 @@ func TestArray_toString(t *testing.T) {
 
 		test(`
 			Array.prototype.toString = function() {
-				return "Nothing happens."
+				return "Nothing happens.";
 			}
-			abc = Array.prototype.toString()
-			def = [].toString()
-			ghi = [null, 4, "null"].toString()
-		`)
-		test("abc", "Nothing happens.")
-		test("def", "Nothing happens.")
-		test("ghi", "Nothing happens.")
+			abc = Array.prototype.toString();
+			def = [].toString();
+			ghi = [null, 4, "null"].toString();
 
+            [ abc, def, ghi ].join(",");
+		`, "Nothing happens.,Nothing happens.,Nothing happens.")
 	}
 
 	{
@@ -101,10 +100,9 @@ func TestArray_toString(t *testing.T) {
 			abc = Array.prototype.toString()
 			def = [].toString()
 			ghi = [null, 4, "null"].toString()
-		`)
-		test("abc", "[object Array]")
-		test("def", "[object Array]")
-		test("ghi", "[object Array]")
+
+            abc + "," + def + "," + ghi;
+		`, "[object Array],[object Array],[object Array]")
 	}
 }
 
@@ -130,15 +128,14 @@ func TestArray_concat(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0, 1, 2]
-		def = [-1, -2, -3]
-		ghi = abc.concat(def)
-		jkl = abc.concat(def, 3, 4, 5)
-		mno = def.concat(-4, -5, abc)
-	`)
-	test("ghi", "0,1,2,-1,-2,-3")
-	test("jkl", "0,1,2,-1,-2,-3,3,4,5")
-	test("mno", "-1,-2,-3,-4,-5,0,1,2")
+		abc = [0, 1, 2];
+		def = [-1, -2, -3];
+		ghi = abc.concat(def);
+		jkl = abc.concat(def, 3, 4, 5);
+		mno = def.concat(-4, -5, abc);
+
+        [ ghi, jkl, mno ].join(";");
+	`, "0,1,2,-1,-2,-3;0,1,2,-1,-2,-3,3,4,5;-1,-2,-3,-4,-5,0,1,2")
 
 	test(`
         var abc = [,1];
@@ -188,15 +185,12 @@ func TestArray_splice(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0, 1, 2]
-		def = abc.splice(1, 2, 3, 4, 5)
-        ghi = [].concat(abc)
-        jkl = ghi.splice(17, 21, 7, 8, 9)
-	`)
-	test("abc", "0,3,4,5")
-	test("def", "1,2")
-	test("ghi", "0,3,4,5,7,8,9")
-	test("jkl", "")
+		abc = [0, 1, 2];
+		def = abc.splice(1, 2, 3, 4, 5);
+        ghi = [].concat(abc);
+        jkl = ghi.splice(17, 21, 7, 8, 9);
+        [ abc, def, ghi, jkl ].join(";");
+	`, "0,3,4,5;1,2;0,3,4,5,7,8,9;")
 }
 
 func TestArray_shift(t *testing.T) {
@@ -205,23 +199,17 @@ func TestArray_shift(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0, 1, 2]
-		def = abc.shift()
-		ghi = [].concat(abc)
-		jkl = abc.shift()
-		mno = [].concat(abc)
-		pqr = abc.shift()
-		stu = [].concat(abc)
-		vwx = abc.shift()
-	`)
-	test("abc", "")
-	test("def", "0")
-	test("ghi", "1,2")
-	test("jkl", "1")
-	test("mno", "2")
-	test("pqr", "2")
-	test("stu", "")
-	test("vwx", "undefined")
+		abc = [0, 1, 2];
+		def = abc.shift();
+		ghi = [].concat(abc);
+		jkl = abc.shift();
+		mno = [].concat(abc);
+		pqr = abc.shift();
+		stu = [].concat(abc);
+        vwx = abc.shift();
+
+        [ abc, def, ghi, jkl, mno, pqr, stu, vwx ].join(";");
+	`, ";0;1,2;1;2;2;;")
 }
 
 func TestArray_push(t *testing.T) {
@@ -230,15 +218,13 @@ func TestArray_push(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0]
-		def = abc.push(1)
-		ghi = [].concat(abc)
-		jkl = abc.push(2,3,4)
-	`)
-	test("abc", "0,1,2,3,4")
-	test("def", "2")
-	test("ghi", "0,1")
-	test("jkl", "5")
+		abc = [0];
+		def = abc.push(1);
+		ghi = [].concat(abc);
+		jkl = abc.push(2,3,4);
+
+        [ abc, def, ghi, jkl ].join(";");
+	`, "0,1,2,3,4;2;0,1;5")
 }
 
 func TestArray_pop(t *testing.T) {
@@ -247,19 +233,15 @@ func TestArray_pop(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0,1]
-		def = abc.pop()
-		ghi = [].concat(abc)
-		jkl = abc.pop()
-		mno = [].concat(abc)
-		pqr = abc.pop()
-	`)
-	test("abc", "")
-	test("def", "1")
-	test("ghi", "0")
-	test("jkl", "0")
-	test("mno", "")
-	test("pqr", "undefined")
+		abc = [0,1];
+		def = abc.pop();
+		ghi = [].concat(abc);
+		jkl = abc.pop();
+		mno = [].concat(abc);
+		pqr = abc.pop();
+
+        [ abc, def, ghi, jkl, mno, pqr ].join(";");
+	`, ";1;0;0;;")
 }
 
 func TestArray_slice(t *testing.T) {
@@ -268,36 +250,28 @@ func TestArray_slice(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0,1,2,3]
-		def = abc.slice()
-		ghi = abc.slice(1)
-		jkl = abc.slice(3,-1)
-		mno = abc.slice(2,-1)
-		pqr = abc.slice(-1, -10)
-	`)
-	test("def", "0,1,2,3")
-	test("ghi", "1,2,3")
-	test("jkl", "")
-	test("mno", "2")
-	test("pqr", "")
-	test(`abc.slice(2, 2)`, "")
-	test(`abc.slice(2, 3)`, "2")
+		abc = [0,1,2,3];
+		def = abc.slice();
+		ghi = abc.slice(1);
+		jkl = abc.slice(3,-1);
+		mno = abc.slice(2,-1);
+		pqr = abc.slice(-1, -10);
 
-	test(`
-		abc = { 0: 0, 1: 1, 2: 2, 3: 3 }
-		abc.length = 4
-		def = Array.prototype.slice.call(abc)
-		ghi = Array.prototype.slice.call(abc,1)
-		jkl = Array.prototype.slice.call(abc,3,-1)
-		mno = Array.prototype.slice.call(abc,2,-1)
-		pqr = Array.prototype.slice.call(abc,-1,-10)
-	`)
+        [ abc, def, ghi, jkl, mno, pqr ].join(";");
+	`, "0,1,2,3;0,1,2,3;1,2,3;;2;")
+
 	// Array.protoype.slice is generic
-	test("def", "0,1,2,3")
-	test("ghi", "1,2,3")
-	test("jkl", "")
-	test("mno", "2")
-	test("pqr", "")
+	test(`
+		abc = { 0: 0, 1: 1, 2: 2, 3: 3 };
+		abc.length = 4;
+		def = Array.prototype.slice.call(abc);
+		ghi = Array.prototype.slice.call(abc,1);
+		jkl = Array.prototype.slice.call(abc,3,-1);
+		mno = Array.prototype.slice.call(abc,2,-1);
+		pqr = Array.prototype.slice.call(abc,-1,-10);
+
+        [ abc, def, ghi, jkl, pqr ].join(";");
+	`, "[object Object];0,1,2,3;1,2,3;;")
 }
 
 func TestArray_sliceArguments(t *testing.T) {
@@ -308,7 +282,7 @@ func TestArray_sliceArguments(t *testing.T) {
 	test(`
 		(function(){
 			return Array.prototype.slice.call(arguments, 1)
-		})({}, 1, 2, 3)
+		})({}, 1, 2, 3);
 	`, "1,2,3")
 }
 
@@ -318,15 +292,13 @@ func TestArray_unshift(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = []
-		def = abc.unshift(0)
-		ghi = [].concat(abc)
-		jkl = abc.unshift(1,2,3,4)
-	`)
-	test("abc", "1,2,3,4,0")
-	test("def", "1")
-	test("ghi", "0")
-	test("jkl", "5")
+		abc = [];
+		def = abc.unshift(0);
+		ghi = [].concat(abc);
+		jkl = abc.unshift(1,2,3,4);
+
+        [ abc, def, ghi, jkl ].join(";");
+	`, "1,2,3,4,0;1;0;5")
 }
 
 func TestArray_reverse(t *testing.T) {
@@ -335,11 +307,11 @@ func TestArray_reverse(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0,1,2,3].reverse()
-		def = [0,1,2].reverse()
-	`)
-	test("abc", "3,2,1,0")
-	test("def", "2,1,0")
+		abc = [0,1,2,3].reverse();
+		def = [0,1,2].reverse();
+
+        [ abc, def ];
+	`, "3,2,1,0,2,1,0")
 }
 
 func TestArray_sort(t *testing.T) {
@@ -348,39 +320,32 @@ func TestArray_sort(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = [0,1,2,3].sort()
-		def = [3,2,1,0].sort()
-		ghi = [].sort()
-		jkl = [0].sort()
-		mno = [1,0].sort()
-		pqr = [1,5,-10, 100, 8, 72, 401, 0.05].sort()
+		abc = [0,1,2,3].sort();
+		def = [3,2,1,0].sort();
+		ghi = [].sort();
+		jkl = [0].sort();
+		mno = [1,0].sort();
+		pqr = [1,5,-10, 100, 8, 72, 401, 0.05].sort();
 		stu = [1,5,-10, 100, 8, 72, 401, 0.05].sort(function(x, y){
 			return x == y ? 0 : x < y ? -1 : 1
-		})
-	`)
-	test("abc", "0,1,2,3")
-	test("def", "0,1,2,3")
-	test("ghi", "")
-	test("jkl", "0")
-	test("mno", "0,1")
-	test("pqr", "-10,0.05,1,100,401,5,72,8")
-	test("stu", "-10,0.05,1,5,8,72,100,401")
-	test(`
-        [ Array.prototype.sort.length ];
-    `, "1")
+		});
+
+        [ abc, def, ghi, jkl, mno, pqr, stu ].join(";");
+	`, "0,1,2,3;0,1,2,3;;0;0,1;-10,0.05,1,100,401,5,72,8;-10,0.05,1,5,8,72,100,401")
+
+	test(`Array.prototype.sort.length`, 1)
 }
 
 func TestArray_isArray(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`
        [ Array.isArray.length, Array.isArray(), Array.isArray([]), Array.isArray({}) ];
     `, "1,false,true,false")
 
-	test(`
-        [ Array.isArray(Math) ];
-    `, "false")
+	test(`Array.isArray(Math)`, false)
 
 }
 
@@ -388,28 +353,33 @@ func TestArray_indexOf(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`['a', 'b', 'c', 'b'].indexOf('b')`, "1")
-	test(`['a', 'b', 'c', 'b'].indexOf('b', 2)`, "3")
-	test(`['a', 'b', 'c', 'b'].indexOf('b', -2)`, "3")
+
+	test(`['a', 'b', 'c', 'b'].indexOf('b')`, 1)
+
+	test(`['a', 'b', 'c', 'b'].indexOf('b', 2)`, 3)
+
+	test(`['a', 'b', 'c', 'b'].indexOf('b', -2)`, 3)
+
 	test(`
 		Object.prototype.indexOf = Array.prototype.indexOf;
 		var abc = {0: 'a', 1: 'b', 2: 'c', length: 3};
 		abc.indexOf('c');
-	`, "2")
-	test(`[true].indexOf(true, "-Infinity")`, "0")
+	`, 2)
+
+	test(`[true].indexOf(true, "-Infinity")`, 0)
 
 	test(`
         var target = {};
         Math[3] = target;
         Math.length = 5;
-        [ Array.prototype.indexOf.call(Math, target) === 3 ];
-    `, "true")
+        Array.prototype.indexOf.call(Math, target) === 3;
+    `, true)
 
 	test(`
         var _NaN = NaN;
         var abc = new Array("NaN", undefined, 0, false, null, {toString:function(){return NaN}}, "false", _NaN, NaN);
-        [ abc.indexOf(NaN) ];
-    `, "-1")
+        abc.indexOf(NaN);
+    `, -1)
 
 	test(`
         var abc = {toString:function (){return 0}};
@@ -459,12 +429,18 @@ func TestArray_every(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].every()`, "TypeError")
+
 	test(`raise: [].every("abc")`, "TypeError")
-	test(`[].every(function() { return false })`, "true")
-	test(`[1,2,3].every(function() { return false })`, "false")
-	test(`[1,2,3].every(function() { return true })`, "true")
-	test(`[1,2,3].every(function(_, index) { if (index === 1) return true })`, "false")
+
+	test(`[].every(function() { return false })`, true)
+
+	test(`[1,2,3].every(function() { return false })`, false)
+
+	test(`[1,2,3].every(function() { return true })`, true)
+
+	test(`[1,2,3].every(function(_, index) { if (index === 1) return true })`, false)
 
 	test(`
         var abc = function(value, index, object) {
@@ -473,8 +449,8 @@ func TestArray_every(t *testing.T) {
 
         Math.length = 1;
         Math[0] = 1;
-        [ !Array.prototype.every.call(Math, abc) ];
-    `, "true")
+        !Array.prototype.every.call(Math, abc);
+    `, true)
 
 	test(`
         var def = false;
@@ -484,8 +460,8 @@ func TestArray_every(t *testing.T) {
             return this === Math;
         };
 
-        [ [11].every(abc, Math) && def ];
-    `, "true")
+        [11].every(abc, Math) && def;
+    `, true)
 
 	test(`
         var def = false;
@@ -495,19 +471,24 @@ func TestArray_every(t *testing.T) {
             return Math;
         };
 
-        [ [11].every(abc) && def ];
-    `, "true")
+        [11].every(abc) && def;
+    `, true)
 }
 
 func TestArray_some(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].some("abc")`, "TypeError")
-	test(`[].some(function() { return true })`, "false")
-	test(`[1,2,3].some(function() { return false })`, "false")
-	test(`[1,2,3].some(function() { return true })`, "true")
-	test(`[1,2,3].some(function(_, index) { if (index === 1) return true })`, "true")
+
+	test(`[].some(function() { return true })`, false)
+
+	test(`[1,2,3].some(function() { return false })`, false)
+
+	test(`[1,2,3].some(function() { return true })`, true)
+
+	test(`[1,2,3].some(function(_, index) { if (index === 1) return true })`, true)
 
 	test(`
         var abc = function(value, index, object) {
@@ -516,38 +497,41 @@ func TestArray_some(t *testing.T) {
 
         Math.length = 1;
         Math[0] = 1;
-        [ !Array.prototype.some.call(Math, abc) ];
-    `, "true")
+        !Array.prototype.some.call(Math, abc);
+    `, true)
 
 	test(`
         var abc = function(value, index, object) {
             return this === Math;
         };
 
-        [ [11].some(abc, Math) ];
-    `, "true")
+        [11].some(abc, Math);
+    `, true)
 
 	test(`
         var abc = function(value, index, object) {
             return Math;
         };
 
-        [ [11].some(abc) ];
-    `, "true")
+        [11].some(abc);
+    `, true)
 }
 
 func TestArray_forEach(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].forEach("abc")`, "TypeError")
+
 	test(`
         var abc = 0;
         [].forEach(function(value) {
             abc += value;
         });
         abc;
-    `, "0")
+    `, 0)
+
 	test(`
         abc = 0;
         var def = [];
@@ -567,8 +551,8 @@ func TestArray_forEach(t *testing.T) {
         Math.length = 1;
         Math[0] = 1;
         Array.prototype.forEach.call(Math, abc);
-        [ def ];
-    `, "true")
+        def;
+    `, true)
 
 	test(`
         var def = false;
@@ -577,8 +561,8 @@ func TestArray_forEach(t *testing.T) {
         };
 
         [11].forEach(abc, Math);
-        [ def ];
-    `, "true")
+        def;
+    `, true)
 }
 
 func TestArray_indexing(t *testing.T) {
@@ -610,9 +594,13 @@ func TestArray_map(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].map("abc")`, "TypeError")
-	test(`[].map(function() { return 1 }).length`, "0")
+
+	test(`[].map(function() { return 1 }).length`, 0)
+
 	test(`[1,2,3].map(function(value) { return value * value })`, "1,4,9")
+
 	test(`[1,2,3].map(function(value) { return 1 })`, "1,1,1")
 
 	test(`
@@ -622,25 +610,29 @@ func TestArray_map(t *testing.T) {
 
         Math.length = 1;
         Math[0] = 1;
-        Array.prototype.map.call(Math, abc);
-    `, "true")
+        Array.prototype.map.call(Math, abc)[0];
+    `, true)
 
 	test(`
         var abc = function(value, index, object) {
             return this === Math;
         };
 
-        [11].map(abc, Math);
-    `, "true")
+        [11].map(abc, Math)[0];
+    `, true)
 }
 
 func TestArray_filter(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].filter("abc")`, "TypeError")
-	test(`[].filter(function() { return 1 }).length`, "0")
-	test(`[1,2,3].filter(function() { return false }).length`, "0")
+
+	test(`[].filter(function() { return 1 }).length`, 0)
+
+	test(`[1,2,3].filter(function() { return false }).length`, 0)
+
 	test(`[1,2,3].filter(function() { return true })`, "1,2,3")
 }
 
@@ -648,26 +640,40 @@ func TestArray_reduce(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].reduce("abc")`, "TypeError")
+
 	test(`raise: [].reduce(function() {})`, "TypeError")
-	test(`[].reduce(function() {}, 0)`, "0")
+
+	test(`[].reduce(function() {}, 0)`, 0)
+
 	test(`[].reduce(function() {}, undefined)`, "undefined")
+
 	test(`['a','b','c'].reduce(function(result, value) { return result+', '+value })`, "a, b, c")
-	test(`[1,2,3].reduce(function(result, value) { return result + value }, 4)`, "10")
-	test(`[1,2,3].reduce(function(result, value) { return result + value })`, "6")
+
+	test(`[1,2,3].reduce(function(result, value) { return result + value }, 4)`, 10)
+
+	test(`[1,2,3].reduce(function(result, value) { return result + value })`, 6)
 }
 
 func TestArray_reduceRight(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise: [].reduceRight("abc")`, "TypeError")
+
 	test(`raise: [].reduceRight(function() {})`, "TypeError")
-	test(`[].reduceRight(function() {}, 0)`, "0")
+
+	test(`[].reduceRight(function() {}, 0)`, 0)
+
 	test(`[].reduceRight(function() {}, undefined)`, "undefined")
+
 	test(`['a','b','c'].reduceRight(function(result, value) { return result+', '+value })`, "c, b, a")
-	test(`[1,2,3].reduceRight(function(result, value) { return result + value }, 4)`, "10")
-	test(`[1,2,3].reduceRight(function(result, value) { return result + value })`, "6")
+
+	test(`[1,2,3].reduceRight(function(result, value) { return result + value }, 4)`, 10)
+
+	test(`[1,2,3].reduceRight(function(result, value) { return result + value })`, 6)
 }
 
 func TestArray_defineOwnProperty(t *testing.T) {
@@ -680,7 +686,7 @@ func TestArray_defineOwnProperty(t *testing.T) {
             writable: false
         });
         abc.length;
-    `, "0")
+    `, 0)
 
 	test(`raise:
         var abc = [];

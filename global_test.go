@@ -44,12 +44,12 @@ func TestGlobal(t *testing.T) {
 		Is(def, "false")
 	}
 
-	test(`new Number().constructor == Number`, "true")
+	test(`new Number().constructor == Number`, true)
 
 	test(`this.hasOwnProperty`, "function hasOwnProperty() { [native code] }")
 
-	test(`eval.length === 1`, "true")
-	test(`eval.prototype === undefined`, "true")
+	test(`eval.length === 1`, true)
+	test(`eval.prototype === undefined`, true)
 	test(`raise: new eval()`, "TypeError: function eval() { [native code] } is not a constructor")
 
 	test(`
@@ -140,80 +140,79 @@ func Test_isNaN(t *testing.T) {
 
 	test := runTest()
 	test(`isNaN(0)`, "false")
-	test(`isNaN("Xyzzy")`, "true")
-	test(`isNaN()`, "true")
-	test(`isNaN(NaN)`, "true")
+	test(`isNaN("Xyzzy")`, true)
+	test(`isNaN()`, true)
+	test(`isNaN(NaN)`, true)
 	test(`isNaN(Infinity)`, "false")
 
-	test(`isNaN.length === 1`, "true")
-	test(`isNaN.prototype === undefined`, "true")
+	test(`isNaN.length === 1`, true)
+	test(`isNaN.prototype === undefined`, true)
 }
 
 func Test_isFinite(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`isFinite(0)`, "true")
+	test(`isFinite(0)`, true)
 	test(`isFinite("Xyzzy")`, "false")
 	test(`isFinite()`, "false")
 	test(`isFinite(NaN)`, "false")
 	test(`isFinite(Infinity)`, "false")
-	test(`isFinite(new Number(451));`, "true")
+	test(`isFinite(new Number(451));`, true)
 
-	test(`isFinite.length === 1`, "true")
-	test(`isFinite.prototype === undefined`, "true")
+	test(`isFinite.length === 1`, true)
+	test(`isFinite.prototype === undefined`, true)
 }
 
 func Test_parseInt(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`parseInt("0")`, "0")
-	test(`parseInt("11")`, "11")
-	test(`parseInt(" 11")`, "11")
-	test(`parseInt("11 ")`, "11")
-	test(`parseInt(" 11 ")`, "11")
-	test(`parseInt(" 11\n")`, "11")
-	test(`parseInt(" 11\n", 16)`, "17")
+	test(`parseInt("0")`, 0)
+	test(`parseInt("11")`, 11)
+	test(`parseInt(" 11")`, 11)
+	test(`parseInt("11 ")`, 11)
+	test(`parseInt(" 11 ")`, 11)
+	test(`parseInt(" 11\n")`, 11)
+	test(`parseInt(" 11\n", 16)`, 17)
 
 	test(`parseInt("Xyzzy")`, "NaN")
 
-	test(`parseInt(" 0x11\n", 16)`, "17")
-	test(`parseInt("0x0aXyzzy", 16)`, "10")
-	test(`parseInt("0x1", 0)`, "1")
-	// TODO Fix test(...) so we avoid using fmt.Sprintf
-	test(`parseInt("0x10000000000000000000", 16)`, fmt.Sprintf("%v", float64(75557863725914323419136)))
+	test(`parseInt(" 0x11\n", 16)`, 17)
+	test(`parseInt("0x0aXyzzy", 16)`, 10)
+	test(`parseInt("0x1", 0)`, 1)
+	test(`parseInt("0x10000000000000000000", 16)`, float64(75557863725914323419136))
 
-	test(`parseInt.length === 2`, "true")
-	test(`parseInt.prototype === undefined`, "true")
+	test(`parseInt.length === 2`, true)
+	test(`parseInt.prototype === undefined`, true)
 }
 
 func Test_parseFloat(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`parseFloat("0")`, "0")
-	test(`parseFloat("11")`, "11")
-	test(`parseFloat(" 11")`, "11")
-	test(`parseFloat("11 ")`, "11")
-	test(`parseFloat(" 11 ")`, "11")
-	test(`parseFloat(" 11\n")`, "11")
-	test(`parseFloat(" 11\n", 16)`, "11")
-	test(`parseFloat("11.1")`, "11.1")
+	test(`parseFloat("0")`, 0)
+	test(`parseFloat("11")`, 11)
+	test(`parseFloat(" 11")`, 11)
+	test(`parseFloat("11 ")`, 11)
+	test(`parseFloat(" 11 ")`, 11)
+	test(`parseFloat(" 11\n")`, 11)
+	test(`parseFloat(" 11\n", 16)`, 11)
+	test(`parseFloat("11.1")`, 11.1)
 
 	test(`parseFloat("Xyzzy")`, "NaN")
 
-	test(`parseFloat(" 0x11\n", 16)`, "0")
-	test(`parseFloat("0x0a")`, "0")
-	test(`parseFloat("0x0aXyzzy")`, "0")
+	test(`parseFloat(" 0x11\n", 16)`, 0)
+	test(`parseFloat("0x0a")`, 0)
+	test(`parseFloat("0x0aXyzzy")`, 0)
 	test(`parseFloat("Infinity")`, "Infinity")
 	test(`parseFloat("infinity")`, "NaN")
-	test(`parseFloat("0x")`, "0")
-	test(`parseFloat("11x")`, "11")
+	test(`parseFloat("0x")`, 0)
+	test(`parseFloat("11x")`, 11)
 	test(`parseFloat("Infinity1")`, "Infinity")
 
-	test(`parseFloat.length === 1`, "true")
-	test(`parseFloat.prototype === undefined`, "true")
+	test(`parseFloat.length === 1`, true)
+	test(`parseFloat.prototype === undefined`, true)
 }
 
 func Test_encodeURI(t *testing.T) {
@@ -226,8 +225,8 @@ func Test_encodeURI(t *testing.T) {
 	test(`encodeURI(String.fromCharCode("0xFFFD"))`, "%EF%BF%BD")
 	test(`raise: encodeURI(String.fromCharCode("0xDC00"))`, "URIError: URI malformed")
 
-	test(`encodeURI.length === 1`, "true")
-	test(`encodeURI.prototype === undefined`, "true")
+	test(`encodeURI.length === 1`, true)
+	test(`encodeURI.prototype === undefined`, true)
 }
 
 func Test_encodeURIComponent(t *testing.T) {
@@ -250,8 +249,8 @@ func Test_decodeURI(t *testing.T) {
 		test(fmt.Sprintf(`decodeURI("%s")`, check), check)
 	}
 
-	test(`decodeURI.length === 1`, "true")
-	test(`decodeURI.prototype === undefined`, "true")
+	test(`decodeURI.length === 1`, true)
+	test(`decodeURI.prototype === undefined`, true)
 }
 
 func Test_decodeURIComponent(t *testing.T) {
@@ -261,8 +260,8 @@ func Test_decodeURIComponent(t *testing.T) {
 	test(`decodeURIComponent(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
 	test(`decodeURIComponent(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
 
-	test(`decodeURIComponent.length === 1`, "true")
-	test(`decodeURIComponent.prototype === undefined`, "true")
+	test(`decodeURIComponent.length === 1`, true)
+	test(`decodeURIComponent.prototype === undefined`, true)
 
 	test(`
         var global = Function('return this')();
