@@ -65,6 +65,12 @@ the corresponding ast.FunctionExpression node.
 
 The parameter list, if any, should be a comma-separated list of identifiers.
 
+#### func  ReadSource
+
+```go
+func ReadSource(filename string, src interface{}) ([]byte, error)
+```
+
 #### func  TransformRegExp
 
 ```go

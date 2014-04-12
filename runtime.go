@@ -398,16 +398,18 @@ func (runtime *_runtime) newGoArray(value reflect.Value) *_object {
 	return self
 }
 
-func (runtime *_runtime) parse(src interface{}) (*ast.Program, error) {
-	return parser.ParseFile(nil, "", src, 0)
+func (runtime *_runtime) parse(filename string, src interface{}) (*ast.Program, error) {
+	return parser.ParseFile(nil, filename, src, 0)
 }
 
 func (self *_runtime) parseSource(src interface{}) (ast.Node, error) {
 	switch src := src.(type) {
 	case ast.Node:
 		return src, nil
+	case *Script:
+		return src.program, nil
 	}
-	return self.parse(src)
+	return self.parse("", src)
 }
 
 func (self *_runtime) run(src interface{}) (Value, error) {
@@ -446,7 +448,7 @@ func (self *_runtime) parseThrow(err error) {
 }
 
 func (self *_runtime) parseOrThrow(source string) *ast.Program {
-	program, err := self.parse(source)
+	program, err := self.parse("", source)
 	self.parseThrow(err) // Will panic/throw appropriately
 	return program
 }

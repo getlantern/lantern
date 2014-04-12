@@ -1381,6 +1381,21 @@ func TestOttoRun(t *testing.T) {
 		Is(err, nil)
 		is(value, 12)
 	}
+
+	{
+		script, err := vm.Compile("", `var abc; if (!abc) abc = 0; abc += 2; abc;`)
+		Is(err, nil)
+
+		value, err = vm.Run(script)
+		Is(err, nil)
+		is(value, 14)
+
+		value, err = vm.Run(script)
+		Is(err, nil)
+		is(value, 16)
+
+		Is(script.String(), "// \nvar abc; if (!abc) abc = 0; abc += 2; abc;")
+	}
 }
 
 func Test_objectLength(t *testing.T) {

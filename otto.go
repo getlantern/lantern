@@ -357,7 +357,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 	}
 
 	if !construct && this == nil {
-		program, err := self.runtime.parse(source + "()")
+		program, err := self.runtime.parse("", source+"()")
 		if err == nil {
 			if node, ok := program.Body[0].(*ast.ExpressionStatement); ok {
 				if node, ok := node.Expression.(*ast.CallExpression); ok {

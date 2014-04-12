@@ -392,6 +392,17 @@ this case, the this argument has no effect.
     // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
     value, _ := vm.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
 
+#### func (*Otto) Compile
+
+```go
+func (self *Otto) Compile(filename string, src interface{}) (*Script, error)
+```
+Compile will parse the given source and return a Script value or nil and an
+error if there was a problem during compilation.
+
+    script, err := vm.Compile("", `var abc; if (!abc) abc = 0; abc += 2; abc;`)
+    vm.Run(script)
+
 #### func (*Otto) Copy
 
 ```go
@@ -478,6 +489,22 @@ func (self Otto) ToValue(value interface{}) (Value, error)
 ```
 ToValue will convert an interface{} value to a value digestible by
 otto/JavaScript.
+
+#### type Script
+
+```go
+type Script struct {
+}
+```
+
+Script is a handle for some (reusable) JavaScript. Passing a Script value to a
+run method will evaluate the JavaScript.
+
+#### func (*Script) String
+
+```go
+func (self *Script) String() string
+```
 
 #### type Value
 
