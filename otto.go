@@ -103,6 +103,8 @@ Parse and return an AST
     // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
     program, err := parser.ParseFile(nil, filename, src, 0)
 
+otto
+
 You can run (Go) JavaScript from the commandline with: http://github.com/robertkrimen/otto/tree/master/otto
 
 	$ go get -v github.com/robertkrimen/otto/otto
@@ -110,6 +112,8 @@ You can run (Go) JavaScript from the commandline with: http://github.com/robertk
 Run JavaScript by entering some source on stdin or by giving otto a filename:
 
 	$ otto example.js
+
+underscore
 
 Optionally include the JavaScript utility-belt library, underscore, with this import:
 
@@ -258,8 +262,6 @@ func (otto *Otto) clone() *Otto {
 // error (if any).
 //
 // src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST always be in UTF-8.
-//
-// If src is a Node, then runtime behavior is undefined if the AST has been modified.
 //
 // src may also be a node, but if the AST has been modified, then runtime behavior is undefined.
 //
