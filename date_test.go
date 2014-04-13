@@ -3,16 +3,27 @@ package otto
 import (
 	. "./terst"
 	"fmt"
-	"strconv"
 	"testing"
 	Time "time"
 )
 
+func mockTimeLocal(location *Time.Location) func() {
+	local := Time.Local
+	Time.Local = location
+	return func() {
+		Time.Local = local
+	}
+}
+
+// Passing or failing should not be dependent on what time zone we're in
+func mockUTC() func() {
+	return mockTimeLocal(Time.UTC)
+}
+
 func TestDate(t *testing.T) {
 	Terst(t)
 
-	// Passing or failing should not be dependent on what time zone we're in
-	defer mockTimeLocal(Time.UTC)()
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -116,86 +127,104 @@ func TestDate(t *testing.T) {
 func TestDate_parse(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`Date.parse("2001-01-01T10:01:02.000")`, "978343262000")
+
 	test(`Date.parse("2006-01-02T15:04:05.000")`, "1136214245000")
+
 	test(`Date.parse("2006")`, "1136073600000")
+
 	test(`Date.parse("1970-01-16T14:36:56+00:00")`, "1348616000")
+
 	test(`Date.parse("1970-01-16T14:36:56.313+00:00")`, "1348616313")
+
 	test(`Date.parse("1970-01-16T14:36:56.000")`, "1348616000")
 
-	test(`Date.parse.length`, "1")
+	test(`Date.parse.length`, 1)
 }
 
 func TestDate_UTC(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`Date.UTC(2009, 9, 25)`, "1256428800000")
 
-	test(`Date.UTC.length`, "7")
+	test(`Date.UTC.length`, 7)
 }
 
 func TestDate_now(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
-	time := Time.Now()
-	test(`(""+Date.now()).substr(0, 10)`, strconv.FormatInt(epochToInteger(timeToEpoch(time)), 10)[:10])
-	test(`Date.now() - Date.now(1,2,3) < 24 * 60 * 60`, "true")
+
+	// FIXME I think this too risky
+	test(`+(""+Date.now()).substr(0, 10)`, float64(epochToInteger(timeToEpoch(Time.Now()))/1000))
+
+	test(`Date.now() - Date.now(1,2,3) < 24 * 60 * 60`, true)
 }
 
 func TestDate_toISOString(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`new Date(0).toISOString()`, "1970-01-01T00:00:00.000Z")
 }
 
 func TestDate_toJSON(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`new Date(0).toJSON()`, "1970-01-01T00:00:00.000Z")
 }
 
 func TestDate_setYear(t *testing.T) {
 	Terst(t)
 
-	// Passing or failing should not be dependent on what time zone we're in
-	defer mockTimeLocal(Time.UTC)()
+	defer mockUTC()()
 
 	test := runTest()
-	test(`new Date(12564504e5).setYear(96)`, "846223200000")
-	test(`new Date(12564504e5).setYear(1996)`, "846223200000")
-	test(`new Date(12564504e5).setYear(2000)`, "972453600000")
-}
 
-func mockTimeLocal(location *Time.Location) func() {
-	local := Time.Local
-	Time.Local = location
-	return func() {
-		Time.Local = local
-	}
+	test(`new Date(12564504e5).setYear(96)`, 846223200000)
+
+	test(`new Date(12564504e5).setYear(1996)`, 846223200000)
+
+	test(`new Date(12564504e5).setYear(2000)`, 972453600000)
 }
 
 func TestDateDefaultValue(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`
         var date = new Date();
         date + 0 === date.toString() + "0";
-    `, "true")
+    `, true)
 }
 
 func TestDate_April1978(t *testing.T) {
 	Terst(t)
 
-	// Passing or failing should not be dependent on what time zone we're in
-	defer mockTimeLocal(Time.UTC)()
+	defer mockUTC()()
 
 	test := runTest()
+
 	test(`
         var abc = new Date(1978,3);
         [ abc.getYear(), abc.getMonth(), abc.valueOf() ];
@@ -205,7 +234,10 @@ func TestDate_April1978(t *testing.T) {
 func TestDate_setMilliseconds(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`
         abc = new Date();
         def = abc.setMilliseconds();
@@ -216,12 +248,16 @@ func TestDate_setMilliseconds(t *testing.T) {
 func TestDate_new(t *testing.T) {
 	Terst(t)
 
+	// FIXME?
 	// This is probably incorrect, due to differences in Go date/time handling
 	// versus ECMA date/time handling, but we'll leave this here for
 	// future reference
 	return
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`
         [
             new Date(1899, 11).valueOf(),
@@ -234,23 +270,21 @@ func TestDate_new(t *testing.T) {
 func TestDateComparison(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
 
 	test(`
-        var abc = Date();
-        var def = (new Date()).toString();
-        [ abc === def, Math.abs(Date.parse(abc) - Date.parse(def)) <= 1000 ];
-    `, "false,true")
-
-	test(`
-        var abc = Date(1);
-        var def = (new Date()).toString();
-        [ abc === def, Math.abs(Date.parse(abc) - Date.parse(def)) <= 1000 ];
+        var now0 = Date.now();
+        var now1 = (new Date()).toString();
+        [ now0 === now1, Math.abs(now0 - Date.parse(now1)) <= 1000 ];
     `, "false,true")
 }
 
 func TestDate_setSeconds(t *testing.T) {
 	Terst(t)
+
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -263,8 +297,8 @@ func TestDate_setSeconds(t *testing.T) {
         def.setSeconds(10);
         def.setMilliseconds(12);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
 	test(`
         abc = new Date(1980, 10);
@@ -275,15 +309,17 @@ func TestDate_setSeconds(t *testing.T) {
         def.setUTCSeconds(10);
         def.setUTCMilliseconds(12);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
-	test(`Date.prototype.setSeconds.length`, "2")
-	test(`Date.prototype.setUTCSeconds.length`, "2")
+	test(`Date.prototype.setSeconds.length`, 2)
+	test(`Date.prototype.setUTCSeconds.length`, 2)
 }
 
 func TestDate_setMinutes(t *testing.T) {
 	Terst(t)
+
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -297,8 +333,8 @@ func TestDate_setMinutes(t *testing.T) {
         def.setSeconds(10);
         def.setMilliseconds(12);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
 	test(`
         abc = new Date(1980, 10);
@@ -310,15 +346,17 @@ func TestDate_setMinutes(t *testing.T) {
         def.setUTCSeconds(10);
         def.setUTCMilliseconds(12);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
-	test(`Date.prototype.setMinutes.length`, "3")
-	test(`Date.prototype.setUTCMinutes.length`, "3")
+	test(`Date.prototype.setMinutes.length`, 3)
+	test(`Date.prototype.setUTCMinutes.length`, 3)
 }
 
 func TestDate_setHours(t *testing.T) {
 	Terst(t)
+
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -333,8 +371,8 @@ func TestDate_setHours(t *testing.T) {
         def.setSeconds(10);
         def.setMilliseconds(12);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
 	test(`
         abc = new Date(1980, 10);
@@ -347,15 +385,17 @@ func TestDate_setHours(t *testing.T) {
         def.setUTCSeconds(10);
         def.setUTCMilliseconds(12);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
-	test(`Date.prototype.setHours.length`, "4")
-	test(`Date.prototype.setUTCHours.length`, "4")
+	test(`Date.prototype.setHours.length`, 4)
+	test(`Date.prototype.setUTCHours.length`, 4)
 }
 
 func TestDate_setMonth(t *testing.T) {
 	Terst(t)
+
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -368,8 +408,8 @@ func TestDate_setMonth(t *testing.T) {
         def.setMonth(6);
         def.setDate(8);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
 	test(`
         abc = new Date(1980, 10);
@@ -380,15 +420,17 @@ func TestDate_setMonth(t *testing.T) {
         def.setUTCMonth(6);
         def.setUTCDate(8);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
-	test(`Date.prototype.setMonth.length`, "2")
-	test(`Date.prototype.setUTCMonth.length`, "2")
+	test(`Date.prototype.setMonth.length`, 2)
+	test(`Date.prototype.setUTCMonth.length`, 2)
 }
 
 func TestDate_setFullYear(t *testing.T) {
 	Terst(t)
+
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -402,8 +444,8 @@ func TestDate_setFullYear(t *testing.T) {
         def.setMonth(6);
         def.setDate(8);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
 	test(`
         abc = new Date(1980, 10);
@@ -415,17 +457,17 @@ func TestDate_setFullYear(t *testing.T) {
         def.setUTCMonth(6);
         def.setUTCDate(8);
 
-        [ abc.valueOf() === def.valueOf() ];
-    `, "true")
+        abc.valueOf() === def.valueOf();
+    `, true)
 
-	test(`Date.prototype.setFullYear.length`, "3")
-	test(`Date.prototype.setUTCFullYear.length`, "3")
+	test(`Date.prototype.setFullYear.length`, 3)
+	test(`Date.prototype.setUTCFullYear.length`, 3)
 }
 
 func TestDate_setTime(t *testing.T) {
 	Terst(t)
 
-	defer mockTimeLocal(Time.UTC)()
+	defer mockUTC()()
 
 	test := runTest()
 
@@ -436,5 +478,5 @@ func TestDate_setTime(t *testing.T) {
         [ def, abc.valueOf() == def.valueOf() ];
     `, "Thu, 01 Jul 1999 00:00:00 UTC,true")
 
-	test(`Date.prototype.setTime.length`, "1")
+	test(`Date.prototype.setTime.length`, 1)
 }

@@ -176,7 +176,10 @@ func TestArguments_defineOwnProperty(t *testing.T) {
 func TestFunction_bind(t *testing.T) {
 	Terst(t)
 
+	defer mockUTC()()
+
 	test := runTest()
+
 	test(`
         abc = function(){
             return "abc";

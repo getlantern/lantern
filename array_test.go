@@ -3,7 +3,6 @@ package otto
 import (
 	. "./terst"
 	"testing"
-	Time "time"
 )
 
 func TestArray(t *testing.T) {
@@ -109,7 +108,7 @@ func TestArray_toString(t *testing.T) {
 func TestArray_toLocaleString(t *testing.T) {
 	Terst(t)
 
-	defer mockTimeLocal(Time.UTC)()
+	defer mockUTC()()
 
 	test := runTest()
 

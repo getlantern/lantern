@@ -364,6 +364,8 @@ allocated runtime, and return the runtime, resulting value, and error (if any).
 src may be a string, a byte slice, a bytes.Buffer, or an io.Reader, but it MUST
 always be in UTF-8.
 
+src may also be a Script.
+
 src may also be a node, but if the AST has been modified, then runtime behavior
 is undefined.
 
@@ -463,6 +465,8 @@ always be in UTF-8.
 
 If the runtime is unable to parse source, then this function will return
 undefined and the parse error (nothing will be evaluated in this case).
+
+src may also be a Script.
 
 src may also be a node, but if the AST has been modified, then runtime behavior
 is undefined.
