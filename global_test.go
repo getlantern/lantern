@@ -3,45 +3,64 @@ package otto
 import (
 	. "./terst"
 	"fmt"
-	//"net/url"
+	"math"
 	"strings"
 	"testing"
-	//"unicode/utf16"
 )
 
 func TestGlobal(t *testing.T) {
 	Terst(t)
 
-	Otto, test := runTestWithOtto()
-	runtime := Otto.runtime
+	vm, test := runTestWithOtto()
+	runtime := vm.runtime
 
 	{
-		//trueValue, falseValue := TrueValue(), FalseValue()
+		call := func(object interface{}, src string, argumentList ...interface{}) Value {
+			var tgt *Object
+			switch object := object.(type) {
+			case Value:
+				tgt = object.Object()
+			case *Object:
+				tgt = object
+			case *_object:
+				tgt = toValue_object(object).Object()
+			default:
+				panic("Here be dragons.")
+			}
+			value, err := tgt.Call(src, argumentList...)
+			Is(err, nil)
+			return value
+		}
 
-		result := runtime.localGet("Object")._object().Call(UndefinedValue(), []Value{toValue(runtime.newObject())})
-		Is(result.IsObject(), true)
-		Is(result, "[object Object]")
-		Is(result._object().prototype == runtime.Global.ObjectPrototype, true)
-		Is(result._object().prototype == runtime.Global.Object.get("prototype")._object(), true)
+		value := runtime.localGet("Object")._object().Call(UndefinedValue(), []Value{toValue(runtime.newObject())})
+		Is(value.IsObject(), true)
+		Is(value, "[object Object]")
+		Is(value._object().prototype == runtime.Global.ObjectPrototype, true)
+		Is(value._object().prototype == runtime.Global.Object.get("prototype")._object(), true)
+		Is(value._object().get("toString"), "function toString() { [native code] }")
+		is(call(value.Object(), "hasOwnProperty", "hasOwnProperty"), false)
+
+		is(call(value._object().get("toString")._object().prototype, "toString"), "function () { [native code] }") // TODO Is this right?
+		Is(value._object().get("toString")._object().get("toString"), "function toString() { [native code] }")
+		Is(value._object().get("toString")._object().get("toString")._object(), "function toString() { [native code] }")
+
+		is(call(value._object(), "propertyIsEnumerable", "isPrototypeOf"), false)
+		value._object().put("xyzzy", toValue_string("Nothing happens."), false)
+		is(call(value, "propertyIsEnumerable", "isPrototypeOf"), false)
+		is(call(value, "propertyIsEnumerable", "xyzzy"), true)
+		Is(value._object().get("xyzzy"), "Nothing happens.")
+
+		is(call(runtime.localGet("Object"), "isPrototypeOf", value), false)
+		is(call(runtime.localGet("Object")._object().get("prototype"), "isPrototypeOf", value), true)
+		is(call(runtime.localGet("Function"), "isPrototypeOf", value), false)
+
 		Is(runtime.newObject().prototype == runtime.Global.Object.get("prototype")._object(), true)
-		Is(result._object().get("toString"), "function toString() { [native code] }")
-		//Is(result.Object().CallMethod("hasOwnProperty", "hasOwnProperty"), falseValue)
-		//Is(result.Object().get("toString").Object().prototype.CallMethod("toString"), "[function]")
-		//Is(result.Object().get("toString").Object().get("toString").Object(), "[function]")
-		//Is(result.Object().get("toString").Object().get("toString"), "[function]")
-		//Is(runtime.localGet("Object").Object().CallMethod("isPrototypeOf", result), falseValue)
-		//Is(runtime.localGet("Object").Object().get("prototype").Object().CallMethod("isPrototypeOf", result), trueValue)
-		//Is(runtime.localGet("Function").Object().CallMethod("isPrototypeOf", result), falseValue)
-		//Is(result.Object().CallMethod("propertyIsEnumerable", "isPrototypeOf"), falseValue)
-		//result.Object().WriteValue("xyzzy", toValue("Nothing happens."), false)
-		//Is(result.Object().CallMethod("propertyIsEnumerable", "xyzzy"), trueValue)
-		//Is(result.Object().get("xyzzy"), "Nothing happens.")
 
-		abc := runtime.newBoolean(TrueValue())
-		Is(abc, "true")
+		abc := runtime.newBoolean(toValue_bool(true))
+		Is(toValue_object(abc), "true") // TODO Call primitive?
 
 		def := runtime.localGet("Boolean")._object().Construct(UndefinedValue(), []Value{})
-		Is(def, "false")
+		Is(def, "false") // TODO Call primitive?
 	}
 
 	test(`new Number().constructor == Number`, true)
@@ -105,10 +124,9 @@ func TestGlobalLength(t *testing.T) {
 
 	test := runTest()
 
-	test(`Object.length`, "1")
-	test(`Function.length`, "1")
-	test(`RegExp.length`, "2")
-	test(`Math.length`, "undefined")
+	test(`
+        [ Object.length, Function.length, RegExp.length, Math.length ];
+    `, "1,1,2,")
 }
 
 func TestGlobalError(t *testing.T) {
@@ -116,13 +134,13 @@ func TestGlobalError(t *testing.T) {
 
 	test := runTest()
 
-	test(`TypeError.length`, "1")
-	test(`TypeError()`, "TypeError")
-	test(`TypeError("Nothing happens.")`, "TypeError: Nothing happens.")
+	test(`
+        [ TypeError.length, TypeError(), TypeError("Nothing happens.") ];
+    `, "1,TypeError,TypeError: Nothing happens.")
 
-	test(`URIError.length`, "1")
-	test(`URIError()`, "URIError")
-	test(`URIError("Nothing happens.")`, "URIError: Nothing happens.")
+	test(`
+        [ URIError.length, URIError(), URIError("Nothing happens.") ];
+    `, "1,URIError,URIError: Nothing happens.")
 }
 
 func TestGlobalReadOnly(t *testing.T) {
@@ -130,20 +148,30 @@ func TestGlobalReadOnly(t *testing.T) {
 
 	test := runTest()
 
-	test(`Number.POSITIVE_INFINITY`, "Infinity")
-	test(`Number.POSITIVE_INFINITY = 1`, "1")
-	test(`Number.POSITIVE_INFINITY`, "Infinity")
+	test(`Number.POSITIVE_INFINITY`, math.Inf(1))
+
+	test(`
+        Number.POSITIVE_INFINITY = 1;
+    `, 1)
+
+	test(`Number.POSITIVE_INFINITY`, math.Inf(1))
+
+	test(`
+        Number.POSITIVE_INFINITY = 1;
+        Number.POSITIVE_INFINITY;
+    `, math.Inf(1))
 }
 
 func Test_isNaN(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`isNaN(0)`, "false")
+
+	test(`isNaN(0)`, false)
 	test(`isNaN("Xyzzy")`, true)
 	test(`isNaN()`, true)
 	test(`isNaN(NaN)`, true)
-	test(`isNaN(Infinity)`, "false")
+	test(`isNaN(Infinity)`, false)
 
 	test(`isNaN.length === 1`, true)
 	test(`isNaN.prototype === undefined`, true)
@@ -153,11 +181,12 @@ func Test_isFinite(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`isFinite(0)`, true)
-	test(`isFinite("Xyzzy")`, "false")
-	test(`isFinite()`, "false")
-	test(`isFinite(NaN)`, "false")
-	test(`isFinite(Infinity)`, "false")
+	test(`isFinite("Xyzzy")`, false)
+	test(`isFinite()`, false)
+	test(`isFinite(NaN)`, false)
+	test(`isFinite(Infinity)`, false)
 	test(`isFinite(new Number(451));`, true)
 
 	test(`isFinite.length === 1`, true)
@@ -168,6 +197,7 @@ func Test_parseInt(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`parseInt("0")`, 0)
 	test(`parseInt("11")`, 11)
 	test(`parseInt(" 11")`, 11)
@@ -191,6 +221,7 @@ func Test_parseFloat(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`parseFloat("0")`, 0)
 	test(`parseFloat("11")`, 11)
 	test(`parseFloat(" 11")`, 11)
@@ -219,6 +250,7 @@ func Test_encodeURI(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`encodeURI("http://example.com/ Nothing happens.")`, "http://example.com/%20Nothing%20happens.")
 	test(`encodeURI("http://example.com/ _^#")`, "http://example.com/%20_%5E#")
 	test(`encodeURI(String.fromCharCode("0xE000"))`, "%EE%80%80")
@@ -233,6 +265,7 @@ func Test_encodeURIComponent(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`encodeURIComponent("http://example.com/ Nothing happens.")`, "http%3A%2F%2Fexample.com%2F%20Nothing%20happens.")
 	test(`encodeURIComponent("http://example.com/ _^#")`, "http%3A%2F%2Fexample.com%2F%20_%5E%23")
 }
@@ -241,6 +274,7 @@ func Test_decodeURI(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`decodeURI(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
 	test(`decodeURI(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
 	test(`raise: decodeURI("http://example.com/ _^#%")`, "URIError: URI malformed")
@@ -257,6 +291,7 @@ func Test_decodeURIComponent(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`decodeURIComponent(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
 	test(`decodeURIComponent(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
 
@@ -274,6 +309,7 @@ func TestGlobal_skipEnumeration(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`
         var found = [];
         for (var test in this) {
@@ -285,8 +321,8 @@ func TestGlobal_skipEnumeration(t *testing.T) {
                 found.push(test)
             }
         }
-        found;
-    `, "")
+        found.length;
+    `, 0)
 
 	test(`
         var found = [];
@@ -311,6 +347,6 @@ func TestGlobal_skipEnumeration(t *testing.T) {
                 found.push(test)
             }
         }
-        found;
-    `, "")
+        found.length;
+    `, 0)
 }

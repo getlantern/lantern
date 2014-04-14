@@ -3,7 +3,6 @@ package otto
 import (
 	. "./terst"
 	"testing"
-	"time"
 )
 
 func BenchmarkJSON_parse(b *testing.B) {
@@ -23,11 +22,11 @@ func TestJSON_parse(t *testing.T) {
 
 	test(`
         JSON.parse("1");
-    `, "1")
+    `, 1)
 
 	test(`
         JSON.parse("null");
-    `, "null")
+    `, "null") // TODO Can we make this nil?
 
 	test(`
         var abc = JSON.parse('"a\uFFFFbc"');
@@ -40,7 +39,7 @@ func TestJSON_parse(t *testing.T) {
 
 	test(`
         JSON.parse('{ "abc": 1, "def":2 }').abc;
-    `, "1")
+    `, 1)
 
 	test(`
         JSON.parse('{ "abc": { "x": 100, "y": 110 }, "def": [ 10, 20 ,30 ], "ghi": "zazazaza" }').def;
@@ -74,9 +73,9 @@ func TestJSON_parse(t *testing.T) {
 func TestJSON_stringify(t *testing.T) {
 	Terst(t)
 
-	test := runTest()
+	defer mockUTC()()
 
-	defer mockTimeLocal(time.UTC)()
+	test := runTest()
 
 	test(`
         JSON.stringify(function(){});

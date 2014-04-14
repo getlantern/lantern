@@ -9,6 +9,7 @@ func TestMath_toString(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`Math.toString()`, "[object Math]")
 }
 
@@ -16,6 +17,7 @@ func TestMath_abs(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`Math.abs(NaN)`, "NaN")
 	test(`Math.abs(2)`, "2")
 	test(`Math.abs(-2)`, "2")

@@ -9,6 +9,7 @@ func TestError(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`
         [ Error.prototype.name, Error.prototype.message, Error.prototype.hasOwnProperty("message") ];
     `, "Error,,true")
@@ -18,9 +19,8 @@ func TestError_instanceof(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`
-        (new TypeError()) instanceof Error
-    `, "true")
+
+	test(`(new TypeError()) instanceof Error`, true)
 }
 
 func TestPanicValue(t *testing.T) {
@@ -33,6 +33,7 @@ func TestPanicValue(t *testing.T) {
 		Is(err, nil)
 		panic(value)
 	})
+
 	test(`
         try {
             abc();
@@ -47,10 +48,8 @@ func TestPanicValue(t *testing.T) {
 func Test_catchPanic(t *testing.T) {
 	Terst(t)
 
-	// TODO This is here because ToValue(nil) was failing
-	return
-
 	otto, _ := runTestWithOtto()
+
 	_, err := otto.Run(`
         A syntax error that
         does not define

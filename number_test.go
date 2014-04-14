@@ -7,7 +7,9 @@ import (
 
 func TestNumber(t *testing.T) {
 	Terst(t)
+
 	test := runTest()
+
 	test(`
         var abc = Object.getOwnPropertyDescriptor(Number, "prototype");
         [   [ typeof Number.prototype ],

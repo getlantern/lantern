@@ -9,6 +9,7 @@ func TestFunction(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`
         var abc = Object.getOwnPropertyDescriptor(Function, "prototype");
         [   [ typeof Function.prototype, typeof Function.prototype.length, Function.prototype.length ],
@@ -26,6 +27,7 @@ func TestFunction_new(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise:
         new Function({});
     `, "SyntaxError: Unexpected identifier")
@@ -68,7 +70,8 @@ func TestFunction_apply(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`Function.prototype.apply.length`, "2")
+
+	test(`Function.prototype.apply.length`, 2)
 	test(`String.prototype.substring.apply("abc", [1, 11])`, "bc")
 }
 
@@ -76,7 +79,8 @@ func TestFunction_call(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`Function.prototype.call.length`, "1")
+
+	test(`Function.prototype.call.length`, 1)
 	test(`String.prototype.substring.call("abc", 1, 11)`, "bc")
 }
 
@@ -84,6 +88,7 @@ func TestFunctionArguments(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	// Should not be able to delete arguments
 	test(`
         function abc(def, arguments){
@@ -91,7 +96,7 @@ func TestFunctionArguments(t *testing.T) {
             return def;
         }
         abc(1);
-    `, "1")
+    `, 1)
 
 	// Again, should not be able to delete arguments
 	test(`
@@ -100,7 +105,7 @@ func TestFunctionArguments(t *testing.T) {
             return def;
         }
         abc(1);
-    `, "1")
+    `, 1)
 
 	// Test typeof of a function argument
 	test(`
@@ -119,7 +124,7 @@ func TestFunctionArguments(t *testing.T) {
                 return true;
         }
         abc(-1, 4.2, 314);
-    `, "true")
+    `, true)
 }
 
 func TestFunctionDeclarationInFunction(t *testing.T) {
@@ -129,6 +134,7 @@ func TestFunctionDeclarationInFunction(t *testing.T) {
 	// That is, a function declared within a function will shadow/overwrite
 	// declared parameters
 	test := runTest()
+
 	test(`
         function abc(def){
             return def;
@@ -252,6 +258,7 @@ func TestFunction_toString(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`raise:
         Function.prototype.toString.call(undefined);
     `, "TypeError")
