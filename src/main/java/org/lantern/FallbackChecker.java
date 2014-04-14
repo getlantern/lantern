@@ -20,16 +20,16 @@ import org.slf4j.LoggerFactory;
  * TODO: Suppress the normal ways of discovering additional proxies for this test,
  * e.g. disable kaleidoscopic discovery of proxies and don't include any in s3config
  */
-public class FallbackTester implements Runnable {
+public class FallbackChecker implements Runnable {
 
     private static final int CHECK_SLEEP_TIME = 300000; // milliseconds
     private DefaultProxyTracker proxyTracker;
     private List<FallbackProxy> proxies = new ArrayList<FallbackProxy>();
     private static final String TEST_URL = "http://www.google.com/humans.txt";
     private static final Logger LOG = LoggerFactory
-            .getLogger(FallbackTester.class);
+            .getLogger(FallbackChecker.class);
 
-    public FallbackTester(DefaultProxyTracker proxyTracker) {
+    public FallbackChecker(DefaultProxyTracker proxyTracker) {
         this.proxyTracker = proxyTracker;
 
         // TODO: get this info from controller

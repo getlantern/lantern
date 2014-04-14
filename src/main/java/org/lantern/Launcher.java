@@ -271,7 +271,7 @@ public class Launcher {
 
         if (checkFallbacks) {
             // TODO: force get mode (and disable ui?)
-            Thread t = new Thread(new FallbackTester((DefaultProxyTracker)proxyTracker));
+            Thread t = new Thread(new FallbackChecker((DefaultProxyTracker)proxyTracker));
             t.start();
         }
 
