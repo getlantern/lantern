@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -10,11 +11,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.codehaus.jackson.type.TypeReference;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Optional;
 
 /**
  * TODO: Suppress the normal ways of discovering additional proxies for this test,
@@ -24,22 +28,34 @@ public class FallbackChecker implements Runnable {
 
     private static final int CHECK_SLEEP_TIME = 300000; // milliseconds
     private DefaultProxyTracker proxyTracker;
-    private List<FallbackProxy> proxies = new ArrayList<FallbackProxy>();
+    private List<FallbackProxy> fallbacks = new ArrayList<FallbackProxy>();
     private static final String TEST_URL = "http://www.google.com/humans.txt";
     private static final Logger LOG = LoggerFactory
             .getLogger(FallbackChecker.class);
 
-    public FallbackChecker(DefaultProxyTracker proxyTracker) {
+    public FallbackChecker(DefaultProxyTracker proxyTracker, String configFolderPath) {
         this.proxyTracker = proxyTracker;
+        populateFallbacks(configFolderPath);
+    }
 
-        // TODO: get this info from controller
-        FallbackProxy fp = new FallbackProxy();
-        fp.setIp("107.170.61.149");
-        fp.setAuth_token("UhjpnpnUBGqk9qopJ294ge98KsHTUtVF2DFjfNESp8mDxLtZcF3qJz2ysJ7EYzNW");
-        fp.setCert("-----BEGIN CERTIFICATE-----\nMIIBcDCCAROgAwIBAgIEQeGHKjAMBggqhkjOPQQDAgUAMCwxDDAKBgNVBAoTA0V5ZTEcMBoGA1UE\nAxMTRmlyZWNyYWNrZXIgUHJpemluZzAeFw0xNDAyMDcwMTU4NDdaFw0xNTAyMDcwMTU4NDdaMCwx\nDDAKBgNVBAoTA0V5ZTEcMBoGA1UEAxMTRmlyZWNyYWNrZXIgUHJpemluZzBZMBMGByqGSM49AgEG\nCCqGSM49AwEHA0IABC4JpO0M0102gNaViNxP+lJ19GUxcuBvMNehxUQvTgvxMGSu9QFTrio+p5OC\nstSskTENlQdQ0ERjrPdULC1/i1+jITAfMB0GA1UdDgQWBBT46eI0Pe5/fNVYIc0YHtJ6U2WBsTAM\nBggqhkjOPQQDAgUAA0kAMEYCIQCjutFwX4O4GgCIr9OO48ayxOL8mq7tcrLA/OeSkNAVdQIhAKjN\n9hi36kHfKVmqQ6469x5odopW6DBTGAMbF2CDz/+h\n-----END CERTIFICATE-----\n");
-        fp.setProtocol("tcp");
-        fp.setPort(443);
-        proxies.add(fp);
+    private void populateFallbacks(String configFolderPath) {
+        final File file = new File(configFolderPath);
+        if (!(file.exists() && file.canRead())) {
+            throw new IllegalArgumentException("Cannot read file: " + configFolderPath);
+        }
+        Optional<String> url = S3ConfigFetcher.readUrlFromFile(file);
+        if (!url.isPresent()) {
+            throw new RuntimeException("url not present");
+        }
+        Optional<String> config = S3ConfigFetcher.fetchRemoteConfig(url.get());
+        if (!config.isPresent()) {
+            throw new RuntimeException("config not present");
+        }
+        try {
+            fallbacks = JsonUtils.OBJECT_MAPPER.readValue(config.get(), new TypeReference<List<FallbackProxy>>() {});
+        } catch (final Exception e) {
+            throw new RuntimeException("Could not parse json:\n" + config.get() + "\n" + e);
+        }
     }
 
     @Override
@@ -49,7 +65,7 @@ public class FallbackChecker implements Runnable {
             Thread.sleep(20000);
             for (;;) {
                 proxyTracker.clear();
-                for (FallbackProxy p : proxies) {
+                for (FallbackProxy p : fallbacks) {
                     proxyTracker.addSingleFallbackProxy(p);
                     String msg = "testing proxying through fallback: "+p.getWanHost()+"... ";
                     if (canProxyThroughCurrentFallback()) {

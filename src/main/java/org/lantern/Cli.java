@@ -50,7 +50,7 @@ public class Cli {
     public static final String OPTION_KEYSTORE = "keystore";
     public static final String OPTION_REPORT_IP = "report-ip";
     public static final String OPTION_PLUGGABLE_TRANSPORT = "pt";
-    public static final String OPTION_CHECK_FALLBACKS = "test-fallbacks";
+    public static final String OPTION_CHECK_FALLBACKS = "check-fallbacks";
     
     private CommandLine cmd;
     
@@ -155,8 +155,8 @@ public class Cli {
             "[XXX: perhaps provisional] path to keystore file where the fallback proxy should find its own keypair.");
         options.addOption(null, OPTION_REPORT_IP, true,
             "(Fallback's listen) IP to report to controller");
-        options.addOption(null, OPTION_CHECK_FALLBACKS, false,
-                "run in 'test fallbacks' mode, i.e. periodically make sure we can proxy through all known fallbacks");
+        options.addOption(null, OPTION_CHECK_FALLBACKS, true,
+                "run in \"check fallbacks\" mode using the supplied \"config folder\" file for fallback info, to periodically make sure we can proxy through all known fallbacks");
         options.addOption(OptionBuilder
                 .withLongOpt(OPTION_PLUGGABLE_TRANSPORT)
                 .withArgName("property=value")

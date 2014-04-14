@@ -193,7 +193,7 @@ public class S3ConfigFetcher {
         return Optional.absent();
     }
 
-    private Optional<String> readUrlFromFile(File urlFile) {
+    public static Optional<String> readUrlFromFile(File urlFile) {
         if (!urlFile.isFile()) {
             log.error("Still no config file at {}", urlFile);
             return Optional.absent();
@@ -212,7 +212,7 @@ public class S3ConfigFetcher {
         return Optional.absent();
     }
 
-    private Optional<String> fetchRemoteConfig(String url) {
+    public static Optional<String> fetchRemoteConfig(String url) {
         final HttpClient client = HttpClientFactory.newDirectClient();
         final HttpGet get = new HttpGet(url);
         InputStream is = null;

@@ -270,8 +270,9 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
 
         if (checkFallbacks) {
+            String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
             // TODO: force get mode (and disable ui?)
-            Thread t = new Thread(new FallbackChecker((DefaultProxyTracker)proxyTracker));
+            Thread t = new Thread(new FallbackChecker((DefaultProxyTracker)proxyTracker, configFolderPath));
             t.start();
         }
 
