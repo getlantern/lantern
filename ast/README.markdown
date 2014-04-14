@@ -12,6 +12,13 @@ node types are concerned) and may change in the future.
 
 ## Usage
 
+#### func  GobRegister
+
+```go
+func GobRegister()
+```
+GobRegister will register node types with "encoding/gob"
+
 #### type ArrayLiteral
 
 ```go

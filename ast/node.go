@@ -10,7 +10,9 @@ node types are concerned) and may change in the future.
 package ast
 
 import (
+	"encoding/gob"
 	"regexp"
+	"sync"
 
 	"github.com/robertkrimen/otto/file"
 	"github.com/robertkrimen/otto/token"
@@ -403,6 +405,67 @@ func (self *TryStatement) Idx0() file.Idx        { return self.Try }
 func (self *VarStatement) Idx0() file.Idx        { return self.Var }
 func (self *WhileStatement) Idx0() file.Idx      { return self.While }
 func (self *WithStatement) Idx0() file.Idx       { return self.With }
+
+var gobRegister = false
+var gobRegisterOnce sync.Once
+
+// GobRegister will register node types with "encoding/gob"
+//
+func GobRegister() {
+	if gobRegister { // Race... condition?
+		return
+	}
+	gobRegister = true
+	gobRegisterOnce.Do(func() {
+		gob.Register(&ArrayLiteral{})
+		gob.Register(&AssignExpression{})
+		if false {
+			gob.Register(&BadExpression{})
+		}
+		gob.Register(&BinaryExpression{})
+		gob.Register(&BooleanLiteral{})
+		gob.Register(&BracketExpression{})
+		gob.Register(&CallExpression{})
+		gob.Register(&ConditionalExpression{})
+		gob.Register(&DotExpression{})
+		gob.Register(&FunctionExpression{})
+		gob.Register(&Identifier{})
+		gob.Register(&NewExpression{})
+		gob.Register(&NullLiteral{})
+		gob.Register(&NumberLiteral{})
+		gob.Register(&ObjectLiteral{})
+		gob.Register(&RegExpLiteral{})
+		gob.Register(&SequenceExpression{})
+		gob.Register(&StringLiteral{})
+		gob.Register(&ThisExpression{})
+		gob.Register(&UnaryExpression{})
+		gob.Register(&VariableExpression{})
+
+		if false {
+			gob.Register(&BadStatement{})
+		}
+		gob.Register(&BlockStatement{})
+		gob.Register(&BranchStatement{})
+		gob.Register(&CaseStatement{})
+		gob.Register(&CatchStatement{})
+		gob.Register(&DebuggerStatement{})
+		gob.Register(&DoWhileStatement{})
+		gob.Register(&EmptyStatement{})
+		gob.Register(&ExpressionStatement{})
+		gob.Register(&ForInStatement{})
+		gob.Register(&ForStatement{})
+		gob.Register(&IfStatement{})
+		gob.Register(&LabelledStatement{})
+		gob.Register(&Program{})
+		gob.Register(&ReturnStatement{})
+		gob.Register(&SwitchStatement{})
+		gob.Register(&ThrowStatement{})
+		gob.Register(&TryStatement{})
+		gob.Register(&VarStatement{})
+		gob.Register(&WhileStatement{})
+		gob.Register(&WithStatement{})
+	})
+}
 
 // ==== //
 // Idx1 //
