@@ -212,7 +212,7 @@ public class Launcher {
         //    do not show the UI, but do put the app in the system tray.
         final boolean uiDisabled = cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
-        final boolean testFallbacks = cmd.hasOption(Cli.OPTION_TEST_FALLBACKS);
+        final boolean checkFallbacks = cmd.hasOption(Cli.OPTION_CHECK_FALLBACKS);
 
         configureCipherSuites();
         preInstanceWatch.stop();
@@ -269,7 +269,7 @@ public class Launcher {
         
         proxyTracker = instance(ProxyTracker.class);
 
-        if (testFallbacks) {
+        if (checkFallbacks) {
             // TODO: force get mode (and disable ui?)
             Thread t = new Thread(new FallbackTester((DefaultProxyTracker)proxyTracker));
             t.start();
