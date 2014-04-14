@@ -45,7 +45,7 @@ public class HostSpoofingTest {
 
     private static void writeHttpRequest(final OutputStream os) throws IOException {
         os.write("GET / HTTP/1.1\r\n".getBytes(Charsets.UTF_8));
-        os.write("Host: www.getlantem.org\r\n".getBytes(Charsets.UTF_8));
+        os.write("Host: fastly.getlantern.org\r\n".getBytes(Charsets.UTF_8));
         os.write("\r\n".getBytes(Charsets.UTF_8));
     }
 
