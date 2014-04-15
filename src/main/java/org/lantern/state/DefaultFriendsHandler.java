@@ -1,6 +1,5 @@
 package org.lantern.state;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -14,14 +13,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.EmailAddressUtils;
@@ -79,9 +75,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private String refreshToken;
 
     private final Messages msgs;
-    
-    private final ScheduledExecutorService bulkInvitesChecker = 
-            Threads.newSingleThreadScheduledExecutor("Bulk-Invites-Thread");
     
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
@@ -677,45 +670,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
     }
 
-    public void start() {
-        log.debug("Starting");
-        final Runnable runner = new Runnable() {
-            
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(40000);
-                } catch (final InterruptedException e) {
-                }
-                checkForBulkInvites();
-            }
-        };
-        bulkInvitesChecker.scheduleWithFixedDelay(
-                runner,
-                40, 
-                1,
-                TimeUnit.SECONDS);
-    }
-    
     @Override
     public void stop() {
         log.debug("Stopping");
-        bulkInvitesChecker.shutdown();
-    }
-    
-    /**
-     * See if there's a bulk invite file to process, and process it if so.
-     */
-    private void checkForBulkInvites() {
-        final File file = new File(SystemUtils.USER_HOME, 
-            "lantern-bulk-friends.txt");
-        if (!file.isFile()) {
-            return;
-        }
-        
-        log.debug("BulkInvite: Found lantern-bulk-friends.txt");
-        log.warn("Bulk invites are currently disabled");
-        return;
     }
 
     @Override

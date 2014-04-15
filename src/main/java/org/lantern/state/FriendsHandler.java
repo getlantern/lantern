@@ -29,7 +29,5 @@ public interface FriendsHandler extends Shutdownable {
     ClientFriend getFriend(String email);
 
     void syncFriends();
-    
-    void start();
 
 }
