@@ -199,9 +199,11 @@ public class Launcher {
         preInstanceWatch.start();
         
         final CommandLine cmd = this.lanternModule.commandLine();
+        final boolean checkFallbacks = cmd.hasOption(Cli.OPTION_CHECK_FALLBACKS);
+
         // There are four cases here:
         // 1) We're just starting normally
-        // 2) We're running with UI disabled (such as from a server), in
+        // 2) We're running with --disable-ui (or a flag that implies it), in
         //    which case we don't show any UI elements
         // 3) We're running on system startup (specified with --launchd flag)
         //    and setup is not complete, in which case we show no splash screen,
@@ -210,9 +212,8 @@ public class Launcher {
         // 4) We're running on system startup (specified with --launchd flag)
         //    and setup IS complete, in which case we show no splash screen,
         //    do not show the UI, but do put the app in the system tray.
-        final boolean uiDisabled = cmd.hasOption(Cli.OPTION_DISABLE_UI);
+        final boolean uiDisabled = checkFallbacks || cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
-        final boolean checkFallbacks = cmd.hasOption(Cli.OPTION_CHECK_FALLBACKS);
 
         configureCipherSuites();
         preInstanceWatch.stop();
@@ -270,10 +271,21 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
 
         if (checkFallbacks) {
+            LOG.debug("Running in check-fallbacks mode");
+            model.setCheckFallbacksMode(true);
             String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
-            // TODO: force get mode (and disable ui?)
-            Thread t = new Thread(new FallbackChecker((DefaultProxyTracker)proxyTracker, configFolderPath));
+            FallbackChecker fbc = null;
+            try {
+                fbc = new FallbackChecker((DefaultProxyTracker)proxyTracker, configFolderPath);
+            } catch (Exception e) {
+                LOG.error("Error instantiating FallbackChecker:");
+                e.printStackTrace();
+                System.exit(1);
+            }
+            Thread t = new Thread(fbc);
             t.start();
+        } else {
+            model.setCheckFallbacksMode(false);
         }
 
         this.s3ConfigManager = new S3ConfigFetcher(model);
@@ -286,7 +298,6 @@ public class Launcher {
         internalState = instance(InternalState.class);
         httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
-
 
         instance(GeoIp.class);
         statsManager = instance(StatsManager.class);
@@ -330,19 +341,25 @@ public class Launcher {
             @Override
             public void run() {
                 keyStoreManager.start();
-                final ConnectivityChecker connectivityChecker =
-                    instance(ConnectivityChecker.class);
-                final Timer timer = new Timer("Connectivity-Check-Timer", true);
-                timer.schedule(connectivityChecker, 0, 10 * 1000);
 
                 shutdownable(ModelIo.class);
-                
+
                 try {
                     proxyTracker.start();
                 } catch (final Exception e) {
                     LOG.error("Could not start proxy tracker?", e);
                 }
                 getModeProxy.start();
+
+                // don't need to start the rest of these services when running in check-fallbacks mode
+                if (model.isCheckFallbacksMode()) {
+                    return;
+                }
+                
+                final ConnectivityChecker connectivityChecker =
+                    instance(ConnectivityChecker.class);
+                final Timer timer = new Timer("Connectivity-Check-Timer", true);
+                timer.schedule(connectivityChecker, 0, 10 * 1000);
                 xmpp.start();
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
@@ -403,11 +420,6 @@ public class Launcher {
             LOG.error("Could not load instance of "+clazz);
             throw new NullPointerException("Could not load instance of "+clazz);
         }
-        /*
-        if (splashScreen != null) {
-            splashScreen.advanceBar();
-        }
-        */
         watch.stop();
         return inst;
     }
@@ -701,94 +713,6 @@ public class Launcher {
         }
         return msg;
     }
-
-/*
-    private void processCommandLineOptions(final CommandLine cmd) {
-
-        final String ctrlOpt = OPTION_CONTROLLER_ID;
-        if (cmd.hasOption(ctrlOpt)) {
-            LanternClientConstants.setControllerId(
-                cmd.getOptionValue(ctrlOpt));
-        }
-
-        final String insOpt = OPTION_INSTANCE_ID;
-        if (cmd.hasOption(insOpt)) {
-            model.setInstanceId(cmd.getOptionValue(insOpt));
-        }
-
-        final String fbOpt = OPTION_AS_FALLBACK;
-        if (cmd.hasOption(fbOpt)) {
-            LanternUtils.setFallbackProxy(true);
-        }
-
-        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
-        if (cmd.hasOption(secOpt)) {
-            modelUtils.loadOAuth2ClientSecretsFile(
-                cmd.getOptionValue(secOpt));
-        }
-
-        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
-        if (cmd.hasOption(credOpt)) {
-            modelUtils.loadOAuth2UserCredentialsFile(
-                cmd.getOptionValue(credOpt));
-        }
-
-        //final Settings set = LanternHub.settings();
-
-        set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
-        set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
-        set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
-        set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
-        set.setUdpProxyPriority(cmd.getOptionValue(OPTION_UDP_PROXY_PRIORITY, "lower").toUpperCase());
-        
-        final boolean tcp = parseOptionDefaultTrue(cmd, OPTION_TCP);
-        final boolean udp = parseOptionDefaultTrue(cmd, OPTION_UDP);
-        IceConfig.setTcp(tcp);
-        IceConfig.setUdp(udp);
-        set.setTcp(tcp);
-        set.setUdp(udp);
-
-        if (cmd.hasOption(OPTION_ACCESS_TOK)) {
-            set.setAccessToken(cmd.getOptionValue(OPTION_ACCESS_TOK));
-        }
-        
-        if (cmd.hasOption(OPTION_REFRESH_TOK)) {
-            final String refresh = cmd.getOptionValue(OPTION_REFRESH_TOK);
-            set.setRefreshToken(refresh);
-            Events.asyncEventBus().post(new RefreshTokenEvent(refresh));
-        }
-        // option to disable use of keychains in local privacy
-        if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
-            LOG.info("Disabling use of system keychains");
-            set.setKeychainEnabled(false);
-        }
-        else {
-            set.setKeychainEnabled(true);
-        }
-
-        if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
-            loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
-        }
-
-        if (cmd.hasOption(OPTION_PUBLIC_API)) {
-            set.setBindToLocalhost(false);
-        }
-
-        LOG.info("Running API on port: {}", StaticSettings.getApiPort());
-        if (cmd.hasOption(OPTION_LAUNCHD)) {
-            LOG.debug("Running from launchd or launchd set on command line");
-            model.setLaunchd(true);
-        } else {
-            model.setLaunchd(false);
-        }
-
-        if (cmd.hasOption(OPTION_GIVE)) {
-            model.getSettings().setMode(Mode.give);
-        } else if (cmd.hasOption(OPTION_GET)) {
-            model.getSettings().setMode(Mode.get);
-        }
-    }
-    */
 
     public Injector getInjector() {
         return injector;

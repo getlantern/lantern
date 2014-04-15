@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jackson.type.TypeReference;
@@ -30,6 +31,7 @@ public class FallbackChecker implements Runnable {
     private DefaultProxyTracker proxyTracker;
     private List<FallbackProxy> fallbacks = new ArrayList<FallbackProxy>();
     private static final String TEST_URL = "http://www.google.com/humans.txt";
+    private static final String TEST_RESULT_PREFIX = "Google is built by";
     private static final Logger LOG = LoggerFactory
             .getLogger(FallbackChecker.class);
 
@@ -65,13 +67,18 @@ public class FallbackChecker implements Runnable {
             Thread.sleep(20000);
             for (;;) {
                 proxyTracker.clear();
-                for (FallbackProxy p : fallbacks) {
-                    proxyTracker.addSingleFallbackProxy(p);
-                    String msg = "testing proxying through fallback: "+p.getWanHost()+"... ";
-                    if (canProxyThroughCurrentFallback()) {
-                        LOG.info(msg+"success");
-                    } else {
-                        LOG.warn(msg+"fail");
+                for (FallbackProxy fb : fallbacks) {
+                    proxyTracker.addSingleFallbackProxy(fb);
+                    final String addr = fb.getWanHost();
+                    LOG.info("testing proxying through fallback: " + addr);
+                    boolean working = false;
+                    try {
+                        working = canProxyThroughCurrentFallback();
+                    } catch (Exception e) {
+                        LOG.warn("proxying through fallback " + addr + " failed:\n" + e.toString());
+                    }
+                    if (working) {
+                        LOG.info("proxying through fallback " + addr + " succeeded");
                     }
                     proxyTracker.clear();
                 }
@@ -81,7 +88,7 @@ public class FallbackChecker implements Runnable {
         }
     }
     
-    private boolean canProxyThroughCurrentFallback() {
+    private boolean canProxyThroughCurrentFallback() throws Exception {
         final HttpClient client = HttpClientFactory.newProxiedClient();
         final HttpGet get = new HttpGet(TEST_URL);
         InputStream is = null;
@@ -89,9 +96,14 @@ public class FallbackChecker implements Runnable {
             final HttpResponse res = client.execute(get);
             is = res.getEntity().getContent();
             final String content = IOUtils.toString(is);
-            return StringUtils.startsWith(content, "Google is built by");
-        } catch (final IOException e) {
-            return false;
+            if (StringUtils.startsWith(content, TEST_RESULT_PREFIX)) {
+                return true;
+            } else {
+                throw new Exception(
+                    "response for " + TEST_URL + " did not match expectation\n" +
+                    "expected: " + TEST_RESULT_PREFIX + "\n" +
+                    "observed: " + content);
+            }
         } finally {
             IOUtils.closeQuietly(is);
             get.reset();

@@ -156,7 +156,7 @@ public class Cli {
         options.addOption(null, OPTION_REPORT_IP, true,
             "(Fallback's listen) IP to report to controller");
         options.addOption(null, OPTION_CHECK_FALLBACKS, true,
-                "run in \"check fallbacks\" mode using the supplied \"config folder\" file for fallback info, to periodically make sure we can proxy through all known fallbacks");
+                "run in check-fallbacks mode, using the supplied file for fallback info, to periodically make sure we can proxy through all fallbacks. implies --disable-ui");
         options.addOption(OptionBuilder
                 .withLongOpt(OPTION_PLUGGABLE_TRANSPORT)
                 .withArgName("property=value")

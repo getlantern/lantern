@@ -27,6 +27,7 @@ public class LogglyAppender extends AppenderSkeleton {
     public LogglyAppender(Model model, boolean inTestMode) {
         this.model = model;
         loggly = new Loggly(inTestMode,
+                model.isCheckFallbacksMode() ? null :
                 LanternConstants.LANTERN_LOCALHOST_ADDR);
     }
 
