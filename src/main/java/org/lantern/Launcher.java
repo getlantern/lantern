@@ -270,9 +270,9 @@ public class Launcher {
         
         proxyTracker = instance(ProxyTracker.class);
 
+        model.setCheckFallbacksMode(checkFallbacks);
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
-            model.setCheckFallbacksMode(true);
             String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
             FallbackChecker fbc = null;
             try {
@@ -285,11 +285,9 @@ public class Launcher {
             Thread t = new Thread(fbc);
             t.start();
         } else {
-            model.setCheckFallbacksMode(false);
+            s3ConfigManager = new S3ConfigFetcher(model);
+            s3ConfigManager.start();
         }
-
-        this.s3ConfigManager = new S3ConfigFetcher(model);
-        this.s3ConfigManager.start();
 
         xmpp = instance(DefaultXmppHandler.class);
 

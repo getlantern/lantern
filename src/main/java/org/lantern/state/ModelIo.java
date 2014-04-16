@@ -74,7 +74,9 @@ public class ModelIo extends Storage<Model> {
         
         obj = read();
         Events.register(this);
-        onS3ConfigChange(obj.getS3Config());
+        if (!obj.isCheckFallbacksMode()) {
+            onS3ConfigChange(obj.getS3Config());
+        }
         log.info("Loaded module");
     }
 

@@ -82,6 +82,7 @@ public class FallbackChecker implements Runnable {
                     }
                     proxyTracker.clear();
                 }
+                LOG.info("finished checking all fallbacks, sleeping for " + new Float(CHECK_SLEEP_TIME / 1000 / 60).toString() + " min");
                 Thread.sleep(CHECK_SLEEP_TIME);
             }
         } catch (InterruptedException e) {
