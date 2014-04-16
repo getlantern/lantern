@@ -27,7 +27,6 @@ import com.google.common.base.Optional;
  */
 public class FallbackChecker implements Runnable {
 
-    private static final int CHECK_SLEEP_TIME = 300000; // milliseconds
     private DefaultProxyTracker proxyTracker;
     private List<FallbackProxy> fallbacks = new ArrayList<FallbackProxy>();
     private static final String TEST_URL = "http://www.google.com/humans.txt";
@@ -65,27 +64,35 @@ public class FallbackChecker implements Runnable {
         try {
             // sleep a bit to make sure everything's ready before we start
             Thread.sleep(20000);
-            for (;;) {
-                proxyTracker.clear();
-                for (FallbackProxy fb : fallbacks) {
-                    proxyTracker.addSingleFallbackProxy(fb);
-                    final String addr = fb.getWanHost();
-                    LOG.info("testing proxying through fallback: " + addr);
-                    boolean working = false;
-                    try {
-                        working = canProxyThroughCurrentFallback();
-                    } catch (Exception e) {
-                        LOG.warn("proxying through fallback " + addr + " failed:\n" + e.toString());
-                    }
-                    if (working) {
-                        LOG.info("proxying through fallback " + addr + " succeeded");
-                    }
-                    proxyTracker.clear();
+
+            int nfailed = 0, nsucceeded = 0;
+            proxyTracker.clear();
+            for (FallbackProxy fb : fallbacks) {
+                proxyTracker.addSingleFallbackProxy(fb);
+                final String addr = fb.getWanHost();
+                LOG.info("testing proxying through fallback: " + addr);
+                boolean working = false;
+                try {
+                    working = canProxyThroughCurrentFallback();
+                } catch (Exception e) {
+                    LOG.warn("proxying through fallback " + addr + " failed:\n" + e.toString());
+                    ++nfailed;
+                    // TODO: spawn subprocess to send alert email
                 }
-                LOG.info("finished checking all fallbacks, sleeping for " + new Float(CHECK_SLEEP_TIME / 1000 / 60).toString() + " min");
-                Thread.sleep(CHECK_SLEEP_TIME);
+                if (working) {
+                    LOG.info("proxying through fallback " + addr + " succeeded");
+                    ++nsucceeded;
+                }
+                proxyTracker.clear();
             }
+            LOG.info(String.format("Finished checking fallbacks:\n" +
+                                   "nsucceeded: %d\n" +
+                                   "nfailed:    %d\n" +
+                                   "total:      %d",
+                                   nsucceeded, nfailed, nsucceeded + nfailed));
+            System.exit(nfailed);
         } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
     
