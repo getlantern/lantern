@@ -63,10 +63,7 @@ var scriptGobRegister = false
 //
 // The binary format can change at any time and should be considered unspecified and opaque.
 //
-// NOTE: This method is in beta. MarshalBinary uses "encoding/gob" under the hood, which may not deal with cycles
-// nicely, so this method might stack overflow. :(
-//
-func (self *Script) MarshalBinary() ([]byte, error) {
+func (self *Script) marshalBinary() ([]byte, error) {
 	if !scriptGobRegister {
 		ast.GobRegister()
 		scriptGobRegister = true
@@ -98,7 +95,7 @@ func (self *Script) MarshalBinary() ([]byte, error) {
 //
 // The binary format can change at any time and should be considered unspecified and opaque.
 //
-func (self *Script) UnmarshalBinary(data []byte) error {
+func (self *Script) unmarshalBinary(data []byte) error {
 	if !scriptGobRegister {
 		ast.GobRegister()
 		scriptGobRegister = true

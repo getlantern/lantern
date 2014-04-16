@@ -130,7 +130,7 @@ func (self *_parser) parseRegExpLiteral() *ast.RegExpLiteral {
 		endOffset = self.chrOffset - 1
 	}
 
-	var value *regexp.Regexp
+	var value string
 	// TODO 15.10
 	{
 		// Test during parsing that this is a valid regular expression
@@ -141,10 +141,12 @@ func (self *_parser) parseRegExpLiteral() *ast.RegExpLiteral {
 				self.error(idx, "Invalid regular expression: %s", err.Error())
 			}
 		} else {
-			value, err = regexp.Compile(pattern)
+			_, err = regexp.Compile(pattern)
 			if err != nil {
 				// We should not get here, ParseRegExp should catch any errors
 				self.error(idx, "Invalid regular expression: %s", err.Error()[22:]) // Skip redundant "parse regexp error"
+			} else {
+				value = pattern
 			}
 		}
 	}

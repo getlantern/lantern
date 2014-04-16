@@ -508,37 +508,11 @@ type Script struct {
 Script is a handle for some (reusable) JavaScript. Passing a Script value to a
 run method will evaluate the JavaScript.
 
-#### func (*Script) MarshalBinary
-
-```go
-func (self *Script) MarshalBinary() ([]byte, error)
-```
-MarshalBinary will marshal a script into a binary form. A marshalled script that
-is later unmarshalled can be executed on the same version of the otto runtime.
-
-The binary format can change at any time and should be considered unspecified
-and opaque.
-
-NOTE: This method is in beta. MarshalBinary uses "encoding/gob" under the hood,
-which may not deal with cycles nicely, so this method might stack overflow. :(
-
 #### func (*Script) String
 
 ```go
 func (self *Script) String() string
 ```
-
-#### func (*Script) UnmarshalBinary
-
-```go
-func (self *Script) UnmarshalBinary(data []byte) error
-```
-UnmarshalBinary will vivify a marshalled script into something usable. If the
-script was originally marshalled on a different version of the otto runtime,
-then this method will return an error.
-
-The binary format can change at any time and should be considered unspecified
-and opaque.
 
 #### type Value
 

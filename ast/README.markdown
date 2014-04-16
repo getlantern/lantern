@@ -741,10 +741,16 @@ type RegExpLiteral struct {
 	Literal string
 	Pattern string
 	Flags   string
-	Value   *regexp.Regexp
+	Value   string
 }
 ```
 
+
+#### func (*RegExpLiteral) Compile
+
+```go
+func (self *RegExpLiteral) Compile() *regexp.Regexp
+```
 
 #### func (*RegExpLiteral) Idx0
 

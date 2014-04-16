@@ -215,7 +215,7 @@ func (self *_parser) parseFunctionBlock(node *ast.FunctionExpression, name strin
 	{
 		self.openScope()
 		if !declaration && name != "" {
-			self.scope.addFunction(name, node)
+			self.scope.addFunction(name, nil)
 		}
 		inFunction := self.scope.inFunction
 		self.scope.inFunction = true

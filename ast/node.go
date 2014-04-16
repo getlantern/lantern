@@ -141,7 +141,8 @@ type (
 		Literal string
 		Pattern string
 		Flags   string
-		Value   *regexp.Regexp
+		Value   string
+		regexp  *regexp.Regexp
 	}
 
 	SequenceExpression struct {
@@ -171,6 +172,13 @@ type (
 		Initializer Expression
 	}
 )
+
+func (self *RegExpLiteral) Compile() *regexp.Regexp {
+	if self.regexp == nil {
+		self.regexp, _ = regexp.Compile(self.Value)
+	}
+	return self.regexp
+}
 
 // _expressionNode
 
@@ -417,6 +425,8 @@ func GobRegister() {
 	}
 	gobRegister = true
 	gobRegisterOnce.Do(func() {
+		gob.Register(&Declaration{})
+
 		gob.Register(&ArrayLiteral{})
 		gob.Register(&AssignExpression{})
 		if false {

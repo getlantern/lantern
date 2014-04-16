@@ -161,7 +161,13 @@ func (self *_runtime) _callNode(function *_object, environment *_functionEnviron
 		}
 	}
 
-	self.functionDeclaration(node.Cache_FunctionList)
+	tmp := append([]ast.Declaration(nil), node.Cache_FunctionList...)
+	for i, value := range tmp {
+		if value.Definition == nil {
+			tmp[i].Definition = node
+		}
+	}
+	self.functionDeclaration(tmp)
 	self.variableDeclaration(node.Cache_VariableList)
 
 	result := self.evaluate(node.Body)

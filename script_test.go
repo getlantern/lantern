@@ -20,13 +20,13 @@ func TestScript(t *testing.T) {
 	Is(err, nil)
 	is(value, 2)
 
-	tmp, err := script.MarshalBinary()
+	tmp, err := script.marshalBinary()
 	Is(err, nil)
 	Is(len(tmp), 1228)
 
 	{
 		script := &Script{}
-		err = script.UnmarshalBinary(tmp)
+		err = script.unmarshalBinary(tmp)
 		Is(err, nil)
 
 		Is(script.String(), str)
@@ -35,14 +35,14 @@ func TestScript(t *testing.T) {
 		Is(err, nil)
 		is(value, 4)
 
-		tmp, err = script.MarshalBinary()
+		tmp, err = script.marshalBinary()
 		Is(err, nil)
 		Is(len(tmp), 1228)
 	}
 
 	{
 		script := &Script{}
-		err = script.UnmarshalBinary(tmp)
+		err = script.unmarshalBinary(tmp)
 		Is(err, nil)
 
 		Is(script.String(), str)
@@ -51,7 +51,7 @@ func TestScript(t *testing.T) {
 		Is(err, nil)
 		is(value, 6)
 
-		tmp, err = script.MarshalBinary()
+		tmp, err = script.marshalBinary()
 		Is(err, nil)
 		Is(len(tmp), 1228)
 	}
@@ -61,7 +61,7 @@ func TestScript(t *testing.T) {
 		scriptVersion = "bogus"
 
 		script := &Script{}
-		err = script.UnmarshalBinary(tmp)
+		err = script.unmarshalBinary(tmp)
 		Is(err, "version mismatch")
 
 		Is(script.String(), "// \n")
