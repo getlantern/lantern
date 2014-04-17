@@ -370,8 +370,6 @@ public class Launcher {
                 gnomeAutoStart();
                 
                 autoConnect();
-
-                friendsHandler.start();
             }
             
         }, "Launcher-Start-Thread");
