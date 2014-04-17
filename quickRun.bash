@@ -31,6 +31,11 @@ then
   javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
 fi
 
+if [ "$LANTERN_JAVA_ARGS" ]
+then
+  javaArgs="$LANTERN_JAVA_ARGS $javaArgs"
+fi
+
 if [ $(uname) == "Linux" ]
 then
   proc=`uname -m`
