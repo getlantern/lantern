@@ -12,13 +12,6 @@ node types are concerned) and may change in the future.
 
 ## Usage
 
-#### func  GobRegister
-
-```go
-func GobRegister()
-```
-GobRegister will register node types with "encoding/gob"
-
 #### type ArrayLiteral
 
 ```go
@@ -343,13 +336,12 @@ func (self *DebuggerStatement) Idx1() file.Idx
 #### type Declaration
 
 ```go
-type Declaration struct {
-	Name       string
-	Definition Node
+type Declaration interface {
+	// contains filtered or unexported methods
 }
 ```
 
-FIXME
+All declaration nodes implement the Declaration interface.
 
 #### type DoWhileStatement
 
@@ -498,31 +490,40 @@ func (self *ForStatement) Idx0() file.Idx
 func (self *ForStatement) Idx1() file.Idx
 ```
 
-#### type FunctionExpression
+#### type FunctionDeclaration
 
 ```go
-type FunctionExpression struct {
-	Function file.Idx
-	Body     Statement
-	Source   string
-
-	Cache_ParameterList []string      // Beware, may go away
-	Cache_FunctionList  []Declaration // Beware, may go away
-	Cache_VariableList  []Declaration // Beware, may go away
+type FunctionDeclaration struct {
+	Function *FunctionLiteral
 }
 ```
 
 
-#### func (*FunctionExpression) Idx0
+#### type FunctionLiteral
 
 ```go
-func (self *FunctionExpression) Idx0() file.Idx
+type FunctionLiteral struct {
+	Function      file.Idx
+	Name          *Identifier
+	ParameterList *ParameterList
+	Body          Statement
+	Source        string
+
+	DeclarationList []Declaration
+}
 ```
 
-#### func (*FunctionExpression) Idx1
+
+#### func (*FunctionLiteral) Idx0
 
 ```go
-func (self *FunctionExpression) Idx1() file.Idx
+func (self *FunctionLiteral) Idx0() file.Idx
+```
+
+#### func (*FunctionLiteral) Idx1
+
+```go
+func (self *FunctionLiteral) Idx1() file.Idx
 ```
 
 #### type Identifier
@@ -698,14 +699,24 @@ func (self *ObjectLiteral) Idx0() file.Idx
 func (self *ObjectLiteral) Idx1() file.Idx
 ```
 
+#### type ParameterList
+
+```go
+type ParameterList struct {
+	Opening file.Idx
+	List    []*Identifier
+	Closing file.Idx
+}
+```
+
+
 #### type Program
 
 ```go
 type Program struct {
 	Body []Statement
 
-	FunctionList []Declaration
-	VariableList []Declaration
+	DeclarationList []Declaration
 }
 ```
 
@@ -745,12 +756,6 @@ type RegExpLiteral struct {
 }
 ```
 
-
-#### func (*RegExpLiteral) Compile
-
-```go
-func (self *RegExpLiteral) Compile() *regexp.Regexp
-```
 
 #### func (*RegExpLiteral) Idx0
 
@@ -956,27 +961,15 @@ func (self *UnaryExpression) Idx0() file.Idx
 func (self *UnaryExpression) Idx1() file.Idx
 ```
 
-#### type VarStatement
+#### type VariableDeclaration
 
 ```go
-type VarStatement struct {
+type VariableDeclaration struct {
 	Var  file.Idx
-	List []Expression
+	List []*VariableExpression
 }
 ```
 
-
-#### func (*VarStatement) Idx0
-
-```go
-func (self *VarStatement) Idx0() file.Idx
-```
-
-#### func (*VarStatement) Idx1
-
-```go
-func (self *VarStatement) Idx1() file.Idx
-```
 
 #### type VariableExpression
 
@@ -999,6 +992,28 @@ func (self *VariableExpression) Idx0() file.Idx
 
 ```go
 func (self *VariableExpression) Idx1() file.Idx
+```
+
+#### type VariableStatement
+
+```go
+type VariableStatement struct {
+	Var  file.Idx
+	List []Expression
+}
+```
+
+
+#### func (*VariableStatement) Idx0
+
+```go
+func (self *VariableStatement) Idx0() file.Idx
+```
+
+#### func (*VariableStatement) Idx1
+
+```go
+func (self *VariableStatement) Idx1() file.Idx
 ```
 
 #### type WhileStatement

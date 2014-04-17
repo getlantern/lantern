@@ -56,22 +56,6 @@ func (self _functionEnvironment) runtimeOf() *_runtime {
 	return self._declarativeEnvironment.runtimeOf()
 }
 
-//func (self *_functionEnvironment) newReference(name string, strict bool) _reference {
-//    index, exists := self.indexOfArgumentName[name]
-//    if !exists {
-//        return self._declarativeEnvironment.newReference(name, strict)
-//    }
-//    return newArgumentReference(self.arguments, index, strict)
-//}
-
-//func (self *_functionEnvironment) HasBinding(name string) bool {
-//    _, exists := self.indexOfArgumentName[name]
-//    if exists {
-//        return true
-//    }
-//    return self._declarativeEnvironment.HasBinding(name)
-//}
-
 // _objectEnvironment
 
 type _objectEnvironment struct {
@@ -168,7 +152,7 @@ func (self *_objectEnvironment) Outer() _environment {
 }
 
 func (self *_objectEnvironment) newReference(name string, strict bool) _reference {
-	return newPropertyReference(self.Object, name, strict, nil)
+	return newPropertyReference(self.Object, name, strict)
 }
 
 // _declarativeEnvironment

@@ -19,12 +19,12 @@ func builtinGlobal_eval(call FunctionCall) Value {
 		return src
 	}
 	runtime := call.runtime
-	program := runtime.parseOrThrow(toString(src))
+	program := runtime.cmpl_parseOrThrow(toString(src))
 	if call.evalHint {
 		runtime.EnterEvalExecutionContext(call)
 		defer runtime.LeaveExecutionContext()
 	}
-	returnValue := runtime.evaluate(program)
+	returnValue := runtime.cmpl_evaluate_nodeProgram(program)
 	if returnValue.isEmpty() {
 		return UndefinedValue()
 	}

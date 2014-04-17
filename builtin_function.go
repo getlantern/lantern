@@ -45,8 +45,9 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 
 	function, err := parser.ParseFunction(parameterList, body)
 	runtime.parseThrow(err) // Will panic/throw appropriately
+	cmpl_function := parseExpression(function)
 
-	return runtime.newNodeFunction(function, runtime.GlobalEnvironment)
+	return runtime.newNodeFunction(cmpl_function.(*_nodeFunctionLiteral), runtime.GlobalEnvironment)
 }
 
 func builtinFunction_toString(call FunctionCall) Value {

@@ -370,8 +370,8 @@ always be in UTF-8.
 
 src may also be a Script.
 
-src may also be a node, but if the AST has been modified, then runtime behavior
-is undefined.
+src may also be a Program, but if the AST has been modified, then runtime
+behavior is undefined.
 
 #### func (Otto) Call
 
@@ -472,8 +472,8 @@ undefined and the parse error (nothing will be evaluated in this case).
 
 src may also be a Script.
 
-src may also be a node, but if the AST has been modified, then runtime behavior
-is undefined.
+src may also be a Program, but if the AST has been modified, then runtime
+behavior is undefined.
 
 #### func (Otto) Set
 

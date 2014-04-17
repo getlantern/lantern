@@ -59,6 +59,7 @@ func (self *_parser) parseStatement() ast.Statement {
 		return self.parseVariableStatement()
 	case token.FUNCTION:
 		self.parseFunction(true)
+		// FIXME
 		return &ast.EmptyStatement{}
 	case token.SWITCH:
 		return self.parseSwitchStatement()
@@ -119,7 +120,7 @@ func (self *_parser) parseTryStatement() ast.Statement {
 			self.expect(token.RIGHT_PARENTHESIS)
 			node.Catch = &ast.CatchStatement{
 				Catch:     catch,
-				Parameter: &identifier,
+				Parameter: identifier,
 				Body:      self.parseBlockStatement(),
 			}
 		}
@@ -138,20 +139,26 @@ func (self *_parser) parseTryStatement() ast.Statement {
 	return node
 }
 
-func (self *_parser) parseFunctionParameterList() (list []string) {
-	self.expect(token.LEFT_PARENTHESIS)
+func (self *_parser) parseFunctionParameterList() *ast.ParameterList {
+	opening := self.expect(token.LEFT_PARENTHESIS)
+	var list []*ast.Identifier
 	for self.token != token.RIGHT_PARENTHESIS && self.token != token.EOF {
 		if self.token != token.IDENTIFIER {
 			self.expect(token.IDENTIFIER)
+		} else {
+			list = append(list, self.parseIdentifier())
 		}
-		list = append(list, self.literal)
-		self.next()
 		if self.token != token.RIGHT_PARENTHESIS {
 			self.expect(token.COMMA)
 		}
 	}
-	self.expect(token.RIGHT_PARENTHESIS)
-	return
+	closing := self.expect(token.RIGHT_PARENTHESIS)
+
+	return &ast.ParameterList{
+		Opening: opening,
+		List:    list,
+		Closing: closing,
+	}
 }
 
 func (self *_parser) parseParameterList() (list []string) {
@@ -168,55 +175,35 @@ func (self *_parser) parseParameterList() (list []string) {
 	return
 }
 
-func (self *_parser) parseFunction(declaration bool) ast.Expression {
+func (self *_parser) parseFunction(declaration bool) *ast.FunctionLiteral {
 
-	node := &ast.FunctionExpression{
+	node := &ast.FunctionLiteral{
 		Function: self.expect(token.FUNCTION),
 	}
 
-	name := ""
+	var name *ast.Identifier
 	if self.token == token.IDENTIFIER {
-		name = self.literal
-		self.next()
+		name = self.parseIdentifier()
 		if declaration {
-			self.scope.addFunction(name, node)
+			self.scope.declare(&ast.FunctionDeclaration{
+				Function: node,
+			})
 		}
 	} else if declaration {
 		// Use expect error handling
 		self.expect(token.IDENTIFIER)
 	}
-
-	node.Cache_ParameterList = self.parseFunctionParameterList()
-	self.parseFunctionBlock(node, name, declaration)
-
+	node.Name = name
+	node.ParameterList = self.parseFunctionParameterList()
+	self.parseFunctionBlock(node)
 	node.Source = self.slice(node.Idx0(), node.Idx1())
 
 	return node
 }
 
-func (self *_parser) parseFunctionBody(node *ast.FunctionExpression) {
+func (self *_parser) parseFunctionBlock(node *ast.FunctionLiteral) {
 	{
 		self.openScope()
-		inFunction := self.scope.inFunction
-		self.scope.inFunction = true
-		defer func() {
-			self.scope.inFunction = inFunction
-			self.closeScope()
-		}()
-		node.Body = &ast.BlockStatement{
-			List: self.parseStatementList(),
-		}
-		node.Cache_VariableList = self.scope.variableList
-		node.Cache_FunctionList = self.scope.functionList
-	}
-}
-
-func (self *_parser) parseFunctionBlock(node *ast.FunctionExpression, name string, declaration bool) {
-	{
-		self.openScope()
-		if !declaration && name != "" {
-			self.scope.addFunction(name, nil)
-		}
 		inFunction := self.scope.inFunction
 		self.scope.inFunction = true
 		defer func() {
@@ -224,8 +211,7 @@ func (self *_parser) parseFunctionBlock(node *ast.FunctionExpression, name strin
 			self.closeScope()
 		}()
 		node.Body = self.parseBlockStatement()
-		node.Cache_VariableList = self.scope.variableList
-		node.Cache_FunctionList = self.scope.functionList
+		node.DeclarationList = self.scope.declarationList
 	}
 }
 
@@ -420,8 +406,9 @@ func (self *_parser) parseForOrForInStatement() ast.Statement {
 		allowIn := self.scope.allowIn
 		self.scope.allowIn = false
 		if self.token == token.VAR {
+			var_ := self.idx
 			self.next()
-			list := self.parseVariableDeclarationList()
+			list := self.parseVariableDeclarationList(var_)
 			if len(list) == 1 && self.token == token.IN {
 				self.next() // in
 				forIn = true
@@ -455,21 +442,14 @@ func (self *_parser) parseForOrForInStatement() ast.Statement {
 	return self.parseFor(&ast.SequenceExpression{Sequence: left})
 }
 
-func (self *_parser) parseVariableStatement() *ast.VarStatement {
+func (self *_parser) parseVariableStatement() *ast.VariableStatement {
 
 	idx := self.expect(token.VAR)
 
-	list := self.parseVariableDeclarationList()
-	for _, variable := range list {
-		switch variable := variable.(type) {
-		case *ast.VariableExpression:
-			self.scope.addVariable(variable.Name)
-		}
-	}
-
+	list := self.parseVariableDeclarationList(idx)
 	self.semicolon()
 
-	return &ast.VarStatement{
+	return &ast.VariableStatement{
 		Var:  idx,
 		List: list,
 	}
@@ -558,9 +538,8 @@ func (self *_parser) parseProgram() *ast.Program {
 	self.openScope()
 	defer self.closeScope()
 	return &ast.Program{
-		Body:         self.parseSourceElements(),
-		VariableList: self.scope.variableList,
-		FunctionList: self.scope.functionList,
+		Body:            self.parseSourceElements(),
+		DeclarationList: self.scope.declarationList,
 	}
 }
 
@@ -593,7 +572,7 @@ func (self *_parser) parseBreakStatement() ast.Statement {
 		return &ast.BranchStatement{
 			Idx:   idx,
 			Token: token.BREAK,
-			Label: &identifier,
+			Label: identifier,
 		}
 	}
 
@@ -637,7 +616,7 @@ func (self *_parser) parseContinueStatement() ast.Statement {
 		return &ast.BranchStatement{
 			Idx:   idx,
 			Token: token.CONTINUE,
-			Label: &identifier,
+			Label: identifier,
 		}
 	}
 

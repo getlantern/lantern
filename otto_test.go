@@ -124,7 +124,7 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 				source = source[6:]
 				source = strings.TrimLeft(source, " ")
 			}
-			value, err = Otto.runtime.run(source)
+			value, err = Otto.runtime.cmpl_run(source)
 			if err != nil {
 				panic(err)
 			}

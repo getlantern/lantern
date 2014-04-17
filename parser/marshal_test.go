@@ -126,7 +126,7 @@ func testMarshalNode(node interface{}) interface{} {
 			"Body", marshal("", node.Body),
 		)
 
-	case *ast.FunctionExpression:
+	case *ast.FunctionLiteral:
 		return marshal("Function", testMarshalNode(node.Body))
 
 	case *ast.Identifier:
@@ -162,7 +162,7 @@ func testMarshalNode(node interface{}) interface{} {
 	case *ast.ThrowStatement:
 		return marshal("Throw", testMarshalNode(node.Argument))
 
-	case *ast.VarStatement:
+	case *ast.VariableStatement:
 		return marshal("Var", testMarshalNode(node.List))
 
 	}

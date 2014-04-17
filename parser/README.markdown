@@ -58,10 +58,10 @@ always be in UTF-8.
 #### func  ParseFunction
 
 ```go
-func ParseFunction(parameterList, body string) (*ast.FunctionExpression, error)
+func ParseFunction(parameterList, body string) (*ast.FunctionLiteral, error)
 ```
 ParseFunction parses a given parameter list and body as a function and returns
-the corresponding ast.FunctionExpression node.
+the corresponding ast.FunctionLiteral node.
 
 The parameter list, if any, should be a comma-separated list of identifiers.
 

@@ -222,7 +222,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/robertkrimen/otto/ast"
 	"github.com/robertkrimen/otto/registry"
 )
 
@@ -265,7 +264,7 @@ func (otto *Otto) clone() *Otto {
 //
 // src may also be a Script.
 //
-// src may also be a node, but if the AST has been modified, then runtime behavior is undefined.
+// src may also be a Program, but if the AST has been modified, then runtime behavior is undefined.
 //
 func Run(src interface{}) (*Otto, Value, error) {
 	otto := New()
@@ -282,10 +281,10 @@ func Run(src interface{}) (*Otto, Value, error) {
 //
 // src may also be a Script.
 //
-// src may also be a node, but if the AST has been modified, then runtime behavior is undefined.
+// src may also be a Program, but if the AST has been modified, then runtime behavior is undefined.
 //
 func (self Otto) Run(src interface{}) (Value, error) {
-	return self.runtime.run(src)
+	return self.runtime.cmpl_run(src)
 }
 
 // Get the value of the top-level binding of the given name.
@@ -361,13 +360,13 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 	}
 
 	if !construct && this == nil {
-		program, err := self.runtime.parse("", source+"()")
+		program, err := self.runtime.cmpl_parse("", source+"()")
 		if err == nil {
-			if node, ok := program.Body[0].(*ast.ExpressionStatement); ok {
-				if node, ok := node.Expression.(*ast.CallExpression); ok {
+			if node, ok := program.body[0].(*_nodeExpressionStatement); ok {
+				if node, ok := node.expression.(*_nodeCallExpression); ok {
 					var value Value
 					err := catchPanic(func() {
-						value = self.runtime.evaluateCall(node, argumentList)
+						value = self.runtime.cmpl_evaluate_nodeCallExpression(node, argumentList)
 					})
 					if err != nil {
 						return UndefinedValue(), err
@@ -426,7 +425,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 // If there is an error (like the source does not result in an object), then
 // nil and an error is returned.
 func (self Otto) Object(source string) (*Object, error) {
-	value, err := self.runtime.run(source)
+	value, err := self.runtime.cmpl_run(source)
 	if err != nil {
 		return nil, err
 	}

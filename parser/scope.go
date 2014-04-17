@@ -5,15 +5,14 @@ import (
 )
 
 type _scope struct {
-	outer       *_scope
-	allowIn     bool
-	inIteration bool
-	inSwitch    bool
-	inFunction  bool
+	outer           *_scope
+	allowIn         bool
+	inIteration     bool
+	inSwitch        bool
+	inFunction      bool
+	declarationList []ast.Declaration
 
-	labels       []string
-	variableList []ast.Declaration
-	functionList []ast.Declaration
+	labels []string
 }
 
 func (self *_parser) openScope() {
@@ -27,17 +26,8 @@ func (self *_parser) closeScope() {
 	self.scope = self.scope.outer
 }
 
-func (self *_scope) addVariable(name string) {
-	self.variableList = append(self.variableList, ast.Declaration{
-		Name: name,
-	})
-}
-
-func (self *_scope) addFunction(name string, definition ast.Node) {
-	self.functionList = append(self.functionList, ast.Declaration{
-		Name:       name,
-		Definition: definition,
-	})
+func (self *_scope) declare(declaration ast.Declaration) {
+	self.declarationList = append(self.declarationList, declaration)
 }
 
 func (self *_scope) hasLabel(name string) bool {

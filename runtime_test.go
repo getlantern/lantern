@@ -807,3 +807,13 @@ func TestClone(t *testing.T) {
 	Is(otto1.getValue("abc"), "3")
 	Is(otto2.getValue("abc"), "5")
 }
+
+func Test_debugger(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        debugger;
+    `, "undefined")
+}

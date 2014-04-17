@@ -10,10 +10,6 @@ node types are concerned) and may change in the future.
 package ast
 
 import (
-	"encoding/gob"
-	"regexp"
-	"sync"
-
 	"github.com/robertkrimen/otto/file"
 	"github.com/robertkrimen/otto/token"
 )
@@ -90,14 +86,14 @@ type (
 		Identifier Identifier
 	}
 
-	FunctionExpression struct {
-		Function file.Idx
-		Body     Statement
-		Source   string
+	FunctionLiteral struct {
+		Function      file.Idx
+		Name          *Identifier
+		ParameterList *ParameterList
+		Body          Statement
+		Source        string
 
-		Cache_ParameterList []string      // Beware, may go away
-		Cache_FunctionList  []Declaration // Beware, may go away
-		Cache_VariableList  []Declaration // Beware, may go away
+		DeclarationList []Declaration
 	}
 
 	Identifier struct {
@@ -130,6 +126,12 @@ type (
 		Value      []Property
 	}
 
+	ParameterList struct {
+		Opening file.Idx
+		List    []*Identifier
+		Closing file.Idx
+	}
+
 	Property struct {
 		Key   string
 		Kind  string
@@ -142,7 +144,6 @@ type (
 		Pattern string
 		Flags   string
 		Value   string
-		regexp  *regexp.Regexp
 	}
 
 	SequenceExpression struct {
@@ -173,13 +174,6 @@ type (
 	}
 )
 
-func (self *RegExpLiteral) Compile() *regexp.Regexp {
-	if self.regexp == nil {
-		self.regexp, _ = regexp.Compile(self.Value)
-	}
-	return self.regexp
-}
-
 // _expressionNode
 
 func (*ArrayLiteral) _expressionNode()          {}
@@ -191,7 +185,7 @@ func (*BracketExpression) _expressionNode()     {}
 func (*CallExpression) _expressionNode()        {}
 func (*ConditionalExpression) _expressionNode() {}
 func (*DotExpression) _expressionNode()         {}
-func (*FunctionExpression) _expressionNode()    {}
+func (*FunctionLiteral) _expressionNode()       {}
 func (*Identifier) _expressionNode()            {}
 func (*NewExpression) _expressionNode()         {}
 func (*NullLiteral) _expressionNode()           {}
@@ -314,7 +308,7 @@ type (
 		Finally Statement
 	}
 
-	VarStatement struct {
+	VariableStatement struct {
 		Var  file.Idx
 		List []Expression
 	}
@@ -351,9 +345,34 @@ func (*ReturnStatement) _statementNode()     {}
 func (*SwitchStatement) _statementNode()     {}
 func (*ThrowStatement) _statementNode()      {}
 func (*TryStatement) _statementNode()        {}
-func (*VarStatement) _statementNode()        {}
+func (*VariableStatement) _statementNode()   {}
 func (*WhileStatement) _statementNode()      {}
 func (*WithStatement) _statementNode()       {}
+
+// =========== //
+// Declaration //
+// =========== //
+
+type (
+	// All declaration nodes implement the Declaration interface.
+	Declaration interface {
+		_declarationNode()
+	}
+
+	FunctionDeclaration struct {
+		Function *FunctionLiteral
+	}
+
+	VariableDeclaration struct {
+		Var  file.Idx
+		List []*VariableExpression
+	}
+)
+
+// _declarationNode
+
+func (*FunctionDeclaration) _declarationNode() {}
+func (*VariableDeclaration) _declarationNode() {}
 
 // ==== //
 // Node //
@@ -362,8 +381,7 @@ func (*WithStatement) _statementNode()       {}
 type Program struct {
 	Body []Statement
 
-	FunctionList []Declaration
-	VariableList []Declaration
+	DeclarationList []Declaration
 }
 
 // ==== //
@@ -379,7 +397,7 @@ func (self *BracketExpression) Idx0() file.Idx     { return self.Left.Idx0() }
 func (self *CallExpression) Idx0() file.Idx        { return self.Callee.Idx0() }
 func (self *ConditionalExpression) Idx0() file.Idx { return self.Test.Idx0() }
 func (self *DotExpression) Idx0() file.Idx         { return self.Left.Idx0() }
-func (self *FunctionExpression) Idx0() file.Idx    { return self.Function }
+func (self *FunctionLiteral) Idx0() file.Idx       { return self.Function }
 func (self *Identifier) Idx0() file.Idx            { return self.Idx }
 func (self *NewExpression) Idx0() file.Idx         { return self.New }
 func (self *NullLiteral) Idx0() file.Idx           { return self.Idx }
@@ -410,72 +428,9 @@ func (self *ReturnStatement) Idx0() file.Idx     { return self.Return }
 func (self *SwitchStatement) Idx0() file.Idx     { return self.Switch }
 func (self *ThrowStatement) Idx0() file.Idx      { return self.Throw }
 func (self *TryStatement) Idx0() file.Idx        { return self.Try }
-func (self *VarStatement) Idx0() file.Idx        { return self.Var }
+func (self *VariableStatement) Idx0() file.Idx   { return self.Var }
 func (self *WhileStatement) Idx0() file.Idx      { return self.While }
 func (self *WithStatement) Idx0() file.Idx       { return self.With }
-
-var gobRegister = false
-var gobRegisterOnce sync.Once
-
-// GobRegister will register node types with "encoding/gob"
-//
-func GobRegister() {
-	if gobRegister { // Race... condition?
-		return
-	}
-	gobRegister = true
-	gobRegisterOnce.Do(func() {
-		gob.Register(&Declaration{})
-
-		gob.Register(&ArrayLiteral{})
-		gob.Register(&AssignExpression{})
-		if false {
-			gob.Register(&BadExpression{})
-		}
-		gob.Register(&BinaryExpression{})
-		gob.Register(&BooleanLiteral{})
-		gob.Register(&BracketExpression{})
-		gob.Register(&CallExpression{})
-		gob.Register(&ConditionalExpression{})
-		gob.Register(&DotExpression{})
-		gob.Register(&FunctionExpression{})
-		gob.Register(&Identifier{})
-		gob.Register(&NewExpression{})
-		gob.Register(&NullLiteral{})
-		gob.Register(&NumberLiteral{})
-		gob.Register(&ObjectLiteral{})
-		gob.Register(&RegExpLiteral{})
-		gob.Register(&SequenceExpression{})
-		gob.Register(&StringLiteral{})
-		gob.Register(&ThisExpression{})
-		gob.Register(&UnaryExpression{})
-		gob.Register(&VariableExpression{})
-
-		if false {
-			gob.Register(&BadStatement{})
-		}
-		gob.Register(&BlockStatement{})
-		gob.Register(&BranchStatement{})
-		gob.Register(&CaseStatement{})
-		gob.Register(&CatchStatement{})
-		gob.Register(&DebuggerStatement{})
-		gob.Register(&DoWhileStatement{})
-		gob.Register(&EmptyStatement{})
-		gob.Register(&ExpressionStatement{})
-		gob.Register(&ForInStatement{})
-		gob.Register(&ForStatement{})
-		gob.Register(&IfStatement{})
-		gob.Register(&LabelledStatement{})
-		gob.Register(&Program{})
-		gob.Register(&ReturnStatement{})
-		gob.Register(&SwitchStatement{})
-		gob.Register(&ThrowStatement{})
-		gob.Register(&TryStatement{})
-		gob.Register(&VarStatement{})
-		gob.Register(&WhileStatement{})
-		gob.Register(&WithStatement{})
-	})
-}
 
 // ==== //
 // Idx1 //
@@ -490,7 +445,7 @@ func (self *BracketExpression) Idx1() file.Idx     { return self.RightBracket + 
 func (self *CallExpression) Idx1() file.Idx        { return self.RightParenthesis + 1 }
 func (self *ConditionalExpression) Idx1() file.Idx { return self.Test.Idx1() }
 func (self *DotExpression) Idx1() file.Idx         { return self.Identifier.Idx1() }
-func (self *FunctionExpression) Idx1() file.Idx    { return self.Body.Idx1() }
+func (self *FunctionLiteral) Idx1() file.Idx       { return self.Body.Idx1() }
 func (self *Identifier) Idx1() file.Idx            { return file.Idx(int(self.Idx) + len(self.Name)) }
 func (self *NewExpression) Idx1() file.Idx         { return self.RightParenthesis + 1 }
 func (self *NullLiteral) Idx1() file.Idx           { return file.Idx(int(self.Idx) + 4) } // "null"
@@ -536,12 +491,6 @@ func (self *ReturnStatement) Idx1() file.Idx   { return self.Return }
 func (self *SwitchStatement) Idx1() file.Idx   { return self.Body[len(self.Body)-1].Idx1() }
 func (self *ThrowStatement) Idx1() file.Idx    { return self.Throw }
 func (self *TryStatement) Idx1() file.Idx      { return self.Try }
-func (self *VarStatement) Idx1() file.Idx      { return self.List[len(self.List)-1].Idx1() }
+func (self *VariableStatement) Idx1() file.Idx { return self.List[len(self.List)-1].Idx1() }
 func (self *WhileStatement) Idx1() file.Idx    { return self.Body.Idx1() }
 func (self *WithStatement) Idx1() file.Idx     { return self.Body.Idx1() }
-
-// FIXME
-type Declaration struct {
-	Name       string
-	Definition Node
-}

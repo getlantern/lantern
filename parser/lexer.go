@@ -246,6 +246,7 @@ func (self *_parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 				} else {
 					// Could be division, could be RegExp literal
 					tkn = self.switch2(token.SLASH, token.QUOTIENT_ASSIGN)
+					insertSemicolon = true
 				}
 			case '%':
 				tkn = self.switch2(token.REMAINDER, token.REMAINDER_ASSIGN)

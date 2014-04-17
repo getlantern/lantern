@@ -3,7 +3,6 @@ package otto
 import (
 	"errors"
 	"reflect"
-	"strconv"
 
 	"github.com/robertkrimen/otto/ast"
 	"github.com/robertkrimen/otto/parser"
@@ -125,59 +124,6 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 	}
 }
 
-func (self *_runtime) _callNode(function *_object, environment *_functionEnvironment, node *ast.FunctionExpression, this Value, argumentList []Value) Value {
-
-	indexOfParameterName := make([]string, len(argumentList))
-	// function(abc, def, ghi)
-	// indexOfParameterName[0] = "abc"
-	// indexOfParameterName[1] = "def"
-	// indexOfParameterName[2] = "ghi"
-	// ...
-
-	argumentsFound := false
-	for index, name := range node.Cache_ParameterList {
-		if name == "arguments" {
-			argumentsFound = true
-		}
-		value := UndefinedValue()
-		if index < len(argumentList) {
-			value = argumentList[index]
-			indexOfParameterName[index] = name
-		}
-		self.localSet(name, value)
-	}
-
-	if !argumentsFound {
-		arguments := self.newArgumentsObject(indexOfParameterName, environment, len(argumentList))
-		arguments.defineProperty("callee", toValue_object(function), 0101, false)
-		environment.arguments = arguments
-		self.localSet("arguments", toValue_object(arguments))
-		for index, _ := range argumentList {
-			if index < len(node.Cache_ParameterList) {
-				continue
-			}
-			indexAsString := strconv.FormatInt(int64(index), 10)
-			arguments.defineProperty(indexAsString, argumentList[index], 0111, false)
-		}
-	}
-
-	tmp := append([]ast.Declaration(nil), node.Cache_FunctionList...)
-	for i, value := range tmp {
-		if value.Definition == nil {
-			tmp[i].Definition = node
-		}
-	}
-	self.functionDeclaration(tmp)
-	self.variableDeclaration(node.Cache_VariableList)
-
-	result := self.evaluate(node.Body)
-	if result.isResult() {
-		return result
-	}
-
-	return UndefinedValue()
-}
-
 func (self *_runtime) Call(function *_object, this Value, argumentList []Value, evalHint bool) Value {
 	// Pass eval boolean through to EnterFunctionExecutionContext for further testing
 	_functionEnvironment := self.EnterFunctionExecutionContext(function, this)
@@ -224,36 +170,6 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 
 	tryValue = inner()
 	return
-}
-
-func (self *_runtime) functionDeclaration(list []ast.Declaration) {
-	executionContext := self._executionContext(0)
-	eval := executionContext.eval
-	environment := executionContext.VariableEnvironment
-
-	for _, declaration := range list {
-		name := declaration.Name
-		value := self.evaluate(declaration.Definition)
-		if !environment.HasBinding(name) {
-			environment.CreateMutableBinding(name, eval == true)
-		}
-		// TODO 10.5.5.e
-		environment.SetMutableBinding(name, value, false) // TODO strict
-	}
-}
-
-func (self *_runtime) variableDeclaration(list []ast.Declaration) {
-	executionContext := self._executionContext(0)
-	eval := executionContext.eval
-	environment := executionContext.VariableEnvironment
-
-	for _, declaration := range list {
-		name := declaration.Name
-		if !environment.HasBinding(name) {
-			environment.CreateMutableBinding(name, eval == true)
-			environment.SetMutableBinding(name, UndefinedValue(), false) // TODO strict
-		}
-	}
 }
 
 // _executionContext Proxy
@@ -408,24 +324,36 @@ func (runtime *_runtime) parse(filename string, src interface{}) (*ast.Program, 
 	return parser.ParseFile(nil, filename, src, 0)
 }
 
-func (self *_runtime) parseSource(src interface{}) (ast.Node, error) {
-	switch src := src.(type) {
-	case ast.Node:
-		return src, nil
-	case *Script:
-		return src.program, nil
+func (runtime *_runtime) cmpl_parse(filename string, src interface{}) (*_nodeProgram, error) {
+	program, err := parser.ParseFile(nil, filename, src, 0)
+	if err != nil {
+		return nil, err
 	}
-	return self.parse("", src)
+	return cmpl_parse(program), nil
 }
 
-func (self *_runtime) run(src interface{}) (Value, error) {
+func (self *_runtime) parseSource(src interface{}) (*_nodeProgram, *ast.Program, error) {
+	switch src := src.(type) {
+	case *ast.Program:
+		return nil, src, nil
+	case *Script:
+		return src.program, nil, nil
+	}
+	program, err := self.parse("", src)
+	return nil, program, err
+}
+
+func (self *_runtime) cmpl_run(src interface{}) (Value, error) {
 	result := UndefinedValue()
-	program, err := self.parseSource(src)
+	cmpl_program, program, err := self.parseSource(src)
 	if err != nil {
 		return result, err
 	}
+	if cmpl_program == nil {
+		cmpl_program = cmpl_parse(program)
+	}
 	err = catchPanic(func() {
-		result = self.evaluate(program)
+		result = self.cmpl_evaluate_nodeProgram(cmpl_program)
 	})
 	switch result._valueType {
 	case valueEmpty:
@@ -455,6 +383,12 @@ func (self *_runtime) parseThrow(err error) {
 
 func (self *_runtime) parseOrThrow(source string) *ast.Program {
 	program, err := self.parse("", source)
+	self.parseThrow(err) // Will panic/throw appropriately
+	return program
+}
+
+func (self *_runtime) cmpl_parseOrThrow(source string) *_nodeProgram {
+	program, err := self.cmpl_parse("", source)
 	self.parseThrow(err) // Will panic/throw appropriately
 	return program
 }

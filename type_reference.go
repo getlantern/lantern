@@ -35,17 +35,15 @@ func (self _referenceDefault) IsStrict() bool {
 type _propertyReference struct {
 	_referenceDefault
 	Base *_object
-	node ast.Node
 }
 
-func newPropertyReference(base *_object, name string, strict bool, node ast.Node) *_propertyReference {
+func newPropertyReference(base *_object, name string, strict bool) *_propertyReference {
 	return &_propertyReference{
 		Base: base,
 		_referenceDefault: _referenceDefault{
 			name:   name,
 			strict: strict,
 		},
-		node: node,
 	}
 }
 
@@ -63,7 +61,7 @@ func (self *_propertyReference) IsPropertyReference() bool {
 
 func (self *_propertyReference) GetValue() Value {
 	if self.Base == nil {
-		panic(newReferenceError("notDefined", self.name, self.node))
+		panic(newReferenceError("notDefined", self.name))
 	}
 	return self.Base.get(self.name)
 }
@@ -90,7 +88,7 @@ func newArgumentReference(base *_object, name string, strict bool) *_propertyRef
 	if base == nil {
 		panic(hereBeDragons())
 	}
-	return newPropertyReference(base, name, strict, nil)
+	return newPropertyReference(base, name, strict)
 }
 
 type _environmentReference struct {
@@ -148,12 +146,12 @@ func (self *_environmentReference) Delete() bool {
 
 // getIdentifierReference
 
-func getIdentifierReference(environment _environment, name string, strict bool, node ast.Node) _reference {
+func getIdentifierReference(environment _environment, name string, strict bool) _reference {
 	if environment == nil {
-		return newPropertyReference(nil, name, strict, node)
+		return newPropertyReference(nil, name, strict)
 	}
 	if environment.HasBinding(name) {
 		return environment.newReference(name, strict)
 	}
-	return getIdentifierReference(environment.Outer(), name, strict, node)
+	return getIdentifierReference(environment.Outer(), name, strict)
 }

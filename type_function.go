@@ -2,8 +2,6 @@ package otto
 
 import (
 	"fmt"
-
-	"github.com/robertkrimen/otto/ast"
 )
 
 type _functionObject struct {
@@ -29,16 +27,6 @@ func (runtime *_runtime) newNativeFunctionObject(name string, native _nativeFunc
 		construct: defaultConstructFunction,
 	}
 	self.defineProperty("length", toValue_int(length), 0000, false)
-	return self
-}
-
-func (runtime *_runtime) newNodeFunctionObject(node *ast.FunctionExpression, scopeEnvironment _environment) *_object {
-	self := runtime.newClassObject("Function")
-	self.value = _functionObject{
-		call:      newNodeCallFunction(node, scopeEnvironment),
-		construct: defaultConstructFunction,
-	}
-	self.defineProperty("length", toValue_int(len(node.Cache_ParameterList)), 0000, false)
 	return self
 }
 
@@ -185,39 +173,6 @@ func (self _nativeCallFunction) Source(*_object) string {
 
 func (self0 _nativeCallFunction) clone(clone *_clone) _callFunction {
 	return self0
-}
-
-// _nodeCallFunction
-type _nodeCallFunction struct {
-	node             *ast.FunctionExpression
-	scopeEnvironment _environment // Can be either Lexical or Variable
-}
-
-func newNodeCallFunction(node *ast.FunctionExpression, scopeEnvironment _environment) *_nodeCallFunction {
-	self := &_nodeCallFunction{
-		node: node,
-	}
-	self.scopeEnvironment = scopeEnvironment
-	return self
-}
-
-func (self _nodeCallFunction) Dispatch(function *_object, environment *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value, _ bool) Value {
-	return runtime._callNode(function, environment, self.node, this, argumentList)
-}
-
-func (self _nodeCallFunction) ScopeEnvironment() _environment {
-	return self.scopeEnvironment
-}
-
-func (self _nodeCallFunction) Source(object *_object) string {
-	return self.node.Source
-}
-
-func (self0 _nodeCallFunction) clone(clone *_clone) _callFunction {
-	return _nodeCallFunction{
-		node:             self0.node,
-		scopeEnvironment: clone.environment(self0.scopeEnvironment),
-	}
 }
 
 // _boundCallFunction

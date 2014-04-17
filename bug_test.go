@@ -421,18 +421,18 @@ def"
 
 	// S12.6.1_A10
 	test(`
-        var abc = 0;
-        do {
-        if(typeof(def) === "function"){
-            abc = -1;
-            break;
-        } else {
-            abc = 1;
-            break;
-        }
-        } while(function def(){});
-        abc;
-    `, 1)
+            var abc = 0;
+            do {
+            if(typeof(def) === "function"){
+                abc = -1;
+                break;
+            } else {
+                abc = 1;
+                break;
+            }
+            } while(function def(){});
+            abc;
+        `, 1)
 
 	// S12.7_A7
 	test(`raise:

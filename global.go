@@ -3,8 +3,6 @@ package otto
 import (
 	"strconv"
 	Time "time"
-
-	"github.com/robertkrimen/otto/ast"
 )
 
 var (
@@ -210,7 +208,7 @@ func (runtime *_runtime) newNativeFunction(name string, _nativeFunction _nativeF
 	return self
 }
 
-func (runtime *_runtime) newNodeFunction(node *ast.FunctionExpression, scopeEnvironment _environment) *_object {
+func (runtime *_runtime) newNodeFunction(node *_nodeFunctionLiteral, scopeEnvironment _environment) *_object {
 	// TODO Implement 13.2 fully
 	self := runtime.newNodeFunctionObject(node, scopeEnvironment)
 	self.prototype = runtime.Global.FunctionPrototype

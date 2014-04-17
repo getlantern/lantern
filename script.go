@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"errors"
 
-	"github.com/robertkrimen/otto/ast"
 	"github.com/robertkrimen/otto/parser"
 )
 
@@ -18,7 +17,7 @@ var scriptVersion = "2014-04-13/1"
 //
 type Script struct {
 	version  string
-	program  *ast.Program
+	program  *_nodeProgram
 	filename string
 	src      string
 }
@@ -41,9 +40,11 @@ func (self *Otto) Compile(filename string, src interface{}) (*Script, error) {
 			return nil, err
 		}
 
+		cmpl_program := cmpl_parse(program)
+
 		script := &Script{
 			version:  scriptVersion,
-			program:  program,
+			program:  cmpl_program,
 			filename: filename,
 			src:      string(src),
 		}
@@ -56,18 +57,12 @@ func (self *Script) String() string {
 	return "// " + self.filename + "\n" + self.src
 }
 
-var scriptGobRegister = false
-
 // MarshalBinary will marshal a script into a binary form. A marshalled script
 // that is later unmarshalled can be executed on the same version of the otto runtime.
 //
 // The binary format can change at any time and should be considered unspecified and opaque.
 //
 func (self *Script) marshalBinary() ([]byte, error) {
-	if !scriptGobRegister {
-		ast.GobRegister()
-		scriptGobRegister = true
-	}
 	var bfr bytes.Buffer
 	encoder := gob.NewEncoder(&bfr)
 	err := encoder.Encode(self.version)
@@ -96,10 +91,6 @@ func (self *Script) marshalBinary() ([]byte, error) {
 // The binary format can change at any time and should be considered unspecified and opaque.
 //
 func (self *Script) unmarshalBinary(data []byte) error {
-	if !scriptGobRegister {
-		ast.GobRegister()
-		scriptGobRegister = true
-	}
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(&self.version)
 	if err != nil {

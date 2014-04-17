@@ -1,8 +1,9 @@
-.PHONY: test test-race test-release release release-check
+.PHONY: test test-race test-release release release-check test-262
 .PHONY: parser
 .PHONY: otto assets underscore
 
 TESTS := \
+	FunctionDeclarationInFunction \
 	~
 
 TEST := -v --run
@@ -31,6 +32,10 @@ release: test-race test-release
 
 release-check: .test
 	$(MAKE) -C test build test
+	$(MAKE) -C .test/test262 build test
+	@echo PASS
+
+test-262: .test
 	$(MAKE) -C .test/test262 build test
 	@echo PASS
 

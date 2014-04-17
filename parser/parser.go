@@ -149,11 +149,11 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mod
 }
 
 // ParseFunction parses a given parameter list and body as a function and returns the
-// corresponding ast.FunctionExpression node.
+// corresponding ast.FunctionLiteral node.
 //
 // The parameter list, if any, should be a comma-separated list of identifiers.
 //
-func ParseFunction(parameterList, body string) (*ast.FunctionExpression, error) {
+func ParseFunction(parameterList, body string) (*ast.FunctionLiteral, error) {
 
 	src := "(function(" + parameterList + ") {\n" + body + "\n})"
 
@@ -163,7 +163,7 @@ func ParseFunction(parameterList, body string) (*ast.FunctionExpression, error) 
 		return nil, err
 	}
 
-	return program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionExpression), nil
+	return program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral), nil
 }
 
 func (self *_parser) slice(idx0, idx1 file.Idx) string {

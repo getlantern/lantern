@@ -59,7 +59,7 @@ func TestParseFile(t *testing.T) {
 func TestParseFunction(t *testing.T) {
 	Terst(t)
 
-	test := func(prm, bdy string, expect interface{}) *ast.FunctionExpression {
+	test := func(prm, bdy string, expect interface{}) *ast.FunctionLiteral {
 		function, err := ParseFunction(prm, bdy)
 		Is(firstErr(err), expect)
 		return function
@@ -855,6 +855,22 @@ func TestParser(t *testing.T) {
 	test(`
 
     `, nil)
+
+	test(`
+        var abc = ""
+        debugger
+    `, nil)
+
+	test(`
+        var abc = /\[\]$/
+        debugger
+    `, nil)
+
+	test(`
+        var abc = 1 /
+            2
+        debugger
+    `, nil)
 }
 
 func Test_parseStringLiteral(t *testing.T) {
@@ -968,13 +984,13 @@ func TestPosition(t *testing.T) {
 	Is(err, nil)
 
 	var node ast.Node
-	node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionExpression)
+	node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
 	Is(node.Idx0(), 2)
 	Is(node.Idx1(), 25)
 	Is(parser.slice(node.Idx0(), node.Idx1()), "function(){ return 0; }")
 	Is(parser.slice(node.Idx0(), node.Idx1()+1), "function(){ return 0; })")
 	Is(parser.slice(node.Idx0(), node.Idx1()+2), "")
-	Is(node.(*ast.FunctionExpression).Source, "function(){ return 0; }")
+	Is(node.(*ast.FunctionLiteral).Source, "function(){ return 0; }")
 
 	node = program
 	Is(node.Idx0(), 2)
@@ -984,6 +1000,6 @@ func TestPosition(t *testing.T) {
 	parser = newParser("", "(function(){ return abc; })")
 	program, err = parser.parse()
 	Is(err, nil)
-	node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionExpression)
-	Is(node.(*ast.FunctionExpression).Source, "function(){ return abc; }")
+	node = program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
+	Is(node.(*ast.FunctionLiteral).Source, "function(){ return abc; }")
 }

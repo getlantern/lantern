@@ -8,11 +8,11 @@ import (
 	"github.com/robertkrimen/otto/token"
 )
 
-func (self *_parser) parseIdentifier() ast.Identifier {
+func (self *_parser) parseIdentifier() *ast.Identifier {
 	literal := self.literal
 	idx := self.idx
 	self.next()
-	return ast.Identifier{
+	return &ast.Identifier{
 		Name: literal,
 		Idx:  idx,
 	}
@@ -162,12 +162,12 @@ func (self *_parser) parseRegExpLiteral() *ast.RegExpLiteral {
 	}
 }
 
-func (self *_parser) parseVariableDeclaration() (string, ast.Expression) {
+func (self *_parser) parseVariableDeclaration(declarationList *[]*ast.VariableExpression) ast.Expression {
 
 	if self.token != token.IDENTIFIER {
 		idx := self.expect(token.IDENTIFIER)
 		self.nextStatement()
-		return "", &ast.BadExpression{From: idx, To: self.idx}
+		return &ast.BadExpression{From: idx, To: self.idx}
 	}
 
 	literal := self.literal
@@ -178,28 +178,35 @@ func (self *_parser) parseVariableDeclaration() (string, ast.Expression) {
 		Idx:  idx,
 	}
 
+	if declarationList != nil {
+		*declarationList = append(*declarationList, node)
+	}
+
 	if self.token == token.ASSIGN {
 		self.next()
 		node.Initializer = self.parseAssignmentExpression()
 	}
 
-	return literal, node
+	return node
 }
 
-func (self *_parser) parseVariableDeclarationList() []ast.Expression {
+func (self *_parser) parseVariableDeclarationList(var_ file.Idx) []ast.Expression {
 
+	var declarationList []*ast.VariableExpression // Avoid bad expressions
 	var list []ast.Expression
 
 	for {
-		name, definition := self.parseVariableDeclaration()
-		list = append(list, definition)
-		self.scope.addVariable(name)
-
+		list = append(list, self.parseVariableDeclaration(&declarationList))
 		if self.token != token.COMMA {
 			break
 		}
 		self.next()
 	}
+
+	self.scope.declare(&ast.VariableDeclaration{
+		Var:  var_,
+		List: declarationList,
+	})
 
 	return list
 }
@@ -240,13 +247,13 @@ func (self *_parser) parseObjectProperty() ast.Property {
 	if literal == "get" && self.token != token.COLON {
 		idx := self.idx
 		_, value := self.parseObjectPropertyKey()
-		self.expect(token.LEFT_PARENTHESIS)
-		self.expect(token.RIGHT_PARENTHESIS)
+		parameterList := self.parseFunctionParameterList()
 
-		node := &ast.FunctionExpression{
-			Function: idx,
+		node := &ast.FunctionLiteral{
+			Function:      idx,
+			ParameterList: parameterList,
 		}
-		self.parseFunctionBlock(node, "", false)
+		self.parseFunctionBlock(node)
 		return ast.Property{
 			Key:   value,
 			Kind:  "get",
@@ -256,11 +263,12 @@ func (self *_parser) parseObjectProperty() ast.Property {
 		idx := self.idx
 		_, value := self.parseObjectPropertyKey()
 		parameterList := self.parseFunctionParameterList()
-		node := &ast.FunctionExpression{
-			Function:            idx,
-			Cache_ParameterList: parameterList,
+
+		node := &ast.FunctionLiteral{
+			Function:      idx,
+			ParameterList: parameterList,
 		}
-		self.parseFunctionBlock(node, "", false)
+		self.parseFunctionBlock(node)
 		return ast.Property{
 			Key:   value,
 			Kind:  "set",
