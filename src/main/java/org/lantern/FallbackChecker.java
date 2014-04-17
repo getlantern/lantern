@@ -87,7 +87,8 @@ public class FallbackChecker implements Runnable {
                                    "total:      %d",
                                    nsucceeded, nfailed, nsucceeded + nfailed));
             if (nfailed > 0) {
-                new ProcessBuilder(ALERTCMD_PATH+" "+StringUtils.join(failed, ' ')).start();
+                failed.add(0, ALERTCMD_PATH);
+                new ProcessBuilder(failed).start();
             }
             System.exit(nfailed);
         } catch (Exception e) {
