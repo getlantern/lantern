@@ -219,7 +219,7 @@ public class Launcher {
         preInstanceWatch.stop();
         
         model = instance(Model.class);
-        configureLoggly();
+        if (!checkFallbacks) configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);

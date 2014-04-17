@@ -21,10 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 
-/**
- * TODO: Suppress the normal ways of discovering additional proxies for this test,
- * e.g. disable kaleidoscopic discovery of proxies and don't include any in s3config
- */
 public class FallbackChecker implements Runnable {
 
     private DefaultProxyTracker proxyTracker;
