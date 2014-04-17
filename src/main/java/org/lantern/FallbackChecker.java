@@ -23,6 +23,7 @@ public class FallbackChecker implements Runnable {
 
     private DefaultProxyTracker proxyTracker;
     private List<FallbackProxy> fallbacks = new ArrayList<FallbackProxy>();
+    private static final String ALERTCMD_PATH = "/home/lantern/alert_fallbacks_failing_to_proxy.py";
     private static final String TEST_URL = "http://www.google.com/humans.txt";
     private static final String TEST_RESULT_PREFIX = "Google is built by";
     private static final Logger LOG = LoggerFactory
@@ -55,11 +56,12 @@ public class FallbackChecker implements Runnable {
 
     @Override
     public void run() {
+        List<String> failed = new ArrayList<String>();
         try {
             // sleep a bit to make sure everything's ready before we start
             Thread.sleep(20000);
 
-            int nfailed = 0, nsucceeded = 0;
+            int nsucceeded = 0;
             proxyTracker.clear();
             for (FallbackProxy fb : fallbacks) {
                 proxyTracker.addSingleFallbackProxy(fb);
@@ -70,8 +72,7 @@ public class FallbackChecker implements Runnable {
                     working = canProxyThroughCurrentFallback();
                 } catch (Exception e) {
                     LOG.warn("proxying through fallback " + addr + " failed:\n" + e.toString());
-                    ++nfailed;
-                    // TODO: spawn subprocess to send alert email
+                    failed.add(addr);
                 }
                 if (working) {
                     LOG.info("proxying through fallback " + addr + " succeeded");
@@ -79,13 +80,17 @@ public class FallbackChecker implements Runnable {
                 }
                 proxyTracker.clear();
             }
+            int nfailed = failed.size();
             LOG.info(String.format("Finished checking fallbacks:\n" +
                                    "nsucceeded: %d\n" +
                                    "nfailed:    %d\n" +
                                    "total:      %d",
                                    nsucceeded, nfailed, nsucceeded + nfailed));
+            if (nfailed > 0) {
+                new ProcessBuilder(ALERTCMD_PATH+" "+StringUtils.join(failed, ' ')).start();
+            }
             System.exit(nfailed);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
