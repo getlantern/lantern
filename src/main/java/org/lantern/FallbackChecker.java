@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jackson.type.TypeReference;
@@ -91,7 +89,7 @@ public class FallbackChecker implements Runnable {
             e.printStackTrace();
         }
     }
-    
+
     private boolean canProxyThroughCurrentFallback() throws Exception {
         final HttpClient client = HttpClientFactory.newProxiedClient();
         final HttpGet get = new HttpGet(TEST_URL);

@@ -217,7 +217,7 @@ public class Launcher {
 
         configureCipherSuites();
         preInstanceWatch.stop();
-        
+
         model = instance(Model.class);
         if (!checkFallbacks) configureLoggly();
         set = model.getSettings();
@@ -237,7 +237,7 @@ public class Launcher {
             }
         }
         jettyLauncher = instance(JettyLauncher.class);
-        
+
         final Stopwatch jettyWatch = 
                 StopwatchManager.getStopwatch("Jetty-Start", 
                     STOPWATCH_LOG, STOPWATCH_GROUP);
@@ -353,7 +353,7 @@ public class Launcher {
                 if (model.isCheckFallbacksMode()) {
                     return;
                 }
-                
+
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
                 final Timer timer = new Timer("Connectivity-Check-Timer", true);
@@ -370,7 +370,7 @@ public class Launcher {
                 gnomeAutoStart();
                 
                 autoConnect();
-                
+
                 friendsHandler.start();
             }
             
