@@ -43,10 +43,8 @@ public class StatsManager implements LanternService {
     private final OperatingSystemMXBean osStats = ManagementFactory
             .getOperatingSystemMXBean();
 
-    private final ScheduledExecutorService getScheduler = Threads
-            .newSingleThreadScheduledExecutor("StatsManager-Get");
-    private final ScheduledExecutorService postScheduler = Threads
-            .newSingleThreadScheduledExecutor("StatsManager-Post");
+    private ScheduledExecutorService getScheduler;
+    private ScheduledExecutorService postScheduler;
 
     @Inject
     public StatsManager(Model model) {
@@ -68,6 +66,10 @@ public class StatsManager implements LanternService {
 
     @Override
     public void start() {
+        getScheduler = Threads
+                .newSingleThreadScheduledExecutor("StatsManager-Get");
+        postScheduler = Threads
+                .newSingleThreadScheduledExecutor("StatsManager-Post");
         getScheduler.scheduleAtFixedRate(
                 getStats,
                 12,
