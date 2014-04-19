@@ -1,6 +1,7 @@
 package org.lantern.proxy.pt;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Properties;
 
@@ -11,6 +12,7 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
@@ -32,6 +34,12 @@ public class Flashlight implements PluggableTransport {
             .getAbsolutePath();
     private static final String[] FLASHLIGHT_EXECUTABLE_NAMES =
             new String[] { "flashlight", "flashlight.exe" };
+
+    private static final File CA_CERT_FILE =
+            new File(LanternClientConstants.CONFIG_DIR + File.separator +
+                    "pt" + File.separator +
+                    "flashlight" + File.separator +
+                    "cacert.pem");
 
     public static final String ADDRESS_KEY = "addr";
 
@@ -108,6 +116,16 @@ public class Flashlight implements PluggableTransport {
     @Override
     public boolean suppliesEncryption() {
         return true;
+    }
+
+    @Override
+    public String getLocalCACert() {
+        try {
+            return FileUtils.readFileToString(CA_CERT_FILE);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Unable to read cacert.pem: "
+                    + ioe.getMessage(), ioe);
+        }
     }
 
     private void startFlashlight(Object... args) {

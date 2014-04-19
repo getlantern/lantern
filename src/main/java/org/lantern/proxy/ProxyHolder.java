@@ -335,6 +335,11 @@ public final class ProxyHolder extends BaseChainedProxy
             ptClientAddress = pt.startClient(
                     LanternConstants.LANTERN_LOCALHOST_ADDR,
                     fiveTuple.getRemote());
+            String caCert = pt.getLocalCACert();
+            if (caCert != null) {
+                // Add the ca cert to our trust store
+                lanternTrustStore.addCert(caCert);
+            }
         }
     }
 

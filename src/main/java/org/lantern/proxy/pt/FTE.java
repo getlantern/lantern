@@ -210,6 +210,11 @@ public class FTE implements PluggableTransport {
     public boolean suppliesEncryption() {
         return true;
     }
+    
+    @Override
+    public String getLocalCACert() {
+        return null;
+    }
 
     private void startFteProxy(Object... args) {
         initFtePath();

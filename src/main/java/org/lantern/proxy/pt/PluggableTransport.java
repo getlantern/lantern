@@ -47,4 +47,12 @@ public interface PluggableTransport {
      * doesn't have to.
      */
     boolean suppliesEncryption();
+    
+    /**
+     * For pluggable transports that do MITM'ing, this returns the local CA cert
+     * used for MITM'ing, in PEM encoded format.
+     * 
+     * @return
+     */
+    String getLocalCACert();
 }
