@@ -8,6 +8,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.LanternUtils;
 import org.lantern.http.HttpUtils;
@@ -29,7 +30,7 @@ public class PublicIpAddress implements PublicIp {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(PublicIpAddress.class);
-    private static final HttpHost TEST_HOST = new HttpHost("www.getlantern.org");
+    private static final HttpHost TEST_HOST = new HttpHost("www.google.com");
 
     private static InetAddress publicIp;
     private static long lastLookupTime;
@@ -84,12 +85,14 @@ public class PublicIpAddress implements PublicIp {
     }
     
     private InetAddress lookupSafe() {
-        HttpHead request = new HttpHead("/");
+        HttpHead request = new HttpHead("/humans.txt");
         try {
             request.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
             request.getParams().setParameter(
                     ClientPNames.HANDLE_REDIRECTS, false);
+            request.getParams().setParameter(
+                    ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
             // Unable to set SO_TIMEOUT because of bug in Java 7
             // See https://github.com/getlantern/lantern/issues/942
 //            request.getParams().setParameter(
