@@ -79,7 +79,7 @@ For example:
 
 2. As a quick smoke test to make sure things are working in your environment, run `org.lantern.proxy.pt.FTEMain`, then try to curl something:
 
-`curl -x localhost:8080 http://www.google.com`
+`curl -x localhost:8080 https://www.google.com/humans.txt`
 
 3. Run your server with the following flags: `--pt type=FTE`
 
@@ -90,6 +90,25 @@ For example:
     "type": "FTE"
 }
 ```
+
+## flashlight
+
+[flashlight](https://github.com/oxtoacart/flashlight) is a pluggable transport
+that supports host spoofing to tunnel traffic through CDNs like CloudFlare.
+flashlight is built into executables that are included in the
+install/*/pt/flashlight folders similarly to how fteproxy is included.
+
+The json configuration looks like this:
+
+```json
+"pt": {
+    "type": "flashlight"
+}
+```
+
+You can use `org.lantern.proxy.pt.FlashlightMain` for a smoke test:
+
+`curl -x localhost:8080 https://www.google.com/humans.txt`
 
 ## Building Installers
 
