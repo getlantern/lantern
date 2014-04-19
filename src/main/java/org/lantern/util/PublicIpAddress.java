@@ -30,7 +30,7 @@ public class PublicIpAddress implements PublicIp {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(PublicIpAddress.class);
-    private static final HttpHost TEST_HOST = new HttpHost("www.google.com");
+    private static final HttpHost TEST_HOST = new HttpHost("www.getlantern.org");
 
     private static InetAddress publicIp;
     private static long lastLookupTime;
@@ -87,6 +87,9 @@ public class PublicIpAddress implements PublicIp {
     private InetAddress lookupSafe() {
         HttpHead request = new HttpHead("/humans.txt");
         try {
+            // Setting this header tells the upstream flashlight proxy to
+            // return the proxy's info
+            request.setHeader("X-Lantern-Request-Info", "true");
             request.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
             request.getParams().setParameter(
@@ -100,7 +103,7 @@ public class PublicIpAddress implements PublicIp {
             HttpResponse response = HttpClientFactory.newProxiedClient()
                     .execute(TEST_HOST, request);
             Header header = response
-                    .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
+                    .getFirstHeader(GiveModeHttpFilters.X_LANTERN_PUBLIC_IP);
 
             final int responseCode = response.getStatusLine().getStatusCode();
             boolean twoHundredResponse = true;
