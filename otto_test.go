@@ -997,10 +997,20 @@ func Test_delete(t *testing.T) {
 	`, "true")
 
 	test(`
-		abc = delete $_undefined_$;
+		var abc = delete $_undefined_$;
 		abc = abc && delete ($_undefined_$);
         abc;
 	`, "true")
+
+	// delete should not trigger get()
+	test(`
+        var abc = {
+            get def() {
+                throw "Test_delete: delete should not trigger get()"
+            }
+        };
+        delete abc.def
+    `, true)
 }
 
 func TestObject_defineOwnProperty(t *testing.T) {

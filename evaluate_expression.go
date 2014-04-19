@@ -106,20 +106,22 @@ func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 		}
 	}
 
-	targetValue := self.GetValue(target)
-
 	switch node.Operator {
 	case token.NOT:
+		targetValue := self.GetValue(target)
 		if targetValue.toBoolean() {
 			return FalseValue()
 		}
 		return TrueValue()
 	case token.BITWISE_NOT:
+		targetValue := self.GetValue(target)
 		integerValue := toInt32(targetValue)
 		return toValue_int32(^integerValue)
 	case token.PLUS:
+		targetValue := self.GetValue(target)
 		return toValue_float64(targetValue.toFloat())
 	case token.MINUS:
+		targetValue := self.GetValue(target)
 		value := targetValue.toFloat()
 		// TODO Test this
 		sign := float64(-1)
@@ -128,6 +130,7 @@ func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 		}
 		return toValue_float64(math.Copysign(value, sign))
 	case token.INCREMENT:
+		targetValue := self.GetValue(target)
 		if node.Postfix {
 			// Postfix++
 			oldValue := targetValue.toFloat()
@@ -141,6 +144,7 @@ func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 			return newValue
 		}
 	case token.DECREMENT:
+		targetValue := self.GetValue(target)
 		if node.Postfix {
 			// Postfix--
 			oldValue := targetValue.toFloat()
@@ -154,6 +158,7 @@ func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 			return newValue
 		}
 	case token.VOID:
+		self.GetValue(target) // FIXME Side effect?
 		return UndefinedValue()
 	case token.DELETE:
 		reference := target.reference()
@@ -162,6 +167,7 @@ func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 		}
 		return toValue_bool(target.reference().Delete())
 	case token.TYPEOF:
+		targetValue := self.GetValue(target)
 		switch targetValue._valueType {
 		case valueUndefined:
 			return toValue_string("undefined")
@@ -179,7 +185,7 @@ func (self *_runtime) evaluateUnaryExpression(node *ast.UnaryExpression) Value {
 			}
 			return toValue_string("object")
 		default:
-			// ?
+			// FIXME ?
 		}
 	}
 
