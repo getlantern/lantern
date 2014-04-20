@@ -31,16 +31,17 @@ import com.google.inject.Singleton;
 public class StatsManager implements LanternService {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
-    private static final long FALLBACK_POST_INTERVAL = 20;
-
+    public static final long FALLBACK_POST_INTERVAL = 20;
+    public static final String UNKNOWN_COUNTRY = "xx";
+    
     private final Model model;
     private final StatshubAPI statshub = new StatshubAPI(
             LanternUtils.isFallbackProxy() ? null :
                     LanternConstants.LANTERN_LOCALHOST_ADDR);
 
-    private final MemoryMXBean memoryMXBean = ManagementFactory
+    private static final MemoryMXBean memoryMXBean = ManagementFactory
             .getMemoryMXBean();
-    private final OperatingSystemMXBean osStats = ManagementFactory
+    private static final OperatingSystemMXBean osStats = ManagementFactory
             .getOperatingSystemMXBean();
 
     private final ScheduledExecutorService getScheduler = Threads
@@ -127,7 +128,7 @@ public class StatsManager implements LanternService {
                     String countryCode = model.getLocation().getCountry();
                     if (StringUtils.isBlank(countryCode)
                             || "--".equals(countryCode)) {
-                        countryCode = "xx";
+                        countryCode = UNKNOWN_COUNTRY;
                     }
 
                     String instanceId = model.getInstanceId();
@@ -158,7 +159,7 @@ public class StatsManager implements LanternService {
         }
     };
 
-    private void addSystemStats(Stats stats) {
+    public static void addSystemStats(Stats stats) {
         stats.setGauge(Gauges.processCPUUsage,
                 scalePercent(getSystemStat("getProcessCpuLoad")));
         stats.setGauge(Gauges.systemCPUUsage,
@@ -174,20 +175,20 @@ public class StatsManager implements LanternService {
                 getOpenFileDescriptors());
     }
 
-    private long getOpenFileDescriptors() {
+    private static long getOpenFileDescriptors() {
         if (!isOnUnix()) {
             return 0L;
         }
         return (Long) getSystemStat("getOpenFileDescriptorCount");
     }
 
-    private Long scalePercent(Number value) {
+    private static Long scalePercent(Number value) {
         if (value == null)
             return null;
         return (long) (((Double) value) * 100.0);
     }
 
-    private <T extends Number> T getSystemStat(final String name) {
+    private static <T extends Number> T getSystemStat(final String name) {
         if (!isOnUnix()) {
             return (T) (Double) 0.0;
         } else {
@@ -203,7 +204,7 @@ public class StatsManager implements LanternService {
         }
     }
 
-    private boolean isOnUnix() {
+    private static boolean isOnUnix() {
         return osStats.getClass().getName()
                 .equals("com.sun.management.UnixOperatingSystem");
     }
