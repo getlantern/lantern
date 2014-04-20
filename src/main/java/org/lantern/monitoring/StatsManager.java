@@ -33,7 +33,7 @@ public class StatsManager implements LanternService {
             .getLogger(StatsManager.class);
     public static final long FALLBACK_POST_INTERVAL = 20;
     public static final String UNKNOWN_COUNTRY = "xx";
-    
+
     private final Model model;
     private final StatshubAPI statshub = new StatshubAPI(
             LanternUtils.isFallbackProxy() ? null :
@@ -44,31 +44,38 @@ public class StatsManager implements LanternService {
     private static final OperatingSystemMXBean osStats = ManagementFactory
             .getOperatingSystemMXBean();
 
-    private final ScheduledExecutorService getScheduler = Threads
-            .newSingleThreadScheduledExecutor("StatsManager-Get");
-    private final ScheduledExecutorService postScheduler = Threads
-            .newSingleThreadScheduledExecutor("StatsManager-Post");
+    private ScheduledExecutorService getScheduler = null;
+    private ScheduledExecutorService postScheduler = null;
 
     @Inject
     public StatsManager(Model model) {
         this.model = model;
         Events.register(this);
     }
-    
+
     /**
-     * This just signals that the config has changed, prompting the loading
-     * of the new values. 
+     * This just signals that the config has changed, prompting the loading of
+     * the new values.
      * 
-     * @param config The new config.
+     * @param config
+     *            The new config.
      */
     @Subscribe
     public void onS3Config(final S3Config config) {
-        stop();
-        start();
+        try {
+            stop();
+            start();
+        } catch (Exception e) {
+            LOGGER.warn("Unable to restart StatsManager", e);
+        }
     }
 
     @Override
     public void start() {
+        getScheduler = Threads
+                .newSingleThreadScheduledExecutor("StatsManager-Get");
+        postScheduler = Threads
+                .newSingleThreadScheduledExecutor("StatsManager-Post");
         getScheduler.scheduleAtFixedRate(
                 getStats,
                 12,
@@ -77,9 +84,9 @@ public class StatsManager implements LanternService {
         postScheduler.scheduleAtFixedRate(
                 postStats,
                 60, // wait 1 minute before first posting stats, to give the
-                   // system a chance to initialize metadata
-                LanternUtils.isFallbackProxy() ? FALLBACK_POST_INTERVAL : 
-                    this.model.getS3Config().getStatsPostInterval(),
+                    // system a chance to initialize metadata
+                LanternUtils.isFallbackProxy() ? FALLBACK_POST_INTERVAL :
+                        this.model.getS3Config().getStatsPostInterval(),
                 TimeUnit.SECONDS);
     }
 
