@@ -113,7 +113,12 @@ public class S3ConfigFetcher {
         log.debug("Rechecking configuration");
         final Optional<S3Config> newConfig = fetchConfig();
         if (!newConfig.isPresent()) {
-            log.error("Couldn't get new config.");
+            if (model.getS3Config() == null || model.getS3Config().getFallbacks().size() == 0) {
+                log.error("No known fallbacks from S3, and unable to read new configuration");
+                Events.asyncEventBus().post(
+                        new MessageEvent(Tr.tr(MessageKey.NO_CONFIG),
+                                MessageType.error));
+            }
             return;
         }
 
@@ -151,11 +156,8 @@ public class S3ConfigFetcher {
         Optional<String> cfgStr = readConfig(searchPath);
 
         if (!cfgStr.isPresent()) {
-            log.error("Unable to read config url or local S3 config from {}",
+            log.warn("Unable to read config url or local S3 config from {}",
                     searchPath);
-            Events.asyncEventBus().post(
-                    new MessageEvent(Tr.tr(MessageKey.NO_CONFIG),
-                            MessageType.error));
             return Optional.absent();
         }
 
