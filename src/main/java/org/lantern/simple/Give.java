@@ -3,22 +3,31 @@ package org.lantern.simple;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
+import java.net.InetSocketAddress;
+import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.lantern.Cli;
+import org.lantern.LanternUtils;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.monitoring.Stats;
 import org.lantern.monitoring.StatsManager;
 import org.lantern.monitoring.StatshubAPI;
 import org.lantern.proxy.GiveModeActivityTracker;
 import org.lantern.proxy.GiveModeHttpFilters;
+import org.lantern.proxy.pt.PluggableTransport;
+import org.lantern.proxy.pt.PluggableTransports;
+import org.lantern.proxy.pt.PtType;
 import org.lantern.state.InstanceStats;
 import org.lantern.util.Threads;
 import org.littleshoot.proxy.ActivityTracker;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServer;
+import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.slf4j.Logger;
@@ -60,6 +69,7 @@ public class Give extends CliProgram {
     private static final String OPT_KEYSTORE = "keystore";
     private static final String OPT_AUTHTOKEN = "authtoken";
     private static final String OPT_INSTANCE_ID = "instanceid";
+    private static final String OPT_PT = "pt";
 
     private String host;
     private int httpsPort;
@@ -68,6 +78,7 @@ public class Give extends CliProgram {
     private String keyStorePath;
     private String expectedAuthToken;
     private String instanceId;
+    private PluggableTransport pt;
 
     private HttpProxyServer server;
     private InstanceStats stats = new InstanceStats();
@@ -97,6 +108,21 @@ public class Give extends CliProgram {
         this.expectedAuthToken = cmd.getOptionValue(OPT_AUTHTOKEN,
                 "534#^#$523590)");
         this.instanceId = cmd.getOptionValue(OPT_INSTANCE_ID);
+        if (cmd.hasOption(OPT_PT)) {
+            initPluggableTransport(cmd
+                    .getOptionProperties(Cli.OPTION_PLUGGABLE_TRANSPORT));
+        }
+    }
+
+    private void initPluggableTransport(Properties props) {
+        String type = props.getProperty("type");
+        if (type != null) {
+            PtType proxyPtType = PtType.valueOf(type.toUpperCase());
+            pt = PluggableTransports.newTransport(
+                    proxyPtType,
+                    props);
+            LOGGER.info("Using pluggable transport of type {} ", proxyPtType);
+        }
     }
 
     public void start() {
@@ -131,6 +157,13 @@ public class Give extends CliProgram {
         addOption(new Option(OPT_KEYSTORE, true, "Path to keystore containing proxy's cert.  Defaults to ../too-many-secrets/littleproxy_keystore.jks"), false);
         addOption(new Option(OPT_AUTHTOKEN, true, "Auth token that this proxy requires from its clients.  Defaults to '534#^#$523590)'."), false);
         addOption(new Option(OPT_INSTANCE_ID, true, "The instanceid.  If specified, stats will be reported under this instance id.  Otherwise, stats will not be reported."), false);
+        options.addOption(OptionBuilder
+                .withLongOpt(OPT_PT)
+                .withArgName("property=value")
+                .hasArgs(2)
+                .withValueSeparator()
+                .withDescription("(Optional) Specify pluggable transport properties")
+                .create());
         //@formatter:on
     }
 
@@ -156,14 +189,25 @@ public class Give extends CliProgram {
                 .plusActivityTracker(activityTracker)
                 .start();
 
+        int serverPort = httpsPort;
+        boolean allowLocalOnly = false;
+        boolean encryptionRequired = true;
+        if (pt != null) {
+            // When using a pluggable transport, the transport will use the
+            // configured port and the server will use some random free port
+            // that only allows local connections
+            serverPort = LanternUtils.findFreePort();
+            allowLocalOnly = true;
+            encryptionRequired = !pt.suppliesEncryption();
+        }
+
         LOGGER.info(
                 "Starting TLS Give proxy at TCP port {}", httpsPort);
-        server = DefaultHttpProxyServer.bootstrap()
+        HttpProxyServerBootstrap bootstrap = DefaultHttpProxyServer.bootstrap()
                 .withName("Give-Encrypted")
-                .withPort(httpsPort)
-                .withAllowLocalOnly(false)
+                .withPort(serverPort)
+                .withAllowLocalOnly(allowLocalOnly)
                 .withListenOnAllAddresses(true)
-                .withSslEngineSource(new SimpleSslEngineSource(keyStorePath))
                 .withAuthenticateSslClients(false)
 
                 // Use a filter to deny requests other than those contains the
@@ -179,8 +223,20 @@ public class Give extends CliProgram {
                                 expectedAuthToken);
                     }
                 })
-                .plusActivityTracker(activityTracker)
-                .start();
+                .plusActivityTracker(activityTracker);
+
+        if (encryptionRequired) {
+            bootstrap.withSslEngineSource(
+                    new SimpleSslEngineSource(keyStorePath));
+        }
+
+        server = bootstrap.start();
+
+        if (pt != null) {
+            LOGGER.info("Starting PluggableTransport");
+            InetSocketAddress giveModeAddress = server.getListenAddress();
+            pt.startServer(httpsPort, giveModeAddress);
+        }
     }
 
     private void startUdt() {
@@ -207,7 +263,9 @@ public class Give extends CliProgram {
     }
 
     private void startStats() {
-        LOGGER.info("Starting to report stats to statshub under instanceid: {}", instanceId);
+        LOGGER.info(
+                "Starting to report stats to statshub under instanceid: {}",
+                instanceId);
         statsScheduler.scheduleAtFixedRate(
                 postStats,
                 10,
