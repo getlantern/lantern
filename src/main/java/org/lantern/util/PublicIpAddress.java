@@ -94,7 +94,7 @@ public class PublicIpAddress implements PublicIp {
             // See https://github.com/getlantern/lantern/issues/942
 //            request.getParams().setParameter(
 //                    CoreConnectionPNames.SO_TIMEOUT, 60000);
-            HttpResponse response = HttpClientFactory.newProxiedClient()
+            HttpResponse response = StaticHttpClientFactory.newProxiedClient()
                     .execute(TEST_HOST, request);
             Header header = response
                     .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);

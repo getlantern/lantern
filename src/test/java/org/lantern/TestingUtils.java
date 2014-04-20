@@ -55,6 +55,7 @@ import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -232,7 +233,7 @@ public class TestingUtils {
     public static HttpClientFactory newHttClientFactory() {
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
-                new HttpClientFactory(censored);
+                new DefaultHttpClientFactory(censored);
         return factory;
     }
 
@@ -294,15 +295,9 @@ public class TestingUtils {
         LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
-        Optional<String> s3ConfigString = S3ConfigFetcher.fetchLocalConfig(new File(".s3config"));
-        if (!s3ConfigString.isPresent()) {
-            throw new RuntimeException("No S3 configuration found a .s3config!");
-        }
-        Optional<S3Config> s3ConfigOpt = S3ConfigFetcher.parseConfig(s3ConfigString.get());
-        if (!s3ConfigOpt.isPresent()) {
-            throw new RuntimeException("Unable to parse S3 configuration!");
-        }
-        S3Config s3Config = s3ConfigOpt.get();
+        final String s3ConfigString = FileUtils.readFileToString(new File(".s3config"));
+        final S3Config s3Config =
+                JsonUtils.OBJECT_MAPPER.readValue(s3ConfigString, S3Config.class);
         
         final org.lantern.proxy.FallbackProxy fallback = s3Config.getFallbacks().iterator().next();
         trustStore.addCert(fallback.getCert());

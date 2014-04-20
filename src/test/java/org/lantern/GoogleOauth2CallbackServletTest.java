@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import org.junit.Test;
 import org.lantern.http.GoogleOauth2CallbackServlet;
 import org.lantern.state.Model;
+import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
 
 public class GoogleOauth2CallbackServletTest {
@@ -19,7 +20,7 @@ public class GoogleOauth2CallbackServletTest {
            @Override
             public Integer call() throws Exception {
                final Censored censored = new DefaultCensored();
-               final HttpClientFactory factory = new HttpClientFactory(censored);
+               final HttpClientFactory factory = new DefaultHttpClientFactory(censored);
                Model model = new Model();
                final GoogleOauth2CallbackServlet servlet = 
                    new GoogleOauth2CallbackServlet(null, null, null, null, null, 
