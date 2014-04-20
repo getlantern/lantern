@@ -134,7 +134,7 @@ public class Give extends CliProgram {
     }
 
     public void start() {
-        System.out.println(String
+        LOGGER.info(String
                 .format("Starting Give proxy with the following settings ...\n"
                         +
                         "Host: %1$s\n" +
