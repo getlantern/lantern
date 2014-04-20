@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  *                             ../too-many-secrets/littleproxy_keystore.jks
  *     --pt <property=value>   (Optional) Specify pluggable transport
  *                             properties
- *  -udt <arg>                 UDT listen port.  Defaults to 9090.
+ *  -udt <arg>                 UDT listen port.
  * </pre>
  */
 public class Give extends CliProgram {
@@ -82,7 +82,7 @@ public class Give extends CliProgram {
     private String host;
     private int httpsPort;
     private int httpPort;
-    private int udtPort;
+    private Integer udtPort;
     private String keyStorePath;
     private String expectedAuthToken;
     private String instanceId;
@@ -109,8 +109,9 @@ public class Give extends CliProgram {
                 .getOptionValue(OPT_HTTP_PORT, "80"));
         this.httpsPort = Integer.parseInt(cmd.getOptionValue(OPT_HTTPS_PORT,
                 "443"));
-        this.udtPort = Integer.parseInt(cmd.getOptionValue(OPT_UDT_PORT,
-                "9090"));
+        if (cmd.hasOption(OPT_UDT_PORT)) {
+            this.udtPort = Integer.parseInt(cmd.getOptionValue(OPT_UDT_PORT));
+        }
         this.keyStorePath = cmd.getOptionValue(OPT_KEYSTORE,
                 "../too-many-secrets/littleproxy_keystore.jks");
         this.expectedAuthToken = cmd.getOptionValue(OPT_AUTHTOKEN,
@@ -152,7 +153,9 @@ public class Give extends CliProgram {
                         expectedAuthToken,
                         instanceId));
         startTcp();
-        startUdt();
+        if (udtPort != null) {
+            startUdt();
+        }
         if (instanceId != null) {
             startStats();
         }
@@ -163,7 +166,7 @@ public class Give extends CliProgram {
         addOption(new Option(OPT_HOST, true, "(Required) The proxy's public hostname or ip address"), true);
         addOption(new Option(OPT_HTTP_PORT, true, "HTTP listen port.  Defaults to 80."), false);
         addOption(new Option(OPT_HTTPS_PORT, true, "HTTPS listen port.  Defaults to 443."), false);
-        addOption(new Option(OPT_UDT_PORT, true, "UDT listen port.  Defaults to 9090."), false);
+        addOption(new Option(OPT_UDT_PORT, true, "UDT listen port.  If not specified, proxy does not listen for UDT connections."), false);
         addOption(new Option(OPT_KEYSTORE, true, "Path to keystore containing proxy's cert.  Defaults to ../too-many-secrets/littleproxy_keystore.jks"), false);
         addOption(new Option(OPT_AUTHTOKEN, true, "Auth token that this proxy requires from its clients.  Defaults to '534#^#$523590)'."), false);
         addOption(new Option(OPT_INSTANCE_ID, true, "The instanceid.  If specified, stats will be reported under this instance id.  Otherwise, stats will not be reported."), false);
