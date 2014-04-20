@@ -143,12 +143,14 @@ public class Give extends CliProgram {
                         "UDT port: %4$s\n" +
                         "Keystore path: %5$s\n" +
                         "Auth token: %6$s\n",
+                        "Instance Id: %7$s\n",
                         host,
                         httpPort,
                         httpsPort,
                         udtPort,
                         keyStorePath,
-                        expectedAuthToken));
+                        expectedAuthToken,
+                        instanceId));
         startTcp();
         startUdt();
         if (instanceId != null) {
