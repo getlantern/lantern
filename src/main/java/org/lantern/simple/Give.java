@@ -36,7 +36,8 @@ import org.slf4j.LoggerFactory;
 /**
  * <p>
  * A really basic Give mode proxy that listens with both TCP and UDT and trusts
- * all Get proxies. Mostly for experimentation purposes.
+ * all Get proxies. This proxy is useful for experimentation and is also used
+ * for fallback proxies.
  * </p>
  * 
  * <p>
@@ -49,14 +50,21 @@ import org.slf4j.LoggerFactory;
  * 
  * <pre>
  * usage: ./launch org.lantern.simple.Give [options]
- *  -authtoken <arg>   Auth token that this proxy requires from its clients.
- *                     Defaults to '534#^#$523590)'.
- *  -host <arg>        (Required) The proxy's public hostname or ip address
- *  -http <arg>        HTTP listen port.  Defaults to 80.
- *  -https <arg>       HTTPS listen port.  Defaults to 443.
- *  -keystore <arg>    Path to keystore containing proxy's cert.  Defaults to
- *                     ../too-many-secrets/littleproxy_keystore.jks
- *  -udt <arg>         UDT listen port.  Defaults to 9090.
+ *  -authtoken <arg>           Auth token that this proxy requires from its
+ *                             clients.  Defaults to '534#^#$523590)'.
+ *  -host <arg>                (Required) The proxy's public hostname or ip
+ *                             address
+ *  -http <arg>                HTTP listen port.  Defaults to 80.
+ *  -https <arg>               HTTPS listen port.  Defaults to 443.
+ *  -instanceid <arg>          The instanceid.  If specified, stats will be
+ *                             reported under this instance id.  Otherwise,
+ *                             stats will not be reported.
+ *  -keystore <arg>            Path to keystore containing proxy's cert.
+ *                             Defaults to
+ *                             ../too-many-secrets/littleproxy_keystore.jks
+ *     --pt <property=value>   (Optional) Specify pluggable transport
+ *                             properties
+ *  -udt <arg>                 UDT listen port.  Defaults to 9090.
  * </pre>
  */
 public class Give extends CliProgram {
