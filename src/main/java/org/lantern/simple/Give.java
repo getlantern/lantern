@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  *                             ../too-many-secrets/littleproxy_keystore.jks
  *     --pt <property=value>   (Optional) Specify pluggable transport
  *                             properties
- *  -udt <arg>                 UDT listen port.  Defaults to 9090.
+ *  -udt <arg>                 UDT listen port.
  * </pre>
  */
 public class Give extends CliProgram {
