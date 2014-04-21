@@ -104,6 +104,7 @@ public class Give extends CliProgram {
 
     public Give(String[] args) {
         super(args);
+        LanternUtils.setFallbackProxy(true);
         this.host = cmd.getOptionValue(OPT_HOST);
         this.httpPort = Integer.parseInt(cmd
                 .getOptionValue(OPT_HTTP_PORT, "80"));
