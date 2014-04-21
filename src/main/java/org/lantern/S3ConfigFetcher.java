@@ -284,8 +284,6 @@ public class S3ConfigFetcher {
             //  If we exit the loop and end up here it means we could not find
             // a config file to copy in any of the expected locations.
             log.error("Config file not found at any of {}", filesToTry);
-            Events.asyncEventBus().post(
-                new MessageEvent(Tr.tr(MessageKey.NO_CONFIG), MessageType.error));
         }
     }
 
