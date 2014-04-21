@@ -284,6 +284,7 @@ public class Proxifier implements ProxyService, LanternService {
         if (pacFile.equals(PROXY_ON)) {
             PacFileGenerator.generatePacFile(
                 this.model.getSettings().getWhitelist().getEntriesAsStrings(), 
+                PROXY_ON);
         }
         
         LOG.debug("Autoconfiguring local to proxy Lantern");
