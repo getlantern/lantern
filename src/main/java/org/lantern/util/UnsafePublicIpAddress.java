@@ -109,11 +109,11 @@ public class UnsafePublicIpAddress implements PublicIp {
             publicIp = stunLookup();
             return publicIp;
         } catch (final InterruptedException e) {
-            LOG.error("Could not perform STUN lookup", e);
+            LOG.warn("Could not perform STUN lookup", e);
         } catch (final ExecutionException e) {
-            LOG.error("Could not perform STUN lookup", e);
+            LOG.warn("Could not perform STUN lookup", e);
         } catch (final TimeoutException e) {
-            LOG.error("Could not perform STUN lookup", e);
+            LOG.warn("Could not perform STUN lookup", e);
         }
 
         publicIp = wikiMediaLookup();
