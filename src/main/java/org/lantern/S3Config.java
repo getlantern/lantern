@@ -119,4 +119,12 @@ public class S3Config {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "S3Config [controller=" + controller + ", minpoll=" + minpoll
+                + ", maxpoll=" + maxpoll + ", fallbacks=" + fallbacks
+                + ", statsGetInterval=" + statsGetInterval
+                + ", statsPostInterval=" + statsPostInterval + "]";
+    }
 }
