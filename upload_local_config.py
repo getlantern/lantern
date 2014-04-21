@@ -10,6 +10,11 @@ from boto.s3.key import Key
 HERE = (os.path.dirname(sys.argv[0]) if __name__ == '__main__'
         else os.path.dirname(__file__))
 
+# For development/testing purposes, not for end users.
+#
+# Prerequisites:
+#    pip install --upgrade boto
+#
 # Usage:
 #
 # (1) Save your config.json in the same directory where you have this file (or
@@ -24,7 +29,7 @@ HERE = (os.path.dirname(sys.argv[0]) if __name__ == '__main__'
 CONFIGURL_PATH = os.path.join(os.path.expanduser('~'),
                               '.lantern-configurl.txt')
 CONFIG_JSON_PATH = os.path.join(HERE, 'config.json')
-SECRETS_BASE_DIR = os.path.join(HERE, '..', 'src', 'too-many-secrets')
+SECRETS_BASE_DIR = os.path.join(HERE, '..', 'too-many-secrets')
 
 
 def read_aws_credential():
