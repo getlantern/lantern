@@ -129,6 +129,11 @@ public class S3ConfigFetcher {
         final Optional<S3Config> newConfig = fetchRemoteConfig();
         if (!newConfig.isPresent()) {
             log.error("Couldn't get new config.");
+            
+            if (!weHaveFallbacks()) {
+                Events.asyncEventBus().post(
+                    new MessageEvent(Tr.tr(MessageKey.NO_CONFIG), MessageType.error));
+            }
             return;
         }
 
@@ -150,6 +155,25 @@ public class S3ConfigFetcher {
             log.debug("Configuration unchanged.");
         }
     }
+
+    /**
+     * Returns whether or not we have stored fallbacks.
+     * 
+     * @return <code>true</code> if we have fallbacks, otherwise <code>false</code>.
+     */
+    private boolean weHaveFallbacks() {
+        final S3Config config = model.getS3Config();
+        if (config == null) {
+            return false;
+        }
+
+        final Collection<FallbackProxy> fallbacks = config.getFallbacks();
+        if (fallbacks == null || fallbacks.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
 
     /** Linear interpolation. */
     private double lerp(double a, double b, double t) {
