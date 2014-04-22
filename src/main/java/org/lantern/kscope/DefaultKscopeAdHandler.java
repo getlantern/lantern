@@ -140,7 +140,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         log.debug("Adding proxy... {}", instance);
         ProxyInfo info = instance.hasMappedEndpoint() ?
                 instance.getData().getAd().getProxyInfo() :
-                null;
+                new ProxyInfo(instance.getId());
         this.proxyTracker.addProxy(info);
         if (info != null) {
             // Also add the local network advertisement in case they're on
