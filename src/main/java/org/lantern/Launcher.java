@@ -266,7 +266,8 @@ public class Launcher {
         }
         
         proxyTracker = instance(ProxyTracker.class);
-        this.s3ConfigManager = new S3ConfigFetcher(model);
+        httpClientFactory = instance(HttpClientFactory.class);
+        this.s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
         this.s3ConfigManager.start();
 
         xmpp = instance(DefaultXmppHandler.class);
@@ -274,7 +275,6 @@ public class Launcher {
         instance(LocalCipherProvider.class);
 
         internalState = instance(InternalState.class);
-        httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
 

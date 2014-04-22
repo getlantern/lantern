@@ -105,85 +105,9 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
                         })
 
                         // Keep stats up to date
-                        .plusActivityTracker(new ActivityTrackerAdapter() {
-                            @Override
-                            public void bytesReceivedFromClient(
-                                    FlowContext flowContext,
-                                    int numberOfBytes) {
-                                InetAddress peerAddress = flowContext
-                                        .getClientAddress().getAddress();
-                                stats.addBytesGivenForLocation(
-                                        lookupService.getGeoData(peerAddress),
-                                        numberOfBytes);
-                                Peer peer = peerFor(flowContext);
-                                if (peer != null) {
-                                    peer.addBytesDn(numberOfBytes);
-                                }
-                                stats.addAllBytes(numberOfBytes);
-                            }
-
-                            @Override
-                            public void bytesSentToClient(
-                                    FlowContext flowContext,
-                                    int numberOfBytes) {
-                                InetAddress peerAddress = flowContext
-                                        .getClientAddress().getAddress();
-                                stats.addBytesGivenForLocation(
-                                        lookupService.getGeoData(peerAddress),
-                                        numberOfBytes);
-                                Peer peer = peerFor(flowContext);
-                                if (peer != null) {
-                                    peer.addBytesUp(numberOfBytes);
-                                }
-                                stats.addAllBytes(numberOfBytes);
-                            }
-
-                            @Override
-                            public void bytesSentToServer(
-                                    FullFlowContext flowContext,
-                                    int numberOfBytes) {
-                                stats.addAllBytes(numberOfBytes);
-                            }
-
-                            @Override
-                            public void bytesReceivedFromServer(
-                                    FullFlowContext flowContext,
-                                    int numberOfBytes) {
-                                stats.addAllBytes(numberOfBytes);
-                            }
-
-                            @Override
-                            public void clientSSLHandshakeSucceeded(
-                                    InetSocketAddress clientAddress,
-                                    SSLSession sslSession) {
-                                Peer peer = peerFor(sslSession);
-                                if (peer != null) {
-                                    peer.connected();
-                                }
-                                stats.addProxiedClientAddress(clientAddress
-                                        .getAddress());
-                            }
-
-                            @Override
-                            public void clientDisconnected(
-                                    InetSocketAddress clientAddress,
-                                    SSLSession sslSession) {
-                                Peer peer = peerFor(sslSession);
-                                if (peer != null) {
-                                    peer.disconnected();
-                                }
-                            }
-
-                            private Peer peerFor(FlowContext flowContext) {
-                                return peerFor(flowContext
-                                        .getClientSslSession());
-                            }
-
-                            private Peer peerFor(SSLSession sslSession) {
-                                return sslSession != null ? peerFactory
-                                        .peerForSession(sslSession) : null;
-                            }
-                        });
+                        .plusActivityTracker(
+                                new GiveModeActivityTracker(stats,
+                                        lookupService, peerFactory));
         if (encryptionRequired) {
             bootstrap
                     .withSslEngineSource(sslEngineSource)
