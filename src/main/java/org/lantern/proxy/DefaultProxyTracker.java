@@ -40,7 +40,6 @@ import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
-import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +53,6 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
-    private static final FiveTuple EMPTY_UDP_TUPLE = new FiveTuple(null, null,
-            UDP);
-
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
 
@@ -131,8 +127,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         }
         
-        
-        config.getFallbacks().clear();
+        // Always include the default flashlight proxy
         config.getFallbacks().add(flashlightProxy());
         addFallbackProxies(config);
     }
@@ -253,11 +248,17 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
+    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference(
+            int upstreamPort) {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
         for (ProxyHolder proxy : proxies) {
             if (proxy.isConnected()) {
-                result.add(proxy);
+                Set<Integer> limitedToPorts = proxy.getLimitedToPorts();
+                boolean supportsPort = limitedToPorts.isEmpty()
+                        || limitedToPorts.contains(upstreamPort);
+                if (supportsPort) {
+                    result.add(proxy);
+                }
             }
         }
         Collections.sort(result, PROXY_PRIORITIZER);
@@ -265,8 +266,8 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     @Override
-    public ProxyHolder firstConnectedTcpProxy() {
-        for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference()) {
+    public ProxyHolder firstConnectedTcpProxy(int upstreamPort) {
+        for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference(upstreamPort)) {
             if (ph.getFiveTuple().getProtocol() == Protocol.TCP) {
                 return ph;
             }
@@ -476,8 +477,14 @@ public class DefaultProxyTracker implements ProxyTracker {
             if (protocolPriority != 0) {
                 return protocolPriority;
             }
+            
+            // Next prioritize based on relative priority, if different
+            int priority = a.getPriority() - b.getPriority();
+            if (priority != 0) {
+                return priority;
+            }
 
-            // Prioritize based on least number of open sockets
+            // Lastly prioritize based on least number of open sockets
             long numberOfSocketsA = a.getPeer().getNSockets();
             long numberOfSocketsB = b.getPeer().getNSockets();
             if (numberOfSocketsA < numberOfSocketsB) {
@@ -502,6 +509,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         flashlightProxy.setIp("cdnjs.com");
         flashlightProxy.setPort(443);
         flashlightProxy.setProtocol(Protocol.TCP);
+        // Make this higher priority than other fallbacks
+        flashlightProxy.setPriority(-1);
+        // flashlight proxy only supports ports 80 and 443
+        flashlightProxy.addLimitedToPort(80);
+        flashlightProxy.addLimitedToPort(443);
         // The below is the PEM-encoded certificate for cdnjs.com
         //@formatter:off
         flashlightProxy.setCert("-----BEGIN CERTIFICATE-----\n" +

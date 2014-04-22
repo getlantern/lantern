@@ -340,7 +340,7 @@ public class Launcher {
                 }
 
                 syncService.start();
-                statsManager.start();
+                //statsManager.start();
                 
                 gnomeAutoStart();
                 

@@ -37,16 +37,23 @@ public interface ProxyTracker extends LanternService {
      * Return a collection of all connected proxies in order of preference for
      * using them.
      * 
+     * @param upstreamPort
+     *            - the port of the upstream server to which we want to proxy,
+     *            used to determine which proxies are eligible to be returned
      * @return
      */
-    Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference();
+    Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference(
+            int upstreamPort);
 
     /**
      * Gets the first proxy in order of fallback preference.
      * 
+     * @param upstreamPort
+     *            - the port of the upstream server to which we want to proxy,
+     *            used to determine which proxies are eligible to be returned
      * @return
      */
-    ProxyHolder firstConnectedTcpProxy();
+    ProxyHolder firstConnectedTcpProxy(int upstreamPort);
 
     /**
      * Called when a connection to a proxy fails.
