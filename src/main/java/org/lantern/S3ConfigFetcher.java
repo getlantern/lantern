@@ -40,12 +40,7 @@ public class S3ConfigFetcher {
     // DRY: wrapper.install4j and configureUbuntu.txt
     private static final String URL_FILENAME = ".lantern-configurl.txt";
 
-    private final Optional<String> url;
-
     private final SecureRandom random = new SecureRandom();
-    
-    private static final File URL_CONFIG_FILE = 
-            new File(LanternClientConstants.CONFIG_DIR, URL_FILENAME);
     
     private final Timer configCheckTimer = new Timer("S3-Config-Check", true);
 
@@ -62,7 +57,6 @@ public class S3ConfigFetcher {
             final HttpClientFactory httpClientFactory) {
         log.debug("Creating s3 config fetcher...");
         this.model = model;
-        this.url = readUrl();
         this.httpClientFactory = httpClientFactory;
     }
     
@@ -70,10 +64,6 @@ public class S3ConfigFetcher {
     public void start() {
         log.debug("Starting config loading...");
         if (LanternUtils.isFallbackProxy()) {
-            return;
-        }
-        if (!this.url.isPresent()) {
-            log.debug("No url to use for downloading config");
             return;
         }
         final S3Config config = model.getS3Config();
@@ -180,21 +170,10 @@ public class S3ConfigFetcher {
         return a + (b - a) * t;
     }
 
-    private Optional<String> readUrl() {
-        try {
-            copyUrlFile();
-            if (!URL_CONFIG_FILE.isFile()) {
-                log.error("Still no config file at {}", URL_CONFIG_FILE);
-                return Optional.absent();
-            }
-        } catch (final IOException e) {
-            log.warn("Couldn't copy config URL file?", e);
-            return Optional.absent();
-        }
-        
+    private Optional<String> urlFromFile(File file) {
         try {
             final String folder = 
-                    FileUtils.readFileToString(URL_CONFIG_FILE, "UTF-8");
+                    FileUtils.readFileToString(file, "UTF-8");
             log.debug("Read folder from URL file: {}", folder);
             return Optional.of(urlFromFolder(folder));
         } catch (final IOException e) {
@@ -211,10 +190,6 @@ public class S3ConfigFetcher {
     }
     
     private Optional<S3Config> fetchRemoteConfig() {
-        if (!url.isPresent()) {
-            log.error("URL initialization failed.");
-            return Optional.absent();
-        }
         try {
             final HttpClient direct = this.httpClientFactory.newDirectClient();
             return fetchRemoteConfig(direct);
@@ -231,6 +206,11 @@ public class S3ConfigFetcher {
 
     private Optional<S3Config> fetchRemoteConfig(final HttpClient client)
             throws IOException {
+        Optional<String> url = determineUrl();
+        if (!url.isPresent()) {
+            log.error("URL initialization failed.");
+            return Optional.absent();
+        }                
         log.debug("Fetching config at {}", url.get());
         final HttpGet get = new HttpGet(url.get());
         InputStream is = null;
@@ -248,9 +228,7 @@ public class S3ConfigFetcher {
         }
     }
 
-    private void copyUrlFile() throws IOException {
-        log.debug("Copying config URL file");
-        
+    private Optional<String> determineUrl() throws IOException {
         final File curDir = new File(SystemUtils.getUserDir(), URL_FILENAME);
         final Collection<File> filesToTry = Lists.newArrayList(
                 new File(SystemUtils.getUserHome(), URL_FILENAME),
@@ -270,25 +248,18 @@ public class S3ConfigFetcher {
                 log.error("Parent file is not a directory at {}", 
                         from.getParentFile());
             }
-            if (from.isFile() && (isFileNewer(from, URL_CONFIG_FILE) || from == curDir)) {
-                log.debug("Copying from {} to {}", from, URL_CONFIG_FILE);
-                try {
-                    Files.copy(from, URL_CONFIG_FILE);
-                } catch (final IOException e) {
-                    log.error("Could not copy config file from "+
-                            from+" to "+URL_CONFIG_FILE, e);
-                }
-                return;
+            if (from.isFile()) {
+                log.debug("Using url from file: {}", from);
+                return urlFromFile(from);
             } else {
                 log.debug("No config file at {}", from);
             }
         }
-        
-        if (!URL_CONFIG_FILE.isFile()) {
-            //  If we exit the loop and end up here it means we could not find
-            // a config file to copy in any of the expected locations.
-            log.error("Config file not found at any of {}", filesToTry);
-        }
+    
+        //  If we exit the loop and end up here it means we could not find
+        // a config file to copy in any of the expected locations.
+        log.error("Config file not found at any of {}", filesToTry);
+        return Optional.absent();
     }
 
 
