@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 
 /**
  * This class continually fetches new Lantern configuration files on S3, 
