@@ -271,7 +271,6 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
-        model.setCheckFallbacksMode(checkFallbacks);
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
             String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
@@ -315,7 +314,7 @@ public class Launcher {
         
         friendsHandler = instance(FriendsHandler.class);
         
-        startServices();
+        startServices(checkFallbacks);
         
         if (uiDisabled) {
             // Run a little main loop to keep the program running
@@ -333,7 +332,7 @@ public class Launcher {
      * This starts all of the services on a separate thread to avoid holding
      * up the main thread that is in charge of displaying the UI.
      */
-    private void startServices() {
+    private void startServices(final boolean checkFallbacks) {
         final Thread t = new Thread(new Runnable() {
 
             @Override
@@ -350,7 +349,7 @@ public class Launcher {
                 getModeProxy.start();
 
                 // don't need to start the rest of these services when running in check-fallbacks mode
-                if (model.isCheckFallbacksMode()) {
+                if (checkFallbacks) {
                     return;
                 }
 

@@ -59,8 +59,6 @@ public class Model {
 
     private boolean launchd;
 
-    private boolean checkFallbacksMode;
-
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
     private Stats globalStats = new Stats();
@@ -194,15 +192,6 @@ public class Model {
 
     public void setLaunchd(boolean launchd) {
         this.launchd = launchd;
-    }
-
-    @JsonIgnore
-    public boolean isCheckFallbacksMode() {
-        return checkFallbacksMode;
-    }
-
-    public void setCheckFallbacksMode(boolean checkFallbacksMode) {
-        this.checkFallbacksMode = checkFallbacksMode;
     }
 
     @JsonView({Run.class, Persistent.class})
