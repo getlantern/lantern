@@ -1,7 +1,7 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.Peer.Type.*;
-import static org.littleshoot.util.FiveTuple.Protocol.*;
+import static org.lantern.state.Peer.Type.pc;
+import static org.littleshoot.util.FiveTuple.Protocol.TCP;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -39,7 +39,6 @@ import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
-import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,8 +52,6 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class DefaultProxyTracker implements ProxyTracker {
-    private static final FiveTuple EMPTY_UDP_TUPLE = new FiveTuple(null, null,
-            UDP);
 
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
@@ -113,20 +110,27 @@ public class DefaultProxyTracker implements ProxyTracker {
     public void onNewS3Config(final S3Config config) {
         LOG.debug("Refreshing fallbacks");
         Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
-        for (ProxyHolder p : proxies) {
-            if (p.getType() == Type.cloud) {
-                LOG.debug("Removing fallback (I may readd it shortly): ",
-                        p.getJid());
-                fallbacks.add(p);
-                p.stopPtIfNecessary();
+        synchronized (proxies) {
+            for (ProxyHolder p : proxies) {
+                if (p.getType() == Type.cloud) {
+                    LOG.debug("Removing fallback (I may readd it shortly): ",
+                            p.getJid());
+                    fallbacks.add(p);
+                    p.stopPtIfNecessary();
+                }
             }
+            
+            // This method can also iterate, so keep it in the synchronized
+            // block.
+            proxies.removeAll(fallbacks);
         }
-        proxies.removeAll(fallbacks);
-        Iterator<ProxyInfo> it = configuredProxies.iterator();
-        while (it.hasNext()) {
-            ProxyInfo info = it.next();
-            if (info.getType() == Type.cloud) {
-                it.remove();
+        synchronized (configuredProxies) {
+            Iterator<ProxyInfo> it = configuredProxies.iterator();
+            while (it.hasNext()) {
+                ProxyInfo info = it.next();
+                if (info.getType() == Type.cloud) {
+                    it.remove();
+                }
             }
         }
         addFallbackProxies(config);
@@ -134,8 +138,10 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void clear() {
-        for (ProxyHolder proxy : proxies) {
-            proxy.stopPtIfNecessary();
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                proxy.stopPtIfNecessary();
+            }
         }
         proxies.clear();
 
@@ -145,17 +151,19 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void clearPeerProxySet() {
-        Iterator<ProxyHolder> it = proxies.iterator();
-        while (it.hasNext()) {
-            if (it.next().isNatTraversed()) {
-                it.remove();
+        synchronized (proxies) {
+            Iterator<ProxyHolder> it = proxies.iterator();
+            while (it.hasNext()) {
+                if (it.next().isNatTraversed()) {
+                    it.remove();
+                }
             }
         }
     }
 
     @Override
     public void addProxy(ProxyInfo info) {
-        synchronized (this) {
+        synchronized (configuredProxies) {
             if (configuredProxies.contains(info)) {
                 LOG.debug("Proxy already configured.  Configured proxies is: {}", configuredProxies);
                 return;
@@ -183,12 +191,14 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void removeNattedProxy(final URI uri) {
-        Iterator<ProxyHolder> it = proxies.iterator();
-        while (it.hasNext()) {
-            ProxyHolder proxy = it.next();
-            if (proxy.getJid().equals(uri) && proxy.isNatTraversed()) {
-                LOG.debug("Removing peer by request: {}", uri);
-                it.remove();
+        synchronized (this.proxies) {
+            Iterator<ProxyHolder> it = proxies.iterator();
+            while (it.hasNext()) {
+                ProxyHolder proxy = it.next();
+                if (proxy.getJid().equals(uri) && proxy.isNatTraversed()) {
+                    LOG.debug("Removing peer by request: {}", uri);
+                    it.remove();
+                }
             }
         }
     }
@@ -218,9 +228,11 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void onError(final URI peerUri) {
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.getJid().equals(peerUri)) {
-                proxy.failedToConnect();
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.getJid().equals(peerUri)) {
+                    proxy.failedToConnect();
+                }
             }
         }
         notifyProxiesSize();
@@ -250,9 +262,11 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.isConnected()) {
-                result.add(proxy);
+        synchronized (this.proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.isConnected()) {
+                    result.add(proxy);
+                }
             }
         }
         Collections.sort(result, PROXY_PRIORITIZER);
@@ -272,7 +286,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void doAddProxy(final ProxyHolder proxy) {
         LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
         proxies.add(proxy);
-        LOG.info("Proxies is now {}", proxies);
+        synchronized (proxies) {
+            LOG.info("Proxies is now {}", proxies);
+        }
         if (proxy.getType() == Peer.Type.cloud) {
             // Assume cloud proxies to be connected
             successfullyConnectedToProxy(proxy);
@@ -358,9 +374,11 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void notifyProxiesSize() {
         int numberOfConnectedProxies = 0;
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.isConnected()) {
-                numberOfConnectedProxies += 1;
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.isConnected()) {
+                    numberOfConnectedProxies += 1;
+                }
             }
         }
         model.getConnectivity().setNProxies(numberOfConnectedProxies);
@@ -374,31 +392,35 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void restoreTimedInProxies() {
         long now = new Date().getTime();
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.needsConnectionTest()) {
-                if (now > proxy.getRetryTime()) {
-                    LOG.debug("Attempting to restore timed-in proxy: {}", proxy);
-                    checkConnectivityToProxy(proxy);
-                } else {
-                    LOG.debug("Proxy not yet ready to retry: {}", proxy);
-                    break;
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.needsConnectionTest()) {
+                    if (now > proxy.getRetryTime()) {
+                        LOG.debug("Attempting to restore timed-in proxy: {}", proxy);
+                        checkConnectivityToProxy(proxy);
+                    } else {
+                        LOG.debug("Proxy not yet ready to retry: {}", proxy);
+                        break;
+                    }
                 }
             }
         }
     }
 
     private void restoreDeceasedProxies() {
-        LOG.debug("Checking to restore {} proxies", proxies.size());
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.needsConnectionTest()) {
-                LOG.debug("Attempting to restore deceased proxy: {}", proxy);
-                // Proxy may have accumulated a long back-off time while we
-                // were offline, so let's reset its failures.
-                proxy.resetRetryInterval();
-                checkConnectivityToProxy(proxy);
-            } else {
-                LOG.debug("Proxy does not need a connection test: {}", proxy);
-                break;
+        synchronized (proxies) {
+            LOG.debug("Checking to restore {} proxies", proxies.size());
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.needsConnectionTest()) {
+                    LOG.debug("Attempting to restore deceased proxy: {}", proxy);
+                    // Proxy may have accumulated a long back-off time while we
+                    // were offline, so let's reset its failures.
+                    proxy.resetRetryInterval();
+                    checkConnectivityToProxy(proxy);
+                } else {
+                    LOG.debug("Proxy does not need a connection test: {}", proxy);
+                    break;
+                }
             }
         }
     }

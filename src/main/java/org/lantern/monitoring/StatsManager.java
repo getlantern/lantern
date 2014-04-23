@@ -5,6 +5,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -62,12 +63,8 @@ public class StatsManager implements LanternService {
      */
     @Subscribe
     public void onS3Config(final S3Config config) {
-        try {
-            stop();
-            start();
-        } catch (Exception e) {
-            LOGGER.warn("Unable to restart StatsManager", e);
-        }
+        stop();
+        start();
     }
 
     @Override
@@ -92,13 +89,20 @@ public class StatsManager implements LanternService {
 
     @Override
     public void stop() {
-        getScheduler.shutdownNow();
-        postScheduler.shutdownNow();
-        try {
-            getScheduler.awaitTermination(30, TimeUnit.SECONDS);
-            postScheduler.awaitTermination(30, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
-            LOGGER.warn("Unable to await termination of schedulers", ie);
+        shutdown(getScheduler, postScheduler);
+    }
+
+    private void shutdown(final ExecutorService... schedulers) {
+        for (final ExecutorService scheduler : schedulers) {
+            if (scheduler == null) {
+                continue;
+            }
+            scheduler.shutdownNow();
+            try {
+                scheduler.awaitTermination(30, TimeUnit.SECONDS);
+            } catch (InterruptedException ie) {
+                LOGGER.warn("Unable to await termination of schedulers", ie);
+            }
         }
     }
 
