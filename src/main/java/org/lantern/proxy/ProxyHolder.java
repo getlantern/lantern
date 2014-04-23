@@ -336,6 +336,10 @@ public final class ProxyHolder extends BaseChainedProxy
         return info.getLimitedToPorts();
     }
     
+    public boolean isFromS3() {
+        return info.isFromS3();
+    }
+    
     synchronized private void startPt() {
         if (pt == null) {
             LOG.info("Starting pluggable transport");

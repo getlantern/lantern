@@ -85,7 +85,9 @@ public class ProxyInfo {
     private int priority = 0;
     
     private Set<Integer> limitedToPorts = new HashSet<Integer>();
-
+    
+    protected boolean fromS3;
+    
     public ProxyInfo() {
     }
 
@@ -308,7 +310,15 @@ public class ProxyInfo {
     public void addLimitedToPort(int port) {
         limitedToPorts.add(port);
     }
-
+    
+    public boolean isFromS3() {
+        return fromS3;
+    }
+    
+    public void setFromS3(boolean fromS3) {
+        this.fromS3 = fromS3;
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;

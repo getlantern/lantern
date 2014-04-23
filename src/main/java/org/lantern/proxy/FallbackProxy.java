@@ -17,6 +17,7 @@ public class FallbackProxy extends ProxyInfo {
         super();
         jid = LanternUtils.newURI("fallback-" + wanHost + "@getlantern.org");
         type = Type.cloud;
+        fromS3 = true;
     }
 
     public void setIp(String ip) {

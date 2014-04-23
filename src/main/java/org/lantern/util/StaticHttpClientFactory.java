@@ -2,15 +2,23 @@ package org.lantern.util;
 
 import java.io.IOException;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
 import org.lantern.LanternConstants;
@@ -27,20 +35,41 @@ public class StaticHttpClientFactory {
             LoggerFactory.getLogger(StaticHttpClientFactory.class);
     
     public static HttpClient newDirectClient() {
+        return newDirectClient(null);
+    }
+    
+    public static HttpClient newDirectClient(SSLContext sslContext) {
         log.debug("Returning direct client");
-        return newClient(null);
+        return newClient(sslContext, null);
     }
 
     public static HttpClient newProxiedClient() {
+        return newProxiedClient(null);
+    }
+    
+    public static HttpClient newProxiedClient(SSLContext sslContext) {
         log.debug("Returning proxied client");
         HttpHost proxy = new HttpHost("127.0.0.1",
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT,
                 "http");
-        return newClient(proxy);
+        return newClient(sslContext, proxy);
     }
 
-    public static HttpClient newClient(final HttpHost proxy) {
-        final DefaultHttpClient client = new DefaultHttpClient();
+    public static HttpClient newClient(SSLContext sslContext, final HttpHost proxy) {
+        final DefaultHttpClient client;
+        if (sslContext == null) {
+            client = new DefaultHttpClient();
+        } else {
+            // Caller specified a custom sslContext, use that
+            SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+            Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
+            Scheme httpsScheme = new Scheme("https", 443, sf);
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(httpScheme);
+            schemeRegistry.register(httpsScheme);
+            ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
+            client = new DefaultHttpClient(cm);
+        }
         
         // Add a random length header to avoid repeated messages of the same
         // size on the network.

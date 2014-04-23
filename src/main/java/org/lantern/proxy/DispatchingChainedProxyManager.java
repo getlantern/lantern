@@ -65,7 +65,6 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
             }
         }
 
-        System.out.println("********************* " + hostAndPort);
         String[] parts = hostAndPort.split(":");
         return parts.length == 2 ? Integer.parseInt(parts[1]) : 80;
     }

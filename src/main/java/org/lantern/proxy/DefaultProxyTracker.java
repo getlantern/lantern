@@ -104,31 +104,32 @@ public class DefaultProxyTracker implements ProxyTracker {
         }, 100, 100, TimeUnit.MILLISECONDS);
 
         Events.register(this);
+        
+        // Always include the flashlight proxy
+        addSingleFallbackProxy(flashlightProxy());
     }
 
     @Subscribe
     public void onNewS3Config(final S3Config config) {
         LOG.debug("Refreshing fallbacks");
-        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
+        Set<ProxyHolder> s3Fallbacks = new HashSet<ProxyHolder>();
         for (ProxyHolder p : proxies) {
-            if (p.getType() == Type.cloud) {
+            if (p.isFromS3()) {
                 LOG.debug("Removing fallback (I may readd it shortly): ",
                         p.getJid());
-                fallbacks.add(p);
+                s3Fallbacks.add(p);
                 p.stopPtIfNecessary();
             }
         }
-        proxies.removeAll(fallbacks);
+        proxies.removeAll(s3Fallbacks);
         Iterator<ProxyInfo> it = configuredProxies.iterator();
         while (it.hasNext()) {
             ProxyInfo info = it.next();
-            if (info.getType() == Type.cloud) {
+            if (info.isFromS3()) {
                 it.remove();
             }
         }
         
-        // Always include the default flashlight proxy
-        config.getFallbacks().add(flashlightProxy());
         addFallbackProxies(config);
     }
 
@@ -504,6 +505,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     private FallbackProxy flashlightProxy() {
         FallbackProxy flashlightProxy = new FallbackProxy();
+        flashlightProxy.fromS3 = false;
         flashlightProxy.pt = new Properties();
         flashlightProxy.pt.setProperty("type", "flashlight");
         flashlightProxy.setIp("cdnjs.com");
@@ -514,51 +516,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         // flashlight proxy only supports ports 80 and 443
         flashlightProxy.addLimitedToPort(80);
         flashlightProxy.addLimitedToPort(443);
-        // The below is the PEM-encoded certificate for cdnjs.com
-        //@formatter:off
-        flashlightProxy.setCert("-----BEGIN CERTIFICATE-----\n" +
-"MIIHbTCCBlWgAwIBAgISESHGdSbqDfRsZ0676qVKIcRrMA0GCSqGSIb3DQEBBQUA\n" +
-"MF0xCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTMwMQYD\n" +
-"VQQDEypHbG9iYWxTaWduIE9yZ2FuaXphdGlvbiBWYWxpZGF0aW9uIENBIC0gRzIw\n" +
-"HhcNMTQwNDE2MDA1NzU0WhcNMTYxMDEzMTg0NDUzWjBuMQswCQYDVQQGEwJVUzEL\n" +
-"MAkGA1UECBMCQ0ExFjAUBgNVBAcTDVNhbiBGcmFuY2lzY28xGTAXBgNVBAoTEENs\n" +
-"b3VkRmxhcmUsIEluYy4xHzAdBgNVBAMTFnNzbDIyMjIuY2xvdWRmbGFyZS5jb20w\n" +
-"ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDfg3IEsINBN6bGKaDXGeu1\n" +
-"d8rR/mO5he8xnCTyZ6t4sJONRC0N2WrkFfaoQvDAu2SLxDG6kLmQBLvNQkqVzT1d\n" +
-"KEsoyKlio7/PFIRL8ssuYgt5rQRqqGFUikc8TG5igiKetzrzQdXbrXknMRluu7nI\n" +
-"KVGzLW8p4ugGzAU8GR3boiHwYmw7a7MvCgD2+jyeiYQHxh/pEwkQFr1lEXo3B/5x\n" +
-"eHzgFU8FybnK0uGf5BykZVfVaZqjnQdGwOGBc46tlMd1HeSXkVSiFKmzuIsZblqn\n" +
-"AYX01FiydKmULZWwCCVqop89AXFBZYNSi36ZQ+KHn7kOD679mRcgpTRhOMIyxoxR\n" +
-"AgMBAAGjggQUMIIEEDAOBgNVHQ8BAf8EBAMCBaAwSQYDVR0gBEIwQDA+BgZngQwB\n" +
-"AgIwNDAyBggrBgEFBQcCARYmaHR0cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVw\n" +
-"b3NpdG9yeS8wggJnBgNVHREEggJeMIICWoIWc3NsMjIyMi5jbG91ZGZsYXJlLmNv\n" +
-"bYIbKi5wcmVtaXVtLWFjdGl2ZS1rZXRvbmUuY29tghlwcmVtaXVtLWFjdGl2ZS1r\n" +
-"ZXRvbmUuY29tggljZG5qcy5jb22CDSouYmV0dGluZy5jb22CDG5nZWZvcnVtLm9y\n" +
-"Z4ILYWJldGEuY28udWuCHyouYWN0aXZlLXJhc3BiZXJyeWtldG9uZXMuY28udWuC\n" +
-"DSouYmlvdG9wcy5iaXqCC2Jpb3RvcHMuYml6gg4qLm5ldHdvcmswMS5zb4ILa2li\n" +
-"dS5jb20uYXWCDSoua2lidS5jb20uYXWCDCouY3VydGluYS5mcoIKY3VydGluYS5m\n" +
-"coIMd2lzaGJlcmcuY29tgh1hY3RpdmUtcmFzcGJlcnJ5a2V0b25lcy5jby51a4IU\n" +
-"Ki5maWx0ZXJ5b3VybGlmZS5jb22CEmZpbHRlcnlvdXJsaWZlLmNvbYIRKi5zb2tl\n" +
-"cmlsYXV0YS5vcmeCDSouYWJldGEuY28udWuCDioubmdlZm9ydW0ub3JnghQqLmxv\n" +
-"cmRvZnRoZWNyYWZ0Lm5ldIINbXUtdWNoaWhhLmJpeoISbG9yZG9mdGhlY3JhZnQu\n" +
-"bmV0gg9zb2tlcmlsYXV0YS5vcmeCDyoubXUtdWNoaWhhLmJpeoIOKi53aXNoYmVy\n" +
-"Zy5jb22CGioubXktb3JnYW5pYy1jbGVhbnNlLmNvLnVrghhteS1vcmdhbmljLWNs\n" +
-"ZWFuc2UuY28udWuCDG5ldHdvcmswMS5zb4ILKi5jZG5qcy5jb22CC2JldHRpbmcu\n" +
-"Y29tMAkGA1UdEwQCMAAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMEUG\n" +
-"A1UdHwQ+MDwwOqA4oDaGNGh0dHA6Ly9jcmwuZ2xvYmFsc2lnbi5jb20vZ3MvZ3Nv\n" +
-"cmdhbml6YXRpb252YWxnMi5jcmwwgZYGCCsGAQUFBwEBBIGJMIGGMEcGCCsGAQUF\n" +
-"BzAChjtodHRwOi8vc2VjdXJlLmdsb2JhbHNpZ24uY29tL2NhY2VydC9nc29yZ2Fu\n" +
-"aXphdGlvbnZhbGcyLmNydDA7BggrBgEFBQcwAYYvaHR0cDovL29jc3AyLmdsb2Jh\n" +
-"bHNpZ24uY29tL2dzb3JnYW5pemF0aW9udmFsZzIwHQYDVR0OBBYEFKc3TefWQCgJ\n" +
-"a/rSff1ni4rsrFlhMB8GA1UdIwQYMBaAFF1Gso3ES3Qcu+31c7Y6tziPdZ5+MA0G\n" +
-"CSqGSIb3DQEBBQUAA4IBAQAOOSeL7I8Dxq1ZxkhnNMLwb9XOtPk4osAZQntUN1NV\n" +
-"OmQU4x1hhFfV/Su4TykbvKAIt152W3cQs2fzS/QRhYooVu2JnI9chAd1kCc6KBfI\n" +
-"de/FvQtgbIhlUAhrfwyj6pvKuqk0onFeU8d7W7Thpq9LwKb29S13zmsZ9d3Dttl9\n" +
-"oBBtLJiHX/WaUazba7+cEbof2QHkeJ6ztqp/ALT9cG1POunhy+EqKpSYuEIV8pnA\n" +
-"nlteNCWPz8IrlNNNG8fvxiGYz8K47dlz73vXG3yIye0iSJU8D7CS+OIJErceDRcb\n" +
-"lve37aX4z+LmJyUoiVRJfC+T2+Rms472xBB3jvyD+0Gk\n" +
-"-----END CERTIFICATE-----");
-      //@formatter:on
         return flashlightProxy;
     }
 }
