@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.params.CoreConnectionPNames;
 import org.codehaus.jackson.type.TypeReference;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.ProxyTracker;
@@ -54,6 +55,8 @@ public class FallbackChecker implements Runnable {
             IOUtils.closeQuietly(fis);
         }
         final HttpClient client = this.httpClientFactory.newDirectClient();
+        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 10000);
         final HttpGet get = new HttpGet(S3ConfigFetcher.urlFromFolder(folder));
         
         final String proxies;
@@ -118,6 +121,8 @@ public class FallbackChecker implements Runnable {
 
     private boolean canProxyThroughCurrentFallback() throws Exception {
         final HttpClient client = this.httpClientFactory.newProxiedClient();
+        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 10000);
         final HttpGet get = new HttpGet(TEST_URL);
         InputStream is = null;
         try {
