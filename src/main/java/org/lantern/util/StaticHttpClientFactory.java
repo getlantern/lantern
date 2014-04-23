@@ -1,17 +1,18 @@
 package org.lantern.util;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
 
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.http.Header;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.protocol.HttpContext;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.slf4j.Logger;
@@ -32,34 +33,34 @@ public class StaticHttpClientFactory {
 
     public static HttpClient newProxiedClient() {
         log.debug("Returning proxied client");
-        final HttpHost proxy = new HttpHost("127.0.0.1",
+        HttpHost proxy = new HttpHost("127.0.0.1",
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT,
                 "http");
         return newClient(proxy);
     }
 
     public static HttpClient newClient(final HttpHost proxy) {
-        // Always add a random length to be less identifiable over the wire.
-        final Header header = new BasicHeader("Lan-Rand", randomLengthVal());
-        final List<Header> headers = Arrays.asList(header);
+        final DefaultHttpClient client = new DefaultHttpClient();
         
-        final RequestConfig defaultRequestConfig = RequestConfig.custom().
-                setStaleConnectionCheckEnabled(true).
-                setConnectTimeout(50000).
-                setSocketTimeout(120000).
-                build();
-        
-        final HttpClientBuilder builder = 
-                HttpClients.custom().setDefaultHeaders(headers).
-                setRetryHandler(new DefaultHttpRequestRetryHandler(3,true)).
-                setDefaultRequestConfig(defaultRequestConfig);
-        
+        // Add a random length header to avoid repeated messages of the same
+        // size on the network.
+        client.addRequestInterceptor(new HttpRequestInterceptor() {
+            
+            @Override
+            public void process(final HttpRequest request, 
+                    final HttpContext context)
+                    throws HttpException, IOException {
+                
+                request.addHeader("Lan-Rand", randomLengthVal());
+            }
+        });
+        client.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(3,true));
+        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
         if (proxy != null) {
-            builder.setProxy(proxy);
+            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
             LanternUtils.waitForServer(proxy.getHostName(), proxy.getPort(), 10000);
         }
-        
-        final HttpClient client = builder.build();
         return client;
     }
     
