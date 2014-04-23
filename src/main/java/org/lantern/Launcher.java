@@ -28,7 +28,6 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
@@ -276,7 +275,7 @@ public class Launcher {
             String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
             FallbackChecker fbc = null;
             try {
-                fbc = new FallbackChecker((DefaultProxyTracker)proxyTracker, configFolderPath);
+                fbc = new FallbackChecker(proxyTracker, configFolderPath);
             } catch (Exception e) {
                 LOG.error("Error instantiating FallbackChecker:");
                 e.printStackTrace();

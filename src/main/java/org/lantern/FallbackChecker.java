@@ -21,7 +21,7 @@ import com.google.common.base.Optional;
 
 public class FallbackChecker implements Runnable {
 
-    private DefaultProxyTracker proxyTracker;
+    private ProxyTracker proxyTracker;
     private List<FallbackProxy> fallbacks = new ArrayList<FallbackProxy>();
     private static final String ALERTCMD_PATH = "/home/lantern/alert_fallbacks_failing_to_proxy.py";
     private static final String TEST_URL = "http://www.google.com/humans.txt";
