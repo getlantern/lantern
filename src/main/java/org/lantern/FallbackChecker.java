@@ -1,6 +1,8 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +13,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jackson.type.TypeReference;
-import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.FallbackProxy;
+import org.lantern.proxy.ProxyTracker;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Optional;
 
 public class FallbackChecker implements Runnable {
 
@@ -28,9 +28,12 @@ public class FallbackChecker implements Runnable {
     private static final String TEST_RESULT_PREFIX = "Google is built by";
     private static final Logger LOG = LoggerFactory
             .getLogger(FallbackChecker.class);
+    private final HttpClientFactory httpClientFactory;
 
-    public FallbackChecker(DefaultProxyTracker proxyTracker, String configFolderPath) {
+    public FallbackChecker(final ProxyTracker proxyTracker, 
+            String configFolderPath, final HttpClientFactory httpClientFactory) {
         this.proxyTracker = proxyTracker;
+        this.httpClientFactory = httpClientFactory;
         populateFallbacks(configFolderPath);
     }
 
@@ -39,18 +42,35 @@ public class FallbackChecker implements Runnable {
         if (!(file.exists() && file.canRead())) {
             throw new IllegalArgumentException("Cannot read file: " + configFolderPath);
         }
-        Optional<String> url = S3ConfigFetcher.readUrlFromFile(file);
-        if (!url.isPresent()) {
-            throw new RuntimeException("url not present");
+        
+        InputStream fis = null;
+        final String folder;
+        try {
+            fis = new FileInputStream(file);
+            folder = IOUtils.toString(fis);
+        } catch (final IOException e) {
+            throw new RuntimeException("Could not read folder", e);
+        } finally {
+            IOUtils.closeQuietly(fis);
         }
-        Optional<String> config = S3ConfigFetcher.fetchRemoteConfig(url.get());
-        if (!config.isPresent()) {
-            throw new RuntimeException("config not present");
+        final HttpClient client = this.httpClientFactory.newDirectClient();
+        final HttpGet get = new HttpGet(S3ConfigFetcher.urlFromFolder(folder));
+        
+        final String proxies;
+        InputStream is = null;
+        try {
+            final HttpResponse res = client.execute(get);
+            is = res.getEntity().getContent();
+            proxies = IOUtils.toString(is);
+        } catch (final IOException e) {
+            IOUtils.closeQuietly(is);
+            get.reset();
+            throw new RuntimeException("Could not get config", e);
         }
         try {
-            fallbacks = JsonUtils.OBJECT_MAPPER.readValue(config.get(), new TypeReference<List<FallbackProxy>>() {});
+            fallbacks = JsonUtils.OBJECT_MAPPER.readValue(proxies, new TypeReference<List<FallbackProxy>>() {});
         } catch (final Exception e) {
-            throw new RuntimeException("Could not parse json:\n" + config.get() + "\n" + e);
+            throw new RuntimeException("Could not parse json:\n" + proxies + "\n" + e);
         }
     }
 
@@ -97,7 +117,7 @@ public class FallbackChecker implements Runnable {
     }
 
     private boolean canProxyThroughCurrentFallback() throws Exception {
-        final HttpClient client = HttpClientFactory.newProxiedClient();
+        final HttpClient client = this.httpClientFactory.newProxiedClient();
         final HttpGet get = new HttpGet(TEST_URL);
         InputStream is = null;
         try {

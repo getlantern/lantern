@@ -180,11 +180,6 @@ public class S3ConfigFetcher {
         return a + (b - a) * t;
     }
 
-<<<<<<< HEAD
-    public static Optional<String> readUrlFromFile(File urlFile) {
-        if (!urlFile.isFile()) {
-            log.error("Still no config file at {}", urlFile);
-=======
     private Optional<String> readUrl() {
         try {
             copyUrlFile();
@@ -194,7 +189,6 @@ public class S3ConfigFetcher {
             }
         } catch (final IOException e) {
             log.warn("Couldn't copy config URL file?", e);
->>>>>>> master
             return Optional.absent();
         }
         
@@ -202,14 +196,18 @@ public class S3ConfigFetcher {
             final String folder = 
                     FileUtils.readFileToString(URL_CONFIG_FILE, "UTF-8");
             log.debug("Read folder from URL file: {}", folder);
-            return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
-                + folder.trim()
-                + "/config.json");
+            return Optional.of(urlFromFolder(folder));
         } catch (final IOException e) {
             log.error("Couldn't read config URL file?", e);
         }
 
         return Optional.absent();
+    }
+    
+    public static String urlFromFolder(final String folder) {
+        return LanternConstants.S3_CONFIG_BASE_URL
+                + folder.trim()
+                + "/config.json";
     }
     
     private Optional<S3Config> fetchRemoteConfig() {
@@ -231,16 +229,10 @@ public class S3ConfigFetcher {
         }
     }
 
-<<<<<<< HEAD
-    public static Optional<String> fetchRemoteConfig(String url) {
-        final HttpClient client = HttpClientFactory.newDirectClient();
-        final HttpGet get = new HttpGet(url);
-=======
     private Optional<S3Config> fetchRemoteConfig(final HttpClient client)
             throws IOException {
         log.debug("Fetching config at {}", url.get());
         final HttpGet get = new HttpGet(url.get());
->>>>>>> master
         InputStream is = null;
         try {
             final HttpResponse res = client.execute(get);

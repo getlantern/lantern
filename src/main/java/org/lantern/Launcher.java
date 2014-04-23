@@ -270,12 +270,15 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
+        s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
+        
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
             String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
             FallbackChecker fbc = null;
             try {
-                fbc = new FallbackChecker(proxyTracker, configFolderPath);
+                fbc = new FallbackChecker(proxyTracker, configFolderPath, 
+                        httpClientFactory);
             } catch (Exception e) {
                 LOG.error("Error instantiating FallbackChecker:");
                 e.printStackTrace();
@@ -284,7 +287,6 @@ public class Launcher {
             Thread t = new Thread(fbc);
             t.start();
         } else {
-            s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
             s3ConfigManager.start();
         }
 
