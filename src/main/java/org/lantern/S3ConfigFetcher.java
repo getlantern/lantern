@@ -196,14 +196,18 @@ public class S3ConfigFetcher {
             final String folder = 
                     FileUtils.readFileToString(URL_CONFIG_FILE, "UTF-8");
             log.debug("Read folder from URL file: {}", folder);
-            return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
-                + folder.trim()
-                + "/config.json");
+            return Optional.of(urlFromFolder(folder));
         } catch (final IOException e) {
             log.error("Couldn't read config URL file?", e);
         }
 
         return Optional.absent();
+    }
+    
+    public static String urlFromFolder(final String folder) {
+        return LanternConstants.S3_CONFIG_BASE_URL
+                + folder.trim()
+                + "/config.json";
     }
     
     private Optional<S3Config> fetchRemoteConfig() {

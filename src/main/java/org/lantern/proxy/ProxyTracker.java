@@ -24,6 +24,8 @@ public interface ProxyTracker extends LanternService {
      */
     void addProxy(ProxyInfo info);
 
+    void addSingleFallbackProxy(FallbackProxy fp);
+
     /**
      * Remove the NAT traversed proxy for the peer identified by the given URI.
      * 
