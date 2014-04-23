@@ -269,6 +269,7 @@ public class Launcher {
         }
         
         proxyTracker = instance(ProxyTracker.class);
+        httpClientFactory = instance(HttpClientFactory.class);
 
         model.setCheckFallbacksMode(checkFallbacks);
         if (checkFallbacks) {
@@ -285,7 +286,7 @@ public class Launcher {
             Thread t = new Thread(fbc);
             t.start();
         } else {
-            s3ConfigManager = new S3ConfigFetcher(model);
+            s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
             s3ConfigManager.start();
         }
 
@@ -294,7 +295,6 @@ public class Launcher {
         instance(LocalCipherProvider.class);
 
         internalState = instance(InternalState.class);
-        httpClientFactory = instance(HttpClientFactory.class);
         syncService = instance(SyncService.class);
 
         instance(GeoIp.class);

@@ -56,7 +56,7 @@ public class OauthUtils {
 
     private final Model model;
     
-    private static TokenResponse lastResponse;
+    private static volatile TokenResponse lastResponse;
 
     private final HttpClientFactory httpClientFactory;
 

@@ -79,7 +79,6 @@ public class Proxifier implements ProxyService, LanternService {
         this.modelUtils = modelUtils;
         this.model = model;
         this.proxyTracker = proxyTracker;
-        copyFromLocal(PROXY_ON);
         copyFromLocal(PROXY_ALL);
         copyFromLocal(PROXY_OFF);
         Events.register(this);
