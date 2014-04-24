@@ -205,8 +205,15 @@ public class OauthUtils {
             lastResponse = response;
             return lastResponse;
         } catch (final TokenResponseException e) {
-            LOG.error("Token error -- maybe revoked or unauthorized?", e);
-            final CredentialException ce = new CredentialException("Problem with token -- maybe revoked?");
+            final String msg = e.getMessage();
+            final CredentialException ce;
+            if (msg != null && msg.contains("Bad Gateway")) {
+                LOG.debug("Looks like we have no proxies", e);
+                ce = new CredentialException("No proxies?");
+            } else {
+                LOG.error("Token error -- maybe revoked or unauthorized?", e);
+                ce = new CredentialException("Problem with token -- maybe revoked?");
+            }
             ce.initCause(e);
             throw ce;
         } catch (final IOException e) {
