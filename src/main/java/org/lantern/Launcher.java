@@ -10,8 +10,6 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
 
-import javax.security.auth.login.CredentialException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +21,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
+import org.lantern.event.ProxyAndTokenTracker;
 import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
@@ -250,7 +249,9 @@ public class Launcher {
             browserService = instance(BrowserService.class);
         }
         launchLantern(showDashboard);
-        
+
+        instance(ProxyAndTokenTracker.class);
+        instance(AutoXmppConnector.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
@@ -369,7 +370,14 @@ public class Launcher {
                 
                 gnomeAutoStart();
                 
-                autoConnect();
+                
+                // If for some reason oauth isn't configured but setup is 
+                // complete, try to authorize again.
+                if (!modelUtils.isConfigured()) {
+                    LOG.debug("Not auto-logging in with model:\n{}", model);
+                    if (model.isSetupComplete())
+                        Events.syncModal(model, Modal.authorize);
+                }
             }
             
         }, "Launcher-Start-Thread");
@@ -581,41 +589,6 @@ public class Launcher {
         LOG.debug("STARTUP TOOK {} MILLISECONDS", 
            System.currentTimeMillis() - START_TIME);
         StopwatchManager.logSummaries(STOPWATCH_LOG);
-    }
-
-    private void autoConnect() {
-        LOG.debug("Connecting if oauth is configured...");
-        // This won't connect in the case where the user hasn't entered
-        // their user name and password and the user is running with a UI.
-        // Otherwise, it will connect.
-        if (modelUtils.isConfigured()) {
-            final Runnable runner = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        xmpp.connect();
-                        if (model.getModal() == Modal.connecting) {
-                            internalState.advanceModal(null);
-                        }
-                    } catch (final IOException e) {
-                        LOG.debug("Could not login", e);
-                    } catch (final CredentialException e) {
-                        LOG.debug("Bad credentials", e);
-                        Events.syncModal(model, Modal.authorize);
-                    } catch (final NotInClosedBetaException e) {
-                        LOG.warn("Not in closed beta!!", e);
-                        internalState.setNotInvited(true);
-                    }
-                }
-            };
-            final Thread t = new Thread(runner, "Auto-Starting-Thread");
-            t.setDaemon(true);
-            t.start();
-        } else {
-            LOG.debug("Not auto-logging in with model:\n{}", model);
-            if (model.isSetupComplete())
-                Events.syncModal(model, Modal.authorize);
-        }
     }
 
     void configureDefaultLogger() {
