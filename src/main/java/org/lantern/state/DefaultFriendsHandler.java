@@ -503,10 +503,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
     }
 
-    public void clear() {
-        friends().clear();
-    }
-
     private Map<String, ClientFriend> friends() {
         if (!friendsLoaded.get()) {
             loadFriends();
