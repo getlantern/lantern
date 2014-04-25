@@ -22,7 +22,7 @@ import com.google.inject.Singleton;
  * OAuth token, however, and this waits for both of those to be true.
  */
 @Singleton
-public class AutoXmppConnector {
+public class XmppConnector {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -33,7 +33,7 @@ public class AutoXmppConnector {
     private final InternalState internalState;
 
     @Inject
-    public AutoXmppConnector(final XmppHandler xmppHandler,
+    public XmppConnector(final XmppHandler xmppHandler,
             final Model model, final InternalState internalState) {
         this.xmppHandler = xmppHandler;
         this.model = model;

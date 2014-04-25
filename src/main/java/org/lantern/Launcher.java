@@ -251,7 +251,7 @@ public class Launcher {
         launchLantern(showDashboard);
 
         instance(ProxyAndTokenTracker.class);
-        instance(AutoXmppConnector.class);
+        instance(XmppConnector.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
