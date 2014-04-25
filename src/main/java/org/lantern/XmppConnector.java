@@ -22,7 +22,7 @@ import com.google.inject.Singleton;
  * OAuth token, however, and this waits for both of those to be true.
  */
 @Singleton
-public class AutoXmppConnector {
+public class XmppConnector {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -33,7 +33,7 @@ public class AutoXmppConnector {
     private final InternalState internalState;
 
     @Inject
-    public AutoXmppConnector(final XmppHandler xmppHandler,
+    public XmppConnector(final XmppHandler xmppHandler,
             final Model model, final InternalState internalState) {
         this.xmppHandler = xmppHandler;
         this.model = model;
@@ -48,19 +48,36 @@ public class AutoXmppConnector {
     }
 
     private void connect() {
+        // This can happen either on startup when we've got cached oauth 
+        // tokens or after we've just logged in to Google and received a 
+        // token that way.
         try {
             this.xmppHandler.connect();
+            log.debug("Setting gtalk authorized");
+            internalState.setNotInvited(false);
+
+            // Every once in awhile we've seen the client get stuck in the
+            // connecting state when restarted, and we want to make sure to
+            // advance from it when we're auto-connecting again on startup.
             if (model.getModal() == Modal.connecting) {
                 internalState.advanceModal(null);
+            } else if (!model.isSetupComplete()) {
+                // Handle states associated with the Google login screen
+                // during the setup sequence.
+                model.getConnectivity().setGtalkAuthorized(true);
+                internalState.setModalCompleted(Modal.authorize);
+                internalState.advanceModal(null);
             }
-        } catch (final IOException e) {
-            log.debug("Could not login", e);
         } catch (final CredentialException e) {
-            log.debug("Bad credentials", e);
+            log.error("Could not log in with OAUTH?", e);
             Events.syncModal(model, Modal.authorize);
         } catch (final NotInClosedBetaException e) {
-            log.warn("Not in closed beta!!", e);
+            log.info("This user is not invited");
             internalState.setNotInvited(true);
+            Events.syncModal(model, Modal.notInvited);
+        } catch (final IOException e) {
+            log.info("We can't connect (internet connection died?).  Retry.", e);
+            Events.syncModal(model, Modal.authorize);
         }
     }
     

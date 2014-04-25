@@ -251,7 +251,7 @@ public class Launcher {
         launchLantern(showDashboard);
 
         instance(ProxyAndTokenTracker.class);
-        instance(AutoXmppConnector.class);
+        instance(XmppConnector.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
@@ -359,7 +359,6 @@ public class Launcher {
                     instance(ConnectivityChecker.class);
                 final Timer timer = new Timer("Connectivity-Check-Timer", true);
                 timer.schedule(connectivityChecker, 0, 10 * 1000);
-                xmpp.start();
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
                     giveModeProxy.start();

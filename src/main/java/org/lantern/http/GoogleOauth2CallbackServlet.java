@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.security.auth.login.CredentialException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -28,15 +27,12 @@ import org.apache.http.util.EntityUtils;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
 import org.lantern.MessageKey;
-import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.Tr;
-import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.RefreshTokenEvent;
 import org.lantern.oauth.OauthUtils;
-import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -61,11 +57,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final GoogleOauth2CallbackServer googleOauth2CallbackServer;
 
-    private final XmppHandler xmppHandler;
-
     private final Model model;
-
-    private final InternalState internalState;
 
     private final ModelIo modelIo;
 
@@ -77,14 +69,11 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
-        final XmppHandler xmppHandler, final Model model,
-        final InternalState internalState, final ModelIo modelIo,
+        final Model model, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
         final ModelUtils modelUtils) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
-        this.xmppHandler = xmppHandler;
         this.model = model;
-        this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
@@ -221,44 +210,13 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             // happens if the user cancels?
         }
 
-
         this.model.getSettings().setAccessToken(accessToken);
         this.model.getSettings().setRefreshToken(refreshToken);
         this.model.getSettings().setUseGoogleOAuth2(true);
         this.modelIo.write();
+        
+        // This will trigger the connection to Google Talk
         Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
-
-        // We kick this off on another thread, as otherwise it would be
-        // a Jetty thread, and we're about to kill the server. When the
-        // server is killed, the connecting thread would otherwise be
-        // interrupted.
-        final Thread t = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    xmppHandler.connect();
-                    log.debug("Setting gtalk authorized");
-                    model.getConnectivity().setGtalkAuthorized(true);
-                    internalState.setNotInvited(false);
-                    internalState.setModalCompleted(Modal.authorize);
-                    internalState.advanceModal(null);
-                } catch (final CredentialException e) {
-                    log.error("Could not log in with OAUTH?", e);
-                    Events.syncModal(model, Modal.authorize);
-                } catch (final NotInClosedBetaException e) {
-                    log.info("This user is not invited");
-                    internalState.setNotInvited(true);
-                    Events.syncModal(model, Modal.notInvited);
-                } catch (final IOException e) {
-                    log.info("We can't connect (internet connection died?).  Retry.", e);
-                    Events.syncModal(model, Modal.authorize);
-                }
-            }
-
-        }, "Google-Talk-Connect-From-Oauth-Servlet-Thread");
-        t.setDaemon(true);
-        t.start();
     }
 
     private Map<String, String> loadAllToks(final String code, int port,
