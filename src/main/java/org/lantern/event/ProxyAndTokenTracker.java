@@ -43,7 +43,10 @@ public class ProxyAndTokenTracker {
         synchronized (this) {
             this.hasRefresh = true;
             if (this.hasProxy) {
-                Events.asyncEventBus().post(new ProxyAndTokenEvent(this.refresh));
+                // We use a synchronous event bus here so the creator of the
+                // refresh event can decide whether this is ultimately called
+                // asynchronously or not.
+                Events.eventBus().post(new ProxyAndTokenEvent(this.refresh));
             }
         }
     }
@@ -59,7 +62,10 @@ public class ProxyAndTokenTracker {
                 this.hasProxy = true;
                 if (this.hasRefresh) {
                     log.debug("Posting event!!");
-                    Events.asyncEventBus().post(new ProxyAndTokenEvent(this.refresh));
+                    // We use a synchronous event bus here so the creator of the
+                    // proxy event can decide whether this is ultimately called
+                    // asynchronously or not.
+                    Events.eventBus().post(new ProxyAndTokenEvent(this.refresh));
                 }
             }
             break;
