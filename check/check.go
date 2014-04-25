@@ -14,31 +14,37 @@ import (
 type Initiative string
 
 const (
-	INITIATIVE_NOUPDATE = "noupdate"
-	INITIATIVE_AUTO     = "auto"
-	INITIATIVE_MANUAL   = "manual"
+	INITIATIVE_NEVER  = "never"
+	INITIATIVE_AUTO   = "auto"
+	INITIATIVE_MANUAL = "manual"
 )
 
+var NoUpdateAvailable error = fmt.Errorf("No update available")
+
 type Params struct {
-	Version    int               // protocol version
-	AppId      string            // identifier of the application to update
-	AppVersion string            // version of the application updating itself
-	OS         string            // operating system of target platform
-	Arch       string            // hardware architecture of target platform
-	UserId     string            // application-level user identifier
-	Channel    string            // override the server settings and request an update from a specific channel
-	Checksum   string            // checksum of the binary to replace (used for returning diff patches)
-	Extra      map[string]string // extra fields for custom behaviors
+	// protocol version
+	Version int `json:"version"`
+	// identifier of the application to update
+	AppId string `json:"app_id"`
+	// version of the application updating itself
+	AppVersion string `json:"app_version"`
+	// operating system of target platform
+	OS string `json:"-"`
+	// hardware architecture of target platform
+	Arch string `json:"-"`
+	// application-level user identifier
+	UserId string `json:"user_id"`
+	// checksum of the binary to replace (used for returning diff patches)
+	Checksum string `json:"checksum"`
+	// tags for custom update channels
+	Tags map[string]string `json:"tags"`
 }
 
 type Result struct {
 	Initiative Initiative
-	AppId      string           // identifier of the application to update
 	Url        string           // url where to download the updated application
 	PatchUrl   string           // a URL to a patch to apply
 	PatchType  update.PatchType // the patch format (only bsdiff supported at the moment)
-	OS         string           // target operating system of the new application
-	Arch       string           // target hardware architecture of the new application
 	Version    string           // version of the new application
 	Checksum   string           // expected checksum of the new application
 	Signature  string           // signature for verifying update authenticity
@@ -54,6 +60,13 @@ func (p *Params) CheckForUpdate(url string) (*Result, error) {
 		p.Arch = runtime.GOARCH
 	}
 
+	if p.Version == 0 {
+		p.Version = 1
+	}
+
+	p.Tags["os"] = p.OS
+	p.Tags["arch"] = p.Arch
+
 	body, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -62,6 +75,11 @@ func (p *Params) CheckForUpdate(url string) (*Result, error) {
 	resp, err := http.Post(url, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
+	}
+
+	// no content means no available update
+	if resp.StatusCode == 204 {
+		return nil, NoUpdateAvailable
 	}
 
 	defer resp.Body.Close()
@@ -78,7 +96,7 @@ func (p *Params) CheckForUpdate(url string) (*Result, error) {
 	return result, nil
 }
 
-func (p *Params) CheckAndApplyUpdate(url string, u *update.Update, progress chan int) (result *Result, err error, errRecover error) {
+func (p *Params) CheckAndApplyUpdate(url string, u *update.Update) (result *Result, err error, errRecover error) {
 	// check for an update
 	result, err = p.CheckForUpdate(url)
 	if err != nil {
@@ -87,13 +105,13 @@ func (p *Params) CheckAndApplyUpdate(url string, u *update.Update, progress chan
 
 	// run the update if one is available and the server says it's auto
 	if result.Update != nil && result.Initiative == INITIATIVE_AUTO {
-		err, errRecover = result.Update(u, progress)
+		err, errRecover = result.Update(u)
 	}
 
 	return
 }
 
-func (r *Result) Update(u *update.Update, progress chan int) (err error, errRecover error) {
+func (r *Result) Update(u *update.Update) (err error, errRecover error) {
 	if r.Checksum != "" {
 		u.Checksum, err = hex.DecodeString(r.Checksum)
 		if err != nil {
@@ -129,10 +147,7 @@ func (r *Result) Update(u *update.Update, progress chan int) (err error, errReco
 				// in these cases, so fail
 				return
 			} else {
-				// the progress channel will be closed from the first attempt
-				// use a dummy replacement
 				u.PatchType = update.PATCHTYPE_NONE
-				progress = make(chan int)
 			}
 		}
 	}

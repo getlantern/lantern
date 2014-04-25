@@ -1,14 +1,56 @@
+/* Package update allows a program to "self-update", replacing its executable file
+with new bytes.
+
+Package update provides the facility to create user experiences like auto-updating
+or user-approved updates which manifest as user prompts in commercial applications
+with copy similar to "Restart to begin using the new version of X".
+
+Updating your program to a new version is as easy as:
+
+	err, errRecover := update.New().FromUrl("http://release.example.com/2.0/myprogram")
+	if err != nil {
+		fmt.Printf("Update failed: %v", err)
+	}
+
+The most low-level API is (*Update) FromStream() which updates the current executable
+with the bytes read from an io.Reader.
+
+The most common, high-level API you'll probably want to use is (*Update) FromUrl()
+which updates the current executable from a URL over the internet.
+
+You may also update from a binary diff patch to preserve bandwidth like so:
+
+    update.New().ApplyPatch().FromUrl("http://release.example.com/2.0/mypatch")
+
+Package update also allows you to update arbitrary files on the file system (i.e. files
+which are not the executable of the currently running program).
+
+    update.New().Target("/usr/local/bin/some-program").FromUrl("http://release.example.com/2.0/some-program")
+
+If requested, package update can additionally perform checksum verification and signing
+verification to ensure the new binary is trusted.
+
+Sub-package download contains functionality for downloading from an HTTP endpoint
+while outputting a progress meter and supports resuming partial downloads.
+
+Sub-package check contains the client functionality for a simple protocol for negotiating
+whether a new update is available, where it is, and the metadata needed for verifying it.
+*/
 package update
 
 import (
 	"bitbucket.org/kardianos/osext"
 	"bytes"
+	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"github.com/inconshreveable/go-update/download"
 	"github.com/kr/binarydist"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -57,7 +99,7 @@ func (u *Update) Target(path string) *Update {
 	return u
 }
 
-func (u *Update) VerifyWithPublicKey(publicKey *rsa.PublicKey) *Update {
+func (u *Update) VerifySignatureWith(publicKey *rsa.PublicKey) *Update {
 	u.PublicKey = publicKey
 	return u
 }
@@ -75,6 +117,26 @@ func (u *Update) VerifyChecksum(checksum []byte) *Update {
 func (u *Update) VerifySignature(signature []byte) *Update {
 	u.Signature = signature
 	return u
+}
+
+func (u *Update) VerifySignatureWithPEM(publicKeyPEM []byte) (*Update, error) {
+	block, _ := pem.Decode(publicKeyPEM)
+	if block == nil {
+		return u, fmt.Errorf("Couldn't parse PEM data")
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return u, err
+	}
+
+	var ok bool
+	u.PublicKey, ok = pub.(*rsa.PublicKey)
+	if !ok {
+		return u, fmt.Errorf("Public key isn't an RSA public key")
+	}
+
+	return u, nil
 }
 
 // FromUrl downloads the contents of the given url and uses them to update
@@ -129,15 +191,20 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 		return
 	}
 
+	var newBytes []byte
 	// apply a patch if requested
 	switch u.PatchType {
 	case PATCHTYPE_BSDIFF:
-		updateWith, err = applyPatch(updateWith, updatePath)
+		newBytes, err = applyPatch(updateWith, updatePath)
 		if err != nil {
 			return
 		}
 	case PATCHTYPE_NONE:
 		// no patch to apply, go on through
+		newBytes, err = ioutil.ReadAll(updateWith)
+		if err != nil {
+			return
+		}
 	default:
 		err = fmt.Errorf("Unrecognized patch type: %s", u.PatchType)
 		return
@@ -145,15 +212,13 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 
 	// verify checksum if requested
 	if u.Checksum != nil {
-		verifyChecksum(updateWith, u.Checksum)
+		verifyChecksum(newBytes, u.Checksum)
 	}
 
 	// verify signature if requested
-	/*
-	   if u.Signature != nil {
-	       verifySignature()
-	   }
-	*/
+	if u.Signature != nil {
+		verifySignature(newBytes, u.Signature, u.PublicKey)
+	}
 
 	// get the directory the executable exists in
 	updateDir := filepath.Dir(updatePath)
@@ -166,7 +231,7 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 		return
 	}
 	defer fp.Close()
-	_, err = io.Copy(fp, updateWith)
+	_, err = io.Copy(fp, bytes.NewReader(newBytes))
 
 	// if we don't call fp.Close(), windows won't let us move the new executable
 	// because the file will still be "in use"
@@ -200,12 +265,16 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 	return
 }
 
-// SanityCheck() attempts to determine whether an update could succeed by performing
-// preliminary checks (to establish valid permissions, etc).  This can help avoid
-// downloading updates when we know the update can't be successfully
-// applied later.
-func SanityCheck(path string) (err error) {
+// CanUpdate() determines whether the process has the correct permissions to
+// perform the requested update. If the update can proceed, it returns nil, otherwise
+// it returns the error that would occur if an update were attempted.
+func (u *Update) CanUpdate() (err error) {
 	// get the directory the file exists in
+	path, err := u.getPath()
+	if err != nil {
+		return
+	}
+
 	fileDir := filepath.Dir(path)
 	fileName := filepath.Base(path)
 
@@ -221,7 +290,7 @@ func SanityCheck(path string) (err error) {
 	return
 }
 
-func applyPatch(patch io.Reader, updatePath string) (*bytes.Buffer, error) {
+func applyPatch(patch io.Reader, updatePath string) ([]byte, error) {
 	// open the file to update
 	old, err := os.Open(updatePath)
 	if err != nil {
@@ -235,10 +304,10 @@ func applyPatch(patch io.Reader, updatePath string) (*bytes.Buffer, error) {
 		return nil, err
 	}
 
-	return applied, nil
+	return applied.Bytes(), nil
 }
 
-func verifyChecksum(updated io.Reader, expectedChecksum []byte) error {
+func verifyChecksum(updated []byte, expectedChecksum []byte) error {
 	checksum, err := checksumFor(updated)
 	if err != nil {
 		return err
@@ -251,15 +320,20 @@ func verifyChecksum(updated io.Reader, expectedChecksum []byte) error {
 	return nil
 }
 
-func checksumFor(source io.Reader) ([]byte, error) {
+func checksumFor(source []byte) ([]byte, error) {
 	h := sha256.New()
-	if _, err := io.Copy(h, source); err != nil {
+	if _, err := io.Copy(h, bytes.NewReader(source)); err != nil {
 		return nil, err
 	}
 
 	return h.Sum(nil), nil
 }
 
-func verifySignature() {
-	// implement me
+func verifySignature(source, signature []byte, publicKey *rsa.PublicKey) error {
+	checksum, err := checksumFor(source)
+	if err != nil {
+		return err
+	}
+
+	return rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, checksum, signature)
 }
