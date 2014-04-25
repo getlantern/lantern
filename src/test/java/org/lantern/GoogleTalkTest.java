@@ -44,7 +44,7 @@ public class GoogleTalkTest {
                 
                 
                 final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);
-                handler.start();
+                //handler.start();
                 // The handler could have already been created and connected, so 
                 // make sure we disconnect.
                 handler.disconnect();

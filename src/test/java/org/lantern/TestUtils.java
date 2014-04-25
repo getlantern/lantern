@@ -236,7 +236,7 @@ public class TestUtils {
     private static void start(final boolean start) {
         if (start) {
             started = true;
-            xmppHandler.start();
+            //xmppHandler.start();
         }
     }
 
