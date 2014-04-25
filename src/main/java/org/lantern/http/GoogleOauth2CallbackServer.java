@@ -89,8 +89,8 @@ public class GoogleOauth2CallbackServer {
         this.server.setConnectors(new Connector[]{connector});
         
         final ServletHolder oauth2callback = new ServletHolder(
-            new GoogleOauth2CallbackServlet(this, this.xmppHandler, 
-                this.model, this.internalState, this.modelIo, this.proxifier,
+            new GoogleOauth2CallbackServlet(this,
+                this.model, this.modelIo, this.proxifier,
                 this.httpClientFactory, modelUtils));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");

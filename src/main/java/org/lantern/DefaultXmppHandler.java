@@ -148,8 +148,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final Model model;
 
-    private volatile boolean started;
-
     private final ModelUtils modelUtils;
 
     private final org.lantern.Roster roster;
@@ -216,25 +214,17 @@ public class DefaultXmppHandler implements XmppHandler,
         this.networkTracker.addListener(this);
         this.censored = censored;
         Events.register(this);
+        
+        this.modelUtils.loadClientSecrets();
+
+        this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
+            upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
         //setupJmx();
     }
 
     @Override
     public MappedServerSocket getMappedServer() {
         return mappedServer;
-    }
-
-    @Override
-    public void start() {
-        this.modelUtils.loadClientSecrets();
-
-        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
-        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
-        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
-
-        this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
-            upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
-        this.started = true;
     }
 
     @Override
@@ -337,10 +327,6 @@ public class DefaultXmppHandler implements XmppHandler,
     @Override
     public synchronized void connect() throws IOException, CredentialException,
         NotInClosedBetaException {
-        if (!this.started) {
-            LOG.warn("Can't connect when not started!!");
-            throw new Error("Can't connect when not started!!");
-        }
         if (!this.modelUtils.isConfigured()) {
             if (this.model.getSettings().isUiEnabled()) {
                 LOG.debug("Not connecting when not configured and UI enabled");
@@ -351,6 +337,14 @@ public class DefaultXmppHandler implements XmppHandler,
             LOG.warn("Already logged in!! Not connecting");
             return;
         }
+        
+        // Wait until the last minute to configure XMPP, particularly because
+        // the isCensored call will wait for the local server to run and will
+        // look up the public IP.
+        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
+        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
+        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
+        
         LOG.debug("Connecting to XMPP servers...");
         if (this.modelUtils.isOauthConfigured()) {
             connectViaOAuth2();
