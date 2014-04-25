@@ -1,20 +1,25 @@
 # go-update: Automatically update Go programs from the internet
 
-go-update allows programs to self-update from an update file or URL on the internet.
+go-update allows programs to update themselves from the internet, replacing their executable file with a new binary. go-update allows Go application developers to create user experiences which require no user interaction to update to new versions.
 
-    err, errRecover := update.SelfFromUrl("https://release.example.com/2.0/myprogram")
-    if err != nil {
-        fmt.Printf("Update failed: %v", err)
-    }
+## Example simple update
+Updating your program to a new version is as easy as:
 
-You can even update from binary patches:
+	err, errRecover := update.New().FromUrl("http://release.example.com/2.0/myprogram")
+	if err != nil {
+		fmt.Printf("Update failed: %v\n", err)
+	}
 
-    err, errRecover := update.SelfFromPatchUrl("https://release.example.com/2.0/myprogram/patch/1.0")
-    if err != nil {
-        fmt.Printf("Update failed: %v", err)
-    }
+## Important Features
 
-go-update addionally includes a Download utility which allows you to monitor the progress percentage
-of a large download.
+- Binary diff application
+- Checksum verification
+- Authenticity verification via code signing
+- Separate, simple JSON protocol for determining update availability
 
-Lastly, go-update implements a separate protocol 
+## Documentation and API Reference
+It's available on godoc: [https://godoc.org/github.com/inconshreveable/go-update](https://godoc.org/github.com/inconshreveable/go-update)
+
+
+## equinox.io
+go-update is the open-source component of the more complete updating solution that I provide at [equinox.io](https://equinox.io)
