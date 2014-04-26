@@ -2,11 +2,25 @@ package otto
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/robertkrimen/otto/token"
 )
 
 func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
+	// Allow interpreter interruption
+	// If the Interrupt channel is nil, then
+	// we avoid runtime.Gosched() overhead (if any)
+	// FIXME: Test this
+	if self.Otto.Interrupt != nil {
+		runtime.Gosched()
+		select {
+		case value := <-self.Otto.Interrupt:
+			value()
+		default:
+		}
+	}
+
 	switch node := node.(type) {
 
 	case *_nodeBlockStatement:
