@@ -105,7 +105,7 @@ func (u *Update) VerifySignatureWith(publicKey *rsa.PublicKey) *Update {
 }
 
 func (u *Update) ApplyPatch(patchType PatchType) *Update {
-	u.PatchType = PATCHTYPE_BSDIFF
+	u.PatchType = patchType
 	return u
 }
 
@@ -308,7 +308,7 @@ func applyPatch(patch io.Reader, updatePath string) ([]byte, error) {
 }
 
 func verifyChecksum(updated []byte, expectedChecksum []byte) error {
-	checksum, err := checksumFor(updated)
+	checksum, err := ChecksumForBytes(updated)
 	if err != nil {
 		return err
 	}
@@ -320,17 +320,29 @@ func verifyChecksum(updated []byte, expectedChecksum []byte) error {
 	return nil
 }
 
-func checksumFor(source []byte) ([]byte, error) {
-	h := sha256.New()
-	if _, err := io.Copy(h, bytes.NewReader(source)); err != nil {
+func ChecksumForFile(path string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
 		return nil, err
 	}
 
+	return ChecksumForReader(f)
+}
+
+func ChecksumForBytes(source []byte) ([]byte, error) {
+	return ChecksumForReader(bytes.NewReader(source))
+}
+
+func ChecksumForReader(rd io.Reader) ([]byte, error) {
+	h := sha256.New()
+	if _, err := io.Copy(h, rd); err != nil {
+		return nil, err
+	}
 	return h.Sum(nil), nil
 }
 
 func verifySignature(source, signature []byte, publicKey *rsa.PublicKey) error {
-	checksum, err := checksumFor(source)
+	checksum, err := ChecksumForBytes(source)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package check
 
 import (
+	"bitbucket.org/kardianos/osext"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
@@ -50,7 +51,13 @@ type Result struct {
 	Signature  string           // signature for verifying update authenticity
 }
 
-// CheckForUpdate will auto-populate the OS/Arch params if not set
+// CheckForUpdate makes an HTTP post to a URL with the JSON serialized
+// representation of Params. It returns the deserialized result object
+// returned by the remote endpoint or an error. If you do not set
+// OS/Arch, CheckForUpdate will populate them for you. Similarly, if
+// Version is 0, it will be set to 1. Lastly, if Checksum is the empty
+// string, it will be automatically be computed for the running program's
+// executable file.
 func (p *Params) CheckForUpdate(url string) (*Result, error) {
 	if p.OS == "" {
 		p.OS = runtime.GOOS
@@ -62,6 +69,12 @@ func (p *Params) CheckForUpdate(url string) (*Result, error) {
 
 	if p.Version == 0 {
 		p.Version = 1
+	}
+
+	// ignore errors auto-populating the checksum
+	// if it fails, you just won't be able to patch
+	if p.Checksum == "" {
+		p.Checksum = defaultChecksum()
 	}
 
 	p.Tags["os"] = p.OS
@@ -154,4 +167,18 @@ func (r *Result) Update(u *update.Update) (err error, errRecover error) {
 
 	// try updating from a URL with the full contents
 	return u.FromUrl(r.Url)
+}
+
+func defaultChecksum() string {
+	path, err := osext.Executable()
+	if err != nil {
+		return ""
+	}
+
+	checksum, err := update.ChecksumForFile(path)
+	if err != nil {
+		return ""
+	}
+
+	return hex.EncodeToString(checksum)
 }
