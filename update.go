@@ -212,12 +212,16 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 
 	// verify checksum if requested
 	if u.Checksum != nil {
-		verifyChecksum(newBytes, u.Checksum)
+		if err = verifyChecksum(newBytes, u.Checksum); err != nil {
+			return
+		}
 	}
 
 	// verify signature if requested
 	if u.Signature != nil {
-		verifySignature(newBytes, u.Signature, u.PublicKey)
+		if err = verifySignature(newBytes, u.Signature, u.PublicKey); err != nil {
+			return
+		}
 	}
 
 	// get the directory the executable exists in
