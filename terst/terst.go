@@ -5,8 +5,6 @@ Package terst is a terse (terst = test + terse), easy-to-use testing library for
 
 terst is compatible with (and works via) the standard testing package: http://golang.org/pkg/testing
 
-Do not import terst directly, instead use `terst-import` to copy it into your testing environment.
-
     var is = terst.Is
 
     func Test(t *testing.T) {
@@ -19,6 +17,14 @@ Do not import terst directly, instead use `terst-import` to copy it into your te
             is(abc, nil)
         }
     }
+
+Do not import terst directly, instead use `terst-import` to copy it into your testing environment:
+
+https://github.com/robertkrimen/terst/tree/master/terst-import
+
+    $ go get github.com/robertkrimen/terst/terst-import
+
+    $ terst-import
 
 */
 package terst
@@ -40,10 +46,10 @@ import (
 // Is compares two values (got & expect) and returns true if the comparison is true,
 // false otherwise. In addition, if the comparison is false, Is will report the error
 // in a manner similar to testing.T.Error(...). Is also takes an optional argument,
-// an operator, that changes how the comparison is made.  The following
-// operators are available:
+// a comparator, that changes how the comparison is made.  The following
+// comparators are available:
 //
-//      ==      # got == expect, This is the default
+//      ==      # got == expect (default)
 //      !=      # got != expect
 //
 //      >       # got > expect (float32, uint, uint16, int, int64, ...)
@@ -53,6 +59,14 @@ import (
 //
 //      =~      # regexp.MustCompile(expect).Match{String}(got)
 //      !~      # !regexp.MustCompile(expect).Match{String}(got)
+//
+// Basic usage with the default comparator (==):
+//
+//      Is(<got>, <expect>)
+//
+// Specifying a different comparator:
+//
+//      Is(<got>, <comparator>, <expect>)
 //
 // A simple comparison:
 //
@@ -65,7 +79,7 @@ import (
 //      Is("Nothing happens.", "=~", `ing(\s+)happens\.$`)
 //
 // Is should only be called under a Terst(t, ...) call. For a standalone version,
-// use IsErr(...). If no scope is found and the comparison is false, then Is will panic the error.
+// use IsErr. If no scope is found and the comparison is false, then Is will panic the error.
 //
 func Is(arguments ...interface{}) bool {
 	err := IsErr(arguments...)
@@ -81,10 +95,10 @@ func Is(arguments ...interface{}) bool {
 }
 
 type (
-	// ErrFail indicates a comparison failure (e.g. 0 > 1)
+	// ErrFail indicates a comparison failure (e.g. 0 > 1).
 	ErrFail error
 
-	// ErrInvalid indicates an invalid comparison (e.g. bool == string)
+	// ErrInvalid indicates an invalid comparison (e.g. bool == string).
 	ErrInvalid error
 )
 
@@ -114,7 +128,7 @@ func floatCompare(a float64, b float64) int {
 	} else if a < b {
 		return -1
 	}
-	// NaN == NaN for our purposes
+	// NaN == NaN
 	return 0
 }
 
@@ -146,30 +160,49 @@ func toString(value interface{}) (string, error) {
 	return "", errInvalid
 }
 
-func match(got string, expect *regexp.Regexp) (int, error) {
+func matchString(got string, expect *regexp.Regexp) (int, error) {
 	if expect.MatchString(got) {
 		return 0, nil
 	}
 	return -1, nil
 }
 
+func match(got []byte, expect *regexp.Regexp) (int, error) {
+	if expect.Match(got) {
+		return 0, nil
+	}
+	return -1, nil
+}
+
 func compareMatch(got, expect interface{}) (int, error) {
-	if got, err := toString(got); err != nil {
+	switch got := got.(type) {
+	case []byte:
 		switch expect := expect.(type) {
 		case string:
-			{
-				expect := regexp.MustCompile(expect)
-				return match(got, expect)
+			matcher, err := regexp.Compile(expect)
+			if err != nil {
+				return 0, err
 			}
+			return match(got, matcher)
 		case *regexp.Regexp:
 			return match(got, expect)
-		default:
-			goto invalid
 		}
-	} else {
-		return 0, err
+	default:
+		if got, err := toString(got); err == nil {
+			switch expect := expect.(type) {
+			case string:
+				matcher, err := regexp.Compile(expect)
+				if err != nil {
+					return 0, err
+				}
+				return matchString(got, matcher)
+			case *regexp.Regexp:
+				return matchString(got, expect)
+			}
+		} else {
+			return 0, err
+		}
 	}
-invalid:
 	return 0, errInvalid
 }
 
@@ -273,11 +306,16 @@ func compareNumber(got, expect interface{}) (int, error) {
 
 // IsErr compares two values (got & expect) and returns nil if the comparison is true, an ErrFail if
 // the comparison is false, or an ErrInvalid if the comparison is invalid. IsErr also
-// takes an optional argument, an operator, that changes how the comparison is made.
+// takes an optional argument, a comparator, that changes how the comparison is made.
+//
+// Is & IsErr are similar but different:
+//
+//      Is(...)     // Should only be called within a Terst(...) call
+//      IsErr(...)  // A standalone comparator, the same as Is, just without the automatic reporting
 //
 func IsErr(arguments ...interface{}) error {
 	var got, expect interface{}
-	operator := "=="
+	comparator := "=="
 	switch len(arguments) {
 	case 0, 1:
 		return fmt.Errorf("invalid number of arguments to IsErr: %d", len(arguments))
@@ -285,9 +323,9 @@ func IsErr(arguments ...interface{}) error {
 		got, expect = arguments[0], arguments[1]
 	default:
 		if value, ok := arguments[1].(string); ok {
-			operator = value
+			comparator = value
 		} else {
-			return fmt.Errorf("invalid operator: %v", arguments[1])
+			return fmt.Errorf("invalid comparator: %v", arguments[1])
 		}
 		got, expect = arguments[0], arguments[2]
 	}
@@ -295,7 +333,7 @@ func IsErr(arguments ...interface{}) error {
 	var result int
 	var err error
 
-	switch operator {
+	switch comparator {
 	case "<", "<=", ">", ">=":
 		result, err = compareNumber(got, expect)
 	case "=~", "!~":
@@ -303,13 +341,13 @@ func IsErr(arguments ...interface{}) error {
 	case "==", "!=":
 		result, err = compareOther(got, expect)
 	default:
-		return fmt.Errorf("invalid operator: %s", operator)
+		return fmt.Errorf("invalid comparator: %s", comparator)
 	}
 
 	if err == errInvalid {
 		return ErrInvalid(fmt.Errorf(
 			"\nINVALID (%s):\n        got: %v (%T)\n   expected: %v (%T)",
-			operator,
+			comparator,
 			got, got,
 			expect, expect,
 		))
@@ -319,7 +357,7 @@ func IsErr(arguments ...interface{}) error {
 
 	equality, pass := false, false
 
-	switch operator {
+	switch comparator {
 	case "==", "=~":
 		equality = true
 		pass = result == 0
@@ -338,18 +376,28 @@ func IsErr(arguments ...interface{}) error {
 
 	if !pass {
 		if equality {
+			if comparator[1] == '~' {
+				if value, ok := got.([]byte); ok {
+					return ErrFail(fmt.Errorf(
+						"\nFAIL (%s)\n     got: %s %v%s\nexpected: %v%s",
+						comparator,
+						value, got, typeKindString(got),
+						expect, typeKindString(expect),
+					))
+				}
+			}
 			return ErrFail(fmt.Errorf(
 				"\nFAIL (%s)\n     got: %v%s\nexpected: %v%s",
-				operator,
+				comparator,
 				got, typeKindString(got),
 				expect, typeKindString(expect),
 			))
 		}
 		return ErrFail(fmt.Errorf(
 			"\nFAIL (%s)\n     got: %v%s\nexpected: %s %v%s",
-			operator,
+			comparator,
 			got, typeKindString(got),
-			operator, expect, typeKindString(expect),
+			comparator, expect, typeKindString(expect),
 		))
 	}
 
@@ -380,15 +428,15 @@ func (scope *_scope) reset() {
 // according to the top-level location of the comparison, and not where the Is call
 // actually takes place. For example:
 //
-//      func test() {
-//          Is(2 + 2, 5) // <--- This failure is reported below.
+//      func test(value int) {
+//          Is(value, 5) // <--- This failure is reported below.
 //      }
 //
 //      Terst(t, func(){
 //
 //          Is(2, ">", 3) // <--- An error is reported here.
 //
-//          test() // <--- An error is reported here.
+//          test(5) // <--- An error is reported here.
 //
 //      })
 //
