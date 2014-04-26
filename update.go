@@ -263,7 +263,12 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 		errRecover = os.Rename(oldPath, updatePath)
 	} else {
 		// copy successful, remove the old binary
-		_ = os.Remove(oldPath)
+        errRemove := os.Remove(oldPath)
+
+        // windows has trouble with removing old binaries, so hide it instead
+        if errRemove != nil {
+            _ = hideFile(oldPath)
+        }
 	}
 
 	return
