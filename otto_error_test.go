@@ -1,49 +1,48 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 func TestOttoError(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		vm := New()
 
-	Otto := New()
+		_, err := vm.Run(`throw "Xyzzy"`)
+		is(err, "Xyzzy")
 
-	_, err := Otto.Run(`throw "Xyzzy"`)
-	Is(err, "Xyzzy")
+		_, err = vm.Run(`throw new TypeError()`)
+		is(err, "TypeError")
 
-	_, err = Otto.Run(`throw new TypeError()`)
-	Is(err, "TypeError")
+		_, err = vm.Run(`throw new TypeError("Nothing happens.")`)
+		is(err, "TypeError: Nothing happens.")
 
-	_, err = Otto.Run(`throw new TypeError("Nothing happens.")`)
-	Is(err, "TypeError: Nothing happens.")
+		_, err = ToValue([]byte{})
+		is(err, "TypeError: Invalid value (slice): Missing runtime: [] ([]uint8)")
 
-	_, err = ToValue([]byte{})
-	Is(err, "TypeError: Invalid value (slice): Missing runtime: [] ([]uint8)")
+		_, err = vm.Run(`
+            (function(){
+                return abcdef.length
+            })()
+        `)
+		is(err, "ReferenceError: abcdef is not defined")
 
-	_, err = Otto.Run(`
-		(function(){
-			return abcdef.length
-		})()
-	`)
-	Is(err, "ReferenceError: abcdef is not defined")
+		_, err = vm.Run(`
+            function start() {
+            }
 
-	_, err = Otto.Run(`
-	function start() {
-	}
+            start()
 
-	start()
+                xyzzy()
+        `)
+		is(err, "ReferenceError: xyzzy is not defined")
 
-		xyzzy()
-	`)
-	Is(err, "ReferenceError: xyzzy is not defined")
+		_, err = vm.Run(`
+            // Just a comment
 
-	_, err = Otto.Run(`
-		// Just a comment
+            xyzzy
+        `)
+		is(err, "ReferenceError: xyzzy is not defined")
 
-		xyzzy
-	`)
-	Is(err, "ReferenceError: xyzzy is not defined")
-
+	})
 }

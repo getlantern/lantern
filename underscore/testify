@@ -52,7 +52,6 @@ for my $file (@js) {
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
@@ -65,13 +64,13 @@ _END_
         $fh->print(<<_END_);
 // $name
 func Test_${underscore_name}_$count(t *testing.T) {
-	Terst(t)
+    tt(t, func(){
+	    test := underscoreTest()
 
-	test := underscoreTest()
-
-	test(`
+	    test(`
 $test
-    `)
+        `)
+    })
 }
 
 _END_

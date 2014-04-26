@@ -1,7 +1,6 @@
 package parser
 
 import (
-	. "../terst"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"github.com/robertkrimen/otto/ast"
 )
 
-//func marshal(name string, children ...interface{}) map[string]interface{} {
 func marshal(name string, children ...interface{}) interface{} {
 	if len(children) == 1 {
 		if name == "" {
@@ -194,47 +192,47 @@ func testMarshal(node interface{}) string {
 }
 
 func TestParserAST(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
 
-	test := func(inputOutput string) {
-		match := matchBeforeAfterSeparator.FindStringIndex(inputOutput)
-		input := strings.TrimSpace(inputOutput[0:match[0]])
-		wantOutput := strings.TrimSpace(inputOutput[match[1]:])
-		_, program, err := testParse(input)
-		Is(err, nil)
-		haveOutput := testMarshal(program)
-		tmp0, tmp1 := bytes.Buffer{}, bytes.Buffer{}
-		json.Indent(&tmp0, []byte(haveOutput), "\t\t", "   ")
-		json.Indent(&tmp1, []byte(wantOutput), "\t\t", "   ")
-		Is("\n\t\t"+tmp0.String(), "\n\t\t"+tmp1.String())
-	}
+		test := func(inputOutput string) {
+			match := matchBeforeAfterSeparator.FindStringIndex(inputOutput)
+			input := strings.TrimSpace(inputOutput[0:match[0]])
+			wantOutput := strings.TrimSpace(inputOutput[match[1]:])
+			_, program, err := testParse(input)
+			is(err, nil)
+			haveOutput := testMarshal(program)
+			tmp0, tmp1 := bytes.Buffer{}, bytes.Buffer{}
+			json.Indent(&tmp0, []byte(haveOutput), "\t\t", "   ")
+			json.Indent(&tmp1, []byte(wantOutput), "\t\t", "   ")
+			is("\n\t\t"+tmp0.String(), "\n\t\t"+tmp1.String())
+		}
 
-	test(`
-    ---
+		test(`
+        ---
 []
-    `)
+        `)
 
-	test(`
-    ;
-    ---
+		test(`
+        ;
+        ---
 [
   "EmptyStatement"
 ]
-    `)
+        `)
 
-	test(`
-    ;;;
-    ---
+		test(`
+        ;;;
+        ---
 [
   "EmptyStatement",
   "EmptyStatement",
   "EmptyStatement"
 ]
-    `)
+        `)
 
-	test(`
-    1; true; abc; "abc"; null;
-    ---
+		test(`
+        1; true; abc; "abc"; null;
+        ---
 [
   {
     "Literal": 1
@@ -252,11 +250,11 @@ func TestParserAST(t *testing.T) {
     "Literal": null
   }
 ]
-    `)
+        `)
 
-	test(`
-    { 1; null; 3.14159; ; }
-    ---
+		test(`
+        { 1; null; 3.14159; ; }
+        ---
 [
   {
     "BlockStatement": [
@@ -273,11 +271,11 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-    `)
+        `)
 
-	test(`
-    new abc();
-    ---
+		test(`
+        new abc();
+        ---
 [
   {
     "New": {
@@ -288,11 +286,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    new abc(1, 3.14159)
-    ---
+		test(`
+        new abc(1, 3.14159)
+        ---
 [
   {
     "New": {
@@ -310,11 +308,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    true ? false : true
-    ---
+		test(`
+        true ? false : true
+        ---
 [
   {
     "Conditional": {
@@ -330,11 +328,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    true || false
-    ---
+		test(`
+        true || false
+        ---
 [
   {
     "BinaryExpression": {
@@ -348,11 +346,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    0 + { abc: true }
-    ---
+		test(`
+        0 + { abc: true }
+        ---
 [
   {
     "BinaryExpression": {
@@ -373,11 +371,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    1 == "1"
-    ---
+		test(`
+        1 == "1"
+        ---
 [
   {
     "BinaryExpression": {
@@ -391,11 +389,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    abc(1)
-    ---
+		test(`
+        abc(1)
+        ---
 [
   {
     "Call": {
@@ -410,10 +408,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
-	test(`
-    Math.pow(3, 2)
-    ---
+        `)
+
+		test(`
+        Math.pow(3, 2)
+        ---
 [
   {
     "Call": {
@@ -436,11 +435,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    1, 2, 3
-    ---
+		test(`
+        1, 2, 3
+        ---
 [
   {
     "Sequence": [
@@ -456,22 +455,22 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-    `)
+        `)
 
-	test(`
-    / abc /   gim;
-    ---
+		test(`
+        / abc /   gim;
+        ---
 [
   {
     "Literal": "/ abc /   gim"
   }
 ]
-    `)
+        `)
 
-	test(`
-    if (0)
-        1;
-    ---
+		test(`
+        if (0)
+            1;
+        ---
 [
   {
     "If": {
@@ -484,13 +483,13 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-    0+function(){
-        return;
-    }
-    ---
+		test(`
+        0+function(){
+            return;
+        }
+        ---
 [
   {
     "BinaryExpression": {
@@ -510,21 +509,21 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-	xyzzy // Ignore it
-	// Ignore this
-	// And this
-	/* And all..
+		test(`
+        xyzzy // Ignore it
+        // Ignore this
+        // And this
+        /* And all..
 
 
 
-	... of this!
-	*/
-	"Nothing happens."
-	// And finally this
-    ---
+        ... of this!
+        */
+        "Nothing happens."
+        // And finally this
+        ---
 [
   {
     "Identifier": "xyzzy"
@@ -533,11 +532,11 @@ func TestParserAST(t *testing.T) {
     "Literal": "\"Nothing happens.\""
   }
 ]
-    `)
+        `)
 
-	test(`
-    ((x & (x = 1)) !== 0)
-    ---
+		test(`
+        ((x & (x = 1)) !== 0)
+        ---
 [
   {
     "BinaryExpression": {
@@ -566,11 +565,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-	{ abc: 'def' }
-	---
+		test(`
+        { abc: 'def' }
+        ---
 [
   {
     "BlockStatement": [
@@ -585,12 +584,12 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-	`)
+        `)
 
-	test(`
-	// This is not an object, this is a string literal with a label!
-	({ abc: 'def' })
-	---
+		test(`
+        // This is not an object, this is a string literal with a label!
+        ({ abc: 'def' })
+        ---
 [
   {
     "Object": [
@@ -603,11 +602,11 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-	`)
+        `)
 
-	test(`
-    [,]
-    ---
+		test(`
+        [,]
+        ---
 [
   {
     "Array": [
@@ -615,11 +614,11 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-    `)
+        `)
 
-	test(`
-    [,,]
-    ---
+		test(`
+        [,,]
+        ---
 [
   {
     "Array": [
@@ -628,11 +627,11 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-    `)
+        `)
 
-	test(`
-    ({ get abc() {} })
-    ---
+		test(`
+        ({ get abc() {} })
+        ---
 [
   {
     "Object": [
@@ -647,11 +646,11 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-    `)
+        `)
 
-	test(`
-	/abc/.source
-    ---
+		test(`
+        /abc/.source
+        ---
 [
   {
     "Dot": {
@@ -662,13 +661,13 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-    `)
+        `)
 
-	test(`
-			xyzzy
+		test(`
+                xyzzy
 
-	throw new TypeError("Nothing happens.")
-	---
+        throw new TypeError("Nothing happens.")
+        ---
 [
   {
     "Identifier": "xyzzy"
@@ -690,16 +689,16 @@ func TestParserAST(t *testing.T) {
 ]
 	`)
 
-	// When run, this will call a type error to be thrown
-	// This is essentially the same as:
-	//
-	// var abc = 1(function(){})()
-	//
-	test(`
-	var abc = 1
-	(function(){
-	})()
-	---
+		// When run, this will call a type error to be thrown
+		// This is essentially the same as:
+		//
+		// var abc = 1(function(){})()
+		//
+		test(`
+        var abc = 1
+        (function(){
+        })()
+        ---
 [
   {
     "Var": [
@@ -728,22 +727,22 @@ func TestParserAST(t *testing.T) {
     ]
   }
 ]
-	`)
+        `)
 
-	test(`
-	"use strict"
-	---
+		test(`
+        "use strict"
+        ---
 [
   {
     "Literal": "\"use strict\""
   }
 ]
-	`)
+        `)
 
-	test(`
-	"use strict"
-	abc = 1 + 2 + 11
-	---
+		test(`
+        "use strict"
+        abc = 1 + 2 + 11
+        ---
 [
   {
     "Literal": "\"use strict\""
@@ -775,11 +774,11 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-	`)
+        `)
 
-	test(`
-    abc = function() { 'use strict' }
-	---
+		test(`
+        abc = function() { 'use strict' }
+        ---
 [
   {
     "Assign": {
@@ -798,12 +797,12 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-	`)
+        `)
 
-	test(`
-	for (var abc in def) {
-	}
-	---
+		test(`
+        for (var abc in def) {
+        }
+        ---
 [
   {
     "ForIn": {
@@ -820,14 +819,14 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-	`)
+        `)
 
-	test(`
-	abc = {
-		'"': "'",
-		"'": '"',
-	}
-	---
+		test(`
+        abc = {
+            '"': "'",
+            "'": '"',
+        }
+        ---
 [
   {
     "Assign": {
@@ -853,14 +852,14 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-	`)
+            `)
 
-	return
+		return
 
-	test(`
-    if (!abc && abc.jkl(def) && abc[0] === +abc[0] && abc.length < ghi) {
-	}
-	---
+		test(`
+        if (!abc && abc.jkl(def) && abc[0] === +abc[0] && abc.length < ghi) {
+        }
+        ---
 [
   {
     "If": {
@@ -926,5 +925,6 @@ func TestParserAST(t *testing.T) {
     }
   }
 ]
-	`)
+        `)
+	})
 }

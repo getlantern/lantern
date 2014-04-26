@@ -1,46 +1,44 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 // #750 - Return _ instance.
 func Test_underscore_utility_0(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("#750 - Return _ instance.", 2, function() {
     var instance = _([]);
     ok(_(instance) === instance);
     ok(new _(instance) === instance);
   });
-    `)
+        `)
+	})
 }
 
 // identity
 func Test_underscore_utility_1(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("identity", function() {
     var moe = {name : 'moe'};
     equal(_.identity(moe), moe, 'moe is the same as his identity');
   });
-    `)
+        `)
+	})
 }
 
 // random
 func Test_underscore_utility_2(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("random", function() {
     var array = _.range(1000);
     var min = Math.pow(2, 31);
@@ -54,31 +52,31 @@ func Test_underscore_utility_2(t *testing.T) {
       return _.random(Number.MAX_VALUE) > 0;
     }), "should produce a random number when passed <Number.MAX_VALUE>");
   });
-    `)
+        `)
+	})
 }
 
 // uniqueId
 func Test_underscore_utility_3(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("uniqueId", function() {
     var ids = [], i = 0;
     while(i++ < 100) ids.push(_.uniqueId());
     equal(_.uniq(ids).length, ids.length, 'can generate a globally-unique stream of ids');
   });
-    `)
+        `)
+	})
 }
 
 // times
 func Test_underscore_utility_4(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("times", function() {
     var vals = [];
     _.times(3, function (i) { vals.push(i); });
@@ -90,16 +88,16 @@ func Test_underscore_utility_4(t *testing.T) {
     // collects return values
     ok(_.isEqual([0, 1, 2], _.times(3, function(i) { return i; })), "collects return values");
   });
-    `)
+        `)
+	})
 }
 
 // mixin
 func Test_underscore_utility_5(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("mixin", function() {
     _.mixin({
       myReverse: function(string) {
@@ -109,31 +107,31 @@ func Test_underscore_utility_5(t *testing.T) {
     equal(_.myReverse('panacea'), 'aecanap', 'mixed in a function to _');
     equal(_('champ').myReverse(), 'pmahc', 'mixed in a function to the OOP wrapper');
   });
-    `)
+        `)
+	})
 }
 
 // _.escape
 func Test_underscore_utility_6(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("_.escape", function() {
     equal(_.escape("Curly & Moe"), "Curly &amp; Moe");
     equal(_.escape("Curly &amp; Moe"), "Curly &amp;amp; Moe");
     equal(_.escape(null), '');
   });
-    `)
+        `)
+	})
 }
 
 // _.unescape
 func Test_underscore_utility_7(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("_.unescape", function() {
     var string = "Curly & Moe";
     equal(_.unescape("Curly &amp; Moe"), string);
@@ -141,16 +139,16 @@ func Test_underscore_utility_7(t *testing.T) {
     equal(_.unescape(null), '');
     equal(_.unescape(_.escape(string)), string);
   });
-    `)
+        `)
+	})
 }
 
 // template
 func Test_underscore_utility_8(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("template", function() {
     var basicTemplate = _.template("<%= thing %> is gettin' on my noives!");
     var result = basicTemplate({thing : 'This'});
@@ -169,8 +167,7 @@ func Test_underscore_utility_8(t *testing.T) {
       for (var key in people) { \
     %><li><%= people[key] %></li><% } %></ul>");
     result = fancyTemplate({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
-    // TODO: Property ordering unreliable
-    //equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
+    equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
 
     var escapedCharsInJavascriptTemplate = _.template("<ul><% _.each(numbers.split('\\n'), function(item) { %><li><%= item %></li><% }) %></ul>");
     result = escapedCharsInJavascriptTemplate({numbers: "one\ntwo\nthree\nfour"});
@@ -185,8 +182,7 @@ func Test_underscore_utility_8(t *testing.T) {
         3: "p3-thumbnail.gif"
       }
     });
-    // TODO: Property ordering unreliable
-    //equal(result, "3 p3-thumbnail.gif <div class=\"thumbnail\" rel=\"p1-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p2-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p3-thumbnail.gif\"></div>");
+    equal(result, "3 p3-thumbnail.gif <div class=\"thumbnail\" rel=\"p1-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p2-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p3-thumbnail.gif\"></div>");
 
     var noInterpolateTemplate = _.template("<div><p>Just some text. Hey, I know this is silly but it aids consistency.</p></div>");
     result = noInterpolateTemplate();
@@ -213,20 +209,22 @@ func Test_underscore_utility_8(t *testing.T) {
     };
     equal(stooge.template(), "I'm Moe");
 
-    //if (!$.browser.msie) {
-    //  var fromHTML = _.template($('#template').html());
-    //  equal(fromHTML({data : 12345}).replace(/\s/g, ''), '<li>24690</li>');
-    //}
+    // TEST: ReferenceError: $ is not defined
+    if (false) {
+        if (!$.browser.msie) {
+        var fromHTML = _.template($('#template').html());
+        equal(fromHTML({data : 12345}).replace(/\s/g, ''), '<li>24690</li>');
+        }
+    }
 
     _.templateSettings = {
       evaluate    : /\{\{([\s\S]+?)\}\}/g,
       interpolate : /\{\{=([\s\S]+?)\}\}/g
     };
 
-    // TODO: Property ordering unreliable
-    //var custom = _.template("<ul>{{ for (var key in people) { }}<li>{{= people[key] }}</li>{{ } }}</ul>");
-    //result = custom({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
-    //equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
+    var custom = _.template("<ul>{{ for (var key in people) { }}<li>{{= people[key] }}</li>{{ } }}</ul>");
+    result = custom({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
+    equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
 
     var customQuote = _.template("It's its, not it's");
     equal(customQuote({}), "It's its, not it's");
@@ -239,10 +237,9 @@ func Test_underscore_utility_8(t *testing.T) {
       interpolate : /<\?=([\s\S]+?)\?>/g
     };
 
-    // TODO: Property ordering unreliable
-    //var customWithSpecialChars = _.template("<ul><? for (var key in people) { ?><li><?= people[key] ?></li><? } ?></ul>");
-    //result = customWithSpecialChars({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
-    //equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
+    var customWithSpecialChars = _.template("<ul><? for (var key in people) { ?><li><?= people[key] ?></li><? } ?></ul>");
+    result = customWithSpecialChars({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
+    equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
 
     var customWithSpecialCharsQuote = _.template("It's its, not it's");
     equal(customWithSpecialCharsQuote({}), "It's its, not it's");
@@ -260,16 +257,16 @@ func Test_underscore_utility_8(t *testing.T) {
     var templateWithNull = _.template("a null undefined {{planet}}");
     equal(templateWithNull({planet : "world"}), "a null undefined world", "can handle missing escape and evaluate settings");
   });
-    `)
+        `)
+	})
 }
 
 // _.template provides the generated function source, when a SyntaxError occurs
 func Test_underscore_utility_9(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('_.template provides the generated function source, when a SyntaxError occurs', function() {
     try {
       _.template('<b><%= if x %></b>');
@@ -278,49 +275,48 @@ func Test_underscore_utility_9(t *testing.T) {
     }
     ok(/__p/.test(source));
   });
-    `)
+        `)
+	})
 }
 
 // _.template handles \\u2028 & \\u2029
 func Test_underscore_utility_10(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('_.template handles \\u2028 & \\u2029', function() {
     var tmpl = _.template('<p>\u2028<%= "\\u2028\\u2029" %>\u2029</p>');
     strictEqual(tmpl(), '<p>\u2028\u2028\u2029\u2029</p>');
   });
-    `)
+        `)
+	})
 }
 
 // result calls functions and returns primitives
 func Test_underscore_utility_11(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('result calls functions and returns primitives', function() {
     var obj = {w: '', x: 'x', y: function(){ return this.x; }};
     strictEqual(_.result(obj, 'w'), '');
     strictEqual(_.result(obj, 'x'), 'x');
     strictEqual(_.result(obj, 'y'), 'x');
     strictEqual(_.result(obj, 'z'), undefined);
-    // FIXME: This functionality is being changed in the underscore master right now
-    //strictEqual(_.result(null, 'x'), undefined);
+    strictEqual(_.result(null, 'x'), null);
   });
-    `)
+        `)
+	})
 }
 
 // _.templateSettings.variable
 func Test_underscore_utility_12(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('_.templateSettings.variable', function() {
     var s = '<%=data.x%>';
     var data = {x: 'x'};
@@ -328,31 +324,31 @@ func Test_underscore_utility_12(t *testing.T) {
     _.templateSettings.variable = 'data';
     strictEqual(_.template(s)(data), 'x');
   });
-    `)
+        `)
+	})
 }
 
 // #547 - _.templateSettings is unchanged by custom settings.
 func Test_underscore_utility_13(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('#547 - _.templateSettings is unchanged by custom settings.', function() {
     ok(!_.templateSettings.variable);
     _.template('', {}, {variable: 'x'});
     ok(!_.templateSettings.variable);
   });
-    `)
+        `)
+	})
 }
 
 // #556 - undefined template variables.
 func Test_underscore_utility_14(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('#556 - undefined template variables.', function() {
     var template = _.template('<%=x%>');
     strictEqual(template({x: null}), '');
@@ -370,16 +366,16 @@ func Test_underscore_utility_14(t *testing.T) {
     strictEqual(templateWithPropertyEscaped({x: {} }), '');
     strictEqual(templateWithPropertyEscaped({x: {} }), '');
   });
-    `)
+        `)
+	})
 }
 
 // interpolate evaluates code only once.
 func Test_underscore_utility_15(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('interpolate evaluates code only once.', 2, function() {
     var count = 0;
     var template = _.template('<%= f() %>');
@@ -389,34 +385,35 @@ func Test_underscore_utility_15(t *testing.T) {
     var templateEscaped = _.template('<%- f() %>');
     templateEscaped({f: function(){ ok(!(countEscaped++)); }});
   });
-    `)
+        `)
+	})
 }
 
 // #746 - _.template settings are not modified.
 func Test_underscore_utility_16(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('#746 - _.template settings are not modified.', 1, function() {
     var settings = {};
     _.template('', null, settings);
     deepEqual(settings, {});
   });
-    `)
+        `)
+	})
 }
 
 // #779 - delimeters are applied to unescaped text.
 func Test_underscore_utility_17(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('#779 - delimeters are applied to unescaped text.', 1, function() {
     var template = _.template('<<\nx\n>>', null, {evaluate: /<<(.*?)>>/g});
     strictEqual(template(), '<<\nx\n>>');
   });
-    `)
+        `)
+	})
 }

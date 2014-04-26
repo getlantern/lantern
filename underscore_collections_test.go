@@ -1,17 +1,15 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 // each
 func Test_underscore_collections_0(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("each", function() {
     _.each([1, 2, 3], function(num, i) {
       equal(num, i + 1, 'each iterators provide value and iteration count');
@@ -29,8 +27,7 @@ func Test_underscore_collections_0(t *testing.T) {
     var obj = {one : 1, two : 2, three : 3};
     obj.constructor.prototype.four = 4;
     _.each(obj, function(value, key){ answers.push(key); });
-    // TODO: Property ordering unreliable
-    //equal(answers.join(", "), 'one, two, three', 'iterating over objects works, and ignores the object prototype.');
+    equal(answers.join(", "), 'one, two, three', 'iterating over objects works, and ignores the object prototype.');
     delete obj.constructor.prototype.four;
 
     var answer = null;
@@ -41,16 +38,16 @@ func Test_underscore_collections_0(t *testing.T) {
     _.each(null, function(){ ++answers; });
     equal(answers, 0, 'handles a null properly');
   });
-    `)
+        `)
+	})
 }
 
 // map
 func Test_underscore_collections_1(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('map', function() {
     var doubled = _.map([1, 2, 3], function(num){ return num * 2; });
     equal(doubled.join(', '), '2, 4, 6', 'doubled numbers');
@@ -64,30 +61,33 @@ func Test_underscore_collections_1(t *testing.T) {
     var doubled = _([1, 2, 3]).map(function(num){ return num * 2; });
     equal(doubled.join(', '), '2, 4, 6', 'OO-style doubled numbers');
 
-    //if (document.querySelectorAll) {
-    //  var ids = _.map(document.querySelectorAll('#map-test *'), function(n){ return n.id; });
-    //  deepEqual(ids, ['id1', 'id2'], 'Can use collection methods on NodeLists.');
-    //}
+    // TEST: ReferenceError: document is not defined
+    return;
 
-    //var ids = _.map($('#map-test').children(), function(n){ return n.id; });
-    //deepEqual(ids, ['id1', 'id2'], 'Can use collection methods on jQuery Array-likes.');
+    if (document.querySelectorAll) {
+      var ids = _.map(document.querySelectorAll('#map-test *'), function(n){ return n.id; });
+      deepEqual(ids, ['id1', 'id2'], 'Can use collection methods on NodeLists.');
+    }
 
-    //var ids = _.map(document.images, function(n){ return n.id; });
-    //ok(ids[0] == 'chart_image', 'can use collection methods on HTMLCollections');
+    var ids = _.map($('#map-test').children(), function(n){ return n.id; });
+    deepEqual(ids, ['id1', 'id2'], 'Can use collection methods on jQuery Array-likes.');
+
+    var ids = _.map(document.images, function(n){ return n.id; });
+    ok(ids[0] == 'chart_image', 'can use collection methods on HTMLCollections');
 
     var ifnull = _.map(null, function(){});
     ok(_.isArray(ifnull) && ifnull.length === 0, 'handles a null properly');
   });
-    `)
+        `)
+	})
 }
 
 // reduce
 func Test_underscore_collections_2(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('reduce', function() {
     var sum = _.reduce([1, 2, 3], function(sum, num){ return sum + num; }, 0);
     equal(sum, 6, 'can sum up an array');
@@ -115,19 +115,18 @@ func Test_underscore_collections_2(t *testing.T) {
 
     ok(_.reduce(null, function(){}, 138) === 138, 'handles a null (with initial value) properly');
     equal(_.reduce([], function(){}, undefined), undefined, 'undefined can be passed as a special case');
-    return
     raises(function() { _.reduce([], function(){}); }, TypeError, 'throws an error for empty arrays with no initial value');
   });
-    `)
+        `)
+	})
 }
 
 // reduceRight
 func Test_underscore_collections_3(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('reduceRight', function() {
     var list = _.reduceRight(["foo", "bar", "baz"], function(memo, str){ return memo + str; }, '');
     equal(list, 'bazbarfoo', 'can perform right folds');
@@ -155,9 +154,6 @@ func Test_underscore_collections_3(t *testing.T) {
     raises(function() { _.reduceRight([], function(){}); }, TypeError, 'throws an error for empty arrays with no initial value');
 
     // Assert that the correct arguments are being passed.
-
-    // TODO: Property ordering unreliable
-    return;
 
     var args,
         memo = {},
@@ -190,45 +186,45 @@ func Test_underscore_collections_3(t *testing.T) {
 
     deepEqual(args, expected);
   });
-    `)
+        `)
+	})
 }
 
 // find
 func Test_underscore_collections_4(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('find', function() {
     var array = [1, 2, 3, 4];
     strictEqual(_.find(array, function(n) { return n > 2; }), 3, 'should return first found <value>');
     strictEqual(_.find(array, function() { return false; }), void 0, 'should return <undefined> if <value> is not found');
   });
-    `)
+        `)
+	})
 }
 
 // detect
 func Test_underscore_collections_5(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('detect', function() {
     var result = _.detect([1, 2, 3], function(num){ return num * 2 == 4; });
     equal(result, 2, 'found the first "2" and broke the loop');
   });
-    `)
+        `)
+	})
 }
 
 // select
 func Test_underscore_collections_6(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('select', function() {
     var evens = _.select([1, 2, 3, 4, 5, 6], function(num){ return num % 2 == 0; });
     equal(evens.join(', '), '2, 4, 6', 'selected each even number');
@@ -236,16 +232,16 @@ func Test_underscore_collections_6(t *testing.T) {
     evens = _.filter([1, 2, 3, 4, 5, 6], function(num){ return num % 2 == 0; });
     equal(evens.join(', '), '2, 4, 6', 'aliased as "filter"');
   });
-    `)
+        `)
+	})
 }
 
 // reject
 func Test_underscore_collections_7(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('reject', function() {
     var odds = _.reject([1, 2, 3, 4, 5, 6], function(num){ return num % 2 == 0; });
     equal(odds.join(', '), '1, 3, 5', 'rejected each even number');
@@ -258,16 +254,16 @@ func Test_underscore_collections_7(t *testing.T) {
     }, context);
     equal(evens.join(', '), '2, 4, 6', 'rejected each odd number');
   });
-    `)
+        `)
+	})
 }
 
 // all
 func Test_underscore_collections_8(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('all', function() {
     ok(_.all([], _.identity), 'the empty set');
     ok(_.all([true, true, true], _.identity), 'all true values');
@@ -279,16 +275,16 @@ func Test_underscore_collections_8(t *testing.T) {
     ok(_.every([true, true, true], _.identity), 'aliased as "every"');
     ok(!_.all([undefined, undefined, undefined], _.identity), 'works with arrays of undefined');
   });
-    `)
+        `)
+	})
 }
 
 // any
 func Test_underscore_collections_9(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('any', function() {
     var nativeSome = Array.prototype.some;
     Array.prototype.some = null;
@@ -304,64 +300,64 @@ func Test_underscore_collections_9(t *testing.T) {
     ok(_.some([false, false, true]), 'aliased as "some"');
     Array.prototype.some = nativeSome;
   });
-    `)
+        `)
+	})
 }
 
 // include
 func Test_underscore_collections_10(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('include', function() {
     ok(_.include([1,2,3], 2), 'two is in the array');
     ok(!_.include([1,3,9], 2), 'two is not in the array');
     ok(_.contains({moe:1, larry:3, curly:9}, 3) === true, '_.include on objects checks their values');
     ok(_([1,2,3]).include(2), 'OO-style include');
   });
-    `)
+        `)
+	})
 }
 
 // invoke
 func Test_underscore_collections_11(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('invoke', function() {
     var list = [[5, 1, 7], [3, 2, 1]];
     var result = _.invoke(list, 'sort');
     equal(result[0].join(', '), '1, 5, 7', 'first array sorted');
     equal(result[1].join(', '), '1, 2, 3', 'second array sorted');
   });
-    `)
+        `)
+	})
 }
 
 // invoke w/ function reference
 func Test_underscore_collections_12(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('invoke w/ function reference', function() {
     var list = [[5, 1, 7], [3, 2, 1]];
     var result = _.invoke(list, Array.prototype.sort);
     equal(result[0].join(', '), '1, 5, 7', 'first array sorted');
     equal(result[1].join(', '), '1, 2, 3', 'second array sorted');
   });
-    `)
+        `)
+	})
 }
 
 // invoke when strings have a call method
 func Test_underscore_collections_13(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('invoke when strings have a call method', function() {
     String.prototype.call = function() {
       return 42;
@@ -375,30 +371,30 @@ func Test_underscore_collections_13(t *testing.T) {
     delete String.prototype.call;
     equal(s.call, undefined, "call function removed");
   });
-    `)
+        `)
+	})
 }
 
 // pluck
 func Test_underscore_collections_14(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('pluck', function() {
     var people = [{name : 'moe', age : 30}, {name : 'curly', age : 50}];
     equal(_.pluck(people, 'name').join(', '), 'moe, curly', 'pulls names out of objects');
   });
-    `)
+        `)
+	})
 }
 
 // where
 func Test_underscore_collections_15(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('where', function() {
     var list = [{a: 1, b: 2}, {a: 2, b: 2}, {a: 1, b: 3}, {a: 1, b: 4}];
     var result = _.where(list, {a: 1});
@@ -408,16 +404,16 @@ func Test_underscore_collections_15(t *testing.T) {
     equal(result.length, 2);
     equal(result[0].a, 1);
   });
-    `)
+        `)
+	})
 }
 
 // findWhere
 func Test_underscore_collections_16(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('findWhere', function() {
     var list = [{a: 1, b: 2}, {a: 2, b: 2}, {a: 1, b: 3}, {a: 1, b: 4}, {a: 2, b: 4}];
     var result = _.findWhere(list, {a: 1});
@@ -425,16 +421,16 @@ func Test_underscore_collections_16(t *testing.T) {
     result = _.findWhere(list, {b: 4});
     deepEqual(result, {a: 1, b: 4});
   });
-    `)
+        `)
+	})
 }
 
 // max
 func Test_underscore_collections_17(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('max', function() {
     equal(3, _.max([1, 2, 3]), 'can perform a regular Math.max');
 
@@ -445,18 +441,21 @@ func Test_underscore_collections_17(t *testing.T) {
     equal(-Infinity, _.max([]), 'Maximum value of an empty array');
     equal(_.max({'a': 'a'}), -Infinity, 'Maximum value of a non-numeric collection');
 
-    //equal(299999, _.max(_.range(1,300000)), "Maximum value of a too-big array");
+    // TEST: Takes too long
+    return;
+
+    equal(299999, _.max(_.range(1,300000)), "Maximum value of a too-big array");
   });
-    `)
+        `)
+	})
 }
 
 // min
 func Test_underscore_collections_18(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('min', function() {
     equal(1, _.min([1, 2, 3]), 'can perform a regular Math.min');
 
@@ -471,18 +470,21 @@ func Test_underscore_collections_18(t *testing.T) {
     var then = new Date(0);
     equal(_.min([now, then]), then);
 
-    //equal(1, _.min(_.range(1,300000)), "Minimum value of a too-big array");
+    // TEST: Takes too long
+    return;
+
+    equal(1, _.min(_.range(1,300000)), "Minimum value of a too-big array");
   });
-    `)
+        `)
+	})
 }
 
 // sortBy
 func Test_underscore_collections_19(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('sortBy', function() {
     var people = [{name : 'curly', age : 50}, {name : 'moe', age : 30}];
     people = _.sortBy(people, function(person){ return person.age; });
@@ -518,16 +520,16 @@ func Test_underscore_collections_19(t *testing.T) {
 
     deepEqual(actual, collection, 'sortBy should be stable');
   });
-    `)
+        `)
+	})
 }
 
 // groupBy
 func Test_underscore_collections_20(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('groupBy', function() {
     var parity = _.groupBy([1, 2, 3, 4, 5, 6], function(num){ return num % 2; });
     ok('0' in parity && '1' in parity, 'created a group for each value');
@@ -556,16 +558,16 @@ func Test_underscore_collections_20(t *testing.T) {
     equal(grouped['1'].length, 2);
     equal(grouped['3'].length, 1);
   });
-    `)
+        `)
+	})
 }
 
 // countBy
 func Test_underscore_collections_21(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('countBy', function() {
     var parity = _.countBy([1, 2, 3, 4, 5], function(num){ return num % 2 == 0; });
     equal(parity['true'], 2);
@@ -594,16 +596,16 @@ func Test_underscore_collections_21(t *testing.T) {
     equal(grouped['1'], 2);
     equal(grouped['3'], 1);
   });
-    `)
+        `)
+	})
 }
 
 // sortedIndex
 func Test_underscore_collections_22(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('sortedIndex', function() {
     var numbers = [10, 20, 30, 40, 50], num = 35;
     var indexForNum = _.sortedIndex(numbers, num);
@@ -621,32 +623,32 @@ func Test_underscore_collections_22(t *testing.T) {
     iterator = function(obj){ return this[obj]; };
     strictEqual(_.sortedIndex([1, 3], 2, iterator, context), 1);
   });
-    `)
+        `)
+	})
 }
 
 // shuffle
 func Test_underscore_collections_23(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('shuffle', function() {
     var numbers = _.range(10);
     var shuffled = _.shuffle(numbers).sort();
     notStrictEqual(numbers, shuffled, 'original object is unmodified');
     equal(shuffled.join(','), numbers.join(','), 'contains the same members before and after shuffle');
   });
-    `)
+        `)
+	})
 }
 
 // toArray
 func Test_underscore_collections_24(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('toArray', function() {
     ok(!_.isArray(arguments), 'arguments object is not an array');
     ok(_.isArray(_.toArray(arguments)), 'arguments object converted into array');
@@ -654,11 +656,11 @@ func Test_underscore_collections_24(t *testing.T) {
     ok(_.toArray(a) !== a, 'array is cloned');
     equal(_.toArray(a).join(', '), '1, 2, 3', 'cloned array contains same elements');
 
-    // TODO: Property ordering unreliable
-    return;
-
     var numbers = _.toArray({one : 1, two : 2, three : 3});
     equal(numbers.join(', '), '1, 2, 3', 'object flattened into array');
+
+    // TEST: ReferenceError: document is not defined
+    return;
 
     // test in IE < 9
     try {
@@ -667,16 +669,16 @@ func Test_underscore_collections_24(t *testing.T) {
 
     ok(_.isArray(actual), 'should not throw converting a node list');
   });
-    `)
+        `)
+	})
 }
 
 // size
 func Test_underscore_collections_25(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('size', function() {
     equal(_.size({one : 1, two : 2, three : 3}), 3, 'can compute the size of an object');
     equal(_.size([1, 2, 3]), 3, 'can compute the size of an array');
@@ -691,5 +693,6 @@ func Test_underscore_collections_25(t *testing.T) {
 
     equal(_.size(null), 0, 'handles nulls');
   });
-    `)
+        `)
+	})
 }

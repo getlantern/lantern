@@ -1,7 +1,6 @@
 package otto
 
 import (
-	. "./terst"
 	"math"
 	"reflect"
 	"testing"
@@ -43,370 +42,370 @@ func (t testStruct) FuncVarArgs(as ...string) int {
 }
 
 func TestReflect(t *testing.T) {
-	Terst(t)
-
-	if false {
+	return
+	tt(t, func() {
 		// Testing dbgf
 		// These should panic
 		toValue("Xyzzy").toReflectValue(reflect.Ptr)
 		stringToReflectValue("Xyzzy", reflect.Ptr)
-	}
+	})
 }
 
 func Test_reflectStruct(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	_, test := runTestWithOtto()
+		// testStruct
+		{
+			abc := &testStruct{}
+			vm.Set("abc", abc)
 
-	// testStruct
-	{
-		abc := &testStruct{}
-		failSet("abc", abc)
+			test(`
+                abc.FuncPointerReciever();
+            `, "abc")
 
-		test(`
-			abc.FuncPointerReciever();
-		`, "abc")
+			test(`
+                [ abc.Abc, abc.Ghi ];
+            `, "false,")
 
-		test(`
-            [ abc.Abc, abc.Ghi ];
-        `, "false,")
+			abc.Abc = true
+			abc.Ghi = "Nothing happens."
 
-		abc.Abc = true
-		abc.Ghi = "Nothing happens."
+			test(`
+                [ abc.Abc, abc.Ghi ];
+            `, "true,Nothing happens.")
 
-		test(`
-            [ abc.Abc, abc.Ghi ];
-        `, "true,Nothing happens.")
+			*abc = testStruct{}
 
-		*abc = testStruct{}
+			test(`
+                [ abc.Abc, abc.Ghi ];
+            `, "false,")
 
-		test(`
-            [ abc.Abc, abc.Ghi ];
-        `, "false,")
+			abc.Abc = true
+			abc.Ghi = "Xyzzy"
+			vm.Set("abc", abc)
 
-		abc.Abc = true
-		abc.Ghi = "Xyzzy"
-		failSet("abc", abc)
+			test(`
+                [ abc.Abc, abc.Ghi ];
+            `, "true,Xyzzy")
 
-		test(`
-            [ abc.Abc, abc.Ghi ];
-        `, "true,Xyzzy")
+			is(abc.Abc, true)
+			test(`
+                abc.Abc = false;
+                abc.Def = 451;
+                abc.Ghi = "Nothing happens.";
+                abc.abc = "Something happens.";
+                [ abc.Def, abc.abc ];
+            `, "451,Something happens.")
+			is(abc.Abc, false)
+			is(abc.Def, 451)
+			is(abc.Ghi, "Nothing happens.")
 
-		Is(abc.Abc, true)
-		test(`
-            abc.Abc = false;
-            abc.Def = 451;
-            abc.Ghi = "Nothing happens.";
-            abc.abc = "Something happens.";
-            [ abc.Def, abc.abc ];
-        `, "451,Something happens.")
-		Is(abc.Abc, false)
-		Is(abc.Def, 451)
-		Is(abc.Ghi, "Nothing happens.")
+			test(`
+                delete abc.Def;
+                delete abc.abc;
+                [ abc.Def, abc.abc ];
+            `, "451,")
+			is(abc.Def, 451)
 
-		test(`
-            delete abc.Def;
-            delete abc.abc;
-            [ abc.Def, abc.abc ];
-        `, "451,")
-		Is(abc.Def, 451)
+			test(`
+                abc.FuncNoArgsNoRet();
+            `, "undefined")
+			test(`
+                abc.FuncNoArgs();
+            `, "abc")
+			test(`
+                abc.FuncOneArgs("abc");
+            `, "abc")
+			test(`
+                abc.FuncMultArgs("abc", "def");
+            `, "abcdef")
+			test(`
+                abc.FuncVarArgs("abc", "def", "ghi");
+            `, 3)
 
-		test(`
-			abc.FuncNoArgsNoRet();
-		`, "undefined")
-		test(`
-			abc.FuncNoArgs();
-		`, "abc")
-		test(`
-			abc.FuncOneArgs("abc");
-		`, "abc")
-		test(`
-			abc.FuncMultArgs("abc", "def");
-		`, "abcdef")
-		test(`
-			abc.FuncVarArgs("abc", "def", "ghi");
-		`, "3")
-
-		test(`raise:
-            abc.FuncNoArgsMultRet();
-        `, "TypeError")
-	}
+			test(`raise:
+                abc.FuncNoArgsMultRet();
+            `, "TypeError")
+		}
+	})
 }
 
 func Test_reflectMap(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	_, test := runTestWithOtto()
+		// map[string]string
+		{
+			abc := map[string]string{
+				"Xyzzy": "Nothing happens.",
+				"def":   "1",
+			}
+			vm.Set("abc", abc)
 
-	// map[string]string
-	{
-		abc := map[string]string{
-			"Xyzzy": "Nothing happens.",
-			"def":   "1",
+			test(`
+                abc.xyz = "pqr";
+                [ abc.Xyzzy, abc.def, abc.ghi ];
+            `, "Nothing happens.,1,")
+
+			is(abc["xyz"], "pqr")
 		}
-		failSet("abc", abc)
 
-		test(`
-            abc.xyz = "pqr";
-            [ abc.Xyzzy, abc.def, abc.ghi ];
-        `, "Nothing happens.,1,")
+		// map[string]float64
+		{
+			abc := map[string]float64{
+				"Xyzzy": math.Pi,
+				"def":   1,
+			}
+			vm.Set("abc", abc)
 
-		Is(abc["xyz"], "pqr")
-	}
+			test(`
+                abc.xyz = "pqr";
+                abc.jkl = 10;
+                [ abc.Xyzzy, abc.def, abc.ghi ];
+            `, "3.141592653589793,1,")
 
-	// map[string]float64
-	{
-		abc := map[string]float64{
-			"Xyzzy": math.Pi,
-			"def":   1,
+			is(abc["xyz"], math.NaN())
+			is(abc["jkl"], float64(10))
 		}
-		failSet("abc", abc)
 
-		test(`
-            abc.xyz = "pqr";
-            abc.jkl = 10;
-            [ abc.Xyzzy, abc.def, abc.ghi ];
-        `, "3.141592653589793,1,")
+		// map[string]int32
+		{
+			abc := map[string]int32{
+				"Xyzzy": 3,
+				"def":   1,
+			}
+			vm.Set("abc", abc)
 
-		Is(abc["xyz"], "NaN")
-		Is(abc["jkl"], float64(10))
-	}
+			test(`
+                abc.xyz = "pqr";
+                abc.jkl = 10;
+                [ abc.Xyzzy, abc.def, abc.ghi ];
+            `, "3,1,")
 
-	// map[string]int32
-	{
-		abc := map[string]int32{
-			"Xyzzy": 3,
-			"def":   1,
+			is(abc["xyz"], 0)
+			is(abc["jkl"], int32(10))
+
+			test(`
+                delete abc["Xyzzy"];
+            `)
+
+			_, exists := abc["Xyzzy"]
+			is(exists, false)
+			is(abc["Xyzzy"], 0)
 		}
-		failSet("abc", abc)
 
-		test(`
-            abc.xyz = "pqr";
-            abc.jkl = 10;
-            [ abc.Xyzzy, abc.def, abc.ghi ];
-        `, "3,1,")
+		// map[int32]string
+		{
+			abc := map[int32]string{
+				0: "abc",
+				1: "def",
+			}
+			vm.Set("abc", abc)
 
-		Is(abc["xyz"], 0)
-		Is(abc["jkl"], int32(10))
+			test(`
+                abc[2] = "pqr";
+                //abc.jkl = 10;
+                abc[3] = 10;
+                [ abc[0], abc[1], abc[2], abc[3] ]
+            `, "abc,def,pqr,10")
 
-		test(`
-            delete abc["Xyzzy"];
-        `)
+			is(abc[2], "pqr")
+			is(abc[3], "10")
 
-		_, exists := abc["Xyzzy"]
-		IsFalse(exists)
-		Is(abc["Xyzzy"], 0)
-	}
+			test(`
+                delete abc[2];
+            `)
 
-	// map[int32]string
-	{
-		abc := map[int32]string{
-			0: "abc",
-			1: "def",
+			_, exists := abc[2]
+			is(exists, false)
 		}
-		failSet("abc", abc)
 
-		test(`
-            abc[2] = "pqr";
-            //abc.jkl = 10;
-            abc[3] = 10;
-            [ abc[0], abc[1], abc[2], abc[3] ]
-        `, "abc,def,pqr,10")
-
-		Is(abc[2], "pqr")
-		Is(abc[3], "10")
-
-		test(`
-            delete abc[2];
-        `)
-
-		_, exists := abc[2]
-		IsFalse(exists)
-	}
-
+	})
 }
 
 func Test_reflectSlice(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	_, test := runTestWithOtto()
+		// []bool
+		{
+			abc := []bool{
+				false,
+				true,
+				true,
+				false,
+			}
+			vm.Set("abc", abc)
 
-	// []bool
-	{
-		abc := []bool{
-			false,
-			true,
-			true,
-			false,
+			test(`
+                abc;
+            `, "false,true,true,false")
+
+			test(`
+                abc[0] = true;
+                abc[abc.length-1] = true;
+                delete abc[2];
+                abc;
+            `, "true,true,false,true")
+
+			is(abc, []bool{true, true, false, true})
+			is(abc[len(abc)-1], true)
 		}
-		failSet("abc", abc)
 
-		test(`
-            abc;
-        `, "false,true,true,false")
+		// []int32
+		{
+			abc := make([]int32, 4)
+			vm.Set("abc", abc)
 
-		test(`
-            abc[0] = true;
-            abc[abc.length-1] = true;
-            delete abc[2];
-            abc;
-        `, "true,true,false,true")
+			test(`
+                abc;
+            `, "0,0,0,0")
 
-		Is(abc, []bool{true, true, false, true})
-		Is(abc[len(abc)-1], true)
-	}
+			test(`
+                abc[0] = 4.2;
+                abc[1] = "42";
+                abc[2] = 3.14;
+                abc;
+            `, "4,42,3,0")
 
-	// []int32
-	{
-		abc := make([]int32, 4)
-		failSet("abc", abc)
+			is(abc, []int32{4, 42, 3, 0})
 
-		test(`
-            abc;
-        `, "0,0,0,0")
-
-		test(`
-            abc[0] = 4.2;
-            abc[1] = "42";
-            abc[2] = 3.14;
-            abc;
-        `, "4,42,3,0")
-
-		Is(abc, []int32{4, 42, 3, 0})
-
-		test(`
-            delete abc[1];
-            delete abc[2];
-        `)
-		Is(abc[1], 0)
-		Is(abc[2], 0)
-	}
+			test(`
+                delete abc[1];
+                delete abc[2];
+            `)
+			is(abc[1], 0)
+			is(abc[2], 0)
+		}
+	})
 }
 
 func Test_reflectArray(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	_, test := runTestWithOtto()
+		// []bool
+		{
+			abc := [4]bool{
+				false,
+				true,
+				true,
+				false,
+			}
+			vm.Set("abc", abc)
 
-	// []bool
-	{
-		abc := [4]bool{
-			false,
-			true,
-			true,
-			false,
+			test(`
+                abc;
+            `, "false,true,true,false")
+			// Unaddressable array
+
+			test(`
+                abc[0] = true;
+                abc[abc.length-1] = true;
+                abc;
+            `, "false,true,true,false")
+			// Again, unaddressable array
+
+			is(abc, [4]bool{false, true, true, false})
+			is(abc[len(abc)-1], false)
+			// ...
 		}
-		failSet("abc", abc)
 
-		test(`
-            abc;
-        `, "false,true,true,false")
-		// Unaddressable array
+		// []int32
+		{
+			abc := make([]int32, 4)
+			vm.Set("abc", abc)
 
-		test(`
-            abc[0] = true;
-            abc[abc.length-1] = true;
-            abc;
-        `, "false,true,true,false")
-		// Again, unaddressable array
+			test(`
+                abc;
+            `, "0,0,0,0")
 
-		Is(abc, [4]bool{false, true, true, false})
-		Is(abc[len(abc)-1], false)
-		// ...
-	}
+			test(`
+                abc[0] = 4.2;
+                abc[1] = "42";
+                abc[2] = 3.14;
+                abc;
+            `, "4,42,3,0")
 
-	// []int32
-	{
-		abc := make([]int32, 4)
-		failSet("abc", abc)
-
-		test(`
-            abc;
-        `, "0,0,0,0")
-
-		test(`
-            abc[0] = 4.2;
-            abc[1] = "42";
-            abc[2] = 3.14;
-            abc;
-        `, "4,42,3,0")
-
-		Is(abc, []int32{4, 42, 3, 0})
-	}
-
-	// []bool
-	{
-		abc := [4]bool{
-			false,
-			true,
-			true,
-			false,
+			is(abc, []int32{4, 42, 3, 0})
 		}
-		failSet("abc", &abc)
 
-		test(`
-            abc;
-        `, "false,true,true,false")
+		// []bool
+		{
+			abc := [4]bool{
+				false,
+				true,
+				true,
+				false,
+			}
+			vm.Set("abc", &abc)
 
-		test(`
-            abc[0] = true;
-            abc[abc.length-1] = true;
-            delete abc[2];
-            abc;
-        `, "true,true,false,true")
+			test(`
+                abc;
+            `, "false,true,true,false")
 
-		Is(abc, [4]bool{true, true, false, true})
-		Is(abc[len(abc)-1], true)
-	}
+			test(`
+                abc[0] = true;
+                abc[abc.length-1] = true;
+                delete abc[2];
+                abc;
+            `, "true,true,false,true")
 
+			is(abc, [4]bool{true, true, false, true})
+			is(abc[len(abc)-1], true)
+		}
+
+	})
 }
 
 func Test_reflectArray_concat(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	_, test := runTestWithOtto()
-	failSet("ghi", []string{"jkl", "mno"})
-	failSet("pqr", []interface{}{"jkl", 42, 3.14159, true})
-	test(`
-        var def = {
-            "abc": ["abc"],
-            "xyz": ["xyz"]
-        };
-        xyz = pqr.concat(ghi, def.abc, def, def.xyz);
-        [ xyz, xyz.length ];
-    `, "jkl,42,3.14159,true,jkl,mno,abc,[object Object],xyz,9")
+		vm.Set("ghi", []string{"jkl", "mno"})
+		vm.Set("pqr", []interface{}{"jkl", 42, 3.14159, true})
+		test(`
+            var def = {
+                "abc": ["abc"],
+                "xyz": ["xyz"]
+            };
+            xyz = pqr.concat(ghi, def.abc, def, def.xyz);
+            [ xyz, xyz.length ];
+        `, "jkl,42,3.14159,true,jkl,mno,abc,[object Object],xyz,9")
+	})
 }
 
 func Test_reflectMapInterface(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	_, test := runTestWithOtto()
+		{
+			abc := map[string]interface{}{
+				"Xyzzy": "Nothing happens.",
+				"def":   "1",
+				"jkl":   "jkl",
+			}
+			vm.Set("abc", abc)
+			vm.Set("mno", &testStruct{})
 
-	{
-		abc := map[string]interface{}{
-			"Xyzzy": "Nothing happens.",
-			"def":   "1",
-			"jkl":   "jkl",
+			test(`
+                abc.xyz = "pqr";
+                abc.ghi = {};
+                abc.jkl = 3.14159;
+                abc.mno = mno;
+                mno.Abc = true;
+                mno.Ghi = "Something happens.";
+                [ abc.Xyzzy, abc.def, abc.ghi, abc.mno ];
+            `, "Nothing happens.,1,[object Object],[object Object]")
+
+			is(abc["xyz"], "pqr")
+			is(abc["ghi"], "[object Object]")
+			is(abc["jkl"], float64(3.14159))
+			mno, valid := abc["mno"].(*testStruct)
+			is(valid, true)
+			is(mno.Abc, true)
+			is(mno.Ghi, "Something happens.")
 		}
-		failSet("abc", abc)
-		failSet("mno", &testStruct{})
-
-		test(`
-            abc.xyz = "pqr";
-            abc.ghi = {};
-            abc.jkl = 3.14159;
-            abc.mno = mno;
-            mno.Abc = true;
-            mno.Ghi = "Something happens.";
-            [ abc.Xyzzy, abc.def, abc.ghi, abc.mno ];
-        `, "Nothing happens.,1,[object Object],[object Object]")
-
-		Is(abc["xyz"], "pqr")
-		Is(abc["ghi"], "[object Object]")
-		Equal(abc["jkl"], float64(3.14159))
-		mno, valid := abc["mno"].(*testStruct)
-		Is(valid, true)
-		Is(mno.Abc, true)
-		Is(mno.Ghi, "Something happens.")
-	}
+	})
 }

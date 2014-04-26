@@ -1,17 +1,15 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 // bind
 func Test_underscore_functions_0(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("bind", function() {
     var context = {name : 'moe'};
     var func = function(arg) { return "name: " + (this.name || arg); };
@@ -46,16 +44,16 @@ func Test_underscore_functions_0(t *testing.T) {
     var Boundf = _.bind(F, {hello: "moe curly"});
     equal(Boundf().hello, "moe curly", "When called without the new operator, it's OK to be bound to the context");
   });
-    `)
+        `)
+	})
 }
 
 // partial
 func Test_underscore_functions_1(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("partial", function() {
     var obj = {name: 'moe'};
     var func = function() { return this.name + ' ' + _.toArray(arguments).join(' '); };
@@ -63,16 +61,16 @@ func Test_underscore_functions_1(t *testing.T) {
     obj.func = _.partial(func, 'a', 'b');
     equal(obj.func('c', 'd'), 'moe a b c d', 'can partially apply');
   });
-    `)
+        `)
+	})
 }
 
 // bindAll
 func Test_underscore_functions_2(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("bindAll", function() {
     var curly = {name : 'curly'}, moe = {
       name    : 'moe',
@@ -91,24 +89,20 @@ func Test_underscore_functions_2(t *testing.T) {
       getName : function() { return 'name: ' + this.name; },
       sayHi   : function() { return 'hi: ' + this.name; }
     };
-
-    // FIXME: This functionality is being changed in the underscore master right now
-    //raises(function() { _.bindAll(moe); }, Error, 'throws an error for bindAll with no functions named');
-
-    _.bindAll(moe, 'sayHi');
+    _.bindAll(moe);
     curly.sayHi = moe.sayHi;
-    equal(curly.sayHi(), 'hi: moe');
+    equal(curly.sayHi(), 'hi: moe', 'calling bindAll with no arguments binds all functions to the object');
   });
-    `)
+        `)
+	})
 }
 
 // memoize
 func Test_underscore_functions_3(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("memoize", function() {
     var fib = function(n) {
       return n < 2 ? n : fib(n - 1) + fib(n - 2);
@@ -124,16 +118,16 @@ func Test_underscore_functions_3(t *testing.T) {
     equal(o('toString'), 'toString', 'checks hasOwnProperty');
     equal(fastO('toString'), 'toString', 'checks hasOwnProperty');
   });
-    `)
+        `)
+	})
 }
 
 // once
 func Test_underscore_functions_4(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("once", function() {
     var num = 0;
     var increment = _.once(function(){ num++; });
@@ -141,16 +135,16 @@ func Test_underscore_functions_4(t *testing.T) {
     increment();
     equal(num, 1);
   });
-    `)
+        `)
+	})
 }
 
 // wrap
 func Test_underscore_functions_5(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("wrap", function() {
     var greet = function(name){ return "hi: " + name; };
     var backwards = _.wrap(greet, function(func, name){ return func(name) + ' ' + name.split('').reverse().join(''); });
@@ -166,16 +160,16 @@ func Test_underscore_functions_5(t *testing.T) {
     var ret     = wrapped(['whats', 'your'], 'vector', 'victor');
     deepEqual(ret, [noop, ['whats', 'your'], 'vector', 'victor']);
   });
-    `)
+        `)
+	})
 }
 
 // compose
 func Test_underscore_functions_6(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("compose", function() {
     var greet = function(name){ return "hi: " + name; };
     var exclaim = function(sentence){ return sentence + '!'; };
@@ -185,16 +179,16 @@ func Test_underscore_functions_6(t *testing.T) {
     composed = _.compose(greet, exclaim);
     equal(composed('moe'), 'hi: moe!', 'in this case, the functions are also commutative');
   });
-    `)
+        `)
+	})
 }
 
 // after
 func Test_underscore_functions_7(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("after", function() {
     var testAfter = function(afterAmount, timesCalled) {
       var afterCalled = 0;
@@ -209,5 +203,6 @@ func Test_underscore_functions_7(t *testing.T) {
     equal(testAfter(5, 4), 0, "after(N) should not fire unless called N times");
     equal(testAfter(0, 0), 1, "after(0) should fire immediately");
   });
-    `)
+        `)
+	})
 }

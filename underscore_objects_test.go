@@ -1,19 +1,17 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 // keys
 func Test_underscore_objects_0(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("keys", function() {
-    equal(_.keys({one : 1, two : 2}).sort().join(', '), 'one, two', 'can extract the keys from an object');
+    equal(_.keys({one : 1, two : 2}).join(', '), 'one, two', 'can extract the keys from an object');
     // the test above is not safe because it relies on for-in enumeration order
     var a = []; a[1] = 0;
     equal(_.keys(a).join(', '), '1', 'is not fooled by sparse arrays; see issue #95');
@@ -23,65 +21,62 @@ func Test_underscore_objects_0(t *testing.T) {
     raises(function() { _.keys('a'); }, TypeError, 'throws an error for string primitives');
     raises(function() { _.keys(true); }, TypeError, 'throws an error for boolean primitives');
   });
-    `)
+        `)
+	})
 }
 
 // values
 func Test_underscore_objects_1(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("values", function() {
-    equal(_.values({one: 1, two: 2}).sort().join(', '), '1, 2', 'can extract the values from an object');
-    equal(_.values({one: 1, two: 2, length: 3}).sort().join(', '), '1, 2, 3', '... even when one of them is "length"');
+    equal(_.values({one: 1, two: 2}).join(', '), '1, 2', 'can extract the values from an object');
+    equal(_.values({one: 1, two: 2, length: 3}).join(', '), '1, 2, 3', '... even when one of them is "length"');
   });
-    `)
+        `)
+	})
 }
 
 // pairs
 func Test_underscore_objects_2(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("pairs", function() {
-    // TODO: Property ordering unreliable
-    return;
     deepEqual(_.pairs({one: 1, two: 2}), [['one', 1], ['two', 2]], 'can convert an object into pairs');
     deepEqual(_.pairs({one: 1, two: 2, length: 3}), [['one', 1], ['two', 2], ['length', 3]], '... even when one of them is "length"');
   });
-    `)
+        `)
+	})
 }
 
 // invert
 func Test_underscore_objects_3(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("invert", function() {
     var obj = {first: 'Moe', second: 'Larry', third: 'Curly'};
-    // TODO: Property ordering unreliable
-    //equal(_.keys(_.invert(obj)).join(' '), 'Moe Larry Curly', 'can invert an object');
+    equal(_.keys(_.invert(obj)).join(' '), 'Moe Larry Curly', 'can invert an object');
     ok(_.isEqual(_.invert(_.invert(obj)), obj), 'two inverts gets you back where you started');
 
     var obj = {length: 3};
     ok(_.invert(obj)['3'] == 'length', 'can invert an object with "length"')
   });
-    `)
+        `)
+	})
 }
 
 // functions
 func Test_underscore_objects_4(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("functions", function() {
     var obj = {a : 'dash', b : _.map, c : (/yo/), d : _.reduce};
     ok(_.isEqual(['b', 'd'], _.functions(obj)), 'can grab the function names of any passed-in object');
@@ -90,16 +85,16 @@ func Test_underscore_objects_4(t *testing.T) {
     Animal.prototype.run = function(){};
     equal(_.functions(new Animal).join(''), 'run', 'also looks up functions on the prototype');
   });
-    `)
+        `)
+	})
 }
 
 // extend
 func Test_underscore_objects_5(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("extend", function() {
     var result;
     equal(_.extend({}, {a:'b'}).a, 'b', 'can extend an object with the attributes of another');
@@ -110,8 +105,7 @@ func Test_underscore_objects_5(t *testing.T) {
     result = _.extend({x:'x'}, {a:'a', x:2}, {a:'b'});
     ok(_.isEqual(result, {x:2, a:'b'}), 'extending from multiple source objects last property trumps');
     result = _.extend({}, {a: void 0, b: null});
-    // TODO: Property ordering unreliable
-    //equal(_.keys(result).join(''), 'ab', 'extend does not copy undefined values');
+    equal(_.keys(result).join(''), 'ab', 'extend does not copy undefined values');
 
     try {
       result = {};
@@ -120,16 +114,16 @@ func Test_underscore_objects_5(t *testing.T) {
 
     equal(result.a, 1, 'should not error on <null> or <undefined> sources');
   });
-    `)
+        `)
+	})
 }
 
 // pick
 func Test_underscore_objects_6(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("pick", function() {
     var result;
     result = _.pick({a:1, b:2, c:3}, 'a', 'c');
@@ -143,16 +137,16 @@ func Test_underscore_objects_6(t *testing.T) {
     Obj.prototype = {a: 1, b: 2, c: 3};
     ok(_.isEqual(_.pick(new Obj, 'a', 'c'), {a:1, c: 3}), 'include prototype props');
   });
-    `)
+        `)
+	})
 }
 
 // omit
 func Test_underscore_objects_7(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("omit", function() {
     var result;
     result = _.omit({a:1, b:2, c:3}, 'b');
@@ -166,16 +160,16 @@ func Test_underscore_objects_7(t *testing.T) {
     Obj.prototype = {a: 1, b: 2, c: 3};
     ok(_.isEqual(_.omit(new Obj, 'b'), {a:1, c: 3}), 'include prototype props');
   });
-    `)
+        `)
+	})
 }
 
 // defaults
 func Test_underscore_objects_8(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("defaults", function() {
     var result;
     var options = {zero: 0, one: 1, empty: "", nan: NaN, string: "string"};
@@ -197,16 +191,16 @@ func Test_underscore_objects_8(t *testing.T) {
 
     equal(options.a, 1, 'should not error on <null> or <undefined> sources');
   });
-    `)
+        `)
+	})
 }
 
 // clone
 func Test_underscore_objects_9(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("clone", function() {
     var moe = {name : 'moe', lucky : [13, 27, 34]};
     var clone = _.clone(moe);
@@ -222,16 +216,16 @@ func Test_underscore_objects_9(t *testing.T) {
     equal(_.clone(1), 1, 'non objects should not be changed by clone');
     equal(_.clone(null), null, 'non objects should not be changed by clone');
   });
-    `)
+        `)
+	})
 }
 
 // isEqual
 func Test_underscore_objects_10(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isEqual", function() {
     function First() {
       this.value = 1;
@@ -460,19 +454,22 @@ func Test_underscore_objects_10(t *testing.T) {
     b = _({x: 1, y: 2}).chain();
     equal(_.isEqual(a.isEqual(b), _(true)), true, '<isEqual> can be chained');
 
-    //// Objects from another frame.
-    //ok(_.isEqual({}, iObject));
+    // TEST: ???
+    return;
+
+    // Objects from another frame.
+    ok(_.isEqual({}, iObject));
   });
-    `)
+        `)
+	})
 }
 
 // isEmpty
 func Test_underscore_objects_11(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isEmpty", function() {
     ok(!_([1]).isEmpty(), '[1] is not empty');
     ok(_.isEmpty([]), '[] is empty');
@@ -488,16 +485,34 @@ func Test_underscore_objects_11(t *testing.T) {
     delete obj.one;
     ok(_.isEmpty(obj), 'deleting all the keys from an object empties it');
   });
-    `)
+        `)
+	})
+}
+
+// isElement
+func Test_underscore_objects_12(t *testing.T) {
+	// TEST: ReferenceError: $ is not defined
+	return
+
+	tt(t, func() {
+		test, _ := test_()
+
+		test(`
+  test("isElement", function() {
+    ok(!_.isElement('div'), 'strings are not dom elements');
+    ok(_.isElement($('html')[0]), 'the html tag is a DOM element');
+    ok(_.isElement(iElement), 'even from another frame');
+  });
+        `)
+	})
 }
 
 // isArguments
 func Test_underscore_objects_13(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isArguments", function() {
     var args = (function(){ return arguments; })(1, 2, 3);
     ok(!_.isArguments('string'), 'a string is not an arguments object');
@@ -505,25 +520,30 @@ func Test_underscore_objects_13(t *testing.T) {
     ok(_.isArguments(args), 'but the arguments object is an arguments object');
     ok(!_.isArguments(_.toArray(args)), 'but not when it\'s converted into an array');
     ok(!_.isArguments([1,2,3]), 'and not vanilla arrays.');
-    //ok(_.isArguments(iArguments), 'even from another frame');
+
+    // TEST: ReferenceError: iArguments is not defined
+    return;
+    ok(_.isArguments(iArguments), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isObject
 func Test_underscore_objects_14(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isObject", function() {
     ok(_.isObject(arguments), 'the arguments object is object');
     ok(_.isObject([1, 2, 3]), 'and arrays');
-    //ok(_.isObject($('html')[0]), 'and DOM element');
-    //ok(_.isObject(iElement), 'even from another frame');
+    // TEST: ReferenceError: $ is not defined
+    return;
+    ok(_.isObject($('html')[0]), 'and DOM element');
+    ok(_.isObject(iElement), 'even from another frame');
     ok(_.isObject(function () {}), 'and functions');
-    //ok(_.isObject(iFunction), 'even from another frame');
+    ok(_.isObject(iFunction), 'even from another frame');
     ok(!_.isObject(null), 'but not null');
     ok(!_.isObject(undefined), 'and not undefined');
     ok(!_.isObject('string'), 'and not string');
@@ -531,46 +551,53 @@ func Test_underscore_objects_14(t *testing.T) {
     ok(!_.isObject(true), 'and not boolean');
     ok(_.isObject(new String('string')), 'but new String()');
   });
-    `)
+        `)
+	})
 }
 
 // isArray
 func Test_underscore_objects_15(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isArray", function() {
     ok(!_.isArray(arguments), 'the arguments object is not an array');
     ok(_.isArray([1, 2, 3]), 'but arrays are');
-    //ok(_.isArray(iArray), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isArray(iArray), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isString
 func Test_underscore_objects_16(t *testing.T) {
-	Terst(t)
+	// TEST: ReferenceError: document is not defined
+	return
 
-	test := underscoreTest()
+	tt(t, func() {
+		test, _ := test_()
 
-	test(`
+		test(`
   test("isString", function() {
-    //ok(!_.isString(document.body), 'the document body is not a string');
+    ok(!_.isString(document.body), 'the document body is not a string');
     ok(_.isString([1, 2, 3].join(', ')), 'but strings are');
-    //ok(_.isString(iString), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isString(iString), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isNumber
 func Test_underscore_objects_17(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isNumber", function() {
     ok(!_.isNumber('string'), 'a string is not a number');
     ok(!_.isNumber(arguments), 'the arguments object is not a number');
@@ -578,19 +605,21 @@ func Test_underscore_objects_17(t *testing.T) {
     ok(_.isNumber(3 * 4 - 7 / 10), 'but numbers are');
     ok(_.isNumber(NaN), 'NaN *is* a number');
     ok(_.isNumber(Infinity), 'Infinity is a number');
-    //ok(_.isNumber(iNumber), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isNumber(iNumber), 'even from another frame');
     ok(!_.isNumber('1'), 'numeric strings are not numbers');
   });
-    `)
+        `)
+	})
 }
 
 // isBoolean
 func Test_underscore_objects_18(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isBoolean", function() {
     ok(!_.isBoolean(2), 'a number is not a boolean');
     ok(!_.isBoolean("string"), 'a string is not a boolean');
@@ -602,65 +631,73 @@ func Test_underscore_objects_18(t *testing.T) {
     ok(!_.isBoolean(null), 'null is not a boolean');
     ok(_.isBoolean(true), 'but true is');
     ok(_.isBoolean(false), 'and so is false');
-    //ok(_.isBoolean(iBoolean), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isBoolean(iBoolean), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isFunction
 func Test_underscore_objects_19(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isFunction", function() {
     ok(!_.isFunction([1, 2, 3]), 'arrays are not functions');
     ok(!_.isFunction('moe'), 'strings are not functions');
     ok(_.isFunction(_.isFunction), 'but functions are');
-    //ok(_.isFunction(iFunction), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isFunction(iFunction), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isDate
 func Test_underscore_objects_20(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isDate", function() {
     ok(!_.isDate(100), 'numbers are not dates');
     ok(!_.isDate({}), 'objects are not dates');
     ok(_.isDate(new Date()), 'but dates are');
-    //ok(_.isDate(iDate), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isDate(iDate), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isRegExp
 func Test_underscore_objects_21(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isRegExp", function() {
     ok(!_.isRegExp(_.identity), 'functions are not RegExps');
     ok(_.isRegExp(/identity/), 'but RegExps are');
-    //ok(_.isRegExp(iRegExp), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isRegExp(iRegExp), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isFinite
 func Test_underscore_objects_22(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isFinite", function() {
     ok(!_.isFinite(undefined), 'undefined is not Finite');
     ok(!_.isFinite(null), 'null is not Finite');
@@ -676,50 +713,54 @@ func Test_underscore_objects_22(t *testing.T) {
     ok(_.isFinite(123), 'Ints are Finite');
     ok(_.isFinite(-12.44), 'Floats are Finite');
   });
-    `)
+        `)
+	})
 }
 
 // isNaN
 func Test_underscore_objects_23(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isNaN", function() {
     ok(!_.isNaN(undefined), 'undefined is not NaN');
     ok(!_.isNaN(null), 'null is not NaN');
     ok(!_.isNaN(0), '0 is not NaN');
     ok(_.isNaN(NaN), 'but NaN is');
-    //ok(_.isNaN(iNaN), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isNaN(iNaN), 'even from another frame');
     ok(_.isNaN(new Number(NaN)), 'wrapped NaN is still NaN');
   });
-    `)
+        `)
+	})
 }
 
 // isNull
 func Test_underscore_objects_24(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isNull", function() {
     ok(!_.isNull(undefined), 'undefined is not null');
     ok(!_.isNull(NaN), 'NaN is not null');
     ok(_.isNull(null), 'but null is');
-    //ok(_.isNull(iNull), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isNull(iNull), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // isUndefined
 func Test_underscore_objects_25(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("isUndefined", function() {
     ok(!_.isUndefined(1), 'numbers are defined');
     ok(!_.isUndefined(null), 'null is defined');
@@ -727,18 +768,20 @@ func Test_underscore_objects_25(t *testing.T) {
     ok(!_.isUndefined(NaN), 'NaN is defined');
     ok(_.isUndefined(), 'nothing is undefined');
     ok(_.isUndefined(undefined), 'undefined is undefined');
-    //ok(_.isUndefined(iUndefined), 'even from another frame');
+    // TEST: ???
+    return;
+    ok(_.isUndefined(iUndefined), 'even from another frame');
   });
-    `)
+        `)
+	})
 }
 
 // tap
 func Test_underscore_objects_26(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("tap", function() {
     var intercepted = null;
     var interceptor = function(obj) { intercepted = obj; };
@@ -753,16 +796,16 @@ func Test_underscore_objects_26(t *testing.T) {
       value();
     ok(returned == 6 && intercepted == 6, 'can use tapped objects in a chain');
   });
-    `)
+        `)
+	})
 }
 
 // has
 func Test_underscore_objects_27(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("has", function () {
      var obj = {foo: "bar", func: function () {} };
      ok (_.has(obj, "foo"), "has() checks that the object has a property.");
@@ -774,5 +817,6 @@ func Test_underscore_objects_27(t *testing.T) {
      child.prototype = obj;
      ok (_.has(child, "foo") == false, "has() does not check the prototype chain for a property.")
   });
-    `)
+        `)
+	})
 }

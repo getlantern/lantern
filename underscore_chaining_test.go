@@ -1,17 +1,15 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 // map/flatten/reduce
 func Test_underscore_chaining_0(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("map/flatten/reduce", function() {
     var lyrics = [
       "I'm a lumberjack and I'm okay",
@@ -29,16 +27,16 @@ func Test_underscore_chaining_0(t *testing.T) {
     }, {}).value();
     ok(counts['a'] == 16 && counts['e'] == 10, 'counted all the letters in the song');
   });
-    `)
+        `)
+	})
 }
 
 // select/reject/sortBy
 func Test_underscore_chaining_1(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("select/reject/sortBy", function() {
     var numbers = [1,2,3,4,5,6,7,8,9,10];
     numbers = _(numbers).chain().select(function(n) {
@@ -50,16 +48,16 @@ func Test_underscore_chaining_1(t *testing.T) {
     }).value();
     equal(numbers.join(', '), "10, 6, 2", "filtered and reversed the numbers");
   });
-    `)
+        `)
+	})
 }
 
 // select/reject/sortBy in functional style
 func Test_underscore_chaining_2(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("select/reject/sortBy in functional style", function() {
     var numbers = [1,2,3,4,5,6,7,8,9,10];
     numbers = _.chain(numbers).select(function(n) {
@@ -71,16 +69,16 @@ func Test_underscore_chaining_2(t *testing.T) {
     }).value();
     equal(numbers.join(', '), "10, 6, 2", "filtered and reversed the numbers");
   });
-    `)
+        `)
+	})
 }
 
 // reverse/concat/unshift/pop/map
 func Test_underscore_chaining_3(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("reverse/concat/unshift/pop/map", function() {
     var numbers = [1,2,3,4,5];
     numbers = _(numbers).chain()
@@ -92,5 +90,6 @@ func Test_underscore_chaining_3(t *testing.T) {
       .value();
     equal(numbers.join(', '), "34, 10, 8, 6, 4, 2, 10, 10", 'can chain together array functions.');
   });
-    `)
+        `)
+	})
 }

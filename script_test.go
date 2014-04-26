@@ -1,77 +1,76 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 func TestScript(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		return
 
-	return
+		vm := New()
 
-	vm := New()
+		script, err := vm.Compile("xyzzy", `var abc; if (!abc) abc = 0; abc += 2; abc;`)
+		is(err, nil)
 
-	script, err := vm.Compile("xyzzy", `var abc; if (!abc) abc = 0; abc += 2; abc;`)
-	Is(err, nil)
-
-	str := script.String()
-	Is(str, "// xyzzy\nvar abc; if (!abc) abc = 0; abc += 2; abc;")
-
-	value, err := vm.Run(script)
-	Is(err, nil)
-	is(value, 2)
-
-	tmp, err := script.marshalBinary()
-	Is(err, nil)
-	Is(len(tmp), 1228)
-
-	{
-		script := &Script{}
-		err = script.unmarshalBinary(tmp)
-		Is(err, nil)
-
-		Is(script.String(), str)
-
-		value, err = vm.Run(script)
-		Is(err, nil)
-		is(value, 4)
-
-		tmp, err = script.marshalBinary()
-		Is(err, nil)
-		Is(len(tmp), 1228)
-	}
-
-	{
-		script := &Script{}
-		err = script.unmarshalBinary(tmp)
-		Is(err, nil)
-
-		Is(script.String(), str)
+		str := script.String()
+		is(str, "// xyzzy\nvar abc; if (!abc) abc = 0; abc += 2; abc;")
 
 		value, err := vm.Run(script)
-		Is(err, nil)
-		is(value, 6)
+		is(err, nil)
+		is(value, 2)
 
-		tmp, err = script.marshalBinary()
-		Is(err, nil)
-		Is(len(tmp), 1228)
-	}
+		tmp, err := script.marshalBinary()
+		is(err, nil)
+		is(len(tmp), 1228)
 
-	{
-		version := scriptVersion
-		scriptVersion = "bogus"
+		{
+			script := &Script{}
+			err = script.unmarshalBinary(tmp)
+			is(err, nil)
 
-		script := &Script{}
-		err = script.unmarshalBinary(tmp)
-		Is(err, "version mismatch")
+			is(script.String(), str)
 
-		Is(script.String(), "// \n")
-		Is(script.version, "")
-		Is(script.program == nil, true)
-		Is(script.filename, "")
-		Is(script.src, "")
+			value, err = vm.Run(script)
+			is(err, nil)
+			is(value, 4)
 
-		scriptVersion = version
-	}
+			tmp, err = script.marshalBinary()
+			is(err, nil)
+			is(len(tmp), 1228)
+		}
+
+		{
+			script := &Script{}
+			err = script.unmarshalBinary(tmp)
+			is(err, nil)
+
+			is(script.String(), str)
+
+			value, err := vm.Run(script)
+			is(err, nil)
+			is(value, 6)
+
+			tmp, err = script.marshalBinary()
+			is(err, nil)
+			is(len(tmp), 1228)
+		}
+
+		{
+			version := scriptVersion
+			scriptVersion = "bogus"
+
+			script := &Script{}
+			err = script.unmarshalBinary(tmp)
+			is(err, "version mismatch")
+
+			is(script.String(), "// \n")
+			is(script.version, "")
+			is(script.program == nil, true)
+			is(script.filename, "")
+			is(script.src, "")
+
+			scriptVersion = version
+		}
+	})
 }

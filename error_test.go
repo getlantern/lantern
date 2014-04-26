@@ -1,63 +1,62 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 func TestError(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test()
 
-	test := runTest()
-
-	test(`
-        [ Error.prototype.name, Error.prototype.message, Error.prototype.hasOwnProperty("message") ];
-    `, "Error,,true")
+		test(`
+            [ Error.prototype.name, Error.prototype.message, Error.prototype.hasOwnProperty("message") ];
+        `, "Error,,true")
+	})
 }
 
 func TestError_instanceof(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test()
 
-	test := runTest()
-
-	test(`(new TypeError()) instanceof Error`, true)
+		test(`(new TypeError()) instanceof Error`, true)
+	})
 }
 
 func TestPanicValue(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, vm := test()
 
-	test := runTest()
+		vm.Set("abc", func(call FunctionCall) Value {
+			value, err := call.Otto.Run(`({ def: 3.14159 })`)
+			is(err, nil)
+			panic(value)
+		})
 
-	failSet("abc", func(call FunctionCall) Value {
-		value, err := call.Otto.Run(`({ def: 3.14159 })`)
-		Is(err, nil)
-		panic(value)
+		test(`
+            try {
+                abc();
+            }
+            catch (err) {
+                error = err;
+            }
+            [ error instanceof Error, error.message, error.def ];
+        `, "false,,3.14159")
 	})
-
-	test(`
-        try {
-            abc();
-        }
-        catch (err) {
-            error = err;
-        }
-        [ error instanceof Error, error.message, error.def ];
-    `, "false,,3.14159")
 }
 
 func Test_catchPanic(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		vm := New()
 
-	otto, _ := runTestWithOtto()
+		_, err := vm.Run(`
+            A syntax error that
+            does not define
+            var;
+                abc;
+        `)
+		is(err, "!=", nil)
 
-	_, err := otto.Run(`
-        A syntax error that
-        does not define
-        var;
-            abc;
-    `)
-	IsNot(err, nil)
-
-	_, err = otto.Call(`abc.def`, nil)
-	IsNot(err, nil)
+		_, err = vm.Call(`abc.def`, nil)
+		is(err, "!=", nil)
+	})
 }

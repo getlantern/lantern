@@ -3,11 +3,11 @@
 .PHONY: otto assets underscore
 
 TESTS := \
-	FunctionDeclarationInFunction \
 	~
 
 TEST := -v --run
 TEST := -v --run Test\($(subst $(eval) ,\|,$(TESTS))\)
+TEST := -v
 TEST := .
 
 test: parser inline.go

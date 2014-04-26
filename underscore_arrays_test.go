@@ -1,17 +1,15 @@
 package otto
 
 import (
-	. "./terst"
 	"testing"
 )
 
 // first
 func Test_underscore_arrays_0(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("first", function() {
     equal(_.first([1,2,3]), 1, 'can pull out the first element of an array');
     equal(_([1, 2, 3]).first(), 1, 'can perform OO-style "first()"');
@@ -27,16 +25,16 @@ func Test_underscore_arrays_0(t *testing.T) {
 
     equal(_.first(null), undefined, 'handles nulls');
   });
-    `)
+        `)
+	})
 }
 
 // rest
 func Test_underscore_arrays_1(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("rest", function() {
     var numbers = [1, 2, 3, 4];
     equal(_.rest(numbers).join(", "), "2, 3, 4", 'working rest()');
@@ -49,16 +47,16 @@ func Test_underscore_arrays_1(t *testing.T) {
     result = (function(){ return _(arguments).drop(); })(1, 2, 3, 4);
     equal(result.join(', '), '2, 3, 4', 'aliased as drop and works on arguments object');
   });
-    `)
+        `)
+	})
 }
 
 // initial
 func Test_underscore_arrays_2(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("initial", function() {
     equal(_.initial([1,2,3,4,5]).join(", "), "1, 2, 3, 4", 'working initial()');
     equal(_.initial([1,2,3,4],2).join(", "), "1, 2", 'initial can take an index');
@@ -67,16 +65,16 @@ func Test_underscore_arrays_2(t *testing.T) {
     result = _.map([[1,2,3],[1,2,3]], _.initial);
     equal(_.flatten(result).join(','), '1,2,1,2', 'initial works with _.map');
   });
-    `)
+        `)
+	})
 }
 
 // last
 func Test_underscore_arrays_3(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("last", function() {
     equal(_.last([1,2,3]), 3, 'can pull out the last element of an array');
     equal(_.last([1,2,3], 0).join(', '), "", 'can pass an index to last');
@@ -89,31 +87,31 @@ func Test_underscore_arrays_3(t *testing.T) {
 
     equal(_.last(null), undefined, 'handles nulls');
   });
-    `)
+        `)
+	})
 }
 
 // compact
 func Test_underscore_arrays_4(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("compact", function() {
     equal(_.compact([0, 1, false, 2, false, 3]).length, 3, 'can trim out all falsy values');
     var result = (function(){ return _.compact(arguments).length; })(0, 1, false, 2, false, 3);
     equal(result, 3, 'works on an arguments object');
   });
-    `)
+        `)
+	})
 }
 
 // flatten
 func Test_underscore_arrays_5(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("flatten", function() {
     var list = [1, [2], [3, [[[4]]]]];
     deepEqual(_.flatten(list), [1,2,3,4], 'can flatten nested arrays');
@@ -121,16 +119,16 @@ func Test_underscore_arrays_5(t *testing.T) {
     var result = (function(){ return _.flatten(arguments); })(1, [2], [3, [[[4]]]]);
     deepEqual(result, [1,2,3,4], 'works on an arguments object');
   });
-    `)
+        `)
+	})
 }
 
 // without
 func Test_underscore_arrays_6(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("without", function() {
     var list = [1, 2, 1, 0, 3, 1, 4];
     equal(_.without(list, 0, 1).join(', '), '2, 3, 4', 'can remove all instances of an object');
@@ -141,16 +139,16 @@ func Test_underscore_arrays_6(t *testing.T) {
     ok(_.without(list, {one : 1}).length == 2, 'uses real object identity for comparisons.');
     ok(_.without(list, list[0]).length == 1, 'ditto.');
   });
-    `)
+        `)
+	})
 }
 
 // uniq
 func Test_underscore_arrays_7(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("uniq", function() {
     var list = [1, 2, 1, 3, 1, 4];
     equal(_.uniq(list).join(', '), '1, 2, 3, 4', 'can find the unique values of an unsorted array');
@@ -171,16 +169,16 @@ func Test_underscore_arrays_7(t *testing.T) {
     var result = (function(){ return _.uniq(arguments); })(1, 2, 1, 3, 1, 4);
     equal(result.join(', '), '1, 2, 3, 4', 'works on an arguments object');
   });
-    `)
+        `)
+	})
 }
 
 // intersection
 func Test_underscore_arrays_8(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("intersection", function() {
     var stooges = ['moe', 'curly', 'larry'], leaders = ['moe', 'groucho'];
     equal(_.intersection(stooges, leaders).join(''), 'moe', 'can take the set intersection of two arrays');
@@ -188,16 +186,16 @@ func Test_underscore_arrays_8(t *testing.T) {
     var result = (function(){ return _.intersection(arguments, leaders); })('moe', 'curly', 'larry');
     equal(result.join(''), 'moe', 'works on an arguments object');
   });
-    `)
+        `)
+	})
 }
 
 // union
 func Test_underscore_arrays_9(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("union", function() {
     var result = _.union([1, 2, 3], [2, 30, 1], [1, 40]);
     equal(result.join(' '), '1 2 3 30 40', 'takes the union of a list of arrays');
@@ -205,16 +203,16 @@ func Test_underscore_arrays_9(t *testing.T) {
     var result = _.union([1, 2, 3], [2, 30, 1], [1, 40, [1]]);
     equal(result.join(' '), '1 2 3 30 40 1', 'takes the union of a list of nested arrays');
   });
-    `)
+        `)
+	})
 }
 
 // difference
 func Test_underscore_arrays_10(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("difference", function() {
     var result = _.difference([1, 2, 3], [2, 30, 40]);
     equal(result.join(' '), '1 3', 'takes the difference of two arrays');
@@ -222,31 +220,31 @@ func Test_underscore_arrays_10(t *testing.T) {
     var result = _.difference([1, 2, 3, 4], [2, 30, 40], [1, 11, 111]);
     equal(result.join(' '), '3 4', 'takes the difference of three arrays');
   });
-    `)
+        `)
+	})
 }
 
 // zip
 func Test_underscore_arrays_11(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('zip', function() {
     var names = ['moe', 'larry', 'curly'], ages = [30, 40, 50], leaders = [true];
     var stooges = _.zip(names, ages, leaders);
     equal(String(stooges), 'moe,30,true,larry,40,,curly,50,', 'zipped together arrays of different lengths');
   });
-    `)
+        `)
+	})
 }
 
 // object
 func Test_underscore_arrays_12(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test('object', function() {
     var result = _.object(['moe', 'larry', 'curly'], [30, 40, 50]);
     var shouldBe = {moe: 30, larry: 40, curly: 50};
@@ -261,16 +259,16 @@ func Test_underscore_arrays_12(t *testing.T) {
 
     ok(_.isEqual(_.object(null), {}), 'handles nulls');
   });
-    `)
+        `)
+	})
 }
 
 // indexOf
 func Test_underscore_arrays_13(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("indexOf", function() {
     var numbers = [1, 2, 3];
     numbers.indexOf = null;
@@ -295,16 +293,16 @@ func Test_underscore_arrays_13(t *testing.T) {
     index = _.indexOf(numbers, 2, 5);
     equal(index, 7, 'supports the fromIndex argument');
   });
-    `)
+        `)
+	})
 }
 
 // lastIndexOf
 func Test_underscore_arrays_14(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("lastIndexOf", function() {
     var numbers = [1, 0, 1];
     equal(_.lastIndexOf(numbers, 1), 2);
@@ -321,16 +319,16 @@ func Test_underscore_arrays_14(t *testing.T) {
     var index = _.lastIndexOf(numbers, 2, 2);
     equal(index, 1, 'supports the fromIndex argument');
   });
-    `)
+        `)
+	})
 }
 
 // range
 func Test_underscore_arrays_15(t *testing.T) {
-	Terst(t)
+	tt(t, func() {
+		test, _ := test_()
 
-	test := underscoreTest()
-
-	test(`
+		test(`
   test("range", function() {
     equal(_.range(0).join(''), '', 'range with 0 as a first argument generates an empty array');
     equal(_.range(4).join(' '), '0 1 2 3', 'range with a single positive argument generates an array of elements 0,1,2,...,n-1');
@@ -341,5 +339,6 @@ func Test_underscore_arrays_15(t *testing.T) {
     equal(_.range(12, 7, -2).join(' '), '12 10 8', 'range with three arguments a &amp; b &amp; c, a &gt; b, c &lt; 0 generates an array of elements a,a-c,a-2c and ends with the number not less than b');
     equal(_.range(0, -10, -1).join(' '), '0 -1 -2 -3 -4 -5 -6 -7 -8 -9', 'final example in the Python docs');
   });
-    `)
+        `)
+	})
 }
