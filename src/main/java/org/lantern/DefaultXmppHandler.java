@@ -28,9 +28,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.IQTypeFilter;
 import org.jivesoftware.smack.filter.PacketFilter;
-import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
@@ -156,17 +154,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final KscopeAdHandler kscopeAdHandler;
 
-    private TimerTask reconnectIfNoPong;
-
-    /**
-     * The XMPP message id that we are waiting for a pong on
-     */
-    private String waitingForPong;
-
-    private long pingTimeout = 15 * 1000;
-
-    protected XMPPConnection previousConnection;
-
     private final ExecutorService xmppProcessors =
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
 
@@ -264,66 +251,6 @@ public class DefaultXmppHandler implements XmppHandler,
         }
     }
 
-    @Subscribe
-    public void onConnectivityChanged(final ConnectivityChangedEvent e) {
-        if (!e.isConnected()) {
-            // send a ping message to determine if we need to reconnect; failed
-            // STUN connectivity is not necessarily a death sentence for the
-            // XMPP connection.
-            // If the ping fails, then XmppP2PClient will retry that connection
-            // in a loop.
-            ping();
-            return;
-        }
-        LOG.info("Connected to internet: {}", e);
-        if (e.isIpChanged()) {
-            //definitely need to reconnect here
-            reconnect();
-        } else {
-            if (!isLoggedIn()) {
-                //definitely need to reconnect here
-                reconnect();
-            } else {
-                ping();
-            }
-        }
-    }
-
-    private void ping() {
-        //if we are already pinging, cancel the existing ping
-        //and retry
-        if (reconnectIfNoPong != null) {
-            reconnectIfNoPong.cancel();
-        }
-
-        final IQ ping = new IQ() {
-            @Override
-            public String getChildElementXML() {
-                return "<ping xmlns='urn:xmpp:ping'/>";
-            }
-        };
-        
-        waitingForPong = ping.getPacketID();
-        //set up timer to reconnect if we don't hear a pong
-        reconnectIfNoPong = new Reconnector();
-        timer.schedule(reconnectIfNoPong, pingTimeout);
-        //and send the ping
-        sendPacket(ping);
-    }
-
-    /**
-     * This will be cancelled if a pong is received,
-     * indicating that we have already successfully
-     * reconnected
-     */
-
-    private class Reconnector extends TimerTask {
-        @Override
-        public void run() {
-            reconnect();
-        }
-    }
-
     @Override
     public synchronized void connect() throws IOException, CredentialException,
         NotInClosedBetaException {
@@ -370,40 +297,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private String getResource() {
         return LanternConstants.UNCENSORED_ID;
-    }
-
-    /** listen to responses for XMPP pings, and if we get any,
-    cancel pending reconnects
-    */
-    private class PingListener implements PacketListener {
-        @Override
-        public void processPacket(Packet packet) {
-            IQ iq = (IQ) packet;
-            if (iq.getPacketID().equals(waitingForPong)) {
-                LOG.debug("Got pong, cancelling pending reconnect");
-                reconnectIfNoPong.cancel();
-            }
-        }
-    }
-
-    private class DefaultP2PConnectionListener implements P2PConnectionListener {
-
-        @Override
-        public void onConnectivityEvent(final P2PConnectionEvent event) {
-
-            LOG.debug("Got connectivity event: {}", event);
-            Events.asyncEventBus().post(event);
-            XMPPConnection connection = client.get().getXmppConnection();
-            if (connection == previousConnection) {
-                LOG.debug("We only add packet listener once, ignoring");
-                return;
-            }
-            previousConnection = connection;
-
-            LOG.debug("Adding packet listener");
-            connection.addPacketListener(new PingListener(),
-                    new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
-        }
     }
 
     /**
@@ -478,8 +371,6 @@ public class DefaultXmppHandler implements XmppHandler,
         client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
                 sessionListener));
         LOG.debug("Set client for xmpp handler: "+hashCode());
-
-        client.get().addConnectionListener(new DefaultP2PConnectionListener());
     }
 
     private void getStunServers(final XMPPConnection connection) {
@@ -1075,19 +966,6 @@ public class DefaultXmppHandler implements XmppHandler,
             return false;
         }
         return conn.isAuthenticated();
-    }
-
-    /** Try to reconnect to the xmpp server */
-    private void reconnect() {
-        //this will trigger XmppP2PClient's internal reconnection logic
-        if (hasConnection()) {
-            client.get().getXmppConnection().disconnect();
-        }
-        // Otherwise the client should already be trying to connect.
-    }
-
-    private boolean hasConnection() {
-        return client.get() != null && client.get().getXmppConnection() != null;
     }
 
     @Override

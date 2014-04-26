@@ -3,12 +3,13 @@ package org.lantern;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.TimerTask;
 
 import org.lantern.event.Events;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
-import org.lantern.util.PublicIpAddress;
+import org.littleshoot.proxy.impl.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +28,6 @@ public class ConnectivityChecker extends TimerTask {
 
     private final Model model;
 
-    private boolean wasConnected;
-
     @Inject
     ConnectivityChecker(final Model model) {
         this.model = model;
@@ -36,47 +35,51 @@ public class ConnectivityChecker extends TimerTask {
 
     @Override
     public void run() {
-        wasConnected = Boolean.TRUE.equals(model.getConnectivity().isInternet());
-        InetAddress ip = determineCurrentIpAddress();
+        final boolean wasConnected = 
+                Boolean.TRUE.equals(model.getConnectivity().isInternet());
+        final InetAddress ip = localIpAddressIfConnected();
         if (ip != null) {
-            notifyConnected(ip);
+            if (!wasConnected) {
+                LOG.info("Became connected");
+                notifyConnected(ip);
+            }
+            this.model.getConnectivity().setInternet(Boolean.TRUE);
         } else {
             if (wasConnected) {
                 LOG.info("Became disconnected");
                 notifyDisconnected();
             }
+            this.model.getConnectivity().setInternet(Boolean.FALSE);
         }
     }
 
-    private InetAddress determineCurrentIpAddress() {
+    private InetAddress localIpAddressIfConnected() {
         // Check if the Internet is reachable
         boolean internetIsReachable = areAnyTestSitesReachable();
 
-        InetAddress ip = null;
         if (internetIsReachable) {
-            LOG.debug("Internet is reachable, determine our IP address");
-            boolean forceCheck = !wasConnected;
-            ip = new PublicIpAddress().getPublicIpAddress(forceCheck);
-        }
-
-        if (!internetIsReachable) {
-            LOG.info("None of the test sites were reachable -- possibly no internet connection");
-            return null;
-        }
-        if (ip == null) {
-            LOG.info("No IP -- possibly no internet connection");
-            return null;
-        }
-
-        return ip;
+            LOG.debug("Internet is reachable...");
+            //boolean forceCheck = !wasConnected;
+            //return new PublicIpAddress().getPublicIpAddress(forceCheck);
+            try {
+                return NetworkUtils.getLocalHost();
+            } catch (UnknownHostException e) {
+                LOG.error("Could not get local host?", e);
+            }
+        } 
+        
+        LOG.info("None of the test sites were reachable -- no internet connection");
+        return null;
     }
 
     private void notifyConnected(InetAddress ip) {
         Connectivity connectivity = model.getConnectivity();
         String oldIp = connectivity.getIp();
         String newIpString = ip.getHostAddress();
+        
+        connectivity.setIp(newIpString);
         if (newIpString.equals(oldIp)) {
-            if (!wasConnected) {
+            if (!model.getConnectivity().isInternet()) {
                 LOG.info("Became connected with same IP address");
                 ConnectivityChangedEvent event = new ConnectivityChangedEvent(
                         true, false, ip);
@@ -88,6 +91,7 @@ public class ConnectivityChecker extends TimerTask {
                     true, ip);
             Events.asyncEventBus().post(event);
         }
+        
     }
 
     private void notifyDisconnected() {
@@ -109,10 +113,12 @@ public class ConnectivityChecker extends TimerTask {
         Socket socket = null;
         try {
             socket = new Socket();
+            LOG.debug("Testing site: {}", site);
             socket.connect(new InetSocketAddress(site, 80),
                     TEST_SOCKET_TIMEOUT_MILLIS);
             return true;
         } catch (Exception e) {
+            LOG.debug("Could not connect", e);
             // Ignore
             return false;
         } finally {

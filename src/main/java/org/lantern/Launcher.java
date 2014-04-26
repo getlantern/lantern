@@ -22,7 +22,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.event.ProxyAndTokenTracker;
-import org.lantern.http.GeoIp;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
@@ -252,6 +251,8 @@ public class Launcher {
 
         instance(ProxyAndTokenTracker.class);
         instance(XmppConnector.class);
+        
+        instance(PublicIpAddressHandler.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
@@ -276,19 +277,16 @@ public class Launcher {
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
             String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
-            FallbackChecker fbc = null;
             try {
-                fbc = new FallbackChecker(proxyTracker, configFolderPath, 
-                        httpClientFactory);
+                final FallbackChecker fbc = new FallbackChecker(proxyTracker, 
+                        configFolderPath, httpClientFactory);
+                Thread t = new Thread(fbc);
+                t.start();
             } catch (Exception e) {
                 LOG.error("Error instantiating FallbackChecker:");
                 e.printStackTrace();
                 System.exit(1);
             }
-            Thread t = new Thread(fbc);
-            t.start();
-        } else {
-            s3ConfigManager.start();
         }
 
         xmpp = instance(DefaultXmppHandler.class);
@@ -298,7 +296,6 @@ public class Launcher {
         internalState = instance(InternalState.class);
         syncService = instance(SyncService.class);
 
-        instance(GeoIp.class);
         statsManager = instance(StatsManager.class);
         
         // Use our stored STUN servers if available.
@@ -365,10 +362,7 @@ public class Launcher {
                 }
 
                 syncService.start();
-                statsManager.start();
-                
                 gnomeAutoStart();
-                
                 
                 // If for some reason oauth isn't configured but setup is 
                 // complete, try to authorize again.

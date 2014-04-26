@@ -13,7 +13,6 @@ import org.jivesoftware.smack.SASLAuthentication;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.http.GeoIp;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
@@ -130,7 +129,6 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(StatsManager.class);
         bind(ConnectivityChecker.class);
-        bind(GeoIp.class);
         bind(CountryService.class);
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);

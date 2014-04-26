@@ -2,7 +2,6 @@ package org.lantern.http;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
@@ -21,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.lantern.Censored;
-import org.lantern.ConnectivityChangedEvent;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
@@ -32,7 +30,6 @@ import org.lantern.SecurityUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.oauth.RefreshToken;
-import org.lantern.state.Connectivity;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
@@ -42,7 +39,6 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Desktop;
 import org.slf4j.Logger;
@@ -740,35 +736,6 @@ public class InteractionServlet extends HttpServlet {
                     Events.syncModal(model, Modal.giveModeForbidden);
                 }
             }
-        }
-    }
-
-    @Subscribe
-    public void onConnectivityChanged(final ConnectivityChangedEvent e) {
-        Connectivity connectivity = model.getConnectivity();
-        if (!e.isConnected()) {
-            connectivity.setInternet(false);
-            Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
-            return;
-        }
-        InetAddress ip = e.getNewIp();
-        connectivity.setIp(ip.getHostAddress());
-
-        connectivity.setInternet(true);
-        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-
-        Settings set = model.getSettings();
-
-        if (set.getMode() == null || set.getMode() == Mode.unknown) {
-            if (censored.isCensored()) {
-                set.setMode(Mode.get);
-            }
-        } else if (set.getMode() == Mode.give && censored.isCensored()) {
-            // want to set the mode to get now so that we don't mistakenly
-            // proxy any more than necessary
-            set.setMode(Mode.get);
-            log.info("Disconnected; setting giveModeForbidden");
-            Events.syncModal(model, Modal.giveModeForbidden);
         }
     }
 }
