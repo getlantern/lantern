@@ -457,7 +457,15 @@ func Terst(t *testing.T, arguments ...func()) {
 	for _, fn := range arguments {
 		func() {
 			scope.reset()
-			scope.name = "-"
+			name := scope.testFunc.Name()
+			index := strings.LastIndex(scope.testFunc.Name(), ".")
+			if index >= 0 {
+				name = name[index+1:] + "(Terst)"
+			} else {
+				name = "(Terst)"
+			}
+			name = "(Terst)"
+			scope.name = name
 			scope.start = time.Now()
 			defer func() {
 				scope.duration = time.Now().Sub(scope.start)
@@ -475,12 +483,11 @@ func Terst(t *testing.T, arguments ...func()) {
 
 // From "testing"
 func (scope *_scope) report() {
-	tstr := fmt.Sprintf("(%.2f seconds)", scope.duration.Seconds())
-	format := "--- %s: %s %s\n%s"
+	format := "~~~ %s: (Terst)\n%s"
 	if scope.t.Failed() {
-		fmt.Printf(format, "FAIL", scope.name, tstr, scope.output)
-	} else if testing.Verbose() {
-		fmt.Printf(format, "PASS", scope.name, tstr, scope.output)
+		fmt.Printf(format, "FAIL", scope.output)
+	} else if testing.Verbose() && len(scope.output) > 0 {
+		fmt.Printf(format, "PASS", scope.output)
 	}
 }
 
