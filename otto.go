@@ -167,7 +167,7 @@ If you want to stop long running executions (like third-party code), you can use
         "github.com/robertkrimen/otto"
     )
 
-    var Halt = errors.New("Halt")
+    var halt = errors.New("Stahp")
 
     func main() {
         runUnsafe(`var abc = [];`)
@@ -182,7 +182,7 @@ If you want to stop long running executions (like third-party code), you can use
         defer func() {
             duration := time.Since(start)
             if caught := recover(); caught != nil {
-                if caught == Halt {
+                if caught == halt {
                     fmt.Fprintf(os.Stderr, "Some code took to long! Stopping after: %v\n", duration)
                     return
                 }
@@ -195,7 +195,7 @@ If you want to stop long running executions (like third-party code), you can use
         go func() {
             time.Sleep(2 * time.Second) // Stop after two seconds
             vm.Interrupt <- func() {
-                panic(Halt)
+                panic(halt)
             }
         }()
         vm.Run(unsafe) // Here be dragons (risky code)
@@ -207,7 +207,11 @@ Where is setTimeout/setInterval?
 These timing functions are not actually part of the ECMA-262 specification. Typically, they belong to the `windows` object (in the browser).
 It would not be difficult to provide something like these via Go, but you probably want to wrap otto in an event loop in that case.
 
-Here is some discussion of the problem:
+For an example of how this could be done in Go with otto, see natto:
+
+http://github.com/robertkrimen/natto
+
+Here is some more discussion of the issue:
 
 * http://book.mixu.net/node/ch2.html
 
