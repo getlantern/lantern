@@ -12,10 +12,10 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
 import org.lantern.LanternConstants;
-import org.lantern.LanternService;
 import org.lantern.LanternUtils;
-import org.lantern.S3Config;
+import org.lantern.Shutdownable;
 import org.lantern.event.Events;
+import org.lantern.event.ProxyAndTokenEvent;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -29,7 +29,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class StatsManager implements LanternService {
+public class StatsManager implements Shutdownable {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
     public static final long FALLBACK_POST_INTERVAL = 20;
@@ -62,13 +62,13 @@ public class StatsManager implements LanternService {
      *            The new config.
      */
     @Subscribe
-    public void onS3Config(final S3Config config) {
+    public void onConnectedWithRefresh(final ProxyAndTokenEvent proxyAndToken) {
+        LOGGER.debug("Got connected with refresh event");
         stop();
         start();
     }
 
-    @Override
-    public void start() {
+    private void start() {
         getScheduler = Threads
                 .newSingleThreadScheduledExecutor("StatsManager-Get");
         postScheduler = Threads

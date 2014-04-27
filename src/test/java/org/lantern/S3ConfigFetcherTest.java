@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -32,7 +33,8 @@ public class S3ConfigFetcherTest {
         final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
         
         assertTrue(model.getS3Config().getFallbacks().isEmpty());
-        fetcher.start();
+        fetcher.onConnectivityChangedEvent(
+                new ConnectivityChangedEvent(true, true, InetAddress.getLocalHost()));
         
         assertFalse(model.getS3Config().getFallbacks().isEmpty());
     }
@@ -54,7 +56,8 @@ public class S3ConfigFetcherTest {
         model.getS3Config().setFallbacks(Arrays.asList(new FallbackProxy()));
         
         assertNull(messageRef.get());
-        fetcher.start();
+        fetcher.onConnectivityChangedEvent(
+                new ConnectivityChangedEvent(true, true, InetAddress.getLocalHost()));
         
         assertFalse(model.getS3Config().getFallbacks().isEmpty());
         

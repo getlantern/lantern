@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.eventbus.Subscribe;
 
 /**
  * This class continually fetches new Lantern configuration files on S3, 
@@ -57,10 +58,19 @@ public class S3ConfigFetcher {
         log.debug("Creating s3 config fetcher...");
         this.model = model;
         this.httpClientFactory = httpClientFactory;
+        Events.register(this);
     }
     
-
-    public void start() {
+    @Subscribe
+    public void onConnectivityChangedEvent(
+            final ConnectivityChangedEvent event) {
+        log.debug("Got connectivity!!");
+        if (event.isConnected()) {
+            start();
+        }
+    }
+    
+    private void start() {
         log.debug("Starting config loading...");
         if (LanternUtils.isFallbackProxy()) {
             return;
@@ -71,6 +81,7 @@ public class S3ConfigFetcher {
         // thread here because a lot depends on this value, particularly on
         // the first run of Lantern, and we want to make sure it takes priority.
         if (config != null) {
+            log.debug("Stored S3 config: {}", config);
             // The config in the model could just be the default, so check
             // for actual fallbacks.
             final Collection<FallbackProxy> fallbacks = config.getFallbacks();
@@ -138,7 +149,8 @@ public class S3ConfigFetcher {
             changed = !newConfig.get().equals(config);
         }
         if (changed) {
-            log.info("Configuration changed! Reapplying...");
+            log.info("Configuration changed! Reapplying.\n{} not equal to\n{}", 
+                    config, newConfig.get());
             Events.eventBus().post(newConfig.get());
         } else {
             log.debug("Configuration unchanged.");

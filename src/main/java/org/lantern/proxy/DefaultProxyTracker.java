@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
-import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.S3Config;
 import org.lantern.event.Events;
@@ -213,6 +212,8 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void onCouldNotConnect(final ProxyHolder proxy) {
+        LOG.info("Could not connect!!");
+        
         // This can happen in several scenarios. First, it can happen if you've
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
@@ -436,8 +437,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
+    @Override
     public void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
-        LOG.debug("Attempting to add single fallback proxy");
+        LOG.debug("Attempting to add single fallback proxy: {}", fallbackProxy);
 
         final String cert = fallbackProxy.getCert();
         if (StringUtils.isNotBlank(cert)) {
@@ -445,10 +447,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         } else {
             LOG.warn("Fallback with no cert? {}", fallbackProxy);
         }
-        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getWanHost()
-                + "@getlantern.org");
-        fallbackProxy.setJid(uri);
-        final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
+        final Peer cloud = this.peerFactory.addPeer(fallbackProxy.getJid(), Type.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
 
         LOG.debug("Adding fallback: {}", fallbackProxy.getWanHost());

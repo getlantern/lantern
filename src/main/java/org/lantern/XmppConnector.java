@@ -4,11 +4,14 @@ import java.io.IOException;
 
 import javax.security.auth.login.CredentialException;
 
+import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyAndTokenEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +51,14 @@ public class XmppConnector {
     }
 
     private void connect() {
+        final XmppP2PClient<FiveTuple> client = this.xmppHandler.getP2PClient();
+        if (client != null) {
+            final XMPPConnection conn = client.getXmppConnection();
+            if (conn != null && conn.isConnected()) {
+                log.debug("Not reconnecting");
+                return;
+            }
+        }
         // This can happen either on startup when we've got cached oauth 
         // tokens or after we've just logged in to Google and received a 
         // token that way.

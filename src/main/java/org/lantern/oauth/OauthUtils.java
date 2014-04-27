@@ -195,7 +195,7 @@ public class OauthUtils {
             final String tok = response.getRefreshToken();
             if (StringUtils.isNotBlank(tok)) {
                 set.setRefreshToken(tok);
-                Events.asyncEventBus().post(new RefreshTokenEvent(refresh));
+                Events.asyncEventBus().post(new RefreshTokenEvent(tok));
             } 
             
             // Could be null for testing.
