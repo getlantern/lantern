@@ -152,7 +152,7 @@ public class ChromeRunner {
         log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
-        if (executable == null) {
+        if (LanternUtils.isDevMode() || executable == null) {
             String uri = StaticSettings.getLocalEndpoint(port, prefix)
                     + "/index.html";
             openSystemDefaultBrowser(uri);
