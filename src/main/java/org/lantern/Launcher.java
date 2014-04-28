@@ -127,6 +127,8 @@ public class Launcher {
     private PublicIpInfoHandler publicIpInfoHandler;
     
     private PublicIpAndTokenTracker publicIpAndTokenTracker;
+    
+    private Object initLock = new Object();
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -385,41 +387,36 @@ public class Launcher {
     
     @Subscribe
     public void onConnectivityChanged(final ConnectivityChangedEvent event) {
-        if (event.isConnected()) {
-            startNetworkServices();
-        } else {
-            stopNetworkServices();
+        synchronized(initLock) {
+            if (event.isConnected()) {
+                startNetworkServices();
+            } else {
+                stopNetworkServices();
+            }
         }
     }
     
     private void startNetworkServices() {
-        boolean success = false;
-        while (model.getConnectivity().isInternet()) {
-            // Keep trying to initialize network services until they all
-            // succeed.
-            try {
-                if (true) throw new RuntimeException("Uggah");
-                publicIpAndTokenTracker.reset();
-                s3ConfigManager.init();
-                proxyTracker.init();
-                // Needs a fallback.
-                publicIpInfoHandler.init();
-                // Post PublicIpEvent so that downstream services like xmpp,
-                // FriendsHandler, StatsManager and Loggly can start.
-                Events.eventBus().post(new PublicIpEvent());
-                success = true;
-                break;
-            } catch (final ConnectException e) {
-                LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
-            } catch (Throwable t) {
-                LOG.error("Unexpected error trying to start network services: {}", t.getMessage(), t);
-            }
-        }
-        // Once network services are successfully initialized, start background
-        // tasks.
-        if (success) {
+        // Try to initialize network services once
+        try {
+            publicIpAndTokenTracker.reset();
+            s3ConfigManager.init();
+            proxyTracker.init();
+            // Needs a fallback.
+            publicIpInfoHandler.init();
+            // Post PublicIpEvent so that downstream services like xmpp,
+            // FriendsHandler, StatsManager and Loggly can start.
+            Events.eventBus().post(new PublicIpEvent());
+            // Once network services are successfully initialized, start
+            // background
+            // tasks.
             s3ConfigManager.start();
             proxyTracker.start();
+        } catch (final ConnectException e) {
+            LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
+        } catch (Throwable t) {
+            LOG.error("Unexpected error trying to start network services: {}",
+                    t.getMessage(), t);
         }
     }
     

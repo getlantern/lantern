@@ -59,7 +59,7 @@ public class S3ConfigFetcher {
         Events.register(this);
     }
     
-    public void init() throws ConnectException {
+    public void init() throws InitException {
         log.debug("Starting config loading...");
         if (LanternUtils.isFallbackProxy()) {
             return;
@@ -84,7 +84,7 @@ public class S3ConfigFetcher {
             downloadAndCompareConfig();
         }
         if (model.getS3Config() == null) {
-            throw new ConnectException("Still could not fetch S3 config");
+            throw new InitException("Still could not fetch S3 config");
         }
     }
     
