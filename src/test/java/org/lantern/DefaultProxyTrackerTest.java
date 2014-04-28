@@ -1,7 +1,9 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -84,14 +86,14 @@ public class DefaultProxyTrackerTest {
 
         //let's turn off internet, which will restore the dead proxy
         model.getConnectivity().setInternet(false);
-        Events.eventBus().post(new ConnectivityChangedEvent(true, false, InetAddress.getLocalHost()));
+        Events.eventBus().post(new ConnectivityChangedEvent(true));
         Thread.sleep(10);
 
         proxy = tracker.firstConnectedTcpProxy();
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
-        Events.eventBus().post(new ConnectivityChangedEvent(true, false, InetAddress.getLocalHost()));
+        Events.eventBus().post(new ConnectivityChangedEvent(true));
         tracker.firstConnectedTcpProxy();
         Thread.sleep(10);
 

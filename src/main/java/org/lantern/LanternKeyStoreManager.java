@@ -78,7 +78,7 @@ public class LanternKeyStoreManager implements LanternService {
     }
     
     @Override
-    public void start() {
+    public void init() {
         if (started.getAndSet(true)) {
             return;
         }
@@ -187,7 +187,7 @@ public class LanternKeyStoreManager implements LanternService {
 
     private void waitForKeystore() {
         if (!KEYSTORE_FILE.isFile()) {
-            start();
+            init();
             LanternUtils.waitForFile(KEYSTORE_FILE);
         }
     }

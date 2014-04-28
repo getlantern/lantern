@@ -1,10 +1,10 @@
 package org.lantern.event;
 
-public class ProxyAndTokenEvent {
+public class PublicIpAndTokenEvent {
 
     private final String refresh;
 
-    public ProxyAndTokenEvent(final String refresh) {
+    public PublicIpAndTokenEvent(final String refresh) {
         this.refresh = refresh;
     }
 

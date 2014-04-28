@@ -1,9 +1,9 @@
 package org.lantern;
 
+import java.net.ConnectException;
 import java.net.InetAddress;
 
 import org.lantern.event.Events;
-import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Location;
 import org.lantern.state.Modal;
@@ -15,7 +15,6 @@ import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -25,7 +24,7 @@ import com.google.inject.Singleton;
  * performing a geo IP lookup on that address, etc.
  */
 @Singleton
-public class PublicIpAddressHandler {
+public class PublicIpInfoHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Model model;
@@ -33,7 +32,7 @@ public class PublicIpAddressHandler {
     private final GeoIpLookupService geoIpLookupService;
     
     @Inject
-    public PublicIpAddressHandler(final Model model, final Censored censored,
+    public PublicIpInfoHandler(final Model model, final Censored censored,
             final GeoIpLookupService geoIpLookupService) {
         this.model = model;
         this.censored = censored;
@@ -47,27 +46,16 @@ public class PublicIpAddressHandler {
      * network footprint.
      * 
      * @param pce The proxy connection event.
+     * @throws ConnectException 
      */
-    @Subscribe
-    public void onProxyConnection(final ProxyConnectionEvent pce) {
-        log.debug("Got proxy connection event");
-        final ConnectivityStatus stat = pce.getConnectivityStatus();
-        switch (stat) {
-        case CONNECTED:
-            log.debug("Got connected!");
-            final InetAddress address = new PublicIpAddress().getPublicIpAddress();
-            this.model.getConnectivity().setIp(address.getHostAddress());
-            handleCensored();
-            handleGeoIp(address);
-            break;
-        case CONNECTING:
-            log.debug("Got connecting event");
-            break;
-        case DISCONNECTED:
-            log.debug("Got disconnected event");
-            break;
-        default:
+    public void init() throws ConnectException {
+        final InetAddress address = new PublicIpAddress().getPublicIpAddress();
+        if (address == null) {
+            throw new ConnectException("Could not determine public IP");
         }
+        this.model.getConnectivity().setIp(address.getHostAddress());
+        handleCensored();
+        handleGeoIp(address);
     }
 
     private void handleGeoIp(final InetAddress address) {
@@ -80,8 +68,6 @@ public class PublicIpAddressHandler {
     }
 
     private void handleCensored() {
-        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-
         Settings set = model.getSettings();
 
         if (set.getMode() == null || set.getMode() == Mode.unknown) {

@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -9,6 +10,7 @@ import java.util.TimerTask;
 import org.lantern.event.Events;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.littleshoot.proxy.impl.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,25 +34,35 @@ public class ConnectivityChecker extends TimerTask {
     ConnectivityChecker(final Model model) {
         this.model = model;
     }
+    
+    public void connect() throws ConnectException {
+        if (!checkConnectivity()) {
+            throw new ConnectException("Could not connect");
+        }
+    }
 
     @Override
     public void run() {
+        checkConnectivity();
+    }
+    
+    public boolean checkConnectivity() {
         final boolean wasConnected = 
                 Boolean.TRUE.equals(model.getConnectivity().isInternet());
         final InetAddress ip = localIpAddressIfConnected();
-        if (ip != null) {
-            if (!wasConnected) {
-                LOG.info("Became connected");
-                notifyConnected(ip);
-            }
-            this.model.getConnectivity().setInternet(Boolean.TRUE);
-        } else {
-            if (wasConnected) {
-                LOG.info("Became disconnected");
-                notifyDisconnected();
-            }
-            this.model.getConnectivity().setInternet(Boolean.FALSE);
+        final boolean connected = ip != null;
+        this.model.getConnectivity().setInternet(connected);
+        boolean becameConnected = connected && !wasConnected;
+        boolean becameDisconnected = !connected && wasConnected;
+        if (becameConnected) {
+            LOG.info("Became connected");
+            notifyConnected(ip);
+        } else if (becameDisconnected) {
+            LOG.info("Became disconnected");
+            notifyDisconnected();
         }
+        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+        return connected;
     }
 
     private InetAddress localIpAddressIfConnected() {
@@ -72,31 +84,17 @@ public class ConnectivityChecker extends TimerTask {
         return null;
     }
 
-    private void notifyConnected(InetAddress ip) {
+    private void notifyConnected(final InetAddress ip) {
         Connectivity connectivity = model.getConnectivity();
-        String oldIp = connectivity.getIp();
         String newIpString = ip.getHostAddress();
-        
         connectivity.setIp(newIpString);
-        if (newIpString.equals(oldIp)) {
-            if (!model.getConnectivity().isInternet()) {
-                LOG.info("Became connected with same IP address");
-                ConnectivityChangedEvent event = new ConnectivityChangedEvent(
-                        true, false, ip);
-                Events.asyncEventBus().post(event);
-            }
-        } else {
-            LOG.info("IP address changed");
-            ConnectivityChangedEvent event = new ConnectivityChangedEvent(true,
-                    true, ip);
-            Events.asyncEventBus().post(event);
-        }
-        
+        LOG.info("Became connected with same IP address");
+        ConnectivityChangedEvent event = new ConnectivityChangedEvent(true);
+        Events.asyncEventBus().post(event);
     }
 
     private void notifyDisconnected() {
-        ConnectivityChangedEvent event = new ConnectivityChangedEvent(
-                false, false, null);
+        ConnectivityChangedEvent event = new ConnectivityChangedEvent(false);
         Events.asyncEventBus().post(event);
     }
 

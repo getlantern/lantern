@@ -24,7 +24,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.ConnectivityChangedEvent;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
@@ -94,6 +93,16 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
 
+        Events.register(this);
+    }
+    
+    @Override
+    public void init() {
+        onNewS3Config(this.model.getS3Config());
+        restoreDeceasedProxies();
+    }
+    
+    public void start() {
         // Periodically restore timed in proxies
         proxyRetryService.scheduleWithFixedDelay(new Runnable() {
             @Override
@@ -101,8 +110,11 @@ public class DefaultProxyTracker implements ProxyTracker {
                 restoreTimedInProxies();
             }
         }, 100, 100, TimeUnit.MILLISECONDS);
-
-        Events.register(this);
+    }
+    
+    @Override
+    public void stop() {
+        proxyRetryService.shutdownNow();
     }
 
     @Subscribe
@@ -202,14 +214,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    @Subscribe
-    public void onConnectivityChanged(ConnectivityChangedEvent e) {
-        LOG.debug("Got connectivity changed event: {}", e);
-        if (e.isConnected()) {
-            restoreDeceasedProxies();
-        }
-    }
-
     @Override
     public void onCouldNotConnect(final ProxyHolder proxy) {
         LOG.info("Could not connect!!");
@@ -247,11 +251,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Subscribe
     public void onReset(final ResetEvent event) {
         clear();
-    }
-
-    @Override
-    public void stop() {
-        proxyRetryService.shutdownNow();
     }
 
     @Subscribe
@@ -504,10 +503,5 @@ public class DefaultProxyTracker implements ProxyTracker {
                 return 0;
             }
         }
-    }
-
-    @Override
-    public void start() throws Exception {
-        // Do nothing.
     }
 }

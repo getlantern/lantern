@@ -28,7 +28,6 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
-import org.lantern.event.ProxyAndTokenEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
@@ -88,13 +87,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         Events.register(this);
     }
     
-    @Subscribe
-    public void onConnectedWithRefresh(final ProxyAndTokenEvent proxyAndToken) {
-        log.debug("Got connected with refresh event");
-        loadFriends();
-    }
-    
-    private void loadFriends() {
+    public void loadFriends() {
         // If we're currently loading friends or have already successfully 
         // loaded friends, ignore this call.
         if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {

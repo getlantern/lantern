@@ -100,7 +100,7 @@ public class ChromeBrowserService implements BrowserService {
     }
 
     @Override
-    public void start() {
+    public void init() {
     }
 
     @Override

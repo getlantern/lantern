@@ -372,12 +372,6 @@ public class ModelIo extends Storage<Model> {
                 set.setAccessToken(accessToken);
                 set.setRefreshToken(refreshToken);
                 set.setUseGoogleOAuth2(true);
-                
-                // We have to be careful here because classes simply haven't
-                // registered as listeners at this point, so listeners have
-                // to make sure to also check for an existing refresh token
-                // in the settings.
-                Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
             }
         } catch (final IOException e) {
             log.error("Failed to read file \"{}\"", filename);

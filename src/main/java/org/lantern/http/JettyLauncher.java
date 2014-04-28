@@ -77,7 +77,7 @@ public class JettyLauncher implements LanternService {
     }
     
     @Override
-    public void start() {
+    public void init() {
         start(StaticSettings.getApiPort());
     }
     

@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.security.Security;
 import java.util.Collection;
@@ -19,9 +20,10 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.lantern.event.PublicIpAndTokenTracker;
+import org.lantern.event.PublicIpEvent;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
-import org.lantern.event.ProxyAndTokenTracker;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
@@ -124,6 +126,8 @@ public class Launcher {
 
     private S3ConfigFetcher s3ConfigManager;
 
+    private PublicIpInfoHandler publicIpInfoHandler;
+
     /**
      * Separate constructor that allows tests to do things like use mocks for
      * certain classes but still test Lantern end-to-end from startup.
@@ -141,6 +145,8 @@ public class Launcher {
             }
         });
         s_instance = this;
+        
+        Events.register(this);
     }
     
     public static Launcher getInstance() {
@@ -239,7 +245,7 @@ public class Launcher {
                 StopwatchManager.getStopwatch("Jetty-Start", 
                     STOPWATCH_LOG, STOPWATCH_GROUP);
         jettyWatch.start();
-        jettyLauncher.start();
+        jettyLauncher.init();
         jettyWatch.stop();
         modelUtils = instance(ModelUtils.class);
         final boolean showDashboard = 
@@ -249,10 +255,10 @@ public class Launcher {
         }
         launchLantern(showDashboard);
 
-        instance(ProxyAndTokenTracker.class);
+        instance(PublicIpAndTokenTracker.class);
         instance(XmppConnector.class);
         
-        instance(PublicIpAddressHandler.class);
+        publicIpInfoHandler = instance(PublicIpInfoHandler.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
@@ -263,7 +269,7 @@ public class Launcher {
         if (showTray) {
             systemTray = instance(SystemTray.class);
             try {
-                systemTray.start();
+                systemTray.init();
             } catch (final Exception e) {
                 LOG.error("Error starting tray?", e);
             }
@@ -336,17 +342,10 @@ public class Launcher {
 
             @Override
             public void run() {
-                keyStoreManager.start();
+                keyStoreManager.init();
 
                 shutdownable(ModelIo.class);
-
-                try {
-                    proxyTracker.start();
-                } catch (final Exception e) {
-                    LOG.error("Could not start proxy tracker?", e);
-                }
-                getModeProxy.start();
-
+                
                 // don't need to start the rest of these services when running in check-fallbacks mode
                 if (checkFallbacks) {
                     return;
@@ -354,14 +353,16 @@ public class Launcher {
 
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
+
                 final Timer timer = new Timer("Connectivity-Check-Timer", true);
                 timer.schedule(connectivityChecker, 0, 10 * 1000);
+                
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
-                    giveModeProxy.start();
+                    giveModeProxy.init();
                 }
 
-                syncService.start();
+                syncService.init();
                 gnomeAutoStart();
                 
                 // If for some reason oauth isn't configured but setup is 
@@ -376,6 +377,39 @@ public class Launcher {
         }, "Launcher-Start-Thread");
         t.setDaemon(true);
         t.start();
+    }
+    
+    @Subscribe
+    public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+        if (event.isConnected()) {
+            while (true) {
+                // Keep trying to init core services
+                try {
+                    s3ConfigManager.init();
+                    proxyTracker.init();
+                    getModeProxy.init();
+                    // Needs a fallback.
+                    publicIpInfoHandler.init();
+                    // Post PublicIpEvent so that downstream services like xmpp,
+                    // FriendsHandler, StatsManager and Loggly can start.
+                    Events.eventBus().post(new PublicIpEvent());
+                    break;
+                } catch (final ConnectException e) {
+                    LOG.debug("Something couldn't connect", e);
+                }
+            }
+            // Once successfully connected to core services, start background
+            // tasks
+            s3ConfigManager.start();
+            proxyTracker.start();
+        } else {
+            // Shut down background services and downstream dependencies
+            xmpp.stop();
+            statsManager.stop();
+            friendsHandler.stop();
+            proxyTracker.stop();
+            s3ConfigManager.stop();
+        }
     }
 
     private boolean shouldShowDashboard(final Model mod, 

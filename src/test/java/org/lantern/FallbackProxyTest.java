@@ -80,7 +80,7 @@ public class FallbackProxyTest {
         FileUtils.forceDeleteOnExit(temp);
         final LanternKeyStoreManager ksm = 
                 new LanternKeyStoreManager(temp);
-        ksm.start();
+        ksm.init();
         
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
 
@@ -214,7 +214,7 @@ public class FallbackProxyTest {
         final GiveModeProxy proxy = 
                 new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService());
         
-        proxy.start();
+        proxy.init();
         return proxy;
     }
     
