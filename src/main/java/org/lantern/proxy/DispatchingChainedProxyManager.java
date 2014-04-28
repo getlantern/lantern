@@ -7,8 +7,10 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
+import org.lantern.LanternUtils;
 import org.lantern.loggly.Loggly;
 import org.littleshoot.proxy.ChainedProxy;
+import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,13 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
 
         // Add all connected ProxyHolders to our queue of chained proxies
         chainedProxies.addAll(proxyHolders);
+        
+        // Support falling back to direct connections for selected hosts
+        String host = LanternUtils.hostAndPortFrom(httpRequest)[0];
+        if (HOSTS_ALLOWING_DIRECT_CONNECTION.contains(host)) {
+            LOG.debug("Supporting falling back to direct connection for host: {}", host);
+            chainedProxies.add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+        }
 
         logFallbackOrder(proxyHolders);
     }

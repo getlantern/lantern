@@ -208,7 +208,13 @@ public class LanternUtilsTest {
     @Test
     public void testHostAndPortFrom() {
         HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://www.google.com/humans.txt");
-        
+        String[] result = LanternUtils.hostAndPortFrom(request);
+        assertEquals(result[0], "www.google.com");
+        assertNull(result[1], null);
+        request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://www.google.com:443/humans.txt");
+        result = LanternUtils.hostAndPortFrom(request);
+        assertEquals(result[0], "www.google.com");
+        assertEquals(result[1], "443");
     }
 
 }

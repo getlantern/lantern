@@ -22,7 +22,7 @@ public abstract class AbstractHttpProxyServerAdapter implements LanternService {
     }
 
     @Override
-    synchronized public void init() {
+    synchronized public void start() {
         if (!running) {
             server = bootstrap.start();
             running = true;

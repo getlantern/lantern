@@ -103,7 +103,7 @@ public class AppIndicatorTray implements SystemTray {
     
 
     @Override
-    public void init() {
+    public void start() {
         createTray();
     }
 

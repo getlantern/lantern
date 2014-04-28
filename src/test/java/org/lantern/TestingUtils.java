@@ -325,7 +325,7 @@ public class TestingUtils {
             }
         };
         GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager);
-        getModeProxy.init();
+        getModeProxy.start();
         try {
             return work.call();
         } finally {
