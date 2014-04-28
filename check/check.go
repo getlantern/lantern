@@ -59,6 +59,10 @@ type Result struct {
 // string, it will be automatically be computed for the running program's
 // executable file.
 func (p *Params) CheckForUpdate(url string) (*Result, error) {
+    if p.Tags == nil {
+        p.Tags = make(map[string]string)
+    }
+
 	if p.OS == "" {
 		p.OS = runtime.GOOS
 	}
