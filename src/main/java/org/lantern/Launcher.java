@@ -393,6 +393,7 @@ public class Launcher {
     }
     
     private void startNetworkServices() {
+        boolean success = false;
         while (model.getConnectivity().isInternet()) {
             // Keep trying to initialize network services until they all
             // succeed.
@@ -406,6 +407,7 @@ public class Launcher {
                 // Post PublicIpEvent so that downstream services like xmpp,
                 // FriendsHandler, StatsManager and Loggly can start.
                 Events.eventBus().post(new PublicIpEvent());
+                success = true;
                 break;
             } catch (final ConnectException e) {
                 LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
@@ -415,8 +417,10 @@ public class Launcher {
         }
         // Once network services are successfully initialized, start background
         // tasks.
-        s3ConfigManager.start();
-        proxyTracker.start();
+        if (success) {
+            s3ConfigManager.start();
+            proxyTracker.start();
+        }
     }
     
     private void stopNetworkServices() {
