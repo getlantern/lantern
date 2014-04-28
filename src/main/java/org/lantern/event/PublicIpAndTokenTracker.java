@@ -35,6 +35,14 @@ public class PublicIpAndTokenTracker {
         }
     }
     
+    /**
+     * Resets the state of the tracker (useful when reinitializing system).
+     */
+    public void reset() {
+        this.hasPublicIp = false;
+        this.hasRefresh = false;
+    }
+    
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refreshEvent) {
         log.debug("Got refresh token -- loading friends");

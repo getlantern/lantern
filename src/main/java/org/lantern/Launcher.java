@@ -127,6 +127,8 @@ public class Launcher {
     private S3ConfigFetcher s3ConfigManager;
 
     private PublicIpInfoHandler publicIpInfoHandler;
+    
+    private PublicIpAndTokenTracker publicIpAndTokenTracker;
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -255,7 +257,7 @@ public class Launcher {
         }
         launchLantern(showDashboard);
 
-        instance(PublicIpAndTokenTracker.class);
+        publicIpAndTokenTracker = instance(PublicIpAndTokenTracker.class);
         instance(XmppConnector.class);
         
         publicIpInfoHandler = instance(PublicIpInfoHandler.class);
@@ -382,34 +384,43 @@ public class Launcher {
     @Subscribe
     public void onConnectivityChanged(final ConnectivityChangedEvent event) {
         if (event.isConnected()) {
-            while (true) {
-                // Keep trying to init core services
-                try {
-                    s3ConfigManager.init();
-                    proxyTracker.init();
-                    getModeProxy.init();
-                    // Needs a fallback.
-                    publicIpInfoHandler.init();
-                    // Post PublicIpEvent so that downstream services like xmpp,
-                    // FriendsHandler, StatsManager and Loggly can start.
-                    Events.eventBus().post(new PublicIpEvent());
-                    break;
-                } catch (final ConnectException e) {
-                    LOG.debug("Something couldn't connect", e);
-                }
-            }
-            // Once successfully connected to core services, start background
-            // tasks
-            s3ConfigManager.start();
-            proxyTracker.start();
+            startNetworkServices();
         } else {
-            // Shut down background services and downstream dependencies
-            xmpp.stop();
-            statsManager.stop();
-            friendsHandler.stop();
-            proxyTracker.stop();
-            s3ConfigManager.stop();
+            stopNetworkServices();
         }
+    }
+    
+    private void startNetworkServices() {
+        while (true) {
+            // Keep trying to initialize network services until they all
+            // succeed.
+            try {
+                publicIpAndTokenTracker.reset();
+                s3ConfigManager.init();
+                proxyTracker.init();
+                getModeProxy.init();
+                // Needs a fallback.
+                publicIpInfoHandler.init();
+                // Post PublicIpEvent so that downstream services like xmpp,
+                // FriendsHandler, StatsManager and Loggly can start.
+                Events.eventBus().post(new PublicIpEvent());
+                break;
+            } catch (final ConnectException e) {
+                LOG.debug("Something couldn't connect", e);
+            }
+        }
+        // Once network services are successfully initialized, start background
+        // tasks.
+        s3ConfigManager.start();
+        proxyTracker.start();
+    }
+    
+    private void stopNetworkServices() {
+        xmpp.stop();
+        statsManager.stop();
+        friendsHandler.stop();
+        proxyTracker.stop();
+        s3ConfigManager.stop();
     }
 
     private boolean shouldShowDashboard(final Model mod, 
