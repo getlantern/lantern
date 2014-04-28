@@ -50,10 +50,10 @@ public class PublicIpInfoHandler {
      */
     public void init() throws ConnectException {
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
+        this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
         if (address == null) {
             throw new ConnectException("Could not determine public IP");
         }
-        this.model.getConnectivity().setIp(address.getHostAddress());
         handleCensored();
         handleGeoIp(address);
     }

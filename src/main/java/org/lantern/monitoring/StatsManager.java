@@ -16,6 +16,7 @@ import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.event.Events;
 import org.lantern.event.PublicIpAndTokenEvent;
+import org.lantern.event.PublicIpEvent;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -62,7 +63,7 @@ public class StatsManager implements Shutdownable {
      *            The new config.
      */
     @Subscribe
-    public void onIpAndToken(final PublicIpAndTokenEvent ipAndToken) {
+    public void onIpAndToken(final PublicIpEvent publicIpEvent) {
         LOGGER.debug("Got connected with refresh event");
         stop();
         start();

@@ -40,7 +40,6 @@ public class PublicIpAndTokenTracker {
      */
     public void reset() {
         this.hasPublicIp = false;
-        this.hasRefresh = false;
     }
     
     @Subscribe

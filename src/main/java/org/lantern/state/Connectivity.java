@@ -31,7 +31,7 @@ public class Connectivity {
 
     private boolean gtalkAuthorized = false;
 
-    private Boolean internet = null;
+    private volatile Boolean internet = null;
 
     private boolean invited = false;
 

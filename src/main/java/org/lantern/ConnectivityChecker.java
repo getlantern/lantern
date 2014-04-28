@@ -56,7 +56,7 @@ public class ConnectivityChecker extends TimerTask {
         boolean becameDisconnected = !connected && wasConnected;
         if (becameConnected) {
             LOG.info("Became connected");
-            notifyConnected(ip);
+            notifyConnected();
         } else if (becameDisconnected) {
             LOG.info("Became disconnected");
             notifyDisconnected();
@@ -71,8 +71,6 @@ public class ConnectivityChecker extends TimerTask {
 
         if (internetIsReachable) {
             LOG.debug("Internet is reachable...");
-            //boolean forceCheck = !wasConnected;
-            //return new PublicIpAddress().getPublicIpAddress(forceCheck);
             try {
                 return NetworkUtils.getLocalHost();
             } catch (UnknownHostException e) {
@@ -84,10 +82,7 @@ public class ConnectivityChecker extends TimerTask {
         return null;
     }
 
-    private void notifyConnected(final InetAddress ip) {
-        Connectivity connectivity = model.getConnectivity();
-        String newIpString = ip.getHostAddress();
-        connectivity.setIp(newIpString);
+    private void notifyConnected() {
         LOG.info("Became connected with same IP address");
         ConnectivityChangedEvent event = new ConnectivityChangedEvent(true);
         Events.asyncEventBus().post(event);

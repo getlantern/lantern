@@ -391,10 +391,11 @@ public class Launcher {
     }
     
     private void startNetworkServices() {
-        while (true) {
+        while (model.getConnectivity().isInternet()) {
             // Keep trying to initialize network services until they all
             // succeed.
             try {
+                if (true) throw new RuntimeException("Uggah");
                 publicIpAndTokenTracker.reset();
                 s3ConfigManager.init();
                 proxyTracker.init();
@@ -406,7 +407,9 @@ public class Launcher {
                 Events.eventBus().post(new PublicIpEvent());
                 break;
             } catch (final ConnectException e) {
-                LOG.debug("Something couldn't connect", e);
+                LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
+            } catch (Throwable t) {
+                LOG.error("Unexpected error trying to start network services: {}", t.getMessage(), t);
             }
         }
         // Once network services are successfully initialized, start background
