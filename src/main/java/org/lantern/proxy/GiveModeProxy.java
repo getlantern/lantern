@@ -124,8 +124,8 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
     }
 
     @Override
-    public synchronized void init() {
-        super.init();
+    public synchronized void start() {
+        super.start();
 
         if (TransportProtocol.TCP == model.getSettings().getProxyProtocol()) {
             InetSocketAddress original = server.getListenAddress();
@@ -170,7 +170,7 @@ public class GiveModeProxy extends AbstractHttpProxyServerAdapter {
         log.debug("Got mode change");
         if (Mode.give == event.getNewMode()) {
             if (!running) {
-                init();
+                start();
             }
         } else {
             if (running) {

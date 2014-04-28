@@ -74,7 +74,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
     }
 
     @Override
-    public void init() {
+    public void start() {
         log.debug("Starting system tray");
         createTray();
     }

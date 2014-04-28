@@ -20,10 +20,10 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.lantern.event.PublicIpAndTokenTracker;
-import org.lantern.event.PublicIpEvent;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
+import org.lantern.event.PublicIpAndTokenTracker;
+import org.lantern.event.PublicIpEvent;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
@@ -113,8 +113,6 @@ public class Launcher {
     Model model;
     private ModelUtils modelUtils;
     private Settings set;
-
-    private InternalState internalState;
 
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
@@ -224,7 +222,6 @@ public class Launcher {
         preInstanceWatch.stop();
 
         model = instance(Model.class);
-        if (!checkFallbacks) configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -247,7 +244,7 @@ public class Launcher {
                 StopwatchManager.getStopwatch("Jetty-Start", 
                     STOPWATCH_LOG, STOPWATCH_GROUP);
         jettyWatch.start();
-        jettyLauncher.init();
+        jettyLauncher.start();
         jettyWatch.stop();
         modelUtils = instance(ModelUtils.class);
         final boolean showDashboard = 
@@ -271,7 +268,7 @@ public class Launcher {
         if (showTray) {
             systemTray = instance(SystemTray.class);
             try {
-                systemTray.init();
+                systemTray.start();
             } catch (final Exception e) {
                 LOG.error("Error starting tray?", e);
             }
@@ -301,7 +298,7 @@ public class Launcher {
 
         instance(LocalCipherProvider.class);
 
-        internalState = instance(InternalState.class);
+        instance(InternalState.class);
         syncService = instance(SyncService.class);
 
         statsManager = instance(StatsManager.class);
@@ -344,7 +341,7 @@ public class Launcher {
 
             @Override
             public void run() {
-                keyStoreManager.init();
+                keyStoreManager.start();
 
                 shutdownable(ModelIo.class);
                 
@@ -352,6 +349,11 @@ public class Launcher {
                 if (checkFallbacks) {
                     return;
                 }
+                
+                // Immediately start getModeProxy
+                getModeProxy.start();
+                
+                if (!checkFallbacks) configureLoggly();
 
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
@@ -361,10 +363,10 @@ public class Launcher {
                 
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
-                    giveModeProxy.init();
+                    giveModeProxy.start();
                 }
 
-                syncService.init();
+                syncService.start();
                 gnomeAutoStart();
                 
                 // If for some reason oauth isn't configured but setup is 
@@ -399,7 +401,6 @@ public class Launcher {
                 publicIpAndTokenTracker.reset();
                 s3ConfigManager.init();
                 proxyTracker.init();
-                getModeProxy.init();
                 // Needs a fallback.
                 publicIpInfoHandler.init();
                 // Post PublicIpEvent so that downstream services like xmpp,

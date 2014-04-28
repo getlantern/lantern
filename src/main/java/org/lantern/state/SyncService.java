@@ -63,7 +63,7 @@ public class SyncService implements LanternService {
 
 
     @Override
-    public void init() {
+    public void start() {
         if (timer != null) {
             timer.schedule(new TimerTask() {
                 @Override

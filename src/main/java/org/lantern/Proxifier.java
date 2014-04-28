@@ -197,7 +197,7 @@ public class Proxifier implements ProxyService, LanternService {
 
 
     @Override
-    public void init() throws Exception {
+    public void start() throws Exception {
         // Nothing to do in this case;
     }
 
