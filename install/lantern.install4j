@@ -26,7 +26,6 @@
       <fileset name="Ubuntu x86_32" id="1536" customizedId="" />
     </filesets>
     <roots>
-      <root id="1640" fileset="" location="${installer:sys.userHome/.lantern}" />
       <root id="146" fileset="145" location="" />
       <root id="148" fileset="147" location="" />
       <root id="789" fileset="788" location="" />
@@ -35,7 +34,6 @@
     </roots>
     <mountPoints>
       <mountPoint id="25" root="" location="" mode="755" />
-      <mountPoint id="1643" root="1640" location="bubba" mode="755" />
       <mountPoint id="149" root="146" location="" mode="755" />
       <mountPoint id="150" root="148" location="" mode="755" />
       <mountPoint id="790" root="789" location="" mode="755" />
@@ -660,6 +658,53 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
+              <action name="create ~/.lantern dir" id="1645" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/.lantern</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>.lantern-keep</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="overwriteMode">
+                        <object class="com.install4j.api.context.OverwriteMode" field="ALWAYS" />
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="Change Ownership of .lantern to user" id="1642" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not chown ~/.lantern">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.SetOwnerAction">
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>${installer:sys.userHome}/.lantern</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="owner">
+                        <string>${installer:sys.userName}</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="Could not copy FireFox configuration.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -689,7 +734,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="copy all-lantern.js" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -730,27 +775,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="macosIdentifier">
                         <string>org.bns.lantern</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="Change Ownership of .lantern to user" id="1642" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not chown ~/.lantern">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.files.SetOwnerAction">
-                      <void property="files">
-                        <array class="java.io.File" length="1">
-                          <void index="0">
-                            <object class="java.io.File">
-                              <string>${installer:sys.userHome}/.lantern</string>
-                            </object>
-                          </void>
-                        </array>
-                      </void>
-                      <void property="owner">
-                        <string>${installer:sys.userName}</string>
                       </void>
                     </object>
                   </java>
