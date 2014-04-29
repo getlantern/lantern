@@ -1072,7 +1072,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>Lantern.bat</string>
+                          <string>flashlight</string>
                         </object>
                       </void>
                       <void property="failOnStdoutFileError">
@@ -1094,7 +1094,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jout.txt</string>
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
                         </object>
                       </void>
                       <void property="stdoutRedirectionMode">
@@ -1105,13 +1105,13 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="workingDirectory">
                         <object class="java.io.File">
-                          <string>${installer:sys.installationDir}/Contents/java/app/pt /flashlight</string>
+                          <string>${installer:sys.installationDir}/Contents/java/app/pt/flashlight</string>
                         </object>
                       </void>
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>System.out.println("About to run flashlight"); return true;</condition>
               </action>
             </actions>
             <formComponents />
