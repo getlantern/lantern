@@ -235,6 +235,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void onError(final URI peerUri) {
+        LOG.info("Error on peer {}", peerUri);
         synchronized (proxies) {
             for (ProxyHolder proxy : proxies) {
                 if (proxy.getJid().equals(peerUri)) {
@@ -310,7 +311,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         } else {
             if (proxy.getType() == Peer.Type.cloud) {
                 // Assume cloud proxies to be connected
-                proxy.markConnected();
+                
+                // Make sure our bookkeeping is in order, particularly our
+                // nproxies count.
+                successfullyConnectedToProxy(proxy);
             } else if (proxy.getFiveTuple().getProtocol() == TCP) {
                 checkConnectivityToTcpProxy(proxy);
             } else {
@@ -377,6 +381,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     private void notifyProxiesSize() {
         int numberOfConnectedProxies = 0;
         synchronized (proxies) {
+            LOG.debug("Proxies are: {}", proxies);
             for (ProxyHolder proxy : proxies) {
                 if (proxy.isConnected()) {
                     numberOfConnectedProxies += 1;

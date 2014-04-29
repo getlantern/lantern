@@ -114,7 +114,7 @@ public class ConnectivityChecker extends TimerTask {
                     TEST_SOCKET_TIMEOUT_MILLIS);
             return true;
         } catch (Exception e) {
-            LOG.debug("Could not connect", e);
+            LOG.debug("Could not connect to "+site, e);
             // Ignore
             return false;
         } finally {
