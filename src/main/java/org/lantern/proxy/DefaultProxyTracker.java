@@ -68,8 +68,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final PeerFactory peerFactory;
 
-    private final ScheduledExecutorService proxyRetryService = Threads
-            .newScheduledThreadPool("Proxy-Retry");
+    private ScheduledExecutorService proxyRetryService;
 
     private final LanternTrustStore lanternTrustStore;
 
@@ -102,7 +101,10 @@ public class DefaultProxyTracker implements ProxyTracker {
         restoreDeceasedProxies();
     }
     
+    @Override
     public void start() {
+        proxyRetryService = Threads
+                .newScheduledThreadPool("Proxy-Retry");
         // Periodically restore timed in proxies
         proxyRetryService.scheduleWithFixedDelay(new Runnable() {
             @Override
