@@ -59,8 +59,6 @@ import org.lantern.state.SyncPath;
 import org.lantern.state.Version.Installed;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
-import org.lastbamboo.common.p2p.P2PConnectionEvent;
-import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
@@ -460,10 +458,6 @@ public class DefaultXmppHandler implements XmppHandler,
         }
     }
 
-    /** The default packet listener automatically
-     *
-     *
-     */
     private class DefaultPacketListener implements PacketListener, PacketFilter {
         @Override
         public void processPacket(final Packet pack) {
