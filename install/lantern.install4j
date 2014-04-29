@@ -664,7 +664,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
                       <void property="destinationFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/.lantern</string>
+                          <string>${installer:sys.userHome}/.lantern/.lantern-keep</string>
                         </object>
                       </void>
                       <void property="files">
