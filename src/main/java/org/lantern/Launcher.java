@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
-import java.security.Security;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
@@ -19,7 +18,6 @@ import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.event.PublicIpAndTokenTracker;
@@ -43,7 +41,6 @@ import org.lantern.state.SyncService;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
 import org.lantern.util.StopwatchManager;
-import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
@@ -220,7 +217,6 @@ public class Launcher {
         final boolean uiDisabled = checkFallbacks || cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
 
-        configureCipherSuites();
         preInstanceWatch.stop();
 
         model = instance(Model.class);
@@ -526,63 +522,9 @@ public class Launcher {
                 "/usr/share/applications/lantern.desktop");
     }
 
-    private static final String CIPHER_SUITE_LOW_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
-
-    private static final String CIPHER_SUITE_HIGH_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
-
     private static final String STOPWATCH_LOG = "org.lantern.STOPWATCH_LOG";
     
     private static final String STOPWATCH_GROUP = "launcherGroup";
-
-    public static void configureCipherSuites() {
-        Security.addProvider(new BouncyCastleProvider());
-        if (!LanternUtils.isUnlimitedKeyStrength()) {
-            /*
-            if (LanternUtils.isDevMode()) {
-                System.err.println("PLEASE INSTALL UNLIMITED STRENGTH POLICY FILES WITH ONE OF THE FOLLOWING:\n" +
-                    "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
-                    "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
-                    "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
-                    "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
-                
-                // Don't exit if we're running on CI...
-                final String env = System.getenv("BAMBOO");
-                System.err.println("Env: "+System.getenv());
-                if (!"true".equalsIgnoreCase(env)) {
-                    System.exit(1);
-                }
-            }
-            */
-            if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
-                log("No policy files on non-Vista machine!!");
-            }
-            log("Reverting to weaker ciphers");
-            log("Look in "+ new File(SystemUtils.JAVA_HOME, "lib/security").getAbsolutePath());
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        } else {
-            // Note the following just sets what cipher suite the server
-            // side selects. DHE is for perfect forward secrecy.
-
-            // We include 128 because we never have enough permissions to
-            // copy the unlimited strength policy files on Vista, so we have
-            // to revert back to 128.
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT,
-                    CIPHER_SUITE_HIGH_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_RSA_WITH_RC4_128_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        }
-    }
-
 
     private static void log(final String msg) {
         if (LOG != null) {
