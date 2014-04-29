@@ -35,6 +35,7 @@
     </roots>
     <mountPoints>
       <mountPoint id="25" root="" location="" mode="755" />
+      <mountPoint id="1643" root="1640" location="bubba" mode="755" />
       <mountPoint id="149" root="146" location="" mode="755" />
       <mountPoint id="150" root="148" location="" mode="755" />
       <mountPoint id="790" root="789" location="" mode="755" />
