@@ -282,6 +282,10 @@ public class ModelIo extends Storage<Model> {
         } else if (cmd.hasOption(Cli.OPTION_GET)) {
             model.getSettings().setMode(Mode.get);
         }
+        
+        if (cmd.hasOption(Cli.OPTION_CHROME)) {
+            set.setChrome(true);
+        }
     }
     
     private void loadServerAuthTokenFile(final String filename, final Settings set) {
