@@ -1072,7 +1072,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="executable">
                         <object class="java.io.File">
-                          <string>flashlight</string>
+                          <string>${installer:sys.installationDir}/pt/flashlight/flashlight</string>
                         </object>
                       </void>
                       <void property="failOnStdoutFileError">
