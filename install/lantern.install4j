@@ -1066,7 +1066,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       <void property="arguments">
                         <array class="java.lang.String" length="1">
                           <void index="0">
-                            <string>-install</string>
+                            <string>-install -configdir ${installer:sys.userHome/.lantern}</string>
                           </void>
                         </array>
                       </void>
