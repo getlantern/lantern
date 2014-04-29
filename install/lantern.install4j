@@ -1111,7 +1111,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition>System.out.println("About to run flashlight"); return true;</condition>
+                <condition />
               </action>
             </actions>
             <formComponents />
