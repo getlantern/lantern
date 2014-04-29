@@ -26,6 +26,7 @@
       <fileset name="Ubuntu x86_32" id="1536" customizedId="" />
     </filesets>
     <roots>
+      <root id="1640" fileset="" location="${installer:sys.userHome/.lantern}" />
       <root id="146" fileset="145" location="" />
       <root id="148" fileset="147" location="" />
       <root id="789" fileset="788" location="" />
