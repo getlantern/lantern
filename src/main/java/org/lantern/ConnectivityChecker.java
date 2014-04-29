@@ -5,10 +5,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.TimerTask;
 
 import org.lantern.event.Events;
-import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.littleshoot.proxy.impl.NetworkUtils;
@@ -20,12 +22,12 @@ import com.google.inject.Inject;
 public class ConnectivityChecker extends TimerTask {
     private static Logger LOG = LoggerFactory
             .getLogger(ConnectivityChecker.class);
-    private static final String[] TEST_SITES = new String[] {
+    private static final List<String> TEST_SITES = Arrays.asList(
             "mail.yahoo.com",
             "www.microsoft.com",
             "blogfa.com",
             "www.baidu.com"
-    };
+    );
     private static final int TEST_SOCKET_TIMEOUT_MILLIS = 30000;
 
     private final Model model;
@@ -94,6 +96,7 @@ public class ConnectivityChecker extends TimerTask {
     }
 
     private static boolean areAnyTestSitesReachable() {
+        Collections.shuffle(TEST_SITES);
         for (String site : TEST_SITES) {
             if (isReachable(site)) {
                 return true;
