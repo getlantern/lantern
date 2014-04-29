@@ -346,3 +346,35 @@ func TestVerifyFailWrongSignature(t *testing.T) {
 		t.Fatalf("Verified an update that was signed by an untrusted key!")
 	}
 }
+
+func TestSignatureButNoPublicKey(t *testing.T) {
+    t.Parallel()
+
+    fName := "TestSignatureButNoPublicKey"
+    defer cleanup(fName)
+    writeOldFile(fName, t)
+
+    sig := sign(privateKey, newFile, t)
+    err, _ := New().Target(fName).VerifySignature(sig).FromStream(bytes.NewReader(newFile))
+    if err == nil {
+        t.Fatalf("Allowed an update with a signautre verification when no public key was specified!")
+    }
+}
+
+func TestPublicKeyButNoSignature(t *testing.T) {
+    t.Parallel()
+
+    fName := "TestPublicKeyButNoSignature"
+    defer cleanup(fName)
+    writeOldFile(fName, t)
+
+    up, err := New().Target(fName).VerifySignatureWithPEM([]byte(publicKey))
+    if err != nil {
+        t.Fatalf("Could not parse public key: %v", err)
+    }
+
+    err, _ = up.FromStream(bytes.NewReader(newFile))
+    if err == nil {
+        t.Fatalf("Allowed an update with no signautre when a public key was specified!")
+    }
+}
