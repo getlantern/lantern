@@ -153,8 +153,7 @@ func (u *Update) VerifySignatureWith(publicKey *rsa.PublicKey) *Update {
 // VerifySignature() with a signature to check.
 //
 // A PEM formatted public key typically begins with
-//
-// -----BEGIN PUBLIC KEY-----
+//     -----BEGIN PUBLIC KEY-----
 func (u *Update) VerifySignatureWithPEM(publicKeyPEM []byte) (*Update, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
