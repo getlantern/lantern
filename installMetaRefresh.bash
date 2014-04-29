@@ -23,7 +23,7 @@ aws -putp $bucket $name || die "Could not upload"
 echo "Uploaded lantern to http://cdn.getlantern.org/$name"
 echo "Also available at $url"
 
-if $release ; then
+if [$release -eq "true"] ; then
   echo "RELEASING!!!!!"
 #  pushd install/$dir || die "Could not change directories"
 #  perl -pi -e "s;url_token;$url;g" $newestName || die "Could not replace URL token"
