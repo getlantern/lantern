@@ -30,8 +30,6 @@ public class GoogleTalkTest {
                 final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
                 LanternSaslGoogleOAuth2Mechanism.setOauthUtils(oauth);
                 
-                Launcher.configureCipherSuites();
-
                 final org.lantern.state.Settings settings = model.getSettings();
                 
                 settings.setMode(Mode.get);

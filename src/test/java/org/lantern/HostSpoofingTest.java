@@ -39,8 +39,12 @@ public class HostSpoofingTest {
         }
         */
         final byte[] body = new byte[1200];
-        inputStream.read(body);
-        System.err.println(new String(body, "UTF-8"));
+        int n = 0;
+        int read = 0;
+        while ((read = inputStream.read(body, n, 1200 - n)) > 0) {
+            n += read;
+        };
+        System.out.println(new String(body, "UTF-8"));
     }
 
     private static void writeHttpRequest(final OutputStream os) throws IOException {
