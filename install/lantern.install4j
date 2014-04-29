@@ -209,9 +209,6 @@
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
-              <void property="allowUnattended">
-                <boolean>false</boolean>
-              </void>
               <void property="customHeaderImage">
                 <object class="com.install4j.api.beans.ExternalFile">
                   <string>./common/64on.png</string>
@@ -233,6 +230,9 @@
                     <string>./common/64on.png</string>
                   </object>
                 </void>
+              </void>
+              <void property="executionMode">
+                <object class="com.install4j.runtime.beans.applications.ExecutionMode" field="UNATTENDED_WITH_PROGRESS" />
               </void>
               <void property="frameHeight">
                 <int>160</int>
@@ -1147,7 +1147,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <array class="java.io.File" length="1">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>${installer:sys.userHome}/.lantern/pt/flashlight</string>
+                              <string>${installer:sys.userHome}/.lantern/pt</string>
                             </object>
                           </void>
                         </array>
