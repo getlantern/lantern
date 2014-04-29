@@ -1,4 +1,5 @@
-/* Package update allows a program to "self-update", replacing its executable file
+/*
+Package update allows a program to "self-update", replacing its executable file
 with new bytes.
 
 Package update provides the facility to create user experiences like auto-updating
@@ -20,7 +21,7 @@ which updates the current executable from a URL over the internet.
 
 You may also update from a binary diff patch to preserve bandwidth like so:
 
-    update.New().ApplyPatch().FromUrl("http://release.example.com/2.0/mypatch")
+    update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).FromUrl("http://release.example.com/2.0/mypatch")
 
 Package update also allows you to update arbitrary files on the file system (i.e. files
 which are not the executable of the currently running program).
@@ -55,6 +56,7 @@ import (
 	"path/filepath"
 )
 
+// The type of a binary patch, if any. Only bsdiff is supported
 type PatchType string
 
 const (
@@ -66,7 +68,7 @@ type Update struct {
 	// empty string means "path of the current executable"
 	TargetPath string
 
-	// type of patch to apply. empty means "not a patch"
+	// type of patch to apply. PATCHTYPE_NONE means "not a patch"
 	PatchType
 
 	// sha256 checksum of the new binary to verify against
@@ -87,6 +89,16 @@ func (u *Update) getPath() (string, error) {
 	}
 }
 
+// New creates a new Update object.
+// A default update object assumes the complete binary
+// content will be used for update (not a patch) and that
+// the intended target is the running executable.
+//
+// Use this as the start of a chain of calls on the Update
+// object to build up your configuration. Example:
+//
+//     up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).VerifyChecksum(checksum)
+//
 func New() *Update {
 	return &Update{
 		TargetPath: "",
@@ -94,31 +106,55 @@ func New() *Update {
 	}
 }
 
+// Target configures the update to update the file at the given path.
+// The emptry string means 'the executable file of the running program'.
 func (u *Update) Target(path string) *Update {
 	u.TargetPath = path
 	return u
 }
 
-func (u *Update) VerifySignatureWith(publicKey *rsa.PublicKey) *Update {
-	u.PublicKey = publicKey
-	return u
-}
-
+// ApplyPatch configures the update to treat the contents of the update
+// as a patch to apply to the existing to target. You must specify the
+// format of the patch. Only PATCHTYPE_BSDIFF is supported at the moment.
 func (u *Update) ApplyPatch(patchType PatchType) *Update {
 	u.PatchType = patchType
 	return u
 }
 
+// VerifyChecksum configures the update to verify that the
+// the update has the given sha256 checksum.
 func (u *Update) VerifyChecksum(checksum []byte) *Update {
 	u.Checksum = checksum
 	return u
 }
 
+// VerifySignature configures the update to verify the given
+// signature of the update. You must also call one of the
+// VerifySignatureWith* functions to specify a public key
+// to use for verification.
 func (u *Update) VerifySignature(signature []byte) *Update {
 	u.Signature = signature
 	return u
 }
 
+// VerifySignatureWith configures the update to use the given RSA
+// public key to verify the update's signature. You must also call
+// VerifySignature() with a signature to check.
+//
+// You'll probably want to use VerifySignatureWithPEM instead of
+// parsing the public key yourself.
+func (u *Update) VerifySignatureWith(publicKey *rsa.PublicKey) *Update {
+	u.PublicKey = publicKey
+	return u
+}
+
+// VerifySignatureWithPEM configures the update to use the given PEM-formatted
+// RSA public key to verify the update's signature. You must also call
+// VerifySignature() with a signature to check.
+//
+// A PEM formatted public key typically begins with
+//
+// -----BEGIN PUBLIC KEY-----
 func (u *Update) VerifySignatureWithPEM(publicKeyPEM []byte) (*Update, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
@@ -139,8 +175,7 @@ func (u *Update) VerifySignatureWithPEM(publicKeyPEM []byte) (*Update, error) {
 	return u, nil
 }
 
-// FromUrl downloads the contents of the given url and uses them to update
-// the file at updatePath.
+// FromUrl updates the target with the contents of the given URL.
 func (u *Update) FromUrl(url string) (err error, errRecover error) {
 	target := new(download.MemoryTarget)
 	err = download.New(url, target).Get()
@@ -151,8 +186,7 @@ func (u *Update) FromUrl(url string) (err error, errRecover error) {
 	return u.FromStream(target)
 }
 
-// FromFile reads the contents of the given file and uses them
-// to update the file by calling FromStream()
+// FromFile updates the target the contents of the given file.
 func (u *Update) FromFile(path string) (err error, errRecover error) {
 	// open the new updated contents
 	fp, err := os.Open(path)
@@ -165,26 +199,30 @@ func (u *Update) FromFile(path string) (err error, errRecover error) {
 	return u.FromStream(fp)
 }
 
-// FromStream reads the contents of the supplied io.Reader updateWith
-// and uses them to update the file at updatePath.
+// FromStream updates the target file with the contents of the supplied io.Reader.
 //
-// FromStream performs the following actions to ensure a cross-platform safe
-// update:
+// FromStream performs the following actions to ensure a safe cross-platform update:
 //
-// - Creates a new file, /path/to/.file-name.new with mode 0755 and copies
-// the contents of updateWith into the file
+// 1. If configured, applies the contents of the io.Reader as a binary patch.
 //
-// - Renames the file at updatePath from /path/to/file-name
-// to /path/to/.file-name.old
+// 2. If configured, computes the sha256 checksum and verifies it matches.
 //
-// - Renames /path/to/.file-name.new to /path/to/file-name
+// 3. If configured, verifies the RSA signature with a public key.
 //
-// - If the rename is successful, it erases /path/to/.file-name.old. If this operation
-// fails, no error is reported.
+// 4. Creates a new file, /path/to/.target.new with mode 0755 with the contents of the updated file
 //
-// - If the rename is unsuccessful, it attempts to rename /path/to/.file-name.old
-// back to /path/to/file-name. If this operation fails, it is reported in the errRecover
-// return value so as not to maks the error that caused the recovery attempt.
+// 5. Renames /path/to/target to /path/to/.target.old
+//
+// 6. Renames /path/to/.target.new to /path/to/target
+//
+// 7. If the rename is successful, deletes /path/to/.target.old, returns no error
+//
+// 8. If the rename fails, attempts to rename /path/to/.target.old back to /path/to/target
+// If this operation fails, it is reported in the errRecover return value so as not to
+// mask the original error that caused the recovery attempt.
+//
+// On Windows, the removal of /path/to/.target.old always fails, so instead,
+// we just make the old file hidden instead.
 func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) {
 	updatePath, err := u.getPath()
 	if err != nil {
@@ -263,12 +301,12 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 		errRecover = os.Rename(oldPath, updatePath)
 	} else {
 		// copy successful, remove the old binary
-        errRemove := os.Remove(oldPath)
+		errRemove := os.Remove(oldPath)
 
-        // windows has trouble with removing old binaries, so hide it instead
-        if errRemove != nil {
-            _ = hideFile(oldPath)
-        }
+		// windows has trouble with removing old binaries, so hide it instead
+		if errRemove != nil {
+			_ = hideFile(oldPath)
+		}
 	}
 
 	return
@@ -329,25 +367,30 @@ func verifyChecksum(updated []byte, expectedChecksum []byte) error {
 	return nil
 }
 
+// ChecksumForFile returns the sha256 checksum for the given file
 func ChecksumForFile(path string) ([]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	return ChecksumForReader(f)
 }
 
-func ChecksumForBytes(source []byte) ([]byte, error) {
-	return ChecksumForReader(bytes.NewReader(source))
-}
-
+// ChecksumForReader returns the sha256 checksum for the entire
+// contents of the given reader.
 func ChecksumForReader(rd io.Reader) ([]byte, error) {
 	h := sha256.New()
 	if _, err := io.Copy(h, rd); err != nil {
 		return nil, err
 	}
 	return h.Sum(nil), nil
+}
+
+// ChecksumForBytes returns the sha256 checksum for the given bytes
+func ChecksumForBytes(source []byte) ([]byte, error) {
+	return ChecksumForReader(bytes.NewReader(source))
 }
 
 func verifySignature(source, signature []byte, publicKey *rsa.PublicKey) error {
