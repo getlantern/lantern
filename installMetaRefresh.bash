@@ -16,14 +16,7 @@ release=$4
 
 echo "Release version: $release"
 
-bucket=lantern
-url=https://s3.amazonaws.com/$bucket/$name
-echo "Uploading to http://cdn.getlantern.org/$name..."
-aws -putp $bucket $name || die "Could not upload"
-echo "Uploaded lantern to http://cdn.getlantern.org/$name"
-echo "Also available at $url"
-
-if [$release -eq "true"] ; then
+if $release ; then
   echo "RELEASING!!!!!"
 #  pushd install/$dir || die "Could not change directories"
 #  perl -pi -e "s;url_token;$url;g" $newestName || die "Could not replace URL token"
@@ -36,6 +29,13 @@ if [$release -eq "true"] ; then
 
 #  git checkout $newestName || die "Could not checkout"
 #  popd
+  
+  bucket=lantern
+  url=https://s3.amazonaws.com/$bucket/$name
+  echo "Uploading to http://cdn.getlantern.org/$name..."
+  aws -putp $bucket $name || die "Could not upload"
+  echo "Uploaded lantern to http://cdn.getlantern.org/$name"
+  echo "Also available at $url"
 
   echo "Copying on S3 to newest file"
   ./copys3file.py $name || die "Could not copy s3 file to newest!"
