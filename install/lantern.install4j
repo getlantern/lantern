@@ -1072,7 +1072,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                             <string>-configdir</string>
                           </void>
                           <void index="2">
-                            <string>${installer:sys.userHome}/.lantern</string>
+                            <string>${installer:sys.userHome}/.lantern/pt/flashlight</string>
                           </void>
                         </array>
                       </void>
