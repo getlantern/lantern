@@ -1064,9 +1064,15 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
                       <void property="arguments">
-                        <array class="java.lang.String" length="1">
+                        <array class="java.lang.String" length="3">
                           <void index="0">
-                            <string>-install -configdir ${installer:sys.userHome}/.lantern</string>
+                            <string>-install</string>
+                          </void>
+                          <void index="1">
+                            <string>-configdir</string>
+                          </void>
+                          <void index="2">
+                            <string>${installer:sys.userHome}/.lantern</string>
                           </void>
                         </array>
                       </void>
