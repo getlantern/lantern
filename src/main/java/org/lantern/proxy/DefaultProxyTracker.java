@@ -106,7 +106,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         Events.register(this);
         
         // Always include the flashlight proxy
-        addSingleFallbackProxy(flashlightProxy());
+        try {
+            addSingleFallbackProxy(flashlightProxy());
+        } catch (Exception e) {
+            LOG.error("Unable to start flashlight!: {}", e.getMessage(), e);
+        }
     }
 
     @Subscribe
