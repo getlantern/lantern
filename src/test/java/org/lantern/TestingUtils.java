@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -61,12 +61,11 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Optional;
 
 public class TestingUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestingUtils.class);
@@ -194,8 +193,10 @@ public class TestingUtils {
         };
         
         final ProxySocketFactory proxySocketFactory = new ProxySocketFactory();
-        final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
-                proxySocketFactory);
+        final XmppConnectionRetyStrategyFactory retryStrategy = 
+                new LanternXmppRetryStrategyFactory(model);
+        final LanternXmppUtil xmppUtil = new LanternXmppUtil(proxySocketFactory, 
+                retryStrategy);
         
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, ksm, socketsUtil, xmppUtil, modelUtils,
