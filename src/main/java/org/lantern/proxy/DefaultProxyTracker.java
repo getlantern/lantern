@@ -122,8 +122,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         if (proxyRetryService != null) {
             proxyRetryService.shutdownNow();
         }
-        proxies.clear();
-        configuredProxies.clear();
     }
 
     @Subscribe
