@@ -3,7 +3,10 @@
     {{ 'CONNECTION_OFFLINE' | i18n }}
   </div>
   <div ng-show="model.connectivity.internet != false">
-    <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies <= 0">
+    <div id="still-connecting" ng-show="inGetMode && model.connectivity.nproxies == -1">
+      {{ 'CONNECTING' | i18n }}<br>
+    </div>
+    <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies == 0">
       {{ 'NO_PROXIES' | i18n }}<br>
       <!--
       {{ 'WAIT_FOR_FRIEND_OR' | i18n }}
