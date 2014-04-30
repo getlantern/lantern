@@ -231,6 +231,9 @@
                   </object>
                 </void>
               </void>
+              <void property="executionMode">
+                <object class="com.install4j.runtime.beans.applications.ExecutionMode" field="UNATTENDED_WITH_PROGRESS" />
+              </void>
               <void property="frameHeight">
                 <int>160</int>
               </void>
