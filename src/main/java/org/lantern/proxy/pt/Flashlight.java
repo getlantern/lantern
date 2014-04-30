@@ -166,7 +166,7 @@ public class Flashlight implements PluggableTransport {
         cmd.addArgument("-masquerade");
         cmd.addArgument("cdnjs.com");
         cmd.addArgument("-masqueradecacert");
-        cmd.addArgument("'"+GLOBALSIGN_CA_CERT+"'");
+        cmd.addArgument(GLOBALSIGN_CA_CERT, false);
         cmd.addArgument("-configdir");
         cmd.addArgument(String.format("%s%spt%sflashlight",
                 LanternClientConstants.CONFIG_DIR,
