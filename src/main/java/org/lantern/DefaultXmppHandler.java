@@ -216,12 +216,6 @@ public class DefaultXmppHandler implements XmppHandler,
     public void stop() {
         LOG.debug("Stopping XMPP handler...");
         disconnect();
-        if (upnpService != null) {
-            upnpService.shutdown();
-        }
-        if (natPmpService != null) {
-            natPmpService.shutdown();
-        }
         LOG.debug("Stopped XMPP handler...");
     }
 

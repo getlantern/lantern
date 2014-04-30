@@ -21,7 +21,8 @@ import fr.free.miniupnp.MiniupnpcLibrary;
 import fr.free.miniupnp.UPNPDev;
 import fr.free.miniupnp.UPNPUrls;
 
-public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
+public class Upnp implements org.lastbamboo.common.portmapping.UpnpService, 
+    Shutdownable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -253,5 +254,10 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     public String getPublicIpAddress() {
         return publicIp;
+    }
+    
+    @Override
+    public void stop() {
+        shutdown();
     }
 }
