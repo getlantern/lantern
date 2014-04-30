@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ConnectException;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Timer;
