@@ -63,8 +63,8 @@ public class StatsManager implements Shutdownable {
      *            The new config.
      */
     @Subscribe
-    public void onIpAndToken(final PublicIpEvent publicIpEvent) {
-        LOGGER.debug("Got connected with refresh event");
+    public void onPublicIp(final PublicIpEvent publicIpEvent) {
+        LOGGER.debug("Got connected event");
         stop();
         start();
     }
