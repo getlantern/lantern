@@ -28,6 +28,7 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
+import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
@@ -85,6 +86,18 @@ public class DefaultFriendsHandler implements FriendsHandler {
         this.msgs = msgs;
         
         Events.register(this);
+    }
+    
+    /**
+     * The public IP is necessary because it lets us know if we're censored, 
+     * which determines (along with whether or not we're in get mode) 
+     * whether or not we should run with a proxy.
+     *  
+     * @param event The public ip and token event.
+     */
+    @Subscribe
+    public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
+        loadFriends();
     }
     
     public void loadFriends() {
