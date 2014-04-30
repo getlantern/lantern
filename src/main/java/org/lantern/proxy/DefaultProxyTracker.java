@@ -103,6 +103,7 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     @Override
     public void start() {
+        LOG.debug("Starting...");
         proxyRetryService = Threads
                 .newScheduledThreadPool("Proxy-Retry");
         // Periodically restore timed in proxies
@@ -116,10 +117,13 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     @Override
     public void stop() {
+        LOG.debug("Stopping...");
         // The proxyRetryService could be null if we haven't started yet.
         if (proxyRetryService != null) {
             proxyRetryService.shutdownNow();
         }
+        proxies.clear();
+        configuredProxies.clear();
     }
 
     @Subscribe
