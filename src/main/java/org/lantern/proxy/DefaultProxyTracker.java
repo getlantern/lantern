@@ -116,7 +116,10 @@ public class DefaultProxyTracker implements ProxyTracker {
     
     @Override
     public void stop() {
-        proxyRetryService.shutdownNow();
+        // The proxyRetryService could be null if we haven't started yet.
+        if (proxyRetryService != null) {
+            proxyRetryService.shutdownNow();
+        }
     }
 
     @Subscribe
