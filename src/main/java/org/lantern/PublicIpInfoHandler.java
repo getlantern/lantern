@@ -4,6 +4,8 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 
 import org.lantern.event.Events;
+import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.PublicIpEvent;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Location;
 import org.lantern.state.Modal;
@@ -15,6 +17,7 @@ import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -56,6 +59,33 @@ public class PublicIpInfoHandler {
         }
         handleCensored();
         handleGeoIp(address);
+        
+        // Post PublicIpEvent so that downstream services like xmpp,
+        // FriendsHandler, StatsManager and Loggly can start.
+        Events.asyncEventBus().post(new PublicIpEvent());
+    }
+    
+    @Subscribe
+    public void onProxyConnectionEvent(
+        final ProxyConnectionEvent pce) {
+        final ConnectivityStatus stat = pce.getConnectivityStatus();
+        switch (stat) {
+        case CONNECTED:
+            log.debug("Got connected event");
+            try {
+                init();
+            } catch (ConnectException e) {
+                log.warn("Could not get public IP?", e);
+            }
+            break;
+        case CONNECTING:
+            break;
+        case DISCONNECTED:
+            break;
+        default:
+            break;
+        
+        }
     }
 
     private void handleGeoIp(final InetAddress address) {

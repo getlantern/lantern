@@ -21,7 +21,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.event.PublicIpAndTokenTracker;
-import org.lantern.event.PublicIpEvent;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
@@ -119,7 +118,7 @@ public class Launcher {
 
     private LanternKeyStoreManager keyStoreManager;
 
-    private S3ConfigFetcher s3ConfigManager;
+    private S3ConfigFetcher s3ConfigFetcher;
 
     private PublicIpInfoHandler publicIpInfoHandler;
     
@@ -275,7 +274,7 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
-        s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
+        s3ConfigFetcher = new S3ConfigFetcher(model, httpClientFactory);
         
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
@@ -396,17 +395,14 @@ public class Launcher {
         // Try to initialize network services once
         try {
             publicIpAndTokenTracker.reset();
-            s3ConfigManager.init();
+            s3ConfigFetcher.init();
             proxyTracker.init();
             // Needs a fallback.
             publicIpInfoHandler.init();
-            // Post PublicIpEvent so that downstream services like xmpp,
-            // FriendsHandler, StatsManager and Loggly can start.
-            Events.eventBus().post(new PublicIpEvent());
+            
             // Once network services are successfully initialized, start
-            // background
-            // tasks.
-            s3ConfigManager.start();
+            // background tasks.
+            s3ConfigFetcher.start();
             proxyTracker.start();
         } catch (final ConnectException e) {
             LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
@@ -421,7 +417,7 @@ public class Launcher {
         statsManager.stop();
         friendsHandler.stop();
         proxyTracker.stop();
-        s3ConfigManager.stop();
+        s3ConfigFetcher.stop();
     }
 
     private boolean shouldShowDashboard(final Model mod, 
