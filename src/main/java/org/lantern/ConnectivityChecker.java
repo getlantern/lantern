@@ -85,13 +85,17 @@ public class ConnectivityChecker extends TimerTask {
     }
 
     private void notifyConnected() {
-        LOG.info("Became connected with same IP address");
-        ConnectivityChangedEvent event = new ConnectivityChangedEvent(true);
-        Events.asyncEventBus().post(event);
+        LOG.info("Became connected...");
+        notifyListeners(true);
     }
 
     private void notifyDisconnected() {
-        ConnectivityChangedEvent event = new ConnectivityChangedEvent(false);
+        LOG.info("Became disconnected...");
+        notifyListeners(false);
+    }
+    
+    private void notifyListeners(final boolean connected) {
+        ConnectivityChangedEvent event = new ConnectivityChangedEvent(connected);
         Events.asyncEventBus().post(event);
     }
 
