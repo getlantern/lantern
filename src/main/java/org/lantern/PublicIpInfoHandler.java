@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.net.ConnectException;
 import java.net.InetAddress;
 
 import org.lantern.event.Events;
@@ -49,13 +48,13 @@ public class PublicIpInfoHandler {
      * network footprint.
      * 
      * @param pce The proxy connection event.
-     * @throws ConnectException 
+     * @throws InitException If there was an error fetching the public IP. 
      */
-    public void init() throws ConnectException {
+    public void init() throws InitException {
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
         this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
         if (address == null) {
-            throw new ConnectException("Could not determine public IP");
+            throw new InitException("Could not determine public IP");
         }
         handleCensored();
         handleGeoIp(address);
@@ -74,7 +73,7 @@ public class PublicIpInfoHandler {
             log.debug("Got connected event");
             try {
                 init();
-            } catch (ConnectException e) {
+            } catch (final InitException e) {
                 log.warn("Could not get public IP?", e);
             }
             break;

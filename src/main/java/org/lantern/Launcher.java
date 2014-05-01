@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.HashSet;
@@ -404,9 +403,9 @@ public class Launcher {
             // background tasks.
             s3ConfigFetcher.start();
             proxyTracker.start();
-        } catch (final ConnectException e) {
+        } catch (final InitException e) {
             LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             LOG.error("Unexpected error trying to start network services: {}",
                     t.getMessage(), t);
         }
