@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +30,10 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.InstanceInfo;
+import org.lantern.network.NetworkTracker;
+import org.lantern.network.NetworkTrackerListener;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -49,7 +51,7 @@ import com.google.inject.Singleton;
  * Class for keeping track of all proxies we know about.
  */
 @Singleton
-public class DefaultProxyTracker implements ProxyTracker {
+public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener<URI, ReceivedKScopeAd> {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
@@ -72,25 +74,15 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final LanternTrustStore lanternTrustStore;
 
-    /**
-     * This is a lock for when we need to block on retrieving a TCP proxy, such
-     * as when we need to access a blocked site over HTTP during initial setup.
-     */
-    private final ReentrantLock tcpProxyLock = new ReentrantLock();
-
-    /**
-     * Condition for when there are no proxies -- threads needing proxies wait
-     * on this until proxies are available within the timeout or not.
-     */
-    private final Condition noProxies = this.tcpProxyLock.newCondition();
-
     @Inject
     public DefaultProxyTracker(final Model model,
             final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore) {
+            final LanternTrustStore lanternTrustStore,
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
+        networkTracker.addListener(this);
 
         Events.register(this);
     }
@@ -153,6 +145,30 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
         addFallbackProxies(config);
     }
+    
+    @Override
+    public void instanceOnlineAndTrusted(
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        LOG.debug("Adding proxy... {}", instance);
+        if (instance.hasMappedEndpoint()) {
+            final ProxyInfo info = instance.getData().getAd().getProxyInfo();
+            
+            if (info != null) {
+                addProxy(info);
+                // Also add the local network advertisement in case they're on
+                // the local network.
+                addProxy(info.onLan());
+            }
+        }
+    }
+    
+    @Override
+    public void instanceOfflineOrUntrusted(
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        URI jid = instance.getId();
+        LOG.debug("Removing proxy for {}", jid);
+        removeNattedProxy(jid);
+    }
 
     @Override
     public void clear() {
@@ -179,8 +195,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         }
     }
 
-    @Override
-    public void addProxy(ProxyInfo info) {
+    public void addProxy(final ProxyInfo info) {
         synchronized (configuredProxies) {
             if (configuredProxies.contains(info)) {
                 LOG.debug("Proxy already configured.  Configured proxies is: {}", configuredProxies);
@@ -335,7 +350,6 @@ public class DefaultProxyTracker implements ProxyTracker {
                 .getRemote();
         try {
             sock.connect(remote, 60 * 1000);
-            notifyTcpProxyAvailable();
             successfullyConnectedToProxy(proxy);
         } catch (final IOException e) {
             // This can happen if the user has subsequently gone
@@ -352,23 +366,9 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     /**
-     * Let threads waiting on the first connected TCP proxy know that we now
-     * have one.
-     */
-    private void notifyTcpProxyAvailable() {
-        LOG.debug("Got TCP proxy...unlocking");
-        this.tcpProxyLock.lock();
-        try {
-            noProxies.signalAll();
-        } finally {
-            this.tcpProxyLock.unlock();
-        }
-    }
-
-    /**
      * Let the world know that we've successfully connected to the proxy.
      * 
-     * @param proxy
+     * @param proxy The proxy we connected.
      */
     private void successfullyConnectedToProxy(ProxyHolder proxy) {
         LOG.debug("Connected to proxy: {}", proxy);

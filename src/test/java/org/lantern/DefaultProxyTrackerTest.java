@@ -15,6 +15,8 @@ import java.net.URI;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.NetworkTracker;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.ProxyHolder;
 import org.lantern.proxy.ProxyInfo;
@@ -47,7 +49,7 @@ public class DefaultProxyTrackerTest {
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, lanternTrustStore);
+                peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();

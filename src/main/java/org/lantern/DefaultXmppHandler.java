@@ -44,9 +44,7 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.ReceivedKScopeAd;
-import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
-import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
@@ -81,8 +79,7 @@ import com.google.inject.Singleton;
  * the roster.
  */
 @Singleton
-public class DefaultXmppHandler implements XmppHandler,
-    NetworkTrackerListener<URI, ReceivedKScopeAd> {
+public class DefaultXmppHandler implements XmppHandler {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
@@ -196,7 +193,6 @@ public class DefaultXmppHandler implements XmppHandler,
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
         this.networkTracker = networkTracker;
-        this.networkTracker.addListener(this);
         this.censored = censored;
         Events.register(this);
         
@@ -1118,19 +1114,4 @@ public class DefaultXmppHandler implements XmppHandler,
     public ProxyTracker getProxyTracker() {
         return proxyTracker;
     }
-    
-    @Override
-    public void instanceOnlineAndTrusted(
-            InstanceInfo<URI, ReceivedKScopeAd> instance) {
-        // Do nothing
-    }
-    
-    @Override
-    public void instanceOfflineOrUntrusted(
-            InstanceInfo<URI, ReceivedKScopeAd> instance) {
-        URI jid = instance.getId();
-        LOG.debug("Removing proxy for {}", jid);
-        this.proxyTracker.removeNattedProxy(jid);
-    }
-    
 }
