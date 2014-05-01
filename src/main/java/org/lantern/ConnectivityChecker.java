@@ -1,10 +1,8 @@
 package org.lantern;
 
 import java.net.ConnectException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +11,6 @@ import java.util.TimerTask;
 import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
-import org.littleshoot.proxy.impl.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +48,7 @@ public class ConnectivityChecker extends TimerTask {
     public boolean checkConnectivity() {
         final boolean wasConnected = 
                 Boolean.TRUE.equals(model.getConnectivity().isInternet());
-        final InetAddress ip = localIpAddressIfConnected();
-        final boolean connected = ip != null;
+        final boolean connected = areAnyTestSitesReachable();
         this.model.getConnectivity().setInternet(connected);
         boolean becameConnected = connected && !wasConnected;
         boolean becameDisconnected = !connected && wasConnected;
@@ -65,23 +61,6 @@ public class ConnectivityChecker extends TimerTask {
         }
         Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
         return connected;
-    }
-
-    private InetAddress localIpAddressIfConnected() {
-        // Check if the Internet is reachable
-        boolean internetIsReachable = areAnyTestSitesReachable();
-
-        if (internetIsReachable) {
-            LOG.debug("Internet is reachable...");
-            try {
-                return NetworkUtils.getLocalHost();
-            } catch (UnknownHostException e) {
-                LOG.error("Could not get local host?", e);
-            }
-        } 
-        
-        LOG.info("None of the test sites were reachable -- no internet connection");
-        return null;
     }
 
     private void notifyConnected() {
@@ -106,6 +85,7 @@ public class ConnectivityChecker extends TimerTask {
                 return true;
             }
         }
+        LOG.info("None of the test sites were reachable -- no internet connection");
         return false;
     }
 
