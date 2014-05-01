@@ -50,24 +50,38 @@ public class DefaultProxyTrackerTest {
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
                 peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
+        
+        tracker.init();
+        tracker.start();
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();
         assertNull(proxy);
 
-        Miniproxy miniproxy1 = new Miniproxy(55021);
+        final int port1 = 55077;
+        final int port2 = 55078;
+        
+        
+        Miniproxy miniproxy1 = new Miniproxy(port1);
         new Thread(miniproxy1).start();
         LanternUtils.waitForServer(miniproxy1.port, 4000);
 
-        Miniproxy miniproxy2 = new Miniproxy(55022);
+        Miniproxy miniproxy2 = new Miniproxy(port2);
         new Thread(miniproxy2).start();
         LanternUtils.waitForServer(miniproxy2.port, 4000);
+        
 
         InetAddress localhost = org.littleshoot.proxy.impl.NetworkUtils.getLocalHost();
-        tracker.addProxy(new ProxyInfo(new URI("proxy1@example.com"), localhost.getHostAddress(), 55021));
+        final ProxyInfo info = new ProxyInfo(new URI("proxy1@example.com"), localhost.getHostAddress(), port1);
+        assertNotNull(info.fiveTuple());
+        
+        tracker.addProxy(info);
+        
         proxy = waitForProxy(tracker);
         
-        assertEquals(55021, getProxyPort(proxy));
+        assertNotNull(proxy);
+        
+        assertEquals(port1, getProxyPort(proxy));
 
         //now let's force the proxy to fail.
         //miniproxy1.pause();
@@ -75,6 +89,7 @@ public class DefaultProxyTrackerTest {
         proxy = tracker.firstConnectedTcpProxy();
         // first, we need to clear out the old proxy from the list, by having it
         // fail.
+        
         tracker.onCouldNotConnect(proxy);
         //now wait for the miniproxy to stop accepting.
         Thread.sleep(10);
@@ -88,20 +103,23 @@ public class DefaultProxyTrackerTest {
 
         //let's turn off internet, which will restore the dead proxy
         model.getConnectivity().setInternet(false);
-        Events.eventBus().post(new ConnectivityChangedEvent(true));
+        //Events.eventBus().post(new ConnectivityChangedEvent(true));
+        tracker.init();
         Thread.sleep(10);
 
         proxy = tracker.firstConnectedTcpProxy();
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
-        Events.eventBus().post(new ConnectivityChangedEvent(true));
+        //Events.eventBus().post(new ConnectivityChangedEvent(true));
+        tracker.init();
+        
         tracker.firstConnectedTcpProxy();
         Thread.sleep(10);
 
         // with multiple proxies, we get a different proxy for each getProxy()
         // call
-        tracker.addProxy(new ProxyInfo(new URI("proxy2@example.com"), localhost.getHostAddress(), 55022));
+        tracker.addProxy(new ProxyInfo(new URI("proxy2@example.com"), localhost.getHostAddress(), port2));
         /*
         Thread.sleep(50);
         ProxyHolder proxy1 = waitForProxy(tracker);
@@ -121,14 +139,18 @@ public class DefaultProxyTrackerTest {
 
     private ProxyHolder waitForProxy(DefaultProxyTracker tracker) 
         throws Exception {
-        synchronized (this) {
+        
+        int tries = 0;
+        while (tries < 1000) {
             final ProxyHolder proxy = tracker.firstConnectedTcpProxy();
             if (proxy != null) {
                 return proxy;
             }
-            Thread.sleep(6000);
-            return tracker.firstConnectedTcpProxy();
+            Thread.sleep(10);
+            tries ++;
+            //return tracker.firstConnectedTcpProxy();
         }
+        return null;
     }
 
     private int getProxyPort(ProxyHolder proxy) {
@@ -159,6 +181,7 @@ public class DefaultProxyTrackerTest {
         public void run() {
             ServerSocket sock;
             try {
+                //InetAddress lh = org.littleshoot.proxy.impl.NetworkUtils.getLocalHost();
                 sock = new ServerSocket(port);
                 sock.setSoTimeout(1);
                 while (!done) {

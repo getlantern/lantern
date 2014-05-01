@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -73,6 +74,13 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     private ScheduledExecutorService proxyRetryService;
 
     private final LanternTrustStore lanternTrustStore;
+    
+    /**
+     * We offload TCP connections to a thread to avoid callers waiting on
+     * potentially slow connections to peers.
+     */
+    private final ExecutorService proxyConnect = 
+            Threads.newCachedThreadPool("Proxy-Connect-Thread-");
 
     @Inject
     public DefaultProxyTracker(final Model model,
@@ -195,6 +203,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         }
     }
 
+    @Override
     public void addProxy(final ProxyInfo info) {
         synchronized (configuredProxies) {
             if (configuredProxies.contains(info)) {
@@ -316,10 +325,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             // Assume cloud proxies to be connected
             successfullyConnectedToProxy(proxy);
         } else {
-            // Assume other proxies to not be connected and let the
-            // {@link #restoreTimedInProxies()} logic pick it up on its next
-            // run
-            onCouldNotConnect(proxy);
+            checkConnectivityToProxy(proxy);
         }
 
     }
@@ -343,26 +349,40 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             }
         }
     }
+    
 
+    /**
+     * Threaded connectivity check to peer TCP proxies to avoid callers
+     * unexpectedly blocking on checks for as much as the socket connect
+     * timeout.
+     * 
+     * @param proxy The proxy to check.
+     */
     private void checkConnectivityToTcpProxy(final ProxyHolder proxy) {
-        final Socket sock = new Socket();
-        final InetSocketAddress remote = proxy.getFiveTuple()
-                .getRemote();
-        try {
-            sock.connect(remote, 60 * 1000);
-            successfullyConnectedToProxy(proxy);
-        } catch (final IOException e) {
-            // This can happen if the user has subsequently gone
-            // offline, for example.
-            LOG.debug("Could not connect to proxy: {}", proxy, e);
-            onCouldNotConnect(proxy);
+        proxyConnect.submit(new Runnable() {
 
-            if (proxy.attemptNatTraversalIfConnectionFailed()) {
-                addProxy(new ProxyInfo(proxy.getJid()));
+            @Override
+            public void run() {
+                final Socket sock = new Socket();
+                final InetSocketAddress remote = proxy.getFiveTuple()
+                        .getRemote();
+                try {
+                    sock.connect(remote, 60 * 1000);
+                    successfullyConnectedToProxy(proxy);
+                } catch (final IOException e) {
+                    // This can happen if the user has subsequently gone
+                    // offline, for example.
+                    LOG.debug("Could not connect to proxy: {}", proxy, e);
+                    onCouldNotConnect(proxy);
+
+                    if (proxy.attemptNatTraversalIfConnectionFailed()) {
+                        addProxy(new ProxyInfo(proxy.getJid()));
+                    }
+                } finally {
+                    IOUtils.closeQuietly(sock);
+                }
             }
-        } finally {
-            IOUtils.closeQuietly(sock);
-        }
+        });
     }
 
     /**
