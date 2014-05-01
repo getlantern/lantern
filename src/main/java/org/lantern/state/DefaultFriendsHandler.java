@@ -91,8 +91,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
     /**
      * The public IP is necessary because it lets us know if we're censored, 
      * which determines (along with whether or not we're in get mode) 
-     * whether or not we should run with a proxy.
-     *  
+     * whether or not we should run with a proxy. We also need an oauth token
+     * in order to hit the friends API, and this event tells us we have a
+     * token.
+     *
      * @param event The public ip and token event.
      */
     @Subscribe
@@ -100,7 +102,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         loadFriends();
     }
     
-    public void loadFriends() {
+    private void loadFriends() {
         // If we're currently loading friends or have already successfully 
         // loaded friends, ignore this call.
         if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {

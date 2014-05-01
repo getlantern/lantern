@@ -98,6 +98,8 @@ public class PublicIpInfoHandler {
     }
 
     private void handleCensored() {
+        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+
         Settings set = model.getSettings();
 
         if (set.getMode() == null || set.getMode() == Mode.unknown) {
