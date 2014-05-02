@@ -3,7 +3,6 @@ package org.lantern;
 import java.net.InetSocketAddress;
 
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 /**
  * This test fails with an SSL errorr - unable to find valid certification path
@@ -11,7 +10,8 @@ import javax.net.ssl.SSLSocketFactory;
  */
 public class CertChainTest {
     public static void main(final String... args) throws Exception {
-        final SSLSocket sock = (SSLSocket) SSLSocketFactory.getDefault()
+        LanternTrustStore ts = new LanternTrustStore(new LanternKeyStoreManager());
+        final SSLSocket sock = (SSLSocket) ts.getCumulativeSslContext().getSocketFactory()
                 .createSocket();
         sock.connect(new InetSocketAddress("img.truecar.com", 443), 10000);
         sock.getOutputStream().write(
