@@ -1,7 +1,6 @@
 package org.lantern.event;
 
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.ConnectivityStatus;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,18 +15,18 @@ import com.google.inject.Singleton;
  * including the XMPP server login and connecting to the friends API.
  */
 @Singleton
-public class ProxyAndTokenTracker {
+public class PublicIpAndTokenTracker {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private boolean hasRefresh = false;
 
-    private boolean hasProxy = false;
+    private boolean hasPublicIp = false;
 
     private String refresh;
     
     @Inject
-    public ProxyAndTokenTracker(final Model model) {
+    public PublicIpAndTokenTracker(final Model model) {
         log.debug("Creating tracker");
         Events.register(this);
         this.refresh = model.getSettings().getRefreshToken();
@@ -36,46 +35,39 @@ public class ProxyAndTokenTracker {
         }
     }
     
+    /**
+     * Resets the state of the tracker (useful when reinitializing system).
+     */
+    public void reset() {
+        this.hasPublicIp = false;
+    }
+    
     @Subscribe
     public void onRefreshToken(final RefreshTokenEvent refreshEvent) {
         log.debug("Got refresh token -- loading friends");
         this.refresh = refreshEvent.getRefreshToken();
         synchronized (this) {
             this.hasRefresh = true;
-            if (this.hasProxy) {
+            if (this.hasPublicIp) {
                 // We use a synchronous event bus here so the creator of the
                 // refresh event can decide whether this is ultimately called
                 // asynchronously or not.
-                Events.eventBus().post(new ProxyAndTokenEvent(this.refresh));
+                Events.eventBus().post(new PublicIpAndTokenEvent(this.refresh));
             }
         }
     }
     
     @Subscribe
-    public void onProxyConnection(final ProxyConnectionEvent pce) {
-        log.debug("Got proxy connection event");
-        final ConnectivityStatus stat = pce.getConnectivityStatus();
-        switch (stat) {
-        case CONNECTED:
-            log.debug("Got connected!");
-            synchronized (this) {
-                this.hasProxy = true;
-                if (this.hasRefresh) {
-                    log.debug("Posting event!!");
-                    // We use a synchronous event bus here so the creator of the
-                    // proxy event can decide whether this is ultimately called
-                    // asynchronously or not.
-                    Events.eventBus().post(new ProxyAndTokenEvent(this.refresh));
-                }
+    public void onPublicIp(final PublicIpEvent pce) {
+        synchronized (this) {
+            this.hasPublicIp = true;
+            if (this.hasRefresh) {
+                log.debug("Posting event!!");
+                // We use a synchronous event bus here so the creator of the
+                // proxy event can decide whether this is ultimately called
+                // asynchronously or not.
+                Events.eventBus().post(new PublicIpAndTokenEvent(this.refresh));
             }
-            break;
-        case CONNECTING:
-            log.debug("Got connecting event");
-            break;
-        case DISCONNECTED:
-            log.debug("Got disconnected event");
-            break;
-        default:
         }
     }
 }

@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +35,13 @@ public class ChromeRunner {
     private volatile Process process;
     private final int screenWidth;
     private final int screenHeight;
+    private final Model model;
     
-    public ChromeRunner(final int screenWidth, final int screenHeight) {
+    public ChromeRunner(final int screenWidth, final int screenHeight, 
+            final Model model) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.model = model;
         this.location = 
             LanternUtils.getScreenCenter(screenWidth, screenHeight);
     }
@@ -152,7 +156,7 @@ public class ChromeRunner {
         log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
         final String executable = determineExecutable();
-        if (executable == null) {
+        if ((LanternUtils.isDevMode() && model.getSettings().isChrome()) || executable == null) {
             String uri = StaticSettings.getLocalEndpoint(port, prefix)
                     + "/index.html";
             openSystemDefaultBrowser(uri);

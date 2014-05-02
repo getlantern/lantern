@@ -4,6 +4,7 @@ import java.net.InetAddress;
 
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.PublicIpEvent;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Location;
 import org.lantern.state.Modal;
@@ -25,7 +26,7 @@ import com.google.inject.Singleton;
  * performing a geo IP lookup on that address, etc.
  */
 @Singleton
-public class PublicIpAddressHandler {
+public class PublicIpInfoHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Model model;
@@ -33,7 +34,7 @@ public class PublicIpAddressHandler {
     private final GeoIpLookupService geoIpLookupService;
     
     @Inject
-    public PublicIpAddressHandler(final Model model, final Censored censored,
+    public PublicIpInfoHandler(final Model model, final Censored censored,
             final GeoIpLookupService geoIpLookupService) {
         this.model = model;
         this.censored = censored;
@@ -47,26 +48,42 @@ public class PublicIpAddressHandler {
      * network footprint.
      * 
      * @param pce The proxy connection event.
+     * @throws InitException If there was an error fetching the public IP. 
      */
+    public void init() throws InitException {
+        final InetAddress address = new PublicIpAddress().getPublicIpAddress();
+        this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
+        if (address == null) {
+            throw new InitException("Could not determine public IP");
+        }
+        handleCensored();
+        handleGeoIp(address);
+        
+        // Post PublicIpEvent so that downstream services like xmpp,
+        // FriendsHandler, StatsManager and Loggly can start.
+        Events.asyncEventBus().post(new PublicIpEvent());
+    }
+    
     @Subscribe
-    public void onProxyConnection(final ProxyConnectionEvent pce) {
-        log.debug("Got proxy connection event");
+    public void onProxyConnectionEvent(
+        final ProxyConnectionEvent pce) {
         final ConnectivityStatus stat = pce.getConnectivityStatus();
         switch (stat) {
         case CONNECTED:
-            log.debug("Got connected!");
-            final InetAddress address = new PublicIpAddress().getPublicIpAddress();
-            this.model.getConnectivity().setIp(address.getHostAddress());
-            handleCensored();
-            handleGeoIp(address);
+            log.debug("Got connected event");
+            try {
+                init();
+            } catch (final InitException e) {
+                log.warn("Could not get public IP?", e);
+            }
             break;
         case CONNECTING:
-            log.debug("Got connecting event");
             break;
         case DISCONNECTED:
-            log.debug("Got disconnected event");
             break;
         default:
+            break;
+        
         }
     }
 

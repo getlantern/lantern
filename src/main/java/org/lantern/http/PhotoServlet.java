@@ -100,6 +100,9 @@ public final class PhotoServlet extends HttpServlet {
             imageData = noImage;
         } else {
         
+            imageData = noImage;
+            
+            /*
             // In theory here we could hit another Google API to avoid
             // shoving all this data through XMPP, although it probably doesn't
             // matter much -- a TCP pipe is a TCP pipe after all.
@@ -117,15 +120,14 @@ public final class PhotoServlet extends HttpServlet {
                 imageData = noImage;
             } else {
                 imageData = raw;
-                /*
-                final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
-                if (types != null && !types.isEmpty()) {
-                    final String ct = types.iterator().next().toString();
-                    resp.setContentType(ct);
-                    log.debug("Set content type to {}", ct);
-                }
-                */
+                //final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
+                //if (types != null && !types.isEmpty()) {
+                //    final String ct = types.iterator().next().toString();
+                //    resp.setContentType(ct);
+                //    log.debug("Set content type to {}", ct);
+                //}
             }
+            */
         }
         
         

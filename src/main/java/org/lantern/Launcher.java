@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.security.Security;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
@@ -18,10 +17,9 @@ import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
-import org.lantern.event.ProxyAndTokenTracker;
+import org.lantern.event.PublicIpAndTokenTracker;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
@@ -41,7 +39,6 @@ import org.lantern.state.SyncService;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
 import org.lantern.util.StopwatchManager;
-import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
@@ -112,8 +109,6 @@ public class Launcher {
     private ModelUtils modelUtils;
     private Settings set;
 
-    private InternalState internalState;
-
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
     private final LanternModule lanternModule;
@@ -122,7 +117,13 @@ public class Launcher {
 
     private LanternKeyStoreManager keyStoreManager;
 
-    private S3ConfigFetcher s3ConfigManager;
+    private S3ConfigFetcher s3ConfigFetcher;
+
+    private PublicIpInfoHandler publicIpInfoHandler;
+    
+    private PublicIpAndTokenTracker publicIpAndTokenTracker;
+    
+    private Object initLock = new Object();
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -141,6 +142,8 @@ public class Launcher {
             }
         });
         s_instance = this;
+        
+        Events.register(this);
     }
     
     public static Launcher getInstance() {
@@ -212,11 +215,9 @@ public class Launcher {
         final boolean uiDisabled = checkFallbacks || cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
 
-        configureCipherSuites();
         preInstanceWatch.stop();
 
         model = instance(Model.class);
-        if (!checkFallbacks) configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -249,10 +250,10 @@ public class Launcher {
         }
         launchLantern(showDashboard);
 
-        instance(ProxyAndTokenTracker.class);
+        publicIpAndTokenTracker = instance(PublicIpAndTokenTracker.class);
         instance(XmppConnector.class);
         
-        instance(PublicIpAddressHandler.class);
+        publicIpInfoHandler = instance(PublicIpInfoHandler.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
@@ -272,7 +273,7 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
-        s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
+        s3ConfigFetcher = new S3ConfigFetcher(model, httpClientFactory);
         
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
@@ -293,7 +294,7 @@ public class Launcher {
 
         instance(LocalCipherProvider.class);
 
-        internalState = instance(InternalState.class);
+        instance(InternalState.class);
         syncService = instance(SyncService.class);
 
         statsManager = instance(StatsManager.class);
@@ -339,23 +340,23 @@ public class Launcher {
                 keyStoreManager.start();
 
                 shutdownable(ModelIo.class);
-
-                try {
-                    proxyTracker.start();
-                } catch (final Exception e) {
-                    LOG.error("Could not start proxy tracker?", e);
-                }
-                getModeProxy.start();
-
+                
                 // don't need to start the rest of these services when running in check-fallbacks mode
                 if (checkFallbacks) {
                     return;
                 }
+                
+                // Immediately start getModeProxy
+                getModeProxy.start();
+                
+                if (!checkFallbacks) configureLoggly();
 
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
+
                 final Timer timer = new Timer("Connectivity-Check-Timer", true);
                 timer.schedule(connectivityChecker, 0, 10 * 1000);
+                
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
                     giveModeProxy.start();
@@ -376,6 +377,46 @@ public class Launcher {
         }, "Launcher-Start-Thread");
         t.setDaemon(true);
         t.start();
+    }
+    
+    @Subscribe
+    public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+        synchronized(initLock) {
+            if (event.isConnected()) {
+                startNetworkServices();
+            } else {
+                stopNetworkServices();
+            }
+        }
+    }
+    
+    private void startNetworkServices() {
+        // Try to initialize network services once
+        try {
+            publicIpAndTokenTracker.reset();
+            s3ConfigFetcher.init();
+            proxyTracker.init();
+            // Needs a fallback.
+            publicIpInfoHandler.init();
+            
+            // Once network services are successfully initialized, start
+            // background tasks.
+            s3ConfigFetcher.start();
+            proxyTracker.start();
+        } catch (final InitException e) {
+            LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
+        } catch (final Throwable t) {
+            LOG.error("Unexpected error trying to start network services: {}",
+                    t.getMessage(), t);
+        }
+    }
+    
+    private void stopNetworkServices() {
+        xmpp.stop();
+        statsManager.stop();
+        friendsHandler.stop();
+        proxyTracker.stop();
+        s3ConfigFetcher.stop();
     }
 
     private boolean shouldShowDashboard(final Model mod, 
@@ -476,63 +517,9 @@ public class Launcher {
                 "/usr/share/applications/lantern.desktop");
     }
 
-    private static final String CIPHER_SUITE_LOW_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
-
-    private static final String CIPHER_SUITE_HIGH_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
-
     private static final String STOPWATCH_LOG = "org.lantern.STOPWATCH_LOG";
     
     private static final String STOPWATCH_GROUP = "launcherGroup";
-
-    public static void configureCipherSuites() {
-        Security.addProvider(new BouncyCastleProvider());
-        if (!LanternUtils.isUnlimitedKeyStrength()) {
-            /*
-            if (LanternUtils.isDevMode()) {
-                System.err.println("PLEASE INSTALL UNLIMITED STRENGTH POLICY FILES WITH ONE OF THE FOLLOWING:\n" +
-                    "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
-                    "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
-                    "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
-                    "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
-                
-                // Don't exit if we're running on CI...
-                final String env = System.getenv("BAMBOO");
-                System.err.println("Env: "+System.getenv());
-                if (!"true".equalsIgnoreCase(env)) {
-                    System.exit(1);
-                }
-            }
-            */
-            if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
-                log("No policy files on non-Vista machine!!");
-            }
-            log("Reverting to weaker ciphers");
-            log("Look in "+ new File(SystemUtils.JAVA_HOME, "lib/security").getAbsolutePath());
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        } else {
-            // Note the following just sets what cipher suite the server
-            // side selects. DHE is for perfect forward secrecy.
-
-            // We include 128 because we never have enough permissions to
-            // copy the unlimited strength policy files on Vista, so we have
-            // to revert back to 128.
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT,
-                    CIPHER_SUITE_HIGH_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_RSA_WITH_RC4_128_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        }
-    }
-
 
     private static void log(final String msg) {
         if (LOG != null) {

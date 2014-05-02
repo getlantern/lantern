@@ -6,7 +6,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.event.Events;
-import org.lantern.event.ProxyAndTokenEvent;
+import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
@@ -45,7 +45,7 @@ public class XmppConnector {
     }
     
     @Subscribe
-    public void onConnectedWithRefresh(final ProxyAndTokenEvent proxyAndToken) {
+    public void onConnectedWithRefresh(final PublicIpAndTokenEvent proxyAndToken) {
         log.debug("Got connected with refresh event");
         connect();
     }

@@ -19,9 +19,14 @@ echo "Release version: $release"
 bucket=lantern
 url=https://s3.amazonaws.com/$bucket/$name
 echo "Uploading to http://cdn.getlantern.org/$name..."
-aws -putp $bucket $name || die "Could not upload"
-echo "Uploaded lantern to http://cdn.getlantern.org/$name"
-echo "Also available at $url"
+
+if [ $LOCAL_BUILD ] ; then
+  echo "Not uploading local build"
+else
+  aws -putp $bucket $name || die "Could not upload"
+  echo "Uploaded lantern to http://cdn.getlantern.org/$name"
+  echo "Also available at $url"
+fi
 
 if $release ; then
   echo "RELEASING!!!!!"

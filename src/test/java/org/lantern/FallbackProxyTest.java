@@ -72,8 +72,6 @@ public class FallbackProxyTest {
     public void testFallback() throws Exception {
         //System.setProperty("javax.net.debug", "all");
         //System.setProperty("javax.net.debug", "ssl");
-        Launcher.configureCipherSuites();
-        
         final File temp = new File(SystemUtils.getJavaIoTmpDir(), 
                 String.valueOf(RandomUtils.nextLong()));
         

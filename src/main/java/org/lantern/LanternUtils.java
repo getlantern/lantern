@@ -1,5 +1,8 @@
 package org.lantern;
 
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -63,6 +66,7 @@ import org.lantern.util.PublicIpAddress;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.proxy.impl.ProxyUtils;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1117,5 +1121,21 @@ public class LanternUtils {
         } catch (Throwable ex) {
             return false;
         }
+    }
+    
+    public static String[] hostAndPortFrom(HttpRequest httpRequest) {
+        String hostAndPort = ProxyUtils.parseHostAndPort(httpRequest);
+        if (StringUtils.isBlank(hostAndPort)) {
+            List<String> hosts = httpRequest.headers().getAll(
+                    HttpHeaders.Names.HOST);
+            if (hosts != null && !hosts.isEmpty()) {
+                hostAndPort = hosts.get(0);
+            }
+        }
+        String[] result = new String[2];
+        String[] parsed = hostAndPort.split(":");
+        result[0] = parsed[0];
+        result[1] = parsed.length == 2 ? parsed[1] : null;
+        return result;
     }
 }

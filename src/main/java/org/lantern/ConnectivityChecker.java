@@ -1,15 +1,16 @@
 package org.lantern;
 
-import java.net.InetAddress;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.TimerTask;
 
 import org.lantern.event.Events;
-import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
-import org.littleshoot.proxy.impl.NetworkUtils;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +19,12 @@ import com.google.inject.Inject;
 public class ConnectivityChecker extends TimerTask {
     private static Logger LOG = LoggerFactory
             .getLogger(ConnectivityChecker.class);
-    private static final String[] TEST_SITES = new String[] {
+    private static final List<String> TEST_SITES = Arrays.asList(
             "mail.yahoo.com",
             "www.microsoft.com",
             "blogfa.com",
             "www.baidu.com"
-    };
+    );
     private static final int TEST_SOCKET_TIMEOUT_MILLIS = 30000;
 
     private final Model model;
@@ -32,80 +33,59 @@ public class ConnectivityChecker extends TimerTask {
     ConnectivityChecker(final Model model) {
         this.model = model;
     }
+    
+    public void connect() throws ConnectException {
+        if (!checkConnectivity()) {
+            throw new ConnectException("Could not connect");
+        }
+    }
 
     @Override
     public void run() {
+        checkConnectivity();
+    }
+    
+    public boolean checkConnectivity() {
         final boolean wasConnected = 
                 Boolean.TRUE.equals(model.getConnectivity().isInternet());
-        final InetAddress ip = localIpAddressIfConnected();
-        if (ip != null) {
-            if (!wasConnected) {
-                LOG.info("Became connected");
-                notifyConnected(ip);
-            }
-            this.model.getConnectivity().setInternet(Boolean.TRUE);
-        } else {
-            if (wasConnected) {
-                LOG.info("Became disconnected");
-                notifyDisconnected();
-            }
-            this.model.getConnectivity().setInternet(Boolean.FALSE);
+        final boolean connected = areAnyTestSitesReachable();
+        this.model.getConnectivity().setInternet(connected);
+        boolean becameConnected = connected && !wasConnected;
+        boolean becameDisconnected = !connected && wasConnected;
+        if (becameConnected) {
+            LOG.info("Became connected");
+            notifyConnected();
+        } else if (becameDisconnected) {
+            LOG.info("Became disconnected");
+            notifyDisconnected();
         }
+        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
+        return connected;
     }
 
-    private InetAddress localIpAddressIfConnected() {
-        // Check if the Internet is reachable
-        boolean internetIsReachable = areAnyTestSitesReachable();
-
-        if (internetIsReachable) {
-            LOG.debug("Internet is reachable...");
-            //boolean forceCheck = !wasConnected;
-            //return new PublicIpAddress().getPublicIpAddress(forceCheck);
-            try {
-                return NetworkUtils.getLocalHost();
-            } catch (UnknownHostException e) {
-                LOG.error("Could not get local host?", e);
-            }
-        } 
-        
-        LOG.info("None of the test sites were reachable -- no internet connection");
-        return null;
-    }
-
-    private void notifyConnected(InetAddress ip) {
-        Connectivity connectivity = model.getConnectivity();
-        String oldIp = connectivity.getIp();
-        String newIpString = ip.getHostAddress();
-        
-        connectivity.setIp(newIpString);
-        if (newIpString.equals(oldIp)) {
-            if (!model.getConnectivity().isInternet()) {
-                LOG.info("Became connected with same IP address");
-                ConnectivityChangedEvent event = new ConnectivityChangedEvent(
-                        true, false, ip);
-                Events.asyncEventBus().post(event);
-            }
-        } else {
-            LOG.info("IP address changed");
-            ConnectivityChangedEvent event = new ConnectivityChangedEvent(true,
-                    true, ip);
-            Events.asyncEventBus().post(event);
-        }
-        
+    private void notifyConnected() {
+        LOG.info("Became connected...");
+        notifyListeners(true);
     }
 
     private void notifyDisconnected() {
-        ConnectivityChangedEvent event = new ConnectivityChangedEvent(
-                false, false, null);
+        LOG.info("Became disconnected...");
+        notifyListeners(false);
+    }
+    
+    private void notifyListeners(final boolean connected) {
+        ConnectivityChangedEvent event = new ConnectivityChangedEvent(connected);
         Events.asyncEventBus().post(event);
     }
 
     private static boolean areAnyTestSitesReachable() {
+        Collections.shuffle(TEST_SITES);
         for (String site : TEST_SITES) {
             if (isReachable(site)) {
                 return true;
             }
         }
+        LOG.info("None of the test sites were reachable -- no internet connection");
         return false;
     }
 
@@ -118,7 +98,7 @@ public class ConnectivityChecker extends TimerTask {
                     TEST_SOCKET_TIMEOUT_MILLIS);
             return true;
         } catch (Exception e) {
-            LOG.debug("Could not connect", e);
+            LOG.debug("Could not connect to "+site, e);
             // Ignore
             return false;
         } finally {

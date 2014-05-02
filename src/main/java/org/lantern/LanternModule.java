@@ -54,6 +54,7 @@ import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
@@ -98,6 +99,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwingMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
+        bind(XmppConnectionRetyStrategyFactory.class).to(LanternXmppRetryStrategyFactory.class);
 
         bind(FriendsHandler.class).to(DefaultFriendsHandler.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);

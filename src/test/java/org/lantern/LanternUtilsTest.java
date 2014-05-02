@@ -1,6 +1,10 @@
 package org.lantern;
 
 import static org.junit.Assert.*;
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -199,6 +203,18 @@ public class LanternUtilsTest {
         assertEquals(6, candidates.size());
         //assertTrue(candidates.contains("*.com"));
         //assertTrue(candidates.contains("*"));
+    }
+    
+    @Test
+    public void testHostAndPortFrom() {
+        HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://www.google.com/humans.txt");
+        String[] result = LanternUtils.hostAndPortFrom(request);
+        assertEquals(result[0], "www.google.com");
+        assertNull(result[1], null);
+        request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://www.google.com:443/humans.txt");
+        result = LanternUtils.hostAndPortFrom(request);
+        assertEquals(result[0], "www.google.com");
+        assertEquals(result[1], "443");
     }
 
 }

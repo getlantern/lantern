@@ -31,7 +31,7 @@ public class Connectivity {
 
     private boolean gtalkAuthorized = false;
 
-    private Boolean internet = null;
+    private volatile Boolean internet = null;
 
     private boolean invited = false;
 
@@ -158,6 +158,15 @@ public class Connectivity {
     public void setLastConnected(Date lastConnected) {
         this.lastConnectedLong = lastConnected.getTime();
     }
+    
+    @JsonView({Run.class})
+    public int getNProxies() {
+        return nProxies;
+    }
+
+    public void setNProxies(int nProxies) {
+        this.nProxies = nProxies;
+    }
 
     @Subscribe
     protected void onPeerLastConnectedChangedEvent(final PeerLastConnectedChangedEvent event) {
@@ -166,17 +175,11 @@ public class Connectivity {
             lastConnectedLong = peer.getLastConnectedLong();
         }
     }
+    
 
     @Override
     public String toString() {
         return "Connectivity(" + ip + ", " + internet + ")";
     }
 
-    public int getNProxies() {
-        return nProxies;
-    }
-
-    public void setNProxies(int nProxies) {
-        this.nProxies = nProxies;
-    }
 }

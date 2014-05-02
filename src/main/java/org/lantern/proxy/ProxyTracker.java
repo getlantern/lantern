@@ -3,12 +3,12 @@ package org.lantern.proxy;
 import java.net.URI;
 import java.util.Collection;
 
-import org.lantern.LanternService;
+import org.lantern.Shutdownable;
 
 /**
  * Interface for all classes that keep track of proxies.
  */
-public interface ProxyTracker extends LanternService {
+public interface ProxyTracker extends Shutdownable {
 
     void clear();
 
@@ -59,5 +59,9 @@ public interface ProxyTracker extends LanternService {
     void onCouldNotConnect(ProxyHolder proxyAddress);
 
     void onError(URI peerUri);
+
+    void init();
+    
+    void start();
 
 }

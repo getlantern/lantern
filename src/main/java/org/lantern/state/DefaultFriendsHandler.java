@@ -28,7 +28,7 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
-import org.lantern.event.ProxyAndTokenEvent;
+import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
@@ -88,9 +88,17 @@ public class DefaultFriendsHandler implements FriendsHandler {
         Events.register(this);
     }
     
+    /**
+     * The public IP is necessary because it lets us know if we're censored, 
+     * which determines (along with whether or not we're in get mode) 
+     * whether or not we should run with a proxy. We also need an oauth token
+     * in order to hit the friends API, and this event tells us we have a
+     * token.
+     *
+     * @param event The public ip and token event.
+     */
     @Subscribe
-    public void onConnectedWithRefresh(final ProxyAndTokenEvent proxyAndToken) {
-        log.debug("Got connected with refresh event");
+    public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
         loadFriends();
     }
     

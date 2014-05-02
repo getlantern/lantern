@@ -15,17 +15,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.lantern.event.Events;
-import org.lantern.event.MessageEvent;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.state.Model;
-import org.lantern.state.Notification.MessageType;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.google.common.eventbus.Subscribe;
 
 /**
  * This class continually fetches new Lantern configuration files on S3, 
@@ -42,7 +39,7 @@ public class S3ConfigFetcher {
 
     private final SecureRandom random = new SecureRandom();
     
-    private final Timer configCheckTimer = new Timer("S3-Config-Check", true);
+    private Timer configCheckTimer;
 
     private final Model model;
 
@@ -61,16 +58,7 @@ public class S3ConfigFetcher {
         Events.register(this);
     }
     
-    @Subscribe
-    public void onConnectivityChangedEvent(
-            final ConnectivityChangedEvent event) {
-        log.debug("Got connectivity!!");
-        if (event.isConnected()) {
-            start();
-        }
-    }
-    
-    private void start() {
+    public void init() throws InitException {
         log.debug("Starting config loading...");
         if (LanternUtils.isFallbackProxy()) {
             return;
@@ -86,21 +74,33 @@ public class S3ConfigFetcher {
             // for actual fallbacks.
             final Collection<FallbackProxy> fallbacks = config.getFallbacks();
             if (fallbacks == null || fallbacks.isEmpty()) {
-                recheck();
+                downloadAndCompareConfig();
             } else {
                 log.debug("Using existing config...");
-                Events.asyncEventBus().post(config);
-                // If we've already got valid fallbacks, thread this so we
-                // don't hold up the rest of Lantern initialization.
-                scheduleConfigRecheck(0.0);
+                //Events.asyncEventBus().post(config);
             }
         } else {
-            recheck();
+            downloadAndCompareConfig();
         }
+        if (model.getS3Config() == null) {
+            throw new InitException("Still could not fetch S3 config");
+        }
+    }
+    
+    synchronized public void stop() {
+        configCheckTimer.cancel();
+        configCheckTimer = null;
+    }
+    
+    public void start() {
+        scheduleConfigRecheck(0.0);
     }
     
     private void scheduleConfigRecheck(final double minutesToSleep) {
         log.debug("Scheduling config check...");
+        if (configCheckTimer == null) {
+            configCheckTimer = new Timer("S3-Config-Check", true);
+        }
         configCheckTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -110,9 +110,15 @@ public class S3ConfigFetcher {
         }, (long)(minutesToSleep * 60000));
     }
 
-    private void recheck() {
-        recheckConfig();
+    synchronized private void recheck() {
+        boolean changed = downloadAndCompareConfig();
         final S3Config config = model.getS3Config();
+        if (changed) {
+            log.info("Configuration changed");
+            Events.eventBus().post(config);
+        } else {
+            log.debug("Configuration unchanged.");
+        }
         final double newMinutesToSleep
         // Temporary network problems?  Let's retry in a few seconds.
         = (config == null) ? 0.2
@@ -124,57 +130,25 @@ public class S3ConfigFetcher {
     }
 
 
-    private void recheckConfig() {
+    private boolean downloadAndCompareConfig() {
         log.debug("Rechecking configuration");
         final Optional<S3Config> newConfig = fetchRemoteConfig();
         if (!newConfig.isPresent()) {
             log.error("Couldn't get new config.");
-            
-            if (!weHaveFallbacks()) {
-                Events.asyncEventBus().post(
-                    new MessageEvent(Tr.tr(MessageKey.NO_CONFIG), MessageType.error));
-            }
-            return;
+            return false;
         }
 
         final S3Config config = this.model.getS3Config();
         this.model.setS3Config(newConfig.get());
 
 
-        boolean changed;
         if (config == null) {
             log.warn("Rechecking config with no old one.");
-            changed = true;
+            return true;
         } else {
-            changed = !newConfig.get().equals(config);
-        }
-        if (changed) {
-            log.info("Configuration changed! Reapplying.\n{} not equal to\n{}", 
-                    config, newConfig.get());
-            Events.eventBus().post(newConfig.get());
-        } else {
-            log.debug("Configuration unchanged.");
+            return !newConfig.get().equals(config);
         }
     }
-
-    /**
-     * Returns whether or not we have stored fallbacks.
-     * 
-     * @return <code>true</code> if we have fallbacks, otherwise <code>false</code>.
-     */
-    private boolean weHaveFallbacks() {
-        final S3Config config = model.getS3Config();
-        if (config == null) {
-            return false;
-        }
-
-        final Collection<FallbackProxy> fallbacks = config.getFallbacks();
-        if (fallbacks == null || fallbacks.isEmpty()) {
-            return false;
-        }
-        return true;
-    }
-
 
     /** Linear interpolation. */
     private double lerp(double a, double b, double t) {

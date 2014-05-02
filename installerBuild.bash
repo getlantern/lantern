@@ -6,7 +6,7 @@ LOCAL_BUILD=false
 
 if [[ $VERSION == "local" ]] || [[ $VERSION == "quick" ]];
 then
-	LOCAL_BUILD=true
+	export LOCAL_BUILD=true
 fi
 
 function die() {

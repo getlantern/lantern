@@ -17,6 +17,11 @@ public class S3Config {
     private Collection<FallbackProxy> fallbacks = Collections.emptyList();
     
     /**
+     * Milliseconds to wait before retrying disconnected signaling connections.
+     */
+    private long signalingRetryTime = 6000;
+    
+    /**
      * Get stats every minute.
      */
     private int statsGetInterval = 60;
@@ -41,7 +46,6 @@ public class S3Config {
     public Collection<FallbackProxy> getFallbacks() {
         return fallbacks;
     }
-    
 
     public void setController(String controller) {
         this.controller = controller;
@@ -75,6 +79,14 @@ public class S3Config {
         this.statsPostInterval = statsPostInterval;
     }
 
+    public long getSignalingRetryTime() {
+        return signalingRetryTime;
+    }
+
+    public void setSignalingRetryTime(long signalingRetryTime) {
+        this.signalingRetryTime = signalingRetryTime;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -85,6 +97,8 @@ public class S3Config {
                 + ((fallbacks == null) ? 0 : fallbacks.hashCode());
         result = prime * result + maxpoll;
         result = prime * result + minpoll;
+        result = prime * result
+                + (int) (signalingRetryTime ^ (signalingRetryTime >>> 32));
         result = prime * result + statsGetInterval;
         result = prime * result + statsPostInterval;
         return result;
@@ -113,6 +127,8 @@ public class S3Config {
             return false;
         if (minpoll != other.minpoll)
             return false;
+        if (signalingRetryTime != other.signalingRetryTime)
+            return false;
         if (statsGetInterval != other.statsGetInterval)
             return false;
         if (statsPostInterval != other.statsPostInterval)
@@ -124,7 +140,10 @@ public class S3Config {
     public String toString() {
         return "S3Config [controller=" + controller + ", minpoll=" + minpoll
                 + ", maxpoll=" + maxpoll + ", fallbacks=" + fallbacks
+                + ", signalingRetryTime=" + signalingRetryTime
                 + ", statsGetInterval=" + statsGetInterval
                 + ", statsPostInterval=" + statsPostInterval + "]";
     }
+
+    
 }

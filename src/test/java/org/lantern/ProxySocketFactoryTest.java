@@ -16,7 +16,6 @@ public class ProxySocketFactoryTest {
     @Test
     public void test() throws Exception {
         log.debug("Running proxy socket factory test");
-        Launcher.configureCipherSuites();
         System.setProperty("javax.net.debug", "ssl");
         
         Socket sock = TestingUtils.doWithGetModeProxy(new Callable<Socket>() {
