@@ -2,7 +2,7 @@ package otto
 
 import (
 	"strconv"
-	Time "time"
+	"time"
 )
 
 var (
@@ -12,13 +12,8 @@ var (
 			return UndefinedValue()
 		}},
 	}
-	prototypeValueString = _stringObject{
-		value: Value{
-			_valueType: valueString,
-			value:      "",
-		},
-		value16: []uint16(nil),
-	}
+	prototypeValueString = _stringASCII("")
+	// TODO Make this just false?
 	prototypeValueBoolean = Value{
 		_valueType: valueBoolean,
 		value:      false,
@@ -30,7 +25,7 @@ var (
 	prototypeValueDate = _dateObject{
 		epoch: 0,
 		isNaN: false,
-		time:  Time.Unix(0, 0).UTC(),
+		time:  time.Unix(0, 0).UTC(),
 		value: Value{
 			_valueType: valueNumber,
 			value:      0,
@@ -84,14 +79,14 @@ func (self *_object) primitiveValue() Value {
 	case Value:
 		return value
 	case _stringObject:
-		return value.value
+		return toValue_string(value.String())
 	}
 	return Value{}
 }
 
 func (self *_object) hasPrimitive() bool {
 	switch self.value.(type) {
-	case Value, *_stringObject:
+	case Value, _stringObject:
 		return true
 	}
 	return false

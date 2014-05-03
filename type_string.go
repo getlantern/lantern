@@ -2,50 +2,97 @@ package otto
 
 import (
 	"strconv"
-	"unicode/utf16"
+	"unicode/utf8"
 )
 
-type _stringObject struct {
-	value   Value
-	value16 []uint16
+type _stringObject interface {
+	Length() int
+	At(int) rune
+	String() string
+}
+
+type _stringASCII string
+
+func (str _stringASCII) Length() int {
+	return len(str)
+}
+
+func (str _stringASCII) At(at int) rune {
+	return rune(str[at])
+}
+
+func (str _stringASCII) String() string {
+	return string(str)
+}
+
+type _stringWide struct {
+	string string
+	length int
+	runes  []rune
+}
+
+func (str _stringWide) Length() int {
+	return str.length
+}
+
+func (str _stringWide) At(at int) rune {
+	if str.runes == nil {
+		str.runes = []rune(str.string)
+	}
+	return str.runes[at]
+}
+
+func (str _stringWide) String() string {
+	return str.string
+}
+
+func _newStringObject(str string) _stringObject {
+	for i := 0; i < len(str); i++ {
+		if str[i] >= utf8.RuneSelf {
+			goto wide
+		}
+	}
+
+	return _stringASCII(str)
+
+wide:
+	return &_stringWide{
+		string: str,
+		length: utf8.RuneCountInString(str),
+	}
+}
+
+func stringAt(str _stringObject, index int) rune {
+	if 0 <= index && index < str.Length() {
+		return str.At(index)
+	}
+	return utf8.RuneError
 }
 
 func (runtime *_runtime) newStringObject(value Value) *_object {
-	value = toValue_string(toString(value))
-	value16 := utf16Of(value.value.(string))
+	str := _newStringObject(toString(value))
 
 	self := runtime.newClassObject("String")
-	self.defineProperty("length", toValue_int(len(value16)), 0, false)
+	self.defineProperty("length", toValue_int(str.Length()), 0, false)
 	self.objectClass = _classString
-	self.value = _stringObject{
-		value:   value,
-		value16: value16,
-	}
+	self.value = str
 	return self
 }
 
-func (self *_object) stringValue() (string, _stringObject) {
-	value, valid := self.value.(_stringObject)
-	if valid {
-		return value.value.value.(string), value
+func (self *_object) stringValue() _stringObject {
+	if str, ok := self.value.(_stringObject); ok {
+		return str
 	}
-	return "", _stringObject{}
-}
-
-func (self *_object) stringValue16() []uint16 {
-	_, value := self.stringValue()
-	return value.value16
-}
-
-func utf16Of(value string) []uint16 {
-	return utf16.Encode([]rune(value))
+	return nil
 }
 
 func stringEnumerate(self *_object, all bool, each func(string) bool) {
-	length := len(self.stringValue16())
-	for index := 0; index < length; index += 1 {
-		if !each(strconv.FormatInt(int64(index), 10)) {
-			return
+	if str := self.stringValue(); str != nil {
+		length := str.Length()
+		for index := 0; index < length; index++ {
+			if !each(strconv.FormatInt(int64(index), 10)) {
+				return
+			}
 		}
 	}
 	objectEnumerate(self, all, each)
@@ -55,11 +102,10 @@ func stringGetOwnProperty(self *_object, name string) *_property {
 	if property := objectGetOwnProperty(self, name); property != nil {
 		return property
 	}
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		value16 := self.stringValue16()
-		if index < int64(len(value16)) {
-			return &_property{toValue_string(string(value16[index])), 0}
+	// TODO Test a string of length >= +int32 + 1?
+	if index := stringToArrayIndex(name); index >= 0 {
+		if chr := stringAt(self.stringValue(), int(index)); chr != utf8.RuneError {
+			return &_property{toValue_string(string(chr)), 0}
 		}
 	}
 	return nil

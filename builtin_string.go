@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"unicode/utf16"
+	"unicode/utf8"
 )
 
 // String
@@ -42,24 +42,22 @@ func builtinString_fromCharCode(call FunctionCall) Value {
 
 func builtinString_charAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	value := toString(call.This)
-	value16 := utf16.Encode([]rune(value))
-	index := toInteger(call.Argument(0)).value
-	if 0 > index || index >= int64(len(value16)) {
+	idx := int(toInteger(call.Argument(0)).value)
+	chr := stringAt(call.This._object().stringValue(), idx)
+	if chr == utf8.RuneError {
 		return toValue_string("")
 	}
-	return toValue_string(string(value16[index]))
+	return toValue_string(string(chr))
 }
 
 func builtinString_charCodeAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	value := toString(call.This)
-	value16 := utf16.Encode([]rune(value))
-	index := toInteger(call.Argument(0)).value
-	if 0 > index || index >= int64(len(value16)) {
+	idx := int(toInteger(call.Argument(0)).value)
+	chr := stringAt(call.This._object().stringValue(), idx)
+	if chr == utf8.RuneError {
 		return NaNValue()
 	}
-	return toValue_uint16(value16[index])
+	return toValue_uint16(uint16(chr))
 }
 
 func builtinString_concat(call FunctionCall) Value {
