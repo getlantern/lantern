@@ -93,17 +93,17 @@ public class PublicIpInfoHandler {
         loc.setCountry(geo.getCountrycode());
         loc.setLat(geo.getLatitude());
         loc.setLon(geo.getLongitude());
+        loc.setResolved(true);
         Events.sync(SyncPath.LOCATION, loc);
     }
 
     private void handleCensored() {
-        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-
-        Settings set = model.getSettings();
+        final Settings set = model.getSettings();
 
         if (set.getMode() == null || set.getMode() == Mode.unknown) {
             if (censored.isCensored()) {
                 set.setMode(Mode.get);
+                Events.sync(SyncPath.SETTINGS, set);
             }
         } else if (set.getMode() == Mode.give && censored.isCensored()) {
             // want to set the mode to get now so that we don't mistakenly
@@ -111,6 +111,7 @@ public class PublicIpInfoHandler {
             set.setMode(Mode.get);
             log.info("Disconnected; setting giveModeForbidden");
             Events.syncModal(model, Modal.giveModeForbidden);
+            Events.sync(SyncPath.SETTINGS, set);
         }
     }
 }
