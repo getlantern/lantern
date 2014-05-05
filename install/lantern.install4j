@@ -12,7 +12,8 @@
       <envVar name="JDK_HOME" />
     </searchSequence>
     <variables>
-      <variable name="deb-description" value="P2P trust network of encrypted, mutually authenticated, HTTP proxies." description="" category="" />
+      <variable name="deb-description" value="Lantern" description="" category="" />
+      <variable name="deb-maintainer-email" value="admin@getlantern.org" description="" category="" />
     </variables>
     <mergedProjects />
     <codeSigning macEnabled="true" macPkcs12File="../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
@@ -1560,7 +1561,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-amd64-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-amd64-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="libnss3-tools" maintainerEmail="${compiler:deb-maintainer-email}" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
@@ -1590,7 +1591,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
         <content />
       </postUninstallScript>
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-x86-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org" architectureSet="true" architecture="i386">
+    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-x86-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="libnss3-tools" maintainerEmail="${compiler:deb-maintainer-email}" architectureSet="true" architecture="i386">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
