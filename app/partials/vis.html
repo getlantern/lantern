@@ -1,11 +1,14 @@
 <div id="vis-block" ng-hide="!model.modal || model.modal == 'none'"></div>
 
+<!--
+  Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
+-->
 <div id="vis" ng-controller="VisCtrl">
   <svg id="map" resizable>
     <!--path id="globe" globe /-->
     <g id="countries" countries />
     <g id="peers" peers></g>
-    <path id="self" self class="{{ model.settings.mode }}"
+    <path id="self" ng-hide="!model.location.resolved" self class="{{ model.settings.mode }}"
           ng-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 5) }}"
           tooltip-html-unsafe="<div class=vis>
             <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
