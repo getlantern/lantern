@@ -1084,7 +1084,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return System.getProperty("java.version").startsWith("1.7");</condition>
               </action>
-              <action name="Install flashlight on OS X" id="1635" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="true" multiExec="false" failureStrategy="4" errorMessage="running &quot;flashlight -install&quot; command failed">
+              <action name="Install flashlight on OS X and Windows" id="1635" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="true" multiExec="false" failureStrategy="4" errorMessage="running &quot;flashlight -install&quot; command failed">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
@@ -1137,9 +1137,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isMacOS() || Util.isWindows();</condition>
               </action>
-              <action name="Make flashlight crypto info owned by user" id="1642" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not chown ~/.lantern/pt/flashlight">
+              <action name="Make flashlight crypto info owned by user on OS X and Windows" id="1642" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not chown ~/.lantern/pt/flashlight">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.SetOwnerAction">
@@ -1161,7 +1161,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isMacOS() || Util.isWindows();</condition>
               </action>
             </actions>
             <formComponents />
