@@ -93,12 +93,13 @@ For example:
 
 ## Building Installers
 
-As of this writing, the Lantern installers are built using [install4j](http://www.ej-technologies.com/products/install4j/overview.html).  In addition, the installation scripts require an [Exceptional](http://www.exceptional.io) license.  If you want to build installers using the `(deb|osx|win)Install*.bash` scripts, you need to obtain a license of these programs.  Note that this is not required in order to build and run Lantern from source.  
+As of this writing, the Lantern installers are built using [install4j](http://www.ej-technologies.com/products/install4j/overview.html).
+If you want to build installers using the `(deb|osx|win)Install*.bash` scripts,
+you need to obtain a license.
+Note that this is not required in order to build and run Lantern from source.  
 
 The scripts that build the installers expect the described files in the corresponding paths relative to the lantern base folder:
 
-    # Exceptional license key.
-    ./lantern_getexceptional.txt
     # Windows install4j license certificate.
     ../secure/bns_cert.p12
     # OS X install4j license certificate.
@@ -130,7 +131,7 @@ Further Reading
 
 You can also access JavaDocs and automatically generated reports on the Lantern codebase at the following:
 
-* http://getlantern.github.com/lantern/
+* https://getlantern.github.io/lantern/
 
 Acknowledgements
 ----------------
