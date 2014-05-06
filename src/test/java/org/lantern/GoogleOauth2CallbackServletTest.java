@@ -15,11 +15,12 @@ public class GoogleOauth2CallbackServletTest {
 
     @Test
     public void testGoogleApis() throws Exception {
+        final LanternTrustStore trustStore = TestingUtils.newLanternTrustStore();
         int code = TestingUtils.doWithGetModeProxy(new Callable<Integer>() {
            @Override
             public Integer call() throws Exception {
                final Censored censored = new DefaultCensored();
-               final HttpClientFactory factory = new DefaultHttpClientFactory(censored);
+               final HttpClientFactory factory = new DefaultHttpClientFactory(censored, trustStore);
                final GoogleOauth2CallbackServlet servlet = 
                    new GoogleOauth2CallbackServlet(null, null, null, 
                        null, factory, null);

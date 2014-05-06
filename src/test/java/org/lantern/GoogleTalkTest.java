@@ -22,7 +22,8 @@ public class GoogleTalkTest {
             public Void call() throws Exception {
                 SASLAuthentication.registerSASLMechanism("X-OAUTH2",
                         LanternSaslGoogleOAuth2Mechanism.class);
-                final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+                final LanternTrustStore trustStore = TestingUtils.newLanternTrustStore();
+                final HttpClientFactory httpClientFactory = TestingUtils.newHttpClientFactory(trustStore);
                 //LanternSaslGoogleOAuth2Mechanism.setHttpClientFactory(httpClientFactory);
                 final Censored censored = new DefaultCensored();
                 final CountryService countryService = new CountryService(censored);

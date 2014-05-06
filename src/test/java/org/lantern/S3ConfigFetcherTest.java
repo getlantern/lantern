@@ -32,8 +32,9 @@ public class S3ConfigFetcherTest {
     @Test
     public void testStopAndStart() throws Exception {
         final Model model = new Model();
+        final LanternTrustStore trustStore = TestingUtils.newLanternTrustStore();
         final HttpClientFactory clientFactory = 
-                new DefaultHttpClientFactory(new DefaultCensored());
+                new DefaultHttpClientFactory(new DefaultCensored(), trustStore);
         final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
         
         model.setS3Config(null);
@@ -54,8 +55,9 @@ public class S3ConfigFetcherTest {
     @Test
     public void testDefault() throws Exception {
         final Model model = new Model();
+        final LanternTrustStore trustStore = TestingUtils.newLanternTrustStore();
         final HttpClientFactory clientFactory = 
-                new DefaultHttpClientFactory(new DefaultCensored());
+                new DefaultHttpClientFactory(new DefaultCensored(), trustStore);
         final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
         
         assertTrue(model.getS3Config().getFallbacks().isEmpty());

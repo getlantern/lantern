@@ -21,7 +21,7 @@ public class PeerFactoryStub implements PeerFactory {
 
     @Override
     public Peer addPeer(URI fullJid, Type type) {
-        return null;
+        return new Peer();
     }
 
     @Override

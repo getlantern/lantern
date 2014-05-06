@@ -49,13 +49,13 @@ public class DefaultProxyTrackerTest {
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
+                peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>(), false);
         
         tracker.init();
         tracker.start();
 
         //proxy queue initially empty
-        ProxyHolder proxy = tracker.firstConnectedTcpProxy();
+        ProxyHolder proxy = tracker.firstConnectedTcpProxy(80);
         assertNull(proxy);
 
         final int port1 = 55077;
@@ -86,7 +86,7 @@ public class DefaultProxyTrackerTest {
         //now let's force the proxy to fail.
         //miniproxy1.pause();
 
-        proxy = tracker.firstConnectedTcpProxy();
+        proxy = tracker.firstConnectedTcpProxy(80);
         // first, we need to clear out the old proxy from the list, by having it
         // fail.
         
@@ -94,7 +94,7 @@ public class DefaultProxyTrackerTest {
         //now wait for the miniproxy to stop accepting.
         Thread.sleep(10);
 
-        proxy = tracker.firstConnectedTcpProxy();
+        proxy = tracker.firstConnectedTcpProxy(80);
         assertNull(proxy);
 
         // now bring miniproxy1 back up
@@ -107,14 +107,14 @@ public class DefaultProxyTrackerTest {
         tracker.init();
         Thread.sleep(10);
 
-        proxy = tracker.firstConnectedTcpProxy();
+        proxy = tracker.firstConnectedTcpProxy(80);
         assertNotNull("Recently deceased proxy not restored", proxy);
         Thread.sleep(10);
         model.getConnectivity().setInternet(true);
         //Events.eventBus().post(new ConnectivityChangedEvent(true));
         tracker.init();
         
-        tracker.firstConnectedTcpProxy();
+        tracker.firstConnectedTcpProxy(80);
         Thread.sleep(10);
 
         // with multiple proxies, we get a different proxy for each getProxy()
@@ -142,7 +142,7 @@ public class DefaultProxyTrackerTest {
         
         int tries = 0;
         while (tries < 1000) {
-            final ProxyHolder proxy = tracker.firstConnectedTcpProxy();
+            final ProxyHolder proxy = tracker.firstConnectedTcpProxy(80);
             if (proxy != null) {
                 return proxy;
             }

@@ -88,6 +88,19 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
+        this(model,
+                peerFactory,
+                lanternTrustStore,
+                networkTracker,
+                true // Always include the flashlight proxy
+        );
+    }
+    
+    public DefaultProxyTracker(final Model model,
+            final PeerFactory peerFactory,
+            final LanternTrustStore lanternTrustStore,
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
+            boolean useFlashlight) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
@@ -95,11 +108,12 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
         Events.register(this);
         
-        // Always include the flashlight proxy
-        try {
-            addSingleFallbackProxy(flashlightProxy());
-        } catch (Exception e) {
-            LOG.error("Unable to start flashlight!: {}", e.getMessage(), e);
+        if (useFlashlight) {
+            try {
+                addSingleFallbackProxy(flashlightProxy());
+            } catch (Exception e) {
+                LOG.error("Unable to start flashlight!: {}", e.getMessage(), e);
+            }
         }
     }
     
