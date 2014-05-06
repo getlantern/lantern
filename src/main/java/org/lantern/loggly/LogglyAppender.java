@@ -12,9 +12,8 @@ import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
+import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
-import org.lantern.loggly.Loggly;
-import org.lantern.loggly.LogglyMessage;
 import org.lantern.state.Model;
 
 /**
@@ -24,10 +23,11 @@ public class LogglyAppender extends AppenderSkeleton {
     private final Model model;
     private final Loggly loggly;
 
-    public LogglyAppender(Model model, boolean inTestMode) {
+    public LogglyAppender(Model model, LanternTrustStore trustStore, boolean inTestMode) {
         this.model = model;
         loggly = new Loggly(inTestMode,
                 LanternConstants.LANTERN_LOCALHOST_ADDR);
+        loggly.setSslContext(trustStore.getCumulativeSslContext());
     }
 
     @Override

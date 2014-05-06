@@ -12,10 +12,10 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
 import org.lantern.LanternConstants;
+import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.event.Events;
-import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.event.PublicIpEvent;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Mode;
@@ -50,8 +50,9 @@ public class StatsManager implements Shutdownable {
     private ScheduledExecutorService postScheduler = null;
 
     @Inject
-    public StatsManager(Model model) {
+    public StatsManager(Model model, LanternTrustStore trustStore) {
         this.model = model;
+        statshub.setSslContext(trustStore.getCumulativeSslContext());
         Events.register(this);
     }
 

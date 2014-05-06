@@ -116,6 +116,8 @@ public class Launcher {
     private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
+    
+    private LanternTrustStore trustStore;
 
     private S3ConfigFetcher s3ConfigFetcher;
 
@@ -257,7 +259,7 @@ public class Launcher {
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
-        instance(LanternTrustStore.class);
+        trustStore = instance(LanternTrustStore.class);
         instance(Proxifier.class);
         final boolean showTray = !uiDisabled;
 
@@ -611,7 +613,7 @@ public class Launcher {
     
     private void configureLoggly() {
         LOG.info("Configuring LogglyAppender");
-        LogglyAppender logglyAppender = new LogglyAppender(model, LanternUtils.isDevMode());
+        LogglyAppender logglyAppender = new LogglyAppender(model, trustStore, LanternUtils.isDevMode());
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(logglyAppender);
         asyncAppender.setThreshold(Level.WARN);
