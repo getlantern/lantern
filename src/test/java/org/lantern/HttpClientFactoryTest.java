@@ -1,7 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.io.ByteArrayInputStream;
@@ -44,7 +43,7 @@ public class HttpClientFactoryTest {
            @Override
             public Void call() throws Exception {
                final HttpClientFactory factory = 
-                       new DefaultHttpClientFactory(new AllCensored());
+                       new DefaultHttpClientFactory(new AllCensored(), new LanternTrustStore(new LanternKeyStoreManager()));
                
                // Because we are censored, this should use the local proxy
                final HttpClient httpClient = factory.newClient();
@@ -85,7 +84,8 @@ public class HttpClientFactoryTest {
      */
     @Test
     public void testAllInternallyProxiedSites() throws Exception {
-        final HttpClientFactory factory = new DefaultHttpClientFactory(new AllCensored());
+        final HttpClientFactory factory = new DefaultHttpClientFactory(new AllCensored(),
+                new LanternTrustStore(new LanternKeyStoreManager()));
         final HttpClient client = factory.newClient();
         TestingUtils.assertIsUsingGetModeProxy(client);
 
