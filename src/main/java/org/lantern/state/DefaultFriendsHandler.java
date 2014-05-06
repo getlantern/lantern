@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.login.CredentialException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.EmailAddressUtils;
@@ -29,8 +28,7 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
-import org.lantern.event.ProxyConnectionEvent;
-import org.lantern.event.RefreshTokenEvent;
+import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
@@ -72,8 +70,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private Future<Map<String, ClientFriend>> loadedFriends;
 
-    private String refreshToken;
-
     private final Messages msgs;
     
     @Inject
@@ -89,34 +85,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
         this.networkTracker = networkTracker;
         this.msgs = msgs;
         
-        // If we already have a refresh token, just use it to load friends.
-        // Otherwise register for refresh token events.
-        this.refreshToken = model.getSettings().getRefreshToken();
-        if (StringUtils.isNotBlank(this.refreshToken)) {
-            loadFriends();
-        }
         Events.register(this);
     }
     
+    /**
+     * The public IP is necessary because it lets us know if we're censored, 
+     * which determines (along with whether or not we're in get mode) 
+     * whether or not we should run with a proxy. We also need an oauth token
+     * in order to hit the friends API, and this event tells us we have a
+     * token.
+     *
+     * @param event The public ip and token event.
+     */
     @Subscribe
-    public void onRefreshToken(final RefreshTokenEvent refresh) {
-        log.debug("Got refresh token -- loading friends");
-        this.refreshToken = refresh.getRefreshToken();
+    public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
         loadFriends();
-    }
-    
-    @Subscribe
-    public void onProxyConnection(final ProxyConnectionEvent event) {
-        // This may be a proxy connection event due to being reconnected to
-        // the Internet, so just make sure we load friends in that case.
-        // This will do no harm if we're connecting to the proxy for some
-        // other reason.
-        
-        // We also need to make sure we have a refresh token here -- otherwise
-        // we'll connect when we get one!
-        if (StringUtils.isNotBlank(this.refreshToken)) {
-            loadFriends();
-        }
     }
     
     private void loadFriends() {
@@ -526,10 +509,6 @@ public class DefaultFriendsHandler implements FriendsHandler {
         synchronized (map) {
             return map.values();
         }
-    }
-
-    public void clear() {
-        friends().clear();
     }
 
     private Map<String, ClientFriend> friends() {

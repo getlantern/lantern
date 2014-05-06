@@ -20,6 +20,11 @@ public class Location {
     private double lon = 0;
 
     /**
+     * Whether or not we've resolved the location.
+     */
+    private boolean resolved = false;
+
+    /**
      * Returns the two-letter country code for the country
      * @return
      */
@@ -57,5 +62,14 @@ public class Location {
 
     public void setLon(final double lon) {
         this.lon = lon;
+    }
+
+    @JsonView({Run.class})
+    public boolean isResolved() {
+        return resolved;
+    }
+
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
     }
 }

@@ -5,16 +5,18 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
 import org.lantern.LanternConstants;
-import org.lantern.LanternService;
 import org.lantern.LanternUtils;
-import org.lantern.S3Config;
+import org.lantern.Shutdownable;
 import org.lantern.event.Events;
+import org.lantern.event.PublicIpAndTokenEvent;
+import org.lantern.event.PublicIpEvent;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -28,7 +30,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class StatsManager implements LanternService {
+public class StatsManager implements Shutdownable {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
     public static final long FALLBACK_POST_INTERVAL = 20;
@@ -61,17 +63,13 @@ public class StatsManager implements LanternService {
      *            The new config.
      */
     @Subscribe
-    public void onS3Config(final S3Config config) {
-        try {
-            stop();
-            start();
-        } catch (Exception e) {
-            LOGGER.warn("Unable to restart StatsManager", e);
-        }
+    public void onPublicIp(final PublicIpEvent publicIpEvent) {
+        LOGGER.debug("Got connected event");
+        stop();
+        start();
     }
 
-    @Override
-    public void start() {
+    private void start() {
         getScheduler = Threads
                 .newSingleThreadScheduledExecutor("StatsManager-Get");
         postScheduler = Threads
@@ -92,13 +90,20 @@ public class StatsManager implements LanternService {
 
     @Override
     public void stop() {
-        getScheduler.shutdownNow();
-        postScheduler.shutdownNow();
-        try {
-            getScheduler.awaitTermination(30, TimeUnit.SECONDS);
-            postScheduler.awaitTermination(30, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
-            LOGGER.warn("Unable to await termination of schedulers", ie);
+        shutdown(getScheduler, postScheduler);
+    }
+
+    private void shutdown(final ExecutorService... schedulers) {
+        for (final ExecutorService scheduler : schedulers) {
+            if (scheduler == null) {
+                continue;
+            }
+            scheduler.shutdownNow();
+            try {
+                scheduler.awaitTermination(30, TimeUnit.SECONDS);
+            } catch (InterruptedException ie) {
+                LOGGER.warn("Unable to await termination of schedulers", ie);
+            }
         }
     }
 

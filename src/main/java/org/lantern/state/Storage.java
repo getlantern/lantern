@@ -8,16 +8,14 @@ import java.security.GeneralSecurityException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
-import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.privacy.EncryptedFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.inject.Provider;
 
@@ -97,7 +95,12 @@ public abstract class Storage<T> implements Provider<T>, Shutdownable {
             final T read = JsonUtils.OBJECT_MAPPER.readValue(json, cls);
             return read;
         } catch (final IOException e) {
-            log.error("Could not read object", e);
+            try {
+                log.error("Could not read object. Possibly unencrypted after testing?\n"+
+                        Files.toString(file, Charsets.UTF_8), e);
+            } catch (IOException e1) {
+                log.error("Could not read file.");
+            }
         } catch (final GeneralSecurityException e) {
             log.error("Security error?", e);
         } finally {

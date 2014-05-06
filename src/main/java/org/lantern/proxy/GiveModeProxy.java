@@ -3,10 +3,7 @@ package org.lantern.proxy;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-
-import javax.net.ssl.SSLSession;
 
 import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
@@ -18,11 +15,7 @@ import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.state.InstanceStats;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.state.Peer;
 import org.lantern.state.Settings;
-import org.littleshoot.proxy.ActivityTrackerAdapter;
-import org.littleshoot.proxy.FlowContext;
-import org.littleshoot.proxy.FullFlowContext;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;

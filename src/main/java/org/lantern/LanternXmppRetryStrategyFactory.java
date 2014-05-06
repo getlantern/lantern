@@ -1,17 +1,28 @@
 package org.lantern;
 
+import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategy;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class LanternXmppRetryStrategyFactory implements
         XmppConnectionRetyStrategyFactory {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(LanternXmppRetryStrategyFactory.class);
-
-    static class LanternXmppRetryStrategy implements XmppConnectionRetyStrategy {
+    private final Model model;
+    
+    @Inject
+    public LanternXmppRetryStrategyFactory(final Model model) {
+        this.model = model;
+    }
+    
+    private class LanternXmppRetryStrategy implements XmppConnectionRetyStrategy {
 
         @Override
         public boolean retry() {
@@ -21,8 +32,7 @@ public class LanternXmppRetryStrategyFactory implements
         @Override
         public void sleep() {
             try {
-                //fixed retry strategy -- just wait two seconds
-                Thread.sleep(2000);
+                Thread.sleep(model.getS3Config().getSignalingRetryTime());
             } catch (final InterruptedException e) {
                 LOG.info("Interrupted?", e);
             }

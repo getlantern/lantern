@@ -11,6 +11,7 @@ import org.littleshoot.proxy.HttpProxyServerBootstrap;
 public abstract class AbstractHttpProxyServerAdapter implements LanternService {
     private HttpProxyServerBootstrap bootstrap;
     protected HttpProxyServer server;
+    private boolean running = false;
 
     protected void setBootstrap(HttpProxyServerBootstrap bootstrap) {
         this.bootstrap = bootstrap;
@@ -21,14 +22,18 @@ public abstract class AbstractHttpProxyServerAdapter implements LanternService {
     }
 
     @Override
-    public void start() {
-        server = bootstrap.start();
+    synchronized public void start() {
+        if (!running) {
+            server = bootstrap.start();
+            running = true;
+        }
     }
 
     @Override
-    public void stop() {
+    synchronized public void stop() {
         if (server != null) {
             server.stop();
+            running = false;
         }
     }
 }

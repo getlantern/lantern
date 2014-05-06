@@ -40,7 +40,6 @@ public class HttpClientFactoryTest {
         //System.setProperty("javax.net.debug", "all");
         //System.setProperty("javax.net.debug", "ssl");
         
-        Launcher.configureCipherSuites();
         TestingUtils.doWithGetModeProxy(new Callable<Void>() {
            @Override
             public Void call() throws Exception {

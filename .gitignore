@@ -6,6 +6,7 @@
 *.settings
 *.classpath
 *.project
+*.orig
 .idea
 lantern_getexceptional.txt
 nbactions.xml

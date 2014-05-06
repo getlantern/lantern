@@ -1,7 +1,12 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,6 +30,28 @@ public class S3ConfigFetcherTest {
             new AtomicReference<MessageEvent>();
     
     @Test
+    public void testStopAndStart() throws Exception {
+        final Model model = new Model();
+        final HttpClientFactory clientFactory = 
+                new DefaultHttpClientFactory(new DefaultCensored());
+        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
+        
+        model.setS3Config(null);
+        fetcher.init();
+        fetcher.start();
+        assertNotNull(model.getS3Config());
+        
+        
+        model.setS3Config(null);
+        fetcher.stop();
+        assertNull(model.getS3Config());
+        
+        fetcher.init();
+        fetcher.start();
+        assertNotNull(model.getS3Config());
+    }
+    
+    @Test
     public void testDefault() throws Exception {
         final Model model = new Model();
         final HttpClientFactory clientFactory = 
@@ -32,8 +59,7 @@ public class S3ConfigFetcherTest {
         final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
         
         assertTrue(model.getS3Config().getFallbacks().isEmpty());
-        fetcher.start();
-        
+        fetcher.init();
         assertFalse(model.getS3Config().getFallbacks().isEmpty());
     }
     
@@ -54,7 +80,7 @@ public class S3ConfigFetcherTest {
         model.getS3Config().setFallbacks(Arrays.asList(new FallbackProxy()));
         
         assertNull(messageRef.get());
-        fetcher.start();
+        fetcher.init();
         
         assertFalse(model.getS3Config().getFallbacks().isEmpty());
         

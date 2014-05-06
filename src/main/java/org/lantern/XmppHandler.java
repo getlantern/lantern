@@ -13,7 +13,7 @@ import org.littleshoot.util.FiveTuple;
 /**
  * Interface for dealing with any XMPP interaction in Lantern.
  */
-public interface XmppHandler extends LanternService {
+public interface XmppHandler extends Shutdownable {
 
     void disconnect();
 
@@ -58,9 +58,6 @@ public interface XmppHandler extends LanternService {
     void subscribe(String jid);
 
     void subscribed(String jid);
-
-    @Override
-    void start();
 
     @Override
     void stop();

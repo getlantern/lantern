@@ -28,9 +28,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.IQTypeFilter;
 import org.jivesoftware.smack.filter.PacketFilter;
-import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
@@ -46,9 +44,7 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.ReceivedKScopeAd;
-import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
-import org.lantern.network.NetworkTrackerListener;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
@@ -61,8 +57,6 @@ import org.lantern.state.SyncPath;
 import org.lantern.state.Version.Installed;
 import org.lantern.util.Threads;
 import org.lastbamboo.common.ice.MappedServerSocket;
-import org.lastbamboo.common.p2p.P2PConnectionEvent;
-import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
@@ -85,8 +79,7 @@ import com.google.inject.Singleton;
  * the roster.
  */
 @Singleton
-public class DefaultXmppHandler implements XmppHandler,
-    NetworkTrackerListener<URI, ReceivedKScopeAd> {
+public class DefaultXmppHandler implements XmppHandler {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(DefaultXmppHandler.class);
@@ -148,8 +141,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private final Model model;
 
-    private volatile boolean started;
-
     private final ModelUtils modelUtils;
 
     private final org.lantern.Roster roster;
@@ -157,17 +148,6 @@ public class DefaultXmppHandler implements XmppHandler,
     private final ProxyTracker proxyTracker;
 
     private final KscopeAdHandler kscopeAdHandler;
-
-    private TimerTask reconnectIfNoPong;
-
-    /**
-     * The XMPP message id that we are waiting for a pong on
-     */
-    private String waitingForPong;
-
-    private long pingTimeout = 15 * 1000;
-
-    protected XMPPConnection previousConnection;
 
     private final ExecutorService xmppProcessors =
         Threads.newCachedThreadPool("Smack-XMPP-Message-Processing-");
@@ -213,9 +193,13 @@ public class DefaultXmppHandler implements XmppHandler,
         this.udtFiveTupleListener = udtFiveTupleListener;
         this.friendsHandler = friendsHandler;
         this.networkTracker = networkTracker;
-        this.networkTracker.addListener(this);
         this.censored = censored;
         Events.register(this);
+        
+        this.modelUtils.loadClientSecrets();
+
+        this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
+            upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
         //setupJmx();
     }
 
@@ -225,28 +209,9 @@ public class DefaultXmppHandler implements XmppHandler,
     }
 
     @Override
-    public void start() {
-        this.modelUtils.loadClientSecrets();
-
-        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
-        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
-        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
-
-        this.mappedServer = new LanternMappedTcpAnswererServer(natPmpService,
-            upnpService, new InetSocketAddress(this.model.getSettings().getServerPort()));
-        this.started = true;
-    }
-
-    @Override
     public void stop() {
         LOG.debug("Stopping XMPP handler...");
         disconnect();
-        if (upnpService != null) {
-            upnpService.shutdown();
-        }
-        if (natPmpService != null) {
-            natPmpService.shutdown();
-        }
         LOG.debug("Stopped XMPP handler...");
     }
 
@@ -274,73 +239,9 @@ public class DefaultXmppHandler implements XmppHandler,
         }
     }
 
-    @Subscribe
-    public void onConnectivityChanged(final ConnectivityChangedEvent e) {
-        if (!e.isConnected()) {
-            // send a ping message to determine if we need to reconnect; failed
-            // STUN connectivity is not necessarily a death sentence for the
-            // XMPP connection.
-            // If the ping fails, then XmppP2PClient will retry that connection
-            // in a loop.
-            ping();
-            return;
-        }
-        LOG.info("Connected to internet: {}", e);
-        if (e.isIpChanged()) {
-            //definitely need to reconnect here
-            reconnect();
-        } else {
-            if (!isLoggedIn()) {
-                //definitely need to reconnect here
-                reconnect();
-            } else {
-                ping();
-            }
-        }
-    }
-
-    private void ping() {
-        //if we are already pinging, cancel the existing ping
-        //and retry
-        if (reconnectIfNoPong != null) {
-            reconnectIfNoPong.cancel();
-        }
-
-        final IQ ping = new IQ() {
-            @Override
-            public String getChildElementXML() {
-                return "<ping xmlns='urn:xmpp:ping'/>";
-            }
-        };
-        
-        waitingForPong = ping.getPacketID();
-        //set up timer to reconnect if we don't hear a pong
-        reconnectIfNoPong = new Reconnector();
-        timer.schedule(reconnectIfNoPong, pingTimeout);
-        //and send the ping
-        sendPacket(ping);
-    }
-
-    /**
-     * This will be cancelled if a pong is received,
-     * indicating that we have already successfully
-     * reconnected
-     */
-
-    private class Reconnector extends TimerTask {
-        @Override
-        public void run() {
-            reconnect();
-        }
-    }
-
     @Override
     public synchronized void connect() throws IOException, CredentialException,
         NotInClosedBetaException {
-        if (!this.started) {
-            LOG.warn("Can't connect when not started!!");
-            throw new Error("Can't connect when not started!!");
-        }
         if (!this.modelUtils.isConfigured()) {
             if (this.model.getSettings().isUiEnabled()) {
                 LOG.debug("Not connecting when not configured and UI enabled");
@@ -351,6 +252,14 @@ public class DefaultXmppHandler implements XmppHandler,
             LOG.warn("Already logged in!! Not connecting");
             return;
         }
+        
+        // Wait until the last minute to configure XMPP, particularly because
+        // the isCensored call will wait for the local server to run and will
+        // look up the public IP.
+        boolean alwaysUseProxy = this.censored.isCensored() || LanternUtils.isGet();
+        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig(alwaysUseProxy));
+        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
+        
         LOG.debug("Connecting to XMPP servers...");
         if (this.modelUtils.isOauthConfigured()) {
             connectViaOAuth2();
@@ -376,40 +285,6 @@ public class DefaultXmppHandler implements XmppHandler,
 
     private String getResource() {
         return LanternConstants.UNCENSORED_ID;
-    }
-
-    /** listen to responses for XMPP pings, and if we get any,
-    cancel pending reconnects
-    */
-    private class PingListener implements PacketListener {
-        @Override
-        public void processPacket(Packet packet) {
-            IQ iq = (IQ) packet;
-            if (iq.getPacketID().equals(waitingForPong)) {
-                LOG.debug("Got pong, cancelling pending reconnect");
-                reconnectIfNoPong.cancel();
-            }
-        }
-    }
-
-    private class DefaultP2PConnectionListener implements P2PConnectionListener {
-
-        @Override
-        public void onConnectivityEvent(final P2PConnectionEvent event) {
-
-            LOG.debug("Got connectivity event: {}", event);
-            Events.asyncEventBus().post(event);
-            XMPPConnection connection = client.get().getXmppConnection();
-            if (connection == previousConnection) {
-                LOG.debug("We only add packet listener once, ignoring");
-                return;
-            }
-            previousConnection = connection;
-
-            LOG.debug("Adding packet listener");
-            connection.addPacketListener(new PingListener(),
-                    new IQTypeFilter(org.jivesoftware.smack.packet.IQ.Type.RESULT));
-        }
     }
 
     /**
@@ -484,8 +359,6 @@ public class DefaultXmppHandler implements XmppHandler,
         client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
                 sessionListener));
         LOG.debug("Set client for xmpp handler: "+hashCode());
-
-        client.get().addConnectionListener(new DefaultP2PConnectionListener());
     }
 
     private void getStunServers(final XMPPConnection connection) {
@@ -575,10 +448,6 @@ public class DefaultXmppHandler implements XmppHandler,
         }
     }
 
-    /** The default packet listener automatically
-     *
-     *
-     */
     private class DefaultPacketListener implements PacketListener, PacketFilter {
         @Override
         public void processPacket(final Packet pack) {
@@ -1083,19 +952,6 @@ public class DefaultXmppHandler implements XmppHandler,
         return conn.isAuthenticated();
     }
 
-    /** Try to reconnect to the xmpp server */
-    private void reconnect() {
-        //this will trigger XmppP2PClient's internal reconnection logic
-        if (hasConnection()) {
-            client.get().getXmppConnection().disconnect();
-        }
-        // Otherwise the client should already be trying to connect.
-    }
-
-    private boolean hasConnection() {
-        return client.get() != null && client.get().getXmppConnection() != null;
-    }
-
     @Override
     public void subscribe(final String jid) {
         LOG.debug("Sending subscribe message to: {}", jid);
@@ -1258,19 +1114,4 @@ public class DefaultXmppHandler implements XmppHandler,
     public ProxyTracker getProxyTracker() {
         return proxyTracker;
     }
-    
-    @Override
-    public void instanceOnlineAndTrusted(
-            InstanceInfo<URI, ReceivedKScopeAd> instance) {
-        // Do nothing
-    }
-    
-    @Override
-    public void instanceOfflineOrUntrusted(
-            InstanceInfo<URI, ReceivedKScopeAd> instance) {
-        URI jid = instance.getId();
-        LOG.debug("Removing proxy for {}", jid);
-        this.proxyTracker.removeNattedProxy(jid);
-    }
-    
 }

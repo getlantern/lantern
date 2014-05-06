@@ -16,17 +16,16 @@ release=$4
 
 echo "Release version: $release"
 
-if $(which aws > /dev/null)
-then
-  bucket=lantern
-  url=https://s3.amazonaws.com/$bucket/$name
-  echo "Uploading to http://cdn.getlantern.org/$name..."
+bucket=lantern
+url=https://s3.amazonaws.com/$bucket/$name
+echo "Uploading to http://cdn.getlantern.org/$name..."
 
+if [ $LOCAL_BUILD ] ; then
+  echo "Not uploading local build"
+else
   aws -putp $bucket $name || die "Could not upload"
   echo "Uploaded lantern to http://cdn.getlantern.org/$name"
   echo "Also available at $url"
-else
-  echo "No aws command found, not uploading installers to cloud"
 fi
 
 if $release ; then

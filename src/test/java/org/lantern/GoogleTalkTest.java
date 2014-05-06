@@ -30,8 +30,6 @@ public class GoogleTalkTest {
                 final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
                 LanternSaslGoogleOAuth2Mechanism.setOauthUtils(oauth);
                 
-                Launcher.configureCipherSuites();
-
                 final org.lantern.state.Settings settings = model.getSettings();
                 
                 settings.setMode(Mode.get);
@@ -44,7 +42,7 @@ public class GoogleTalkTest {
                 
                 
                 final XmppHandler handler = TestingUtils.newXmppHandler(censored, model);
-                handler.start();
+                //handler.start();
                 // The handler could have already been created and connected, so 
                 // make sure we disconnect.
                 handler.disconnect();

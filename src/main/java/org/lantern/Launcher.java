@@ -4,13 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.security.Security;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
-
-import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
@@ -20,10 +17,9 @@ import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
-import org.lantern.http.GeoIp;
+import org.lantern.event.PublicIpAndTokenTracker;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
@@ -43,7 +39,6 @@ import org.lantern.state.SyncService;
 import org.lantern.util.HttpClientFactory;
 import org.lantern.util.Stopwatch;
 import org.lantern.util.StopwatchManager;
-import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.StunServerRepository;
@@ -114,8 +109,6 @@ public class Launcher {
     private ModelUtils modelUtils;
     private Settings set;
 
-    private InternalState internalState;
-
     private SyncService syncService;
     private HttpClientFactory httpClientFactory;
     private final LanternModule lanternModule;
@@ -124,7 +117,13 @@ public class Launcher {
 
     private LanternKeyStoreManager keyStoreManager;
 
-    private S3ConfigFetcher s3ConfigManager;
+    private S3ConfigFetcher s3ConfigFetcher;
+
+    private PublicIpInfoHandler publicIpInfoHandler;
+    
+    private PublicIpAndTokenTracker publicIpAndTokenTracker;
+    
+    private Object initLock = new Object();
 
     /**
      * Separate constructor that allows tests to do things like use mocks for
@@ -143,6 +142,8 @@ public class Launcher {
             }
         });
         s_instance = this;
+        
+        Events.register(this);
     }
     
     public static Launcher getInstance() {
@@ -198,9 +199,11 @@ public class Launcher {
         preInstanceWatch.start();
         
         final CommandLine cmd = this.lanternModule.commandLine();
+        final boolean checkFallbacks = cmd.hasOption(Cli.OPTION_CHECK_FALLBACKS);
+
         // There are four cases here:
         // 1) We're just starting normally
-        // 2) We're running with UI disabled (such as from a server), in
+        // 2) We're running with --disable-ui (or a flag that implies it), in
         //    which case we don't show any UI elements
         // 3) We're running on system startup (specified with --launchd flag)
         //    and setup is not complete, in which case we show no splash screen,
@@ -209,14 +212,12 @@ public class Launcher {
         // 4) We're running on system startup (specified with --launchd flag)
         //    and setup IS complete, in which case we show no splash screen,
         //    do not show the UI, but do put the app in the system tray.
-        final boolean uiDisabled = cmd.hasOption(Cli.OPTION_DISABLE_UI);
+        final boolean uiDisabled = checkFallbacks || cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
 
-        configureCipherSuites();
         preInstanceWatch.stop();
-        
+
         model = instance(Model.class);
-        configureLoggly();
         set = model.getSettings();
         set.setUiEnabled(!uiDisabled);
         instance(Censored.class);
@@ -234,7 +235,7 @@ public class Launcher {
             }
         }
         jettyLauncher = instance(JettyLauncher.class);
-        
+
         final Stopwatch jettyWatch = 
                 StopwatchManager.getStopwatch("Jetty-Start", 
                     STOPWATCH_LOG, STOPWATCH_GROUP);
@@ -248,7 +249,11 @@ public class Launcher {
             browserService = instance(BrowserService.class);
         }
         launchLantern(showDashboard);
+
+        publicIpAndTokenTracker = instance(PublicIpAndTokenTracker.class);
+        instance(XmppConnector.class);
         
+        publicIpInfoHandler = instance(PublicIpInfoHandler.class);
         keyStoreManager = instance(LanternKeyStoreManager.class);
         instance(NatPmpService.class);
         instance(UpnpService.class);
@@ -267,18 +272,31 @@ public class Launcher {
         
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
-        this.s3ConfigManager = new S3ConfigFetcher(model, httpClientFactory);
-        this.s3ConfigManager.start();
+
+        s3ConfigFetcher = new S3ConfigFetcher(model, httpClientFactory);
+        
+        if (checkFallbacks) {
+            LOG.debug("Running in check-fallbacks mode");
+            String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
+            try {
+                final FallbackChecker fbc = new FallbackChecker(proxyTracker, 
+                        configFolderPath, httpClientFactory);
+                Thread t = new Thread(fbc);
+                t.start();
+            } catch (Exception e) {
+                LOG.error("Error instantiating FallbackChecker:");
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
 
         xmpp = instance(DefaultXmppHandler.class);
 
         instance(LocalCipherProvider.class);
 
-        internalState = instance(InternalState.class);
+        instance(InternalState.class);
         syncService = instance(SyncService.class);
 
-
-        instance(GeoIp.class);
         statsManager = instance(StatsManager.class);
         
         // Use our stored STUN servers if available.
@@ -296,7 +314,7 @@ public class Launcher {
         
         friendsHandler = instance(FriendsHandler.class);
         
-        startServices();
+        startServices(checkFallbacks);
         
         if (uiDisabled) {
             // Run a little main loop to keep the program running
@@ -314,42 +332,91 @@ public class Launcher {
      * This starts all of the services on a separate thread to avoid holding
      * up the main thread that is in charge of displaying the UI.
      */
-    private void startServices() {
+    private void startServices(final boolean checkFallbacks) {
         final Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
                 keyStoreManager.start();
-                final ConnectivityChecker connectivityChecker =
-                    instance(ConnectivityChecker.class);
-                final Timer timer = new Timer("Connectivity-Check-Timer", true);
-                timer.schedule(connectivityChecker, 0, 10 * 1000);
 
                 shutdownable(ModelIo.class);
                 
-                try {
-                    proxyTracker.start();
-                } catch (final Exception e) {
-                    LOG.error("Could not start proxy tracker?", e);
+                // don't need to start the rest of these services when running in check-fallbacks mode
+                if (checkFallbacks) {
+                    return;
                 }
+                
+                // Immediately start getModeProxy
                 getModeProxy.start();
-                xmpp.start();
+                
+                if (!checkFallbacks) configureLoggly();
+
+                final ConnectivityChecker connectivityChecker =
+                    instance(ConnectivityChecker.class);
+
+                final Timer timer = new Timer("Connectivity-Check-Timer", true);
+                timer.schedule(connectivityChecker, 0, 10 * 1000);
+                
                 // Immediately start giveModeProxy if we're already in Give mode
                 if (Mode.give == model.getSettings().getMode()) {
                     giveModeProxy.start();
                 }
 
                 syncService.start();
-                //statsManager.start();
-                
                 gnomeAutoStart();
                 
-                autoConnect();
+                // If for some reason oauth isn't configured but setup is 
+                // complete, try to authorize again.
+                if (!modelUtils.isConfigured()) {
+                    LOG.debug("Not auto-logging in with model:\n{}", model);
+                    if (model.isSetupComplete())
+                        Events.syncModal(model, Modal.authorize);
+                }
             }
             
         }, "Launcher-Start-Thread");
         t.setDaemon(true);
         t.start();
+    }
+    
+    @Subscribe
+    public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+        synchronized(initLock) {
+            if (event.isConnected()) {
+                startNetworkServices();
+            } else {
+                stopNetworkServices();
+            }
+        }
+    }
+    
+    private void startNetworkServices() {
+        // Try to initialize network services once
+        try {
+            publicIpAndTokenTracker.reset();
+            s3ConfigFetcher.init();
+            proxyTracker.init();
+            // Needs a fallback.
+            publicIpInfoHandler.init();
+            
+            // Once network services are successfully initialized, start
+            // background tasks.
+            s3ConfigFetcher.start();
+            proxyTracker.start();
+        } catch (final InitException e) {
+            LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
+        } catch (final Throwable t) {
+            LOG.error("Unexpected error trying to start network services: {}",
+                    t.getMessage(), t);
+        }
+    }
+    
+    private void stopNetworkServices() {
+        xmpp.stop();
+        statsManager.stop();
+        friendsHandler.stop();
+        proxyTracker.stop();
+        s3ConfigFetcher.stop();
     }
 
     private boolean shouldShowDashboard(final Model mod, 
@@ -391,11 +458,6 @@ public class Launcher {
             LOG.error("Could not load instance of "+clazz);
             throw new NullPointerException("Could not load instance of "+clazz);
         }
-        /*
-        if (splashScreen != null) {
-            splashScreen.advanceBar();
-        }
-        */
         watch.stop();
         return inst;
     }
@@ -455,63 +517,9 @@ public class Launcher {
                 "/usr/share/applications/lantern.desktop");
     }
 
-    private static final String CIPHER_SUITE_LOW_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
-
-    private static final String CIPHER_SUITE_HIGH_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
-
     private static final String STOPWATCH_LOG = "org.lantern.STOPWATCH_LOG";
     
     private static final String STOPWATCH_GROUP = "launcherGroup";
-
-    public static void configureCipherSuites() {
-        Security.addProvider(new BouncyCastleProvider());
-        if (!LanternUtils.isUnlimitedKeyStrength()) {
-            /*
-            if (LanternUtils.isDevMode()) {
-                System.err.println("PLEASE INSTALL UNLIMITED STRENGTH POLICY FILES WITH ONE OF THE FOLLOWING:\n" +
-                    "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
-                    "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
-                    "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
-                    "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
-                
-                // Don't exit if we're running on CI...
-                final String env = System.getenv("BAMBOO");
-                System.err.println("Env: "+System.getenv());
-                if (!"true".equalsIgnoreCase(env)) {
-                    System.exit(1);
-                }
-            }
-            */
-            if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
-                log("No policy files on non-Vista machine!!");
-            }
-            log("Reverting to weaker ciphers");
-            log("Look in "+ new File(SystemUtils.JAVA_HOME, "lib/security").getAbsolutePath());
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        } else {
-            // Note the following just sets what cipher suite the server
-            // side selects. DHE is for perfect forward secrecy.
-
-            // We include 128 because we never have enough permissions to
-            // copy the unlimited strength policy files on Vista, so we have
-            // to revert back to 128.
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT,
-                    CIPHER_SUITE_HIGH_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_RSA_WITH_RC4_128_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        }
-    }
-
 
     private static void log(final String msg) {
         if (LOG != null) {
@@ -561,41 +569,6 @@ public class Launcher {
         LOG.debug("STARTUP TOOK {} MILLISECONDS", 
            System.currentTimeMillis() - START_TIME);
         StopwatchManager.logSummaries(STOPWATCH_LOG);
-    }
-
-    private void autoConnect() {
-        LOG.debug("Connecting if oauth is configured...");
-        // This won't connect in the case where the user hasn't entered
-        // their user name and password and the user is running with a UI.
-        // Otherwise, it will connect.
-        if (modelUtils.isConfigured()) {
-            final Runnable runner = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        xmpp.connect();
-                        if (model.getModal() == Modal.connecting) {
-                            internalState.advanceModal(null);
-                        }
-                    } catch (final IOException e) {
-                        LOG.debug("Could not login", e);
-                    } catch (final CredentialException e) {
-                        LOG.debug("Bad credentials", e);
-                        Events.syncModal(model, Modal.authorize);
-                    } catch (final NotInClosedBetaException e) {
-                        LOG.warn("Not in closed beta!!", e);
-                        internalState.setNotInvited(true);
-                    }
-                }
-            };
-            final Thread t = new Thread(runner, "Auto-Starting-Thread");
-            t.setDaemon(true);
-            t.start();
-        } else {
-            LOG.debug("Not auto-logging in with model:\n{}", model);
-            if (model.isSetupComplete())
-                Events.syncModal(model, Modal.authorize);
-        }
     }
 
     void configureDefaultLogger() {
@@ -689,94 +662,6 @@ public class Launcher {
         }
         return msg;
     }
-
-/*
-    private void processCommandLineOptions(final CommandLine cmd) {
-
-        final String ctrlOpt = OPTION_CONTROLLER_ID;
-        if (cmd.hasOption(ctrlOpt)) {
-            LanternClientConstants.setControllerId(
-                cmd.getOptionValue(ctrlOpt));
-        }
-
-        final String insOpt = OPTION_INSTANCE_ID;
-        if (cmd.hasOption(insOpt)) {
-            model.setInstanceId(cmd.getOptionValue(insOpt));
-        }
-
-        final String fbOpt = OPTION_AS_FALLBACK;
-        if (cmd.hasOption(fbOpt)) {
-            LanternUtils.setFallbackProxy(true);
-        }
-
-        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
-        if (cmd.hasOption(secOpt)) {
-            modelUtils.loadOAuth2ClientSecretsFile(
-                cmd.getOptionValue(secOpt));
-        }
-
-        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
-        if (cmd.hasOption(credOpt)) {
-            modelUtils.loadOAuth2UserCredentialsFile(
-                cmd.getOptionValue(credOpt));
-        }
-
-        //final Settings set = LanternHub.settings();
-
-        set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
-        set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
-        set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
-        set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
-        set.setUdpProxyPriority(cmd.getOptionValue(OPTION_UDP_PROXY_PRIORITY, "lower").toUpperCase());
-        
-        final boolean tcp = parseOptionDefaultTrue(cmd, OPTION_TCP);
-        final boolean udp = parseOptionDefaultTrue(cmd, OPTION_UDP);
-        IceConfig.setTcp(tcp);
-        IceConfig.setUdp(udp);
-        set.setTcp(tcp);
-        set.setUdp(udp);
-
-        if (cmd.hasOption(OPTION_ACCESS_TOK)) {
-            set.setAccessToken(cmd.getOptionValue(OPTION_ACCESS_TOK));
-        }
-        
-        if (cmd.hasOption(OPTION_REFRESH_TOK)) {
-            final String refresh = cmd.getOptionValue(OPTION_REFRESH_TOK);
-            set.setRefreshToken(refresh);
-            Events.asyncEventBus().post(new RefreshTokenEvent(refresh));
-        }
-        // option to disable use of keychains in local privacy
-        if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
-            LOG.info("Disabling use of system keychains");
-            set.setKeychainEnabled(false);
-        }
-        else {
-            set.setKeychainEnabled(true);
-        }
-
-        if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
-            loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
-        }
-
-        if (cmd.hasOption(OPTION_PUBLIC_API)) {
-            set.setBindToLocalhost(false);
-        }
-
-        LOG.info("Running API on port: {}", StaticSettings.getApiPort());
-        if (cmd.hasOption(OPTION_LAUNCHD)) {
-            LOG.debug("Running from launchd or launchd set on command line");
-            model.setLaunchd(true);
-        } else {
-            model.setLaunchd(false);
-        }
-
-        if (cmd.hasOption(OPTION_GIVE)) {
-            model.getSettings().setMode(Mode.give);
-        } else if (cmd.hasOption(OPTION_GET)) {
-            model.getSettings().setMode(Mode.get);
-        }
-    }
-    */
 
     public Injector getInjector() {
         return injector;

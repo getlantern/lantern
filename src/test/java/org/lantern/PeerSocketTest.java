@@ -27,7 +27,6 @@ public class PeerSocketTest {
         // framework that simulates things like unpredictable network latency
         // and doesn't require live tests over the network.
         IceConfig.setDisableUdpOnLocalNetwork(false);
-        Launcher.configureCipherSuites();
         TestUtils.load(true);
         final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
         xmpp.connect();

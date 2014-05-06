@@ -52,7 +52,7 @@ public class LanternModuleTest {
         Module m = Modules.override(lm).with(new TestModule());
         final Injector injector = Guice.createInjector(m);
 
-        final LanternService xmpp =
+        final DefaultXmppHandler xmpp =
             injector.getInstance(DefaultXmppHandler.class);
         
         final Model model = injector.getInstance(Model.class);

@@ -22,7 +22,7 @@ import fr.free.miniupnp.libnatpmp.NatPmpResponse;
  * miniupnp's libnatpmp.
  */
 @Singleton
-public class NatPmpImpl implements NatPmpService {
+public class NatPmpImpl implements NatPmpService, Shutdownable {
 
     static {
         if (System.getProperty("jna.nosys") == null) {
@@ -215,6 +215,11 @@ public class NatPmpImpl implements NatPmpService {
         }
         // pmpDevice.shutdown();
         log.debug("Finished shutdown for NAT-PMP");
+    }
+
+    @Override
+    public void stop() {
+        shutdown();
     }
 
 }

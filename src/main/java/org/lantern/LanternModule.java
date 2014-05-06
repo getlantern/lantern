@@ -13,7 +13,6 @@ import org.jivesoftware.smack.SASLAuthentication;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.http.GeoIp;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
@@ -55,6 +54,7 @@ import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
@@ -99,6 +99,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwingMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
+        bind(XmppConnectionRetyStrategyFactory.class).to(LanternXmppRetryStrategyFactory.class);
 
         bind(FriendsHandler.class).to(DefaultFriendsHandler.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
@@ -130,7 +131,6 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(StatsManager.class);
         bind(ConnectivityChecker.class);
-        bind(GeoIp.class);
         bind(CountryService.class);
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
