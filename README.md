@@ -87,7 +87,7 @@ needed.
 ### Transifex
 
 All translatable content for Lantern has been uploaded to [the Lantern
-Transifex project](https://www.transifex.com/projects/p/lantern/] to help
+Transifex project](https://www.transifex.com/projects/p/lantern/) to help
 manage translations. Translatable strings from this code have been uploaded to
 the [ui](https://www.transifex.com/projects/p/lantern/resource/ui/) resource
 therein. Transifex has been set up to automatically pull updates to that
