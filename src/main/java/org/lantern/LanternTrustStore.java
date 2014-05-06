@@ -257,7 +257,7 @@ public class LanternTrustStore {
             this.cumulativeSslContextRef.set(provideSslContext(getTrustManagers(true)));
         }
         final SSLContext context = cumulativeSslContextRef.get();
-        log.debug("Returning cumulative context: {}", context);
+        LOGGER.debug("Returning cumulative context: {}", context);
         return context;
     }
     
