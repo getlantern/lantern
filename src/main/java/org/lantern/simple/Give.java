@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.lantern.Cli;
+import org.lantern.JsonUtils;
 import org.lantern.LanternUtils;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.monitoring.Stats;
@@ -299,6 +300,10 @@ public class Give extends CliProgram {
                         StatsManager.UNKNOWN_COUNTRY,
                         true,
                         instanceStats);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Posted stats:\n\n%s\n",
+                            JsonUtils.jsonify(instanceStats));
+                }
             } catch (Exception e) {
                 LOGGER.warn("Unable to post stats to statshub: {}",
                         e.getMessage(), e);
