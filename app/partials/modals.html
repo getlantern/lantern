@@ -118,11 +118,11 @@
         </div>
       </div>
     </div>
-    <div class="internetRequired fadeInOut" ng-hide="model.connectivity.internet != false">
+    <div class="internetRequired fadeInOut" ng-hide="model.connectivity.ip">
       {{ 'INTERNET_REQUIRED' | i18n }}
     </div>
     <div ng-hide="model.connectivity.ip">
-        <img src="img/spinner_black.gif">
+      <img src="img/spinner_black.gif">
     </div>
   </div>
 </div>
