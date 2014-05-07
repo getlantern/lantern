@@ -301,7 +301,7 @@ public class Give extends CliProgram {
                         true,
                         instanceStats);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Posted stats:\n\n%s\n",
+                    LOGGER.debug("Posted stats:\n\n{}\n",
                             JsonUtils.jsonify(instanceStats));
                 }
             } catch (Exception e) {
