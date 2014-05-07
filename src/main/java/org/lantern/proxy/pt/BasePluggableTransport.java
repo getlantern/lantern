@@ -3,6 +3,8 @@ package org.lantern.proxy.pt;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
@@ -26,6 +28,8 @@ import org.slf4j.LoggerFactory;
 public abstract class BasePluggableTransport implements PluggableTransport {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(BasePluggableTransport.class);
+
+    private static final Set<Class> ALREADY_COPIED_TRANSPORTS = new HashSet<Class>();
 
     private final String ptRelativePath;
     private final String[] executableNames;
@@ -165,18 +169,28 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         File to = new File(LanternClientConstants.CONFIG_DIR
                 + File.separator
                 + ptRelativePath);
-        LOGGER.info("Copying {} from {} to {}",
-                getLogName(),
-                from.getAbsolutePath(),
-                to.getAbsolutePath());
-        try {
-            FileUtils.copyDirectory(from, to);
-        } catch (Exception e) {
-            throw new Error(String.format(
-                    "Unable to stage %1$s to .lantern: %2$s",
-                    getLogName(), e.getMessage()), e);
+
+        synchronized (ALREADY_COPIED_TRANSPORTS) {
+            if (!ALREADY_COPIED_TRANSPORTS.contains(getClass())) {
+                LOGGER.info("Copying {} from {} to {}",
+                        getLogName(),
+                        from.getAbsolutePath(),
+                        to.getAbsolutePath());
+                try {
+                    FileUtils.copyDirectory(from, to);
+                } catch (Exception e) {
+                    throw new Error(String.format(
+                            "Unable to stage %1$s to .lantern: %2$s",
+                            getLogName(), e.getMessage()), e);
+                }
+                ALREADY_COPIED_TRANSPORTS.add(getClass());
+            } else {
+                LOGGER.info("Not copying {} because it's already been copied",
+                        getLogName());
+            }
         }
-        // Update base path to point to copied location
+
+        // Always update base path to point to copied location
         ptBasePath = to.getAbsolutePath();
     }
 

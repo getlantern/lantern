@@ -43,8 +43,6 @@ import org.slf4j.LoggerFactory;
 public class FTE extends BasePluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
 
-    private static volatile boolean ALREADY_COPIED_TO_CONFIG_FOLDER = false;
-
     private static final String LANTERN_DEFS_RELEASE = "19700101";
     // Note - custom format names need to end with "-request" and "-response"
     // respectively, otherwise fteproxy won't recognize them.
@@ -67,7 +65,7 @@ public class FTE extends BasePluggableTransport {
      * @param props
      */
     public FTE(Properties props) {
-        super(!ALREADY_COPIED_TO_CONFIG_FOLDER,
+        super(true,
                 "pt/fteproxy",
                 "fteproxy", "fteproxy.exe");
         this.props = props;
