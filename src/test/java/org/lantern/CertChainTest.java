@@ -5,8 +5,9 @@ import java.net.InetSocketAddress;
 import javax.net.ssl.SSLSocket;
 
 /**
- * This test fails with an SSL errorr - unable to find valid certification path
- * to requested target.
+ * This test fails with an SSL error - unable to find valid certification path
+ * to requested target.  That is because TrueCar's web server is not returning
+ * intermediate CA certificates.
  */
 public class CertChainTest {
     public static void main(final String... args) throws Exception {
