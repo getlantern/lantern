@@ -85,7 +85,7 @@ public class PublicIpAddress implements PublicIp {
     }
     
     private InetAddress lookupSafe() {
-        HttpHead request = new HttpHead("/humans.txt");
+        HttpHead request = new HttpHead("/");
         try {
             // Setting this header tells the upstream flashlight proxy to
             // return the proxy's info
@@ -94,6 +94,8 @@ public class PublicIpAddress implements PublicIp {
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
             request.getParams().setParameter(
                     ClientPNames.HANDLE_REDIRECTS, false);
+            // Ignore cookies because flashlight will return cookies that don't
+            // match the requested domain
             request.getParams().setParameter(
                     ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
             // Unable to set SO_TIMEOUT because of bug in Java 7
