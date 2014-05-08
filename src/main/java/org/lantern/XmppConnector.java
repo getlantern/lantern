@@ -90,8 +90,8 @@ public class XmppConnector {
             internalState.setNotInvited(true);
             Events.syncModal(model, Modal.notInvited);
         } catch (final IOException e) {
-            log.info("We can't connect (internet connection died?).  Retry.", e);
-            Events.syncModal(model, Modal.authorize);
+            log.info("We can't connect (internet connection died?). " +
+                "The XMPP layer should automatically retry.", e);
         }
     }
     
