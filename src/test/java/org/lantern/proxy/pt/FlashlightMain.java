@@ -2,6 +2,8 @@ package org.lantern.proxy.pt;
 
 import java.net.InetSocketAddress;
 
+import org.lantern.S3Config;
+
 /**
  * <p>
  * This simple program runs a LittleProxy which uses a flashlight instance.
@@ -29,7 +31,7 @@ public class FlashlightMain extends ChainedMain {
                 FLASHLIGHT_CLIENT_PORT);
 
         // Client
-        Flashlight client = new Flashlight(null);
+        Flashlight client = new Flashlight(S3Config.flashlightProps());
         this.clientAddress = client.startClient(getModeAddress, null);
     }
 

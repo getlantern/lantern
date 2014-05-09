@@ -49,7 +49,7 @@ public class DefaultProxyTrackerTest {
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(model,
-                peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>(), false);
+                peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         
         tracker.init();
         tracker.start();

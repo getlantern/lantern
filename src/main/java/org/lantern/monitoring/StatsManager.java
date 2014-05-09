@@ -9,8 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.Country;
+import org.lantern.HttpURLClient.SSLContextSource;
 import org.lantern.LanternConstants;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
@@ -50,9 +53,15 @@ public class StatsManager implements Shutdownable {
     private ScheduledExecutorService postScheduler = null;
 
     @Inject
-    public StatsManager(Model model, LanternTrustStore trustStore) {
+    public StatsManager(Model model, final LanternTrustStore trustStore) {
         this.model = model;
-        statshub.setSslContext(trustStore.getCumulativeSslContext());
+        statshub.setSslContextSource(new SSLContextSource() {
+            @Override
+            public SSLContext getContext(String url) {
+                return trustStore.getCumulativeSslContext();
+            }
+        });
+
         Events.register(this);
     }
 

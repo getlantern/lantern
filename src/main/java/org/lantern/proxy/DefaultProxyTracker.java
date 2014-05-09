@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,7 +35,6 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
-import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -89,33 +87,12 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
-        this(model,
-                peerFactory,
-                lanternTrustStore,
-                networkTracker,
-                true // Always include the flashlight proxy
-        );
-    }
-    
-    public DefaultProxyTracker(final Model model,
-            final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore,
-            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
-            boolean useFlashlight) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         networkTracker.addListener(this);
 
         Events.register(this);
-        
-        if (useFlashlight) {
-            try {
-                addSingleFallbackProxy(flashlightProxy());
-            } catch (Exception e) {
-                LOG.error("Unable to start flashlight!: {}", e.getMessage(), e);
-            }
-        }
     }
     
     @Override
@@ -150,22 +127,21 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     @Subscribe
     public void onNewS3Config(final S3Config config) {
         LOG.debug("Refreshing fallbacks");
-        Set<ProxyHolder> s3fallbacks = new HashSet<ProxyHolder>();
+        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
         synchronized (proxies) {
             for (ProxyHolder p : proxies) {
-                if (p.isFromS3()) {
-                    LOG.debug("Removing fallback (I may readd it shortly): ",
-                            p.getJid());
-                    s3fallbacks.add(p);
-                    p.stopPtIfNecessary();
-                }
+                LOG.debug("Removing fallback (I may readd it shortly): ",
+                        p.getJid());
+                fallbacks.add(p);
+                p.stopPtIfNecessary();
             }
-            
+
             // This method can also iterate, so keep it in the synchronized
             // block.
-            proxies.removeAll(s3fallbacks);
+            proxies.removeAll(fallbacks);
         }
         synchronized (configuredProxies) {
+            configuredProxies.clear();
             Iterator<ProxyInfo> it = configuredProxies.iterator();
             while (it.hasNext()) {
                 ProxyInfo info = it.next();
@@ -571,21 +547,5 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                 return 0;
             }
         }
-    }
-    
-    private FallbackProxy flashlightProxy() {
-        FallbackProxy flashlightProxy = new FallbackProxy();
-        flashlightProxy.fromS3 = false;
-        flashlightProxy.pt = new Properties();
-        flashlightProxy.pt.setProperty("type", "flashlight");
-        flashlightProxy.setIp(Flashlight.MASQUERADE_HOST);
-        flashlightProxy.setPort(443);
-        flashlightProxy.setProtocol(Protocol.TCP);
-        // Make this higher priority than other fallbacks
-        flashlightProxy.setPriority(-1);
-        // flashlight proxy only supports ports 80 and 443
-        flashlightProxy.addLimitedToPort(80);
-        flashlightProxy.addLimitedToPort(443);
-        return flashlightProxy;
     }
 }

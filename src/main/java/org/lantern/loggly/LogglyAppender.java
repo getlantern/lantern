@@ -4,12 +4,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
+import org.lantern.HttpURLClient.SSLContextSource;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternTrustStore;
@@ -23,11 +26,16 @@ public class LogglyAppender extends AppenderSkeleton {
     private final Model model;
     private final Loggly loggly;
 
-    public LogglyAppender(Model model, LanternTrustStore trustStore, boolean inTestMode) {
+    public LogglyAppender(Model model, final LanternTrustStore trustStore, boolean inTestMode) {
         this.model = model;
         loggly = new Loggly(inTestMode,
                 LanternConstants.LANTERN_LOCALHOST_ADDR);
-        loggly.setSslContext(trustStore.getCumulativeSslContext());
+        loggly.setSslContextSource(new SSLContextSource() {
+            @Override
+            public SSLContext getContext(String url) {
+                return trustStore.getCumulativeSslContext();
+            }
+        });
     }
 
     @Override
