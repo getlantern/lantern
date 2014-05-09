@@ -36,6 +36,7 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.Peer.Type;
@@ -577,7 +578,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         flashlightProxy.fromS3 = false;
         flashlightProxy.pt = new Properties();
         flashlightProxy.pt.setProperty("type", "flashlight");
-        flashlightProxy.setIp("cdnjs.com");
+        flashlightProxy.setIp(Flashlight.MASQUERADE_HOST);
         flashlightProxy.setPort(443);
         flashlightProxy.setProtocol(Protocol.TCP);
         // Make this higher priority than other fallbacks
