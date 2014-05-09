@@ -23,6 +23,7 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
+import org.lantern.NoSSLv2SocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,9 @@ public class StaticHttpClientFactory {
             client = new DefaultHttpClient();
         } else {
             // Caller specified a custom sslContext, use that
-            SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+            javax.net.ssl.SSLSocketFactory jsf =
+                    new NoSSLv2SocketFactory(sslContext.getSocketFactory());
+            SSLSocketFactory sf = new SSLSocketFactory(jsf, SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
             Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
             Scheme httpsScheme = new Scheme("https", 443, sf);
             SchemeRegistry schemeRegistry = new SchemeRegistry();
