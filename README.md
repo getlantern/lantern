@@ -23,3 +23,6 @@ It's available on godoc: [https://godoc.org/github.com/inconshreveable/go-update
 
 ## equinox.io
 go-update is the open-source component of the more complete updating solution that I provide at [equinox.io](https://equinox.io)
+
+## License
+Apache
