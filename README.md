@@ -20,10 +20,16 @@ Comprehensive API documentation and code examples are available in the code docu
 
 ## Features
 
+- Cross platform support (Windows too!)
+- Binary patch application
+- Checksum verification
+- Code signing verification
+- Support for updating arbitrary files
+
 ## [equinox.io](https://equinox.io)
 go-update provides the primitives for building self-updating applications, but there a number of other challenges
 involved in a complete updating solution such as hosting, code signing, update channels, gradual rollout,
-dynamically computing binary patches, tracking update metrics, and more.
+dynamically computing binary patches, tracking update metrics like versions and failures, plus more.
 
 I provide this service, a complete solution, free for open source projects, at [equinox.io](https://equinox.io).
 
