@@ -57,6 +57,7 @@ public class ConnectivityChecker extends TimerTask {
             notifyConnected();
         } else if (becameDisconnected) {
             LOG.info("Became disconnected");
+            this.model.getConnectivity().setIp(null);
             notifyDisconnected();
         }
         Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
