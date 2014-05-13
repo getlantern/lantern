@@ -1,41 +1,81 @@
 /*
-Package update allows a program to "self-update", replacing its executable file
-with new bytes.
+Overview
 
-Package update provides the facility to create user experiences like auto-updating
-or user-approved updates which manifest as user prompts in commercial applications
-with copy similar to "Restart to begin using the new version of X".
+Package update allows a program to update itself by replacing its executable file
+with a new version. It provides the flexibility to implement different updating user experiences
+like auto-updating, prompted updates, or only user-initiated updates. It also boasts
+advanced features like binary patching and code signing verification.
 
 Updating your program to a new version is as easy as:
 
 	err, errRecover := update.New().FromUrl("http://release.example.com/2.0/myprogram")
 	if err != nil {
-		fmt.Printf("Update failed: %v", err)
+		fmt.Printf("Update failed: %v\n", err)
 	}
 
-The most low-level API is (*Update) FromStream() which updates the current executable
-with the bytes read from an io.Reader.
+Binary diff updates are supported and easy to use:
 
-The most common, high-level API you'll probably want to use is (*Update) FromUrl()
-which updates the current executable from a URL over the internet.
+    up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
+    err, errRecover := up.FromUrl("http://release.example.com/2.0/mypatch")
 
-You may also update from a binary diff patch to preserve bandwidth like so:
+You should also verify the checksum of new updates as well as verify
+the digital signature of an update. Note that even when you choose to apply
+a patch, the checksum is verified against the complete update after that patch
+has been applied.
 
-    update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).FromUrl("http://release.example.com/2.0/mypatch")
+    up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).VerifyChecksum(checksum)
+    err, errRecover := up.FromUrl("http://release.example.com/2.0/mypatch")
 
-Package update also allows you to update arbitrary files on the file system (i.e. files
-which are not the executable of the currently running program).
+Updating arbitrary files is also supported. You may update files which are
+not the currently running program:
 
-    update.New().Target("/usr/local/bin/some-program").FromUrl("http://release.example.com/2.0/some-program")
+    up := update.New().Target("/usr/local/bin/some-program")
+    err, errRecover := up.FromUrl("http://release.example.com/2.0/some-program")
 
-If requested, package update can additionally perform checksum verification and signing
-verification to ensure the new binary is trusted.
+You may also choose to update from other data sources such as a file or an io.Reader:
 
-Sub-package download contains functionality for downloading from an HTTP endpoint
-while outputting a progress meter and supports resuming partial downloads.
+    err, errRecover := update.New().FromFile("/path/to/update")
+
+
+Error Handling and Recovery
+
+To perform an update, the process must be able to read its executable file and to write
+to the directory that contains its executable file. It can be useful to check whether the process
+has the necessary permissions to perform an update before trying to apply one. Use the
+CanUpdate call to provide a useful message to the user if the update can't proceed without
+elevated permissions:
+
+    up := update.New().Target("/etc/hosts")
+    err := up.CanUpdate()
+    if err != nil {
+        fmt.Printf("Can't update because: '%v'. Try as root or Administrator\n", err)
+        return
+    }
+    up.FromUrl("https://example.com/new/hosts")
+
+Although exceedingly unlikely, the update operation itself is not atomic and can fail
+in such a way that a user's computer is left in an inconsistent state. If that happens,
+go-update attempts to recover to leave the system in a good state. If the recovery step
+fails (even more unlikely), a second error, referred to as "errRecover" will be non-nil
+so that you may inform your users of the bad news. You should handle this case as shown
+here:
+
+    err, errRecover := up.FromUrl("https://example.com/update")
+    if err != nil {
+        fmt.Printf("Update failed: %v\n", err)
+        if errRecover != nil {
+            fmt.Printf("Failed to recover bad update: %v!\n", errRecover)
+            fmt.Printf("Program exectuable may be missing!\n")
+        }
+    }
+
+Subpackages
 
 Sub-package check contains the client functionality for a simple protocol for negotiating
 whether a new update is available, where it is, and the metadata needed for verifying it.
+
+Sub-package download contains functionality for downloading from an HTTP endpoint
+while outputting a progress meter and supports resuming partial downloads.
 */
 package update
 
