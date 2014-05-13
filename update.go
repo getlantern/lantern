@@ -135,7 +135,7 @@ type PatchType string
 
 const (
 	PATCHTYPE_BSDIFF PatchType = "bsdiff"
-	PATCHTYPE_NONE   = ""
+	PATCHTYPE_NONE             = ""
 )
 
 type Update struct {

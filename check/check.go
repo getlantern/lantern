@@ -16,9 +16,9 @@ import (
 type Initiative string
 
 const (
-	INITIATIVE_NEVER  = "never"
-	INITIATIVE_AUTO   = "auto"
-	INITIATIVE_MANUAL = "manual"
+	INITIATIVE_NEVER  Initiative = "never"
+	INITIATIVE_AUTO              = "auto"
+	INITIATIVE_MANUAL            = "manual"
 )
 
 var NoUpdateAvailable error = fmt.Errorf("No update available")
