@@ -3,6 +3,7 @@ package check
 import (
 	"bitbucket.org/kardianos/osext"
 	"bytes"
+	_ "crypto/sha512" // for tls cipher support
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -42,13 +43,20 @@ type Params struct {
 }
 
 type Result struct {
-	Initiative Initiative
-	Url        string           // url where to download the updated application
-	PatchUrl   string           // a URL to a patch to apply
-	PatchType  update.PatchType // the patch format (only bsdiff supported at the moment)
-	Version    string           // version of the new application
-	Checksum   string           // expected checksum of the new application
-	Signature  string           // signature for verifying update authenticity
+	// should the update be applied automatically/manually
+	Initiative Initiative `json:"initiative"`
+	// url where to download the updated application
+	Url string `json:"url"`
+	// a URL to a patch to apply
+	PatchUrl string `json:"patch_url"`
+	// the patch format (only bsdiff supported at the moment)
+	PatchType update.PatchType `json:"patch_type"`
+	// version of the new application
+	Version string `json:"version"`
+	// expected checksum of the new application
+	Checksum string `json:"checksum"`
+	// signature for verifying update authenticity
+	Signature string `json:"signature"`
 }
 
 // CheckForUpdate makes an HTTP post to a URL with the JSON serialized
@@ -59,9 +67,9 @@ type Result struct {
 // string, it will be automatically be computed for the running program's
 // executable file.
 func (p *Params) CheckForUpdate(url string) (*Result, error) {
-    if p.Tags == nil {
-        p.Tags = make(map[string]string)
-    }
+	if p.Tags == nil {
+		p.Tags = make(map[string]string)
+	}
 
 	if p.OS == "" {
 		p.OS = runtime.GOOS

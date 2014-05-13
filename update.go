@@ -45,6 +45,7 @@ import (
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
+	_ "crypto/sha512" // for tls cipher support
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -256,15 +257,15 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 
 	// verify signature if requested
 	if u.Signature != nil || u.PublicKey != nil {
-        if u.Signature == nil {
-            err = fmt.Errorf("No public key specified to verify signature")
-            return
-        }
+		if u.Signature == nil {
+			err = fmt.Errorf("No public key specified to verify signature")
+			return
+		}
 
-        if u.PublicKey == nil {
-            err = fmt.Errorf("No signature to verify!")
-            return
-        }
+		if u.PublicKey == nil {
+			err = fmt.Errorf("No signature to verify!")
+			return
+		}
 
 		if err = verifySignature(newBytes, u.Signature, u.PublicKey); err != nil {
 			return
