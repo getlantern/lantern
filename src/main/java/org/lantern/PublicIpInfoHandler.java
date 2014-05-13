@@ -50,13 +50,13 @@ public class PublicIpInfoHandler {
      * @param pce The proxy connection event.
      * @throws InitException If there was an error fetching the public IP. 
      */
-    public void init() throws InitException {
+    private void init() throws InitException {
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
         this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
         if (address == null) {
             throw new InitException("Could not determine public IP");
         }
-        handleCensored();
+        handleCensored(address);
         handleGeoIp(address);
         
         // Post PublicIpEvent so that downstream services like xmpp,
@@ -64,6 +64,14 @@ public class PublicIpInfoHandler {
         Events.asyncEventBus().post(new PublicIpEvent());
     }
     
+    /**
+     * We perform the public IP lookup on a proxy connection event because
+     * we need to the proxy in order to perform the lookup. We need this both
+     * at startup as well as every time we re-connect to a proxy after
+     * potentially losing proxy connectivity.
+     * 
+     * @param pce The connection event.
+     */
     @Subscribe
     public void onProxyConnectionEvent(
         final ProxyConnectionEvent pce) {
@@ -97,15 +105,15 @@ public class PublicIpInfoHandler {
         Events.sync(SyncPath.LOCATION, loc);
     }
 
-    private void handleCensored() {
+    private void handleCensored(final InetAddress address) {
         final Settings set = model.getSettings();
 
         if (set.getMode() == null || set.getMode() == Mode.unknown) {
-            if (censored.isCensored()) {
+            if (censored.isCensored(address)) {
                 set.setMode(Mode.get);
                 Events.sync(SyncPath.SETTINGS, set);
             }
-        } else if (set.getMode() == Mode.give && censored.isCensored()) {
+        } else if (set.getMode() == Mode.give && censored.isCensored(address)) {
             // want to set the mode to get now so that we don't mistakenly
             // proxy any more than necessary
             set.setMode(Mode.get);

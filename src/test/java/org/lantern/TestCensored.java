@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 public class TestCensored implements Censored {
 
@@ -22,6 +23,11 @@ public class TestCensored implements Censored {
     @Override
     public boolean isCensored() {
         return true;
+    }
+
+    @Override
+    public boolean isCensored(InetAddress address) {
+        return false;
     }
 
 }
