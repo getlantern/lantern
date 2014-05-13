@@ -1,10 +1,7 @@
 /*
-
-Overview
-
-Package update allows a program to update itself by replacing its executable file
+go-update allows a program to update itself by replacing its executable file
 with a new version. It provides the flexibility to implement different updating user experiences
-like auto-updating, prompted updates, or only user-initiated updates. It also boasts
+like auto-updating, or manual user-initiated updates. It also boasts
 advanced features like binary patching and code signing verification.
 
 Updating your program to a new version is as easy as:
@@ -14,10 +11,18 @@ Updating your program to a new version is as easy as:
 		fmt.Printf("Update failed: %v\n", err)
 	}
 
+You may also choose to update from other data sources such as a file or an io.Reader:
+
+    err, errRecover := update.New().FromFile("/path/to/update")
+
+Binary Diff Patching
+
 Binary diff updates are supported and easy to use:
 
     up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
     err, errRecover := up.FromUrl("http://release.example.com/2.0/mypatch")
+
+Checksum Verification
 
 You should also verify the checksum of new updates as well as verify
 the digital signature of an update. Note that even when you choose to apply
@@ -27,16 +32,43 @@ has been applied.
     up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).VerifyChecksum(checksum)
     err, errRecover := up.FromUrl("http://release.example.com/2.0/mypatch")
 
+Updating other files
+
 Updating arbitrary files is also supported. You may update files which are
 not the currently running program:
 
     up := update.New().Target("/usr/local/bin/some-program")
     err, errRecover := up.FromUrl("http://release.example.com/2.0/some-program")
 
-You may also choose to update from other data sources such as a file or an io.Reader:
+Code Signing
 
-    err, errRecover := update.New().FromFile("/path/to/update")
+Truly secure updates use code signing to verify that the update was issued by a trusted party.
+To do this, you'll need to generate a public/private key pair. You can do this with openssl,
+or the equinox.io client (https://equinox.io/client) can easily generate one for you:
 
+    # with equinox client
+    equinox genkey --private-key=private.pem --public-key=public.pem
+
+    # with openssl
+    openssl genrsa -out private.pem 2048
+    openssl rsa -in private.pem -out public.pem -pubout
+
+Once you have your key pair, you can instruct your program to validate its updates
+with the public key:
+
+    const publicKey = `-----BEGIN PUBLIC KEY-----
+    ...
+    -----END PUBLIC KEY-----`
+
+    up, err := update.New().VerifySignatureWithPEM(publicKey)
+    if err != nil {
+        return fmt.Errorf("Bad public key: '%v': %v", publicKey, err)
+    }
+
+Once you've configured your program this way, it will disallow all updates unless they
+are properly signed. You must now pass in the signature to verify with:
+
+    up.VerifySignature(signature).FromUrl("http://dl.example.com/update")
 
 Error Handling and Recovery
 
@@ -52,7 +84,7 @@ elevated permissions:
         fmt.Printf("Can't update because: '%v'. Try as root or Administrator\n", err)
         return
     }
-    up.FromUrl("https://example.com/new/hosts")
+    err, errRecover := up.FromUrl("https://example.com/new/hosts")
 
 Although exceedingly unlikely, the update operation itself is not atomic and can fail
 in such a way that a user's computer is left in an inconsistent state. If that happens,
@@ -102,7 +134,7 @@ import (
 type PatchType string
 
 const (
-	PATCHTYPE_BSDIFF = "bsdiff"
+	PATCHTYPE_BSDIFF PatchType = "bsdiff"
 	PATCHTYPE_NONE   = ""
 )
 
