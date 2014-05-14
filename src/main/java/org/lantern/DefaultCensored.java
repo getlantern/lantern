@@ -151,9 +151,11 @@ public class DefaultCensored implements Censored {
         return isExportRestricted(InetAddress.getByName(address));
     }
     
-    private boolean isCensored(final InetAddress address) {
+    @Override
+    public boolean isCensored(final InetAddress address) {
         return isMatch(address, CENSORED);
     }
+    
     private boolean isMatch(final InetAddress address, 
         final Collection<String> countries) { 
         if (address == null) {
