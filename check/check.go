@@ -38,11 +38,15 @@ type Params struct {
 	UserId string `json:"user_id"`
 	// checksum of the binary to replace (used for returning diff patches)
 	Checksum string `json:"checksum"`
+    // release channel (empty string means 'stable')
+    Channel string `json:"-"`
 	// tags for custom update channels
 	Tags map[string]string `json:"tags"`
 }
 
 type Result struct {
+    up *update.Update
+
 	// should the update be applied automatically/manually
 	Initiative Initiative `json:"initiative"`
 	// url where to download the updated application
@@ -66,10 +70,14 @@ type Result struct {
 // Version is 0, it will be set to 1. Lastly, if Checksum is the empty
 // string, it will be automatically be computed for the running program's
 // executable file.
-func (p *Params) CheckForUpdate(url string) (*Result, error) {
+func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) {
 	if p.Tags == nil {
 		p.Tags = make(map[string]string)
 	}
+
+    if p.Channel == "" {
+        p.Channel = "stable"
+    }
 
 	if p.OS == "" {
 		p.OS = runtime.GOOS
@@ -85,12 +93,19 @@ func (p *Params) CheckForUpdate(url string) (*Result, error) {
 
 	// ignore errors auto-populating the checksum
 	// if it fails, you just won't be able to patch
-	if p.Checksum == "" {
+	if up.TargetPath == "" {
 		p.Checksum = defaultChecksum()
-	}
+	} else {
+        checksum, err := update.ChecksumForFile(up.TargetPath)
+        if err != nil {
+            return nil, err
+        }
+        p.Checksum = hex.EncodeToString(checksum)
+    }
 
 	p.Tags["os"] = p.OS
 	p.Tags["arch"] = p.Arch
+    p.Tags["channel"] = p.Channel
 
 	body, err := json.Marshal(p)
 	if err != nil {
@@ -121,38 +136,38 @@ func (p *Params) CheckForUpdate(url string) (*Result, error) {
 	return result, nil
 }
 
-func (p *Params) CheckAndApplyUpdate(url string, u *update.Update) (result *Result, err error, errRecover error) {
+func (p *Params) CheckAndApplyUpdate(url string, up *update.Update) (result *Result, err error, errRecover error) {
 	// check for an update
-	result, err = p.CheckForUpdate(url)
+	result, err = p.CheckForUpdate(url, up)
 	if err != nil {
 		return
 	}
 
 	// run the update if one is available and the server says it's auto
 	if result.Update != nil && result.Initiative == INITIATIVE_AUTO {
-		err, errRecover = result.Update(u)
+		err, errRecover = result.Update()
 	}
 
 	return
 }
 
-func (r *Result) Update(u *update.Update) (err error, errRecover error) {
+func (r *Result) Update() (err error, errRecover error) {
 	if r.Checksum != "" {
-		u.Checksum, err = hex.DecodeString(r.Checksum)
+		r.up.Checksum, err = hex.DecodeString(r.Checksum)
 		if err != nil {
 			return
 		}
 	}
 
 	if r.Signature != "" {
-		u.Signature, err = hex.DecodeString(r.Signature)
+		r.up.Signature, err = hex.DecodeString(r.Signature)
 		if err != nil {
 			return
 		}
 	}
 
 	if r.PatchType != "" {
-		u.PatchType = r.PatchType
+		r.up.PatchType = r.PatchType
 	}
 
 	if r.Url == "" && r.PatchUrl == "" {
@@ -161,7 +176,7 @@ func (r *Result) Update(u *update.Update) (err error, errRecover error) {
 	}
 
 	if r.PatchUrl != "" {
-		err, errRecover = u.FromUrl(r.PatchUrl)
+		err, errRecover = r.up.FromUrl(r.PatchUrl)
 		if err == nil {
 			// success!
 			return
@@ -172,13 +187,13 @@ func (r *Result) Update(u *update.Update) (err error, errRecover error) {
 				// in these cases, so fail
 				return
 			} else {
-				u.PatchType = update.PATCHTYPE_NONE
+				r.up.PatchType = update.PATCHTYPE_NONE
 			}
 		}
 	}
 
 	// try updating from a URL with the full contents
-	return u.FromUrl(r.Url)
+	return r.up.FromUrl(r.Url)
 }
 
 func defaultChecksum() string {
