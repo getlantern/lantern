@@ -76,7 +76,9 @@ public class LanternModule extends AbstractModule {
     private UpnpService upnpService;
     private GeoIpLookupService geoIpLookupService;
     private final org.apache.commons.cli.CommandLine commandLine;
-    
+
+    private static final String FIREFOX_APP_ID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+
     public LanternModule(final String[] args) {
         final Cli cli = new Cli(args);
         this.commandLine = cli.getParsedCommandLine();
@@ -288,12 +290,12 @@ public class LanternModule extends AbstractModule {
         final File userHome = SystemUtils.getUserHome();
         if (SystemUtils.IS_OS_WINDOWS) {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
-            return new File(ffDir, "Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+            return new File(ffDir, "Extensions/" + FIREFOX_APP_ID);
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             return new File(userHome,
-                "Library/Application Support/Mozilla/Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+                "Library/Application Support/Mozilla/Extensions/" + FIREFOX_APP_ID);
         } else {
-            return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+            return new File(userHome, "Mozilla/extensions/" + FIREFOX_APP_ID);
         }
     }
 
