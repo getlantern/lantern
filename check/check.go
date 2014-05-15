@@ -128,7 +128,7 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 		return nil, err
 	}
 
-	result := new(Result)
+    result := &Result{up: up}
 	if err := json.Unmarshal(respBytes, result); err != nil {
 		return nil, err
 	}
