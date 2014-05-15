@@ -38,14 +38,14 @@ type Params struct {
 	UserId string `json:"user_id"`
 	// checksum of the binary to replace (used for returning diff patches)
 	Checksum string `json:"checksum"`
-    // release channel (empty string means 'stable')
-    Channel string `json:"-"`
+	// release channel (empty string means 'stable')
+	Channel string `json:"-"`
 	// tags for custom update channels
 	Tags map[string]string `json:"tags"`
 }
 
 type Result struct {
-    up *update.Update
+	up *update.Update
 
 	// should the update be applied automatically/manually
 	Initiative Initiative `json:"initiative"`
@@ -75,9 +75,9 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 		p.Tags = make(map[string]string)
 	}
 
-    if p.Channel == "" {
-        p.Channel = "stable"
-    }
+	if p.Channel == "" {
+		p.Channel = "stable"
+	}
 
 	if p.OS == "" {
 		p.OS = runtime.GOOS
@@ -96,16 +96,16 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 	if up.TargetPath == "" {
 		p.Checksum = defaultChecksum()
 	} else {
-        checksum, err := update.ChecksumForFile(up.TargetPath)
-        if err != nil {
-            return nil, err
-        }
-        p.Checksum = hex.EncodeToString(checksum)
-    }
+		checksum, err := update.ChecksumForFile(up.TargetPath)
+		if err != nil {
+			return nil, err
+		}
+		p.Checksum = hex.EncodeToString(checksum)
+	}
 
 	p.Tags["os"] = p.OS
 	p.Tags["arch"] = p.Arch
-    p.Tags["channel"] = p.Channel
+	p.Tags["channel"] = p.Channel
 
 	body, err := json.Marshal(p)
 	if err != nil {
@@ -128,7 +128,7 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 		return nil, err
 	}
 
-    result := &Result{up: up}
+	result := &Result{up: up}
 	if err := json.Unmarshal(respBytes, result); err != nil {
 		return nil, err
 	}
