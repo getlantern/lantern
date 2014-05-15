@@ -4,3 +4,6 @@
 [submodule "lantern-common"]
 	path = lantern-common
 	url = https://github.com/getlantern/lantern-common.git
+[submodule "browser-extensions/flashlight-firefox-addon"]
+	path = browser-extensions/flashlight-firefox-addon
+	url = https://github.com/getlantern/flashlight-firefox-addon
