@@ -78,6 +78,8 @@ public class LanternModule extends AbstractModule {
     private final org.apache.commons.cli.CommandLine commandLine;
 
     private static final String FIREFOX_APP_ID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+    private static final String FLASHLIGHT_FIREFOX_EXT_ID = "flashlight-firefox-addon@getlantern.org.xpi";
+    private static final String FLASHLIGHT_FIREFOX_EXT_SRC_PATH = "browser-extensions/flashlight-firefox-addon/flashlight-cert-installer.xpi";
 
     public LanternModule(final String[] args) {
         final Cli cli = new Cli(args);
@@ -259,7 +261,7 @@ public class LanternModule extends AbstractModule {
      * @throws IOException If there's an error copying the extension.
      */
     public void copyFireFoxExtension() throws IOException {
-        log.info("Copying FireFox extension");
+        log.info("Copying Flashlight FireFox extension");
         final File dir = getExtensionDir();
         if (!dir.isDirectory()) {
             log.info("Making FireFox extension directory...");
@@ -271,19 +273,18 @@ public class LanternModule extends AbstractModule {
                 throw new IOException("Could not create ext dir: "+dir);
             }
         }
-        final String extName = "lantern@getlantern.org";
-        final File dest = new File(dir, extName);
-        final File ffDir = new File("firefox/"+extName);
-        if (dest.exists() && !FileUtils.isFileNewer(ffDir, dest)) {
+        final File dest = new File(dir, FLASHLIGHT_FIREFOX_EXT_ID);
+        final File src = new File(FLASHLIGHT_FIREFOX_EXT_SRC_PATH);
+        if (dest.exists() && !FileUtils.isFileNewer(src, dest)) {
             log.info("Extension already exists and ours is not newer");
             return;
         }
-        if (!ffDir.isDirectory()) {
-            log.error("No extension directory found at {}", ffDir);
+        if (!src.isFile()) {
+            log.error("No extension directory found at {}", src);
             throw new IOException("Could not find extension?");
         }
-        FileUtils.copyDirectoryToDirectory(ffDir, dir);
-        log.info("Copied FireFox extension from {} to {}", ffDir, dir);
+        FileUtils.copyFile(src, dest);
+        log.info("Copied FireFox extension from {} to {}", src, dest);
     }
 
     public File getExtensionDir() {
