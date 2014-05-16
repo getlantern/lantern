@@ -16,7 +16,7 @@ release=$4
 
 echo "Release version: $release"
 
-bucket=lantern
+bucket=lantern-installers
 url=https://s3.amazonaws.com/$bucket/$name
 echo "Uploading to http://cdn.getlantern.org/$name..."
 
