@@ -11,12 +11,22 @@ chmod 4711 /opt/lantern/copyPolicy.exe
 
 test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
 
-# Backwards compatibility.  Either this or the following attempt will fail,
-# but none of these failures should be a showstopper.
+# Write .lantern-configurl.txt
 
-test -e /opt/lantern-net-installer/configurl.txt && mv /opt/lantern-net-installer/configurl.txt ~/.lantern-configurl.txt || echo "Could not move (old) configurl.txt (this is normal in transition)." >> $logf
-
-# DRY: wrapper.install4j and S3ConfigFetcher.
-test -e /root/.lantern-configurl.txt && mv /root/.lantern-configurl.txt ~/.lantern-configurl.txt || echo "Could not move (new) .lantern-configurl.txt (this is normal in transition" >> $logf
+# SUDO_COMMAND may look like this:
+#     /usr/bin/dpkg -i /mnt/hgfs/ox.to.a.cart/Documents/eclipse_workspace/lantern/lantern-1234567890.deb
+#
+# Get the last element of the SUDO_COMMAND, which is our deb package
+deb=`echo "${SUDO_COMMAND}" | sed 's/.* //'`
+# Get the last portion of the filename after the last slash
+deb=`echo "${deb}" | sed 's/.*\///'`
+# Get the id by dropping the leading "lantern-" and the trailing ".deb"
+len=${#deb}
+len=$((len-8-4))
+# Have to use this AWKward way of doing it because Ubuntu's sh points to dash
+# See https://wiki.ubuntu.com/DashAsBinSh
+id=$(echo $deb | awk '{ string=substr($0, 9, '"$len"'); print string; }')
+# Write the id to the file
+echo "${id}" >> ~/.lantern-configurl.txt
 
 echo "Finished running post install script..." >> $logf
