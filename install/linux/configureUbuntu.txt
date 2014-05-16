@@ -13,7 +13,10 @@ test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
 
 # Write .lantern-configurl.txt
 
-# Get the last element of the command, which is our deb package
+# SUDO_COMMAND may look like this:
+#     /usr/bin/dpkg -i /mnt/hgfs/ox.to.a.cart/Documents/eclipse_workspace/lantern/lantern-1234567890.deb
+#
+# Get the last element of the SUDO_COMMAND, which is our deb package
 deb=`echo "${SUDO_COMMAND}" | sed 's/.* //'`
 # Get the last portion of the filename after the last slash
 deb=`echo "${deb}" | sed 's/.*\///'`
