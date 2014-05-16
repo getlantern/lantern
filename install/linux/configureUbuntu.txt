@@ -24,8 +24,9 @@ deb=`echo "${deb}" | sed 's/.*\///'`
 len=${#deb}
 len=$((len-8-4))
 # Have to use this AWKward way of doing it because Ubuntu's sh points to dash
+# See https://wiki.ubuntu.com/DashAsBinSh
 id=$(echo $deb | awk '{ string=substr($0, 9, '"$len"'); print string; }')
-# Write the id the file
+# Write the id to the file
 echo "${id}" >> ~/.lantern-configurl.txt
 
 echo "Finished running post install script..." >> $logf
