@@ -27,6 +27,6 @@ len=$((len-8-4))
 # See https://wiki.ubuntu.com/DashAsBinSh
 id=$(echo $deb | awk '{ string=substr($0, 9, '"$len"'); print string; }')
 # Write the id to the file
-echo "${id}" >> ~/.lantern-configurl.txt
+echo "${id}" > ~/.lantern-configurl.txt
 
 echo "Finished running post install script..." >> $logf
