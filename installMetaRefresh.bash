@@ -17,7 +17,7 @@ release=$4
 echo "Release version: $release"
 
 # DRY: copys3file.py
-bucket=lantern-installers
+bucket=lantern
 url=https://s3.amazonaws.com/$bucket/$name
 echo "Uploading to http://cdn.getlantern.org/$name..."
 

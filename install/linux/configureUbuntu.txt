@@ -20,13 +20,17 @@ test -e /opt/lantern/jre/jre1.* && mv /opt/lantern/jre/jre1.*/* /opt/lantern/jre
 deb=`echo "${SUDO_COMMAND}" | sed 's/.* //'`
 # Get the last portion of the filename after the last slash
 deb=`echo "${deb}" | sed 's/.*\///'`
-# Get the id by dropping the leading "lantern-" and the trailing ".deb"
 len=${#deb}
-len=$((len-8-4))
-# Have to use this AWKward way of doing it because Ubuntu's sh points to dash
-# See https://wiki.ubuntu.com/DashAsBinSh
-id=$(echo $deb | awk '{ string=substr($0, 9, '"$len"'); print string; }')
-# Write the id to the file
-echo "${id}" > ~/.lantern-configurl.txt
+if [ $len -lt 100 ] ; then
+    echo "filename too short; assuming I'm getting my ~/.lantern-configurl.txt from a wrapper" >> $logf;
+else
+    # Get the id by dropping the leading "lantern-" and the trailing ".deb"
+    len=$((len-8-4))
+    # Have to use this AWKward way of doing it because Ubuntu's sh points to dash
+    # See https://wiki.ubuntu.com/DashAsBinSh
+    id=$(echo $deb | awk '{ string=substr($0, 9, '"$len"'); print string; }')
+    # Write the id to the file
+    echo "${id}" > ~/.lantern-configurl.txt
+fi
 
 echo "Finished running post install script..." >> $logf

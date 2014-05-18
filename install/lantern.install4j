@@ -623,6 +623,11 @@ Lantern requires your Google Account credentials to access the Internet. What yo
 String configUrl = null;
 try {
     String mediaFilePath = ((String)context.getVariable("sys.mediaFile"));
+    if (mediaFilePath.length() &lt; 100) {
+        // Assume we are being installed via a wrapper from an old invite
+        // email.
+        return true;
+    }
     int lastSlash = mediaFilePath.lastIndexOf(File.separator);
     int lastDot = mediaFilePath.lastIndexOf(".");
     String prefix = "lantern-";
