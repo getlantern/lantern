@@ -5,7 +5,7 @@ import boto
 from boto.s3.key import Key
 
 # DRY: installMetaRefresh.bash
-BUCKET = 'lantern-installers'
+BUCKET = 'lantern'
 
 key = str(sys.argv[1])
 
