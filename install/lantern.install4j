@@ -623,15 +623,16 @@ Lantern requires your Google Account credentials to access the Internet. What yo
 String configUrl = null;
 try {
     String mediaFilePath = ((String)context.getVariable("sys.mediaFile"));
-    if (mediaFilePath.length() &lt; 100) {
+    int lastSlash = mediaFilePath.lastIndexOf(File.separator);
+    int lastDot = mediaFilePath.lastIndexOf(".");
+    String filename = mediaFilePath.substring(lastSlash + 1, lastDot);
+    if (filename.length() &lt; 100) {
         // Assume we are being installed via a wrapper from an old invite
         // email.
         return true;
     }
-    int lastSlash = mediaFilePath.lastIndexOf(File.separator);
-    int lastDot = mediaFilePath.lastIndexOf(".");
     String prefix = "lantern-";
-    configUrl = mediaFilePath.substring(lastSlash + 1 + prefix.length(), lastDot);
+    configUrl =  filename.substring(prefix.length());
 } catch (Throwable t) {
     Util.printAnnotatedStackTrace(t);
     Util.showMessage("Unable to determine configuration URL: " + t.getMessage());
