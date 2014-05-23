@@ -470,6 +470,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         }
         LOG.debug("Attempting to add fallback proxies");
         for (final FallbackProxy fp : config.getFallbacks()) {
+            fp.setFromS3(true);
             addSingleFallbackProxy(fp);
         }
     }

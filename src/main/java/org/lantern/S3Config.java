@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.pt.Flashlight;
+import org.lantern.proxy.pt.PtType;
 import org.littleshoot.util.FiveTuple.Protocol;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -50,7 +51,17 @@ public class S3Config {
     }
     public Collection<FallbackProxy> getFallbacks() {
         List<FallbackProxy> allFallbacks = new ArrayList<FallbackProxy>(fallbacks);
-        allFallbacks.add(flashlightProxy());
+        boolean hasFlashlight = false;
+        for (FallbackProxy proxy : allFallbacks) {
+            if (PtType.FLASHLIGHT == proxy.getPtType()) {
+                hasFlashlight = true;
+            }
+        }
+        if (!hasFlashlight) {
+            // If the S3 configuration didn't include a flashlight, add a
+            // default one.
+            allFallbacks.add(defaultFlashlightProxy());
+        }
         return allFallbacks;
     }
 
@@ -154,9 +165,8 @@ public class S3Config {
 
     // Hard-coded flashlight proxy.  This could eventually be replaced by a
     // dynamic value fetched from S3.
-    private static FallbackProxy flashlightProxy() {
+    private static FallbackProxy defaultFlashlightProxy() {
         FallbackProxy flashlightProxy = new FallbackProxy();
-        flashlightProxy.setFromS3(true);
         Properties ptProps = flashlightProps();
         flashlightProxy.setPt(ptProps);
         flashlightProxy.setIp(ptProps.getProperty(Flashlight.MASQUERADE_KEY));
