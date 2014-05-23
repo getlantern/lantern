@@ -231,12 +231,12 @@ func Test_issue24(t *testing.T) {
 		}
 
 		{
-			vm.Set("abc", testStruct{Abc: true, Ghi: "Nothing happens."})
+			vm.Set("abc", _abcStruct{Abc: true, Ghi: "Nothing happens."})
 			value, err := vm.Get("abc")
 			is(err, nil)
 			export, _ := value.Export()
 			{
-				value, valid := export.(testStruct)
+				value, valid := export.(_abcStruct)
 				is(valid, true)
 
 				is(value.Abc, true)
@@ -245,12 +245,12 @@ func Test_issue24(t *testing.T) {
 		}
 
 		{
-			vm.Set("abc", &testStruct{Abc: true, Ghi: "Nothing happens."})
+			vm.Set("abc", &_abcStruct{Abc: true, Ghi: "Nothing happens."})
 			value, err := vm.Get("abc")
 			is(err, nil)
 			export, _ := value.Export()
 			{
-				value, valid := export.(*testStruct)
+				value, valid := export.(*_abcStruct)
 				is(valid, true)
 
 				is(value.Abc, true)

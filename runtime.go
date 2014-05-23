@@ -267,7 +267,8 @@ func (self *_runtime) toValue(value interface{}) Value {
 		return toValue_object(self.newNativeFunction("", value))
 	case Object, *Object, _object, *_object:
 		// Nothing happens.
-		// FIXME
+		// FIXME We should really figure out what can come here.
+		// This catch-all is ugly.
 	default:
 		{
 			value := reflect.ValueOf(value)
@@ -280,19 +281,21 @@ func (self *_runtime) toValue(value interface{}) Value {
 					return toValue_object(self.newGoArray(value))
 				}
 			case reflect.Func:
+				// TODO Maybe cache this?
 				return toValue_object(self.newNativeFunction("", func(call FunctionCall) Value {
-					args := make([]reflect.Value, len(call.ArgumentList))
-					for i, a := range call.ArgumentList {
-						args[i] = reflect.ValueOf(a.export())
+					in := make([]reflect.Value, len(call.ArgumentList))
+					for i, value := range call.ArgumentList {
+						in[i] = reflect.ValueOf(value.export())
 					}
 
-					retvals := value.Call(args)
-					if len(retvals) > 1 {
-						panic(newTypeError())
-					} else if len(retvals) == 1 {
-						return toValue(retvals[0].Interface())
+					out := value.Call(in)
+					if len(out) == 1 {
+						return self.toValue(out[0].Interface())
+					} else if len(out) == 0 {
+						return UndefinedValue()
 					}
-					return UndefinedValue()
+
+					panic(newTypeError())
 				}))
 			case reflect.Struct:
 				return toValue_object(self.newGoStructObject(value))

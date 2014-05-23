@@ -6,39 +6,50 @@ import (
 	"testing"
 )
 
-type testStruct struct {
+type _abcStruct struct {
 	Abc bool
 	Def int
 	Ghi string
 	Jkl interface{}
 }
 
-func (t *testStruct) FuncPointerReciever() string {
+func (abc *_abcStruct) FuncPointer() string {
 	return "abc"
 }
 
-func (t testStruct) FuncNoArgsNoRet() {
+func (abc _abcStruct) Func() {
 	return
 }
 
-func (t testStruct) FuncNoArgs() string {
+func (abc _abcStruct) FuncReturn1() string {
 	return "abc"
 }
 
-func (t testStruct) FuncNoArgsMultRet() (string, error) {
+func (abc _abcStruct) FuncReturn2() (string, error) {
 	return "def", nil
 }
 
-func (t testStruct) FuncOneArgs(a string) string {
+func (abc _abcStruct) Func1Return1(a string) string {
 	return a
 }
 
-func (t testStruct) FuncMultArgs(a, b string) string {
-	return a + b
+func (abc _abcStruct) Func2Return1(x, y string) string {
+	return x + y
 }
 
-func (t testStruct) FuncVarArgs(as ...string) int {
-	return len(as)
+func (abc _abcStruct) FuncEllipsis(xyz ...string) int {
+	return len(xyz)
+}
+
+func (abc _abcStruct) FuncReturnStruct() _mnoStruct {
+	return _mnoStruct{}
+}
+
+type _mnoStruct struct {
+}
+
+func (mno _mnoStruct) Func() string {
+	return "mno"
 }
 
 func TestReflect(t *testing.T) {
@@ -55,14 +66,10 @@ func Test_reflectStruct(t *testing.T) {
 	tt(t, func() {
 		test, vm := test()
 
-		// testStruct
+		// _abcStruct
 		{
-			abc := &testStruct{}
+			abc := &_abcStruct{}
 			vm.Set("abc", abc)
-
-			test(`
-                abc.FuncPointerReciever();
-            `, "abc")
 
 			test(`
                 [ abc.Abc, abc.Ghi ];
@@ -75,7 +82,7 @@ func Test_reflectStruct(t *testing.T) {
                 [ abc.Abc, abc.Ghi ];
             `, "true,Nothing happens.")
 
-			*abc = testStruct{}
+			*abc = _abcStruct{}
 
 			test(`
                 [ abc.Abc, abc.Ghi ];
@@ -109,24 +116,40 @@ func Test_reflectStruct(t *testing.T) {
 			is(abc.Def, 451)
 
 			test(`
-                abc.FuncNoArgsNoRet();
+                abc.FuncPointer();
+            `, "abc")
+
+			test(`
+                abc.Func();
             `, "undefined")
+
 			test(`
-                abc.FuncNoArgs();
+                abc.FuncReturn1();
             `, "abc")
+
 			test(`
-                abc.FuncOneArgs("abc");
+                abc.Func1Return1("abc");
             `, "abc")
+
 			test(`
-                abc.FuncMultArgs("abc", "def");
+                abc.Func2Return1("abc", "def");
             `, "abcdef")
+
 			test(`
-                abc.FuncVarArgs("abc", "def", "ghi");
+                abc.FuncEllipsis("abc", "def", "ghi");
             `, 3)
 
 			test(`raise:
-                abc.FuncNoArgsMultRet();
+                abc.FuncReturn2();
             `, "TypeError")
+
+			test(`
+                abc.FuncReturnStruct();
+            `, "[object Object]")
+
+			test(`
+                abc.FuncReturnStruct().Func();
+            `, "mno")
 		}
 	})
 }
@@ -387,7 +410,7 @@ func Test_reflectMapInterface(t *testing.T) {
 				"jkl":   "jkl",
 			}
 			vm.Set("abc", abc)
-			vm.Set("mno", &testStruct{})
+			vm.Set("mno", &_abcStruct{})
 
 			test(`
                 abc.xyz = "pqr";
@@ -402,7 +425,7 @@ func Test_reflectMapInterface(t *testing.T) {
 			is(abc["xyz"], "pqr")
 			is(abc["ghi"], "[object Object]")
 			is(abc["jkl"], float64(3.14159))
-			mno, valid := abc["mno"].(*testStruct)
+			mno, valid := abc["mno"].(*_abcStruct)
 			is(valid, true)
 			is(mno.Abc, true)
 			is(mno.Ghi, "Something happens.")
