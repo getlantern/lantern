@@ -313,6 +313,19 @@ func Test_issue64(t *testing.T) {
 	})
 }
 
+func Test_issue73(t *testing.T) {
+	tt(t, func() {
+		test, vm := test()
+
+		vm.Set("abc", [4]int{3, 2, 1, 0})
+
+		test(`
+            var def = [ 0, 1, 2, 3 ];
+            JSON.stringify(def) + JSON.stringify(abc);
+        `, "[0,1,2,3][3,2,1,0]")
+	})
+}
+
 func Test_7_3_1(t *testing.T) {
 	tt(t, func() {
 		test(`

@@ -3,6 +3,7 @@ package otto
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math"
 	"strings"
 )
@@ -250,7 +251,17 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 			defer func() { ctx.stack = ctx.stack[:len(ctx.stack)-1] }()
 		}
 		if isArray(holder) {
-			length := holder.get("length").value.(uint32)
+			var length uint32
+			switch value := holder.get("length").value.(type) {
+			case uint32:
+				length = value
+			case int:
+				if value >= 0 {
+					length = uint32(value)
+				}
+			default:
+				panic(newTypeError(fmt.Sprintf("JSON.stringify: invalid length: %v (%[1]T)", value)))
+			}
 			array := make([]interface{}, length)
 			for index, _ := range array {
 				name := arrayIndexToString(int64(index))
