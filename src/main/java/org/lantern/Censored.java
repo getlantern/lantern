@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 import org.lantern.annotation.Keep;
 /**
@@ -16,5 +17,7 @@ public interface Censored {
     boolean isCensored(Country country);
 
     boolean isCountryCodeCensored(String cc);
+
+    boolean isCensored(InetAddress address);
 
 }

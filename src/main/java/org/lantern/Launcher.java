@@ -399,7 +399,7 @@ public class Launcher {
             s3ConfigFetcher.init();
             proxyTracker.init();
             // Needs a fallback.
-            publicIpInfoHandler.init();
+            //publicIpInfoHandler.init();
             
             // Once network services are successfully initialized, start
             // background tasks.

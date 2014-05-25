@@ -613,6 +613,51 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
+              <action name="Set lantern-configurl.txt" id="1635" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>// Figure out our configUrl
+String configUrl = null;
+try {
+    String mediaFilePath = ((String)context.getVariable("sys.mediaFile"));
+    int lastSlash = mediaFilePath.lastIndexOf(File.separator);
+    int lastDot = mediaFilePath.lastIndexOf(".");
+    String prefix = "lantern-";
+    configUrl = mediaFilePath.substring(lastSlash + 1 + prefix.length(), lastDot);
+} catch (Throwable t) {
+    Util.printAnnotatedStackTrace(t);
+    Util.showMessage("Unable to determine configuration URL: " + t.getMessage());
+    return false;
+}
+
+// Write out our config url
+File f = new File(new File((String)context.getVariable("sys.userHome")), ".lantern-configurl.txt");
+BufferedWriter out = null;
+try {
+    FileWriter fstream = new FileWriter(f);
+    out = new BufferedWriter(fstream);
+    out.write(configUrl);
+} catch (IOException e) {
+    Util.showMessage("Unable to save configuration URL: " + e.getMessage());
+    return false;
+} finally {
+    if(out != null) {
+        out.close();
+    }
+}
+return true;</string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="261" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We apologize, but we were unable to stop the existing Lantern installation running on this computer. Please manually close it in Task Manager and run the installer again.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
