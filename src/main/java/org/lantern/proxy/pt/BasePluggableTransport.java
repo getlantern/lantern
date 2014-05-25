@@ -11,7 +11,6 @@ import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.exec.ShutdownHookProcessDestroyer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -218,9 +217,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
     private void exec() {
         cmdExec = new DefaultExecutor();
-        cmdExec.setStreamHandler(new PumpStreamHandler(System.out,
-                System.err,
-                System.in));
+        cmdExec.setStreamHandler(new LoggingStreamHandler(LOGGER, System.in));
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
