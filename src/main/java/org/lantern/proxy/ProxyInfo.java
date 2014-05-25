@@ -4,7 +4,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -79,7 +81,13 @@ public class ProxyInfo {
      * Configuration for pluggable transport
      */
     protected Properties pt;
-
+    
+    private int priority = 0;
+    
+    private Set<Integer> limitedToPorts = new HashSet<Integer>();
+    
+    protected boolean fromS3;
+    
     public ProxyInfo() {
     }
 
@@ -277,7 +285,40 @@ public class ProxyInfo {
         return new FiveTuple(getBoundFrom(), useLanAddress ? lanAddress()
                 : wanAddress(), getProtocol());
     }
+    
+    /**
+     * Specifies the priority of this proxy relative to similar proxies. A lower
+     * number means a higher priority (i.e. -1 is higher priority than 0).
+     */
+    public int getPriority() {
+        return priority;
+    }
 
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    /**
+     * Tracks ports to which this Proxy is limited.  If empty, the proxy is
+     * assumed to support all ports.  If not empty, it only supports whatever
+     * ports are listed.
+     */
+    public Set<Integer> getLimitedToPorts() {
+        return limitedToPorts;
+    }
+
+    public void addLimitedToPort(int port) {
+        limitedToPorts.add(port);
+    }
+    
+    public boolean isFromS3() {
+        return fromS3;
+    }
+    
+    public void setFromS3(boolean fromS3) {
+        this.fromS3 = fromS3;
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;

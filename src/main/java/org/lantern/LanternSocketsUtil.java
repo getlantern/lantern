@@ -223,7 +223,7 @@ public class LanternSocketsUtil {
     }
 
     private SSLSocketFactory sf() {
-        return trustStore.getSslContext().getSocketFactory();
+        return new NoSSLv2SocketFactory(trustStore.getSslContext().getSocketFactory());
     }
     
 }

@@ -40,7 +40,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
     private static final RandomLengthString RANDOM_LENGTH_STRING =
             new RandomLengthString(100);
 
-    public static final String X_LANTERN_OBSERVED_IP = "X-LANTERN-PUBLIC-IP";
+    public static final String X_LANTERN_PUBLIC_IP = "X-LANTERN-PUBLIC-IP";
 
     private final boolean shouldMimicApache;
     private final String host;
@@ -108,7 +108,7 @@ public class GiveModeHttpFilters extends HttpFiltersAdapter {
             InetSocketAddress remoteAddr =
                     (InetSocketAddress) ctx.channel().remoteAddress();
             String remoteIp = remoteAddr.getAddress().getHostAddress();
-            resp.headers().add(X_LANTERN_OBSERVED_IP, remoteIp);
+            resp.headers().add(X_LANTERN_PUBLIC_IP, remoteIp);
         }
         return super.responsePost(httpObject);
     }

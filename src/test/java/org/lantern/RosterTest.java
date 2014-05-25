@@ -45,7 +45,8 @@ public class RosterTest {
         Events.register(this);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         final Model model = new Model();
-        final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+        final LanternTrustStore trustStore = TestingUtils.newLanternTrustStore();
+        final HttpClientFactory httpClientFactory = TestingUtils.newHttpClientFactory(trustStore);
         final OauthUtils oauth = 
                 new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth, model);

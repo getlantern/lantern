@@ -18,6 +18,7 @@ public class FallbackProxy extends ProxyInfo {
         // include anything about the type. Fallbacks are always "cloud".
         this.type = Type.cloud;
         this.jid = LanternUtils.newURI("fallback@getlantern.org");
+        this.fromS3 = true;
     }
 
     public void setIp(String ip) {

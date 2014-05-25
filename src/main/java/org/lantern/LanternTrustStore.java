@@ -13,12 +13,17 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -52,6 +57,8 @@ public class LanternTrustStore {
             "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
     
     private final AtomicReference<SSLContext> sslContextRef = 
+            new AtomicReference<SSLContext>();
+    private final AtomicReference<SSLContext> cumulativeSslContextRef = 
             new AtomicReference<SSLContext>();
     private final LanternKeyStoreManager ksm;
 
@@ -129,7 +136,8 @@ public class LanternTrustStore {
      */
     private void onTrustStoreChanged() {
         this.tmf = initTrustManagerFactory();
-        this.sslContextRef.set(provideSslContext());
+        this.sslContextRef.set(provideSslContext(getTrustManagers(false)));
+        this.cumulativeSslContextRef.set(provideSslContext(getTrustManagers(true)));
     }
 
     private TrustManagerFactory initTrustManagerFactory() {
@@ -222,16 +230,34 @@ public class LanternTrustStore {
     
     /**
      * Accessor for the SSL context. This is regenerated whenever
-     * we receive new certificates.
+     * we receive new certificates.  The SSL context trusts only those
+     * certificates in the LanternTrustStore.
      * 
      * @return The SSL context.
      */
     public synchronized SSLContext getSslContext() {
         if (this.sslContextRef.get() == null) {
-            this.sslContextRef.set(provideSslContext());
+            this.sslContextRef.set(provideSslContext(getTrustManagers(false)));
         }
         final SSLContext context = sslContextRef.get();
         LOGGER.debug("Returning context: {}", context);
+        return context;
+    }
+    
+    /**
+     * Accessor for the cumulative SSL context. This is regenerated whenever
+     * we receive new certificates.  The cumulative SSL context trusts all
+     * certificates in the LanternTrustStore plus whatever is trusted by the
+     * system's default X509TrustManager.
+     * 
+     * @return The SSL context.
+     */
+    public synchronized SSLContext getCumulativeSslContext() {
+        if (this.cumulativeSslContextRef.get() == null) {
+            this.cumulativeSslContextRef.set(provideSslContext(getTrustManagers(true)));
+        }
+        final SSLContext context = cumulativeSslContextRef.get();
+        LOGGER.debug("Returning cumulative context: {}", context);
         return context;
     }
     
@@ -243,19 +269,59 @@ public class LanternTrustStore {
         return getSslContext().createSSLEngine();
     }
 
-    private SSLContext provideSslContext() {
+    private SSLContext provideSslContext(TrustManager[] trustManagers) {
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
             
             // Create the context with the latest trust manager factory.
             context.init(this.ksm.getKeyManagerFactory().getKeyManagers(), 
-                this.tmf.getTrustManagers(), null);
+                trustManagers, null);
             return context;
         } catch (final Exception e) {
             LOGGER.error("Failed to initialize the client-side SSLContext", e);
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
         }
+    }
+    
+    private TrustManager[] getTrustManagers(boolean cumulative) {
+        TrustManager[] result = this.tmf.getTrustManagers();
+        if (cumulative) {
+            // Create a cumulative TrustManager that uses both the default and
+            // the Lantern-specific one.
+            final X509TrustManager defaultTrustManager = getDefaultTrustManager();
+            final X509TrustManager lanternTrustManager = (X509TrustManager) result[0];
+            result[0] = new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    List<X509Certificate> acceptedIssuers = new ArrayList<X509Certificate>();
+                    acceptedIssuers.addAll(Arrays.asList(defaultTrustManager
+                            .getAcceptedIssuers()));
+                    acceptedIssuers.addAll(Arrays.asList(lanternTrustManager
+                            .getAcceptedIssuers()));
+                    return acceptedIssuers
+                            .toArray(new X509Certificate[acceptedIssuers.size()]);
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs,
+                        String authType) throws CertificateException {
+                    try {
+                        lanternTrustManager.checkClientTrusted(certs, authType);
+                    } catch (CertificateException ce) {
+                        defaultTrustManager.checkClientTrusted(certs, authType);
+                    }
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs,
+                        String authType) throws CertificateException {
+                    try {
+                        lanternTrustManager.checkServerTrusted(certs, authType);
+                    } catch (CertificateException ce) {
+                        defaultTrustManager.checkServerTrusted(certs, authType);
+                    }
+                }
+            };
+        }
+        return result;
     }
     
     public void deleteCert(final String alias) {
@@ -322,7 +388,29 @@ public class LanternTrustStore {
     public void listEntries() {
         listEntries(trustStore);
     }
+    
+    private X509TrustManager getDefaultTrustManager() {
+        try {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory
+                    .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init((KeyStore) null);
 
+            for (TrustManager trustManager : trustManagerFactory
+                    .getTrustManagers()) {
+                System.out.println(trustManager);
+
+                if (trustManager instanceof X509TrustManager) {
+                    return (X509TrustManager) trustManager;
+                }
+            }
+            throw new RuntimeException("No X509TrustManager found!");
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to get default trustManager: "
+                    + e.getMessage(), e);
+        }
+    }
+
+    //@formatter:off
     private static final String EQUIFAX =
             "-----BEGIN CERTIFICATE-----\n"
             + "MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV\n"
@@ -434,6 +522,6 @@ public class LanternTrustStore {
             + "jwwv90xVufuOJ5mYcQ2VA80x8YT+XTq194BGSqYAAU8Rq1/5fAMg5cwhg4BDjmY2\n"
             + "ok2U3fCl58xbiwp6owpamVoPblrq7Zl4ylyF33H6ewM+f5XA+L1iC5KWs9q8Kw==\n"
             + "-----END CERTIFICATE-----";
-
+  //@formatter:on
 
 }

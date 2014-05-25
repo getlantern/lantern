@@ -6,6 +6,7 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
@@ -63,7 +64,7 @@ public final class ProxyHolder extends BaseChainedProxy
 
     private PluggableTransport pt;
     private InetSocketAddress ptClientAddress;
-
+    
     public ProxyHolder(final ProxyTracker proxyTracker,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
@@ -326,7 +327,19 @@ public final class ProxyHolder extends BaseChainedProxy
             stopPt();
         }
     }
-
+    
+    public int getPriority() {
+        return info.getPriority();
+    }
+    
+    public Set<Integer> getLimitedToPorts() {
+        return info.getLimitedToPorts();
+    }
+    
+    public boolean isFromS3() {
+        return info.isFromS3();
+    }
+    
     synchronized private void startPt() {
         if (pt == null) {
             LOG.info("Starting pluggable transport");
@@ -335,6 +348,11 @@ public final class ProxyHolder extends BaseChainedProxy
             ptClientAddress = pt.startClient(
                     LanternConstants.LANTERN_LOCALHOST_ADDR,
                     fiveTuple.getRemote());
+            String caCert = pt.getLocalCACert();
+            if (caCert != null) {
+                // Add the ca cert to our trust store
+                lanternTrustStore.addCert(caCert);
+            }
         }
     }
 

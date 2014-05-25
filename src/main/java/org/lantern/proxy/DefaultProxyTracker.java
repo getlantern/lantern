@@ -1,7 +1,7 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.Peer.Type.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.lantern.state.Peer.Type.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -130,27 +130,27 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
         synchronized (proxies) {
             for (ProxyHolder p : proxies) {
-                if (p.getType() == Type.cloud) {
-                    LOG.debug("Removing fallback (I may readd it shortly): ",
-                            p.getJid());
-                    fallbacks.add(p);
-                    p.stopPtIfNecessary();
-                }
+                LOG.debug("Removing fallback (I may readd it shortly): ",
+                        p.getJid());
+                fallbacks.add(p);
+                p.stopPtIfNecessary();
             }
-            
+
             // This method can also iterate, so keep it in the synchronized
             // block.
             proxies.removeAll(fallbacks);
         }
         synchronized (configuredProxies) {
+            configuredProxies.clear();
             Iterator<ProxyInfo> it = configuredProxies.iterator();
             while (it.hasNext()) {
                 ProxyInfo info = it.next();
-                if (info.getType() == Type.cloud) {
+                if (info.isFromS3()) {
                     it.remove();
                 }
             }
         }
+        
         addFallbackProxies(config);
     }
     
@@ -292,12 +292,18 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     }
 
     @Override
-    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
+    public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference(
+            int upstreamPort) {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
         synchronized (this.proxies) {
             for (ProxyHolder proxy : proxies) {
                 if (proxy.isConnected()) {
-                    result.add(proxy);
+                    Set<Integer> limitedToPorts = proxy.getLimitedToPorts();
+                    boolean supportsPort = limitedToPorts.isEmpty()
+                            || limitedToPorts.contains(upstreamPort);
+                    if (supportsPort) {
+                        result.add(proxy);
+                    }
                 }
             }
         }
@@ -306,8 +312,8 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     }
 
     @Override
-    public ProxyHolder firstConnectedTcpProxy() {
-        for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference()) {
+    public ProxyHolder firstConnectedTcpProxy(int upstreamPort) {
+        for (final ProxyHolder ph : getConnectedProxiesInOrderOfFallbackPreference(upstreamPort)) {
             if (ph.getFiveTuple().getProtocol() == Protocol.TCP) {
                 return ph;
             }
@@ -464,6 +470,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         }
         LOG.debug("Attempting to add fallback proxies");
         for (final FallbackProxy fp : config.getFallbacks()) {
+            fp.setFromS3(true);
             addSingleFallbackProxy(fp);
         }
     }
@@ -523,8 +530,14 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             if (protocolPriority != 0) {
                 return protocolPriority;
             }
+            
+            // Next prioritize based on relative priority, if different
+            int priority = a.getPriority() - b.getPriority();
+            if (priority != 0) {
+                return priority;
+            }
 
-            // Prioritize based on least number of open sockets
+            // Lastly prioritize based on least number of open sockets
             long numberOfSocketsA = a.getPeer().getNSockets();
             long numberOfSocketsB = b.getPeer().getNSockets();
             if (numberOfSocketsA < numberOfSocketsB) {

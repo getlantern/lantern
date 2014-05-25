@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.http.client.HttpClient;
 import org.lantern.Censored;
+import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
 
 import com.google.inject.Inject;
@@ -19,10 +20,12 @@ import com.google.inject.Singleton;
 public class DefaultHttpClientFactory implements HttpClientFactory {
 
     private final Censored censored;
+    private final LanternTrustStore trustStore;
 
     @Inject
-    public DefaultHttpClientFactory(final Censored censored) {
+    public DefaultHttpClientFactory(final Censored censored, LanternTrustStore trustStore) {
         this.censored = censored;
+        this.trustStore = trustStore;
     }
 
     /**
@@ -35,19 +38,25 @@ public class DefaultHttpClientFactory implements HttpClientFactory {
     @Override
     public HttpClient newClient() {
         if (this.censored.isCensored() || LanternUtils.isGet()) {
-            return StaticHttpClientFactory.newProxiedClient();
+            return newProxiedClient();
         } else {
-            return StaticHttpClientFactory.newDirectClient();
+            return newDirectClient();
         }
     }
 
     @Override
     public HttpClient newDirectClient() {
-        return StaticHttpClientFactory.newDirectClient();
+        // Use a cumulative SSLContext that trusts the usual certs, plus
+        // anything in LanternTrustStore, which allows our client to work with
+        // the MITM'ing flashlight proxy.
+        return StaticHttpClientFactory.newDirectClient(trustStore.getCumulativeSslContext());
     }
 
     @Override
     public HttpClient newProxiedClient() {
-        return StaticHttpClientFactory.newProxiedClient();
+        // Use a cumulative SSLContext that trusts the usual certs, plus
+        // anything in LanternTrustStore, which allows our client to work with
+        // the MITM'ing flashlight proxy.
+        return StaticHttpClientFactory.newProxiedClient(trustStore.getCumulativeSslContext());
     }
 }

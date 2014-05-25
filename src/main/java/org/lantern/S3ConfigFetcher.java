@@ -179,11 +179,12 @@ public class S3ConfigFetcher {
             final HttpClient direct = this.httpClientFactory.newDirectClient();
             return fetchRemoteConfig(direct);
         } catch (final IOException e) {
+            log.warn("Unable to fetch S3 config using direct connection: " + e.getMessage(), e);
             final HttpClient proxied = this.httpClientFactory.newProxiedClient();
             try {
                 return fetchRemoteConfig(proxied);
             } catch (IOException ioe) {
-                log.error("Still could not fetch S3 config using fallback.");
+                log.error("Still could not fetch S3 config using fallback: " + ioe.getMessage(), ioe);
                 return Optional.absent();
             }
         }

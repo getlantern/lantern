@@ -151,7 +151,7 @@ public class TestingUtils {
         final ModelUtils modelUtils = new DefaultModelUtils(model);
         final RandomRoutingTable routingTable = new BasicRandomRoutingTable();
         
-        final HttpClientFactory httpClientFactory = TestingUtils.newHttClientFactory();
+        final HttpClientFactory httpClientFactory = TestingUtils.newHttpClientFactory(trustStore);
         final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
         final FriendApi api = new FriendApi(oauth, model);
         
@@ -231,10 +231,10 @@ public class TestingUtils {
     }
 
 
-    public static HttpClientFactory newHttClientFactory() {
+    public static HttpClientFactory newHttpClientFactory(LanternTrustStore trustStore) {
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
-                new DefaultHttpClientFactory(censored);
+                new DefaultHttpClientFactory(censored, trustStore);
         return factory;
     }
 
@@ -252,6 +252,10 @@ public class TestingUtils {
                 ksmFile);
         return ksm;
     }
+    
+    public static LanternTrustStore newLanternTrustStore() {
+        return new LanternTrustStore(newKeyStoreManager());
+    }
 
     public static String accessToken() throws IOException, CredentialException {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -261,7 +265,8 @@ public class TestingUtils {
 
     private static OauthUtils newOauthUtils() {
         final Model mod = new Model();
-        return new OauthUtils(newHttClientFactory(), mod, new RefreshToken(mod));
+        LanternTrustStore trustStore = new LanternTrustStore(TestingUtils.newKeyStoreManager());
+        return new OauthUtils(newHttpClientFactory(trustStore), mod, new RefreshToken(mod));
     }
 
     public static CommandLine newCommandLine() throws Exception {
@@ -286,15 +291,16 @@ public class TestingUtils {
      * @return
      */
     public static <T> T doWithGetModeProxy(Callable<T> work) throws Exception {
+        return doWithGetModeProxy(newLanternTrustStore(), work);    
+    }
+    
+    public static <T> T doWithGetModeProxy(final LanternTrustStore trustStore, Callable<T> work) throws Exception {
         Censored censored = new DefaultCensored();
         CountryService countryService = new CountryService(censored);
         Model model = new Model(countryService);
 
         //assume that we are connected to the Internet
         model.getConnectivity().setInternet(true);
-
-        LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
-        final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         
         final String s3ConfigString = FileUtils.readFileToString(new File(".s3config"));
         final S3Config s3Config =

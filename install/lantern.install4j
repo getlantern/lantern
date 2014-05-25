@@ -12,7 +12,8 @@
       <envVar name="JDK_HOME" />
     </searchSequence>
     <variables>
-      <variable name="deb-description" value="P2P trust network of encrypted, mutually authenticated, HTTP proxies." description="" category="" />
+      <variable name="deb-description" value="Lantern" description="" category="" />
+      <variable name="deb-maintainer-email" value="admin@getlantern.org" description="" category="" />
     </variables>
     <mergedProjects />
     <codeSigning macEnabled="true" macPkcs12File="../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
@@ -702,6 +703,32 @@ return true;</string>
                 </serializedBean>
                 <condition />
               </action>
+              <action name="create ~/.lantern dir" id="1645" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/.lantern/.lantern-keep</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>.lantern-keep</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="overwriteMode">
+                        <object class="com.install4j.api.context.OverwriteMode" field="ALWAYS" />
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="Could not copy FireFox configuration.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -731,7 +758,7 @@ return true;</string>
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="copy all-lantern.js" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -1101,6 +1128,85 @@ return true;</string>
                   </java>
                 </serializedBean>
                 <condition>return System.getProperty("java.version").startsWith("1.7");</condition>
+              </action>
+              <action name="Install flashlight on OS X and Windows" id="1635" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="true" multiExec="false" failureStrategy="4" errorMessage="running &quot;flashlight -install&quot; command failed">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="arguments">
+                        <array class="java.lang.String" length="3">
+                          <void index="0">
+                            <string>-install</string>
+                          </void>
+                          <void index="1">
+                            <string>-configdir</string>
+                          </void>
+                          <void index="2">
+                            <string>${installer:sys.userHome}/.lantern/pt/flashlight</string>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="executable">
+                        <object class="java.io.File">
+                          <string>pt/flashlight/flashlight</string>
+                        </object>
+                      </void>
+                      <void property="failOnStdoutFileError">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="keepConsoleWindow">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="logArguments">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="stderrFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/install4jerr.txt</string>
+                        </object>
+                      </void>
+                      <void property="stderrRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="LOG_FILE" />
+                      </void>
+                      <void property="stdoutFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
+                        </object>
+                      </void>
+                      <void property="stdoutRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="LOG_FILE" />
+                      </void>
+                      <void property="wait">
+                        <boolean>true</boolean>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isMacOS() || Util.isWindows();</condition>
+              </action>
+              <action name="Make flashlight crypto info owned by user on OS X and Windows" id="1642" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="Could not chown ~/.lantern/pt/flashlight">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.SetOwnerAction">
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>${installer:sys.userHome}/.lantern/pt</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="owner">
+                        <string>${installer:sys.userName}</string>
+                      </void>
+                      <void property="recursive">
+                        <boolean>true</boolean>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isMacOS() || Util.isWindows();</condition>
               </action>
             </actions>
             <formComponents />
@@ -1499,7 +1605,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-amd64-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org" architectureSet="true" architecture="amd64">
+    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-amd64-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="libnss3-tools" maintainerEmail="${compiler:deb-maintainer-email}" architectureSet="true" architecture="amd64">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
@@ -1529,7 +1635,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
         <content />
       </postUninstallScript>
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-x86-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org" architectureSet="true" architecture="i386">
+    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./jres/linux-x86-jre.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="libnss3-tools" maintainerEmail="${compiler:deb-maintainer-email}" architectureSet="true" architecture="i386">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />

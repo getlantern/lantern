@@ -8,9 +8,9 @@ import org.apache.http.client.HttpClient;
 public interface HttpClientFactory {
 
     HttpClient newClient();
-
+    
     HttpClient newDirectClient();
-
+    
     HttpClient newProxiedClient();
-
+    
 }

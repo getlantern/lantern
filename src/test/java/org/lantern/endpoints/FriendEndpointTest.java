@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.LanternTrustStore;
 import org.lantern.TestingUtils;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
@@ -45,8 +46,9 @@ public class FriendEndpointTest {
         TestingUtils.doWithGetModeProxy(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
+                final LanternTrustStore trustStore = TestingUtils.newLanternTrustStore();
                 final HttpClientFactory httpClientFactory = 
-                        TestingUtils.newHttClientFactory();
+                        TestingUtils.newHttpClientFactory(trustStore);
                 final Model model = TestingUtils.newModel();
                 model.getSettings().setMode(Mode.give);
                 final OauthUtils utils = new OauthUtils(httpClientFactory, model, new RefreshToken(model));

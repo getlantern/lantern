@@ -8,6 +8,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.LanternUtils;
 import org.lantern.http.HttpUtils;
@@ -86,10 +87,17 @@ public class PublicIpAddress implements PublicIp {
     private InetAddress lookupSafe() {
         HttpHead request = new HttpHead("/");
         try {
+            // Setting this header tells the upstream flashlight proxy to
+            // return the proxy's info
+            request.setHeader("X-Lantern-Request-Info", "true");
             request.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
             request.getParams().setParameter(
                     ClientPNames.HANDLE_REDIRECTS, false);
+            // Ignore cookies because flashlight will return cookies that don't
+            // match the requested domain
+            request.getParams().setParameter(
+                    ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
             // Unable to set SO_TIMEOUT because of bug in Java 7
             // See https://github.com/getlantern/lantern/issues/942
 //            request.getParams().setParameter(
@@ -97,7 +105,7 @@ public class PublicIpAddress implements PublicIp {
             HttpResponse response = StaticHttpClientFactory.newProxiedClient()
                     .execute(TEST_HOST, request);
             Header header = response
-                    .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
+                    .getFirstHeader(GiveModeHttpFilters.X_LANTERN_PUBLIC_IP);
 
             final int responseCode = response.getStatusLine().getStatusCode();
             boolean twoHundredResponse = true;
