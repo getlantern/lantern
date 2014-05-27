@@ -9,28 +9,19 @@ import org.apache.commons.lang3.SystemUtils;
 import org.lantern.geoip.GeoData;
 
 import com.google.inject.Singleton;
-import com.maxmind.geoip.LookupService;
 
 /**
  * Service for GeoLocating. Uses MaxMind's {@link LookupService} internally.
  */
 @Singleton
 public class GeoIpLookupService {
-    private final LookupService lookupService;
     private final Map<InetAddress, GeoData> addressLookupCache =
             new ConcurrentHashMap<InetAddress, GeoData>();
     private final Map<String, GeoData> stringLookupCache =
             new ConcurrentHashMap<String, GeoData>();
 
     public GeoIpLookupService() {
-        try {
-            this.lookupService = new LookupService(
-                    SystemUtils.USER_DIR + "/GeoIP.dat");
-        } catch (Exception e) {
-            throw new Error(String.format(
-                    "Unable to initialize GeoIpLookupService: %1$s",
-                    e.getMessage()), e);
-        }
+
     }
 
     public GeoData getGeoData(InetAddress ipAddress) {
