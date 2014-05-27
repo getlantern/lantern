@@ -19,6 +19,7 @@ import org.lantern.event.KscopeAdEvent;
 import org.lantern.event.PeerCertEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.geoip.GeoData;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;

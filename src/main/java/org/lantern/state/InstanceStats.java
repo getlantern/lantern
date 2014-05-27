@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.GeoData;
+import org.lantern.geoip.GeoData;
 import org.lantern.LanternUtils;
 import org.lantern.monitoring.Counter;
 import org.lantern.monitoring.Stats;

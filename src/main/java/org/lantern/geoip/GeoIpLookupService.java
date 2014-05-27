@@ -5,7 +5,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.lantern.GeoData;
+
+import org.lantern.geoip.GeoData;
 
 import com.google.inject.Singleton;
 import com.maxmind.geoip.LookupService;
@@ -35,7 +36,8 @@ public class GeoIpLookupService {
     public GeoData getGeoData(InetAddress ipAddress) {
         GeoData result = addressLookupCache.get(ipAddress);
         if (result == null) {
-            result = new GeoData(lookupService.getCountry(ipAddress));
+            result = GeoData.queryGeoServe(ipAddress.getHostAddress());
+            //result = new GeoData(lookupService.getCountry(ipAddress));
             addressLookupCache.put(ipAddress, result);
         }
         return result;
@@ -44,7 +46,7 @@ public class GeoIpLookupService {
     public GeoData getGeoData(String ipAddress) {
         GeoData result = stringLookupCache.get(ipAddress);
         if (result == null) {
-            result = new GeoData(lookupService.getCountry(ipAddress));
+            result = GeoData.queryGeoServe(ipAddress);
             stringLookupCache.put(ipAddress, result);
         }
         return result;

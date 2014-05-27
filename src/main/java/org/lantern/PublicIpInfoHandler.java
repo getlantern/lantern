@@ -17,6 +17,8 @@ import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.lantern.geoip.GeoData;
+
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
