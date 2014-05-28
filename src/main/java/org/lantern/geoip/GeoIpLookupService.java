@@ -28,7 +28,6 @@ public class GeoIpLookupService {
         GeoData result = addressLookupCache.get(ipAddress);
         if (result == null) {
             result = GeoData.queryGeoServe(ipAddress.getHostAddress());
-            //result = new GeoData(lookupService.getCountry(ipAddress));
             addressLookupCache.put(ipAddress, result);
         }
         return result;
