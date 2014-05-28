@@ -50,17 +50,17 @@ func (runtime *_runtime) newObjectStash(object *_object, outer _stash) *_objectS
 	}
 }
 
-func (self0 *_objectStash) clone(clone *_clone) _stash {
-	self1, exists := clone.objectStash(self0)
+func (in *_objectStash) clone(clone *_clone) _stash {
+	out, exists := clone.objectStash(in)
 	if exists {
-		return self1
+		return out
 	}
-	*self1 = _objectStash{
+	*out = _objectStash{
 		clone.runtime,
-		clone.stash(self0._outer),
-		clone.object(self0.object),
+		clone.stash(in._outer),
+		clone.object(in.object),
 	}
-	return self1
+	return out
 }
 
 func (self *_objectStash) hasBinding(name string) bool {
@@ -138,21 +138,21 @@ func (runtime *_runtime) newDeclarationStash(outer _stash) *_dclStash {
 	}
 }
 
-func (self0 *_dclStash) clone(clone *_clone) _stash {
-	self1, exists := clone.dclStash(self0)
+func (in *_dclStash) clone(clone *_clone) _stash {
+	out, exists := clone.dclStash(in)
 	if exists {
-		return self1
+		return out
 	}
-	property := make(map[string]_dclProperty, len(self0.property))
-	for index, value := range self0.property {
+	property := make(map[string]_dclProperty, len(in.property))
+	for index, value := range in.property {
 		property[index] = clone.dclProperty(value)
 	}
-	*self1 = _dclStash{
+	*out = _dclStash{
 		clone.runtime,
-		clone.stash(self0._outer),
+		clone.stash(in._outer),
 		property,
 	}
-	return self1
+	return out
 }
 
 func (self *_dclStash) hasBinding(name string) bool {
@@ -256,11 +256,11 @@ func (runtime *_runtime) newFunctionStash(outer _stash) *_fnStash {
 	}
 }
 
-func (self0 _fnStash) clone(clone *_clone) _stash {
+func (in _fnStash) clone(clone *_clone) _stash {
 	// FIXME Memory leak issue here?
 	return &_fnStash{
-		*(self0._dclStash.clone(clone).(*_dclStash)),
-		clone.object(self0.arguments),
-		self0.indexOfArgumentName,
+		*(in._dclStash.clone(clone).(*_dclStash)),
+		clone.object(in.arguments),
+		in.indexOfArgumentName,
 	}
 }

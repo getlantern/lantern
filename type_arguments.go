@@ -35,12 +35,12 @@ type _argumentsObject struct {
 	stash _stash
 }
 
-func (self0 _argumentsObject) clone(clone *_clone) _argumentsObject {
-	indexOfParameterName := make([]string, len(self0.indexOfParameterName))
-	copy(indexOfParameterName, self0.indexOfParameterName)
+func (in _argumentsObject) clone(clone *_clone) _argumentsObject {
+	indexOfParameterName := make([]string, len(in.indexOfParameterName))
+	copy(indexOfParameterName, in.indexOfParameterName)
 	return _argumentsObject{
 		indexOfParameterName,
-		clone.stash(self0.stash),
+		clone.stash(in.stash),
 	}
 }
 

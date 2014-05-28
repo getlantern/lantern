@@ -14,7 +14,7 @@ type _clone struct {
 func (runtime *_runtime) clone() *_runtime {
 
 	self := &_runtime{}
-	clone := &_clone{
+	clone := _clone{
 		runtime:      self,
 		_object:      make(map[*_object]*_object),
 		_objectStash: make(map[*_objectStash]*_objectStash),
@@ -65,50 +65,57 @@ func (runtime *_runtime) clone() *_runtime {
 	self.eval = self.globalObject.property["eval"].value.(Value).value.(*_object)
 	self.globalObject.prototype = self.global.ObjectPrototype
 
+	// Not sure if this is necessary, but give some help to the GC
+	clone.runtime = nil
+	clone._object = nil
+	clone._objectStash = nil
+	clone._dclStash = nil
+
 	return self
 }
-func (clone *_clone) object(self0 *_object) *_object {
-	if self1, exists := clone._object[self0]; exists {
-		return self1
+
+func (clone *_clone) object(in *_object) *_object {
+	if out, exists := clone._object[in]; exists {
+		return out
 	}
-	self1 := &_object{}
-	clone._object[self0] = self1
-	return self0.objectClass.clone(self0, self1, clone)
+	out := &_object{}
+	clone._object[in] = out
+	return in.objectClass.clone(in, out, clone)
 }
 
-func (clone *_clone) dclStash(self0 *_dclStash) (*_dclStash, bool) {
-	if self1, exists := clone._dclStash[self0]; exists {
-		return self1, true
+func (clone *_clone) dclStash(in *_dclStash) (*_dclStash, bool) {
+	if out, exists := clone._dclStash[in]; exists {
+		return out, true
 	}
-	self1 := &_dclStash{}
-	clone._dclStash[self0] = self1
-	return self1, false
+	out := &_dclStash{}
+	clone._dclStash[in] = out
+	return out, false
 }
 
-func (clone *_clone) objectStash(self0 *_objectStash) (*_objectStash, bool) {
-	if self1, exists := clone._objectStash[self0]; exists {
-		return self1, true
+func (clone *_clone) objectStash(in *_objectStash) (*_objectStash, bool) {
+	if out, exists := clone._objectStash[in]; exists {
+		return out, true
 	}
-	self1 := &_objectStash{}
-	clone._objectStash[self0] = self1
-	return self1, false
+	out := &_objectStash{}
+	clone._objectStash[in] = out
+	return out, false
 }
 
-func (clone *_clone) value(self0 Value) Value {
-	self1 := self0
-	switch value := self0.value.(type) {
+func (clone *_clone) value(in Value) Value {
+	out := in
+	switch value := in.value.(type) {
 	case *_object:
-		self1.value = clone.object(value)
+		out.value = clone.object(value)
 	}
-	return self1
+	return out
 }
 
-func (clone *_clone) valueArray(self0 []Value) []Value {
-	self1 := make([]Value, len(self0))
-	for index, value := range self0 {
-		self1[index] = clone.value(value)
+func (clone *_clone) valueArray(in []Value) []Value {
+	out := make([]Value, len(in))
+	for index, value := range in {
+		out[index] = clone.value(value)
 	}
-	return self1
+	return out
 }
 
 func (clone *_clone) stash(in _stash) _stash {
@@ -118,18 +125,18 @@ func (clone *_clone) stash(in _stash) _stash {
 	return in.clone(clone)
 }
 
-func (clone *_clone) property(self0 _property) _property {
-	self1 := self0
-	if value, valid := self0.value.(Value); valid {
-		self1.value = clone.value(value)
+func (clone *_clone) property(in _property) _property {
+	out := in
+	if value, valid := in.value.(Value); valid {
+		out.value = clone.value(value)
 	} else {
-		panic(fmt.Errorf("self0.value.(Value) != true"))
+		panic(fmt.Errorf("in.value.(Value) != true"))
 	}
-	return self1
+	return out
 }
 
-func (clone *_clone) dclProperty(self0 _dclProperty) _dclProperty {
-	self1 := self0
-	self1.value = clone.value(self0.value)
-	return self1
+func (clone *_clone) dclProperty(in _dclProperty) _dclProperty {
+	out := in
+	out.value = clone.value(in.value)
+	return out
 }
