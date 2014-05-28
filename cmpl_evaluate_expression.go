@@ -13,10 +13,10 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 	// If the Interrupt channel is nil, then
 	// we avoid runtime.Gosched() overhead (if any)
 	// FIXME: Test this
-	if self.Otto.Interrupt != nil {
+	if self.otto.Interrupt != nil {
 		runtime.Gosched()
 		select {
-		case value := <-self.Otto.Interrupt:
+		case value := <-self.otto.Interrupt:
 			value()
 		default:
 		}
@@ -50,15 +50,14 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 		return self.cmpl_evaluate_nodeDotExpression(node)
 
 	case *_nodeFunctionLiteral:
-		var local = self.LexicalEnvironment()
+		var local = self.scope.lexical
 		if node.name != "" {
-			local = self.newDeclarativeEnvironment(local)
+			local = self.newDeclarationStash(local)
 		}
 
 		value := toValue_object(self.newNodeFunction(node, local))
 		if node.name != "" {
-			local.CreateMutableBinding(node.name, false)
-			local.SetMutableBinding(node.name, value, false)
+			local.createBinding(node.name, false, value)
 		}
 		return value
 
@@ -67,7 +66,7 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 		// TODO Should be true or false (strictness) depending on context
 		// getIdentifierReference should not return nil, but we check anyway and panic
 		// so as not to propagate the nil into something else
-		reference := getIdentifierReference(self.LexicalEnvironment(), name, false)
+		reference := getIdentifierReference(self.scope.lexical, name, false)
 		if reference == nil {
 			// Should never get here!
 			panic(hereBeDragons("referenceError == nil: " + name))
@@ -90,7 +89,7 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 		return self.cmpl_evaluate_nodeSequenceExpression(node)
 
 	case *_nodeThisExpression:
-		return toValue_object(self._executionContext(0).this)
+		return toValue_object(self.scope.this)
 
 	case *_nodeUnaryExpression:
 		return self.cmpl_evaluate_nodeUnaryExpression(node)
@@ -110,7 +109,7 @@ func (self *_runtime) cmpl_evaluate_nodeArrayLiteral(node *_nodeArrayLiteral) Va
 		if node == nil {
 			valueArray = append(valueArray, Value{})
 		} else {
-			valueArray = append(valueArray, self.GetValue(self.cmpl_evaluate_nodeExpression(node)))
+			valueArray = append(valueArray, self.getValue(self.cmpl_evaluate_nodeExpression(node)))
 		}
 	}
 
@@ -123,7 +122,7 @@ func (self *_runtime) cmpl_evaluate_nodeAssignExpression(node *_nodeAssignExpres
 
 	left := self.cmpl_evaluate_nodeExpression(node.left)
 	right := self.cmpl_evaluate_nodeExpression(node.right)
-	rightValue := self.GetValue(right)
+	rightValue := self.getValue(right)
 
 	result := rightValue
 	if node.operator != token.ASSIGN {
@@ -138,7 +137,7 @@ func (self *_runtime) cmpl_evaluate_nodeAssignExpression(node *_nodeAssignExpres
 func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpression) Value {
 
 	left := self.cmpl_evaluate_nodeExpression(node.left)
-	leftValue := self.GetValue(left)
+	leftValue := self.getValue(left)
 
 	switch node.operator {
 	// Logical
@@ -147,13 +146,13 @@ func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpres
 			return leftValue
 		}
 		right := self.cmpl_evaluate_nodeExpression(node.right)
-		return self.GetValue(right)
+		return self.getValue(right)
 	case token.LOGICAL_OR:
 		if toBoolean(leftValue) {
 			return leftValue
 		}
 		right := self.cmpl_evaluate_nodeExpression(node.right)
-		return self.GetValue(right)
+		return self.getValue(right)
 	}
 
 	return self.calculateBinaryExpression(node.operator, leftValue, self.cmpl_evaluate_nodeExpression(node.right))
@@ -161,17 +160,17 @@ func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpres
 
 func (self *_runtime) cmpl_evaluate_nodeBinaryExpression_comparison(node *_nodeBinaryExpression) Value {
 
-	left := self.GetValue(self.cmpl_evaluate_nodeExpression(node.left))
-	right := self.GetValue(self.cmpl_evaluate_nodeExpression(node.right))
+	left := self.getValue(self.cmpl_evaluate_nodeExpression(node.left))
+	right := self.getValue(self.cmpl_evaluate_nodeExpression(node.right))
 
 	return toValue_bool(self.calculateComparison(node.operator, left, right))
 }
 
 func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpression) Value {
 	target := self.cmpl_evaluate_nodeExpression(node.left)
-	targetValue := self.GetValue(target)
+	targetValue := self.getValue(target)
 	member := self.cmpl_evaluate_nodeExpression(node.member)
-	memberValue := self.GetValue(member)
+	memberValue := self.getValue(member)
 
 	// TODO Pass in base value as-is, and defer toObject till later?
 	return toValue(newPropertyReference(self.toObject(targetValue), toString(memberValue), false))
@@ -179,38 +178,40 @@ func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpr
 
 func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression, withArgumentList []interface{}) Value {
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
-	calleeValue := self.GetValue(callee)
+	calleeValue := self.getValue(callee)
 	argumentList := []Value{}
 	if withArgumentList != nil {
 		argumentList = self.toValueArray(withArgumentList...)
 	} else {
 		for _, argumentNode := range node.argumentList {
-			argumentList = append(argumentList, self.GetValue(self.cmpl_evaluate_nodeExpression(argumentNode)))
+			argumentList = append(argumentList, self.getValue(self.cmpl_evaluate_nodeExpression(argumentNode)))
 		}
 	}
 	this := UndefinedValue()
 	calleeReference := callee.reference()
-	evalHint := false
+	eval := false // Whether this call is a (candidate for) direct call to eval
 	if calleeReference != nil {
-		if calleeReference.IsPropertyReference() {
-			calleeObject := calleeReference.GetBase().(*_object)
+		switch reference := calleeReference.(type) {
+		case *_propertyReference:
+			calleeObject := reference.base
 			this = toValue_object(calleeObject)
-		} else {
-			// TODO ImplictThisValue
-		}
-		if calleeReference.GetName() == "eval" {
-			evalHint = true // Possible direct eval
+			eval = reference.name == "eval" // Possible direct eval
+		case *_stashReference:
+			// TODO ImplicitThisValue
+			eval = reference.name == "eval" // Possible direct eval
+		default:
+			panic(newTypeError("Here be dragons"))
 		}
 	}
 	if !calleeValue.IsFunction() {
 		panic(newTypeError("%v is not a function", calleeValue))
 	}
-	return self.Call(calleeValue._object(), this, argumentList, evalHint)
+	return calleeValue._object().call(this, argumentList, eval)
 }
 
 func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditionalExpression) Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
-	testValue := self.GetValue(test)
+	testValue := self.getValue(test)
 	if toBoolean(testValue) {
 		return self.cmpl_evaluate_nodeExpression(node.consequent)
 	}
@@ -219,7 +220,7 @@ func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditi
 
 func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) Value {
 	target := self.cmpl_evaluate_nodeExpression(node.left)
-	targetValue := self.GetValue(target)
+	targetValue := self.getValue(target)
 	// TODO Pass in base value as-is, and defer toObject till later?
 	object, err := self.objectCoerce(targetValue)
 	if err != nil {
@@ -230,16 +231,15 @@ func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) 
 
 func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) Value {
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
-	calleeValue := self.GetValue(callee)
+	calleeValue := self.getValue(callee)
 	argumentList := []Value{}
 	for _, argumentNode := range node.argumentList {
-		argumentList = append(argumentList, self.GetValue(self.cmpl_evaluate_nodeExpression(argumentNode)))
+		argumentList = append(argumentList, self.getValue(self.cmpl_evaluate_nodeExpression(argumentNode)))
 	}
-	this := UndefinedValue()
 	if !calleeValue.IsFunction() {
 		panic(newTypeError("%v is not a function", calleeValue))
 	}
-	return calleeValue._object().Construct(this, argumentList)
+	return calleeValue._object().construct(argumentList)
 }
 
 func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) Value {
@@ -249,15 +249,15 @@ func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) 
 	for _, property := range node.value {
 		switch property.kind {
 		case "value":
-			result.defineProperty(property.key, self.GetValue(self.cmpl_evaluate_nodeExpression(property.value)), 0111, false)
+			result.defineProperty(property.key, self.getValue(self.cmpl_evaluate_nodeExpression(property.value)), 0111, false)
 		case "get":
-			getter := self.newNodeFunction(property.value.(*_nodeFunctionLiteral), self.LexicalEnvironment())
+			getter := self.newNodeFunction(property.value.(*_nodeFunctionLiteral), self.scope.lexical)
 			descriptor := _property{}
 			descriptor.mode = 0211
 			descriptor.value = _propertyGetSet{getter, nil}
 			result.defineOwnProperty(property.key, descriptor, false)
 		case "set":
-			setter := self.newNodeFunction(property.value.(*_nodeFunctionLiteral), self.LexicalEnvironment())
+			setter := self.newNodeFunction(property.value.(*_nodeFunctionLiteral), self.scope.lexical)
 			descriptor := _property{}
 			descriptor.mode = 0211
 			descriptor.value = _propertyGetSet{nil, setter}
@@ -274,7 +274,7 @@ func (self *_runtime) cmpl_evaluate_nodeSequenceExpression(node *_nodeSequenceEx
 	var result Value
 	for _, node := range node.sequence {
 		result = self.cmpl_evaluate_nodeExpression(node)
-		result = self.GetValue(result)
+		result = self.getValue(result)
 	}
 	return result
 }
@@ -284,7 +284,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 	target := self.cmpl_evaluate_nodeExpression(node.operand)
 	switch node.operator {
 	case token.TYPEOF, token.DELETE:
-		if target._valueType == valueReference && target.reference().IsUnresolvable() {
+		if target._valueType == valueReference && target.reference().invalid() {
 			if node.operator == token.TYPEOF {
 				return toValue_string("undefined")
 			}
@@ -294,20 +294,20 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 
 	switch node.operator {
 	case token.NOT:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		if targetValue.toBoolean() {
 			return FalseValue()
 		}
 		return TrueValue()
 	case token.BITWISE_NOT:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		integerValue := toInt32(targetValue)
 		return toValue_int32(^integerValue)
 	case token.PLUS:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		return toValue_float64(targetValue.toFloat())
 	case token.MINUS:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		value := targetValue.toFloat()
 		// TODO Test this
 		sign := float64(-1)
@@ -316,7 +316,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 		}
 		return toValue_float64(math.Copysign(value, sign))
 	case token.INCREMENT:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		if node.postfix {
 			// Postfix++
 			oldValue := targetValue.toFloat()
@@ -330,7 +330,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 			return newValue
 		}
 	case token.DECREMENT:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		if node.postfix {
 			// Postfix--
 			oldValue := targetValue.toFloat()
@@ -344,16 +344,16 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 			return newValue
 		}
 	case token.VOID:
-		self.GetValue(target) // FIXME Side effect?
+		self.getValue(target) // FIXME Side effect?
 		return UndefinedValue()
 	case token.DELETE:
 		reference := target.reference()
 		if reference == nil {
 			return TrueValue()
 		}
-		return toValue_bool(target.reference().Delete())
+		return toValue_bool(target.reference().delete())
 	case token.TYPEOF:
-		targetValue := self.GetValue(target)
+		targetValue := self.getValue(target)
 		switch targetValue._valueType {
 		case valueUndefined:
 			return toValue_string("undefined")
@@ -366,7 +366,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 		case valueString:
 			return toValue_string("string")
 		case valueObject:
-			if targetValue._object().functionValue().call != nil {
+			if targetValue._object().isCall() {
 				return toValue_string("function")
 			}
 			return toValue_string("object")
@@ -381,9 +381,9 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 func (self *_runtime) cmpl_evaluate_nodeVariableExpression(node *_nodeVariableExpression) Value {
 	if node.initializer != nil {
 		// FIXME If reference is nil
-		left := getIdentifierReference(self.LexicalEnvironment(), node.name, false)
+		left := getIdentifierReference(self.scope.lexical, node.name, false)
 		right := self.cmpl_evaluate_nodeExpression(node.initializer)
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 
 		self.PutValue(left, rightValue)
 	}

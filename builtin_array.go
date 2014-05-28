@@ -11,7 +11,7 @@ func builtinArray(call FunctionCall) Value {
 	return toValue_object(builtinNewArrayNative(call.runtime, call.ArgumentList))
 }
 
-func builtinNewArray(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewArray(self *_object, argumentList []Value) Value {
 	return toValue_object(builtinNewArrayNative(self.runtime, argumentList))
 }
 
@@ -30,7 +30,7 @@ func builtinArray_toString(call FunctionCall) Value {
 	join := thisObject.get("join")
 	if join.isCallable() {
 		join := join._object()
-		return join.Call(call.This, call.ArgumentList)
+		return join.call(call.This, call.ArgumentList, false)
 	}
 	return builtinObject_toString(call)
 }
@@ -382,7 +382,7 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 		return 1
 	}
 
-	return int(toInt32(compare.Call(UndefinedValue(), []Value{x, y})))
+	return int(toInt32(compare.call(UndefinedValue(), []Value{x, y}, false)))
 }
 
 func arraySortSwap(thisObject *_object, index0, index1 uint) {

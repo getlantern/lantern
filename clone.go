@@ -5,94 +5,92 @@ import (
 )
 
 type _clone struct {
-	runtime *_runtime
-	stash   struct {
-		object                 map[*_object]*_object
-		objectEnvironment      map[*_objectEnvironment]*_objectEnvironment
-		declarativeEnvironment map[*_declarativeEnvironment]*_declarativeEnvironment
-	}
+	runtime      *_runtime
+	_object      map[*_object]*_object
+	_objectStash map[*_objectStash]*_objectStash
+	_dclStash    map[*_dclStash]*_dclStash
 }
 
 func (runtime *_runtime) clone() *_runtime {
 
 	self := &_runtime{}
 	clone := &_clone{
-		runtime: self,
-	}
-	clone.stash.object = make(map[*_object]*_object)
-	clone.stash.objectEnvironment = make(map[*_objectEnvironment]*_objectEnvironment)
-	clone.stash.declarativeEnvironment = make(map[*_declarativeEnvironment]*_declarativeEnvironment)
-
-	globalObject := clone.object(runtime.GlobalObject)
-	self.GlobalEnvironment = self.newObjectEnvironment(globalObject, nil)
-	self.GlobalObject = globalObject
-	self.Global = _global{
-		clone.object(runtime.Global.Object),
-		clone.object(runtime.Global.Function),
-		clone.object(runtime.Global.Array),
-		clone.object(runtime.Global.String),
-		clone.object(runtime.Global.Boolean),
-		clone.object(runtime.Global.Number),
-		clone.object(runtime.Global.Math),
-		clone.object(runtime.Global.Date),
-		clone.object(runtime.Global.RegExp),
-		clone.object(runtime.Global.Error),
-		clone.object(runtime.Global.EvalError),
-		clone.object(runtime.Global.TypeError),
-		clone.object(runtime.Global.RangeError),
-		clone.object(runtime.Global.ReferenceError),
-		clone.object(runtime.Global.SyntaxError),
-		clone.object(runtime.Global.URIError),
-		clone.object(runtime.Global.JSON),
-
-		clone.object(runtime.Global.ObjectPrototype),
-		clone.object(runtime.Global.FunctionPrototype),
-		clone.object(runtime.Global.ArrayPrototype),
-		clone.object(runtime.Global.StringPrototype),
-		clone.object(runtime.Global.BooleanPrototype),
-		clone.object(runtime.Global.NumberPrototype),
-		clone.object(runtime.Global.DatePrototype),
-		clone.object(runtime.Global.RegExpPrototype),
-		clone.object(runtime.Global.ErrorPrototype),
-		clone.object(runtime.Global.EvalErrorPrototype),
-		clone.object(runtime.Global.TypeErrorPrototype),
-		clone.object(runtime.Global.RangeErrorPrototype),
-		clone.object(runtime.Global.ReferenceErrorPrototype),
-		clone.object(runtime.Global.SyntaxErrorPrototype),
-		clone.object(runtime.Global.URIErrorPrototype),
+		runtime:      self,
+		_object:      make(map[*_object]*_object),
+		_objectStash: make(map[*_objectStash]*_objectStash),
+		_dclStash:    make(map[*_dclStash]*_dclStash),
 	}
 
-	self.EnterGlobalExecutionContext()
+	globalObject := clone.object(runtime.globalObject)
+	self.globalStash = self.newObjectStash(globalObject, nil)
+	self.globalObject = globalObject
+	self.global = _global{
+		clone.object(runtime.global.Object),
+		clone.object(runtime.global.Function),
+		clone.object(runtime.global.Array),
+		clone.object(runtime.global.String),
+		clone.object(runtime.global.Boolean),
+		clone.object(runtime.global.Number),
+		clone.object(runtime.global.Math),
+		clone.object(runtime.global.Date),
+		clone.object(runtime.global.RegExp),
+		clone.object(runtime.global.Error),
+		clone.object(runtime.global.EvalError),
+		clone.object(runtime.global.TypeError),
+		clone.object(runtime.global.RangeError),
+		clone.object(runtime.global.ReferenceError),
+		clone.object(runtime.global.SyntaxError),
+		clone.object(runtime.global.URIError),
+		clone.object(runtime.global.JSON),
 
-	self.eval = self.GlobalObject.property["eval"].value.(Value).value.(*_object)
-	self.GlobalObject.prototype = self.Global.ObjectPrototype
+		clone.object(runtime.global.ObjectPrototype),
+		clone.object(runtime.global.FunctionPrototype),
+		clone.object(runtime.global.ArrayPrototype),
+		clone.object(runtime.global.StringPrototype),
+		clone.object(runtime.global.BooleanPrototype),
+		clone.object(runtime.global.NumberPrototype),
+		clone.object(runtime.global.DatePrototype),
+		clone.object(runtime.global.RegExpPrototype),
+		clone.object(runtime.global.ErrorPrototype),
+		clone.object(runtime.global.EvalErrorPrototype),
+		clone.object(runtime.global.TypeErrorPrototype),
+		clone.object(runtime.global.RangeErrorPrototype),
+		clone.object(runtime.global.ReferenceErrorPrototype),
+		clone.object(runtime.global.SyntaxErrorPrototype),
+		clone.object(runtime.global.URIErrorPrototype),
+	}
+
+	self.enterGlobalScope()
+
+	self.eval = self.globalObject.property["eval"].value.(Value).value.(*_object)
+	self.globalObject.prototype = self.global.ObjectPrototype
 
 	return self
 }
 func (clone *_clone) object(self0 *_object) *_object {
-	if self1, exists := clone.stash.object[self0]; exists {
+	if self1, exists := clone._object[self0]; exists {
 		return self1
 	}
 	self1 := &_object{}
-	clone.stash.object[self0] = self1
+	clone._object[self0] = self1
 	return self0.objectClass.clone(self0, self1, clone)
 }
 
-func (clone *_clone) declarativeEnvironment(self0 *_declarativeEnvironment) (*_declarativeEnvironment, bool) {
-	if self1, exists := clone.stash.declarativeEnvironment[self0]; exists {
+func (clone *_clone) dclStash(self0 *_dclStash) (*_dclStash, bool) {
+	if self1, exists := clone._dclStash[self0]; exists {
 		return self1, true
 	}
-	self1 := &_declarativeEnvironment{}
-	clone.stash.declarativeEnvironment[self0] = self1
+	self1 := &_dclStash{}
+	clone._dclStash[self0] = self1
 	return self1, false
 }
 
-func (clone *_clone) objectEnvironment(self0 *_objectEnvironment) (*_objectEnvironment, bool) {
-	if self1, exists := clone.stash.objectEnvironment[self0]; exists {
+func (clone *_clone) objectStash(self0 *_objectStash) (*_objectStash, bool) {
+	if self1, exists := clone._objectStash[self0]; exists {
 		return self1, true
 	}
-	self1 := &_objectEnvironment{}
-	clone.stash.objectEnvironment[self0] = self1
+	self1 := &_objectStash{}
+	clone._objectStash[self0] = self1
 	return self1, false
 }
 
@@ -113,11 +111,11 @@ func (clone *_clone) valueArray(self0 []Value) []Value {
 	return self1
 }
 
-func (clone *_clone) environment(self0 _environment) _environment {
-	if self0 == nil {
+func (clone *_clone) stash(in _stash) _stash {
+	if in == nil {
 		return nil
 	}
-	return self0.clone(clone)
+	return in.clone(clone)
 }
 
 func (clone *_clone) property(self0 _property) _property {
@@ -130,15 +128,8 @@ func (clone *_clone) property(self0 _property) _property {
 	return self1
 }
 
-func (clone *_clone) declarativeProperty(self0 _declarativeProperty) _declarativeProperty {
+func (clone *_clone) dclProperty(self0 _dclProperty) _dclProperty {
 	self1 := self0
 	self1.value = clone.value(self0.value)
 	return self1
-}
-
-func (clone *_clone) callFunction(self0 _callFunction) _callFunction {
-	if self0 == nil {
-		return nil
-	}
-	return self0.clone(clone)
 }

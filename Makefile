@@ -3,11 +3,12 @@
 .PHONY: otto assets underscore
 
 TESTS := \
+	_evalDirectIndirect \
 	~
 
 TEST := -v --run
-TEST := -v --run Test\($(subst $(eval) ,\|,$(TESTS))\)
 TEST := -v
+TEST := -v --run Test\($(subst $(eval) ,\|,$(TESTS))\)
 TEST := .
 
 test: parser inline.go

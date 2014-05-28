@@ -120,7 +120,7 @@ func (self *_tester) test(name string, expect ...interface{}) Value {
 			panic(err)
 		}
 	}
-	value = vm.runtime.GetValue(value)
+	value = vm.runtime.getValue(value)
 	if len(expect) > 0 {
 		is(value, expect[0])
 	}

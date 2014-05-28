@@ -45,100 +45,61 @@ type _global struct {
 }
 
 type _runtime struct {
-	Stack [](*_executionContext)
-
-	GlobalObject      *_object
-	GlobalEnvironment *_objectEnvironment
-
-	Global _global
-
-	eval *_object // The builtin eval, for determine indirect versus direct invocation
-
-	Otto *Otto
+	global       _global
+	globalObject *_object
+	globalStash  *_objectStash
+	scope        *_scope
+	otto         *Otto
+	eval         *_object // The builtin eval, for determine indirect versus direct invocation
 
 	labels []string // FIXME
 }
 
-func (self *_runtime) EnterGlobalExecutionContext() {
-	self.EnterExecutionContext(newExecutionContext(self.GlobalEnvironment, self.GlobalEnvironment, self.GlobalObject))
+func (self *_runtime) enterScope(scope *_scope) {
+	scope.outer = self.scope
+	self.scope = scope
 }
 
-func (self *_runtime) EnterExecutionContext(scope *_executionContext) {
-	self.Stack = append(self.Stack, scope)
+func (self *_runtime) leaveScope() {
+	self.scope = self.scope.outer
 }
 
-func (self *_runtime) LeaveExecutionContext() {
-	self.Stack = self.Stack[:len(self.Stack)-1]
+// FIXME This is used in two places (cloning)
+func (self *_runtime) enterGlobalScope() {
+	self.enterScope(newScope(self.globalStash, self.globalStash, self.globalObject))
 }
 
-func (self *_runtime) _executionContext(depth int) *_executionContext {
-	if depth == 0 {
-		return self.Stack[len(self.Stack)-1]
+func (self *_runtime) enterFunctionScope(outer _stash, this Value) *_fnStash {
+	if outer == nil {
+		outer = self.globalStash
 	}
-	if len(self.Stack)-1+depth >= 0 {
-		return self.Stack[len(self.Stack)-1+depth]
-	}
-	return nil
-}
-
-func (self *_runtime) EnterFunctionExecutionContext(function *_object, this Value) *_functionEnvironment {
-	scopeEnvironment := function.functionValue().call.ScopeEnvironment()
-	if scopeEnvironment == nil {
-		scopeEnvironment = self.GlobalEnvironment
-	}
-	environment := self.newFunctionEnvironment(scopeEnvironment)
+	stash := self.newFunctionStash(outer)
 	var thisObject *_object
 	switch this._valueType {
 	case valueUndefined, valueNull:
-		thisObject = self.GlobalObject
+		thisObject = self.globalObject
 	default:
 		thisObject = self.toObject(this)
 	}
-	self.EnterExecutionContext(newExecutionContext(environment, environment, thisObject))
-	return environment
+	self.enterScope(newScope(stash, stash, thisObject))
+	return stash
 }
 
-func (self *_runtime) EnterEvalExecutionContext(call FunctionCall) {
-	// Skip the current function lexical/variable environment, which is of the function execution context call
-	// to eval (the global execution context). Instead, execute in the context of where the eval was called,
-	// which is essentially dynamic scoping
-	parent := self._executionContext(-1)
-	new := newExecutionContext(parent.LexicalEnvironment, parent.VariableEnvironment, parent.this)
-	// FIXME Make passing through of self.GlobalObject more general? Whenever newExecutionContext is passed a nil object?
-	new.eval = true
-	self.EnterExecutionContext(new)
-}
-
-func (self *_runtime) GetValue(value Value) Value {
-	if value.isReference() {
-		return value.reference().GetValue()
+// FIXME getValue => Value.resolve()
+func (self *_runtime) getValue(value Value) Value {
+	if value._valueType == valueReference {
+		return value.reference().getValue()
 	}
 	return value
 }
 
 func (self *_runtime) PutValue(reference _reference, value Value) {
-	if !reference.PutValue(value) {
-		// Why? -- If reference.Base == nil
-		strict := false
-		self.GlobalObject.defineProperty(reference.GetName(), value, 0111, strict)
+	name := reference.putValue(value)
+	if name != "" {
+		// Why? -- If reference.base == nil
+		// strict = false
+		self.globalObject.defineProperty(name, value, 0111, false)
 	}
-}
-
-func (self *_runtime) Call(function *_object, this Value, argumentList []Value, evalHint bool) Value {
-	// Pass eval boolean through to EnterFunctionExecutionContext for further testing
-	_functionEnvironment := self.EnterFunctionExecutionContext(function, this)
-	defer func() {
-		self.LeaveExecutionContext()
-	}()
-
-	if evalHint {
-		evalHint = function == self.eval // If evalHint is true, then it IS a direct eval
-	}
-	callValue := function.functionValue().call.Dispatch(function, _functionEnvironment, self, this, argumentList, evalHint)
-	if value, valid := callValue.value.(_result); valid {
-		return value.value
-	}
-	return callValue
 }
 
 func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exception bool) {
@@ -170,24 +131,6 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 
 	tryValue = inner()
 	return
-}
-
-// _executionContext Proxy
-
-func (self *_runtime) localGet(name string) Value {
-	return self._executionContext(0).getValue(name)
-}
-
-func (self *_runtime) localSet(name string, value Value) {
-	self._executionContext(0).setValue(name, value, false)
-}
-
-func (self *_runtime) VariableEnvironment() _environment {
-	return self._executionContext(0).VariableEnvironment
-}
-
-func (self *_runtime) LexicalEnvironment() _environment {
-	return self._executionContext(0).LexicalEnvironment
 }
 
 // toObject
@@ -313,13 +256,13 @@ func (self *_runtime) toValue(value interface{}) Value {
 
 func (runtime *_runtime) newGoSlice(value reflect.Value) *_object {
 	self := runtime.newGoSliceObject(value)
-	self.prototype = runtime.Global.ArrayPrototype
+	self.prototype = runtime.global.ArrayPrototype
 	return self
 }
 
 func (runtime *_runtime) newGoArray(value reflect.Value) *_object {
 	self := runtime.newGoArrayObject(value)
-	self.prototype = runtime.Global.ArrayPrototype
+	self.prototype = runtime.global.ArrayPrototype
 	return self
 }
 
@@ -362,7 +305,7 @@ func (self *_runtime) cmpl_run(src interface{}) (Value, error) {
 	case valueEmpty:
 		result = UndefinedValue()
 	case valueReference:
-		result = self.GetValue(result)
+		result = self.getValue(result)
 	}
 	return result, err
 }

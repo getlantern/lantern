@@ -6,7 +6,7 @@ func builtinBoolean(call FunctionCall) Value {
 	return toValue_bool(toBoolean(call.Argument(0)))
 }
 
-func builtinNewBoolean(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewBoolean(self *_object, argumentList []Value) Value {
 	return toValue_object(self.runtime.newBoolean(valueOfArrayIndex(argumentList, 0)))
 }
 

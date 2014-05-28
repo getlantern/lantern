@@ -1,6 +1,7 @@
 package otto
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -14,7 +15,7 @@ func builtinFunction(call FunctionCall) Value {
 	return toValue_object(builtinNewFunctionNative(call.runtime, call.ArgumentList))
 }
 
-func builtinNewFunction(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewFunction(self *_object, argumentList []Value) Value {
 	return toValue_object(builtinNewFunctionNative(self.runtime, argumentList))
 }
 
@@ -47,12 +48,21 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 	runtime.parseThrow(err) // Will panic/throw appropriately
 	cmpl_function := parseExpression(function)
 
-	return runtime.newNodeFunction(cmpl_function.(*_nodeFunctionLiteral), runtime.GlobalEnvironment)
+	return runtime.newNodeFunction(cmpl_function.(*_nodeFunctionLiteral), runtime.globalStash)
 }
 
 func builtinFunction_toString(call FunctionCall) Value {
 	object := call.thisClassObject("Function") // Should throw a TypeError unless Function
-	return toValue_string(object.value.(_functionObject).source(object))
+	switch fn := object.value.(type) {
+	case _nativeFunctionObject:
+		return toValue_string(fmt.Sprintf("function %s() { [native code] }", fn.name))
+	case _nodeFunctionObject:
+		return toValue_string(fn.node.source)
+	case _bindFunctionObject:
+		return toValue_string("function () { [native code] }")
+	}
+
+	panic(newTypeError("Function.toString()"))
 }
 
 func builtinFunction_apply(call FunctionCall) Value {
@@ -62,12 +72,12 @@ func builtinFunction_apply(call FunctionCall) Value {
 	this := call.Argument(0)
 	if this.IsUndefined() {
 		// FIXME Not ECMA5
-		this = toValue_object(call.runtime.GlobalObject)
+		this = toValue_object(call.runtime.globalObject)
 	}
 	argumentList := call.Argument(1)
 	switch argumentList._valueType {
 	case valueUndefined, valueNull:
-		return call.thisObject().Call(this, []Value{})
+		return call.thisObject().call(this, nil, false)
 	case valueObject:
 	default:
 		panic(newTypeError())
@@ -80,7 +90,7 @@ func builtinFunction_apply(call FunctionCall) Value {
 	for index := int64(0); index < length; index++ {
 		valueArray[index] = arrayObject.get(arrayIndexToString(index))
 	}
-	return thisObject.Call(this, valueArray)
+	return thisObject.call(this, valueArray, false)
 }
 
 func builtinFunction_call(call FunctionCall) Value {
@@ -91,12 +101,12 @@ func builtinFunction_call(call FunctionCall) Value {
 	this := call.Argument(0)
 	if this.IsUndefined() {
 		// FIXME Not ECMA5
-		this = toValue_object(call.runtime.GlobalObject)
+		this = toValue_object(call.runtime.globalObject)
 	}
 	if len(call.ArgumentList) >= 1 {
-		return thisObject.Call(this, call.ArgumentList[1:])
+		return thisObject.call(this, call.ArgumentList[1:], false)
 	}
-	return thisObject.Call(this, []Value{})
+	return thisObject.call(this, nil, false)
 }
 
 func builtinFunction_bind(call FunctionCall) Value {
@@ -110,7 +120,7 @@ func builtinFunction_bind(call FunctionCall) Value {
 	argumentList := call.slice(1)
 	if this.IsUndefined() {
 		// FIXME Do this elsewhere?
-		this = toValue_object(call.runtime.GlobalObject)
+		this = toValue_object(call.runtime.globalObject)
 	}
 
 	return toValue_object(call.runtime.newBoundFunction(targetObject, this, argumentList))

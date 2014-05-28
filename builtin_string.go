@@ -21,7 +21,7 @@ func builtinString(call FunctionCall) Value {
 	return stringValueFromStringArgumentList(call.ArgumentList)
 }
 
-func builtinNewString(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewString(self *_object, argumentList []Value) Value {
 	return toValue_object(self.runtime.newString(stringValueFromStringArgumentList(argumentList)))
 }
 
@@ -237,7 +237,7 @@ func builtinString_replace(call FunctionCall) Value {
 				}
 				argumentList[matchCount+0] = toValue_int(match[0])
 				argumentList[matchCount+1] = toValue_string(target)
-				replacement := toString(replace.Call(UndefinedValue(), argumentList))
+				replacement := toString(replace.call(UndefinedValue(), argumentList, false))
 				result = append(result, []byte(replacement)...)
 				lastIndex = match[1]
 			}

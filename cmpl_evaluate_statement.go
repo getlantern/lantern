@@ -12,10 +12,10 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 	// If the Interrupt channel is nil, then
 	// we avoid runtime.Gosched() overhead (if any)
 	// FIXME: Test this
-	if self.Otto.Interrupt != nil {
+	if self.otto.Interrupt != nil {
 		runtime.Gosched()
 		select {
-		case value := <-self.Otto.Interrupt:
+		case value := <-self.otto.Interrupt:
 			value()
 		default:
 		}
@@ -70,7 +70,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 
 	case *_nodeReturnStatement:
 		if node.argument != nil {
-			return toValue(newReturnResult(self.GetValue(self.cmpl_evaluate_nodeExpression(node.argument))))
+			return toValue(newReturnResult(self.getValue(self.cmpl_evaluate_nodeExpression(node.argument))))
 		}
 		return toValue(newReturnResult(UndefinedValue()))
 
@@ -78,7 +78,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 		return self.cmpl_evaluate_nodeSwitchStatement(node)
 
 	case *_nodeThrowStatement:
-		value := self.GetValue(self.cmpl_evaluate_nodeExpression(node.argument))
+		value := self.getValue(self.cmpl_evaluate_nodeExpression(node.argument))
 		panic(newException(value))
 
 	case *_nodeTryStatement:
@@ -111,12 +111,12 @@ func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) Val
 			return value
 		case valueEmpty:
 		default:
-			// We have GetValue here to (for example) trigger a
+			// We have getValue here to (for example) trigger a
 			// ReferenceError (of the not defined variety)
 			// Not sure if this is the best way to error out early
 			// for such errors or if there is a better way
 			// TODO Do we still need this?
-			result = self.GetValue(value)
+			result = self.getValue(value)
 		}
 	}
 	return result
@@ -150,7 +150,7 @@ resultBreak:
 			}
 		}
 	resultContinue:
-		if !self.GetValue(self.cmpl_evaluate_nodeExpression(test)).isTrue() {
+		if !self.getValue(self.cmpl_evaluate_nodeExpression(test)).isTrue() {
 			// Stahp: do ... while (false)
 			break
 		}
@@ -164,7 +164,7 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 	self.labels = nil
 
 	source := self.cmpl_evaluate_nodeExpression(node.source)
-	sourceValue := self.GetValue(source)
+	sourceValue := self.getValue(source)
 
 	switch sourceValue._valueType {
 	case valueUndefined, valueNull:
@@ -186,7 +186,7 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 			if into.reference() == nil {
 				identifier := toString(into)
 				// TODO Should be true or false (strictness) depending on context
-				into = toValue(getIdentifierReference(self.LexicalEnvironment(), identifier, false))
+				into = toValue(getIdentifierReference(self.scope.lexical, identifier, false))
 			}
 			self.PutValue(into.reference(), toValue_string(name))
 			for _, node := range body {
@@ -233,7 +233,7 @@ func (self *_runtime) cmpl_evaluate_nodeForStatement(node *_nodeForStatement) Va
 
 	if initializer != nil {
 		initialResult := self.cmpl_evaluate_nodeExpression(initializer)
-		self.GetValue(initialResult) // Side-effect trigger
+		self.getValue(initialResult) // Side-effect trigger
 	}
 
 	result := Value{}
@@ -241,7 +241,7 @@ resultBreak:
 	for {
 		if test != nil {
 			testResult := self.cmpl_evaluate_nodeExpression(test)
-			testResultValue := self.GetValue(testResult)
+			testResultValue := self.getValue(testResult)
 			if toBoolean(testResultValue) == false {
 				break
 			}
@@ -266,7 +266,7 @@ resultBreak:
 	resultContinue:
 		if update != nil {
 			updateResult := self.cmpl_evaluate_nodeExpression(update)
-			self.GetValue(updateResult) // Side-effect trigger
+			self.getValue(updateResult) // Side-effect trigger
 		}
 	}
 	return result
@@ -274,7 +274,7 @@ resultBreak:
 
 func (self *_runtime) cmpl_evaluate_nodeIfStatement(node *_nodeIfStatement) Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
-	testValue := self.GetValue(test)
+	testValue := self.getValue(test)
 	if toBoolean(testValue) {
 		return self.cmpl_evaluate_nodeStatement(node.consequent)
 	} else if node.alternate != nil {
@@ -332,14 +332,15 @@ func (self *_runtime) cmpl_evaluate_nodeTryStatement(node *_nodeTryStatement) Va
 	})
 
 	if exception && node.catch != nil {
-
-		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment(self)
+		outer := self.scope.lexical
+		self.scope.lexical = self.newDeclarationStash(outer)
 		defer func() {
-			self._executionContext(0).LexicalEnvironment = lexicalEnvironment
+			self.scope.lexical = outer
 		}()
 		// TODO If necessary, convert TypeError<runtime> => TypeError
 		// That, is, such errors can be thrown despite not being JavaScript "native"
-		self.localSet(node.catch.parameter, tryCatchValue)
+		// strict = false
+		self.scope.lexical.setValue(node.catch.parameter, tryCatchValue, false)
 
 		// FIXME node.CatchParameter
 		// FIXME node.Catch
@@ -372,7 +373,7 @@ func (self *_runtime) cmpl_evaluate_nodeWhileStatement(node *_nodeWhileStatement
 	result := Value{}
 resultBreakContinue:
 	for {
-		if !self.GetValue(self.cmpl_evaluate_nodeExpression(test)).isTrue() {
+		if !self.getValue(self.cmpl_evaluate_nodeExpression(test)).isTrue() {
 			// Stahp: while (false) ...
 			break
 		}
@@ -399,11 +400,11 @@ resultBreakContinue:
 
 func (self *_runtime) cmpl_evaluate_nodeWithStatement(node *_nodeWithStatement) Value {
 	object := self.cmpl_evaluate_nodeExpression(node.object)
-	objectValue := self.GetValue(object)
-	previousLexicalEnvironment, lexicalEnvironment := self._executionContext(0).newLexicalEnvironment(self.toObject(objectValue))
-	lexicalEnvironment.ProvideThis = true
+	outer := self.scope.lexical
+	lexical := self.newObjectStash(self.toObject(self.getValue(object)), outer)
+	self.scope.lexical = lexical
 	defer func() {
-		self._executionContext(0).LexicalEnvironment = previousLexicalEnvironment
+		self.scope.lexical = outer
 	}()
 
 	return self.cmpl_evaluate_nodeStatement(node.body)

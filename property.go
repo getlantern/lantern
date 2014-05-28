@@ -85,7 +85,7 @@ func (self _property) get(this *_object) Value {
 		return value
 	case _propertyGetSet:
 		if value[0] != nil {
-			return value[0].callGet(toValue(this))
+			return value[0].call(toValue(this), nil, false)
 		}
 	}
 	return UndefinedValue()

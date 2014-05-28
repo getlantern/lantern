@@ -54,14 +54,14 @@ func (self *_runtime) evaluateModulo(left float64, right float64) Value {
 
 func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value, right Value) Value {
 
-	leftValue := self.GetValue(left)
+	leftValue := self.getValue(left)
 
 	switch operator {
 
 	// Additive
 	case token.PLUS:
 		leftValue = toPrimitive(leftValue)
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		rightValue = toPrimitive(rightValue)
 
 		if leftValue.IsString() || rightValue.IsString() {
@@ -70,18 +70,18 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 			return toValue_float64(leftValue.toFloat() + rightValue.toFloat())
 		}
 	case token.MINUS:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_float64(leftValue.toFloat() - rightValue.toFloat())
 
 		// Multiplicative
 	case token.MULTIPLY:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_float64(leftValue.toFloat() * rightValue.toFloat())
 	case token.SLASH:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return self.evaluateDivide(leftValue.toFloat(), rightValue.toFloat())
 	case token.REMAINDER:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_float64(math.Mod(leftValue.toFloat(), rightValue.toFloat()))
 
 		// Logical
@@ -90,47 +90,47 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 		if !left {
 			return FalseValue()
 		}
-		return toValue_bool(toBoolean(self.GetValue(right)))
+		return toValue_bool(toBoolean(self.getValue(right)))
 	case token.LOGICAL_OR:
 		left := toBoolean(leftValue)
 		if left {
 			return TrueValue()
 		}
-		return toValue_bool(toBoolean(self.GetValue(right)))
+		return toValue_bool(toBoolean(self.getValue(right)))
 
 		// Bitwise
 	case token.AND:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_int32(toInt32(leftValue) & toInt32(rightValue))
 	case token.OR:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_int32(toInt32(leftValue) | toInt32(rightValue))
 	case token.EXCLUSIVE_OR:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_int32(toInt32(leftValue) ^ toInt32(rightValue))
 
 		// Shift
 		// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
 	case token.SHIFT_LEFT:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_int32(toInt32(leftValue) << (toUint32(rightValue) & 0x1f))
 	case token.SHIFT_RIGHT:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		return toValue_int32(toInt32(leftValue) >> (toUint32(rightValue) & 0x1f))
 	case token.UNSIGNED_SHIFT_RIGHT:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		// Shifting an unsigned integer is a logical shift
 		return toValue_uint32(toUint32(leftValue) >> (toUint32(rightValue) & 0x1f))
 
 	case token.INSTANCEOF:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		if !rightValue.IsObject() {
 			panic(newTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
 		}
-		return toValue_bool(rightValue._object().HasInstance(leftValue))
+		return toValue_bool(rightValue._object().hasInstance(leftValue))
 
 	case token.IN:
-		rightValue := self.GetValue(right)
+		rightValue := self.getValue(right)
 		if !rightValue.IsObject() {
 			panic(newTypeError())
 		}
@@ -197,6 +197,7 @@ func calculateLessThan(left Value, right Value, leftFirst bool) _lessThanResult 
 	return lessThanFalse
 }
 
+// FIXME Probably a map is not the most efficient way to do this
 var lessThanTable [4](map[_lessThanResult]bool) = [4](map[_lessThanResult]bool){
 	// <
 	map[_lessThanResult]bool{
@@ -231,8 +232,8 @@ func (self *_runtime) calculateComparison(comparator token.Token, left Value, ri
 
 	// FIXME Use strictEqualityComparison?
 	// TODO This might be redundant now (with regards to evaluateComparison)
-	x := self.GetValue(left)
-	y := self.GetValue(right)
+	x := self.getValue(left)
+	y := self.getValue(right)
 
 	kindEqualKind := false
 	result := true

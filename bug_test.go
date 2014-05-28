@@ -329,7 +329,6 @@ func Test_issue73(t *testing.T) {
 func Test_7_3_1(t *testing.T) {
 	tt(t, func() {
 		test(`
-
             eval("var test7_3_1\u2028abc = 66;");
             [ abc, typeof test7_3_1 ];
         `, "66,undefined")

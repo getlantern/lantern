@@ -251,6 +251,14 @@ func TestFunction_bind(t *testing.T) {
             var result = new newFn();
             [ result.hasOwnProperty("abc"), result.hasOwnProperty("def"), result.abc, result.def ];
         `, "true,true,abc,true")
+
+		test(`
+            abc = function(){
+                return "abc";
+            };
+            def = abc.bind();
+            def.toString();
+        `, "function () { [native code] }")
 	})
 }
 

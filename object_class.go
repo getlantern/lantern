@@ -260,7 +260,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		if !canPut {
 			typeErrorResult(throw)
 		} else if setter != nil {
-			setter.callSet(toValue(self), value)
+			setter.call(toValue(self), []Value{value}, false)
 		} else if property != nil {
 			property.value = value
 			self.defineOwnProperty(name, *property, throw)
@@ -283,7 +283,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		property = self.getProperty(name)
 		if property != nil {
 			if getSet, isAccessor := property.value.(_propertyGetSet); isAccessor {
-				getSet[1].callSet(toValue(self), value)
+				getSet[1].call(toValue(self), []Value{value}, false)
 				return
 			}
 		}
@@ -295,7 +295,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 			self.defineOwnProperty(name, *property, throw)
 		case _propertyGetSet:
 			if propertyValue[1] != nil {
-				propertyValue[1].callSet(toValue(self), value)
+				propertyValue[1].call(toValue(self), []Value{value}, false)
 				return
 			}
 			if throw {
@@ -459,26 +459,37 @@ func objectDelete(self *_object, name string, throw bool) bool {
 	return typeErrorResult(throw)
 }
 
-func objectClone(self0 *_object, self1 *_object, clone *_clone) *_object {
-	*self1 = *self0
+func objectClone(in *_object, out *_object, clone *_clone) *_object {
+	*out = *in
 
-	self1.runtime = clone.runtime
-	if self1.prototype != nil {
-		self1.prototype = clone.object(self0.prototype)
+	out.runtime = clone.runtime
+	if out.prototype != nil {
+		out.prototype = clone.object(in.prototype)
 	}
-	self1.property = make(map[string]_property, len(self0.property))
-	self1.propertyOrder = make([]string, len(self0.propertyOrder))
-	copy(self1.propertyOrder, self0.propertyOrder)
-	for index, property := range self0.property {
-		self1.property[index] = clone.property(property)
+	out.property = make(map[string]_property, len(in.property))
+	out.propertyOrder = make([]string, len(in.propertyOrder))
+	copy(out.propertyOrder, in.propertyOrder)
+	for index, property := range in.property {
+		out.property[index] = clone.property(property)
 	}
 
-	switch value := self0.value.(type) {
-	case _functionObject:
-		self1.value = value.clone(clone)
+	switch value := in.value.(type) {
+	case _nativeFunctionObject:
+		out.value = value
+	case _bindFunctionObject:
+		out.value = _bindFunctionObject{
+			target:       clone.object(value.target),
+			this:         clone.value(value.this),
+			argumentList: clone.valueArray(value.argumentList),
+		}
+	case _nodeFunctionObject:
+		out.value = _nodeFunctionObject{
+			node:  value.node,
+			stash: clone.stash(value.stash),
+		}
 	case _argumentsObject:
-		self1.value = value.clone(clone)
+		out.value = value.clone(clone)
 	}
 
-	return self1
+	return out
 }

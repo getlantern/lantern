@@ -700,24 +700,22 @@ func Test_evalDirectIndirect(t *testing.T) {
 	tt(t, func() {
 		test, _ := test()
 
+		// (function () {return this;}()).abc = "global";
 		test(`
             var abc = "global";
             (function(){
                 try {
                     var _eval = eval;
                     var abc = "function";
-                    if (
-                        _eval("\'global\' === abc") === true && // eval (Indirect)
-                        eval("\'function\' === abc") === true // eval (Direct)
-                    ) {
-                        return true;
-                    }
-                    return false;
+                    return [
+                        _eval("\'global\' === abc"),  // eval (Indirect)
+                        eval("\'function\' === abc"), // eval (Direct)
+                    ];
                 } finally {
                     delete this.abc;
                 }
-            })()
-        `, true)
+            })();
+        `, "true,true")
 	})
 }
 
@@ -1109,11 +1107,11 @@ func TestOttoCall_clone(t *testing.T) {
 
 		{
 			// FIXME terst, Check how this comparison is done
-			is(rt.Global.Array.prototype, rt.Global.FunctionPrototype)
-			is(rt.Global.ArrayPrototype, "!=", nil)
-			is(rt.Global.Array.runtime, rt)
-			is(rt.Global.Array.prototype.runtime, rt)
-			is(rt.Global.Array.get("prototype")._object().runtime, rt)
+			is(rt.global.Array.prototype, rt.global.FunctionPrototype)
+			is(rt.global.ArrayPrototype, "!=", nil)
+			is(rt.global.Array.runtime, rt)
+			is(rt.global.Array.prototype.runtime, rt)
+			is(rt.global.Array.get("prototype")._object().runtime, rt)
 		}
 
 		{
@@ -1128,14 +1126,14 @@ func TestOttoCall_clone(t *testing.T) {
 			is(value, "1,2,3")
 			object := value._object()
 			is(object, "!=", nil)
-			is(object.prototype, rt.Global.ArrayPrototype)
+			is(object.prototype, rt.global.ArrayPrototype)
 
 			value, err = vm.Run(`Array.prototype`)
 			is(err, nil)
 			object = value._object()
 			is(object.runtime, rt)
 			is(object, "!=", nil)
-			is(object, rt.Global.ArrayPrototype)
+			is(object, rt.global.ArrayPrototype)
 		}
 
 		{

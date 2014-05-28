@@ -2,7 +2,6 @@ package otto
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math"
 	"net/url"
 	"regexp"
@@ -20,9 +19,10 @@ func builtinGlobal_eval(call FunctionCall) Value {
 	}
 	runtime := call.runtime
 	program := runtime.cmpl_parseOrThrow(toString(src))
-	if call.evalHint {
-		runtime.EnterEvalExecutionContext(call)
-		defer runtime.LeaveExecutionContext()
+	if !call.eval {
+		// Not a direct call to eval, so we enter the global ExecutionContext
+		runtime.enterGlobalScope()
+		defer runtime.leaveScope()
 	}
 	returnValue := runtime.cmpl_evaluate_nodeProgram(program)
 	if returnValue.isEmpty() {
@@ -351,43 +351,4 @@ func builtinGlobal_escape(call FunctionCall) Value {
 
 func builtinGlobal_unescape(call FunctionCall) Value {
 	return toValue_string(builtin_unescape(toString(call.Argument(0))))
-}
-
-// Error
-
-func builtinError(call FunctionCall) Value {
-	return toValue_object(call.runtime.newError("", call.Argument(0)))
-}
-
-func builtinNewError(self *_object, _ Value, argumentList []Value) Value {
-	return toValue_object(self.runtime.newError("", valueOfArrayIndex(argumentList, 0)))
-}
-
-func builtinError_toString(call FunctionCall) Value {
-	thisObject := call.thisObject()
-	if thisObject == nil {
-		panic(newTypeError())
-	}
-
-	name := "Error"
-	nameValue := thisObject.get("name")
-	if nameValue.IsDefined() {
-		name = toString(nameValue)
-	}
-
-	message := ""
-	messageValue := thisObject.get("message")
-	if messageValue.IsDefined() {
-		message = toString(messageValue)
-	}
-
-	if len(name) == 0 {
-		return toValue_string(message)
-	}
-
-	if len(message) == 0 {
-		return toValue_string(name)
-	}
-
-	return toValue_string(fmt.Sprintf("%s: %s", name, message))
 }

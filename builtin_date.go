@@ -21,7 +21,7 @@ func builtinDate(call FunctionCall) Value {
 	return toValue_string(date.Time().Format(builtinDate_goDateTimeLayout))
 }
 
-func builtinNewDate(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewDate(self *_object, argumentList []Value) Value {
 	return toValue_object(self.runtime.newDate(newDateTime(argumentList, Time.Local)))
 }
 

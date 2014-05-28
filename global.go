@@ -7,10 +7,10 @@ import (
 
 var (
 	prototypeValueObject   = interface{}(nil)
-	prototypeValueFunction = _functionObject{
-		call: _nativeCallFunction{"", func(_ FunctionCall) Value {
+	prototypeValueFunction = _nativeFunctionObject{
+		call: func(_ FunctionCall) Value {
 			return UndefinedValue()
-		}},
+		},
 	}
 	prototypeValueString = _stringASCII("")
 	// TODO Make this just false?
@@ -45,16 +45,15 @@ func newContext() *_runtime {
 
 	self := &_runtime{}
 
-	self.GlobalEnvironment = self.newObjectEnvironment(nil, nil)
-	self.GlobalObject = self.GlobalEnvironment.Object
+	self.globalStash = self.newObjectStash(nil, nil)
+	self.globalObject = self.globalStash.object
 
-	self.EnterGlobalExecutionContext()
+	self.enterGlobalScope()
 
 	_newContext(self)
 
-	self.eval = self.GlobalObject.property["eval"].value.(Value).value.(*_object)
-	self.GlobalObject.prototype = self.Global.ObjectPrototype
-	//self.parser = ast.NewParser()
+	self.eval = self.globalObject.property["eval"].value.(Value).value.(*_object)
+	self.globalObject.prototype = self.global.ObjectPrototype
 
 	return self
 }
@@ -94,13 +93,13 @@ func (self *_object) hasPrimitive() bool {
 
 func (runtime *_runtime) newObject() *_object {
 	self := runtime.newClassObject("Object")
-	self.prototype = runtime.Global.ObjectPrototype
+	self.prototype = runtime.global.ObjectPrototype
 	return self
 }
 
 func (runtime *_runtime) newArray(length uint32) *_object {
 	self := runtime.newArrayObject(length)
-	self.prototype = runtime.Global.ArrayPrototype
+	self.prototype = runtime.global.ArrayPrototype
 	return self
 }
 
@@ -117,19 +116,19 @@ func (runtime *_runtime) newArrayOf(valueArray []Value) *_object {
 
 func (runtime *_runtime) newString(value Value) *_object {
 	self := runtime.newStringObject(value)
-	self.prototype = runtime.Global.StringPrototype
+	self.prototype = runtime.global.StringPrototype
 	return self
 }
 
 func (runtime *_runtime) newBoolean(value Value) *_object {
 	self := runtime.newBooleanObject(value)
-	self.prototype = runtime.Global.BooleanPrototype
+	self.prototype = runtime.global.BooleanPrototype
 	return self
 }
 
 func (runtime *_runtime) newNumber(value Value) *_object {
 	self := runtime.newNumberObject(value)
-	self.prototype = runtime.Global.NumberPrototype
+	self.prototype = runtime.global.NumberPrototype
 	return self
 }
 
@@ -158,14 +157,14 @@ func (runtime *_runtime) newRegExp(patternValue Value, flagsValue Value) *_objec
 
 func (runtime *_runtime) _newRegExp(pattern string, flags string) *_object {
 	self := runtime.newRegExpObject(pattern, flags)
-	self.prototype = runtime.Global.RegExpPrototype
+	self.prototype = runtime.global.RegExpPrototype
 	return self
 }
 
 // TODO Should (probably) be one argument, right? This is redundant
 func (runtime *_runtime) newDate(epoch float64) *_object {
 	self := runtime.newDateObject(epoch)
-	self.prototype = runtime.Global.DatePrototype
+	self.prototype = runtime.global.DatePrototype
 	return self
 }
 
@@ -187,7 +186,7 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 	}
 
 	self = runtime.newErrorObject(message)
-	self.prototype = runtime.Global.ErrorPrototype
+	self.prototype = runtime.global.ErrorPrototype
 	if name != "" {
 		self.defineProperty("name", toValue_string(name), 0111, false)
 	}
@@ -196,19 +195,29 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 
 func (runtime *_runtime) newNativeFunction(name string, _nativeFunction _nativeFunction) *_object {
 	self := runtime.newNativeFunctionObject(name, _nativeFunction, 0)
-	self.prototype = runtime.Global.FunctionPrototype
+	self.prototype = runtime.global.FunctionPrototype
 	prototype := runtime.newObject()
 	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
 	prototype.defineProperty("constructor", toValue_object(self), 0100, false)
 	return self
 }
 
-func (runtime *_runtime) newNodeFunction(node *_nodeFunctionLiteral, scopeEnvironment _environment) *_object {
+func (runtime *_runtime) newNodeFunction(node *_nodeFunctionLiteral, scopeEnvironment _stash) *_object {
 	// TODO Implement 13.2 fully
 	self := runtime.newNodeFunctionObject(node, scopeEnvironment)
-	self.prototype = runtime.Global.FunctionPrototype
+	self.prototype = runtime.global.FunctionPrototype
 	prototype := runtime.newObject()
 	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
 	prototype.defineProperty("constructor", toValue_object(self), 0101, false)
+	return self
+}
+
+// FIXME Only in one place...
+func (runtime *_runtime) newBoundFunction(target *_object, this Value, argumentList []Value) *_object {
+	self := runtime.newBoundFunctionObject(target, this, argumentList)
+	self.prototype = runtime.global.FunctionPrototype
+	prototype := runtime.newObject()
+	self.defineProperty("prototype", toValue_object(prototype), 0100, false)
+	prototype.defineProperty("constructor", toValue_object(self), 0100, false)
 	return self
 }

@@ -242,7 +242,7 @@ func New() *Otto {
 	self := &Otto{
 		runtime: newContext(),
 	}
-	self.runtime.Otto = self
+	self.runtime.otto = self
 	self.Set("console", self.runtime.newConsole())
 
 	registry.Apply(func(entry registry.Entry) {
@@ -256,7 +256,7 @@ func (otto *Otto) clone() *Otto {
 	self := &Otto{
 		runtime: otto.runtime.clone(),
 	}
-	self.runtime.Otto = self
+	self.runtime.otto = self
 	return self
 }
 
@@ -304,7 +304,7 @@ func (self Otto) Get(name string) (Value, error) {
 }
 
 func (self Otto) getValue(name string) Value {
-	return self.runtime.GlobalEnvironment.GetValue(name, false)
+	return self.runtime.globalStash.getBinding(name, false)
 }
 
 // Set the top-level binding of the given name to the given value.
@@ -330,7 +330,7 @@ func (self Otto) Set(name string, value interface{}) error {
 }
 
 func (self Otto) setValue(name string, value Value) {
-	self.runtime.GlobalEnvironment.SetValue(name, value, false)
+	self.runtime.globalStash.setValue(name, value, false)
 }
 
 // Call the given JavaScript with a given this and arguments.
@@ -456,7 +456,7 @@ func (self *Otto) Copy() *Otto {
 	otto := &Otto{
 		runtime: self.runtime.clone(),
 	}
-	otto.runtime.Otto = otto
+	otto.runtime.otto = otto
 	return otto
 }
 

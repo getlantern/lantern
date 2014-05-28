@@ -85,7 +85,7 @@ func (value Value) IsNull() bool {
 func (value Value) isCallable() bool {
 	switch value := value.value.(type) {
 	case *_object:
-		return value.functionValue().call != nil
+		return value.isCall()
 	}
 	return false
 }
@@ -120,7 +120,7 @@ func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) 
 func (value Value) call(this Value, argumentList ...interface{}) Value {
 	switch function := value.value.(type) {
 	case *_object:
-		return function.Call(this, argumentList...)
+		return function.call(this, function.runtime.toValueArray(argumentList...), false)
 	}
 	panic(newTypeError())
 }
@@ -134,9 +134,9 @@ func (value Value) constructSafe(this Value, argumentList ...interface{}) (Value
 }
 
 func (value Value) construct(this Value, argumentList ...interface{}) Value {
-	switch function := value.value.(type) {
+	switch fn := value.value.(type) {
 	case *_object:
-		return function.Construct(this, argumentList...)
+		return fn.construct(fn.runtime.toValueArray(argumentList...))
 	}
 	panic(newTypeError())
 }

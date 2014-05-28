@@ -642,9 +642,9 @@ sub newContext {
             my $propertyOrder = $self->propertyOrder(@propertyMap);
             $propertyOrder =~ s/^propertyOrder: //;
             return
-            "runtime.GlobalObject.property =",
+            "runtime.globalObject.property =",
             @propertyMap,
-            "runtime.GlobalObject.propertyOrder =",
+            "runtime.globalObject.propertyOrder =",
             $propertyOrder,
             ;
         }),
@@ -666,7 +666,7 @@ sub block {
     while (@input) {
         local $_ = shift @input;
         if (m/^\./) {
-            $_ = "runtime.Global$_";
+            $_ = "runtime.global$_";
         }
         if (m/ :?=$/) {
             $_ .= shift @input;
@@ -712,7 +712,7 @@ sub globalDeclare {
     my @got;
     while (@_) {
         my $name = shift;
-        push @got, $self->property($name, $self->objectValue("runtime.Global.$name"), "0101"),
+        push @got, $self->property($name, $self->objectValue("runtime.global.$name"), "0101"),
     }
     return @got;
 }
@@ -743,7 +743,7 @@ sub globalObject {
     runtime: runtime,
     class: "$name",
     objectClass: _classObject,
-    prototype: runtime.Global.ObjectPrototype,
+    prototype: runtime.global.ObjectPrototype,
     extensible: true,
     $propertyMap
 }
@@ -757,7 +757,7 @@ sub globalFunction {
     
     my $builtin = "builtin${name}";
     my $builtinNew = "builtinNew${name}";
-    my $prototype = "runtime.Global.${name}Prototype";
+    my $prototype = "runtime.global.${name}Prototype";
     my $propertyMap = "";
     unshift @_,
         $self->property("length", $self->numberValue($length), "0"),
@@ -772,7 +772,7 @@ sub globalFunction {
 
     push @postblock, $self->statement(
         "$prototype.property[\"constructor\"] =",
-        $self->property(undef, $self->objectValue("runtime.Global.${name}"), "0101"),
+        $self->property(undef, $self->objectValue("runtime.global.${name}"), "0101"),
     );
 
     return trim <<_END_;
@@ -780,9 +780,9 @@ sub globalFunction {
     runtime: runtime,
     class: "Function",
     objectClass: _classObject,
-    prototype: runtime.Global.FunctionPrototype,
+    prototype: runtime.global.FunctionPrototype,
     extensible: true,
-    value: @{[ $self->functionOf($self->nativeCallFunction($name, $builtin), $builtinNew) ]},
+    value: @{[ $self->nativeFunctionOf($name, $builtin, $builtinNew) ]},
     $propertyMap
 }
 _END_
@@ -813,7 +813,7 @@ sub globalPrototype {
     }
 
     if ($prototype =~ m/^\./) {
-        $prototype = "runtime.Global$prototype";
+        $prototype = "runtime.global$prototype";
     }
 
     my $propertyMap = "";
@@ -869,11 +869,11 @@ sub newFunction {
     runtime: runtime,
     class: "Function",
     objectClass: _classObject,
-    prototype: runtime.Global.FunctionPrototype,
+    prototype: runtime.global.FunctionPrototype,
     extensible: true,
     property: @{[ join "\n", $self->propertyMap(@propertyMap) ]},
     $propertyOrder
-    value: @{[ $self->functionOf($self->nativeCallFunction($name, $func)) ]},
+    value: @{[ $self->nativeFunctionOf($name, $func) ]},
 } 
 _END_
     );
@@ -892,7 +892,7 @@ sub newObject {
     runtime: runtime,
     class: "Object",
     objectClass: _classObject,
-    prototype: runtime.Global.ObjectPrototype,
+    prototype: runtime.global.ObjectPrototype,
     extensible: true,
     property: $propertyMap,
     $propertyOrder,
@@ -917,7 +917,7 @@ sub newPrototypeObject {
     runtime: runtime,
     class: "$class",
     objectClass: $objectClass,
-    prototype: runtime.Global.ObjectPrototype,
+    prototype: runtime.global.ObjectPrototype,
     extensible: true,
     property: $propertyMap,
     $propertyOrder,
@@ -953,6 +953,26 @@ sub functionOf {
 
     return trim <<_END_
 _functionObject{
+    call: $call,
+    $construct
+}
+_END_
+}
+
+sub nativeFunctionOf {
+    my $self = shift;
+    my $name = shift;
+    my $call = shift;
+    my $construct = shift;
+    if ($construct) {
+        $construct = "construct: $construct,";
+    } else {
+        $construct = "";
+    }
+
+    return trim <<_END_
+_nativeFunctionObject{
+    name: "$name",
     call: $call,
     $construct
 }

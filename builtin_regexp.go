@@ -17,7 +17,7 @@ func builtinRegExp(call FunctionCall) Value {
 	return toValue_object(call.runtime.newRegExp(pattern, flags))
 }
 
-func builtinNewRegExp(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewRegExp(self *_object, argumentList []Value) Value {
 	return toValue_object(self.runtime.newRegExp(
 		valueOfArrayIndex(argumentList, 0),
 		valueOfArrayIndex(argumentList, 1),

@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, environment _environment, length int) *_object {
+func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, stash _stash, length int) *_object {
 	self := runtime.newClassObject("Arguments")
 
 	for index, _ := range indexOfParameterName {
@@ -15,10 +15,10 @@ func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, envir
 	self.objectClass = _classArguments
 	self.value = _argumentsObject{
 		indexOfParameterName: indexOfParameterName,
-		environment:          environment,
+		stash:                stash,
 	}
 
-	self.prototype = runtime.Global.ObjectPrototype
+	self.prototype = runtime.global.ObjectPrototype
 
 	self.defineProperty("length", toValue_int(length), 0101, false)
 
@@ -32,7 +32,7 @@ type _argumentsObject struct {
 	// indexOfParameterName[1] = "def"
 	// indexOfParameterName[2] = "ghi"
 	// ...
-	environment _environment
+	stash _stash
 }
 
 func (self0 _argumentsObject) clone(clone *_clone) _argumentsObject {
@@ -40,7 +40,7 @@ func (self0 _argumentsObject) clone(clone *_clone) _argumentsObject {
 	copy(indexOfParameterName, self0.indexOfParameterName)
 	return _argumentsObject{
 		indexOfParameterName,
-		clone.environment(self0.environment),
+		clone.stash(self0.stash),
 	}
 }
 
@@ -51,7 +51,7 @@ func (self _argumentsObject) get(name string) (Value, bool) {
 		if name == "" {
 			return Value{}, false
 		}
-		return self.environment.GetBindingValue(name, false), true
+		return self.stash.getBinding(name, false), true
 	}
 	return Value{}, false
 }
@@ -59,7 +59,7 @@ func (self _argumentsObject) get(name string) (Value, bool) {
 func (self _argumentsObject) put(name string, value Value) {
 	index := stringToArrayIndex(name)
 	name = self.indexOfParameterName[index]
-	self.environment.SetMutableBinding(name, value, false)
+	self.stash.setBinding(name, value, false)
 }
 
 func (self _argumentsObject) delete(name string) {

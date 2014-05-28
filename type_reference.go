@@ -1,85 +1,53 @@
 package otto
 
-import (
-	"github.com/robertkrimen/otto/ast"
-)
-
 type _reference interface {
-	GetBase() interface{}      // GetBase
-	GetName() string           // GetReferencedName
-	IsStrict() bool            // IsStrictReference
-	IsUnresolvable() bool      // IsUnresolvableReference
-	IsPropertyReference() bool // IsPropertyReference
-	GetValue() Value           // GetValue
-	PutValue(Value) bool       // PutValue
-	Delete() bool
-}
-
-// Reference
-
-type _referenceDefault struct {
-	name   string
-	strict bool
-}
-
-func (self _referenceDefault) GetName() string {
-	return self.name
-}
-
-func (self _referenceDefault) IsStrict() bool {
-	return self.strict
+	invalid() bool         // IsUnresolvableReference
+	getValue() Value       // getValue
+	putValue(Value) string // PutValue
+	delete() bool
 }
 
 // PropertyReference
 
 type _propertyReference struct {
-	_referenceDefault
-	Base *_object
+	name   string
+	strict bool
+	base   *_object
 }
 
 func newPropertyReference(base *_object, name string, strict bool) *_propertyReference {
 	return &_propertyReference{
-		Base: base,
-		_referenceDefault: _referenceDefault{
-			name:   name,
-			strict: strict,
-		},
+		name:   name,
+		strict: strict,
+		base:   base,
 	}
 }
 
-func (self *_propertyReference) GetBase() interface{} {
-	return self.Base
+func (self *_propertyReference) invalid() bool {
+	return self.base == nil
 }
 
-func (self *_propertyReference) IsUnresolvable() bool {
-	return self.Base == nil
-}
-
-func (self *_propertyReference) IsPropertyReference() bool {
-	return true
-}
-
-func (self *_propertyReference) GetValue() Value {
-	if self.Base == nil {
+func (self *_propertyReference) getValue() Value {
+	if self.base == nil {
 		panic(newReferenceError("notDefined", self.name))
 	}
-	return self.Base.get(self.name)
+	return self.base.get(self.name)
 }
 
-func (self *_propertyReference) PutValue(value Value) bool {
-	if self.Base == nil {
-		return false
+func (self *_propertyReference) putValue(value Value) string {
+	if self.base == nil {
+		return self.name
 	}
-	self.Base.put(self.name, value, self.IsStrict())
-	return true
+	self.base.put(self.name, value, self.strict)
+	return ""
 }
 
-func (self *_propertyReference) Delete() bool {
-	if self.Base == nil {
+func (self *_propertyReference) delete() bool {
+	if self.base == nil {
 		// TODO Throw an error if strict
 		return true
 	}
-	return self.Base.delete(self.name, self.IsStrict())
+	return self.base.delete(self.name, self.strict)
 }
 
 // ArgumentReference
@@ -91,67 +59,44 @@ func newArgumentReference(base *_object, name string, strict bool) *_propertyRef
 	return newPropertyReference(base, name, strict)
 }
 
-type _environmentReference struct {
-	_referenceDefault
-	Base _environment
-	node ast.Node
+type _stashReference struct {
+	name   string
+	strict bool
+	base   _stash
 }
 
-func newEnvironmentReference(base _environment, name string, strict bool, node ast.Node) *_environmentReference {
-	return &_environmentReference{
-		Base: base,
-		_referenceDefault: _referenceDefault{
-			name:   name,
-			strict: strict,
-		},
-		node: node,
-	}
+func (self *_stashReference) invalid() bool {
+	return false // The base (an environment) will never be nil
 }
 
-func (self *_environmentReference) GetBase() interface{} {
-	return self.Base
-}
-
-func (self *_environmentReference) IsUnresolvable() bool {
-	return self.Base == nil // The base (an environment) will never be nil
-}
-
-func (self *_environmentReference) IsPropertyReference() bool {
-	return false
-}
-
-func (self *_environmentReference) GetValue() Value {
-	if self.Base == nil {
+func (self *_stashReference) getValue() Value {
+	if self.base == nil {
 		// This should never be reached, but just in case
 	}
-	return self.Base.GetValue(self.name, self.IsStrict())
+	return self.base.getBinding(self.name, self.strict)
 }
 
-func (self *_environmentReference) PutValue(value Value) bool {
-	if self.Base == nil {
+func (self *_stashReference) putValue(value Value) string {
+	self.base.setValue(self.name, value, self.strict)
+	return ""
+}
+
+func (self *_stashReference) delete() bool {
+	if self.base == nil {
 		// This should never be reached, but just in case
 		return false
 	}
-	self.Base.SetValue(self.name, value, self.IsStrict())
-	return true
-}
-
-func (self *_environmentReference) Delete() bool {
-	if self.Base == nil {
-		// This should never be reached, but just in case
-		return false
-	}
-	return self.Base.DeleteBinding(self.name)
+	return self.base.deleteBinding(self.name)
 }
 
 // getIdentifierReference
 
-func getIdentifierReference(environment _environment, name string, strict bool) _reference {
-	if environment == nil {
+func getIdentifierReference(stash _stash, name string, strict bool) _reference {
+	if stash == nil {
 		return newPropertyReference(nil, name, strict)
 	}
-	if environment.HasBinding(name) {
-		return environment.newReference(name, strict)
+	if stash.hasBinding(name) {
+		return stash.newReference(name, strict)
 	}
-	return getIdentifierReference(environment.Outer(), name, strict)
+	return getIdentifierReference(stash.outer(), name, strict)
 }

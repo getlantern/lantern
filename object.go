@@ -85,8 +85,9 @@ func (self *_object) DefaultValue(hint _defaultValueHint) Value {
 	}
 	for _, methodName := range methodSequence {
 		method := self.get(methodName)
+		// FIXME This is redundant...
 		if method.isCallable() {
-			result := method._object().Call(toValue_object(self))
+			result := method._object().call(toValue_object(self), nil, false)
 			if result.IsPrimitive() {
 				return result
 			}

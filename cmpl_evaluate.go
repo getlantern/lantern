@@ -10,7 +10,7 @@ func (self *_runtime) cmpl_evaluate_nodeProgram(node *_nodeProgram) Value {
 	return self.cmpl_evaluate_nodeStatementList(node.body)
 }
 
-func (self *_runtime) cmpl_call_nodeFunction(function *_object, environment *_functionEnvironment, node *_nodeFunctionLiteral, this Value, argumentList []Value) Value {
+func (self *_runtime) cmpl_call_nodeFunction(function *_object, stash *_fnStash, node *_nodeFunctionLiteral, this Value, argumentList []Value) Value {
 
 	indexOfParameterName := make([]string, len(argumentList))
 	// function(abc, def, ghi)
@@ -29,14 +29,16 @@ func (self *_runtime) cmpl_call_nodeFunction(function *_object, environment *_fu
 			value = argumentList[index]
 			indexOfParameterName[index] = name
 		}
-		self.localSet(name, value)
+		// strict = false
+		self.scope.lexical.setValue(name, value, false)
 	}
 
 	if !argumentsFound {
-		arguments := self.newArgumentsObject(indexOfParameterName, environment, len(argumentList))
+		arguments := self.newArgumentsObject(indexOfParameterName, stash, len(argumentList))
 		arguments.defineProperty("callee", toValue_object(function), 0101, false)
-		environment.arguments = arguments
-		self.localSet("arguments", toValue_object(arguments))
+		stash.arguments = arguments
+		// strict = false
+		self.scope.lexical.setValue("arguments", toValue_object(arguments), false)
 		for index, _ := range argumentList {
 			if index < len(node.parameterList) {
 				continue
@@ -58,30 +60,30 @@ func (self *_runtime) cmpl_call_nodeFunction(function *_object, environment *_fu
 }
 
 func (self *_runtime) cmpl_functionDeclaration(list []*_nodeFunctionLiteral) {
-	executionContext := self._executionContext(0)
+	executionContext := self.scope
 	eval := executionContext.eval
-	environment := executionContext.VariableEnvironment
+	stash := executionContext.variable
 
 	for _, function := range list {
 		name := function.name
 		value := self.cmpl_evaluate_nodeExpression(function)
-		if !environment.HasBinding(name) {
-			environment.CreateMutableBinding(name, eval == true)
+		if !stash.hasBinding(name) {
+			stash.createBinding(name, eval == true, value)
+		} else {
+			// TODO 10.5.5.e
+			stash.setBinding(name, value, false) // TODO strict
 		}
-		// TODO 10.5.5.e
-		environment.SetMutableBinding(name, value, false) // TODO strict
 	}
 }
 
 func (self *_runtime) cmpl_variableDeclaration(list []string) {
-	executionContext := self._executionContext(0)
+	executionContext := self.scope
 	eval := executionContext.eval
-	environment := executionContext.VariableEnvironment
+	stash := executionContext.variable
 
 	for _, name := range list {
-		if !environment.HasBinding(name) {
-			environment.CreateMutableBinding(name, eval == true)
-			environment.SetMutableBinding(name, UndefinedValue(), false) // TODO strict
+		if !stash.hasBinding(name) {
+			stash.createBinding(name, eval == true, UndefinedValue()) // TODO strict?
 		}
 	}
 }

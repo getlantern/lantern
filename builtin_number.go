@@ -18,7 +18,7 @@ func builtinNumber(call FunctionCall) Value {
 	return numberValueFromNumberArgumentList(call.ArgumentList)
 }
 
-func builtinNewNumber(self *_object, _ Value, argumentList []Value) Value {
+func builtinNewNumber(self *_object, argumentList []Value) Value {
 	return toValue_object(self.runtime.newNumber(numberValueFromNumberArgumentList(argumentList)))
 }
 
