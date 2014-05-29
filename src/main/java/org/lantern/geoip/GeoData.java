@@ -51,9 +51,11 @@ class Country {
 }
 
 public class GeoData {
-  private static final Logger log = LoggerFactory.getLogger(GeoData.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GeoData.class);
 
-  private static final String LOOKUP_URL = "http://go-geoserve.herokuapp.com/lookup/";
+  private static final String LOOKUP_URL = 
+                        "http://go-geoserve.herokuapp.com/lookup/";
+
   private Country Country;
   private Location Location;
 
@@ -79,12 +81,11 @@ public class GeoData {
       final String geoStr = IOUtils.toString(is);
       return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
     } catch (ClientProtocolException e) {
-      // TODO Auto-generated catch block
-      log.error("Error connecting to geo lookup service");
-      e.printStackTrace();
+      LOGGER.warn("Error connecting to geo lookup service " + 
+          e.getMessage(), e);
     } catch (IOException e) {
-      log.error("Error parsing JSON from geo lookup service");  
-      e.printStackTrace();
+      LOGGER.warn("Error parsing JSON from geo lookup " + 
+          e.getMessage(), e);
     }
     finally {
       IOUtils.closeQuietly(is);
