@@ -22,9 +22,9 @@ func newReturnResult(value Value) _result {
 }
 
 func newContinueResult(target string) _result {
-	return _result{resultContinue, emptyValue(), target}
+	return _result{resultContinue, emptyValue, target}
 }
 
 func newBreakResult(target string) _result {
-	return _result{resultBreak, emptyValue(), target}
+	return _result{resultBreak, emptyValue, target}
 }

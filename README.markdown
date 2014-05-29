@@ -60,7 +60,7 @@ Set a Go function
 
     vm.Set("sayHello", func(call otto.FunctionCall) otto.Value {
         fmt.Printf("Hello, %s.\n", call.Argument(0).String())
-        return otto.UndefinedValue()
+        return otto.Value{}
     })
 
 Set a Go function that returns something useful
@@ -420,12 +420,12 @@ func (self *Otto) Copy() *Otto
 ```
 Copy will create a copy/clone of the runtime.
 
-Copy is useful for saving some processing time when creating many similar
-runtimes.
+Copy is useful for saving some time when creating many similar runtimes.
 
-This implementation is alpha-ish, and works by introspecting every part of the
-runtime and reallocating and then relinking everything back together. Please
-report if you notice any inadvertent sharing of data between copies.
+This method works by walking the original runtime and cloning each object,
+scope, stash, etc. into a new runtime.
+
+Be on the lookout for memory leaks or inadvertent sharing of resources.
 
 #### func (Otto) Get
 
@@ -562,12 +562,10 @@ NullValue will return a Value representing null.
 func ToValue(value interface{}) (Value, error)
 ```
 ToValue will convert an interface{} value to a value digestible by
-otto/JavaScript This function will not work for advanced types (struct, map,
-slice/array, etc.) and you probably should not use it.
+otto/JavaScript
 
-ToValue may be deprecated and removed in the near future.
-
-Try Otto.ToValue for a replacement.
+This function will not work for advanced types (struct, map, slice/array, etc.)
+and you should use Otto.ToValue instead.
 
 #### func  TrueValue
 
@@ -630,15 +628,13 @@ func (self Value) Export() (interface{}, error)
 Export will attempt to convert the value to a Go representation and return it
 via an interface{} kind.
 
-WARNING: The interface function will be changing soon to:
+Export returns an error, but it will always be nil. It is present for backwards
+compatibility.
 
-    Export() interface{}
+If a reasonable conversion is not possible, then the original value is returned.
 
-If a reasonable conversion is not possible, then the original result is
-returned.
-
-    undefined   -> otto.Value (UndefinedValue())
-    null        -> interface{}(nil)
+    undefined   -> nil (FIXME?: Should be Value{})
+    null        -> nil
     boolean     -> bool
     number      -> A number type (int, float32, uint64, ...)
     string      -> string

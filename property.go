@@ -88,7 +88,7 @@ func (self _property) get(this *_object) Value {
 			return value[0].call(toValue(this), nil, false)
 		}
 	}
-	return UndefinedValue()
+	return Value{}
 }
 
 func (self _property) isAccessorDescriptor() bool {
@@ -203,11 +203,11 @@ func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
 		object.defineProperty("writable", toValue_bool(descriptor.writable()), 0111, false)
 	} else if descriptor.isAccessorDescriptor() {
 		getSet := descriptor.value.(_propertyGetSet)
-		get := UndefinedValue()
+		get := Value{}
 		if getSet[0] != nil {
 			get = toValue_object(getSet[0])
 		}
-		set := UndefinedValue()
+		set := Value{}
 		if getSet[1] != nil {
 			set = toValue_object(getSet[1])
 		}

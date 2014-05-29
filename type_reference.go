@@ -70,9 +70,6 @@ func (self *_stashReference) invalid() bool {
 }
 
 func (self *_stashReference) getValue() Value {
-	if self.base == nil {
-		// This should never be reached, but just in case
-	}
 	return self.base.getBinding(self.name, self.strict)
 }
 

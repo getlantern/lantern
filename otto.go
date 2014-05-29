@@ -57,7 +57,7 @@ Set a Go function
 
     vm.Set("sayHello", func(call otto.FunctionCall) otto.Value {
         fmt.Printf("Hello, %s.\n", call.Argument(0).String())
-        return otto.UndefinedValue()
+        return otto.Value{}
     })
 
 Set a Go function that returns something useful
@@ -272,7 +272,7 @@ func (otto *Otto) clone() *Otto {
 //
 func Run(src interface{}) (*Otto, Value, error) {
 	otto := New()
-	value, err := otto.Run(src)
+	value, err := otto.Run(src) // This already does safety checking
 	return otto, value, err
 }
 
@@ -288,7 +288,11 @@ func Run(src interface{}) (*Otto, Value, error) {
 // src may also be a Program, but if the AST has been modified, then runtime behavior is undefined.
 //
 func (self Otto) Run(src interface{}) (Value, error) {
-	return self.runtime.cmpl_run(src)
+	value, err := self.runtime.cmpl_run(src)
+	if !value.safe() {
+		value = Value{}
+	}
+	return value, err
 }
 
 // Get the value of the top-level binding of the given name.
@@ -296,10 +300,13 @@ func (self Otto) Run(src interface{}) (Value, error) {
 // If there is an error (like the binding does not exist), then the value
 // will be undefined.
 func (self Otto) Get(name string) (Value, error) {
-	value := UndefinedValue()
+	value := Value{}
 	err := catchPanic(func() {
 		value = self.getValue(name)
 	})
+	if !value.safe() {
+		value = Value{}
+	}
 	return value, err
 }
 
@@ -355,7 +362,7 @@ func (self Otto) setValue(name string, value Value) {
 //
 func (self Otto) Call(source string, this interface{}, argumentList ...interface{}) (Value, error) {
 
-	thisValue := UndefinedValue()
+	thisValue := Value{}
 
 	construct := false
 	if strings.HasPrefix(source, "new ") {
@@ -373,7 +380,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 						value = self.runtime.cmpl_evaluate_nodeCallExpression(node, argumentList)
 					})
 					if err != nil {
-						return UndefinedValue(), err
+						return Value{}, err
 					}
 					return value, nil
 				}
@@ -382,7 +389,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 	} else {
 		value, err := self.ToValue(this)
 		if err != nil {
-			return UndefinedValue(), err
+			return Value{}, err
 		}
 		thisValue = value
 	}
@@ -392,20 +399,20 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 
 		fn, err := self.Run(source)
 		if err != nil {
-			return UndefinedValue(), err
+			return Value{}, err
 		}
 
 		if construct {
 			result, err := fn.constructSafe(this, argumentList...)
 			if err != nil {
-				return UndefinedValue(), err
+				return Value{}, err
 			}
 			return result, nil
 		}
 
 		result, err := fn.Call(this, argumentList...)
 		if err != nil {
-			return UndefinedValue(), err
+			return Value{}, err
 		}
 		return result, nil
 	}
@@ -441,17 +448,17 @@ func (self Otto) Object(source string) (*Object, error) {
 
 // ToValue will convert an interface{} value to a value digestible by otto/JavaScript.
 func (self Otto) ToValue(value interface{}) (Value, error) {
-	return self.runtime.ToValue(value)
+	return self.runtime.safeToValue(value)
 }
 
 // Copy will create a copy/clone of the runtime.
 //
-// Copy is useful for saving some processing time when creating many similar
-// runtimes.
+// Copy is useful for saving some time when creating many similar runtimes.
 //
-// This implementation is alpha-ish, and works by introspecting every part of the runtime
-// and reallocating and then relinking everything back together. Please report if you
-// notice any inadvertent sharing of data between copies.
+// This method works by walking the original runtime and cloning each object, scope, stash,
+// etc. into a new runtime.
+//
+// Be on the lookout for memory leaks or inadvertent sharing of resources.
 func (self *Otto) Copy() *Otto {
 	otto := &Otto{
 		runtime: self.runtime.clone(),
@@ -495,7 +502,7 @@ func (self Object) Call(name string, argumentList ...interface{}) (Value, error)
 
 	function, err := self.Get(name)
 	if err != nil {
-		return UndefinedValue(), err
+		return Value{}, err
 	}
 	return function.Call(self.Value(), argumentList...)
 }
@@ -507,10 +514,13 @@ func (self Object) Value() Value {
 
 // Get the value of the property with the given name.
 func (self Object) Get(name string) (Value, error) {
-	value := UndefinedValue()
+	value := Value{}
 	err := catchPanic(func() {
 		value = self.object.get(name)
 	})
+	if !value.safe() {
+		value = Value{}
+	}
 	return value, err
 }
 
@@ -520,7 +530,7 @@ func (self Object) Get(name string) (Value, error) {
 // or there is an error during conversion of the given value.
 func (self Object) Set(name string, value interface{}) error {
 	{
-		value, err := self.object.runtime.ToValue(value)
+		value, err := self.object.runtime.safeToValue(value)
 		if err != nil {
 			return err
 		}

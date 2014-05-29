@@ -193,7 +193,7 @@ func objectGet(self *_object, name string) Value {
 	if property != nil {
 		return property.get(self)
 	}
-	return UndefinedValue()
+	return Value{}
 }
 
 // 8.12.4

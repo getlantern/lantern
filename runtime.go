@@ -75,7 +75,7 @@ func (self *_runtime) enterFunctionScope(outer _stash, this Value) *_fnStash {
 	}
 	stash := self.newFunctionStash(outer)
 	var thisObject *_object
-	switch this._valueType {
+	switch this.kind {
 	case valueUndefined, valueNull:
 		thisObject = self.globalObject
 	default:
@@ -85,15 +85,7 @@ func (self *_runtime) enterFunctionScope(outer _stash, this Value) *_fnStash {
 	return stash
 }
 
-// FIXME getValue => Value.resolve()
-func (self *_runtime) getValue(value Value) Value {
-	if value._valueType == valueReference {
-		return value.reference().getValue()
-	}
-	return value
-}
-
-func (self *_runtime) PutValue(reference _reference, value Value) {
+func (self *_runtime) putValue(reference _reference, value Value) {
 	name := reference.putValue(value)
 	if name != "" {
 		// Why? -- If reference.base == nil
@@ -136,7 +128,7 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 // toObject
 
 func (self *_runtime) toObject(value Value) *_object {
-	switch value._valueType {
+	switch value.kind {
 	case valueEmpty, valueUndefined, valueNull:
 		panic(newTypeError())
 	case valueBoolean:
@@ -152,7 +144,7 @@ func (self *_runtime) toObject(value Value) *_object {
 }
 
 func (self *_runtime) objectCoerce(value Value) (*_object, error) {
-	switch value._valueType {
+	switch value.kind {
 	case valueUndefined:
 		return nil, errors.New("undefined")
 	case valueNull:
@@ -179,7 +171,7 @@ func checkObjectCoercible(value Value) {
 // testObjectCoercible
 
 func testObjectCoercible(value Value) (isObject bool, mustCoerce bool) {
-	switch value._valueType {
+	switch value.kind {
 	case valueReference, valueEmpty, valueNull, valueUndefined:
 		return false, false
 	case valueNumber, valueString, valueBoolean:
@@ -192,8 +184,8 @@ func testObjectCoercible(value Value) (isObject bool, mustCoerce bool) {
 	return
 }
 
-func (self *_runtime) ToValue(value interface{}) (Value, error) {
-	result := UndefinedValue()
+func (self *_runtime) safeToValue(value interface{}) (Value, error) {
+	result := Value{}
 	err := catchPanic(func() {
 		result = self.toValue(value)
 	})
@@ -235,7 +227,7 @@ func (self *_runtime) toValue(value interface{}) Value {
 					if len(out) == 1 {
 						return self.toValue(out[0].Interface())
 					} else if len(out) == 0 {
-						return UndefinedValue()
+						return Value{}
 					}
 
 					panic(newTypeError())
@@ -290,7 +282,7 @@ func (self *_runtime) parseSource(src interface{}) (*_nodeProgram, *ast.Program,
 }
 
 func (self *_runtime) cmpl_run(src interface{}) (Value, error) {
-	result := UndefinedValue()
+	result := Value{}
 	cmpl_program, program, err := self.parseSource(src)
 	if err != nil {
 		return result, err
@@ -301,11 +293,11 @@ func (self *_runtime) cmpl_run(src interface{}) (Value, error) {
 	err = catchPanic(func() {
 		result = self.cmpl_evaluate_nodeProgram(cmpl_program)
 	})
-	switch result._valueType {
+	switch result.kind {
 	case valueEmpty:
-		result = UndefinedValue()
+		result = Value{}
 	case valueReference:
-		result = self.getValue(result)
+		result = result.resolve()
 	}
 	return result, err
 }

@@ -98,7 +98,7 @@ func (self *_objectStash) getBinding(name string, throw bool) Value {
 	if throw { // strict?
 		panic(newReferenceError("Not Defined", name))
 	}
-	return UndefinedValue()
+	return Value{}
 }
 
 func (self *_objectStash) deleteBinding(name string) bool {
@@ -208,7 +208,7 @@ func (self *_dclStash) getBinding(name string, throw bool) Value {
 		if throw { // strict?
 			panic(newTypeError())
 		}
-		return UndefinedValue()
+		return Value{}
 	}
 	return property.value
 }

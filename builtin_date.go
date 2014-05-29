@@ -71,7 +71,7 @@ func builtinDate_toJSON(call FunctionCall) Value {
 	{                                                    // FIXME value.isFinite
 		value := toFloat(value)
 		if math.IsNaN(value) || math.IsInf(value, 0) {
-			return NullValue()
+			return nullValue
 		}
 	}
 	toISOString := object.get("toISOString")

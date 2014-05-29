@@ -45,7 +45,7 @@ func messageFromDescription(description string, argumentList ...interface{}) str
 
 func (self _error) MessageValue() Value {
 	if self.Message == "" {
-		return UndefinedValue()
+		return Value{}
 	}
 	return toValue_string(self.Message)
 }

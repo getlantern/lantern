@@ -26,7 +26,7 @@ func builtinGlobal_eval(call FunctionCall) Value {
 	}
 	returnValue := runtime.cmpl_evaluate_nodeProgram(program)
 	if returnValue.isEmpty() {
-		return UndefinedValue()
+		return Value{}
 	}
 	return returnValue
 }

@@ -8,7 +8,7 @@ import (
 
 func builtinObject(call FunctionCall) Value {
 	value := call.Argument(0)
-	switch value._valueType {
+	switch value.kind {
 	case valueUndefined, valueNull:
 		return toValue_object(call.runtime.newObject())
 	}
@@ -18,7 +18,7 @@ func builtinObject(call FunctionCall) Value {
 
 func builtinNewObject(self *_object, argumentList []Value) Value {
 	value := valueOfArrayIndex(argumentList, 0)
-	switch value._valueType {
+	switch value.kind {
 	case valueNull, valueUndefined:
 	case valueNumber, valueString, valueBoolean:
 		return toValue_object(self.runtime.toObject(value))
@@ -42,17 +42,17 @@ func builtinObject_hasOwnProperty(call FunctionCall) Value {
 func builtinObject_isPrototypeOf(call FunctionCall) Value {
 	value := call.Argument(0)
 	if !value.IsObject() {
-		return FalseValue()
+		return falseValue
 	}
 	prototype := call.toObject(value).prototype
 	thisObject := call.thisObject()
 	for prototype != nil {
 		if thisObject == prototype {
-			return TrueValue()
+			return trueValue
 		}
 		prototype = prototype.prototype
 	}
-	return FalseValue()
+	return falseValue
 }
 
 func builtinObject_propertyIsEnumerable(call FunctionCall) Value {
@@ -60,9 +60,9 @@ func builtinObject_propertyIsEnumerable(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	property := thisObject.getOwnProperty(propertyName)
 	if property != nil && property.enumerable() {
-		return TrueValue()
+		return trueValue
 	}
-	return FalseValue()
+	return falseValue
 }
 
 func builtinObject_toString(call FunctionCall) Value {
@@ -93,7 +93,7 @@ func builtinObject_getPrototypeOf(call FunctionCall) Value {
 	}
 
 	if object.prototype == nil {
-		return NullValue()
+		return nullValue
 	}
 
 	return toValue_object(object.prototype)
@@ -109,7 +109,7 @@ func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
 	name := toString(call.Argument(1))
 	descriptor := object.getOwnProperty(name)
 	if descriptor == nil {
-		return UndefinedValue()
+		return Value{}
 	}
 	return toValue_object(call.runtime.fromPropertyDescriptor(*descriptor))
 }

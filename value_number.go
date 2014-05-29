@@ -42,14 +42,14 @@ func stringToFloat(value string) float64 {
 }
 
 func toNumber(value Value) Value {
-	if value._valueType == valueNumber {
+	if value.kind == valueNumber {
 		return value
 	}
 	return Value{valueNumber, toFloat(value)}
 }
 
 func toFloat(value Value) float64 {
-	switch value._valueType {
+	switch value.kind {
 	case valueUndefined:
 		return math.NaN()
 	case valueNull:

@@ -16,33 +16,33 @@ func formatForConsole(argumentList []Value) string {
 
 func builtinConsole_log(call FunctionCall) Value {
 	fmt.Fprintln(os.Stdout, formatForConsole(call.ArgumentList))
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinConsole_error(call FunctionCall) Value {
 	fmt.Fprintln(os.Stdout, formatForConsole(call.ArgumentList))
-	return UndefinedValue()
+	return Value{}
 }
 
 // Nothing happens.
 func builtinConsole_dir(call FunctionCall) Value {
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinConsole_time(call FunctionCall) Value {
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinConsole_timeEnd(call FunctionCall) Value {
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinConsole_trace(call FunctionCall) Value {
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinConsole_assert(call FunctionCall) Value {
-	return UndefinedValue()
+	return Value{}
 }
 
 func (runtime *_runtime) newConsole() *_object {

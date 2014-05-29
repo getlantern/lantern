@@ -30,7 +30,7 @@ func builtinJSON_parse(call FunctionCall) Value {
 	}
 	value, exists := builtinJSON_parseWalk(ctx, root)
 	if !exists {
-		value = UndefinedValue()
+		value = Value{}
 	}
 	if revive {
 		root := ctx.call.runtime.newObject()
@@ -72,7 +72,7 @@ func builtinJSON_reviveWalk(ctx _builtinJSON_parseContext, holder *_object, name
 func builtinJSON_parseWalk(ctx _builtinJSON_parseContext, rawValue interface{}) (Value, bool) {
 	switch value := rawValue.(type) {
 	case nil:
-		return NullValue(), true
+		return nullValue, true
 	case bool:
 		return toValue_bool(value), true
 	case string:
@@ -121,7 +121,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 			length = 0
 			for index, _ := range propertyList {
 				value := replacer.get(arrayIndexToString(int64(index)))
-				switch value._valueType {
+				switch value.kind {
 				case valueObject:
 					switch value.value.(*_object).class {
 					case "String":
@@ -149,7 +149,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 		}
 	}
 	if spaceValue, exists := call.getArgument(2); exists {
-		if spaceValue._valueType == valueObject {
+		if spaceValue.kind == valueObject {
 			switch spaceValue.value.(*_object).class {
 			case "String":
 				spaceValue = toValue_string(toString(spaceValue))
@@ -157,7 +157,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 				spaceValue = toNumber(spaceValue)
 			}
 		}
-		switch spaceValue._valueType {
+		switch spaceValue.kind {
 		case valueString:
 			value := toString(spaceValue)
 			if len(value) > 10 {
@@ -179,7 +179,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 	holder.put("", call.Argument(0), false)
 	value, exists := builtinJSON_stringifyWalk(ctx, "", holder)
 	if !exists {
-		return UndefinedValue()
+		return Value{}
 	}
 	valueJSON, err := json.Marshal(value)
 	if err != nil {
@@ -215,7 +215,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 		value = (*ctx.replacerFunction).call(toValue_object(holder), key, value)
 	}
 
-	if value._valueType == valueObject {
+	if value.kind == valueObject {
 		switch value.value.(*_object).class {
 		case "Boolean":
 			value = value._object().value.(Value)
@@ -226,7 +226,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 		}
 	}
 
-	switch value._valueType {
+	switch value.kind {
 	case valueBoolean:
 		return toBoolean(value), true
 	case valueString:

@@ -45,7 +45,7 @@ func builtinRegExp_exec(call FunctionCall) Value {
 	target := toString(call.Argument(0))
 	match, result := execRegExp(thisObject, target)
 	if !match {
-		return NullValue()
+		return nullValue
 	}
 	return toValue_object(execResultToArray(call.runtime, target, result))
 }
@@ -61,5 +61,5 @@ func builtinRegExp_compile(call FunctionCall) Value {
 	// This (useless) function is deprecated, but is here to provide some
 	// semblance of compatibility.
 	// Caveat emptor: it may not be around for long.
-	return UndefinedValue()
+	return Value{}
 }

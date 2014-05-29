@@ -13,11 +13,11 @@ func toPrimitive(value Value) Value {
 }
 
 func _toPrimitive(value Value, hint _defaultValueHint) Value {
-	switch value._valueType {
+	switch value.kind {
 	case valueNull, valueUndefined, valueNumber, valueString, valueBoolean:
 		return value
 	case valueObject:
 		return value._object().DefaultValue(hint)
 	}
-	panic(hereBeDragons(value._valueType, value))
+	panic(hereBeDragons(value.kind, value))
 }

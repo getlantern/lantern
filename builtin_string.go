@@ -125,13 +125,13 @@ func builtinString_match(call FunctionCall) Value {
 	matcherValue := call.Argument(0)
 	matcher := matcherValue._object()
 	if !matcherValue.IsObject() || matcher.class != "RegExp" {
-		matcher = call.runtime.newRegExp(matcherValue, UndefinedValue())
+		matcher = call.runtime.newRegExp(matcherValue, Value{})
 	}
 	global := toBoolean(matcher.get("global"))
 	if !global {
 		match, result := execRegExp(matcher, target)
 		if !match {
-			return NullValue()
+			return nullValue
 		}
 		return toValue_object(execResultToArray(call.runtime, target, result))
 	}
@@ -141,7 +141,7 @@ func builtinString_match(call FunctionCall) Value {
 		matchCount := len(result)
 		if result == nil {
 			matcher.put("lastIndex", toValue_int(0), true)
-			return UndefinedValue() // !match
+			return Value{} // !match
 		}
 		matchCount = len(result)
 		valueArray := make([]Value, matchCount)
@@ -232,12 +232,12 @@ func builtinString_replace(call FunctionCall) Value {
 					if match[offset] != -1 {
 						argumentList[index] = toValue_string(target[match[offset]:match[offset+1]])
 					} else {
-						argumentList[index] = UndefinedValue()
+						argumentList[index] = Value{}
 					}
 				}
 				argumentList[matchCount+0] = toValue_int(match[0])
 				argumentList[matchCount+1] = toValue_string(target)
-				replacement := toString(replace.call(UndefinedValue(), argumentList, false))
+				replacement := toString(replace.call(Value{}, argumentList, false))
 				result = append(result, []byte(replacement)...)
 				lastIndex = match[1]
 			}
@@ -261,7 +261,7 @@ func builtinString_replace(call FunctionCall) Value {
 		return toValue_string(string(result))
 	}
 
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinString_search(call FunctionCall) Value {
@@ -270,7 +270,7 @@ func builtinString_search(call FunctionCall) Value {
 	searchValue := call.Argument(0)
 	search := searchValue._object()
 	if !searchValue.IsObject() || search.class != "RegExp" {
-		search = call.runtime.newRegExp(searchValue, UndefinedValue())
+		search = call.runtime.newRegExp(searchValue, Value{})
 	}
 	result := search.regExpValue().regularExpression.FindStringIndex(target)
 	if result == nil {
@@ -343,7 +343,7 @@ func builtinString_split(call FunctionCall) Value {
 			captureCount := len(match) / 2
 			for index := 1; index < captureCount; index++ {
 				offset := index * 2
-				value := UndefinedValue()
+				value := Value{}
 				if match[offset] != -1 {
 					value = toValue_string(target[match[offset]:match[offset+1]])
 				}
@@ -390,7 +390,7 @@ func builtinString_split(call FunctionCall) Value {
 		return toValue_object(call.runtime.newArrayOf(valueArray))
 	}
 
-	return UndefinedValue()
+	return Value{}
 }
 
 func builtinString_slice(call FunctionCall) Value {

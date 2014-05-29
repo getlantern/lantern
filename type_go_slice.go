@@ -56,7 +56,7 @@ func goSliceGetOwnProperty(self *_object, name string) *_property {
 	// .0, .1, .2, ...
 	index := stringToArrayIndex(name)
 	if index >= 0 {
-		value := UndefinedValue()
+		value := Value{}
 		reflectValue, exists := self.value.(*_goSliceObject).getValue(index)
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())

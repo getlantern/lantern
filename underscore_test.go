@@ -44,9 +44,9 @@ func (self *_tester) underscore() {
 			t := terst.Caller().T()
 			is(message, nil)
 			t.Fail()
-			return FalseValue()
+			return falseValue
 		}
-		return TrueValue()
+		return trueValue
 	})
 
 	vm.Run(`

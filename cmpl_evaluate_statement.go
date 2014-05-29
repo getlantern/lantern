@@ -37,13 +37,13 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 		}
 
 	case *_nodeDebuggerStatement:
-		return Value{} // Nothing happens.
+		return emptyValue // Nothing happens.
 
 	case *_nodeDoWhileStatement:
 		return self.cmpl_evaluate_nodeDoWhileStatement(node)
 
 	case *_nodeEmptyStatement:
-		return Value{}
+		return emptyValue
 
 	case *_nodeExpressionStatement:
 		return self.cmpl_evaluate_nodeExpression(node.expression)
@@ -70,15 +70,15 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 
 	case *_nodeReturnStatement:
 		if node.argument != nil {
-			return toValue(newReturnResult(self.getValue(self.cmpl_evaluate_nodeExpression(node.argument))))
+			return toValue(newReturnResult(self.cmpl_evaluate_nodeExpression(node.argument).resolve()))
 		}
-		return toValue(newReturnResult(UndefinedValue()))
+		return toValue(newReturnResult(Value{}))
 
 	case *_nodeSwitchStatement:
 		return self.cmpl_evaluate_nodeSwitchStatement(node)
 
 	case *_nodeThrowStatement:
-		value := self.getValue(self.cmpl_evaluate_nodeExpression(node.argument))
+		value := self.cmpl_evaluate_nodeExpression(node.argument).resolve()
 		panic(newException(value))
 
 	case *_nodeTryStatement:
@@ -89,7 +89,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 		for _, variable := range node.list {
 			self.cmpl_evaluate_nodeVariableExpression(variable.(*_nodeVariableExpression))
 		}
-		return Value{}
+		return emptyValue
 
 	case *_nodeWhileStatement:
 		return self.cmpl_evaluate_nodeWhileStatement(node)
@@ -106,7 +106,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) Val
 	var result Value
 	for _, node := range list {
 		value := self.cmpl_evaluate_nodeStatement(node)
-		switch value._valueType {
+		switch value.kind {
 		case valueResult:
 			return value
 		case valueEmpty:
@@ -116,7 +116,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) Val
 			// Not sure if this is the best way to error out early
 			// for such errors or if there is a better way
 			// TODO Do we still need this?
-			result = self.getValue(value)
+			result = value.resolve()
 		}
 	}
 	return result
@@ -129,12 +129,12 @@ func (self *_runtime) cmpl_evaluate_nodeDoWhileStatement(node *_nodeDoWhileState
 
 	test := node.test
 
-	result := Value{}
+	result := emptyValue
 resultBreak:
 	for {
 		for _, node := range node.body {
 			value := self.cmpl_evaluate_nodeStatement(node)
-			switch value._valueType {
+			switch value.kind {
 			case valueResult:
 				switch value.evaluateBreakContinue(labels) {
 				case resultReturn:
@@ -150,7 +150,7 @@ resultBreak:
 			}
 		}
 	resultContinue:
-		if !self.getValue(self.cmpl_evaluate_nodeExpression(test)).isTrue() {
+		if !self.cmpl_evaluate_nodeExpression(test).resolve().isTrue() {
 			// Stahp: do ... while (false)
 			break
 		}
@@ -164,11 +164,11 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 	self.labels = nil
 
 	source := self.cmpl_evaluate_nodeExpression(node.source)
-	sourceValue := self.getValue(source)
+	sourceValue := source.resolve()
 
-	switch sourceValue._valueType {
+	switch sourceValue.kind {
 	case valueUndefined, valueNull:
-		return emptyValue()
+		return emptyValue
 	}
 
 	sourceObject := self.toObject(sourceValue)
@@ -176,10 +176,10 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 	into := node.into
 	body := node.body
 
-	result := Value{}
+	result := emptyValue
 	object := sourceObject
 	for object != nil {
-		enumerateValue := Value{}
+		enumerateValue := emptyValue
 		object.enumerate(false, func(name string) bool {
 			into := self.cmpl_evaluate_nodeExpression(into)
 			// In the case of: for (var abc in def) ...
@@ -188,10 +188,10 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 				// TODO Should be true or false (strictness) depending on context
 				into = toValue(getIdentifierReference(self.scope.lexical, identifier, false))
 			}
-			self.PutValue(into.reference(), toValue_string(name))
+			self.putValue(into.reference(), toValue_string(name))
 			for _, node := range body {
 				value := self.cmpl_evaluate_nodeStatement(node)
-				switch value._valueType {
+				switch value.kind {
 				case valueResult:
 					switch value.evaluateBreakContinue(labels) {
 					case resultReturn:
@@ -233,22 +233,22 @@ func (self *_runtime) cmpl_evaluate_nodeForStatement(node *_nodeForStatement) Va
 
 	if initializer != nil {
 		initialResult := self.cmpl_evaluate_nodeExpression(initializer)
-		self.getValue(initialResult) // Side-effect trigger
+		initialResult.resolve() // Side-effect trigger
 	}
 
-	result := Value{}
+	result := emptyValue
 resultBreak:
 	for {
 		if test != nil {
 			testResult := self.cmpl_evaluate_nodeExpression(test)
-			testResultValue := self.getValue(testResult)
+			testResultValue := testResult.resolve()
 			if toBoolean(testResultValue) == false {
 				break
 			}
 		}
 		for _, node := range body {
 			value := self.cmpl_evaluate_nodeStatement(node)
-			switch value._valueType {
+			switch value.kind {
 			case valueResult:
 				switch value.evaluateBreakContinue(labels) {
 				case resultReturn:
@@ -266,7 +266,7 @@ resultBreak:
 	resultContinue:
 		if update != nil {
 			updateResult := self.cmpl_evaluate_nodeExpression(update)
-			self.getValue(updateResult) // Side-effect trigger
+			updateResult.resolve() // Side-effect trigger
 		}
 	}
 	return result
@@ -274,14 +274,14 @@ resultBreak:
 
 func (self *_runtime) cmpl_evaluate_nodeIfStatement(node *_nodeIfStatement) Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
-	testValue := self.getValue(test)
+	testValue := test.resolve()
 	if toBoolean(testValue) {
 		return self.cmpl_evaluate_nodeStatement(node.consequent)
 	} else if node.alternate != nil {
 		return self.cmpl_evaluate_nodeStatement(node.alternate)
 	}
 
-	return Value{}
+	return emptyValue
 }
 
 func (self *_runtime) cmpl_evaluate_nodeSwitchStatement(node *_nodeSwitchStatement) Value {
@@ -302,18 +302,18 @@ func (self *_runtime) cmpl_evaluate_nodeSwitchStatement(node *_nodeSwitchStateme
 		}
 	}
 
-	result := Value{}
+	result := emptyValue
 	if target != -1 {
 		for _, clause := range node.body[target:] {
 			for _, statement := range clause.consequent {
 				value := self.cmpl_evaluate_nodeStatement(statement)
-				switch value._valueType {
+				switch value.kind {
 				case valueResult:
 					switch value.evaluateBreak(labels) {
 					case resultReturn:
 						return value
 					case resultBreak:
-						return Value{}
+						return emptyValue
 					}
 				case valueEmpty:
 				default:
@@ -370,16 +370,16 @@ func (self *_runtime) cmpl_evaluate_nodeWhileStatement(node *_nodeWhileStatement
 	labels := append(self.labels, "")
 	self.labels = nil
 
-	result := Value{}
+	result := emptyValue
 resultBreakContinue:
 	for {
-		if !self.getValue(self.cmpl_evaluate_nodeExpression(test)).isTrue() {
+		if !self.cmpl_evaluate_nodeExpression(test).resolve().isTrue() {
 			// Stahp: while (false) ...
 			break
 		}
 		for _, node := range body {
 			value := self.cmpl_evaluate_nodeStatement(node)
-			switch value._valueType {
+			switch value.kind {
 			case valueResult:
 				switch value.evaluateBreakContinue(labels) {
 				case resultReturn:
@@ -401,7 +401,7 @@ resultBreakContinue:
 func (self *_runtime) cmpl_evaluate_nodeWithStatement(node *_nodeWithStatement) Value {
 	object := self.cmpl_evaluate_nodeExpression(node.object)
 	outer := self.scope.lexical
-	lexical := self.newObjectStash(self.toObject(self.getValue(object)), outer)
+	lexical := self.newObjectStash(self.toObject(object.resolve()), outer)
 	self.scope.lexical = lexical
 	defer func() {
 		self.scope.lexical = outer

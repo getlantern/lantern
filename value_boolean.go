@@ -7,7 +7,7 @@ import (
 )
 
 func toBoolean(value Value) bool {
-	if value._valueType == valueBoolean {
+	if value.kind == valueBoolean {
 		return value.value.(bool)
 	}
 	if value.IsUndefined() {

@@ -9,14 +9,14 @@ func defaultConstruct(fn *_object, argumentList []Value) Value {
 	object.class = "Object"
 
 	prototype := fn.get("prototype")
-	if prototype._valueType != valueObject {
+	if prototype.kind != valueObject {
 		prototype = toValue_object(fn.runtime.global.ObjectPrototype)
 	}
 	object.prototype = prototype._object()
 
 	this := toValue_object(object)
 	value := fn.call(this, argumentList, false)
-	if value._valueType == valueObject {
+	if value.kind == valueObject {
 		return value
 	}
 	return this
@@ -68,8 +68,8 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 		length = 0
 	}
 	self.defineProperty("length", toValue_int(length), 0000, false)
-	self.defineProperty("caller", UndefinedValue(), 0000, false)    // TODO Should throw a TypeError
-	self.defineProperty("arguments", UndefinedValue(), 0000, false) // TODO Should throw a TypeError
+	self.defineProperty("caller", Value{}, 0000, false)    // TODO Should throw a TypeError
+	self.defineProperty("arguments", Value{}, 0000, false) // TODO Should throw a TypeError
 	return self
 }
 
@@ -240,7 +240,7 @@ func (self FunctionCall) slice(index int) []Value {
 
 func (self *FunctionCall) thisObject() *_object {
 	if self._thisObject == nil {
-		this := self.runtime.getValue(self.This) // FIXME Is this right?
+		this := self.This.resolve() // FIXME Is this right?
 		self._thisObject = self.runtime.toObject(this)
 	}
 	return self._thisObject

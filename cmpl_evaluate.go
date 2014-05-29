@@ -24,7 +24,7 @@ func (self *_runtime) cmpl_call_nodeFunction(function *_object, stash *_fnStash,
 		if name == "arguments" {
 			argumentsFound = true
 		}
-		value := UndefinedValue()
+		value := Value{}
 		if index < len(argumentList) {
 			value = argumentList[index]
 			indexOfParameterName[index] = name
@@ -56,7 +56,7 @@ func (self *_runtime) cmpl_call_nodeFunction(function *_object, stash *_fnStash,
 		return result
 	}
 
-	return UndefinedValue()
+	return Value{}
 }
 
 func (self *_runtime) cmpl_functionDeclaration(list []*_nodeFunctionLiteral) {
@@ -83,7 +83,7 @@ func (self *_runtime) cmpl_variableDeclaration(list []string) {
 
 	for _, name := range list {
 		if !stash.hasBinding(name) {
-			stash.createBinding(name, eval == true, UndefinedValue()) // TODO strict?
+			stash.createBinding(name, eval == true, Value{}) // TODO strict?
 		}
 	}
 }

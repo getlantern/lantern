@@ -75,7 +75,7 @@ func builtinFunction_apply(call FunctionCall) Value {
 		this = toValue_object(call.runtime.globalObject)
 	}
 	argumentList := call.Argument(1)
-	switch argumentList._valueType {
+	switch argumentList.kind {
 	case valueUndefined, valueNull:
 		return call.thisObject().call(this, nil, false)
 	case valueObject:

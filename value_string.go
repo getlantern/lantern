@@ -43,7 +43,7 @@ func numberToStringRadix(value Value, radix int) string {
 }
 
 func toString(value Value) string {
-	if value._valueType == valueString {
+	if value.kind == valueString {
 		switch value := value.value.(type) {
 		case string:
 			return value

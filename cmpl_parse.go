@@ -10,7 +10,7 @@ import (
 
 var trueLiteral = &_nodeLiteral{value: toValue_bool(true)}
 var falseLiteral = &_nodeLiteral{value: toValue_bool(false)}
-var nullLiteral = &_nodeLiteral{value: NullValue()}
+var nullLiteral = &_nodeLiteral{value: nullValue}
 var emptyStatement = &_nodeEmptyStatement{}
 
 func parseExpression(x ast.Expression) _nodeExpression {

@@ -67,7 +67,7 @@ func goArrayGetOwnProperty(self *_object, name string) *_property {
 	index := stringToArrayIndex(name)
 	if index >= 0 {
 		object := self.value.(*_goArrayObject)
-		value := UndefinedValue()
+		value := Value{}
 		reflectValue, exists := object.getValue(index)
 		if exists {
 			value = self.runtime.toValue(reflectValue.Interface())

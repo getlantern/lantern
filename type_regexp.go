@@ -126,7 +126,7 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 		if result[offset] != -1 {
 			valueArray[index] = toValue_string(target[result[offset]:result[offset+1]])
 		} else {
-			valueArray[index] = UndefinedValue()
+			valueArray[index] = Value{}
 		}
 	}
 	matchIndex := result[0]

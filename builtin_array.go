@@ -46,7 +46,7 @@ func builtinArray_toLocaleString(call FunctionCall) Value {
 	for index := int64(0); index < length; index += 1 {
 		value := thisObject.get(arrayIndexToString(index))
 		stringValue := ""
-		switch value._valueType {
+		switch value.kind {
 		case valueEmpty, valueUndefined, valueNull:
 		default:
 			object := call.runtime.toObject(value)
@@ -66,7 +66,7 @@ func builtinArray_concat(call FunctionCall) Value {
 	valueArray := []Value{}
 	source := append([]Value{toValue_object(thisObject)}, call.ArgumentList...)
 	for _, item := range source {
-		switch item._valueType {
+		switch item.kind {
 		case valueObject:
 			object := item._object()
 			if isArray(object) {
@@ -94,7 +94,7 @@ func builtinArray_shift(call FunctionCall) Value {
 	length := int64(toUint32(thisObject.get("length")))
 	if 0 == length {
 		thisObject.put("length", toValue_int64(0), true)
-		return UndefinedValue()
+		return Value{}
 	}
 	first := thisObject.get("0")
 	for index := int64(1); index < length; index++ {
@@ -130,7 +130,7 @@ func builtinArray_pop(call FunctionCall) Value {
 	length := int64(toUint32(thisObject.get("length")))
 	if 0 == length {
 		thisObject.put("length", toValue_uint32(0), true)
-		return UndefinedValue()
+		return Value{}
 	}
 	last := thisObject.get(arrayIndexToString(length - 1))
 	thisObject.delete(arrayIndexToString(length-1), true)
@@ -155,7 +155,7 @@ func builtinArray_join(call FunctionCall) Value {
 	for index := int64(0); index < length; index += 1 {
 		value := thisObject.get(arrayIndexToString(index))
 		stringValue := ""
-		switch value._valueType {
+		switch value.kind {
 		case valueEmpty, valueUndefined, valueNull:
 		default:
 			stringValue = toString(value)
@@ -382,7 +382,7 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 		return 1
 	}
 
-	return int(toInt32(compare.call(UndefinedValue(), []Value{x, y}, false)))
+	return int(toInt32(compare.call(Value{}, []Value{x, y}, false)))
 }
 
 func arraySortSwap(thisObject *_object, index0, index1 uint) {
@@ -526,10 +526,10 @@ func builtinArray_every(call FunctionCall) Value {
 				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).isTrue() {
 					continue
 				}
-				return FalseValue()
+				return falseValue
 			}
 		}
-		return TrueValue()
+		return trueValue
 	}
 	panic(newTypeError())
 }
@@ -543,11 +543,11 @@ func builtinArray_some(call FunctionCall) Value {
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).isTrue() {
-					return TrueValue()
+					return trueValue
 				}
 			}
 		}
-		return FalseValue()
+		return falseValue
 	}
 	panic(newTypeError())
 }
@@ -563,7 +563,7 @@ func builtinArray_forEach(call FunctionCall) Value {
 				iterator.call(callThis, thisObject.get(key), toValue_int64(index), this)
 			}
 		}
-		return UndefinedValue()
+		return Value{}
 	}
 	panic(newTypeError())
 }
@@ -579,7 +579,7 @@ func builtinArray_map(call FunctionCall) Value {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 				values[index] = iterator.call(callThis, thisObject.get(key), index, this)
 			} else {
-				values[index] = UndefinedValue()
+				values[index] = Value{}
 			}
 		}
 		return toValue_object(call.runtime.newArrayOf(values))
@@ -630,7 +630,7 @@ func builtinArray_reduce(call FunctionCall) Value {
 			}
 			for ; index < length; index++ {
 				if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-					accumulator = iterator.call(UndefinedValue(), accumulator, thisObject.get(key), key, this)
+					accumulator = iterator.call(Value{}, accumulator, thisObject.get(key), key, this)
 				}
 			}
 			return accumulator
@@ -662,7 +662,7 @@ func builtinArray_reduceRight(call FunctionCall) Value {
 			}
 			for ; index >= 0; index-- {
 				if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-					accumulator = iterator.call(UndefinedValue(), accumulator, thisObject.get(key), key, this)
+					accumulator = iterator.call(Value{}, accumulator, thisObject.get(key), key, this)
 				}
 			}
 			return accumulator

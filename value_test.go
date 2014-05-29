@@ -21,7 +21,7 @@ func TestValue(t *testing.T) {
 
 func TestObject(t *testing.T) {
 	tt(t, func() {
-		is(Value{}.isEmpty(), true)
+		is(emptyValue.isEmpty(), true)
 		//is(newObject().Value(), "[object]")
 		//is(newBooleanObject(false).Value(), "false")
 		//is(newFunctionObject(nil).Value(), "[function]")

@@ -8,76 +8,80 @@ import (
 	"unicode/utf16"
 )
 
-type _valueType int
+type _valueKind int
 
 const (
-	valueEmpty _valueType = iota
+	valueUndefined _valueKind = iota
 	valueNull
-	valueUndefined
 	valueNumber
 	valueString
 	valueBoolean
 	valueObject
+
+	// These are invalid outside of the runtime
+	valueEmpty
 	valueResult
 	valueReference
 )
 
 // Value is the representation of a JavaScript value.
 type Value struct {
-	_valueType
+	kind  _valueKind
 	value interface{}
 }
 
+func (vl Value) safe() bool {
+	return vl.kind < valueEmpty
+}
+
+var (
+	emptyValue = Value{kind: valueEmpty}
+	nullValue  = Value{kind: valueNull}
+	falseValue = Value{kind: valueBoolean, value: false}
+	trueValue  = Value{kind: valueBoolean, value: true}
+)
+
 // ToValue will convert an interface{} value to a value digestible by otto/JavaScript
+//
 // This function will not work for advanced types (struct, map, slice/array, etc.) and
-// you probably should not use it.
-//
-// ToValue may be deprecated and removed in the near future.
-//
-// Try Otto.ToValue for a replacement.
+// you should use Otto.ToValue instead.
 func ToValue(value interface{}) (Value, error) {
-	result := UndefinedValue()
+	result := Value{}
 	err := catchPanic(func() {
 		result = toValue(value)
 	})
 	return result, err
 }
 
-// Empty
-
-func emptyValue() Value {
-	return Value{_valueType: valueEmpty}
-}
-
 func (value Value) isEmpty() bool {
-	return value._valueType == valueEmpty
+	return value.kind == valueEmpty
 }
 
 // Undefined
 
 // UndefinedValue will return a Value representing undefined.
 func UndefinedValue() Value {
-	return Value{_valueType: valueUndefined}
+	return Value{}
 }
 
 // IsDefined will return false if the value is undefined, and true otherwise.
 func (value Value) IsDefined() bool {
-	return value._valueType != valueUndefined
+	return value.kind != valueUndefined
 }
 
 // IsUndefined will return true if the value is undefined, and false otherwise.
 func (value Value) IsUndefined() bool {
-	return value._valueType == valueUndefined
+	return value.kind == valueUndefined
 }
 
 // NullValue will return a Value representing null.
 func NullValue() Value {
-	return Value{_valueType: valueNull}
+	return Value{kind: valueNull}
 }
 
 // IsNull will return true if the value is null, and false otherwise.
 func (value Value) IsNull() bool {
-	return value._valueType == valueNull
+	return value.kind == valueNull
 }
 
 // ---
@@ -91,11 +95,11 @@ func (value Value) isCallable() bool {
 }
 
 func (value Value) isResult() bool {
-	return value._valueType == valueResult
+	return value.kind == valueResult
 }
 
 func (value Value) isReference() bool {
-	return value._valueType == valueReference
+	return value.kind == valueReference
 }
 
 // Call the value as a function with the given this value and argument list and
@@ -110,10 +114,13 @@ func (value Value) isReference() bool {
 //		3. An (uncaught) exception is thrown
 //
 func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) {
-	result := UndefinedValue()
+	result := Value{}
 	err := catchPanic(func() {
 		result = value.call(this, argumentList...)
 	})
+	if !value.safe() {
+		value = Value{}
+	}
 	return result, err
 }
 
@@ -126,7 +133,7 @@ func (value Value) call(this Value, argumentList ...interface{}) Value {
 }
 
 func (value Value) constructSafe(this Value, argumentList ...interface{}) (Value, error) {
-	result := UndefinedValue()
+	result := Value{}
 	err := catchPanic(func() {
 		result = value.construct(this, argumentList...)
 	})
@@ -148,12 +155,12 @@ func (value Value) IsPrimitive() bool {
 
 // IsBoolean will return true if value is a boolean (primitive).
 func (value Value) IsBoolean() bool {
-	return value._valueType == valueBoolean
+	return value.kind == valueBoolean
 }
 
 // IsNumber will return true if value is a number (primitive).
 func (value Value) IsNumber() bool {
-	return value._valueType == valueNumber
+	return value.kind == valueNumber
 }
 
 // IsNaN will return true if value is NaN (or would convert to NaN).
@@ -174,17 +181,17 @@ func (value Value) IsNaN() bool {
 
 // IsString will return true if value is a string (primitive).
 func (value Value) IsString() bool {
-	return value._valueType == valueString
+	return value.kind == valueString
 }
 
 // IsObject will return true if value is an object.
 func (value Value) IsObject() bool {
-	return value._valueType == valueObject
+	return value.kind == valueObject
 }
 
 // IsFunction will return true if value is a function.
 func (value Value) IsFunction() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "Function"
@@ -204,56 +211,56 @@ func (value Value) IsFunction() bool {
 //		RegExp
 //
 func (value Value) Class() string {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return ""
 	}
 	return value.value.(*_object).class
 }
 
 func (value Value) isArray() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return isArray(value.value.(*_object))
 }
 
 func (value Value) isStringObject() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "String"
 }
 
 func (value Value) isBooleanObject() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "Boolean"
 }
 
 func (value Value) isNumberObject() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "Number"
 }
 
 func (value Value) isDate() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "Date"
 }
 
 func (value Value) isRegExp() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "RegExp"
 }
 
 func (value Value) isError() bool {
-	if value._valueType != valueObject {
+	if value.kind != valueObject {
 		return false
 	}
 	return value.value.(*_object).class == "Error"
@@ -319,7 +326,7 @@ func toValue(value interface{}) Value {
 		return Value{valueResult, value}
 	case nil:
 		// TODO Ugh.
-		return UndefinedValue()
+		return Value{}
 	case reflect.Value:
 		for value.Kind() == reflect.Ptr {
 			// We were given a pointer, so we'll drill down until we get a non-pointer
@@ -328,7 +335,7 @@ func toValue(value interface{}) Value {
 			// (It would be best not to depend on this behavior)
 			// FIXME: UNDEFINED
 			if value.IsNil() {
-				return UndefinedValue()
+				return Value{}
 			}
 			value = value.Elem()
 		}
@@ -492,6 +499,14 @@ func (value Value) reference() _reference {
 	return nil
 }
 
+func (value Value) resolve() Value {
+	switch value := value.value.(type) {
+	case _reference:
+		return value.getValue()
+	}
+	return value
+}
+
 var (
 	__NaN__              float64 = math.NaN()
 	__PositiveInfinity__ float64 = math.Inf(+1)
@@ -563,11 +578,11 @@ func FalseValue() Value {
 }
 
 func sameValue(x Value, y Value) bool {
-	if x._valueType != y._valueType {
+	if x.kind != y.kind {
 		return false
 	}
 	result := false
-	switch x._valueType {
+	switch x.kind {
 	case valueUndefined, valueNull:
 		result = true
 	case valueNumber:
@@ -596,11 +611,11 @@ func sameValue(x Value, y Value) bool {
 }
 
 func strictEqualityComparison(x Value, y Value) bool {
-	if x._valueType != y._valueType {
+	if x.kind != y.kind {
 		return false
 	}
 	result := false
-	switch x._valueType {
+	switch x.kind {
 	case valueUndefined, valueNull:
 		result = true
 	case valueNumber:
@@ -627,15 +642,14 @@ func strictEqualityComparison(x Value, y Value) bool {
 // Export will attempt to convert the value to a Go representation
 // and return it via an interface{} kind.
 //
-// WARNING: The interface function will be changing soon to:
-//
-//      Export() interface{}
+// Export returns an error, but it will always be nil. It is present
+// for backwards compatibility.
 //
 // If a reasonable conversion is not possible, then the original
-// result is returned.
+// value is returned.
 //
-//      undefined   -> otto.Value (UndefinedValue())
-//      null        -> interface{}(nil)
+//      undefined   -> nil (FIXME?: Should be Value{})
+//      null        -> nil
 //      boolean     -> bool
 //      number      -> A number type (int, float32, uint64, ...)
 //      string      -> string
@@ -648,7 +662,7 @@ func (self Value) Export() (interface{}, error) {
 
 func (self Value) export() interface{} {
 
-	switch self._valueType {
+	switch self.kind {
 	case valueUndefined:
 		return nil
 	case valueNull:
@@ -701,7 +715,11 @@ func (self Value) export() interface{} {
 		}
 	}
 
-	return self
+	if self.safe() {
+		return self
+	}
+
+	return Value{}
 }
 
 func (self Value) evaluateBreakContinue(labels []string) _resultKind {
@@ -730,7 +748,7 @@ func (self Value) evaluateBreak(labels []string) _resultKind {
 
 func (self Value) exportNative() interface{} {
 
-	switch self._valueType {
+	switch self.kind {
 	case valueUndefined:
 		return self
 	case valueNull:

@@ -67,7 +67,7 @@ func getValueOfArrayIndex(array []Value, index int) (Value, bool) {
 			return value, true
 		}
 	}
-	return UndefinedValue(), false
+	return Value{}, false
 }
 
 // A range index can be anything from 0 up to length. It is NOT safe to use as an index

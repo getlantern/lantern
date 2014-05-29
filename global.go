@@ -9,26 +9,26 @@ var (
 	prototypeValueObject   = interface{}(nil)
 	prototypeValueFunction = _nativeFunctionObject{
 		call: func(_ FunctionCall) Value {
-			return UndefinedValue()
+			return Value{}
 		},
 	}
 	prototypeValueString = _stringASCII("")
 	// TODO Make this just false?
 	prototypeValueBoolean = Value{
-		_valueType: valueBoolean,
-		value:      false,
+		kind:  valueBoolean,
+		value: false,
 	}
 	prototypeValueNumber = Value{
-		_valueType: valueNumber,
-		value:      0,
+		kind:  valueNumber,
+		value: 0,
 	}
 	prototypeValueDate = _dateObject{
 		epoch: 0,
 		isNaN: false,
 		time:  time.Unix(0, 0).UTC(),
 		value: Value{
-			_valueType: valueNumber,
-			value:      0,
+			kind:  valueNumber,
+			value: 0,
 		},
 	}
 	prototypeValueRegExp = _regExpObject{

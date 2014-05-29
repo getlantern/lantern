@@ -95,7 +95,7 @@ func (self *_object) DefaultValue(hint _defaultValueHint) Value {
 	}
 
 	panic(newTypeError())
-	return UndefinedValue()
+	return Value{}
 }
 
 func (self *_object) String() string {
@@ -131,7 +131,7 @@ func (self *_object) _read(name string) (_property, bool) {
 
 func (self *_object) _write(name string, value interface{}, mode _propertyMode) {
 	if value == nil {
-		value = UndefinedValue()
+		value = Value{}
 	}
 	_, exists := self.property[name]
 	self.property[name] = _property{value, mode}
