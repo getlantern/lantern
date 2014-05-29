@@ -152,12 +152,12 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public GeoIpLookupService provideGeoIpLookupService() {
+    public GeoIpLookupService provideGeoIpLookupService(final HttpClientFactory httpClientFactory) {
         // Testing.
         if (this.geoIpLookupService != null) {
             return this.geoIpLookupService;
         }
-        return new GeoIpLookupService();
+        return new GeoIpLookupService(httpClientFactory);
     }
 
     @Provides @Singleton

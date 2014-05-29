@@ -25,13 +25,12 @@ public class GeoIpLookupService {
 
     public GeoIpLookupService(final HttpClientFactory httpClientFactory) {
       this.httpClientFactory = httpClientFactory;
-
     }
 
     public GeoData getGeoData(InetAddress ipAddress) {
         GeoData result = addressLookupCache.get(ipAddress);
         if (result == null) {
-            result = GeoData.queryGeoServe(httpClientFactory, ipAddress.getHostAddress());
+            result = GeoData.queryGeoServe(this.httpClientFactory, ipAddress.getHostAddress());
             addressLookupCache.put(ipAddress, result);
         }
         return result;
@@ -40,7 +39,7 @@ public class GeoIpLookupService {
     public GeoData getGeoData(String ipAddress) {
         GeoData result = stringLookupCache.get(ipAddress);
         if (result == null) {
-            result = GeoData.queryGeoServe(httpClientFactory, ipAddress);
+            result = GeoData.queryGeoServe(this.httpClientFactory, ipAddress);
             stringLookupCache.put(ipAddress, result);
         }
         return result;
