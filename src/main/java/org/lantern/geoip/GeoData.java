@@ -27,7 +27,14 @@ import org.codehaus.jackson.map.DeserializationConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
- 
+
+class Country {
+  private String IsoCode;
+
+  public String getIsoCode() {
+    return IsoCode;
+  }
+}
 
 class Location {
   private double Latitude;
@@ -42,15 +49,8 @@ class Location {
   }
 }
 
-class Country {
-  private String IsoCode;
-
-  public String getIsoCode() {
-    return IsoCode;
-  }
-}
-
 public class GeoData {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(GeoData.class);
 
   private static final String LOOKUP_URL = 
