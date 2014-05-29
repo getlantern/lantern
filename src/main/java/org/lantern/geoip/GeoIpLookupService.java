@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.util.HttpClientFactory;
 
 import org.lantern.geoip.GeoData;
 
@@ -20,14 +21,17 @@ public class GeoIpLookupService {
     private final Map<String, GeoData> stringLookupCache =
             new ConcurrentHashMap<String, GeoData>();
 
-    public GeoIpLookupService() {
+    private HttpClientFactory httpClientFactory;
+
+    public GeoIpLookupService(final HttpClientFactory httpClientFactory) {
+      this.httpClientFactory = httpClientFactory;
 
     }
 
     public GeoData getGeoData(InetAddress ipAddress) {
         GeoData result = addressLookupCache.get(ipAddress);
         if (result == null) {
-            result = GeoData.queryGeoServe(ipAddress.getHostAddress());
+            result = GeoData.queryGeoServe(httpClientFactory, ipAddress.getHostAddress());
             addressLookupCache.put(ipAddress, result);
         }
         return result;
@@ -36,7 +40,7 @@ public class GeoIpLookupService {
     public GeoData getGeoData(String ipAddress) {
         GeoData result = stringLookupCache.get(ipAddress);
         if (result == null) {
-            result = GeoData.queryGeoServe(ipAddress);
+            result = GeoData.queryGeoServe(httpClientFactory, ipAddress);
             stringLookupCache.put(ipAddress, result);
         }
         return result;

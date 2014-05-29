@@ -2,6 +2,7 @@ package org.lantern.geoip;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -15,9 +16,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.JsonUtils;
+import org.apache.commons.io.IOUtils;
+
+import org.lantern.util.HttpClientFactory;
+
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -54,10 +57,6 @@ public class GeoData {
   private Country Country;
   private Location Location;
 
-  public GeoData() {
-
-  }
-
   public double getLatitude() {
     return Location.getLatitude();
   }
@@ -70,30 +69,26 @@ public class GeoData {
     return Country.getIsoCode();
   }
 
-  public static GeoData fromJson(String json) throws JsonMappingException, IOException {
-    ObjectMapper mapper = new ObjectMapper().setVisibility(JsonMethod.FIELD, Visibility.ANY);
-    mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return mapper.readValue(json, GeoData.class);
-  }
-
-
-  public static GeoData queryGeoServe(String ipAddress) {
-    final HttpClient client = new DefaultHttpClient();
+  public static GeoData queryGeoServe(final HttpClientFactory httpClientFactory, String ipAddress) {
+    final HttpClient proxied = httpClientFactory.newProxiedClient();
     final HttpGet get = new HttpGet(LOOKUP_URL + ipAddress);
+    InputStream is = null;
     try {
-      final HttpResponse response = client.execute(get);
-      final int status = response.getStatusLine().getStatusCode();
-      final HttpEntity entity = response.getEntity();
-      final String json = IOUtils.toString(entity.getContent());
-      return fromJson(json);
+      final HttpResponse response = proxied.execute(get);
+      is = response.getEntity().getContent();
+      final String geoStr = IOUtils.toString(is);
+      return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
     } catch (ClientProtocolException e) {
       // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (JsonMappingException e) {
+      log.error("Error connecting to geo lookup service");
       e.printStackTrace();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
+      log.error("Error parsing JSON from geo lookup service");  
       e.printStackTrace();
+    }
+    finally {
+      IOUtils.closeQuietly(is);
+      get.reset();
     }
     return null;
   }
