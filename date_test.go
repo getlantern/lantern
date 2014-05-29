@@ -246,7 +246,10 @@ func TestDate_new(t *testing.T) {
 	// This is probably incorrect, due to differences in Go date/time handling
 	// versus ECMA date/time handling, but we'll leave this here for
 	// future reference
-	return
+
+	if true {
+		return
+	}
 
 	tt(t, func() {
 		test, _ := test()

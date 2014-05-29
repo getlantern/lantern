@@ -492,7 +492,9 @@ func Test_underscore_objects_11(t *testing.T) {
 // isElement
 func Test_underscore_objects_12(t *testing.T) {
 	// TEST: ReferenceError: $ is not defined
-	return
+	if true {
+		return
+	}
 
 	tt(t, func() {
 		test, _ := test_()
@@ -575,7 +577,9 @@ func Test_underscore_objects_15(t *testing.T) {
 // isString
 func Test_underscore_objects_16(t *testing.T) {
 	// TEST: ReferenceError: document is not defined
-	return
+	if true {
+		return
+	}
 
 	tt(t, func() {
 		test, _ := test_()

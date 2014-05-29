@@ -240,8 +240,6 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 	default:
 		panic(newTypeError())
 	}
-
-	return false, nil, nil
 }
 
 // 8.12.5

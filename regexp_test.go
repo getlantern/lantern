@@ -160,7 +160,10 @@ func TestRegExp_toString(t *testing.T) {
 }
 
 func TestRegExp_zaacbbbcac(t *testing.T) {
-	return
+	if true {
+		return
+	}
+
 	tt(t, func() {
 		test, _ := test()
 

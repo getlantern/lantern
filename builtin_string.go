@@ -260,8 +260,6 @@ func builtinString_replace(call FunctionCall) Value {
 
 		return toValue_string(string(result))
 	}
-
-	return Value{}
 }
 
 func builtinString_search(call FunctionCall) Value {
@@ -389,8 +387,6 @@ func builtinString_split(call FunctionCall) Value {
 
 		return toValue_object(call.runtime.newArrayOf(valueArray))
 	}
-
-	return Value{}
 }
 
 func builtinString_slice(call FunctionCall) Value {

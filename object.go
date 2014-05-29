@@ -95,7 +95,6 @@ func (self *_object) DefaultValue(hint _defaultValueHint) Value {
 	}
 
 	panic(newTypeError())
-	return Value{}
 }
 
 func (self *_object) String() string {

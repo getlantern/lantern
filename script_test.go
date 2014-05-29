@@ -6,8 +6,6 @@ import (
 
 func TestScript(t *testing.T) {
 	tt(t, func() {
-		return
-
 		vm := New()
 
 		script, err := vm.Compile("xyzzy", `var abc; if (!abc) abc = 0; abc += 2; abc;`)
@@ -19,6 +17,10 @@ func TestScript(t *testing.T) {
 		value, err := vm.Run(script)
 		is(err, nil)
 		is(value, 2)
+
+		if true {
+			return
+		}
 
 		tmp, err := script.marshalBinary()
 		is(err, nil)

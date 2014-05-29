@@ -788,7 +788,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		// if a value is outside the range of int64
 		tmp := toIntegerFloat(value)
 		if tmp < float_minInt || tmp > float_maxInt {
-			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int", tmp, value)
+			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to int", tmp, value)
 		} else {
 			return reflect.ValueOf(int(tmp)), nil
 		}
@@ -818,7 +818,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		// if a value is outside the range of int64
 		tmp := toIntegerFloat(value)
 		if tmp < float_minInt64 || tmp > float_maxInt64 {
-			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int", tmp, value)
+			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to int", tmp, value)
 		} else {
 			return reflect.ValueOf(int64(tmp)), nil
 		}
@@ -827,7 +827,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		// if a value is outside the range of uint
 		tmp := toIntegerFloat(value)
 		if tmp < 0 || tmp > float_maxUint {
-			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint", tmp, value)
+			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to uint", tmp, value)
 		} else {
 			return reflect.ValueOf(uint(tmp)), nil
 		}

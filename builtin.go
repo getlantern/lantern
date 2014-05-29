@@ -205,7 +205,6 @@ func _builtinGlobal_encodeURI(call FunctionCall, escape *regexp.Regexp) Value {
 				panic(newURIError("URI malformed"))
 			}
 			// input = ..., value, value1, ...
-			value = value
 			value1 := input[index]
 			if value1 < 0xDC00 || value1 > 0xDFFF {
 				panic(newURIError("URI malformed"))

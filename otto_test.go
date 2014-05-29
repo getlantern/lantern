@@ -1012,7 +1012,9 @@ func TestOttoCall_throw(t *testing.T) {
 	// Looks like this has been broken for a while... what
 	// behavior do we want here?
 
-	return
+	if true {
+		return
+	}
 
 	tt(t, func() {
 		test, vm := test()
@@ -1022,7 +1024,7 @@ func TestOttoCall_throw(t *testing.T) {
 				call.Otto.Call(`throw eval`, nil, "({ def: 3.14159 })")
 			}
 			call.Otto.Call(`throw Error`, nil, "abcdef")
-			return UndefinedValue()
+			return Value{}
 		})
 		// TODO try { abc(); } catch (err) { error = err }
 		// Possible unrelated error case:

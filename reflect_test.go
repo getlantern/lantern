@@ -53,7 +53,9 @@ func (mno _mnoStruct) Func() string {
 }
 
 func TestReflect(t *testing.T) {
-	return
+	if true {
+		return
+	}
 	tt(t, func() {
 		// Testing dbgf
 		// These should panic
