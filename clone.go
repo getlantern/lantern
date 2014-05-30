@@ -11,59 +11,62 @@ type _clone struct {
 	_dclStash    map[*_dclStash]*_dclStash
 }
 
-func (runtime *_runtime) clone() *_runtime {
+func (in *_runtime) clone() *_runtime {
 
-	self := &_runtime{}
+	in.lck.Lock()
+	defer in.lck.Unlock()
+
+	out := &_runtime{}
 	clone := _clone{
-		runtime:      self,
+		runtime:      out,
 		_object:      make(map[*_object]*_object),
 		_objectStash: make(map[*_objectStash]*_objectStash),
 		_dclStash:    make(map[*_dclStash]*_dclStash),
 	}
 
-	globalObject := clone.object(runtime.globalObject)
-	self.globalStash = self.newObjectStash(globalObject, nil)
-	self.globalObject = globalObject
-	self.global = _global{
-		clone.object(runtime.global.Object),
-		clone.object(runtime.global.Function),
-		clone.object(runtime.global.Array),
-		clone.object(runtime.global.String),
-		clone.object(runtime.global.Boolean),
-		clone.object(runtime.global.Number),
-		clone.object(runtime.global.Math),
-		clone.object(runtime.global.Date),
-		clone.object(runtime.global.RegExp),
-		clone.object(runtime.global.Error),
-		clone.object(runtime.global.EvalError),
-		clone.object(runtime.global.TypeError),
-		clone.object(runtime.global.RangeError),
-		clone.object(runtime.global.ReferenceError),
-		clone.object(runtime.global.SyntaxError),
-		clone.object(runtime.global.URIError),
-		clone.object(runtime.global.JSON),
+	globalObject := clone.object(in.globalObject)
+	out.globalStash = out.newObjectStash(globalObject, nil)
+	out.globalObject = globalObject
+	out.global = _global{
+		clone.object(in.global.Object),
+		clone.object(in.global.Function),
+		clone.object(in.global.Array),
+		clone.object(in.global.String),
+		clone.object(in.global.Boolean),
+		clone.object(in.global.Number),
+		clone.object(in.global.Math),
+		clone.object(in.global.Date),
+		clone.object(in.global.RegExp),
+		clone.object(in.global.Error),
+		clone.object(in.global.EvalError),
+		clone.object(in.global.TypeError),
+		clone.object(in.global.RangeError),
+		clone.object(in.global.ReferenceError),
+		clone.object(in.global.SyntaxError),
+		clone.object(in.global.URIError),
+		clone.object(in.global.JSON),
 
-		clone.object(runtime.global.ObjectPrototype),
-		clone.object(runtime.global.FunctionPrototype),
-		clone.object(runtime.global.ArrayPrototype),
-		clone.object(runtime.global.StringPrototype),
-		clone.object(runtime.global.BooleanPrototype),
-		clone.object(runtime.global.NumberPrototype),
-		clone.object(runtime.global.DatePrototype),
-		clone.object(runtime.global.RegExpPrototype),
-		clone.object(runtime.global.ErrorPrototype),
-		clone.object(runtime.global.EvalErrorPrototype),
-		clone.object(runtime.global.TypeErrorPrototype),
-		clone.object(runtime.global.RangeErrorPrototype),
-		clone.object(runtime.global.ReferenceErrorPrototype),
-		clone.object(runtime.global.SyntaxErrorPrototype),
-		clone.object(runtime.global.URIErrorPrototype),
+		clone.object(in.global.ObjectPrototype),
+		clone.object(in.global.FunctionPrototype),
+		clone.object(in.global.ArrayPrototype),
+		clone.object(in.global.StringPrototype),
+		clone.object(in.global.BooleanPrototype),
+		clone.object(in.global.NumberPrototype),
+		clone.object(in.global.DatePrototype),
+		clone.object(in.global.RegExpPrototype),
+		clone.object(in.global.ErrorPrototype),
+		clone.object(in.global.EvalErrorPrototype),
+		clone.object(in.global.TypeErrorPrototype),
+		clone.object(in.global.RangeErrorPrototype),
+		clone.object(in.global.ReferenceErrorPrototype),
+		clone.object(in.global.SyntaxErrorPrototype),
+		clone.object(in.global.URIErrorPrototype),
 	}
 
-	self.enterGlobalScope()
+	out.enterGlobalScope()
 
-	self.eval = self.globalObject.property["eval"].value.(Value).value.(*_object)
-	self.globalObject.prototype = self.global.ObjectPrototype
+	out.eval = out.globalObject.property["eval"].value.(Value).value.(*_object)
+	out.globalObject.prototype = out.global.ObjectPrototype
 
 	// Not sure if this is necessary, but give some help to the GC
 	clone.runtime = nil
@@ -71,7 +74,7 @@ func (runtime *_runtime) clone() *_runtime {
 	clone._objectStash = nil
 	clone._dclStash = nil
 
-	return self
+	return out
 }
 
 func (clone *_clone) object(in *_object) *_object {

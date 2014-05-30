@@ -459,12 +459,12 @@ func (self Otto) ToValue(value interface{}) (Value, error) {
 // etc. into a new runtime.
 //
 // Be on the lookout for memory leaks or inadvertent sharing of resources.
-func (self *Otto) Copy() *Otto {
-	otto := &Otto{
-		runtime: self.runtime.clone(),
+func (in *Otto) Copy() *Otto {
+	out := &Otto{
+		runtime: in.runtime.clone(),
 	}
-	otto.runtime.otto = otto
-	return otto
+	out.runtime.otto = out
+	return out
 }
 
 // Object{}

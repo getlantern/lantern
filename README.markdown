@@ -416,7 +416,7 @@ error if there was a problem during compilation.
 #### func (*Otto) Copy
 
 ```go
-func (self *Otto) Copy() *Otto
+func (in *Otto) Copy() *Otto
 ```
 Copy will create a copy/clone of the runtime.
 

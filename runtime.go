@@ -3,6 +3,7 @@ package otto
 import (
 	"errors"
 	"reflect"
+	"sync"
 
 	"github.com/robertkrimen/otto/ast"
 	"github.com/robertkrimen/otto/parser"
@@ -53,6 +54,7 @@ type _runtime struct {
 	eval         *_object // The builtin eval, for determine indirect versus direct invocation
 
 	labels []string // FIXME
+	lck    sync.Mutex
 }
 
 func (self *_runtime) enterScope(scope *_scope) {
