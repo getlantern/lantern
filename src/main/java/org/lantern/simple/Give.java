@@ -91,7 +91,7 @@ public class Give extends CliProgram {
 
     private HttpProxyServer server;
     private InstanceStats stats = new InstanceStats();
-    private GeoIpLookupService lookupService = new GeoIpLookupService();
+    private GeoIpLookupService lookupService = new GeoIpLookupService(null);
     private ActivityTracker activityTracker = new GiveModeActivityTracker(
             stats, lookupService, null);
     private final StatshubAPI statshub = new StatshubAPI();

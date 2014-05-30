@@ -116,7 +116,7 @@ public class DefaultCensored implements Censored {
      * This is just used for testing...
      */
     public DefaultCensored() {
-        this(new GeoIpLookupService());
+        this(new GeoIpLookupService(null));
     }
 
     // These country codes have US export restrictions, and therefore cannot
