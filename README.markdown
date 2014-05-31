@@ -205,16 +205,18 @@ the interrupt channel to do this:
             }
             fmt.Fprintf(os.Stderr, "Ran code successfully: %v\n", duration)
         }()
+
         vm := otto.New()
-        vm.Interrupt = make(chan func())
+        vm.Interrupt = make(chan func(), 1) // The buffer prevents blocking
+
         go func() {
             time.Sleep(2 * time.Second) // Stop after two seconds
             vm.Interrupt <- func() {
                 panic(halt)
             }
         }()
+
         vm.Run(unsafe) // Here be dragons (risky code)
-        vm.Interrupt = nil
     }
 
 Where is setTimeout/setInterval?
