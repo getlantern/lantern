@@ -18,6 +18,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 
 import org.lantern.JsonUtils;
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import org.lantern.util.HttpClientFactory;
 
@@ -28,34 +29,33 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+class Country {
+  private String IsoCode;
+
+  public String getIsoCode() {
+    return IsoCode;
+  }
+}
+
+class Location {
+  private double Latitude;
+  private double Longitude;
+
+  public double getLatitude() {
+    return Latitude;
+  }
+
+  public double getLongitude() {
+    return Longitude;
+  }
+}
+
 public class GeoData {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GeoData.class);
 
   private static final String LOOKUP_URL = 
                         "http://go-geoserve.herokuapp.com/lookup/";
-
-  class Country {
-    private String IsoCode;
-
-    public String getIsoCode() {
-      return IsoCode;
-    }
-  }
-
-  class Location {
-    private double Latitude;
-    private double Longitude;
-
-    public double getLatitude() {
-      return Latitude;
-    }
-
-    public double getLongitude() {
-      return Longitude;
-    }
-  }
-
 
   private Country Country;
   private Location Location;
@@ -79,10 +79,10 @@ public class GeoData {
     try {
       final HttpResponse response = proxied.execute(get);
       final int status = response.getStatusLine().getStatusCode();
-      System.err.println("Status: "+status);
       is = response.getEntity().getContent();
       final String geoStr = IOUtils.toString(is);
-      System.out.println("geolookup response " + geoStr);
+      LOGGER.debug("Geo lookup response " + geoStr);
+      JsonUtils.OBJECT_MAPPER.setVisibility(JsonMethod.FIELD, Visibility.ANY);
       return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
     } catch (ClientProtocolException e) {
       LOGGER.warn("Error connecting to geo lookup service " + 

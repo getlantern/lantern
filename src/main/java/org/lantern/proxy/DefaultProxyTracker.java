@@ -44,6 +44,9 @@ import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.geoip.GeoData;
+
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -71,6 +74,9 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     private final PeerFactory peerFactory;
 
+    private final GeoIpLookupService geoIpLookupService;
+
+
     private ScheduledExecutorService proxyRetryService;
 
     private final LanternTrustStore lanternTrustStore;
@@ -83,11 +89,14 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             Threads.newCachedThreadPool("Proxy-Connect-Thread-");
 
     @Inject
-    public DefaultProxyTracker(final Model model,
+    public DefaultProxyTracker(
+            final GeoIpLookupService geoIpLookupService,
+            final Model model,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
+        this.geoIpLookupService = geoIpLookupService;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         networkTracker.addListener(this);
@@ -391,9 +400,10 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      * @param proxy The proxy we connected.
      */
     private void successfullyConnectedToProxy(ProxyHolder proxy) {
+        final InetSocketAddress isa = proxy.getFiveTuple().getRemote();
+        final URI fullJid =  proxy.getJid();
         LOG.debug("Connected to proxy: {}", proxy);
-        peerFactory.onOutgoingConnection(proxy.getJid(), proxy.getFiveTuple()
-                .getRemote(), proxy.getType());
+        peerFactory.onOutgoingConnection(proxy.getJid(), isa, proxy.getType());
         proxy.markConnected();
 
         LOG.debug("Dispatching CONNECTED event");
@@ -401,6 +411,27 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                 new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
 
         notifyProxiesSize();
+        
+        /* do geolocation now that we've registered a proxy */
+        updateGeoData(isa, fullJid);
+    }
+
+    private void updateGeoData(final InetSocketAddress isa, final URI fullJid) {
+      final Peer peer = this.model.getPeerCollector().getPeer(fullJid);
+      if (peer == null) {
+        LOG.warn("No peer for {}", fullJid);
+        return;
+      }
+      if (peer.hasGeoData()) {
+        LOG.debug("Peer already had geo data: {}", peer);
+        return;
+      }
+      final GeoData geo = 
+        this.geoIpLookupService.getGeoData(isa.getAddress());
+      peer.setCountry(geo.getCountrycode());
+      peer.setLat(geo.getLatitude());
+      peer.setLon(geo.getLongitude());
+
     }
 
     private void notifyProxiesSize() {

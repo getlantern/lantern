@@ -40,18 +40,19 @@ public class DefaultPeerFactory implements PeerFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final GeoIpLookupService geoIpLookupService;
-
     private final Roster roster;
 
     private final Model model;
+
+    private final GeoIpLookupService geoIpLookupService;
+
 
     @Inject
     public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService,
             final Model model,
             final Roster roster) {
-        this.geoIpLookupService = geoIpLookupService;
         this.model = model;
+        this.geoIpLookupService = geoIpLookupService;
         this.roster = roster;
         Events.register(this);
     }
@@ -152,7 +153,6 @@ public class DefaultPeerFactory implements PeerFactory {
             peer.setRosterEntry(rosterEntry(uri));
         }
         peer.setType(type.toString());
-        updateGeoData(peer, isa.getAddress());
         // Note we don't sync peers with the frontend here because the timer
         // will do it for us
     }
