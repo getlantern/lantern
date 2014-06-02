@@ -13,6 +13,12 @@ import java.net.InetSocketAddress;
  * All implementations must include a single-argument constructor taking a
  * {@link Map<String, Object>} of configuration properties.
  * </p>
+ * 
+ * <p>
+ * Note - if a pluggable transport needs to do any installation steps that
+ * require escalated privilegs, these should be added to the Install4J installer
+ * (see "Install flashlight" step under "Installation").
+ * </p>
  */
 public interface PluggableTransport {
     /**
@@ -47,4 +53,12 @@ public interface PluggableTransport {
      * doesn't have to.
      */
     boolean suppliesEncryption();
+    
+    /**
+     * For pluggable transports that do MITM'ing, this returns the local CA cert
+     * used for MITM'ing, in PEM encoded format.
+     * 
+     * @return
+     */
+    String getLocalCACert();
 }

@@ -79,6 +79,8 @@ public class ProxyInfo {
      * Configuration for pluggable transport
      */
     protected Properties pt;
+    
+    private int priority = 0;
 
     public ProxyInfo() {
     }
@@ -276,6 +278,18 @@ public class ProxyInfo {
     public FiveTuple fiveTuple() {
         return new FiveTuple(getBoundFrom(), useLanAddress ? lanAddress()
                 : wanAddress(), getProtocol());
+    }
+    
+    /**
+     * Specifies the priority of this proxy relative to similar proxies. A lower
+     * number means a higher priority (i.e. -1 is higher priority than 0).
+     */
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
     @Override

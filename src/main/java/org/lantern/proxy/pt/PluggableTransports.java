@@ -13,6 +13,7 @@ public class PluggableTransports {
 
     static {
         TYPES.put(PtType.FTE, FTE.class);
+        TYPES.put(PtType.FLASHLIGHT, Flashlight.class);
     }
 
     public static PluggableTransport newTransport(PtType type,
