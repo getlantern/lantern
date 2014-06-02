@@ -97,7 +97,7 @@ public class DefaultPeerFactory implements PeerFactory {
                     ad.hasMappedEndpoint(), 0, 0, Type.pc, ad.getAddress(),
                     ad.getPort(), Mode.give, false, entry);
             this.model.getPeerCollector().addPeer(uri, peer);
-            this.geoIpLookupService.updateGeoData(peer, uri, ad.getAddress());
+            updateGeoData(peer, ad.getAddress());
         } else {
             existing.setIp(ad.getAddress());
             existing.setPort(ad.getPort());
@@ -108,9 +108,27 @@ public class DefaultPeerFactory implements PeerFactory {
                 existing.setRosterEntry(entry);
             }
             existing.setVersion(ad.getLanternVersion());
-            this.geoIpLookupService.updateGeoData(existing, uri, ad.getAddress());
+            updateGeoData(existing, ad.getAddress());
         }
     }
+
+    public void updateGeoData(final Peer peer, final InetAddress address) {
+        updateGeoData(peer, address.getHostAddress());
+    }
+      
+    @Override
+    public void updateGeoData(final Peer peer, final String address) {
+        if (peer.hasGeoData()) {
+          log.debug("Peer already had geo data: {}", peer);
+          return;
+        }
+
+        final GeoData geo = this.geoIpLookupService.getGeoData(address);
+        peer.setCountry(geo.getCountrycode());
+        peer.setLat(geo.getLatitude());
+        peer.setLon(geo.getLongitude());
+    }
+
 
     private void updatePeer(final URI fullJid, final InetSocketAddress isa,
             final Type type) {

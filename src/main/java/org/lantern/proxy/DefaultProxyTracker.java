@@ -414,8 +414,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         
         /* do geolocation now that we've registered a proxy */
         final Peer peer = this.model.getPeerCollector().getPeer(fullJid);
-        this.geoIpLookupService.updateGeoData(peer, fullJid, 
-            isa.getAddress().getHostAddress());
+        peerFactory.updateGeoData(peer, isa.getAddress().getHostAddress());
     }
 
     private void notifyProxiesSize() {

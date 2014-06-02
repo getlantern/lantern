@@ -13,6 +13,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 
@@ -21,14 +22,17 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import org.lantern.util.HttpClientFactory;
+import org.lantern.http.HttpUtils;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
+
+import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.DeserializationConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
 class Country {
   private String IsoCode;
 
@@ -37,6 +41,7 @@ class Country {
   }
 }
 
+@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
 class Location {
   private double Latitude;
   private double Longitude;
@@ -50,6 +55,7 @@ class Location {
   }
 }
 
+@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
 public class GeoData {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GeoData.class);
@@ -71,7 +77,7 @@ public class GeoData {
   public String getCountrycode() {
     return Country.getIsoCode();
   }
-
+   
   public static GeoData queryGeoServe(final HttpClientFactory httpClientFactory, String ipAddress) {
     final HttpClient proxied = httpClientFactory.newProxiedClient();
     final HttpGet get = new HttpGet(LOOKUP_URL + ipAddress);
@@ -79,10 +85,16 @@ public class GeoData {
     try {
       final HttpResponse response = proxied.execute(get);
       final int status = response.getStatusLine().getStatusCode();
+      if (status != 200) {
+        LOGGER.error("Error on proxied request. No proxies working? {}, {}",
+          response.getStatusLine(), HttpUtils.httpHeaders(response));
+        throw new HttpException("Error communicating with geolocation server");
+      }
+
       is = response.getEntity().getContent();
       final String geoStr = IOUtils.toString(is);
       LOGGER.debug("Geo lookup response " + geoStr);
-      JsonUtils.OBJECT_MAPPER.setVisibility(JsonMethod.FIELD, Visibility.ANY);
+
       return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
     } catch (ClientProtocolException e) {
       LOGGER.warn("Error connecting to geo lookup service " + 
