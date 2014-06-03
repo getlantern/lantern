@@ -12,9 +12,13 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.LanternUtils;
+import org.lantern.S3Config;
+import org.lantern.event.Events;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * This class tries to identify the computer's public IP address.
@@ -29,8 +33,6 @@ public class PublicIpAddress implements PublicIp {
     private static final Logger LOG =
             LoggerFactory.getLogger(PublicIpAddress.class);
     private static final String REAL_GEO_HOST = "geo.getiantem.org";
-    private static final HttpHost MASQUERADE_HOST = new HttpHost(
-            "cdnjs.com", 443, "https");
     private static final String X_REFLECTED_IP = "X-Reflected-Ip";
 
     private static InetAddress publicIp;
@@ -38,6 +40,9 @@ public class PublicIpAddress implements PublicIp {
 
     private final long cacheTime;
     private final UnsafePublicIpAddress unsafePublicIpAddress;
+    
+    private volatile HttpHost masqueradeHost =
+            new HttpHost(S3Config.DEFAULT_MASQUERADE_HOST, 443, "https");
 
     public PublicIpAddress() {
         this(100L);
@@ -46,6 +51,7 @@ public class PublicIpAddress implements PublicIp {
     public PublicIpAddress(long cacheTime) {
         this.cacheTime = cacheTime;
         this.unsafePublicIpAddress = new UnsafePublicIpAddress(cacheTime);
+        Events.register(this);
     }
 
     /**
@@ -84,7 +90,12 @@ public class PublicIpAddress implements PublicIp {
             return lookupSafe();
         }
     }
-
+    
+    @Subscribe
+    public void onNewS3Config(final S3Config config) {
+        masqueradeHost = new HttpHost(config.getMasqueradeHost(), 443, "https");
+    }
+    
     private InetAddress lookupSafe() {
         HttpGet request = new HttpGet("/lookup");
         request.setHeader("Host", REAL_GEO_HOST);
@@ -102,7 +113,7 @@ public class PublicIpAddress implements PublicIp {
             // request.getParams().setParameter(
             // CoreConnectionPNames.SO_TIMEOUT, 60000);
             HttpResponse response = StaticHttpClientFactory.newDirectClient()
-                    .execute(MASQUERADE_HOST, request);
+                    .execute(masqueradeHost, request);
             Header header = response.getFirstHeader(X_REFLECTED_IP);
 
             final int responseCode = response.getStatusLine().getStatusCode();

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.http.HttpHost;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.pt.Flashlight;
@@ -16,6 +17,7 @@ import org.littleshoot.util.FiveTuple.Protocol;
 public class S3Config {
 
     public static final String DEFAULT_CONTROLLER_ID = "lanternctrl1-2";
+    public static final String DEFAULT_MASQUERADE_HOST = "cdnjs.com";
     
     private String controller = DEFAULT_CONTROLLER_ID;
     private int minpoll = 5;
@@ -37,6 +39,8 @@ public class S3Config {
      * chance to initialize metadata.
      */
     private int statsPostInterval = 5 * 60;
+    
+    private String masqueradeHost = DEFAULT_MASQUERADE_HOST;
     
     public S3Config() {}
 
@@ -104,6 +108,14 @@ public class S3Config {
 
     public void setSignalingRetryTime(long signalingRetryTime) {
         this.signalingRetryTime = signalingRetryTime;
+    }
+    
+    public String getMasqueradeHost() {
+        return masqueradeHost;
+    }
+    
+    public void setMasqueradeHost(String masqueradeHost) {
+        this.masqueradeHost = masqueradeHost;
     }
 
     @Override

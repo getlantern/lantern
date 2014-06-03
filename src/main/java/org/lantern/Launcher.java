@@ -273,7 +273,7 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
-        s3ConfigFetcher = new S3ConfigFetcher(model, httpClientFactory);
+        s3ConfigFetcher = new S3ConfigFetcher(model);
         
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
