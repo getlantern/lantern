@@ -152,13 +152,13 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public GeoIpLookupService provideGeoIpLookupService(final S3Config config, 
+    public GeoIpLookupService provideGeoIpLookupService(
             final HttpClientFactory httpClientFactory) {
         // Testing.
         if (this.geoIpLookupService != null) {
             return this.geoIpLookupService;
         }
-        return new GeoIpLookupService(config, httpClientFactory);
+        return new GeoIpLookupService(httpClientFactory);
     }
 
     @Provides @Singleton

@@ -31,14 +31,6 @@ public class S3Config {
      * chance to initialize metadata.
      */
     private int statsPostInterval = 5 * 60;
-
-    /**
-     * Geolocation Server URL
-     *
-     */
-    private String geoLocationServerUrl =
-        "http://go-geoserve.herokuapp.com/lookup/";
-
     
     public S3Config() {}
 
@@ -93,14 +85,6 @@ public class S3Config {
 
     public void setSignalingRetryTime(long signalingRetryTime) {
         this.signalingRetryTime = signalingRetryTime;
-    }
-
-    public String getGeoLocationServerUrl() {
-        return geoLocationServerUrl;
-    }
-
-    public void setGeoLocationServerUrl(String geoLocationServerUrl) {
-        this.geoLocationServerUrl = geoLocationServerUrl;
     }
 
     @Override
