@@ -75,7 +75,7 @@ public class InstanceStats {
             long bytes) {
         bytesGiven.add(bytes);
         if (geoData != null) {
-            String countryCode = geoData.getCountrycode();
+            String countryCode = geoData.getCountry().getIsoCode();
             Long originalBytes = bytesGivenPerCountry.get(countryCode);
             if (originalBytes == null) {
                 originalBytes = 0l;

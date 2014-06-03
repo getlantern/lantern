@@ -1,10 +1,8 @@
 package org.lantern.geoip;
- 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
 
-@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY) 
 public class Country {
-    private String IsoCode;
+
+    public String IsoCode;
 
     public String getIsoCode() {
         return IsoCode;
@@ -12,5 +10,10 @@ public class Country {
 
     public void setIsoCode(String IsoCode) {
         this.IsoCode = IsoCode;
+    }
+
+    @Override
+    public String toString() {
+        return IsoCode;
     }
 }

@@ -116,7 +116,7 @@ public class DefaultCensored implements Censored {
      * This is just used for testing...
      */
     public DefaultCensored() {
-        this(new GeoIpLookupService(null));
+        this(new GeoIpLookupService(null, null));
     }
 
     // These country codes have US export restrictions, and therefore cannot
@@ -165,7 +165,7 @@ public class DefaultCensored implements Censored {
     }
     
     private String countryCode(final InetAddress address) {
-        return lookupService.getGeoData(address).getCountrycode();
+        return lookupService.getGeoData(address).getCountry().getIsoCode();
     }
 
     @Override

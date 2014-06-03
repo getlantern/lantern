@@ -1,11 +1,8 @@
 package org.lantern.geoip;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-
-@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY) 
 public class Location {
-    private double Latitude;
-    private double Longitude;
+    public double Latitude;
+    public double Longitude;
 
     public double getLatitude() {
         return Latitude;

@@ -6,8 +6,8 @@ import java.net.InetAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.lantern.util.HttpClientFactory;
+import org.lantern.S3Config;
 import org.lantern.http.HttpUtils;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +36,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import org.lantern.geoip.GeoData;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -46,8 +47,6 @@ public class GeoIpLookupService {
 
     private static final Logger LOG = LoggerFactory
         .getLogger(GeoIpLookupService.class);
-    private static final String LOOKUP_URL = 
-        "http://go-geoserve.herokuapp.com/lookup/";
 
     private final Map<InetAddress, GeoData> addressLookupCache =
         new ConcurrentHashMap<InetAddress, GeoData>();
@@ -55,8 +54,11 @@ public class GeoIpLookupService {
         new ConcurrentHashMap<String, GeoData>();
 
     private HttpClientFactory httpClientFactory;
+    private S3Config config;
 
-    public GeoIpLookupService(final HttpClientFactory httpClientFactory) {
+    public GeoIpLookupService(final S3Config config, 
+            final HttpClientFactory httpClientFactory) {
+        this.config = config;
         this.httpClientFactory = httpClientFactory;
     }
 
@@ -71,7 +73,8 @@ public class GeoIpLookupService {
 
     public GeoData queryGeoServe(String ipAddress) {
         final HttpClient proxied = this.httpClientFactory.newProxiedClient();
-        final HttpGet get = new HttpGet(LOOKUP_URL + ipAddress);
+        final String geoServeUrl = this.config.getGeoLocationServerUrl();
+        final HttpGet get = new HttpGet(geoServeUrl + ipAddress);
         InputStream is = null;
         try {
             final HttpResponse response = proxied.execute(get);
@@ -84,7 +87,10 @@ public class GeoIpLookupService {
             is = response.getEntity().getContent();
             final String geoStr = IOUtils.toString(is);
             LOG.debug("Geo lookup response " + geoStr);
-            return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
+            System.out.println(geoStr);
+            GeoData gd = JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
+            System.out.println(gd);
+            return gd;
         } catch (ClientProtocolException e) {
             LOG.warn("Error connecting to geo lookup service " + 
                     e.getMessage(), e);

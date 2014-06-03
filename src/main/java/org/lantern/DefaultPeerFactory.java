@@ -124,9 +124,9 @@ public class DefaultPeerFactory implements PeerFactory {
         }
 
         final GeoData geo = this.geoIpLookupService.getGeoData(address);
-        peer.setCountry(geo.getCountrycode());
-        peer.setLat(geo.getLatitude());
-        peer.setLon(geo.getLongitude());
+        peer.setCountry(geo.getCountry().getIsoCode());
+        peer.setLat(geo.getLocation().getLatitude());
+        peer.setLon(geo.getLocation().getLongitude());
     }
 
 

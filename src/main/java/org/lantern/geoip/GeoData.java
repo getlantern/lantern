@@ -1,26 +1,23 @@
 package org.lantern.geoip;
-
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-
-@JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
+ 
 public class GeoData {
-    private Country Country;
-    private Location Location;
+    public Country Country;
+    public Location Location;
+
+    public void setLocation(Location Location) {
+        this.Location = Location;
+    }
 
     public Location getLocation() {
         return Location;
     }
 
-    public void setLocation(Location location) {
-        this.Location = location;
+    public void setCountry(Country Country) {
+        this.Country = Country;
     }
 
     public Country getCountry() {
         return Country;
-    }           
-
-    public void setCountry(Country country) {
-        this.Country = country;
     }
 
     @Override
