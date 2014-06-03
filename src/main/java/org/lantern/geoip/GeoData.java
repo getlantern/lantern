@@ -33,87 +33,87 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
-class Country {
-  private String IsoCode;
+    class Country {
+        private String IsoCode;
 
-  public String getIsoCode() {
-    return IsoCode;
-  }
-}
+        public String getIsoCode() {
+            return IsoCode;
+        }
+    }
 
 @JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
-class Location {
-  private double Latitude;
-  private double Longitude;
+    class Location {
+        private double Latitude;
+        private double Longitude;
 
-  public double getLatitude() {
-    return Latitude;
-  }
+        public double getLatitude() {
+            return Latitude;
+        }
 
-  public double getLongitude() {
-    return Longitude;
-  }
-}
+        public double getLongitude() {
+            return Longitude;
+        }
+    }
 
 @JsonAutoDetect(fieldVisibility=JsonAutoDetect.Visibility.ANY)
-public class GeoData {
+    public class GeoData {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GeoData.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(GeoData.class);
 
-  private static final String LOOKUP_URL = 
-                        "http://go-geoserve.herokuapp.com/lookup/";
+        private static final String LOOKUP_URL = 
+            "http://go-geoserve.herokuapp.com/lookup/";
 
-  private Country Country;
-  private Location Location;
+        private Country Country;
+        private Location Location;
 
-  public double getLatitude() {
-    return Location.getLatitude();
-  }
+        public double getLatitude() {
+            return Location.getLatitude();
+        }
 
-  public double getLongitude() {
-    return Location.getLongitude();
-  }
+        public double getLongitude() {
+            return Location.getLongitude();
+        }
 
-  public String getCountrycode() {
-    return Country.getIsoCode();
-  }
-   
-  public static GeoData queryGeoServe(final HttpClientFactory httpClientFactory, String ipAddress) {
-    final HttpClient proxied = httpClientFactory.newProxiedClient();
-    final HttpGet get = new HttpGet(LOOKUP_URL + ipAddress);
-    InputStream is = null;
-    try {
-      final HttpResponse response = proxied.execute(get);
-      final int status = response.getStatusLine().getStatusCode();
-      if (status != 200) {
-        LOGGER.error("Error on proxied request. No proxies working? {}, {}",
-          response.getStatusLine(), HttpUtils.httpHeaders(response));
-        throw new HttpException("Error communicating with geolocation server");
-      }
+        public String getCountrycode() {
+            return Country.getIsoCode();
+        }
 
-      is = response.getEntity().getContent();
-      final String geoStr = IOUtils.toString(is);
-      LOGGER.debug("Geo lookup response " + geoStr);
+        public static GeoData queryGeoServe(final HttpClientFactory httpClientFactory, String ipAddress) {
+            final HttpClient proxied = httpClientFactory.newProxiedClient();
+            final HttpGet get = new HttpGet(LOOKUP_URL + ipAddress);
+            InputStream is = null;
+            try {
+                final HttpResponse response = proxied.execute(get);
+                final int status = response.getStatusLine().getStatusCode();
+                if (status != 200) {
+                    LOGGER.error("Error on proxied request. No proxies working? {}, {}",
+                            response.getStatusLine(), HttpUtils.httpHeaders(response));
+                    throw new HttpException("Error communicating with geolocation server");
+                }
 
-      return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
-    } catch (ClientProtocolException e) {
-      LOGGER.warn("Error connecting to geo lookup service " + 
-          e.getMessage(), e);
-    } catch (IOException e) {
-      LOGGER.warn("Error parsing JSON from geo lookup " + 
-          e.getMessage(), e);
+                is = response.getEntity().getContent();
+                final String geoStr = IOUtils.toString(is);
+                LOGGER.debug("Geo lookup response " + geoStr);
+
+                return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
+            } catch (ClientProtocolException e) {
+                LOGGER.warn("Error connecting to geo lookup service " + 
+                        e.getMessage(), e);
+            } catch (IOException e) {
+                LOGGER.warn("Error parsing JSON from geo lookup " + 
+                        e.getMessage(), e);
+            }
+            finally {
+                IOUtils.closeQuietly(is);
+                get.reset();
+            }
+            return null;
+        }
+
+        @Override
+            public String toString() {
+                return "GeoData [countryCode=" + getCountrycode() + ", latitude="
+                    + getLatitude()
+                    + ", longitude=" + getLongitude() + "]";
+            }
     }
-    finally {
-      IOUtils.closeQuietly(is);
-      get.reset();
-    }
-    return null;
-  }
-
-  @Override
-    public String toString() {
-      return "GeoData [countryCode=" + getCountrycode() + ", latitude="
-        + getLatitude()
-        + ", longitude=" + getLongitude() + "]";
-    }
-}
