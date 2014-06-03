@@ -1,0 +1,92 @@
+{
+    "City": {
+        "GeoNameID": 5368361,
+        "Names": {
+            "de": "Los Angeles",
+            "en": "Los Angeles",
+            "es": "Los \u00c1ngeles",
+            "fr": "Los Angeles",
+            "ja": "\u30ed\u30b5\u30f3\u30bc\u30eb\u30b9",
+            "pt-BR": "Los Angeles",
+            "ru": "\u041b\u043e\u0441-\u0410\u043d\u0434\u0436\u0435\u043b\u0435\u0441",
+            "zh-CN": "\u6d1b\u6749\u77f6"
+        }
+    },
+    "Continent": {
+        "Code": "NA",
+        "GeoNameID": 6255149,
+        "Names": {
+            "de": "Nordamerika",
+            "en": "North America",
+            "es": "Norteam\u00e9rica",
+            "fr": "Am\u00e9rique du Nord",
+            "ja": "\u5317\u30a2\u30e1\u30ea\u30ab",
+            "pt-BR": "Am\u00e9rica do Norte",
+            "ru": "\u0421\u0435\u0432\u0435\u0440\u043d\u0430\u044f \u0410\u043c\u0435\u0440\u0438\u043a\u0430",
+            "zh-CN": "\u5317\u7f8e\u6d32"
+        }
+    },
+    "Country": {
+        "GeoNameID": 6252001,
+        "IsoCode": "US",
+        "Names": {
+            "de": "USA",
+            "en": "United States",
+            "es": "Estados Unidos",
+            "fr": "\u00c9tats-Unis",
+            "ja": "\u30a2\u30e1\u30ea\u30ab\u5408\u8846\u56fd",
+            "pt-BR": "Estados Unidos",
+            "ru": "\u0421\u0428\u0410",
+            "zh-CN": "\u7f8e\u56fd"
+        }
+    },
+    "Location": {
+        "Latitude": 34.0522,
+        "Longitude": -118.2437,
+        "MetroCode": 803,
+        "TimeZone": "America/Los_Angeles"
+    },
+    "Postal": {
+        "Code": ""
+    },
+    "RegisteredCountry": {
+        "GeoNameID": 6252001,
+        "IsoCode": "US",
+        "Names": {
+            "de": "USA",
+            "en": "United States",
+            "es": "Estados Unidos",
+            "fr": "\u00c9tats-Unis",
+            "ja": "\u30a2\u30e1\u30ea\u30ab\u5408\u8846\u56fd",
+            "pt-BR": "Estados Unidos",
+            "ru": "\u0421\u0428\u0410",
+            "zh-CN": "\u7f8e\u56fd"
+        }
+    },
+    "RepresentedCountry": {
+        "GeoNameID": 0,
+        "IsoCode": "",
+        "Names": null,
+        "Type": ""
+    },
+    "Subdivisions": [
+        {
+            "GeoNameID": 5332921,
+            "IsoCode": "CA",
+            "Names": {
+                "de": "Kalifornien",
+                "en": "California",
+                "es": "California",
+                "fr": "Californie",
+                "ja": "\u30ab\u30ea\u30d5\u30a9\u30eb\u30cb\u30a2\u5dde",
+                "pt-BR": "Calif\u00f3rnia",
+                "ru": "\u041a\u0430\u043b\u0438\u0444\u043e\u0440\u043d\u0438\u044f",
+                "zh-CN": "\u52a0\u5229\u798f\u5c3c\u4e9a\u5dde"
+            }
+        }
+    ],
+    "Traits": {
+        "IsAnonymousProxy": false,
+        "IsSatelliteProvider": false
+    }
+}
