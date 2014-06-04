@@ -339,7 +339,7 @@ public class Give extends CliProgram {
                                 Stats.Counters.requestsToHost.name(), requests);
                         Map<String, String> dims = new HashMap<String, String>();
                         dims.put("host", host);
-                        statshub.postStats(id, null, country, true, stats, dims);
+                        statshub.postStats(id, null, country, false, stats, dims);
                     }
                 }
             } catch (Exception e) {
