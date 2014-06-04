@@ -25,6 +25,11 @@ public class PeerFactoryStub implements PeerFactory {
     }
 
     @Override
+    public void updateGeoData(final Peer peer, final String address) {
+
+    }
+
+    @Override
     synchronized public Peer peerForJid(URI fullJid) {
         Peer peer = peersByJid.get(fullJid);
         if (peer == null) {

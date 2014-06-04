@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.lantern.util.HttpClientFactory;
-import org.lantern.S3Config;
 import org.lantern.http.HttpUtils;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,19 +23,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.commons.io.FileUtils;
 import org.lantern.JsonUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
-
-
 import org.lantern.geoip.GeoData;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -53,12 +47,11 @@ public class GeoIpLookupService {
     private final Map<String, GeoData> stringLookupCache =
         new ConcurrentHashMap<String, GeoData>();
 
-    private HttpClientFactory httpClientFactory;
-    private S3Config config;
+    private static final String geoServeUrl = "http://geo.getiantem.org/lookup/";
 
-    public GeoIpLookupService(final S3Config config, 
-            final HttpClientFactory httpClientFactory) {
-        this.config = config;
+    private HttpClientFactory httpClientFactory;
+   
+    public GeoIpLookupService(final HttpClientFactory httpClientFactory) {
         this.httpClientFactory = httpClientFactory;
     }
 
@@ -73,7 +66,6 @@ public class GeoIpLookupService {
 
     public GeoData queryGeoServe(String ipAddress) {
         final HttpClient proxied = this.httpClientFactory.newProxiedClient();
-        final String geoServeUrl = this.config.getGeoLocationServerUrl();
         final HttpGet get = new HttpGet(geoServeUrl + ipAddress);
         InputStream is = null;
         try {
@@ -82,15 +74,12 @@ public class GeoIpLookupService {
             if (status != 200) {
                 LOG.error("Error on proxied request. No proxies working? {}, {}",
                         response.getStatusLine(), HttpUtils.httpHeaders(response));
-                throw new HttpException("Error communicating with geolocation server");
+                return null;
             }
             is = response.getEntity().getContent();
             final String geoStr = IOUtils.toString(is);
             LOG.debug("Geo lookup response " + geoStr);
-            System.out.println(geoStr);
-            GeoData gd = JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
-            System.out.println(gd);
-            return gd;
+            return JsonUtils.OBJECT_MAPPER.readValue(geoStr, GeoData.class);
         } catch (ClientProtocolException e) {
             LOG.warn("Error connecting to geo lookup service " + 
                     e.getMessage(), e);
