@@ -210,7 +210,7 @@ public class FallbackProxyTest {
             new CertTrackingSslEngineSource(trustStore, keyStoreManager);
         PeerFactory peerFactory = mock(PeerFactory.class);
         final GiveModeProxy proxy = 
-                new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService());
+                new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService(null));
         
         proxy.start();
         return proxy;

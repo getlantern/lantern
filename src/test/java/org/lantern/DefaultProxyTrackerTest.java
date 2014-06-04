@@ -20,9 +20,11 @@ import org.lantern.network.NetworkTracker;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.ProxyHolder;
 import org.lantern.proxy.ProxyInfo;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Model;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
+
 
 import com.google.common.eventbus.Subscribe;
 
@@ -46,9 +48,10 @@ public class DefaultProxyTrackerTest {
         //assume that we are connected to the Internet
         model.getConnectivity().setInternet(true);
 
+        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService(null);
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
-        DefaultProxyTracker tracker = new DefaultProxyTracker(model,
+        DefaultProxyTracker tracker = new DefaultProxyTracker(geoIpLookupService, model,
                 peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         
         tracker.init();

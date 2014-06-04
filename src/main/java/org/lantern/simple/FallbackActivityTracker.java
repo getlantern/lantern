@@ -30,7 +30,7 @@ public class FallbackActivityTracker extends GiveModeActivityTracker {
             InetAddress peerAddress = flowContext
                     .getClientAddress().getAddress();
             String country = lookupService.getGeoData(peerAddress)
-                    .getCountrycode();
+                    .getCountry().getIsoCode();
             synchronized (this) {
                 Map<String, Long> hostRequestsForCountry =
                         hostRequestsByCountry.get(country);

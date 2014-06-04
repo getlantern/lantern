@@ -17,6 +17,8 @@ import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.lantern.geoip.GeoData;
+
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -98,9 +100,9 @@ public class PublicIpInfoHandler {
     private void handleGeoIp(final InetAddress address) {
         final Location loc = model.getLocation();
         final GeoData geo = geoIpLookupService.getGeoData(address);
-        loc.setCountry(geo.getCountrycode());
-        loc.setLat(geo.getLatitude());
-        loc.setLon(geo.getLongitude());
+        loc.setCountry(geo.getCountry().getIsoCode());
+        loc.setLat(geo.getLocation().getLatitude());
+        loc.setLon(geo.getLocation().getLongitude());
         loc.setResolved(true);
         Events.sync(SyncPath.LOCATION, loc);
     }
