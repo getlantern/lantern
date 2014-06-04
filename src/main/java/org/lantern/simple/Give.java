@@ -323,20 +323,22 @@ public class Give extends CliProgram {
             Map<String, Map<String, Long>> hostRequestsByCountry =
                     activityTracker.pollHostRequestsByCountry();
             try {
+                String statName = Stats.Counters.requestsToHost.name();
                 for (Map.Entry<String, Map<String, Long>> hostRequestsForCountry : hostRequestsByCountry
                         .entrySet()) {
                     String country = hostRequestsForCountry.getKey();
                     if (country == null || "".equals(country)) {
                         country = Stats.UNKNOWN_COUNTRY;
                     }
+                    String countryStatName = statName + "_" + country;
                     for (Map.Entry<String, Long> hostRequests : hostRequestsForCountry
                             .getValue().entrySet()) {
                         String host = hostRequests.getKey();
                         long requests = hostRequests.getValue();
                         String id = "host_" + host;
                         Stats stats = new Stats();
-                        stats.getIncrements().put(
-                                Stats.Counters.requestsToHost.name(), requests);
+                        stats.getIncrements().put(statName, requests);
+                        stats.getIncrements().put(countryStatName, requests);
                         Map<String, String> dims = new HashMap<String, String>();
                         dims.put("host", host);
                         statshub.postStats(id, null, country, false, stats, dims);
