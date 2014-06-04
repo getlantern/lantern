@@ -33,7 +33,7 @@ public class StatsManager implements Shutdownable {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
     public static final long FALLBACK_POST_INTERVAL = 20;
-    public static final long SITES_POST_INTERVAL = 20;
+    public static final long SITES_POST_INTERVAL = 5 * 60;
     public static final String UNKNOWN_COUNTRY = "xx";
 
     private final Model model;
