@@ -19,6 +19,7 @@ import org.lantern.event.KscopeAdEvent;
 import org.lantern.event.PeerCertEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.geoip.GeoData;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -39,18 +40,19 @@ public class DefaultPeerFactory implements PeerFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final GeoIpLookupService geoIpLookupService;
-
     private final Roster roster;
 
     private final Model model;
+
+    private final GeoIpLookupService geoIpLookupService;
+
 
     @Inject
     public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService,
             final Model model,
             final Roster roster) {
-        this.geoIpLookupService = geoIpLookupService;
         this.model = model;
+        this.geoIpLookupService = geoIpLookupService;
         this.roster = roster;
         Events.register(this);
     }
@@ -110,21 +112,23 @@ public class DefaultPeerFactory implements PeerFactory {
         }
     }
 
-    private void updateGeoData(final Peer peer, final InetAddress address) {
+    public void updateGeoData(final Peer peer, final InetAddress address) {
         updateGeoData(peer, address.getHostAddress());
     }
-
-    private void updateGeoData(final Peer peer, final String address) {
+      
+    @Override
+    public void updateGeoData(final Peer peer, final String address) {
         if (peer.hasGeoData()) {
-            log.debug("Peer already had geo data: {}", peer);
-            return;
+          log.debug("Peer already had geo data: {}", peer);
+          return;
         }
 
-        final GeoData geo = geoIpLookupService.getGeoData(address);
-        peer.setCountry(geo.getCountrycode());
-        peer.setLat(geo.getLatitude());
-        peer.setLon(geo.getLongitude());
+        final GeoData geo = this.geoIpLookupService.getGeoData(address);
+        peer.setCountry(geo.getCountry().getIsoCode());
+        peer.setLat(geo.getLocation().getLatitude());
+        peer.setLon(geo.getLocation().getLongitude());
     }
+
 
     private void updatePeer(final URI fullJid, final InetSocketAddress isa,
             final Type type) {
@@ -151,7 +155,6 @@ public class DefaultPeerFactory implements PeerFactory {
             peer.setRosterEntry(rosterEntry(uri));
         }
         peer.setType(type.toString());
-        updateGeoData(peer, isa.getAddress());
         // Note we don't sync peers with the frontend here because the timer
         // will do it for us
     }

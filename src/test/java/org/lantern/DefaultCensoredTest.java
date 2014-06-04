@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.geoip.GeoData;
 
 
 public class DefaultCensoredTest {
@@ -14,7 +15,7 @@ public class DefaultCensoredTest {
 
     @Before
     public void setup() {
-        lookupService = new GeoIpLookupService();
+        lookupService = new GeoIpLookupService(null);
     }
 
     @Test
@@ -51,7 +52,7 @@ public class DefaultCensoredTest {
         GeoData location = lookupService.getGeoData(ip);
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
-        Country country = countryService.getCountryByCode(location.getCountrycode());
+        Country country = countryService.getCountryByCode(location.getCountry().getIsoCode());
         return country.isCensors();
     }
 }

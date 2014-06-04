@@ -160,12 +160,12 @@ public class TestingUtils {
                 new DefaultFriendsHandler(model, api, null, null, networkTracker, new Messages(new Model()));
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
-        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
+        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService(null);
         
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
         final ProxyTracker proxyTracker = 
-            new DefaultProxyTracker(model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
+            new DefaultProxyTracker(geoIpLookupService, model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
                 networkTracker);
