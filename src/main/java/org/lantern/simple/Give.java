@@ -330,7 +330,7 @@ public class Give extends CliProgram {
                     if (country == null || "".equals(country)) {
                         country = Stats.UNKNOWN_COUNTRY;
                     }
-                    String countryStatName = statName + "_" + country;
+                    String countryStatName = statName + "_" + country.toLowerCase();
                     for (Map.Entry<String, Long> hostRequests : hostRequestsForCountry
                             .getValue().entrySet()) {
                         String host = hostRequests.getKey();
