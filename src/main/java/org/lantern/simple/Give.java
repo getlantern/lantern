@@ -91,7 +91,7 @@ public class Give extends CliProgram {
 
     private HttpProxyServer server;
     private InstanceStats stats = new InstanceStats();
-    private GeoIpLookupService lookupService = new GeoIpLookupService(null);
+    private GeoIpLookupService lookupService = new GeoIpLookupService();
     private FallbackActivityTracker activityTracker = new FallbackActivityTracker(
             stats, lookupService);
     private final StatshubAPI statshub = new StatshubAPI();
