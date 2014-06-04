@@ -1,23 +1,32 @@
 package org.lantern.geoip;
 
-public class Location {
-    public double Latitude;
-    public double Longitude;
+import org.codehaus.jackson.annotate.JsonProperty;
 
-    public double getLatitude() {
-        return Latitude;
+public class Location {
+    @JsonProperty("Latitude")
+    private double latitude;
+    @JsonProperty("Longitude")
+    private double longitude;
+
+    public Location() {
+        this.latitude  = 0.0;
+        this.longitude = 0.0;
     }
 
-    public void setLatitude(double Latitude) {
-        this.Latitude = Latitude;
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
     }
 
     public double getLongitude() {
-        return Longitude;
+        return longitude;
     }                            
 
-    public void setLongitude(double Longitude) {
-        this.Longitude = Longitude;
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }
 

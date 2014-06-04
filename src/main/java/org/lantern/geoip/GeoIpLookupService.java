@@ -74,7 +74,7 @@ public class GeoIpLookupService {
             if (status != 200) {
                 LOG.error("Error on proxied request. No proxies working? {}, {}",
                         response.getStatusLine(), HttpUtils.httpHeaders(response));
-                return null;
+                return new GeoData();
             }
             is = response.getEntity().getContent();
             final String geoStr = IOUtils.toString(is);
@@ -91,7 +91,7 @@ public class GeoIpLookupService {
             IOUtils.closeQuietly(is);
             get.reset();
         }
-        return null;
+        return new GeoData();
     }
 
     public GeoData getGeoData(String ipAddress) {

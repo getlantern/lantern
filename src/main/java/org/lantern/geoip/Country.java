@@ -1,19 +1,26 @@
 package org.lantern.geoip;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
 public class Country {
 
-    public String IsoCode;
+    @JsonProperty("IsoCode")
+    private String isoCode;
 
-    public String getIsoCode() {
-        return IsoCode;
+    public Country() {
+        this.isoCode = "";
     }
 
-    public void setIsoCode(String IsoCode) {
-        this.IsoCode = IsoCode;
+    public String getIsoCode() {
+        return isoCode;
+    }
+
+    public void setIsoCode(String isoCode) {
+        this.isoCode = isoCode;
     }
 
     @Override
     public String toString() {
-        return IsoCode;
+        return isoCode;
     }
 }

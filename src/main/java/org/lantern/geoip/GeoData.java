@@ -22,6 +22,7 @@ public class GeoData {
 
     @Override
     public String toString() {
+        System.out.println("----> " + getLocation().getLatitude());
         return "GeoData [countryCode=" + getCountry().getIsoCode() + ", latitude="
             + getLocation().getLatitude()
             + ", longitude=" + getLocation().getLongitude() + "]";
