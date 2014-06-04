@@ -15,7 +15,6 @@ import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.event.Events;
-import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.event.PublicIpEvent;
 import org.lantern.monitoring.Stats.Gauges;
 import org.lantern.state.Mode;
@@ -34,6 +33,7 @@ public class StatsManager implements Shutdownable {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(StatsManager.class);
     public static final long FALLBACK_POST_INTERVAL = 20;
+    public static final long SITES_POST_INTERVAL = 20;
     public static final String UNKNOWN_COUNTRY = "xx";
 
     private final Model model;
