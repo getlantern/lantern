@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.ConnectException;
 import java.net.InetAddress;
 
 import org.lantern.event.Events;
@@ -33,6 +34,8 @@ public class PublicIpInfoHandler {
     private final Censored censored;
     private final GeoIpLookupService geoIpLookupService;
     
+    private boolean recheck = true;
+    
     @Inject
     public PublicIpInfoHandler(final Model model, final Censored censored,
             final GeoIpLookupService geoIpLookupService) {
@@ -47,16 +50,22 @@ public class PublicIpInfoHandler {
      * itself to determine the IP address. This helps to minimize Lantern's
      * network footprint.
      * 
-     * @param pce The proxy connection event.
-     * @throws InitException If there was an error fetching the public IP. 
+     * @throws ConnectException If there was an error fetching the public IP. 
      */
-    public void init() throws InitException {
+    private void determinePublicIp() throws ConnectException {
+        if (!this.recheck) {
+            log.debug("Not rechecking for public IP");
+            return;
+        }
+        
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
         this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
         if (address == null) {
-            throw new InitException("Could not determine public IP");
+            throw new ConnectException("Could not determine public IP");
         }
-        handleCensored();
+        
+        this.recheck = false;
+        handleCensored(address);
         handleGeoIp(address);
         
         // Post PublicIpEvent so that downstream services like xmpp,
@@ -65,6 +74,21 @@ public class PublicIpInfoHandler {
     }
     
     @Subscribe
+    public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+        // Make sure we re-check your public IP after any change in 
+        // connectivity.
+        this.recheck = true;
+    }
+    
+    /**
+     * We perform the public IP lookup on a proxy connection event because
+     * we need to the proxy in order to perform the lookup. We need this both
+     * at startup as well as every time we re-connect to a proxy after
+     * potentially losing proxy connectivity.
+     * 
+     * @param pce The connection event.
+     */
+    @Subscribe
     public void onProxyConnectionEvent(
         final ProxyConnectionEvent pce) {
         final ConnectivityStatus stat = pce.getConnectivityStatus();
@@ -72,8 +96,8 @@ public class PublicIpInfoHandler {
         case CONNECTED:
             log.debug("Got connected event");
             try {
-                init();
-            } catch (final InitException e) {
+                determinePublicIp();
+            } catch (final ConnectException e) {
                 log.warn("Could not get public IP?", e);
             }
             break;
@@ -97,15 +121,15 @@ public class PublicIpInfoHandler {
         Events.sync(SyncPath.LOCATION, loc);
     }
 
-    private void handleCensored() {
+    private void handleCensored(final InetAddress address) {
         final Settings set = model.getSettings();
 
         if (set.getMode() == null || set.getMode() == Mode.unknown) {
-            if (censored.isCensored()) {
+            if (censored.isCensored(address)) {
                 set.setMode(Mode.get);
                 Events.sync(SyncPath.SETTINGS, set);
             }
-        } else if (set.getMode() == Mode.give && censored.isCensored()) {
+        } else if (set.getMode() == Mode.give && censored.isCensored(address)) {
             // want to set the mode to get now so that we don't mistakenly
             // proxy any more than necessary
             set.setMode(Mode.get);

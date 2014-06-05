@@ -5,24 +5,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.Executor;
-import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.exec.ShutdownHookProcessDestroyer;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.lantern.JsonUtils;
-import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
-import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,15 +40,9 @@ import org.slf4j.LoggerFactory;
  * been set in the file.</li>
  * </ul>
  */
-public class FTE implements PluggableTransport {
+public class FTE extends BasePluggableTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(FTE.class);
-    private static final String FTE_RELATIVE_PATH = "pt/fteproxy";
-    private static final String FTE_BASE_PATH =
-            LanternClientConstants.CONFIG_DIR
-                    + File.separator
-                    + FTE_RELATIVE_PATH;
-    private static final String[] FTE_EXECUTABLE_NAMES =
-            new String[] { "fteproxy", "fteproxy.exe" };
+
     private static final String LANTERN_DEFS_RELEASE = "19700101";
     // Note - custom format names need to end with "-request" and "-response"
     // respectively, otherwise fteproxy won't recognize them.
@@ -73,26 +56,7 @@ public class FTE implements PluggableTransport {
     public static final String KEY_KEY = "key";
 
     private Properties props;
-    private String ftePath;
-    private CommandLine cmd;
-    private Executor cmdExec;
     private boolean useCustomFormat;
-
-    static {
-        // Copy fte folder to .lantern to allow overwriting the custom
-        // transports defs.
-        File from = loadFrom();
-        File to = new File(FTE_BASE_PATH);
-        LOGGER.info("Copying fteproxy from {} to {}",
-                from.getAbsolutePath(),
-                to.getAbsolutePath());
-        try {
-            FileUtils.copyDirectory(from, to);
-        } catch (Exception e) {
-            LOGGER.error("Unable to stage fteproxy to .lantern: {}",
-                    e.getMessage(), e);
-        }
-    }
 
     /**
      * Construct a new FTE pluggable transport using the given configuration
@@ -101,7 +65,9 @@ public class FTE implements PluggableTransport {
      * @param props
      */
     public FTE(Properties props) {
-        super();
+        super(true,
+                "pt/fteproxy",
+                "fteproxy", "fteproxy.exe");
         this.props = props;
         String propsFile = props.getProperty("file");
         if (propsFile != null) {
@@ -123,87 +89,66 @@ public class FTE implements PluggableTransport {
                                 propsFile, ioe.getMessage()), ioe);
             }
         }
-    }
-
-    /**
-     * If we're running from the command line, the FTE binaries are in 
-     * platform-specific directories. We need to test that and load the correct
-     * one.
-     * 
-     * @return The directory to load binaries from.
-     */
-    private static File loadFrom() {
-        final File rel = new File(FTE_RELATIVE_PATH);
-        if (rel.isDirectory()) return rel;
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            return new File("./install/osx", FTE_RELATIVE_PATH);
-        } 
-        if (SystemUtils.IS_OS_WINDOWS) {
-            return new File("./install/win", FTE_RELATIVE_PATH);
-        }
-        
-        if (SystemUtils.OS_ARCH.contains("64")) {
-            return new File("./install/linux_x86_64", FTE_RELATIVE_PATH);
-        }
-        return new File("./install/linux_x86_32", FTE_RELATIVE_PATH);
+        LanternUtils.chmod(ptPath, 0755);
+        updateCustomFormatsIfNecessary();
     }
 
     @Override
-    public InetSocketAddress startClient(
+    protected void addClientArgs(CommandLine cmd,
+            InetSocketAddress listenAddress,
             InetSocketAddress getModeAddress,
             InetSocketAddress proxyAddress) {
-        LOGGER.info("Starting FTE client");
-        InetSocketAddress address = new InetSocketAddress(
-                getModeAddress.getAddress(),
-                LanternUtils.findFreePort());
+        addCommonArgs(cmd);
 
-        startFteProxy(
-                "--mode", "client",
-                "--client_port", address.getPort(),
-                "--server_ip", proxyAddress.getAddress().getHostAddress(),
-                "--server_port", proxyAddress.getPort());
+        cmd.addArgument("--mode");
+        cmd.addArgument("client");
 
-        if (!LanternUtils.waitForServer(address, 60000)) {
-            throw new RuntimeException("Unable to start FTE client");
+        cmd.addArgument("--client_port");
+        cmd.addArgument(stringify(listenAddress.getPort()));
+
+        cmd.addArgument("--server_ip");
+        cmd.addArgument(proxyAddress.getAddress().getHostAddress());
+
+        cmd.addArgument("--server_port");
+        cmd.addArgument(stringify(proxyAddress.getPort()));
+    }
+
+    @Override
+    protected void addServerArgs(CommandLine cmd, String listenIp,
+            int listenPort, InetSocketAddress giveModeAddress) {
+        addCommonArgs(cmd);
+
+        cmd.addArgument("--mode");
+        cmd.addArgument("server");
+
+        cmd.addArgument("--server_ip");
+        cmd.addArgument(stringify(listenIp));
+
+        cmd.addArgument("--server_port");
+        cmd.addArgument(stringify(listenPort));
+
+        cmd.addArgument("--proxy_ip");
+        cmd.addArgument(giveModeAddress.getAddress().getHostAddress());
+
+        cmd.addArgument("--proxy_port");
+        cmd.addArgument(stringify(giveModeAddress.getPort()));
+    }
+
+    private void addCommonArgs(CommandLine cmd) {
+        // If a key was configured, set it
+        String key = props.getProperty(KEY_KEY);
+        if (key != null) {
+            cmd.addArgument("--key");
+            cmd.addArgument(stringify(key));
         }
-
-        return address;
-    }
-
-    @Override
-    public void stopClient() {
-        LOGGER.info("Stopping FTE client");
-        cmdExec.getWatchdog().destroyProcess();
-    }
-
-    @Override
-    public void startServer(int port, InetSocketAddress giveModeAddress) {
-        LOGGER.info("Starting FTE server");
-
-        try {
-            String ip = NetworkUtils.getLocalHost().getHostAddress();
-
-            startFteProxy(
-                    "--mode", "server",
-                    "--server_ip", ip,
-                    "--server_port", port,
-                    "--proxy_ip",
-                    giveModeAddress.getAddress().getHostAddress(),
-                    "--proxy_port", giveModeAddress.getPort());
-            
-            if (!LanternUtils.waitForServer(ip, port, 60000)) {
-                throw new RuntimeException("Unable to start FTE server");
-            }
-        } catch (UnknownHostException uhe) {
-            throw new RuntimeException("Unable to determine interface ip: "
-                    + uhe.getMessage(), uhe);
+        if (useCustomFormat) {
+            cmd.addArgument("--release");
+            cmd.addArgument(LANTERN_DEFS_RELEASE);
+            cmd.addArgument("--upstream-format");
+            cmd.addArgument(LANTERN_UPSTREAM_FORMAT_KEY);
+            cmd.addArgument("--downstream-format");
+            cmd.addArgument(LANTERN_DOWNSTREAM_FORMAT_KEY);
         }
-    }
-
-    @Override
-    public void stopServer() {
-        LOGGER.info("Stopping FTE server");
-        cmdExec.getWatchdog().destroyProcess();
     }
 
     @Override
@@ -211,32 +156,9 @@ public class FTE implements PluggableTransport {
         return true;
     }
 
-    private void startFteProxy(Object... args) {
-        initFtePath();
-        LanternUtils.chmod(ftePath, 0755);
-        updateCustomFormatsIfNecessary();
-        buildCmdLine(args);
-        exec();
-    }
-
-    private void initFtePath() {
-        File fte = null;
-        for (String name : FTE_EXECUTABLE_NAMES) {
-            fte = new File(FTE_BASE_PATH + "/" + name);
-            ftePath = fte.getAbsolutePath();
-            if (fte.exists()) {
-                break;
-            } else {
-                LOGGER.info("fteproxy executable not found at {}", ftePath);
-                fte = null;
-                ftePath = null;
-            }
-        }
-        if (fte == null) {
-            String message = "fteproxy executable not found in search path";
-            LOGGER.error(message, ftePath);
-            throw new Error(message);
-        }
+    @Override
+    public String getLocalCACert() {
+        return null;
     }
 
     /**
@@ -264,7 +186,7 @@ public class FTE implements PluggableTransport {
                     props.getProperty(DOWNSTREAM_FIXED_SLICE_KEY));
             defs.put(LANTERN_DOWNSTREAM_FORMAT_KEY, downstreamDef);
             String defsFilePath = String.format("%1$s/fte/defs/%2$s.json",
-                    FTE_BASE_PATH, LANTERN_DEFS_RELEASE);
+                    ptBasePath, LANTERN_DEFS_RELEASE);
             try {
                 JsonUtils.OBJECT_MAPPER
                         .writeValue(new File(defsFilePath), defs);
@@ -284,47 +206,5 @@ public class FTE implements PluggableTransport {
             def.put("fixedSlice", fixedSlice);
         }
         return def;
-    }
-
-    private void buildCmdLine(Object... args) {
-        cmd = new CommandLine(ftePath);
-        // If a key was configured, set it
-        String key = props.getProperty(KEY_KEY);
-        if (key != null) {
-            cmd.addArgument("--key");
-            cmd.addArgument(stringify(key));
-        }
-        if (useCustomFormat) {
-            cmd.addArgument("--release");
-            cmd.addArgument(LANTERN_DEFS_RELEASE);
-            cmd.addArgument("--upstream-format");
-            cmd.addArgument(LANTERN_UPSTREAM_FORMAT_KEY);
-            cmd.addArgument("--downstream-format");
-            cmd.addArgument(LANTERN_DOWNSTREAM_FORMAT_KEY);
-        }
-        for (Object arg : args) {
-            cmd.addArgument(stringify(arg));
-        }
-    }
-
-    private void exec() {
-        cmdExec = new DefaultExecutor();
-        cmdExec.setStreamHandler(new PumpStreamHandler(System.out,
-                System.err,
-                System.in));
-        cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
-        cmdExec.setWatchdog(new ExecuteWatchdog(
-                ExecuteWatchdog.INFINITE_TIMEOUT));
-        DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-        LOGGER.info("About to run cmd: {}", cmd);
-        try {
-            cmdExec.execute(cmd, resultHandler);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static String stringify(Object value) {
-        return String.format("%1$s", value);
     }
 }

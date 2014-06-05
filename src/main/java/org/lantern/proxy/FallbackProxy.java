@@ -1,7 +1,5 @@
 package org.lantern.proxy;
 
-import java.net.URI;
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.lantern.LanternUtils;
 import org.lantern.S3Config;
@@ -18,7 +16,8 @@ public class FallbackProxy extends ProxyInfo {
     public FallbackProxy() {
         // We set the type here because the JSON in the S3 config file doesn't
         // include anything about the type. Fallbacks are always "cloud".
-        type = Type.cloud;
+        this.type = Type.cloud;
+        this.jid = LanternUtils.newURI("fallback@getlantern.org");
     }
 
     public void setIp(String ip) {
@@ -35,10 +34,5 @@ public class FallbackProxy extends ProxyInfo {
 
     public void setProtocol(String protocol) {
         this.protocol = Protocol.valueOf(protocol.toUpperCase());
-    }
-    
-    @Override
-    public URI getJid() {
-            return LanternUtils.newURI("fallback-" + wanHost + "@getlantern.org");
     }
 }

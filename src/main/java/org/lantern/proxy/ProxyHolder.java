@@ -213,6 +213,10 @@ public final class ProxyHolder extends BaseChainedProxy
     public Type getType() {
         return info.getType();
     }
+    
+    public int getPriority() {
+        return info.getPriority();
+    }
 
     public boolean isConnected() {
         return timeOfOldestConsecFailure.get() <= 0;

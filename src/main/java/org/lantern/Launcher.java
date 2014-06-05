@@ -273,7 +273,7 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
-        s3ConfigFetcher = new S3ConfigFetcher(model, httpClientFactory);
+        s3ConfigFetcher = new S3ConfigFetcher(model);
         
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
@@ -397,7 +397,7 @@ public class Launcher {
             s3ConfigFetcher.init();
             proxyTracker.init();
             // Needs a fallback.
-            publicIpInfoHandler.init();
+            //publicIpInfoHandler.init();
             
             // Once network services are successfully initialized, start
             // background tasks.
