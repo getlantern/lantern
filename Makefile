@@ -3,7 +3,6 @@
 .PHONY: otto assets underscore
 
 TESTS := \
-	_evalDirectIndirect \
 	~
 
 TEST := -v --run

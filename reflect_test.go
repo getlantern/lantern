@@ -11,6 +11,12 @@ type _abcStruct struct {
 	Def int
 	Ghi string
 	Jkl interface{}
+	Mno _mnoStruct
+	Pqr map[string]int8
+}
+
+func (abc _abcStruct) String() string {
+	return abc.Ghi
 }
 
 func (abc *_abcStruct) FuncPointer() string {
@@ -46,6 +52,7 @@ func (abc _abcStruct) FuncReturnStruct() _mnoStruct {
 }
 
 type _mnoStruct struct {
+	Ghi string
 }
 
 func (mno _mnoStruct) Func() string {
@@ -431,6 +438,46 @@ func Test_reflectMapInterface(t *testing.T) {
 			is(valid, true)
 			is(mno.Abc, true)
 			is(mno.Ghi, "Something happens.")
+		}
+	})
+}
+
+func TestPassthrough(t *testing.T) {
+	tt(t, func() {
+		test, vm := test()
+
+		{
+			abc := &_abcStruct{
+				Mno: _mnoStruct{
+					Ghi: "<Mno.Ghi>",
+				},
+			}
+			vm.Set("abc", abc)
+
+			test(`
+                abc.Mno.Ghi;
+            `, "<Mno.Ghi>")
+
+			vm.Set("pqr", map[string]int8{
+				"xyzzy":            0,
+				"Nothing happens.": 1,
+			})
+
+			test(`
+                abc.Ghi = "abc";
+                abc.Pqr = pqr;
+                abc.Pqr["Nothing happens."];
+            `, 1)
+
+			mno := _mnoStruct{
+				Ghi: "<mno.Ghi>",
+			}
+			vm.Set("mno", mno)
+
+			test(`
+                abc.Mno = mno;
+                abc.Mno.Ghi;
+            `, "<mno.Ghi>")
 		}
 	})
 }

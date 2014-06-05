@@ -779,11 +779,13 @@ func (self Value) exportNative() interface{} {
 	return self
 }
 
+// Make a best effort to return a reflect.Value corresponding to reflect.Kind, but
+// fallback to just returning the Go value we have handy.
 func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	switch kind {
-	case reflect.Bool:
+	case reflect.Bool: // Bool
 		return reflect.ValueOf(value.toBoolean()), nil
-	case reflect.Int:
+	case reflect.Int: // Int
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of int64
 		tmp := toIntegerFloat(value)
@@ -792,28 +794,28 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		} else {
 			return reflect.ValueOf(int(tmp)), nil
 		}
-	case reflect.Int8:
+	case reflect.Int8: // Int8
 		tmp := toInteger(value).value
 		if tmp < int64_minInt8 || tmp > int64_maxInt8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int8", tmp, value)
 		} else {
 			return reflect.ValueOf(int8(tmp)), nil
 		}
-	case reflect.Int16:
+	case reflect.Int16: // Int16
 		tmp := toInteger(value).value
 		if tmp < int64_minInt16 || tmp > int64_maxInt16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int16", tmp, value)
 		} else {
 			return reflect.ValueOf(int16(tmp)), nil
 		}
-	case reflect.Int32:
+	case reflect.Int32: // Int32
 		tmp := toInteger(value).value
 		if tmp < int64_minInt32 || tmp > int64_maxInt32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int32", tmp, value)
 		} else {
 			return reflect.ValueOf(int32(tmp)), nil
 		}
-	case reflect.Int64:
+	case reflect.Int64: // Int64
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of int64
 		tmp := toIntegerFloat(value)
@@ -822,7 +824,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		} else {
 			return reflect.ValueOf(int64(tmp)), nil
 		}
-	case reflect.Uint:
+	case reflect.Uint: // Uint
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of uint
 		tmp := toIntegerFloat(value)
@@ -831,28 +833,28 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		} else {
 			return reflect.ValueOf(uint(tmp)), nil
 		}
-	case reflect.Uint8:
+	case reflect.Uint8: // Uint8
 		tmp := toInteger(value).value
 		if tmp < 0 || tmp > int64_maxUint8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint8", tmp, value)
 		} else {
 			return reflect.ValueOf(uint8(tmp)), nil
 		}
-	case reflect.Uint16:
+	case reflect.Uint16: // Uint16
 		tmp := toInteger(value).value
 		if tmp < 0 || tmp > int64_maxUint16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint16", tmp, value)
 		} else {
 			return reflect.ValueOf(uint16(tmp)), nil
 		}
-	case reflect.Uint32:
+	case reflect.Uint32: // Uint32
 		tmp := toInteger(value).value
 		if tmp < 0 || tmp > int64_maxUint32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint32", tmp, value)
 		} else {
 			return reflect.ValueOf(uint32(tmp)), nil
 		}
-	case reflect.Uint64:
+	case reflect.Uint64: // Uint64
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of uint64
 		tmp := toIntegerFloat(value)
@@ -861,7 +863,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		} else {
 			return reflect.ValueOf(uint64(tmp)), nil
 		}
-	case reflect.Float32:
+	case reflect.Float32: // Float32
 		tmp := toFloat(value)
 		tmp1 := tmp
 		if 0 > tmp1 {
@@ -872,17 +874,42 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 		} else {
 			return reflect.ValueOf(float32(tmp)), nil
 		}
-	case reflect.Float64:
+	case reflect.Float64: // Float64
 		value := toFloat(value)
 		return reflect.ValueOf(float64(value)), nil
-	case reflect.String:
+	case reflect.String: // String
 		return reflect.ValueOf(value.toString()), nil
-	case reflect.Interface:
-		return reflect.ValueOf(value.exportNative()), nil
+	case reflect.Invalid: // Invalid
+	case reflect.Complex64: // FIXME? Complex64
+	case reflect.Complex128: // FIXME? Complex128
+	case reflect.Chan: // FIXME? Chan
+	case reflect.Func: // FIXME? Func
+	case reflect.Ptr: // FIXME? Ptr
+	case reflect.UnsafePointer: // FIXME? UnsafePointer
+	default:
+		switch value.kind {
+		case valueObject:
+			object := value._object()
+			switch vl := object.value.(type) {
+			case *_goStructObject: // Struct
+				return reflect.ValueOf(vl.value.Interface()), nil
+			case *_goMapObject: // Map
+				return reflect.ValueOf(vl.value.Interface()), nil
+			case *_goArrayObject: // Array
+				return reflect.ValueOf(vl.value.Interface()), nil
+			case *_goSliceObject: // Slice
+				return reflect.ValueOf(vl.value.Interface()), nil
+			}
+			return reflect.ValueOf(value.exportNative()), nil
+		case valueEmpty, valueResult, valueReference:
+			// These are invalid, and should panic
+		default:
+			return reflect.ValueOf(value.value), nil
+		}
 	}
 
-	dbgf("%/panic//%@: Invalid: (%v) to reflect.Kind: %v", value, kind)
-	panic("")
+	// FIXME Should this end up as a TypeError?
+	panic(fmt.Errorf("invalid conversion of %v (%v) to reflect.Kind: %v", value.kind, value, kind))
 }
 
 func stringToReflectValue(value string, kind reflect.Kind) (reflect.Value, error) {
@@ -969,6 +996,6 @@ func stringToReflectValue(value string, kind reflect.Kind) (reflect.Value, error
 		return reflect.ValueOf(value), nil
 	}
 
-	dbgf("%/panic//%@: Invalid: \"%s\" to reflect.Kind: %v", value, kind)
-	panic("")
+	// FIXME This should end up as a TypeError?
+	panic(fmt.Errorf("invalid conversion of %q to reflect.Kind: %v", value, kind))
 }

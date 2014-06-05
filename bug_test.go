@@ -514,3 +514,37 @@ def"
         `, "1,0,\t abc def,\t abc ")
 	})
 }
+
+func Test_issue79(t *testing.T) {
+	tt(t, func() {
+		test, vm := test()
+
+		vm.Set("abc", []_abcStruct{
+			{
+				Ghi: "一",
+				Def: 1,
+			},
+			{
+				Def: 3,
+				Ghi: "三",
+			},
+			{
+				Def: 2,
+				Ghi: "二",
+			},
+			{
+				Def: 4,
+				Ghi: "四",
+			},
+		})
+
+		test(`
+            abc.sort(function(a,b){ return b.Def-a.Def });
+            def = [];
+            for (i = 0; i < abc.length; i++) {
+                def.push(abc[i].String())
+            }
+            def;
+        `, "四,三,二,一")
+	})
+}

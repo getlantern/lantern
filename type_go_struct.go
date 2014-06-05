@@ -5,6 +5,14 @@ import (
 	"reflect"
 )
 
+// FIXME Make a note about not being able to modify a struct unless it was
+// passed as a pointer-to: &struct{ ... }
+// This seems to be a limitation of the reflect package.
+// This goes for the other Go constructs too.
+// I guess we could get around it by either:
+// 1. Creating a new struct every time
+// 2. Creating an addressable? struct in the constructor
+
 func (runtime *_runtime) newGoStructObject(value reflect.Value) *_object {
 	self := runtime.newObject()
 	self.class = "Object" // TODO Should this be something else?
@@ -61,6 +69,7 @@ func (self _goStructObject) setValue(name string, value Value) bool {
 		panic(err)
 	}
 	fieldValue.Set(reflectValue)
+
 	return true
 }
 
