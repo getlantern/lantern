@@ -1,18 +1,13 @@
 package org.lantern.geoip;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import org.lantern.JsonUtils;
-import org.lantern.geoip.GeoData;
-
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.lantern.JsonUtils;
 
 public class GeoIpLookupServiceTest {
 

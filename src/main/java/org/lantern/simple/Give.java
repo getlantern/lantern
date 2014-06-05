@@ -4,6 +4,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,14 +19,12 @@ import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.monitoring.Stats;
 import org.lantern.monitoring.StatsManager;
 import org.lantern.monitoring.StatshubAPI;
-import org.lantern.proxy.GiveModeActivityTracker;
 import org.lantern.proxy.GiveModeHttpFilters;
 import org.lantern.proxy.pt.PluggableTransport;
 import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.proxy.pt.PtType;
 import org.lantern.state.InstanceStats;
 import org.lantern.util.Threads;
-import org.littleshoot.proxy.ActivityTracker;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.littleshoot.proxy.HttpProxyServer;
@@ -91,9 +91,9 @@ public class Give extends CliProgram {
 
     private HttpProxyServer server;
     private InstanceStats stats = new InstanceStats();
-    private GeoIpLookupService lookupService = new GeoIpLookupService(null);
-    private ActivityTracker activityTracker = new GiveModeActivityTracker(
-            stats, lookupService, null);
+    private GeoIpLookupService lookupService = new GeoIpLookupService();
+    private FallbackActivityTracker activityTracker = new FallbackActivityTracker(
+            stats, lookupService);
     private final StatshubAPI statshub = new StatshubAPI();
 
     private final ScheduledExecutorService statsScheduler = Threads
@@ -286,6 +286,11 @@ public class Give extends CliProgram {
                 10,
                 StatsManager.FALLBACK_POST_INTERVAL,
                 TimeUnit.SECONDS);
+        statsScheduler.scheduleAtFixedRate(
+                postSiteStats,
+                StatsManager.SITES_POST_INTERVAL,
+                StatsManager.SITES_POST_INTERVAL,
+                TimeUnit.SECONDS);
     }
 
     private Runnable postStats = new Runnable() {
@@ -308,6 +313,42 @@ public class Give extends CliProgram {
                 LOGGER.warn("Unable to post stats to statshub: {}",
                         e.getMessage(), e);
             }
+        }
+    };
+
+    private Runnable postSiteStats = new Runnable() {
+        @Override
+        public void run() {
+            LOGGER.info("Reporting host requests to statshub");
+            Map<String, Map<String, Long>> hostRequestsByCountry =
+                    activityTracker.pollHostRequestsByCountry();
+            try {
+                String statName = Stats.Counters.requestsToHost.name();
+                for (Map.Entry<String, Map<String, Long>> hostRequestsForCountry : hostRequestsByCountry
+                        .entrySet()) {
+                    String country = hostRequestsForCountry.getKey();
+                    if (country == null || "".equals(country)) {
+                        country = Stats.UNKNOWN_COUNTRY;
+                    }
+                    String countryStatName = statName + "_" + country.toLowerCase();
+                    for (Map.Entry<String, Long> hostRequests : hostRequestsForCountry
+                            .getValue().entrySet()) {
+                        String host = hostRequests.getKey();
+                        long requests = hostRequests.getValue();
+                        String id = "host_" + host;
+                        Stats stats = new Stats();
+                        stats.getIncrements().put(statName, requests);
+                        stats.getIncrements().put(countryStatName, requests);
+                        Map<String, String> dims = new HashMap<String, String>();
+                        dims.put("host", host);
+                        statshub.postStats(id, null, country, false, stats, dims);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Unable to post site stats to statshub: {}",
+                        e.getMessage(), e);
+            }
+
         }
     };
 }

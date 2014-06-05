@@ -1,8 +1,12 @@
 package org.lantern.geoip;
+
+import org.codehaus.jackson.annotate.JsonProperty;
  
 public class GeoData {
-    public Country Country;
-    public Location Location;
+    @JsonProperty("Country")
+    private Country Country = new Country();
+    @JsonProperty("Location")
+    private Location Location = new Location();
 
     public void setLocation(Location Location) {
         this.Location = Location;
