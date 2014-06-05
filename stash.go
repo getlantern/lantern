@@ -256,11 +256,20 @@ func (runtime *_runtime) newFunctionStash(outer _stash) *_fnStash {
 	}
 }
 
-func (in _fnStash) clone(clone *_clone) _stash {
-	// FIXME Memory leak issue here?
-	return &_fnStash{
-		*(in._dclStash.clone(clone).(*_dclStash)),
-		clone.object(in.arguments),
-		in.indexOfArgumentName,
+func (in *_fnStash) clone(clone *_clone) _stash {
+	out, exists := clone.fnStash(in)
+	if exists {
+		return out
 	}
+	dclStash := in._dclStash.clone(clone).(*_dclStash)
+	index := make(map[string]string, len(in.indexOfArgumentName))
+	for name, value := range in.indexOfArgumentName {
+		index[name] = value
+	}
+	*out = _fnStash{
+		_dclStash:           *dclStash,
+		arguments:           clone.object(in.arguments),
+		indexOfArgumentName: index,
+	}
+	return out
 }

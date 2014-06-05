@@ -9,6 +9,7 @@ type _clone struct {
 	_object      map[*_object]*_object
 	_objectStash map[*_objectStash]*_objectStash
 	_dclStash    map[*_dclStash]*_dclStash
+	_fnStash     map[*_fnStash]*_fnStash
 }
 
 func (in *_runtime) clone() *_runtime {
@@ -22,6 +23,7 @@ func (in *_runtime) clone() *_runtime {
 		_object:      make(map[*_object]*_object),
 		_objectStash: make(map[*_objectStash]*_objectStash),
 		_dclStash:    make(map[*_dclStash]*_dclStash),
+		_fnStash:     make(map[*_fnStash]*_fnStash),
 	}
 
 	globalObject := clone.object(in.globalObject)
@@ -73,6 +75,7 @@ func (in *_runtime) clone() *_runtime {
 	clone._object = nil
 	clone._objectStash = nil
 	clone._dclStash = nil
+	clone._fnStash = nil
 
 	return out
 }
@@ -101,6 +104,15 @@ func (clone *_clone) objectStash(in *_objectStash) (*_objectStash, bool) {
 	}
 	out := &_objectStash{}
 	clone._objectStash[in] = out
+	return out, false
+}
+
+func (clone *_clone) fnStash(in *_fnStash) (*_fnStash, bool) {
+	if out, exists := clone._fnStash[in]; exists {
+		return out, true
+	}
+	out := &_fnStash{}
+	clone._fnStash[in] = out
 	return out, false
 }
 

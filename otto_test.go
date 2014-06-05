@@ -1099,6 +1099,54 @@ func TestOttoCopy(t *testing.T) {
         `)
 		is(err, nil)
 		is(value, "Xyzzy0[object Object]")
+
+		{
+			vm0 := New()
+			vm0.Run(`
+                var global = (function () {return this;}())
+                var abc = 0;
+                var vm = "vm0";
+
+                var def = (function(){
+                    var jkl = 0;
+                    var abc = function() {
+                        global.abc += 1;
+                        jkl += 1;
+                        return 1;
+                    };
+
+                    return function() {
+                        return [ vm, global.abc, jkl, abc() ];
+                    };
+                })();
+            `)
+
+			value, err := vm0.Run(`
+                def();
+            `)
+			is(err, nil)
+			is(value, "vm0,0,0,1")
+
+			vm1 := vm0.Copy()
+			vm1.Set("vm", "vm1")
+			value, err = vm1.Run(`
+                def();
+            `)
+			is(err, nil)
+			is(value, "vm1,1,1,1")
+
+			value, err = vm0.Run(`
+                def();
+            `)
+			is(err, nil)
+			is(value, "vm0,1,1,1")
+
+			value, err = vm1.Run(`
+                def();
+            `)
+			is(err, nil)
+			is(value, "vm1,2,2,1")
+		}
 	})
 }
 
