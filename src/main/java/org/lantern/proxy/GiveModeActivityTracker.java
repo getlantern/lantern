@@ -19,7 +19,7 @@ import org.littleshoot.proxy.FullFlowContext;
  */
 public class GiveModeActivityTracker extends ActivityTrackerAdapter {
     private InstanceStats stats;
-    private GeoIpLookupService lookupService;
+    protected GeoIpLookupService lookupService;
     private PeerFactory peerFactory;
 
     public GiveModeActivityTracker(InstanceStats stats,

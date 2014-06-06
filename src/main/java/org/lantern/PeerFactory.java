@@ -39,4 +39,16 @@ public interface PeerFactory {
      * @return
      */
     Peer peerForSession(SSLSession sslSession);
+
+    /**
+     * Update geolocation info for a peer
+     *
+     * @param peer
+     *        The peer to update geo data for
+     * @param address
+     *        The current peer address
+     * @return
+     */
+    void updateGeoData(final Peer peer, final String address);
+
 }

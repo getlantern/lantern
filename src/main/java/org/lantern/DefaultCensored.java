@@ -165,7 +165,7 @@ public class DefaultCensored implements Censored {
     }
     
     private String countryCode(final InetAddress address) {
-        return lookupService.getGeoData(address).getCountrycode();
+        return lookupService.getGeoData(address).getCountry().getIsoCode();
     }
 
     @Override
