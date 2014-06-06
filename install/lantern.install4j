@@ -1401,11 +1401,6 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                           </void>
                           <void index="2">
                             <object class="java.io.File">
-                              <string>GeoIP.dat</string>
-                            </object>
-                          </void>
-                          <void index="3">
-                            <object class="java.io.File">
                               <string>logs</string>
                             </object>
                           </void>

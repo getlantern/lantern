@@ -88,8 +88,6 @@ else
     cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar from lantern-$VERSION-small.jar"
 fi
 
-cp -f GeoIP.dat install/common/ || die "Could not copy GeoIP.dat?"
-
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 
 test -f ./install/wrapper/InstallDownloader.class || die "Could not find InstallerDownloader class file?"
