@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.net.ConnectException;
 import java.net.InetAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
@@ -35,6 +36,7 @@ public class PublicIpInfoHandler {
     private final Model model;
     private final Censored censored;
     private final GeoIpLookupService geoIpLookupService;
+    private final AtomicBoolean recheck = new AtomicBoolean(true);
     
     @Inject
     public PublicIpInfoHandler(final Model model, final Censored censored,
@@ -53,17 +55,31 @@ public class PublicIpInfoHandler {
      * @throws ConnectException If there was an error fetching the public IP. 
      */
     private void determinePublicIp() throws ConnectException {
+        if (!this.recheck.get()) {
+            log.debug("Not rechecking for public IP");
+            return;
+        }
+        
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
         this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
         if (address == null) {
             throw new ConnectException("Could not determine public IP");
         }
+        
+        this.recheck.set(false);
         handleCensored(address);
         handleGeoIp(address);
         
         // Post PublicIpEvent so that downstream services like xmpp,
         // FriendsHandler, StatsManager and Loggly can start.
         Events.asyncEventBus().post(new PublicIpEvent());
+    }
+    
+    @Subscribe
+    public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+        // Make sure we re-check your public IP after any change in 
+        // connectivity.
+        this.recheck.set(true);
     }
     
     /**
