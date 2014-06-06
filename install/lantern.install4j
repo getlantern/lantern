@@ -1388,7 +1388,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
                       <void property="files">
-                        <array class="java.io.File" length="4">
+                        <array class="java.io.File" length="3">
                           <void index="0">
                             <object class="java.io.File">
                               <string>./log.txt</string>
