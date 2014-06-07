@@ -52,7 +52,7 @@ func (self *_runtime) cmpl_call_nodeFunction(function *_object, stash *_fnStash,
 	self.cmpl_variableDeclaration(node.varList)
 
 	result := self.cmpl_evaluate_nodeStatement(node.body)
-	if result.isResult() {
+	if result.kind == valueResult {
 		return result
 	}
 

@@ -12,7 +12,7 @@ import (
 
 func stringValueFromStringArgumentList(argumentList []Value) Value {
 	if len(argumentList) > 0 {
-		return toValue_string(toString(argumentList[0]))
+		return toValue_string(argumentList[0].string())
 	}
 	return toValue_string("")
 }
@@ -42,7 +42,7 @@ func builtinString_fromCharCode(call FunctionCall) Value {
 
 func builtinString_charAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	idx := int(toInteger(call.Argument(0)).int64)
+	idx := int(call.Argument(0).number().int64)
 	chr := stringAt(call.This._object().stringValue(), idx)
 	if chr == utf8.RuneError {
 		return toValue_string("")
@@ -52,7 +52,7 @@ func builtinString_charAt(call FunctionCall) Value {
 
 func builtinString_charCodeAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	idx := int(toInteger(call.Argument(0)).int64)
+	idx := int(call.Argument(0).number().int64)
 	chr := stringAt(call.This._object().stringValue(), idx)
 	if chr == utf8.RuneError {
 		return NaNValue()
@@ -63,17 +63,17 @@ func builtinString_charCodeAt(call FunctionCall) Value {
 func builtinString_concat(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	var value bytes.Buffer
-	value.WriteString(toString(call.This))
+	value.WriteString(call.This.string())
 	for _, item := range call.ArgumentList {
-		value.WriteString(toString(item))
+		value.WriteString(item.string())
 	}
 	return toValue_string(value.String())
 }
 
 func builtinString_indexOf(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	value := toString(call.This)
-	target := toString(call.Argument(0))
+	value := call.This.string()
+	target := call.Argument(0).string()
 	if 2 > len(call.ArgumentList) {
 		return toValue_int(strings.Index(value, target))
 	}
@@ -95,8 +95,8 @@ func builtinString_indexOf(call FunctionCall) Value {
 
 func builtinString_lastIndexOf(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	value := toString(call.This)
-	target := toString(call.Argument(0))
+	value := call.This.string()
+	target := call.Argument(0).string()
 	if 2 > len(call.ArgumentList) || call.ArgumentList[1].IsUndefined() {
 		return toValue_int(strings.LastIndex(value, target))
 	}
@@ -104,8 +104,8 @@ func builtinString_lastIndexOf(call FunctionCall) Value {
 	if length == 0 {
 		return toValue_int(strings.LastIndex(value, target))
 	}
-	start := toInteger(call.ArgumentList[1])
-	if !start.valid() {
+	start := call.ArgumentList[1].number()
+	if start.kind == numberInfinity { // FIXME
 		// startNumber is infinity, so start is the end of string (start = length)
 		return toValue_int(strings.LastIndex(value, target))
 	}
@@ -121,13 +121,13 @@ func builtinString_lastIndexOf(call FunctionCall) Value {
 
 func builtinString_match(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	target := toString(call.This)
+	target := call.This.string()
 	matcherValue := call.Argument(0)
 	matcher := matcherValue._object()
 	if !matcherValue.IsObject() || matcher.class != "RegExp" {
 		matcher = call.runtime.newRegExp(matcherValue, Value{})
 	}
-	global := toBoolean(matcher.get("global"))
+	global := matcher.get("global").bool()
 	if !global {
 		match, result := execRegExp(matcher, target)
 		if !match {
@@ -190,7 +190,7 @@ func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int
 
 func builtinString_replace(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	target := []byte(toString(call.This))
+	target := []byte(call.This.string())
 	searchValue := call.Argument(0)
 	searchObject := searchValue._object()
 
@@ -205,7 +205,7 @@ func builtinString_replace(call FunctionCall) Value {
 			find = -1
 		}
 	} else {
-		search = regexp.MustCompile(regexp.QuoteMeta(toString(searchValue)))
+		search = regexp.MustCompile(regexp.QuoteMeta(searchValue.string()))
 	}
 
 	found := search.FindAllSubmatchIndex(target, find)
@@ -237,13 +237,13 @@ func builtinString_replace(call FunctionCall) Value {
 				}
 				argumentList[matchCount+0] = toValue_int(match[0])
 				argumentList[matchCount+1] = toValue_string(target)
-				replacement := toString(replace.call(Value{}, argumentList, false))
+				replacement := replace.call(Value{}, argumentList, false).string()
 				result = append(result, []byte(replacement)...)
 				lastIndex = match[1]
 			}
 
 		} else {
-			replace := []byte(toString(replaceValue))
+			replace := []byte(replaceValue.string())
 			for _, match := range found {
 				result = builtinString_findAndReplaceString(result, lastIndex, match, target, replace)
 				lastIndex = match[1]
@@ -264,7 +264,7 @@ func builtinString_replace(call FunctionCall) Value {
 
 func builtinString_search(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	target := toString(call.This)
+	target := call.This.string()
 	searchValue := call.Argument(0)
 	search := searchValue._object()
 	if !searchValue.IsObject() || search.class != "RegExp" {
@@ -290,7 +290,7 @@ func stringSplitMatch(target string, targetLength int64, index uint, search stri
 
 func builtinString_split(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	target := toString(call.This)
+	target := call.This.string()
 
 	separatorValue := call.Argument(0)
 	limitValue := call.Argument(1)
@@ -365,7 +365,7 @@ func builtinString_split(call FunctionCall) Value {
 		return toValue_object(call.runtime.newArrayOf(valueArray))
 
 	} else {
-		separator := toString(separatorValue)
+		separator := separatorValue.string()
 
 		splitLimit := limit
 		excess := false
@@ -391,7 +391,7 @@ func builtinString_split(call FunctionCall) Value {
 
 func builtinString_slice(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	target := toString(call.This)
+	target := call.This.string()
 
 	length := int64(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
@@ -403,7 +403,7 @@ func builtinString_slice(call FunctionCall) Value {
 
 func builtinString_substring(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	target := toString(call.This)
+	target := call.This.string()
 
 	length := int64(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, true)
@@ -414,7 +414,7 @@ func builtinString_substring(call FunctionCall) Value {
 }
 
 func builtinString_substr(call FunctionCall) Value {
-	target := toString(call.This)
+	target := call.This.string()
 
 	size := int64(len(target))
 	start, length := rangeStartLength(call.ArgumentList, size)
@@ -440,12 +440,12 @@ func builtinString_substr(call FunctionCall) Value {
 
 func builtinString_toLowerCase(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue_string(strings.ToLower(toString(call.This)))
+	return toValue_string(strings.ToLower(call.This.string()))
 }
 
 func builtinString_toUpperCase(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue_string(strings.ToUpper(toString(call.This)))
+	return toValue_string(strings.ToUpper(call.This.string()))
 }
 
 // 7.2 Table 2 — Whitespace Characters & 7.3 Table 3 - Line Terminator Characters
@@ -453,28 +453,28 @@ const builtinString_trim_whitespace = "\u0009\u000A\u000B\u000C\u000D\u0020\u00A
 
 func builtinString_trim(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue(strings.Trim(toString(call.This),
+	return toValue(strings.Trim(call.This.string(),
 		builtinString_trim_whitespace))
 }
 
 // Mozilla extension, not ECMAScript 5
 func builtinString_trimLeft(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue(strings.TrimLeft(toString(call.This),
+	return toValue(strings.TrimLeft(call.This.string(),
 		builtinString_trim_whitespace))
 }
 
 // Mozilla extension, not ECMAScript 5
 func builtinString_trimRight(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue(strings.TrimRight(toString(call.This),
+	return toValue(strings.TrimRight(call.This.string(),
 		builtinString_trim_whitespace))
 }
 
 func builtinString_localeCompare(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	this := toString(call.This)
-	that := toString(call.Argument(0))
+	this := call.This.string()
+	that := call.Argument(0).string()
 	if this < that {
 		return toValue_int(-1)
 	} else if this == that {
@@ -487,7 +487,7 @@ func builtinString_localeCompare(call FunctionCall) Value {
 An alternate version of String.trim
 func builtinString_trim(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	return toValue_string(strings.TrimFunc(toString(call.This), isWhiteSpaceOrLineTerminator))
+	return toValue_string(strings.TrimFunc(call.string(.This), isWhiteSpaceOrLineTerminator))
 }
 */
 

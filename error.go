@@ -136,7 +136,7 @@ func catchPanic(function func()) (err error) {
 				}
 				return
 			case Value:
-				err = errors.New(toString(caught))
+				err = errors.New(caught.string())
 				return
 				//case string:
 				//    if strings.HasPrefix(caught, "SyntaxError:") {

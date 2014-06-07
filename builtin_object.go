@@ -34,7 +34,7 @@ func builtinObject_valueOf(call FunctionCall) Value {
 }
 
 func builtinObject_hasOwnProperty(call FunctionCall) Value {
-	propertyName := toString(call.Argument(0))
+	propertyName := call.Argument(0).string()
 	thisObject := call.thisObject()
 	return toValue_bool(thisObject.hasOwnProperty(propertyName))
 }
@@ -56,7 +56,7 @@ func builtinObject_isPrototypeOf(call FunctionCall) Value {
 }
 
 func builtinObject_propertyIsEnumerable(call FunctionCall) Value {
-	propertyName := toString(call.Argument(0))
+	propertyName := call.Argument(0).string()
 	thisObject := call.thisObject()
 	property := thisObject.getOwnProperty(propertyName)
 	if property != nil && property.enumerable() {
@@ -106,7 +106,7 @@ func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
 		panic(newTypeError())
 	}
 
-	name := toString(call.Argument(1))
+	name := call.Argument(1).string()
 	descriptor := object.getOwnProperty(name)
 	if descriptor == nil {
 		return Value{}
@@ -120,7 +120,7 @@ func builtinObject_defineProperty(call FunctionCall) Value {
 	if object == nil {
 		panic(newTypeError())
 	}
-	name := toString(call.Argument(1))
+	name := call.Argument(1).string()
 	descriptor := toPropertyDescriptor(call.Argument(2))
 	object.defineOwnProperty(name, descriptor, true)
 	return objectValue

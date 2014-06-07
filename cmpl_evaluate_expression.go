@@ -142,13 +142,13 @@ func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpres
 	switch node.operator {
 	// Logical
 	case token.LOGICAL_AND:
-		if !toBoolean(leftValue) {
+		if !leftValue.bool() {
 			return leftValue
 		}
 		right := self.cmpl_evaluate_nodeExpression(node.right)
 		return right.resolve()
 	case token.LOGICAL_OR:
-		if toBoolean(leftValue) {
+		if leftValue.bool() {
 			return leftValue
 		}
 		right := self.cmpl_evaluate_nodeExpression(node.right)
@@ -173,7 +173,7 @@ func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpr
 	memberValue := member.resolve()
 
 	// TODO Pass in base value as-is, and defer toObject till later?
-	return toValue(newPropertyReference(self.toObject(targetValue), toString(memberValue), false))
+	return toValue(newPropertyReference(self.toObject(targetValue), memberValue.string(), false))
 }
 
 func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression, withArgumentList []interface{}) Value {
@@ -212,7 +212,7 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditionalExpression) Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
 	testValue := test.resolve()
-	if toBoolean(testValue) {
+	if testValue.bool() {
 		return self.cmpl_evaluate_nodeExpression(node.consequent)
 	}
 	return self.cmpl_evaluate_nodeExpression(node.alternate)
@@ -295,7 +295,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 	switch node.operator {
 	case token.NOT:
 		targetValue := target.resolve()
-		if targetValue.toBoolean() {
+		if targetValue.bool() {
 			return falseValue
 		}
 		return trueValue
@@ -305,10 +305,10 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 		return toValue_int32(^integerValue)
 	case token.PLUS:
 		targetValue := target.resolve()
-		return toValue_float64(targetValue.toFloat())
+		return toValue_float64(targetValue.float64())
 	case token.MINUS:
 		targetValue := target.resolve()
-		value := targetValue.toFloat()
+		value := targetValue.float64()
 		// TODO Test this
 		sign := float64(-1)
 		if math.Signbit(value) {
@@ -319,13 +319,13 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 		targetValue := target.resolve()
 		if node.postfix {
 			// Postfix++
-			oldValue := targetValue.toFloat()
+			oldValue := targetValue.float64()
 			newValue := toValue_float64(+1 + oldValue)
 			self.putValue(target.reference(), newValue)
 			return toValue_float64(oldValue)
 		} else {
 			// ++Prefix
-			newValue := toValue_float64(+1 + targetValue.toFloat())
+			newValue := toValue_float64(+1 + targetValue.float64())
 			self.putValue(target.reference(), newValue)
 			return newValue
 		}
@@ -333,13 +333,13 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 		targetValue := target.resolve()
 		if node.postfix {
 			// Postfix--
-			oldValue := targetValue.toFloat()
+			oldValue := targetValue.float64()
 			newValue := toValue_float64(-1 + oldValue)
 			self.putValue(target.reference(), newValue)
 			return toValue_float64(oldValue)
 		} else {
 			// --Prefix
-			newValue := toValue_float64(-1 + targetValue.toFloat())
+			newValue := toValue_float64(-1 + targetValue.float64())
 			self.putValue(target.reference(), newValue)
 			return newValue
 		}

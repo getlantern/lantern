@@ -36,10 +36,10 @@ func (self *_tester) underscore() {
 	}
 
 	vm.Set("assert", func(call FunctionCall) Value {
-		if !toBoolean(call.Argument(0)) {
+		if !call.Argument(0).bool() {
 			message := "Assertion failed"
 			if len(call.ArgumentList) > 1 {
-				message = toString(call.ArgumentList[1])
+				message = call.ArgumentList[1].string()
 			}
 			t := terst.Caller().T()
 			is(message, nil)

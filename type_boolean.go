@@ -5,7 +5,7 @@ import (
 )
 
 func (runtime *_runtime) newBooleanObject(value Value) *_object {
-	return runtime.newPrimitiveObject("Boolean", toValue_bool(toBoolean(value)))
+	return runtime.newPrimitiveObject("Boolean", toValue_bool(value.bool()))
 }
 
 func booleanToString(value bool) string {

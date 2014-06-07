@@ -22,7 +22,7 @@ func builtinNewFunction(self *_object, argumentList []Value) Value {
 func argumentList2parameterList(argumentList []Value) []string {
 	parameterList := make([]string, 0, len(argumentList))
 	for _, value := range argumentList {
-		tmp := strings.FieldsFunc(toString(value), func(chr rune) bool {
+		tmp := strings.FieldsFunc(value.string(), func(chr rune) bool {
 			return chr == ',' || unicode.IsSpace(chr)
 		})
 		parameterList = append(parameterList, tmp...)
@@ -38,10 +38,10 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 	if count > 0 {
 		tmp := make([]string, 0, count-1)
 		for _, value := range argumentList[0 : count-1] {
-			tmp = append(tmp, toString(value))
+			tmp = append(tmp, value.string())
 		}
 		parameterList = strings.Join(tmp, ",")
-		body = toString(argumentList[count-1])
+		body = argumentList[count-1].string()
 	}
 
 	function, err := parser.ParseFunction(parameterList, body)

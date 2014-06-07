@@ -145,10 +145,10 @@ func (runtime *_runtime) newRegExp(patternValue Value, flagsValue Value) *_objec
 		flags = regExp.flags
 	} else {
 		if patternValue.IsDefined() {
-			pattern = toString(patternValue)
+			pattern = patternValue.string()
 		}
 		if flagsValue.IsDefined() {
-			flags = toString(flagsValue)
+			flags = flagsValue.string()
 		}
 	}
 

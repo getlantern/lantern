@@ -69,7 +69,7 @@ func builtinDate_toJSON(call FunctionCall) Value {
 	object := call.thisObject()
 	value := object.DefaultValue(defaultValueHintNumber) // FIXME object.primitiveNumberValue
 	{                                                    // FIXME value.isFinite
-		value := toFloat(value)
+		value := value.float64()
 		if math.IsNaN(value) || math.IsInf(value, 0) {
 			return nullValue
 		}
@@ -102,7 +102,7 @@ func builtinDate_getTime(call FunctionCall) Value {
 func builtinDate_setTime(call FunctionCall) Value {
 	object := call.thisObject()
 	date := dateObjectOf(object)
-	date.Set(toFloat(call.Argument(0)))
+	date.Set(call.Argument(0).float64())
 	object.value = date
 	return date.Value()
 }
@@ -126,16 +126,14 @@ func _builtinDate_beforeSet(call FunctionCall, argumentLimit int, timeLocal bool
 	valueList := make([]int, argumentLimit)
 	for index := 0; index < argumentLimit; index++ {
 		value := call.ArgumentList[index]
-		if value.IsNaN() {
+		nm := value.number()
+		switch nm.kind {
+		case numberInteger, numberFloat:
+		default:
 			object.value = invalidDateObject
 			return nil, nil, nil, nil
 		}
-		integer := toInteger(value)
-		if !integer.valid() {
-			object.value = invalidDateObject
-			return nil, nil, nil, nil
-		}
-		valueList[index] = int(integer.int64)
+		valueList[index] = int(nm.int64)
 	}
 	baseTime := date.Time()
 	if timeLocal {
@@ -146,7 +144,7 @@ func _builtinDate_beforeSet(call FunctionCall, argumentLimit int, timeLocal bool
 }
 
 func builtinDate_parse(call FunctionCall) Value {
-	date := toString(call.Argument(0))
+	date := call.Argument(0).string()
 	return toValue_float64(dateParse(date))
 }
 

@@ -26,15 +26,15 @@ func builtinNewRegExp(self *_object, argumentList []Value) Value {
 
 func builtinRegExp_toString(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	source := toString(thisObject.get("source"))
+	source := thisObject.get("source").string()
 	flags := []byte{}
-	if toBoolean(thisObject.get("global")) {
+	if thisObject.get("global").bool() {
 		flags = append(flags, 'g')
 	}
-	if toBoolean(thisObject.get("ignoreCase")) {
+	if thisObject.get("ignoreCase").bool() {
 		flags = append(flags, 'i')
 	}
-	if toBoolean(thisObject.get("multiline")) {
+	if thisObject.get("multiline").bool() {
 		flags = append(flags, 'm')
 	}
 	return toValue_string(fmt.Sprintf("/%s/%s", source, flags))
@@ -42,7 +42,7 @@ func builtinRegExp_toString(call FunctionCall) Value {
 
 func builtinRegExp_exec(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	target := toString(call.Argument(0))
+	target := call.Argument(0).string()
 	match, result := execRegExp(thisObject, target)
 	if !match {
 		return nullValue
@@ -52,7 +52,7 @@ func builtinRegExp_exec(call FunctionCall) Value {
 
 func builtinRegExp_test(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	target := toString(call.Argument(0))
+	target := call.Argument(0).string()
 	match, _ := execRegExp(thisObject, target)
 	return toValue_bool(match)
 }

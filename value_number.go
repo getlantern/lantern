@@ -10,7 +10,7 @@ import (
 
 var stringToNumberParseInteger = regexp.MustCompile(`^(?:0[xX])`)
 
-func stringToFloat(value string) float64 {
+func parseNumber(value string) float64 {
 	value = strings.TrimSpace(value)
 
 	if value == "" {
@@ -41,14 +41,7 @@ func stringToFloat(value string) float64 {
 	return float64(number)
 }
 
-func toNumber(value Value) Value {
-	if value.kind == valueNumber {
-		return value
-	}
-	return Value{valueNumber, toFloat(value)}
-}
-
-func toFloat(value Value) float64 {
+func (value Value) float64() float64 {
 	switch value.kind {
 	case valueUndefined:
 		return math.NaN()
@@ -84,9 +77,9 @@ func toFloat(value Value) float64 {
 	case float64:
 		return value
 	case string:
-		return stringToFloat(value)
+		return parseNumber(value)
 	case *_object:
-		return toFloat(value.DefaultValue(defaultValueHintNumber))
+		return value.DefaultValue(defaultValueHintNumber).float64()
 	}
 	panic(fmt.Errorf("toFloat(%T)", value.value))
 }
@@ -145,7 +138,7 @@ const (
 )
 
 func toIntegerFloat(value Value) float64 {
-	float := value.toFloat()
+	float := value.float64()
 	if math.IsInf(float, 0) {
 	} else if math.IsNaN(float) {
 		float = 0
@@ -157,99 +150,88 @@ func toIntegerFloat(value Value) float64 {
 	return float
 }
 
-type _integerKind int
+type _numberKind int
 
 const (
-	integerValid    _integerKind = iota // 3.0 => 3.0
-	integerFloat                        // 3.14159 => 3.0, 1+2**63 > 2**63-1
-	integerInfinite                     // Infinity => 2**63-1
-	integerInvalid                      // NaN => 0
+	numberInteger  _numberKind = iota // 3.0 => 3.0
+	numberFloat                       // 3.14159 => 3.0, 1+2**63 > 2**63-1
+	numberInfinity                    // Infinity => 2**63-1
+	numberNaN                         // NaN => 0
 )
 
-type _integer struct {
-	kind    _integerKind
+type _number struct {
+	kind    _numberKind
 	int64   int64
 	float64 float64
 }
 
-func (self _integer) valid() bool {
-	return self.kind == integerValid || self.kind == integerFloat
-}
-
-func (self _integer) exact() bool {
-	return self.kind == integerValid
-}
-
-func (self _integer) infinite() bool {
-	return self.kind == integerInfinite
-}
-
-// Could this use some improvement?
+// FIXME
 // http://www.goinggo.net/2013/08/gustavos-ieee-754-brain-teaser.html
 // http://bazaar.launchpad.net/~niemeyer/strepr/trunk/view/6/strepr.go#L160
-func toInteger(value Value) (integer _integer) {
-	switch value := value.value.(type) {
+func (vl Value) number() (number _number) {
+	switch vl := vl.value.(type) {
 	case int8:
-		integer.int64 = int64(value)
+		number.int64 = int64(vl)
 		return
 	case int16:
-		integer.int64 = int64(value)
+		number.int64 = int64(vl)
 		return
 	case uint8:
-		integer.int64 = int64(value)
+		number.int64 = int64(vl)
 		return
 	case uint16:
-		integer.int64 = int64(value)
+		number.int64 = int64(vl)
 		return
 	case uint32:
-		integer.int64 = int64(value)
+		number.int64 = int64(vl)
 		return
 	case int:
-		integer.int64 = int64(value)
+		number.int64 = int64(vl)
 		return
 	case int64:
-		integer.int64 = value
+		number.int64 = vl
 		return
 	}
-	{
-		value := toFloat(value)
-		integer.float64 = value
-		if value == 0 {
-			return
-		}
-		if math.IsNaN(value) {
-			integer.kind = integerInvalid
-			return
-		}
-		if math.IsInf(value, 0) {
-			integer.kind = integerInfinite
-		}
-		if value >= float_maxInt64 {
-			integer.int64 = math.MaxInt64
-			integer.kind = integerFloat
-			return
-		}
-		if value <= float_minInt64 {
-			integer.int64 = math.MinInt64
-			integer.kind = integerFloat
-			return
-		}
-		{
-			value0 := value
-			value1 := float64(0)
-			if value0 > 0 {
-				value1 = math.Floor(value0)
-			} else {
-				value1 = math.Ceil(value0)
-			}
 
-			if value0 != value1 {
-				integer.kind = integerFloat
-			}
-			integer.int64 = int64(value1)
-			return
-		}
+	float := vl.float64()
+	if float == 0 {
+		return
 	}
+
+	number.kind = numberFloat
+	number.float64 = float
+
+	if math.IsNaN(float) {
+		number.kind = numberNaN
+		return
+	}
+
+	if math.IsInf(float, 0) {
+		number.kind = numberInfinity
+	}
+
+	if float >= float_maxInt64 {
+		number.int64 = math.MaxInt64
+		return
+	}
+
+	if float <= float_minInt64 {
+		number.int64 = math.MinInt64
+		return
+	}
+
+	integer := float64(0)
+	if float > 0 {
+		integer = math.Floor(float)
+	} else {
+		integer = math.Ceil(float)
+	}
+
+	if float == integer {
+		number.kind = numberInteger
+	}
+	number.int64 = int64(float)
+	return
 }
 
 // ECMA 262: 9.5
@@ -264,7 +246,7 @@ func toInt32(value Value) int32 {
 			return value
 		}
 	}
-	floatValue := value.toFloat()
+	floatValue := value.float64()
 	if math.IsNaN(floatValue) || math.IsInf(floatValue, 0) {
 		return 0
 	}
@@ -298,7 +280,7 @@ func toUint32(value Value) uint32 {
 			return value
 		}
 	}
-	floatValue := value.toFloat()
+	floatValue := value.float64()
 	if math.IsNaN(floatValue) || math.IsInf(floatValue, 0) {
 		return 0
 	}
@@ -325,7 +307,7 @@ func toUint16(value Value) uint16 {
 			return value
 		}
 	}
-	floatValue := value.toFloat()
+	floatValue := value.float64()
 	if math.IsNaN(floatValue) || math.IsInf(floatValue, 0) {
 		return 0
 	}

@@ -23,7 +23,7 @@ func builtinJSON_parse(call FunctionCall) Value {
 	}
 
 	var root interface{}
-	err := json.Unmarshal([]byte(toString(call.Argument(0))), &root)
+	err := json.Unmarshal([]byte(call.Argument(0).string()), &root)
 	if err != nil {
 		panic(newSyntaxError(err.Error()))
 	}
@@ -133,7 +133,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 				default:
 					continue
 				}
-				name := toString(value)
+				name := value.string()
 				if seen[name] {
 					continue
 				}
@@ -151,21 +151,21 @@ func builtinJSON_stringify(call FunctionCall) Value {
 		if spaceValue.kind == valueObject {
 			switch spaceValue.value.(*_object).class {
 			case "String":
-				spaceValue = toValue_string(toString(spaceValue))
+				spaceValue = toValue_string(spaceValue.string())
 			case "Number":
-				spaceValue = toNumber(spaceValue)
+				spaceValue = spaceValue.numberValue()
 			}
 		}
 		switch spaceValue.kind {
 		case valueString:
-			value := toString(spaceValue)
+			value := spaceValue.string()
 			if len(value) > 10 {
 				ctx.gap = value[0:10]
 			} else {
 				ctx.gap = value
 			}
 		case valueNumber:
-			value := toInteger(spaceValue).int64
+			value := spaceValue.number().int64
 			if value > 10 {
 				value = 10
 			} else if value < 0 {
@@ -219,23 +219,23 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 		case "Boolean":
 			value = value._object().value.(Value)
 		case "String":
-			value = toValue_string(toString(value))
+			value = toValue_string(value.string())
 		case "Number":
-			value = toNumber(value)
+			value = value.numberValue()
 		}
 	}
 
 	switch value.kind {
 	case valueBoolean:
-		return toBoolean(value), true
+		return value.bool(), true
 	case valueString:
-		return toString(value), true
+		return value.string(), true
 	case valueNumber:
-		integer := toInteger(value)
+		integer := value.number()
 		switch integer.kind {
-		case integerValid:
+		case numberInteger:
 			return integer.int64, true
-		case integerFloat:
+		case numberFloat:
 			return integer.float64, true
 		default:
 			return nil, true

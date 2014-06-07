@@ -359,7 +359,7 @@ func TestComparison(t *testing.T) {
 
 		test("1 == 'Hello, World.'", false)
 
-		is(stringToFloat("-1"), -1)
+		is(parseNumber("-1"), -1)
 
 		test("0+Object", "0function Object() { [native code] }")
 	})

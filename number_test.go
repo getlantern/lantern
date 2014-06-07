@@ -144,15 +144,13 @@ func TestNumber_toLocaleString(t *testing.T) {
 	})
 }
 
-func Test_toInteger(t *testing.T) {
+func TestValue_number(t *testing.T) {
 	tt(t, func() {
-		integer := toInteger(toValue(0.0))
-		is(integer.valid(), true)
-		is(integer.exact(), true)
+		nm := toValue(0.0).number()
+		is(nm.kind, numberInteger)
 
-		integer = toInteger(toValue(3.14159))
-		is(integer.valid(), true)
-		is(integer.exact(), false)
+		nm = toValue(3.14159).number()
+		is(nm.kind, numberFloat)
 	})
 }
 

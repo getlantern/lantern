@@ -15,7 +15,7 @@ func TestValue(t *testing.T) {
 
 		is(toValue(false), false)
 		is(toValue(1), 1)
-		is(toValue(1).toFloat(), float64(1))
+		is(toValue(1).float64(), float64(1))
 	})
 }
 
@@ -87,7 +87,7 @@ func TestToValue(t *testing.T) {
 func TestToBoolean(t *testing.T) {
 	tt(t, func() {
 		is := func(left interface{}, right bool) {
-			is(toValue(left).toBoolean(), right)
+			is(toValue(left).bool(), right)
 		}
 
 		is("", false)
@@ -104,7 +104,7 @@ func TestToFloat(t *testing.T) {
 	tt(t, func() {
 		{
 			is := func(left interface{}, right float64) {
-				is(toValue(left).toFloat(), right)
+				is(toValue(left).float64(), right)
 			}
 			is("", 0)
 			is("xyzzy", math.NaN())
@@ -114,16 +114,16 @@ func TestToFloat(t *testing.T) {
 			is(NullValue(), 0)
 			//is(newObjectValue(), math.NaN())
 		}
-		is(math.IsNaN(UndefinedValue().toFloat()), true)
+		is(math.IsNaN(UndefinedValue().float64()), true)
 	})
 }
 
 func TestToString(t *testing.T) {
 	tt(t, func() {
-		is("undefined", UndefinedValue().toString())
-		is("null", NullValue().toString())
-		is("true", toValue(true).toString())
-		is("false", toValue(false).toString())
+		is("undefined", UndefinedValue().string())
+		is("null", NullValue().string())
+		is("true", toValue(true).string())
+		is("false", toValue(false).string())
 
 		is(UndefinedValue(), "undefined")
 		is(NullValue(), "null")

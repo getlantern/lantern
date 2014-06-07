@@ -10,6 +10,8 @@ import (
 
 var matchLeading0Exponent = regexp.MustCompile(`([eE][\+\-])0+([1-9])`) // 1e-07 => 1e-7
 
+// FIXME
+// https://code.google.com/p/v8/source/browse/branches/bleeding_edge/src/conversions.cc?spec=svn18082&r=18082
 func floatToString(value float64, bitsize int) string {
 	// TODO Fit to ECMA-262 9.8.1 specification
 	if math.IsNaN(value) {
@@ -28,7 +30,7 @@ func floatToString(value float64, bitsize int) string {
 }
 
 func numberToStringRadix(value Value, radix int) string {
-	float := toFloat(value)
+	float := value.float64()
 	if math.IsNaN(float) {
 		return "NaN"
 	} else if math.IsInf(float, 1) {
@@ -42,7 +44,7 @@ func numberToStringRadix(value Value, radix int) string {
 	return strconv.FormatInt(int64(float), radix)
 }
 
-func toString(value Value) string {
+func (value Value) string() string {
 	if value.kind == valueString {
 		switch value := value.value.(type) {
 		case string:
@@ -95,7 +97,7 @@ func toString(value Value) string {
 	case string:
 		return value
 	case *_object:
-		return toString(value.DefaultValue(defaultValueHintString))
+		return value.DefaultValue(defaultValueHintString).string()
 	}
-	panic(fmt.Errorf("toString(%v %T)", value.value, value.value))
+	panic(fmt.Errorf("%v.string( %T)", value.value, value.value))
 }

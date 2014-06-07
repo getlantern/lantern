@@ -649,7 +649,7 @@ func Test_PrimitiveValueObjectValue(t *testing.T) {
 		test, _ := test()
 
 		Number11 := test(`new Number(11)`)
-		is(toFloat(Number11), 11)
+		is(Number11.float64(), 11)
 	})
 }
 
@@ -866,8 +866,8 @@ func TestDotMember(t *testing.T) {
 func Test_stringToFloat(t *testing.T) {
 	tt(t, func() {
 
-		is(stringToFloat("10e10000"), _Infinity)
-		is(stringToFloat("10e10_."), _NaN)
+		is(parseNumber("10e10000"), _Infinity)
+		is(parseNumber("10e10_."), _NaN)
 	})
 }
 

@@ -55,7 +55,7 @@ func Test_issue13(t *testing.T) {
 			t.Error(err)
 			t.FailNow()
 		}
-		is(result.toString(), "Xyzzy,42,def,ghi")
+		is(result.string(), "Xyzzy,42,def,ghi")
 
 		anything := struct {
 			Abc interface{}

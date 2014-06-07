@@ -94,14 +94,6 @@ func (value Value) isCallable() bool {
 	return false
 }
 
-func (value Value) isResult() bool {
-	return value.kind == valueResult
-}
-
-func (value Value) isReference() bool {
-	return value.kind == valueReference
-}
-
 // Call the value as a function with the given this value and argument list and
 // return the result of invocation. It is essentially equivalent to:
 //
@@ -176,7 +168,7 @@ func (value Value) IsNaN() bool {
 		return false
 	}
 
-	return math.IsNaN(toFloat(value))
+	return math.IsNaN(value.float64())
 }
 
 // IsString will return true if value is a string (primitive).
@@ -383,17 +375,9 @@ func toValue(value interface{}) Value {
 func (value Value) String() string {
 	result := ""
 	catchPanic(func() {
-		result = value.toString()
+		result = value.string()
 	})
 	return result
-}
-
-func (value Value) toBoolean() bool {
-	return toBoolean(value)
-}
-
-func (value Value) isTrue() bool {
-	return toBoolean(value)
 }
 
 // ToBoolean will convert the value to a boolean (bool).
@@ -408,17 +392,16 @@ func (value Value) isTrue() bool {
 func (value Value) ToBoolean() (bool, error) {
 	result := false
 	err := catchPanic(func() {
-		result = toBoolean(value)
+		result = value.bool()
 	})
 	return result, err
 }
 
-func (value Value) toNumber() Value {
-	return toNumber(value)
-}
-
-func (value Value) toFloat() float64 {
-	return toFloat(value)
+func (value Value) numberValue() Value {
+	if value.kind == valueNumber {
+		return value
+	}
+	return Value{valueNumber, value.float64()}
 }
 
 // ToFloat will convert the value to a number (float64).
@@ -431,7 +414,7 @@ func (value Value) toFloat() float64 {
 func (value Value) ToFloat() (float64, error) {
 	result := float64(0)
 	err := catchPanic(func() {
-		result = toFloat(value)
+		result = value.float64()
 	})
 	return result, err
 }
@@ -446,13 +429,9 @@ func (value Value) ToFloat() (float64, error) {
 func (value Value) ToInteger() (int64, error) {
 	result := int64(0)
 	err := catchPanic(func() {
-		result = toInteger(value).int64
+		result = value.number().int64
 	})
 	return result, err
-}
-
-func (value Value) toString() string {
-	return toString(value)
 }
 
 // ToString will convert the value to a string (string).
@@ -467,7 +446,7 @@ func (value Value) toString() string {
 func (value Value) ToString() (string, error) {
 	result := ""
 	err := catchPanic(func() {
-		result = toString(value)
+		result = value.string()
 	})
 	return result, err
 }
@@ -586,8 +565,8 @@ func sameValue(x Value, y Value) bool {
 	case valueUndefined, valueNull:
 		result = true
 	case valueNumber:
-		x := x.toFloat()
-		y := y.toFloat()
+		x := x.float64()
+		y := y.float64()
 		if math.IsNaN(x) && math.IsNaN(y) {
 			result = true
 		} else {
@@ -598,9 +577,9 @@ func sameValue(x Value, y Value) bool {
 			}
 		}
 	case valueString:
-		result = x.toString() == y.toString()
+		result = x.string() == y.string()
 	case valueBoolean:
-		result = x.toBoolean() == y.toBoolean()
+		result = x.bool() == y.bool()
 	case valueObject:
 		result = x._object() == y._object()
 	default:
@@ -619,17 +598,17 @@ func strictEqualityComparison(x Value, y Value) bool {
 	case valueUndefined, valueNull:
 		result = true
 	case valueNumber:
-		x := x.toFloat()
-		y := y.toFloat()
+		x := x.float64()
+		y := y.float64()
 		if math.IsNaN(x) && math.IsNaN(y) {
 			result = false
 		} else {
 			result = x == y
 		}
 	case valueString:
-		result = x.toString() == y.toString()
+		result = x.string() == y.string()
 	case valueBoolean:
-		result = x.toBoolean() == y.toBoolean()
+		result = x.bool() == y.bool()
 	case valueObject:
 		result = x._object() == y._object()
 	default:
@@ -784,7 +763,7 @@ func (self Value) exportNative() interface{} {
 func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	switch kind {
 	case reflect.Bool: // Bool
-		return reflect.ValueOf(value.toBoolean()), nil
+		return reflect.ValueOf(value.bool()), nil
 	case reflect.Int: // Int
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of int64
@@ -795,21 +774,21 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 			return reflect.ValueOf(int(tmp)), nil
 		}
 	case reflect.Int8: // Int8
-		tmp := toInteger(value).int64
+		tmp := value.number().int64
 		if tmp < int64_minInt8 || tmp > int64_maxInt8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int8", tmp, value)
 		} else {
 			return reflect.ValueOf(int8(tmp)), nil
 		}
 	case reflect.Int16: // Int16
-		tmp := toInteger(value).int64
+		tmp := value.number().int64
 		if tmp < int64_minInt16 || tmp > int64_maxInt16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int16", tmp, value)
 		} else {
 			return reflect.ValueOf(int16(tmp)), nil
 		}
 	case reflect.Int32: // Int32
-		tmp := toInteger(value).int64
+		tmp := value.number().int64
 		if tmp < int64_minInt32 || tmp > int64_maxInt32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int32", tmp, value)
 		} else {
@@ -834,21 +813,21 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 			return reflect.ValueOf(uint(tmp)), nil
 		}
 	case reflect.Uint8: // Uint8
-		tmp := toInteger(value).int64
+		tmp := value.number().int64
 		if tmp < 0 || tmp > int64_maxUint8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint8", tmp, value)
 		} else {
 			return reflect.ValueOf(uint8(tmp)), nil
 		}
 	case reflect.Uint16: // Uint16
-		tmp := toInteger(value).int64
+		tmp := value.number().int64
 		if tmp < 0 || tmp > int64_maxUint16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint16", tmp, value)
 		} else {
 			return reflect.ValueOf(uint16(tmp)), nil
 		}
 	case reflect.Uint32: // Uint32
-		tmp := toInteger(value).int64
+		tmp := value.number().int64
 		if tmp < 0 || tmp > int64_maxUint32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint32", tmp, value)
 		} else {
@@ -864,7 +843,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 			return reflect.ValueOf(uint64(tmp)), nil
 		}
 	case reflect.Float32: // Float32
-		tmp := toFloat(value)
+		tmp := value.float64()
 		tmp1 := tmp
 		if 0 > tmp1 {
 			tmp1 = -tmp1
@@ -875,10 +854,10 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 			return reflect.ValueOf(float32(tmp)), nil
 		}
 	case reflect.Float64: // Float64
-		value := toFloat(value)
+		value := value.float64()
 		return reflect.ValueOf(float64(value)), nil
 	case reflect.String: // String
-		return reflect.ValueOf(value.toString()), nil
+		return reflect.ValueOf(value.string()), nil
 	case reflect.Invalid: // Invalid
 	case reflect.Complex64: // FIXME? Complex64
 	case reflect.Complex128: // FIXME? Complex128

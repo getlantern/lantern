@@ -9,7 +9,7 @@ import (
 
 func numberValueFromNumberArgumentList(argumentList []Value) Value {
 	if len(argumentList) > 0 {
-		return toNumber(argumentList[0])
+		return argumentList[0].numberValue()
 	}
 	return toValue_int(0)
 }
@@ -35,7 +35,7 @@ func builtinNumber_toString(call FunctionCall) Value {
 		radix = int(integer)
 	}
 	if radix == 10 {
-		return toValue_string(toString(value))
+		return toValue_string(value.string())
 	}
 	return toValue_string(numberToStringRadix(value, radix))
 }
@@ -52,11 +52,11 @@ func builtinNumber_toFixed(call FunctionCall) Value {
 	if call.This.IsNaN() {
 		return toValue_string("NaN")
 	}
-	value := toFloat(call.This)
+	value := call.This.float64()
 	if math.Abs(value) >= 1e21 {
 		return toValue_string(floatToString(value, 64))
 	}
-	return toValue_string(strconv.FormatFloat(toFloat(call.This), 'f', int(precision), 64))
+	return toValue_string(strconv.FormatFloat(call.This.float64(), 'f', int(precision), 64))
 }
 
 func builtinNumber_toExponential(call FunctionCall) Value {
@@ -70,7 +70,7 @@ func builtinNumber_toExponential(call FunctionCall) Value {
 			panic(newRangeError("RangeError: toExponential() precision must be greater than 0"))
 		}
 	}
-	return toValue_string(strconv.FormatFloat(toFloat(call.This), 'e', int(precision), 64))
+	return toValue_string(strconv.FormatFloat(call.This.float64(), 'e', int(precision), 64))
 }
 
 func builtinNumber_toPrecision(call FunctionCall) Value {
@@ -79,13 +79,13 @@ func builtinNumber_toPrecision(call FunctionCall) Value {
 	}
 	value := call.Argument(0)
 	if value.IsUndefined() {
-		return toValue_string(toString(call.This))
+		return toValue_string(call.This.string())
 	}
 	precision := toIntegerFloat(value)
 	if 1 > precision {
 		panic(newRangeError("RangeError: toPrecision() precision must be greater than 1"))
 	}
-	return toValue_string(strconv.FormatFloat(toFloat(call.This), 'g', int(precision), 64))
+	return toValue_string(strconv.FormatFloat(call.This.float64(), 'g', int(precision), 64))
 }
 
 func builtinNumber_toLocaleString(call FunctionCall) Value {

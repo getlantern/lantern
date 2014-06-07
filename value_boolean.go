@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func toBoolean(value Value) bool {
+func (value Value) bool() bool {
 	if value.kind == valueBoolean {
 		return value.value.(bool)
 	}
@@ -37,13 +37,4 @@ func toBoolean(value Value) bool {
 		return true
 	}
 	panic(fmt.Errorf("toBoolean(%T)", value.value))
-}
-
-func stringToBoolean(value string) bool {
-	if value == "true" {
-		return true
-	} else if value == "false" {
-		return false
-	}
-	panic(fmt.Errorf("stringToBoolean(%s)", value))
 }

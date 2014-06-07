@@ -124,7 +124,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	{
 		descriptor.mode = modeSetMask // Initially nothing is set
 		if objectDescriptor.hasProperty("enumerable") {
-			if objectDescriptor.get("enumerable").toBoolean() {
+			if objectDescriptor.get("enumerable").bool() {
 				descriptor.enumerateOn()
 			} else {
 				descriptor.enumerateOff()
@@ -132,7 +132,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		}
 
 		if objectDescriptor.hasProperty("configurable") {
-			if objectDescriptor.get("configurable").toBoolean() {
+			if objectDescriptor.get("configurable").bool() {
 				descriptor.configureOn()
 			} else {
 				descriptor.configureOff()
@@ -140,7 +140,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		}
 
 		if objectDescriptor.hasProperty("writable") {
-			if objectDescriptor.get("writable").toBoolean() {
+			if objectDescriptor.get("writable").bool() {
 				descriptor.writeOn()
 			} else {
 				descriptor.writeOff()

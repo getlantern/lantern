@@ -150,7 +150,7 @@ resultBreak:
 			}
 		}
 	resultContinue:
-		if !self.cmpl_evaluate_nodeExpression(test).resolve().isTrue() {
+		if !self.cmpl_evaluate_nodeExpression(test).resolve().bool() {
 			// Stahp: do ... while (false)
 			break
 		}
@@ -184,7 +184,7 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 			into := self.cmpl_evaluate_nodeExpression(into)
 			// In the case of: for (var abc in def) ...
 			if into.reference() == nil {
-				identifier := toString(into)
+				identifier := into.string()
 				// TODO Should be true or false (strictness) depending on context
 				into = toValue(getIdentifierReference(self.scope.lexical, identifier, false))
 			}
@@ -242,7 +242,7 @@ resultBreak:
 		if test != nil {
 			testResult := self.cmpl_evaluate_nodeExpression(test)
 			testResultValue := testResult.resolve()
-			if toBoolean(testResultValue) == false {
+			if testResultValue.bool() == false {
 				break
 			}
 		}
@@ -275,7 +275,7 @@ resultBreak:
 func (self *_runtime) cmpl_evaluate_nodeIfStatement(node *_nodeIfStatement) Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
 	testValue := test.resolve()
-	if toBoolean(testValue) {
+	if testValue.bool() {
 		return self.cmpl_evaluate_nodeStatement(node.consequent)
 	} else if node.alternate != nil {
 		return self.cmpl_evaluate_nodeStatement(node.alternate)
@@ -351,7 +351,7 @@ func (self *_runtime) cmpl_evaluate_nodeTryStatement(node *_nodeTryStatement) Va
 
 	if node.finally != nil {
 		finallyValue := self.cmpl_evaluate_nodeStatement(node.finally)
-		if finallyValue.isResult() {
+		if finallyValue.kind == valueResult {
 			return finallyValue
 		}
 	}
@@ -373,7 +373,7 @@ func (self *_runtime) cmpl_evaluate_nodeWhileStatement(node *_nodeWhileStatement
 	result := emptyValue
 resultBreakContinue:
 	for {
-		if !self.cmpl_evaluate_nodeExpression(test).resolve().isTrue() {
+		if !self.cmpl_evaluate_nodeExpression(test).resolve().bool() {
 			// Stahp: while (false) ...
 			break
 		}

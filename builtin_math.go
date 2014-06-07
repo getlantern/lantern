@@ -8,31 +8,31 @@ import (
 // Math
 
 func builtinMath_abs(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Abs(number))
 }
 
 func builtinMath_acos(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Acos(number))
 }
 
 func builtinMath_asin(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Asin(number))
 }
 
 func builtinMath_atan(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Atan(number))
 }
 
 func builtinMath_atan2(call FunctionCall) Value {
-	y := toFloat(call.Argument(0))
+	y := call.Argument(0).float64()
 	if math.IsNaN(y) {
 		return NaNValue()
 	}
-	x := toFloat(call.Argument(1))
+	x := call.Argument(1).float64()
 	if math.IsNaN(x) {
 		return NaNValue()
 	}
@@ -40,27 +40,27 @@ func builtinMath_atan2(call FunctionCall) Value {
 }
 
 func builtinMath_cos(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Cos(number))
 }
 
 func builtinMath_ceil(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Ceil(number))
 }
 
 func builtinMath_exp(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Exp(number))
 }
 
 func builtinMath_floor(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Floor(number))
 }
 
 func builtinMath_log(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Log(number))
 }
 
@@ -69,14 +69,14 @@ func builtinMath_max(call FunctionCall) Value {
 	case 0:
 		return negativeInfinityValue()
 	case 1:
-		return toValue_float64(toFloat(call.ArgumentList[0]))
+		return toValue_float64(call.ArgumentList[0].float64())
 	}
-	result := toFloat(call.ArgumentList[0])
+	result := call.ArgumentList[0].float64()
 	if math.IsNaN(result) {
 		return NaNValue()
 	}
 	for _, value := range call.ArgumentList[1:] {
-		value := toFloat(value)
+		value := value.float64()
 		if math.IsNaN(value) {
 			return NaNValue()
 		}
@@ -90,14 +90,14 @@ func builtinMath_min(call FunctionCall) Value {
 	case 0:
 		return positiveInfinityValue()
 	case 1:
-		return toValue_float64(toFloat(call.ArgumentList[0]))
+		return toValue_float64(call.ArgumentList[0].float64())
 	}
-	result := toFloat(call.ArgumentList[0])
+	result := call.ArgumentList[0].float64()
 	if math.IsNaN(result) {
 		return NaNValue()
 	}
 	for _, value := range call.ArgumentList[1:] {
-		value := toFloat(value)
+		value := value.float64()
 		if math.IsNaN(value) {
 			return NaNValue()
 		}
@@ -108,8 +108,8 @@ func builtinMath_min(call FunctionCall) Value {
 
 func builtinMath_pow(call FunctionCall) Value {
 	// TODO Make sure this works according to the specification (15.8.2.13)
-	x := toFloat(call.Argument(0))
-	y := toFloat(call.Argument(1))
+	x := call.Argument(0).float64()
+	y := call.Argument(1).float64()
 	if math.Abs(x) == 1 && math.IsInf(y, 0) {
 		return NaNValue()
 	}
@@ -121,7 +121,7 @@ func builtinMath_random(call FunctionCall) Value {
 }
 
 func builtinMath_round(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	value := math.Floor(number + 0.5)
 	if value == 0 {
 		value = math.Copysign(0, number)
@@ -130,16 +130,16 @@ func builtinMath_round(call FunctionCall) Value {
 }
 
 func builtinMath_sin(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Sin(number))
 }
 
 func builtinMath_sqrt(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Sqrt(number))
 }
 
 func builtinMath_tan(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
+	number := call.Argument(0).float64()
 	return toValue_float64(math.Tan(number))
 }

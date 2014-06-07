@@ -70,7 +70,7 @@ func stringAt(str _stringObject, index int) rune {
 }
 
 func (runtime *_runtime) newStringObject(value Value) *_object {
-	str := _newStringObject(toString(value))
+	str := _newStringObject(value.string())
 
 	self := runtime.newClassObject("String")
 	self.defineProperty("length", toValue_int(str.Length()), 0, false)

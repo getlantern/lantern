@@ -180,7 +180,7 @@ func newDateTime(argumentList []Value, location *Time.Location) (epoch float64) 
 		if index >= len(argumentList) {
 			return default_, false
 		}
-		value := toFloat(argumentList[index])
+		value := argumentList[index].float64()
 		if math.IsNaN(value) || math.IsInf(value, 0) {
 			return 0, true
 		}
@@ -226,10 +226,10 @@ func newDateTime(argumentList []Value, location *Time.Location) (epoch float64) 
 		value := valueOfArrayIndex(argumentList, 0)
 		value = toPrimitive(value)
 		if value.IsString() {
-			return dateParse(toString(value))
+			return dateParse(value.string())
 		}
 
-		return toFloat(value)
+		return value.float64()
 	}
 
 INVALID:

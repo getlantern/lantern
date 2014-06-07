@@ -98,7 +98,7 @@ func (self *_object) DefaultValue(hint _defaultValueHint) Value {
 }
 
 func (self *_object) String() string {
-	return toString(self.DefaultValue(defaultValueHintString))
+	return self.DefaultValue(defaultValueHintString).string()
 }
 
 func (self *_object) defineProperty(name string, value Value, mode _propertyMode, throw bool) bool {

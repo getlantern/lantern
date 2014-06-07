@@ -3,7 +3,7 @@ package otto
 // Boolean
 
 func builtinBoolean(call FunctionCall) Value {
-	return toValue_bool(toBoolean(call.Argument(0)))
+	return toValue_bool(call.Argument(0).bool())
 }
 
 func builtinNewBoolean(self *_object, argumentList []Value) Value {
@@ -16,7 +16,7 @@ func builtinBoolean_toString(call FunctionCall) Value {
 		// Will throw a TypeError if ThisObject is not a Boolean
 		value = call.thisClassObject("Boolean").primitiveValue()
 	}
-	return toValue_string(toString(value))
+	return toValue_string(value.string())
 }
 
 func builtinBoolean_valueOf(call FunctionCall) Value {

@@ -18,7 +18,7 @@ func builtinGlobal_eval(call FunctionCall) Value {
 		return src
 	}
 	runtime := call.runtime
-	program := runtime.cmpl_parseOrThrow(toString(src))
+	program := runtime.cmpl_parseOrThrow(src.string())
 	if !call.eval {
 		// Not a direct call to eval, so we enter the global ExecutionContext
 		runtime.enterGlobalScope()
@@ -32,12 +32,12 @@ func builtinGlobal_eval(call FunctionCall) Value {
 }
 
 func builtinGlobal_isNaN(call FunctionCall) Value {
-	value := toFloat(call.Argument(0))
+	value := call.Argument(0).float64()
 	return toValue_bool(math.IsNaN(value))
 }
 
 func builtinGlobal_isFinite(call FunctionCall) Value {
-	value := toFloat(call.Argument(0))
+	value := call.Argument(0).float64()
 	return toValue_bool(!math.IsNaN(value) && !math.IsInf(value, 0))
 }
 
@@ -70,7 +70,7 @@ func digitValue(chr rune) int {
 }
 
 func builtinGlobal_parseInt(call FunctionCall) Value {
-	input := strings.TrimSpace(toString(call.Argument(0)))
+	input := strings.TrimSpace(call.Argument(0).string())
 	if len(input) == 0 {
 		return NaNValue()
 	}
@@ -153,7 +153,7 @@ var parseFloat_matchValid = regexp.MustCompile(`[0-9eE\+\-\.]|Infinity`)
 
 func builtinGlobal_parseFloat(call FunctionCall) Value {
 	// Caveat emptor: This implementation does NOT match the specification
-	input := strings.TrimSpace(toString(call.Argument(0)))
+	input := strings.TrimSpace(call.Argument(0).string())
 	if parseFloat_matchBadSpecial.MatchString(input) {
 		return NaNValue()
 	}
@@ -185,7 +185,7 @@ func _builtinGlobal_encodeURI(call FunctionCall, escape *regexp.Regexp) Value {
 	case []uint16:
 		input = vl
 	default:
-		input = utf16.Encode([]rune(toString(value)))
+		input = utf16.Encode([]rune(value.string()))
 	}
 	if len(input) == 0 {
 		return toValue_string("")
@@ -256,7 +256,7 @@ func _decodeURI(input string, reserve bool) (string, bool) {
 }
 
 func builtinGlobal_decodeURI(call FunctionCall) Value {
-	output, err := _decodeURI(toString(call.Argument(0)), true)
+	output, err := _decodeURI(call.Argument(0).string(), true)
 	if err {
 		panic(newURIError("URI malformed"))
 	}
@@ -264,7 +264,7 @@ func builtinGlobal_decodeURI(call FunctionCall) Value {
 }
 
 func builtinGlobal_decodeURIComponent(call FunctionCall) Value {
-	output, err := _decodeURI(toString(call.Argument(0)), false)
+	output, err := _decodeURI(call.Argument(0).string(), false)
 	if err {
 		panic(newURIError("URI malformed"))
 	}
@@ -345,9 +345,9 @@ func builtin_unescape(input string) string {
 }
 
 func builtinGlobal_escape(call FunctionCall) Value {
-	return toValue_string(builtin_escape(toString(call.Argument(0))))
+	return toValue_string(builtin_escape(call.Argument(0).string()))
 }
 
 func builtinGlobal_unescape(call FunctionCall) Value {
-	return toValue_string(builtin_unescape(toString(call.Argument(0))))
+	return toValue_string(builtin_unescape(call.Argument(0).string()))
 }

@@ -65,38 +65,38 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 		rightValue = toPrimitive(rightValue)
 
 		if leftValue.IsString() || rightValue.IsString() {
-			return toValue_string(strings.Join([]string{leftValue.toString(), rightValue.toString()}, ""))
+			return toValue_string(strings.Join([]string{leftValue.string(), rightValue.string()}, ""))
 		} else {
-			return toValue_float64(leftValue.toFloat() + rightValue.toFloat())
+			return toValue_float64(leftValue.float64() + rightValue.float64())
 		}
 	case token.MINUS:
 		rightValue := right.resolve()
-		return toValue_float64(leftValue.toFloat() - rightValue.toFloat())
+		return toValue_float64(leftValue.float64() - rightValue.float64())
 
 		// Multiplicative
 	case token.MULTIPLY:
 		rightValue := right.resolve()
-		return toValue_float64(leftValue.toFloat() * rightValue.toFloat())
+		return toValue_float64(leftValue.float64() * rightValue.float64())
 	case token.SLASH:
 		rightValue := right.resolve()
-		return self.evaluateDivide(leftValue.toFloat(), rightValue.toFloat())
+		return self.evaluateDivide(leftValue.float64(), rightValue.float64())
 	case token.REMAINDER:
 		rightValue := right.resolve()
-		return toValue_float64(math.Mod(leftValue.toFloat(), rightValue.toFloat()))
+		return toValue_float64(math.Mod(leftValue.float64(), rightValue.float64()))
 
 		// Logical
 	case token.LOGICAL_AND:
-		left := toBoolean(leftValue)
+		left := leftValue.bool()
 		if !left {
 			return falseValue
 		}
-		return toValue_bool(toBoolean(right.resolve()))
+		return toValue_bool(right.resolve().bool())
 	case token.LOGICAL_OR:
-		left := toBoolean(leftValue)
+		left := leftValue.bool()
 		if left {
 			return trueValue
 		}
-		return toValue_bool(toBoolean(right.resolve()))
+		return toValue_bool(right.resolve().bool())
 
 		// Bitwise
 	case token.AND:
@@ -134,7 +134,7 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 		if !rightValue.IsObject() {
 			panic(newTypeError())
 		}
-		return toValue_bool(rightValue._object().hasProperty(toString(leftValue)))
+		return toValue_bool(rightValue._object().hasProperty(leftValue.string()))
 	}
 
 	panic(hereBeDragons(operator))
@@ -150,10 +150,10 @@ func makeEqualDispatch() map[int](func(Value, Value) bool) {
 	key := valueKindDispatchKey
 	return map[int](func(Value, Value) bool){
 
-		key(valueNumber, valueObject): func(x Value, y Value) bool { return x.toFloat() == y.toFloat() },
-		key(valueString, valueObject): func(x Value, y Value) bool { return x.toFloat() == y.toFloat() },
-		key(valueObject, valueNumber): func(x Value, y Value) bool { return x.toFloat() == y.toFloat() },
-		key(valueObject, valueString): func(x Value, y Value) bool { return x.toFloat() == y.toFloat() },
+		key(valueNumber, valueObject): func(x Value, y Value) bool { return x.float64() == y.float64() },
+		key(valueString, valueObject): func(x Value, y Value) bool { return x.float64() == y.float64() },
+		key(valueObject, valueNumber): func(x Value, y Value) bool { return x.float64() == y.float64() },
+		key(valueObject, valueString): func(x Value, y Value) bool { return x.float64() == y.float64() },
 	}
 }
 
@@ -180,13 +180,13 @@ func calculateLessThan(left Value, right Value, leftFirst bool) _lessThanResult 
 
 	result := false
 	if x.kind != valueString || y.kind != valueString {
-		x, y := x.toFloat(), y.toFloat()
+		x, y := x.float64(), y.float64()
 		if math.IsNaN(x) || math.IsNaN(y) {
 			return lessThanUndefined
 		}
 		result = x < y
 	} else {
-		x, y := x.toString(), y.toString()
+		x, y := x.string(), y.string()
 		result = x < y
 	}
 
@@ -268,11 +268,11 @@ func (self *_runtime) calculateComparison(comparator token.Token, left Value, ri
 		} else if x.kind <= valueNull || y.kind <= valueNull {
 			result = false
 		} else if x.kind <= valueString && y.kind <= valueString {
-			result = x.toFloat() == y.toFloat()
+			result = x.float64() == y.float64()
 		} else if x.kind == valueBoolean {
-			result = self.calculateComparison(token.EQUAL, toValue_float64(x.toFloat()), y)
+			result = self.calculateComparison(token.EQUAL, toValue_float64(x.float64()), y)
 		} else if y.kind == valueBoolean {
-			result = self.calculateComparison(token.EQUAL, x, toValue_float64(y.toFloat()))
+			result = self.calculateComparison(token.EQUAL, x, toValue_float64(y.float64()))
 		} else if x.kind == valueObject {
 			result = self.calculateComparison(token.EQUAL, toPrimitive(x), y)
 		} else if y.kind == valueObject {
@@ -289,17 +289,17 @@ func (self *_runtime) calculateComparison(comparator token.Token, left Value, ri
 		case valueUndefined, valueNull:
 			result = true
 		case valueNumber:
-			x := x.toFloat()
-			y := y.toFloat()
+			x := x.float64()
+			y := y.float64()
 			if math.IsNaN(x) || math.IsNaN(y) {
 				result = false
 			} else {
 				result = x == y
 			}
 		case valueString:
-			result = x.toString() == y.toString()
+			result = x.string() == y.string()
 		case valueBoolean:
-			result = x.toBoolean() == y.toBoolean()
+			result = x.bool() == y.bool()
 		case valueObject:
 			result = x._object() == y._object()
 		default:

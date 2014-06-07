@@ -88,9 +88,9 @@ func execRegExp(this *_object, target string) (match bool, result []int) {
 	if this.class != "RegExp" {
 		panic(newTypeError("Calling RegExp.exec on a non-RegExp object"))
 	}
-	lastIndex := toInteger(this.get("lastIndex")).int64
+	lastIndex := this.get("lastIndex").number().int64
 	index := lastIndex
-	global := toBoolean(this.get("global"))
+	global := this.get("global").bool()
 	if !global {
 		index = 0
 	}

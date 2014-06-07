@@ -54,7 +54,7 @@ func builtinArray_toLocaleString(call FunctionCall) Value {
 			if !toLocaleString.isCallable() {
 				panic(newTypeError())
 			}
-			stringValue = toLocaleString.call(toValue_object(object)).toString()
+			stringValue = toLocaleString.call(toValue_object(object)).string()
 		}
 		stringList = append(stringList, stringValue)
 	}
@@ -70,7 +70,7 @@ func builtinArray_concat(call FunctionCall) Value {
 		case valueObject:
 			object := item._object()
 			if isArray(object) {
-				length := toInteger(object.get("length")).int64
+				length := object.get("length").number().int64
 				for index := int64(0); index < length; index += 1 {
 					name := strconv.FormatInt(index, 10)
 					if object.hasProperty(name) {
@@ -143,7 +143,7 @@ func builtinArray_join(call FunctionCall) Value {
 	{
 		argument := call.Argument(0)
 		if argument.IsDefined() {
-			separator = toString(argument)
+			separator = argument.string()
 		}
 	}
 	thisObject := call.thisObject()
@@ -158,7 +158,7 @@ func builtinArray_join(call FunctionCall) Value {
 		switch value.kind {
 		case valueEmpty, valueUndefined, valueNull:
 		default:
-			stringValue = toString(value)
+			stringValue = value.string()
 		}
 		stringList = append(stringList, stringValue)
 	}
@@ -370,8 +370,8 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 	}
 
 	if compare == nil {
-		j.value = toString(x)
-		k.value = toString(y)
+		j.value = x.string()
+		k.value = y.string()
 
 		if j.value == k.value {
 			return 0
@@ -464,7 +464,7 @@ func builtinArray_indexOf(call FunctionCall) Value {
 	if length := int64(toUint32(thisObject.get("length"))); length > 0 {
 		index := int64(0)
 		if len(call.ArgumentList) > 1 {
-			index = toInteger(call.Argument(1)).int64
+			index = call.Argument(1).number().int64
 		}
 		if index < 0 {
 			if index += length; index < 0 {
@@ -492,7 +492,7 @@ func builtinArray_lastIndexOf(call FunctionCall) Value {
 	length := int64(toUint32(thisObject.get("length")))
 	index := length - 1
 	if len(call.ArgumentList) > 1 {
-		index = toInteger(call.Argument(1)).int64
+		index = call.Argument(1).number().int64
 	}
 	if 0 > index {
 		index += length
@@ -523,7 +523,7 @@ func builtinArray_every(call FunctionCall) Value {
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).isTrue() {
+				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).bool() {
 					continue
 				}
 				return falseValue
@@ -542,7 +542,7 @@ func builtinArray_some(call FunctionCall) Value {
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).isTrue() {
+				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).bool() {
 					return trueValue
 				}
 			}
@@ -597,7 +597,7 @@ func builtinArray_filter(call FunctionCall) Value {
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 				value := thisObject.get(key)
-				if iterator.call(callThis, value, index, this).isTrue() {
+				if iterator.call(callThis, value, index, this).bool() {
 					values = append(values, value)
 				}
 			}

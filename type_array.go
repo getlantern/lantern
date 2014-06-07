@@ -32,11 +32,11 @@ func objectLength(object *_object) uint32 {
 }
 
 func arrayUint32(value Value) uint32 {
-	tmp := toInteger(value)
-	if !tmp.exact() || !isUint32(tmp.int64) {
+	nm := value.number()
+	if nm.kind != numberInteger || !isUint32(nm.int64) {
 		panic(newRangeError())
 	}
-	return uint32(tmp.int64)
+	return uint32(nm.int64)
 }
 
 func arrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {

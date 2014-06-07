@@ -21,13 +21,13 @@ func builtinError_toString(call FunctionCall) Value {
 	name := "Error"
 	nameValue := thisObject.get("name")
 	if nameValue.IsDefined() {
-		name = toString(nameValue)
+		name = nameValue.string()
 	}
 
 	message := ""
 	messageValue := thisObject.get("message")
 	if messageValue.IsDefined() {
-		message = toString(messageValue)
+		message = messageValue.string()
 	}
 
 	if len(name) == 0 {
