@@ -124,6 +124,9 @@ public class PublicIpInfoHandler {
     }
 
     private void handleCensored(final InetAddress address) {
+        // The UI actually determines whether or not it shows a spinner using
+        // connectivity.
+        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
         final Settings set = model.getSettings();
 
         if (set.getMode() == null || set.getMode() == Mode.unknown) {
