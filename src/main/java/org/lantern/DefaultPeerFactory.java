@@ -112,12 +112,12 @@ public class DefaultPeerFactory implements PeerFactory {
         }
     }
 
+    @Override
     public void updateGeoData(final Peer peer, final InetAddress address) {
         updateGeoData(peer, address.getHostAddress());
     }
-      
-    @Override
-    public void updateGeoData(final Peer peer, final String address) {
+
+    private void updateGeoData(final Peer peer, final String address) {
         if (peer.hasGeoData()) {
           log.debug("Peer already had geo data: {}", peer);
           return;

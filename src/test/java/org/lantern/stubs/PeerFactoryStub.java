@@ -1,5 +1,6 @@
 package org.lantern.stubs;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ public class PeerFactoryStub implements PeerFactory {
     }
 
     @Override
-    public void updateGeoData(final Peer peer, final String address) {
+    public void updateGeoData(final Peer peer, final InetAddress address) {
 
     }
 

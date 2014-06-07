@@ -29,23 +29,25 @@ public class GeoIpLookupService {
     private static final Logger LOG = LoggerFactory
             .getLogger(GeoIpLookupService.class);
 
-    private final Map<InetAddress, GeoData> addressLookupCache =
-            new ConcurrentHashMap<InetAddress, GeoData>();
-    private final Map<String, GeoData> stringLookupCache =
+    private final Map<String, GeoData> cache =
             new ConcurrentHashMap<String, GeoData>();
 
     private static final String geoServeUrl = "http://geo.getiantem.org/lookup/";
 
-    public GeoData getGeoData(InetAddress ipAddress) {
-        GeoData result = addressLookupCache.get(ipAddress);
+    public GeoData getGeoData(final InetAddress ipAddress) {
+        return getGeoData(ipAddress.getHostAddress());
+    }
+    
+    public GeoData getGeoData(String ipAddress) {
+        GeoData result = cache.get(ipAddress);
         if (result == null) {
-            result = this.queryGeoServe(ipAddress.getHostAddress());
-            addressLookupCache.put(ipAddress, result);
+            result = this.queryGeoServe(ipAddress);
+            cache.put(ipAddress, result);
         }
         return result;
     }
 
-    public GeoData queryGeoServe(String ipAddress) {
+    private GeoData queryGeoServe(final String ipAddress) {
         final HttpClient proxied = LanternUtils.isFallbackProxy() ?
                 StaticHttpClientFactory.newDirectClient() :
                 StaticHttpClientFactory.newProxiedClient();
@@ -76,14 +78,5 @@ public class GeoIpLookupService {
             get.reset();
         }
         return new GeoData();
-    }
-
-    public GeoData getGeoData(String ipAddress) {
-        GeoData result = stringLookupCache.get(ipAddress);
-        if (result == null) {
-            result = this.queryGeoServe(ipAddress);
-            stringLookupCache.put(ipAddress, result);
-        }
-        return result;
     }
 }

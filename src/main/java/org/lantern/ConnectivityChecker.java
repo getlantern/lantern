@@ -45,7 +45,7 @@ public class ConnectivityChecker extends TimerTask {
         checkConnectivity();
     }
     
-    public boolean checkConnectivity() {
+    private boolean checkConnectivity() {
         final boolean wasConnected = 
                 Boolean.TRUE.equals(model.getConnectivity().isInternet());
         final boolean connected = areAnyTestSitesReachable();
