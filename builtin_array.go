@@ -70,7 +70,7 @@ func builtinArray_concat(call FunctionCall) Value {
 		case valueObject:
 			object := item._object()
 			if isArray(object) {
-				length := toInteger(object.get("length")).value
+				length := toInteger(object.get("length")).int64
 				for index := int64(0); index < length; index += 1 {
 					name := strconv.FormatInt(index, 10)
 					if object.hasProperty(name) {
@@ -464,7 +464,7 @@ func builtinArray_indexOf(call FunctionCall) Value {
 	if length := int64(toUint32(thisObject.get("length"))); length > 0 {
 		index := int64(0)
 		if len(call.ArgumentList) > 1 {
-			index = toInteger(call.Argument(1)).value
+			index = toInteger(call.Argument(1)).int64
 		}
 		if index < 0 {
 			if index += length; index < 0 {
@@ -492,7 +492,7 @@ func builtinArray_lastIndexOf(call FunctionCall) Value {
 	length := int64(toUint32(thisObject.get("length")))
 	index := length - 1
 	if len(call.ArgumentList) > 1 {
-		index = toInteger(call.Argument(1)).value
+		index = toInteger(call.Argument(1)).int64
 	}
 	if 0 > index {
 		index += length

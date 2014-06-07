@@ -73,7 +73,7 @@ func getValueOfArrayIndex(array []Value, index int) (Value, bool) {
 // A range index can be anything from 0 up to length. It is NOT safe to use as an index
 // to an array, but is useful for slicing and in some ECMA algorithms.
 func valueToRangeIndex(indexValue Value, length int64, negativeIsZero bool) int64 {
-	index := toInteger(indexValue).value
+	index := toInteger(indexValue).int64
 	if negativeIsZero {
 		if index < 0 {
 			index = 0
@@ -129,7 +129,7 @@ func rangeStartLength(source []Value, size int64) (start, length int64) {
 	lengthValue := valueOfArrayIndex(source, 1)
 	if !lengthValue.IsUndefined() {
 		// Which it is not, so get the value as an array index
-		length = toInteger(lengthValue).value
+		length = toInteger(lengthValue).int64
 	}
 	return
 }

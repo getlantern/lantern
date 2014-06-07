@@ -42,7 +42,7 @@ func builtinString_fromCharCode(call FunctionCall) Value {
 
 func builtinString_charAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	idx := int(toInteger(call.Argument(0)).value)
+	idx := int(toInteger(call.Argument(0)).int64)
 	chr := stringAt(call.This._object().stringValue(), idx)
 	if chr == utf8.RuneError {
 		return toValue_string("")
@@ -52,7 +52,7 @@ func builtinString_charAt(call FunctionCall) Value {
 
 func builtinString_charCodeAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
-	idx := int(toInteger(call.Argument(0)).value)
+	idx := int(toInteger(call.Argument(0)).int64)
 	chr := stringAt(call.This._object().stringValue(), idx)
 	if chr == utf8.RuneError {
 		return NaNValue()
@@ -109,10 +109,10 @@ func builtinString_lastIndexOf(call FunctionCall) Value {
 		// startNumber is infinity, so start is the end of string (start = length)
 		return toValue_int(strings.LastIndex(value, target))
 	}
-	if 0 > start.value {
-		start.value = 0
+	if 0 > start.int64 {
+		start.int64 = 0
 	}
-	end := int(start.value) + len(target)
+	end := int(start.int64) + len(target)
 	if end > length {
 		end = length
 	}

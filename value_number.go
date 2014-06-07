@@ -161,70 +161,77 @@ type _integerKind int
 
 const (
 	integerValid    _integerKind = iota // 3.0 => 3.0
-	integerFloat                        // 3.14159 => 3.0
+	integerFloat                        // 3.14159 => 3.0, 1+2**63 > 2**63-1
 	integerInfinite                     // Infinity => 2**63-1
 	integerInvalid                      // NaN => 0
 )
 
 type _integer struct {
-	_integerKind
-	value int64
+	kind    _integerKind
+	int64   int64
+	float64 float64
 }
 
 func (self _integer) valid() bool {
-	return self._integerKind == integerValid || self._integerKind == integerFloat
+	return self.kind == integerValid || self.kind == integerFloat
 }
 
 func (self _integer) exact() bool {
-	return self._integerKind == integerValid
+	return self.kind == integerValid
 }
 
 func (self _integer) infinite() bool {
-	return self._integerKind == integerInfinite
+	return self.kind == integerInfinite
 }
 
+// Could this use some improvement?
+// http://www.goinggo.net/2013/08/gustavos-ieee-754-brain-teaser.html
+// http://bazaar.launchpad.net/~niemeyer/strepr/trunk/view/6/strepr.go#L160
 func toInteger(value Value) (integer _integer) {
 	switch value := value.value.(type) {
 	case int8:
-		integer.value = int64(value)
+		integer.int64 = int64(value)
 		return
 	case int16:
-		integer.value = int64(value)
+		integer.int64 = int64(value)
 		return
 	case uint8:
-		integer.value = int64(value)
+		integer.int64 = int64(value)
 		return
 	case uint16:
-		integer.value = int64(value)
+		integer.int64 = int64(value)
 		return
 	case uint32:
-		integer.value = int64(value)
+		integer.int64 = int64(value)
 		return
 	case int:
-		integer.value = int64(value)
+		integer.int64 = int64(value)
 		return
 	case int64:
-		integer.value = value
+		integer.int64 = value
 		return
 	}
 	{
-		value := value.toFloat()
+		value := toFloat(value)
+		integer.float64 = value
 		if value == 0 {
 			return
 		}
 		if math.IsNaN(value) {
-			integer._integerKind = integerInvalid
+			integer.kind = integerInvalid
 			return
 		}
 		if math.IsInf(value, 0) {
-			integer._integerKind = integerInfinite
+			integer.kind = integerInfinite
 		}
 		if value >= float_maxInt64 {
-			integer.value = math.MaxInt64
+			integer.int64 = math.MaxInt64
+			integer.kind = integerFloat
 			return
 		}
 		if value <= float_minInt64 {
-			integer.value = math.MinInt64
+			integer.int64 = math.MinInt64
+			integer.kind = integerFloat
 			return
 		}
 		{
@@ -237,9 +244,9 @@ func toInteger(value Value) (integer _integer) {
 			}
 
 			if value0 != value1 {
-				integer._integerKind = integerFloat
+				integer.kind = integerFloat
 			}
-			integer.value = int64(value1)
+			integer.int64 = int64(value1)
 			return
 		}
 	}

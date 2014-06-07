@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"math"
 	"strings"
 )
 
@@ -166,7 +165,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 				ctx.gap = value
 			}
 		case valueNumber:
-			value := toInteger(spaceValue).value
+			value := toInteger(spaceValue).int64
 			if value > 10 {
 				value = 10
 			} else if value < 0 {
@@ -232,11 +231,15 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 	case valueString:
 		return toString(value), true
 	case valueNumber:
-		value := toFloat(value)
-		if math.IsNaN(value) || math.IsInf(value, 0) {
+		integer := toInteger(value)
+		switch integer.kind {
+		case integerValid:
+			return integer.int64, true
+		case integerFloat:
+			return integer.float64, true
+		default:
 			return nil, true
 		}
-		return value, true
 	case valueNull:
 		return nil, true
 	case valueObject:

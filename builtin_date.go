@@ -135,7 +135,7 @@ func _builtinDate_beforeSet(call FunctionCall, argumentLimit int, timeLocal bool
 			object.value = invalidDateObject
 			return nil, nil, nil, nil
 		}
-		valueList[index] = int(integer.value)
+		valueList[index] = int(integer.int64)
 	}
 	baseTime := date.Time()
 	if timeLocal {

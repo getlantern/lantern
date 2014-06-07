@@ -446,7 +446,7 @@ func (value Value) ToFloat() (float64, error) {
 func (value Value) ToInteger() (int64, error) {
 	result := int64(0)
 	err := catchPanic(func() {
-		result = toInteger(value).value
+		result = toInteger(value).int64
 	})
 	return result, err
 }
@@ -795,21 +795,21 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 			return reflect.ValueOf(int(tmp)), nil
 		}
 	case reflect.Int8: // Int8
-		tmp := toInteger(value).value
+		tmp := toInteger(value).int64
 		if tmp < int64_minInt8 || tmp > int64_maxInt8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int8", tmp, value)
 		} else {
 			return reflect.ValueOf(int8(tmp)), nil
 		}
 	case reflect.Int16: // Int16
-		tmp := toInteger(value).value
+		tmp := toInteger(value).int64
 		if tmp < int64_minInt16 || tmp > int64_maxInt16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int16", tmp, value)
 		} else {
 			return reflect.ValueOf(int16(tmp)), nil
 		}
 	case reflect.Int32: // Int32
-		tmp := toInteger(value).value
+		tmp := toInteger(value).int64
 		if tmp < int64_minInt32 || tmp > int64_maxInt32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int32", tmp, value)
 		} else {
@@ -834,21 +834,21 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 			return reflect.ValueOf(uint(tmp)), nil
 		}
 	case reflect.Uint8: // Uint8
-		tmp := toInteger(value).value
+		tmp := toInteger(value).int64
 		if tmp < 0 || tmp > int64_maxUint8 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint8", tmp, value)
 		} else {
 			return reflect.ValueOf(uint8(tmp)), nil
 		}
 	case reflect.Uint16: // Uint16
-		tmp := toInteger(value).value
+		tmp := toInteger(value).int64
 		if tmp < 0 || tmp > int64_maxUint16 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint16", tmp, value)
 		} else {
 			return reflect.ValueOf(uint16(tmp)), nil
 		}
 	case reflect.Uint32: // Uint32
-		tmp := toInteger(value).value
+		tmp := toInteger(value).int64
 		if tmp < 0 || tmp > int64_maxUint32 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint32", tmp, value)
 		} else {
