@@ -64,7 +64,6 @@ public class PublicIpAddress implements PublicIp {
     public PublicIpAddress(long cacheTime) {
         this.cacheTime = cacheTime;
         this.unsafePublicIpAddress = new UnsafePublicIpAddress(cacheTime);
-        Events.register(this);
     }
 
     /**
