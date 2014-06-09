@@ -160,7 +160,7 @@ public class TestingUtils {
                 new DefaultFriendsHandler(model, api, null, null, networkTracker, new Messages(new Model()));
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
-        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService(null);
+        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
         
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);

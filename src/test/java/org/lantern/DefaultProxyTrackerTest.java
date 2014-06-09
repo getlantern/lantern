@@ -48,7 +48,7 @@ public class DefaultProxyTrackerTest {
         //assume that we are connected to the Internet
         model.getConnectivity().setInternet(true);
 
-        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService(null);
+        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
         DefaultProxyTracker tracker = new DefaultProxyTracker(geoIpLookupService, model,

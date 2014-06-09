@@ -15,7 +15,7 @@ public class DefaultCensoredTest {
 
     @Before
     public void setup() {
-        lookupService = new GeoIpLookupService(null);
+        lookupService = new GeoIpLookupService();
     }
 
     @Test

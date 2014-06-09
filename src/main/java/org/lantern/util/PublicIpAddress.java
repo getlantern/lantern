@@ -25,8 +25,8 @@ import com.google.common.eventbus.Subscribe;
  * 
  * It is a heavily modified version of original implementation from LittleShoot.
  * 
- * This version makes a host-spoofed call to geo.getiantem.org (pretending to
- * be cdnjs.com) in order to look up the public ip.
+ * This version makes a host-spoofed call to geo.getiantem.org (pretending to be
+ * cdnjs.com) in order to look up the public ip.
  */
 public class PublicIpAddress implements PublicIp {
 
@@ -40,9 +40,22 @@ public class PublicIpAddress implements PublicIp {
 
     private final long cacheTime;
     private final UnsafePublicIpAddress unsafePublicIpAddress;
-    
-    private volatile HttpHost masqueradeHost =
+
+    private static volatile HttpHost s_masqueradeHost =
             new HttpHost(S3Config.DEFAULT_MASQUERADE_HOST, 443, "https");
+
+    static {
+        // Subscribe to updates for s_masqueradeHost
+        Events.register(new Object() {
+            @Subscribe
+            public void onNewS3Config(final S3Config config) {
+                synchronized (s_masqueradeHost) {
+                    s_masqueradeHost = new HttpHost(config.getMasqueradeHost(),
+                            443, "https");
+                }
+            }
+        });
+    }
 
     public PublicIpAddress() {
         this(100L);
@@ -90,12 +103,7 @@ public class PublicIpAddress implements PublicIp {
             return lookupSafe();
         }
     }
-    
-    @Subscribe
-    public void onNewS3Config(final S3Config config) {
-        masqueradeHost = new HttpHost(config.getMasqueradeHost(), 443, "https");
-    }
-    
+
     private InetAddress lookupSafe() {
         HttpGet request = new HttpGet("/lookup");
         request.setHeader("Host", REAL_GEO_HOST);
@@ -113,7 +121,7 @@ public class PublicIpAddress implements PublicIp {
             // request.getParams().setParameter(
             // CoreConnectionPNames.SO_TIMEOUT, 60000);
             HttpResponse response = StaticHttpClientFactory.newDirectClient()
-                    .execute(masqueradeHost, request);
+                    .execute(s_masqueradeHost, request);
             Header header = response.getFirstHeader(X_REFLECTED_IP);
 
             final int responseCode = response.getStatusLine().getStatusCode();

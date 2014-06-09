@@ -109,11 +109,6 @@ public class FallbackProxyTest {
             
             final DefaultHttpClient httpClient = new DefaultHttpClient();
             
-            // We prefer this one because this way the client can advertise a more
-            // typical set of suites, and the server can choose.
-            final SSLSocketFactory clientFactory = util.newTlsSocketFactoryJavaCipherSuites();
-            //final SSLSocketFactory client = util.newTlsSocketFactory(IceConfig.getCipherSuites());
-            
             final HttpHost proxy = new HttpHost(GET_HOST, GET_PORT);
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
             hitSite(httpClient, "https://www.google.com");
@@ -210,7 +205,7 @@ public class FallbackProxyTest {
             new CertTrackingSslEngineSource(trustStore, keyStoreManager);
         PeerFactory peerFactory = mock(PeerFactory.class);
         final GiveModeProxy proxy = 
-                new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService(null));
+                new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService());
         
         proxy.start();
         return proxy;
