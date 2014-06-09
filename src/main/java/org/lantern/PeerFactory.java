@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
@@ -47,8 +48,7 @@ public interface PeerFactory {
      *        The peer to update geo data for
      * @param address
      *        The current peer address
-     * @return
      */
-    void updateGeoData(final Peer peer, final String address);
+    void updateGeoData(final Peer peer, final InetAddress address);
 
 }
