@@ -1,16 +1,17 @@
 package check
 
 import (
-	"bitbucket.org/kardianos/osext"
 	"bytes"
 	_ "crypto/sha512" // for tls cipher support
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/inconshreveable/go-update"
 	"io/ioutil"
 	"net/http"
 	"runtime"
+
+	"bitbucket.org/kardianos/osext"
+	"github.com/inconshreveable/go-update"
 )
 
 type Initiative string
@@ -143,11 +144,8 @@ func (p *Params) CheckAndApplyUpdate(url string, up *update.Update) (result *Res
 		return
 	}
 
-	// run the update if one is available and the server says it's auto
-	if result.Update != nil && result.Initiative == INITIATIVE_AUTO {
-		err, errRecover = result.Update()
-	}
-
+	// run the available update
+	err, errRecover = result.Update()
 	return
 }
 
