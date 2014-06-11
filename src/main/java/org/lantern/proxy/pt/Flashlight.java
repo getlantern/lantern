@@ -48,6 +48,9 @@ public class Flashlight extends BasePluggableTransport {
             InetSocketAddress listenAddress,
             InetSocketAddress getModeAddress,
             InetSocketAddress proxyAddress) {
+        cmd.addArgument("-role");
+        cmd.addArgument("client");
+        
         cmd.addArgument("-server");
         cmd.addArgument(props.getProperty(SERVER_KEY));
         
