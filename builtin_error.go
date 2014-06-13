@@ -15,7 +15,7 @@ func builtinNewError(self *_object, argumentList []Value) Value {
 func builtinError_toString(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	if thisObject == nil {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 
 	name := "Error"

@@ -15,7 +15,7 @@ func defaultConstruct(fn *_object, argumentList []Value) Value {
 	object.prototype = prototype._object()
 
 	this := toValue_object(object)
-	value := fn.call(this, argumentList, false)
+	value := fn.call(this, argumentList, false, nativeFrame)
 	if value.kind == valueObject {
 		return value
 	}
@@ -83,7 +83,7 @@ func (fn _bindFunctionObject) construct(argumentList []Value) Value {
 		argumentList = append(fn.argumentList, argumentList...)
 		return object.construct(argumentList)
 	}
-	panic(newTypeError())
+	panic(fn.target.runtime.panicTypeError())
 }
 
 // =================== //
@@ -121,10 +121,11 @@ func (self *_object) isCall() bool {
 	return false
 }
 
-func (self *_object) call(this Value, argumentList []Value, eval bool) Value {
+func (self *_object) call(this Value, argumentList []Value, eval bool, frame _frame) Value {
 	switch fn := self.value.(type) {
 
 	case _nativeFunctionObject:
+		// TODO Enter a scope, name from the native object...
 		// Since eval is a native function, we only have to check for it here
 		if eval {
 			eval = self == self.runtime.eval // If eval is true, then it IS a direct eval
@@ -139,8 +140,9 @@ func (self *_object) call(this Value, argumentList []Value, eval bool) Value {
 		})
 
 	case _bindFunctionObject:
+		// TODO Passthrough site, do not enter a scope
 		argumentList = append(fn.argumentList, argumentList...)
-		return fn.target.call(fn.this, argumentList, false)
+		return fn.target.call(fn.this, argumentList, false, frame)
 
 	case _nodeFunctionObject:
 		rt := self.runtime
@@ -148,6 +150,7 @@ func (self *_object) call(this Value, argumentList []Value, eval bool) Value {
 		defer func() {
 			rt.leaveScope()
 		}()
+		rt.scope.frame = frame
 		callValue := rt.cmpl_call_nodeFunction(self, stash, fn.node, this, argumentList)
 		if value, valid := callValue.value.(_result); valid {
 			return value.value
@@ -155,7 +158,7 @@ func (self *_object) call(this Value, argumentList []Value, eval bool) Value {
 		return callValue
 	}
 
-	panic(newTypeError("%v is not a function", toValue_object(self)))
+	panic(self.runtime.panicTypeError("%v is not a function", toValue_object(self)))
 }
 
 func (self *_object) construct(argumentList []Value) Value {
@@ -163,10 +166,10 @@ func (self *_object) construct(argumentList []Value) Value {
 
 	case _nativeFunctionObject:
 		if fn.call == nil {
-			panic(newTypeError("%v is not a function", toValue_object(self)))
+			panic(self.runtime.panicTypeError("%v is not a function", toValue_object(self)))
 		}
 		if fn.construct == nil {
-			panic(newTypeError("%v is not a constructor", toValue_object(self)))
+			panic(self.runtime.panicTypeError("%v is not a constructor", toValue_object(self)))
 		}
 		return fn.construct(self, argumentList)
 
@@ -177,21 +180,21 @@ func (self *_object) construct(argumentList []Value) Value {
 		return defaultConstruct(self, argumentList)
 	}
 
-	panic(newTypeError("%v is not a function", toValue_object(self)))
+	panic(self.runtime.panicTypeError("%v is not a function", toValue_object(self)))
 }
 
 // 15.3.5.3
 func (self *_object) hasInstance(of Value) bool {
 	if !self.isCall() {
 		// We should not have a hasInstance method
-		panic(newTypeError())
+		panic(self.runtime.panicTypeError())
 	}
 	if !of.IsObject() {
 		return false
 	}
 	prototype := self.get("prototype")
 	if !prototype.IsObject() {
-		panic(newTypeError())
+		panic(self.runtime.panicTypeError())
 	}
 	prototypeObject := prototype._object()
 
@@ -249,7 +252,7 @@ func (self *FunctionCall) thisObject() *_object {
 func (self *FunctionCall) thisClassObject(class string) *_object {
 	thisObject := self.thisObject()
 	if thisObject.class != class {
-		panic(newTypeError())
+		panic(self.runtime.panicTypeError())
 	}
 	return self._thisObject
 }

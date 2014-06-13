@@ -86,12 +86,12 @@ func goSliceEnumerate(self *_object, all bool, each func(string) bool) {
 
 func goSliceDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
 	if name == "length" {
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	} else if index := stringToArrayIndex(name); index >= 0 {
 		if self.value.(*_goSliceObject).setValue(index, descriptor.value.(Value)) {
 			return true
 		}
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 	return objectDefineOwnProperty(self, name, descriptor, throw)
 }
@@ -99,7 +99,7 @@ func goSliceDefineOwnProperty(self *_object, name string, descriptor _property, 
 func goSliceDelete(self *_object, name string, throw bool) bool {
 	// length
 	if name == "length" {
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 
 	// .0, .1, .2, ...
@@ -111,7 +111,7 @@ func goSliceDelete(self *_object, name string, throw bool) bool {
 			indexValue.Set(reflect.Zero(object.value.Type().Elem()))
 			return true
 		}
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 
 	return self.delete(name, throw)

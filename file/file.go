@@ -53,8 +53,8 @@ func (self *Position) String() string {
 
 // A FileSet represents a set of source files.
 type FileSet struct {
-	files []*_file
-	last  *_file
+	files []*File
+	last  *File
 }
 
 // AddFile adds a new file with the given filename and src.
@@ -62,10 +62,10 @@ type FileSet struct {
 // This an internal method, but exported for cross-package use.
 func (self *FileSet) AddFile(filename, src string) int {
 	base := self.nextBase()
-	file := &_file{
-		filename: filename,
-		src:      src,
-		base:     base,
+	file := &File{
+		name: filename,
+		src:  src,
+		base: base,
 	}
 	self.files = append(self.files, file)
 	self.last = file
@@ -79,6 +79,15 @@ func (self *FileSet) nextBase() int {
 	return self.last.base + len(self.last.src) + 1
 }
 
+func (self *FileSet) File(idx Idx) *File {
+	for _, file := range self.files {
+		if idx <= Idx(file.base+len(file.src)) {
+			return file
+		}
+	}
+	return nil
+}
+
 // Position converts an Idx in the FileSet into a Position.
 func (self *FileSet) Position(idx Idx) *Position {
 	position := &Position{}
@@ -86,7 +95,7 @@ func (self *FileSet) Position(idx Idx) *Position {
 		if idx <= Idx(file.base+len(file.src)) {
 			offset := int(idx) - file.base
 			src := file.src[:offset]
-			position.Filename = file.filename
+			position.Filename = file.name
 			position.Offset = offset
 			position.Line = 1 + strings.Count(src, "\n")
 			if index := strings.LastIndex(src, "\n"); index >= 0 {
@@ -99,8 +108,28 @@ func (self *FileSet) Position(idx Idx) *Position {
 	return position
 }
 
-type _file struct {
-	filename string
-	src      string
-	base     int // This will always be 1 or greater
+type File struct {
+	name string
+	src  string
+	base int // This will always be 1 or greater
+}
+
+func NewFile(filename, src string, base int) *File {
+	return &File{
+		name: filename,
+		src:  src,
+		base: base,
+	}
+}
+
+func (fl *File) Name() string {
+	return fl.name
+}
+
+func (fl *File) Source() string {
+	return fl.src
+}
+
+func (fl *File) Base() int {
+	return fl.base
 }

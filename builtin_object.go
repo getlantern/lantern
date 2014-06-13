@@ -80,16 +80,16 @@ func builtinObject_toString(call FunctionCall) Value {
 func builtinObject_toLocaleString(call FunctionCall) Value {
 	toString := call.thisObject().get("toString")
 	if !toString.isCallable() {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
-	return toString.call(call.This)
+	return toString.call(call.runtime, call.This)
 }
 
 func builtinObject_getPrototypeOf(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()
 	if object == nil {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 
 	if object.prototype == nil {
@@ -103,7 +103,7 @@ func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()
 	if object == nil {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 
 	name := call.Argument(1).string()
@@ -118,10 +118,10 @@ func builtinObject_defineProperty(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()
 	if object == nil {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	name := call.Argument(1).string()
-	descriptor := toPropertyDescriptor(call.Argument(2))
+	descriptor := toPropertyDescriptor(call.runtime, call.Argument(2))
 	object.defineOwnProperty(name, descriptor, true)
 	return objectValue
 }
@@ -130,12 +130,12 @@ func builtinObject_defineProperties(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()
 	if object == nil {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 
 	properties := call.runtime.toObject(call.Argument(1))
 	properties.enumerate(false, func(name string) bool {
-		descriptor := toPropertyDescriptor(properties.get(name))
+		descriptor := toPropertyDescriptor(call.runtime, properties.get(name))
 		object.defineOwnProperty(name, descriptor, true)
 		return true
 	})
@@ -146,7 +146,7 @@ func builtinObject_defineProperties(call FunctionCall) Value {
 func builtinObject_create(call FunctionCall) Value {
 	prototypeValue := call.Argument(0)
 	if !prototypeValue.IsNull() && !prototypeValue.IsObject() {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 
 	object := call.runtime.newObject()
@@ -156,7 +156,7 @@ func builtinObject_create(call FunctionCall) Value {
 	if propertiesValue.IsDefined() {
 		properties := call.runtime.toObject(propertiesValue)
 		properties.enumerate(false, func(name string) bool {
-			descriptor := toPropertyDescriptor(properties.get(name))
+			descriptor := toPropertyDescriptor(call.runtime, properties.get(name))
 			object.defineOwnProperty(name, descriptor, true)
 			return true
 		})
@@ -170,7 +170,7 @@ func builtinObject_isExtensible(call FunctionCall) Value {
 	if object := object._object(); object != nil {
 		return toValue_bool(object.extensible)
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinObject_preventExtensions(call FunctionCall) Value {
@@ -178,7 +178,7 @@ func builtinObject_preventExtensions(call FunctionCall) Value {
 	if object := object._object(); object != nil {
 		object.extensible = false
 	} else {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	return object
 }
@@ -199,7 +199,7 @@ func builtinObject_isSealed(call FunctionCall) Value {
 		})
 		return toValue_bool(result)
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinObject_seal(call FunctionCall) Value {
@@ -214,7 +214,7 @@ func builtinObject_seal(call FunctionCall) Value {
 		})
 		object.extensible = false
 	} else {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	return object
 }
@@ -235,7 +235,7 @@ func builtinObject_isFrozen(call FunctionCall) Value {
 		})
 		return toValue_bool(result)
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinObject_freeze(call FunctionCall) Value {
@@ -259,7 +259,7 @@ func builtinObject_freeze(call FunctionCall) Value {
 		})
 		object.extensible = false
 	} else {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	return object
 }
@@ -272,7 +272,7 @@ func builtinObject_keys(call FunctionCall) Value {
 		})
 		return toValue_object(call.runtime.newArrayOf(keys))
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinObject_getOwnPropertyNames(call FunctionCall) Value {
@@ -285,5 +285,5 @@ func builtinObject_getOwnPropertyNames(call FunctionCall) Value {
 		})
 		return toValue_object(call.runtime.newArrayOf(propertyNames))
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }

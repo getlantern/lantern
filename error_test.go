@@ -60,3 +60,113 @@ func Test_catchPanic(t *testing.T) {
 		is(err, "!=", nil)
 	})
 }
+
+func Test_errorLine(t *testing.T) {
+	tt(t, func() {
+		vm := New()
+
+		_, err := vm.Run(`
+            undefined();
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'undefined' is not a function")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:2:13")
+		}
+
+		_, err = vm.Run(`
+            ({}).abc();
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'abc' is not a function")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:2:14")
+		}
+
+		_, err = vm.Run(`
+            ("abc").abc();
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'abc' is not a function")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:2:14")
+		}
+
+		_, err = vm.Run(`
+            var ghi = "ghi";
+            ghi();
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'ghi' is not a function")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:3:13")
+		}
+
+		_, err = vm.Run(`
+            function def() {
+                undefined();
+            }
+            function abc() {
+                def();
+            }
+            abc();
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'undefined' is not a function")
+			is(len(err.trace), 3)
+			is(err.trace[0].location(), "def (<anonymous>:3:17)")
+			is(err.trace[1].location(), "abc (<anonymous>:6:17)")
+			is(err.trace[2].location(), "<anonymous>:8:13")
+		}
+
+		_, err = vm.Run(`
+            function abc() {
+                xyz();
+            }
+            abc();
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'xyz' is not defined")
+			is(len(err.trace), 2)
+			is(err.trace[0].location(), "abc (<anonymous>:3:17)")
+			is(err.trace[1].location(), "<anonymous>:5:13")
+		}
+
+		_, err = vm.Run(`
+            mno + 1;
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'mno' is not defined")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:2:13")
+		}
+
+		_, err = vm.Run(`
+            eval("xyz();");
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'xyz' is not defined")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:1:1")
+		}
+
+		_, err = vm.Run(`
+            xyzzy = "Nothing happens."
+            eval("xyzzy();");
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "'xyzzy' is not a function")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:1:1")
+		}
+	})
+}

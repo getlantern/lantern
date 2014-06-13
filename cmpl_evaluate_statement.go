@@ -186,7 +186,7 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 			if into.reference() == nil {
 				identifier := into.string()
 				// TODO Should be true or false (strictness) depending on context
-				into = toValue(getIdentifierReference(self.scope.lexical, identifier, false))
+				into = toValue(getIdentifierReference(self, self.scope.lexical, identifier, false, -1))
 			}
 			self.putValue(into.reference(), toValue_string(name))
 			for _, node := range body {

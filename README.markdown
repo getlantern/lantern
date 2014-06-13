@@ -139,7 +139,6 @@ For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 The following are some limitations with otto:
 
     * "use strict" will parse, but does nothing.
-    * Error reporting needs to be improved.
     * The regular expression engine (re2/regexp) is not fully compatible with the ECMA5 specification.
 
 
@@ -243,6 +242,36 @@ Here is some more discussion of the issue:
 ```go
 var ErrVersion = errors.New("version mismatch")
 ```
+
+#### type Error
+
+```go
+type Error struct {
+}
+```
+
+An Error represents a runtime error, e.g. a TypeError, a ReferenceError, etc.
+
+#### func (Error) Error
+
+```go
+func (err Error) Error() string
+```
+Error returns a description of the error
+
+    TypeError: 'def' is not a function
+
+#### func (Error) String
+
+```go
+func (err Error) String() string
+```
+String returns a description of the error and a trace of where the error
+occurred.
+
+    TypeError: 'def' is not a function
+        at xyz (<anonymous>:3:9)
+        at <anonymous>:7:1/
 
 #### type FunctionCall
 

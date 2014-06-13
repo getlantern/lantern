@@ -19,7 +19,7 @@ func builtinNewArrayNative(runtime *_runtime, argumentList []Value) *_object {
 	if len(argumentList) == 1 {
 		firstArgument := argumentList[0]
 		if firstArgument.IsNumber() {
-			return runtime.newArray(arrayUint32(firstArgument))
+			return runtime.newArray(arrayUint32(runtime, firstArgument))
 		}
 	}
 	return runtime.newArrayOf(argumentList)
@@ -30,7 +30,7 @@ func builtinArray_toString(call FunctionCall) Value {
 	join := thisObject.get("join")
 	if join.isCallable() {
 		join := join._object()
-		return join.call(call.This, call.ArgumentList, false)
+		return join.call(call.This, call.ArgumentList, false, nativeFrame)
 	}
 	return builtinObject_toString(call)
 }
@@ -52,9 +52,9 @@ func builtinArray_toLocaleString(call FunctionCall) Value {
 			object := call.runtime.toObject(value)
 			toLocaleString := object.get("toLocaleString")
 			if !toLocaleString.isCallable() {
-				panic(newTypeError())
+				panic(call.runtime.panicTypeError())
 			}
-			stringValue = toLocaleString.call(toValue_object(object)).string()
+			stringValue = toLocaleString.call(call.runtime, toValue_object(object)).string()
 		}
 		stringList = append(stringList, stringValue)
 	}
@@ -382,7 +382,7 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 		return 1
 	}
 
-	return int(toInt32(compare.call(Value{}, []Value{x, y}, false)))
+	return int(toInt32(compare.call(Value{}, []Value{x, y}, false, nativeFrame)))
 }
 
 func arraySortSwap(thisObject *_object, index0, index1 uint) {
@@ -447,7 +447,7 @@ func builtinArray_sort(call FunctionCall) Value {
 	compare := compareValue._object()
 	if compareValue.IsUndefined() {
 	} else if !compareValue.isCallable() {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	if length > 1 {
 		arraySortQuickSort(thisObject, 0, length-1, compare)
@@ -523,7 +523,7 @@ func builtinArray_every(call FunctionCall) Value {
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).bool() {
+				if value := thisObject.get(key); iterator.call(call.runtime, callThis, value, toValue_int64(index), this).bool() {
 					continue
 				}
 				return falseValue
@@ -531,7 +531,7 @@ func builtinArray_every(call FunctionCall) Value {
 		}
 		return trueValue
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinArray_some(call FunctionCall) Value {
@@ -542,14 +542,14 @@ func builtinArray_some(call FunctionCall) Value {
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				if value := thisObject.get(key); iterator.call(callThis, value, toValue_int64(index), this).bool() {
+				if value := thisObject.get(key); iterator.call(call.runtime, callThis, value, toValue_int64(index), this).bool() {
 					return trueValue
 				}
 			}
 		}
 		return falseValue
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinArray_forEach(call FunctionCall) Value {
@@ -560,12 +560,12 @@ func builtinArray_forEach(call FunctionCall) Value {
 		callThis := call.Argument(1)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				iterator.call(callThis, thisObject.get(key), toValue_int64(index), this)
+				iterator.call(call.runtime, callThis, thisObject.get(key), toValue_int64(index), this)
 			}
 		}
 		return Value{}
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinArray_map(call FunctionCall) Value {
@@ -577,14 +577,14 @@ func builtinArray_map(call FunctionCall) Value {
 		values := make([]Value, length)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-				values[index] = iterator.call(callThis, thisObject.get(key), index, this)
+				values[index] = iterator.call(call.runtime, callThis, thisObject.get(key), index, this)
 			} else {
 				values[index] = Value{}
 			}
 		}
 		return toValue_object(call.runtime.newArrayOf(values))
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinArray_filter(call FunctionCall) Value {
@@ -597,14 +597,14 @@ func builtinArray_filter(call FunctionCall) Value {
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 				value := thisObject.get(key)
-				if iterator.call(callThis, value, index, this).bool() {
+				if iterator.call(call.runtime, callThis, value, index, this).bool() {
 					values = append(values, value)
 				}
 			}
 		}
 		return toValue_object(call.runtime.newArrayOf(values))
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinArray_reduce(call FunctionCall) Value {
@@ -630,13 +630,13 @@ func builtinArray_reduce(call FunctionCall) Value {
 			}
 			for ; index < length; index++ {
 				if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-					accumulator = iterator.call(Value{}, accumulator, thisObject.get(key), key, this)
+					accumulator = iterator.call(call.runtime, Value{}, accumulator, thisObject.get(key), key, this)
 				}
 			}
 			return accumulator
 		}
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }
 
 func builtinArray_reduceRight(call FunctionCall) Value {
@@ -662,11 +662,11 @@ func builtinArray_reduceRight(call FunctionCall) Value {
 			}
 			for ; index >= 0; index-- {
 				if key := arrayIndexToString(index); thisObject.hasProperty(key) {
-					accumulator = iterator.call(Value{}, accumulator, thisObject.get(key), key, this)
+					accumulator = iterator.call(call.runtime, Value{}, accumulator, thisObject.get(key), key, this)
 				}
 			}
 			return accumulator
 		}
 	}
-	panic(newTypeError())
+	panic(call.runtime.panicTypeError())
 }

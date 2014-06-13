@@ -6,6 +6,38 @@ Package file encapsulates the file abstractions used by the ast & parser.
 
 ## Usage
 
+#### type File
+
+```go
+type File struct {
+}
+```
+
+
+#### func  NewFile
+
+```go
+func NewFile(filename, src string, base int) *File
+```
+
+#### func (*File) Base
+
+```go
+func (fl *File) Base() int
+```
+
+#### func (*File) Name
+
+```go
+func (fl *File) Name() string
+```
+
+#### func (*File) Source
+
+```go
+func (fl *File) Source() string
+```
+
 #### type FileSet
 
 ```go
@@ -23,6 +55,12 @@ func (self *FileSet) AddFile(filename, src string) int
 AddFile adds a new file with the given filename and src.
 
 This an internal method, but exported for cross-package use.
+
+#### func (*FileSet) File
+
+```go
+func (self *FileSet) File(idx Idx) *File
+```
 
 #### func (*FileSet) Position
 

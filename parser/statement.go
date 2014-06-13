@@ -540,6 +540,7 @@ func (self *_parser) parseProgram() *ast.Program {
 	return &ast.Program{
 		Body:            self.parseSourceElements(),
 		DeclarationList: self.scope.declarationList,
+		File:            self.file,
 	}
 }
 

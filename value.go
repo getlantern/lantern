@@ -108,7 +108,8 @@ func (value Value) isCallable() bool {
 func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) {
 	result := Value{}
 	err := catchPanic(func() {
-		result = value.call(this, argumentList...)
+		// FIXME
+		result = value.call(nil, this, argumentList...)
 	})
 	if !value.safe() {
 		value = Value{}
@@ -116,28 +117,34 @@ func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) 
 	return result, err
 }
 
-func (value Value) call(this Value, argumentList ...interface{}) Value {
+func (value Value) call(rt *_runtime, this Value, argumentList ...interface{}) Value {
 	switch function := value.value.(type) {
 	case *_object:
-		return function.call(this, function.runtime.toValueArray(argumentList...), false)
+		return function.call(this, function.runtime.toValueArray(argumentList...), false, nativeFrame)
 	}
-	panic(newTypeError())
+	if rt == nil {
+		panic("FIXME TypeError")
+	}
+	panic(rt.panicTypeError())
 }
 
-func (value Value) constructSafe(this Value, argumentList ...interface{}) (Value, error) {
+func (value Value) constructSafe(rt *_runtime, this Value, argumentList ...interface{}) (Value, error) {
 	result := Value{}
 	err := catchPanic(func() {
-		result = value.construct(this, argumentList...)
+		result = value.construct(rt, this, argumentList...)
 	})
 	return result, err
 }
 
-func (value Value) construct(this Value, argumentList ...interface{}) Value {
+func (value Value) construct(rt *_runtime, this Value, argumentList ...interface{}) Value {
 	switch fn := value.value.(type) {
 	case *_object:
 		return fn.construct(fn.runtime.toValueArray(argumentList...))
 	}
-	panic(newTypeError())
+	if rt == nil {
+		panic("FIXME TypeError")
+	}
+	panic(rt.panicTypeError())
 }
 
 // IsPrimitive will return true if value is a primitive (any kind of primitive).
@@ -261,13 +268,14 @@ func (value Value) isError() bool {
 // ---
 
 func toValue_reflectValuePanic(value interface{}, kind reflect.Kind) {
+	// FIXME?
 	switch kind {
 	case reflect.Struct:
-		panic(newTypeError("Invalid value (struct): Missing runtime: %v (%T)", value, value))
+		panic(newError(nil, "TypeError", "invalid value (struct): missing runtime: %v (%T)", value, value))
 	case reflect.Map:
-		panic(newTypeError("Invalid value (map): Missing runtime: %v (%T)", value, value))
+		panic(newError(nil, "TypeError", "invalid value (map): missing runtime: %v (%T)", value, value))
 	case reflect.Slice:
-		panic(newTypeError("Invalid value (slice): Missing runtime: %v (%T)", value, value))
+		panic(newError(nil, "TypeError", "invalid value (slice): missing runtime: %v (%T)", value, value))
 	}
 }
 
@@ -366,7 +374,8 @@ func toValue(value interface{}) Value {
 	default:
 		return toValue(reflect.ValueOf(value))
 	}
-	panic(newTypeError("Invalid value: Unsupported: %v (%T)", value, value))
+	// FIXME?
+	panic(newError(nil, "TypeError", "invalid value: %v (%T)", value, value))
 }
 
 // String will return the value as a string.

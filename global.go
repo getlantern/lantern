@@ -48,8 +48,6 @@ func newContext() *_runtime {
 	self.globalStash = self.newObjectStash(nil, nil)
 	self.globalObject = self.globalStash.object
 
-	self.enterGlobalScope()
-
 	_newContext(self)
 
 	self.eval = self.globalObject.property["eval"].value.(Value).value.(*_object)
@@ -138,7 +136,7 @@ func (runtime *_runtime) newRegExp(patternValue Value, flagsValue Value) *_objec
 	flags := ""
 	if object := patternValue._object(); object != nil && object.class == "RegExp" {
 		if flagsValue.IsDefined() {
-			panic(newTypeError("Cannot supply flags when constructing one RegExp from another"))
+			panic(runtime.panicTypeError("Cannot supply flags when constructing one RegExp from another"))
 		}
 		regExp := object.regExpValue()
 		pattern = regExp.source

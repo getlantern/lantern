@@ -26,7 +26,7 @@ func builtinNewDate(self *_object, argumentList []Value) Value {
 }
 
 func builtinDate_toString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -34,7 +34,7 @@ func builtinDate_toString(call FunctionCall) Value {
 }
 
 func builtinDate_toDateString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -42,7 +42,7 @@ func builtinDate_toDateString(call FunctionCall) Value {
 }
 
 func builtinDate_toTimeString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -50,7 +50,7 @@ func builtinDate_toTimeString(call FunctionCall) Value {
 }
 
 func builtinDate_toUTCString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -58,7 +58,7 @@ func builtinDate_toUTCString(call FunctionCall) Value {
 }
 
 func builtinDate_toISOString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -76,13 +76,14 @@ func builtinDate_toJSON(call FunctionCall) Value {
 	}
 	toISOString := object.get("toISOString")
 	if !toISOString.isCallable() {
-		panic(newTypeError())
+		// FIXME
+		panic(call.runtime.panicTypeError())
 	}
-	return toISOString.call(toValue_object(object), []Value{})
+	return toISOString.call(call.runtime, toValue_object(object), []Value{})
 }
 
 func builtinDate_toGMTString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -90,7 +91,7 @@ func builtinDate_toGMTString(call FunctionCall) Value {
 }
 
 func builtinDate_getTime(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -101,7 +102,7 @@ func builtinDate_getTime(call FunctionCall) Value {
 
 func builtinDate_setTime(call FunctionCall) Value {
 	object := call.thisObject()
-	date := dateObjectOf(object)
+	date := dateObjectOf(call.runtime, call.thisObject())
 	date.Set(call.Argument(0).float64())
 	object.value = date
 	return date.Value()
@@ -109,7 +110,7 @@ func builtinDate_setTime(call FunctionCall) Value {
 
 func _builtinDate_beforeSet(call FunctionCall, argumentLimit int, timeLocal bool) (*_object, *_dateObject, *_ecmaTime, []int) {
 	object := call.thisObject()
-	date := dateObjectOf(object)
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return nil, nil, nil, nil
 	}
@@ -159,7 +160,7 @@ func builtinDate_now(call FunctionCall) Value {
 
 // This is a placeholder
 func builtinDate_toLocaleString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -168,7 +169,7 @@ func builtinDate_toLocaleString(call FunctionCall) Value {
 
 // This is a placeholder
 func builtinDate_toLocaleDateString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -177,7 +178,7 @@ func builtinDate_toLocaleDateString(call FunctionCall) Value {
 
 // This is a placeholder
 func builtinDate_toLocaleTimeString(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return toValue_string("Invalid Date")
 	}
@@ -185,7 +186,7 @@ func builtinDate_toLocaleTimeString(call FunctionCall) Value {
 }
 
 func builtinDate_valueOf(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -195,7 +196,7 @@ func builtinDate_valueOf(call FunctionCall) Value {
 func builtinDate_getYear(call FunctionCall) Value {
 	// Will throw a TypeError is ThisObject is nil or
 	// does not have Class of "Date"
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -205,7 +206,7 @@ func builtinDate_getYear(call FunctionCall) Value {
 func builtinDate_getFullYear(call FunctionCall) Value {
 	// Will throw a TypeError is ThisObject is nil or
 	// does not have Class of "Date"
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -213,7 +214,7 @@ func builtinDate_getFullYear(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCFullYear(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -221,7 +222,7 @@ func builtinDate_getUTCFullYear(call FunctionCall) Value {
 }
 
 func builtinDate_getMonth(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -229,7 +230,7 @@ func builtinDate_getMonth(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCMonth(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -237,7 +238,7 @@ func builtinDate_getUTCMonth(call FunctionCall) Value {
 }
 
 func builtinDate_getDate(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -245,7 +246,7 @@ func builtinDate_getDate(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCDate(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -254,7 +255,7 @@ func builtinDate_getUTCDate(call FunctionCall) Value {
 
 func builtinDate_getDay(call FunctionCall) Value {
 	// Actually day of the week
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -262,7 +263,7 @@ func builtinDate_getDay(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCDay(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -270,7 +271,7 @@ func builtinDate_getUTCDay(call FunctionCall) Value {
 }
 
 func builtinDate_getHours(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -278,7 +279,7 @@ func builtinDate_getHours(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCHours(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -286,7 +287,7 @@ func builtinDate_getUTCHours(call FunctionCall) Value {
 }
 
 func builtinDate_getMinutes(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -294,7 +295,7 @@ func builtinDate_getMinutes(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCMinutes(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -302,7 +303,7 @@ func builtinDate_getUTCMinutes(call FunctionCall) Value {
 }
 
 func builtinDate_getSeconds(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -310,7 +311,7 @@ func builtinDate_getSeconds(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCSeconds(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -318,7 +319,7 @@ func builtinDate_getUTCSeconds(call FunctionCall) Value {
 }
 
 func builtinDate_getMilliseconds(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -326,7 +327,7 @@ func builtinDate_getMilliseconds(call FunctionCall) Value {
 }
 
 func builtinDate_getUTCMilliseconds(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}
@@ -334,7 +335,7 @@ func builtinDate_getUTCMilliseconds(call FunctionCall) Value {
 }
 
 func builtinDate_getTimezoneOffset(call FunctionCall) Value {
-	date := dateObjectOf(call.thisObject())
+	date := dateObjectOf(call.runtime, call.thisObject())
 	if date.isNaN {
 		return NaNValue()
 	}

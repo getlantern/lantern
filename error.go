@@ -3,8 +3,9 @@ package otto
 import (
 	"errors"
 	"fmt"
+	"strings"
 
-	"github.com/robertkrimen/otto/ast"
+	"github.com/robertkrimen/otto/file"
 )
 
 type _exception struct {
@@ -24,125 +25,218 @@ func (self *_exception) eject() interface{} {
 }
 
 type _error struct {
-	Name    string
-	Message string
+	name    string
+	message string
+	trace   []_frame
 
-	Line int // Hackish -- line where the error/exception occurred
+	offset int
 }
 
-var messageDetail map[string]string = map[string]string{
-	"notDefined": "%v is not defined",
+type _frame struct {
+	file   *file.File
+	offset int
+	callee string
 }
 
-func messageFromDescription(description string, argumentList ...interface{}) string {
-	message := messageDetail[description]
-	if message == "" {
-		message = description
+var (
+	nativeFrame = _frame{}
+)
+
+type _at int
+
+func (fr _frame) location() string {
+	if fr.file == nil {
+		return "<unknown>"
 	}
-	message = fmt.Sprintf(message, argumentList...)
-	return message
+	path := fr.file.Name()
+	line, column := _position(fr.file, fr.offset)
+
+	if path == "" {
+		path = "<anonymous>"
+	}
+
+	str := fmt.Sprintf("%s:%d:%d", path, line, column)
+
+	if fr.callee != "" {
+		str = fmt.Sprintf("%s (%s)", fr.callee, str)
+	}
+
+	return str
 }
 
-func (self _error) MessageValue() Value {
-	if self.Message == "" {
+func _position(file *file.File, offset int) (line, column int) {
+	{
+		offset := offset - file.Base()
+		if offset < 0 {
+			return -offset, -1
+		}
+
+		src := file.Source()
+		if offset >= len(src) {
+			return -offset, -len(src)
+		}
+		src = src[:offset]
+
+		line := 1 + strings.Count(src, "\n")
+		column := 0
+		if index := strings.LastIndex(src, "\n"); index >= 0 {
+			column = offset - index
+		} else {
+			column = 1 + len(src)
+		}
+		return line, column
+	}
+}
+
+// An Error represents a runtime error, e.g. a TypeError, a ReferenceError, etc.
+type Error struct {
+	_error
+}
+
+// Error returns a description of the error
+//
+//    TypeError: 'def' is not a function
+//
+func (err Error) Error() string {
+	if len(err.name) == 0 {
+		return err.message
+	}
+	if len(err.message) == 0 {
+		return err.name
+	}
+	return fmt.Sprintf("%s: %s", err.name, err.message)
+}
+
+// String returns a description of the error and a trace of where the
+// error occurred.
+//
+//    TypeError: 'def' is not a function
+//        at xyz (<anonymous>:3:9)
+//        at <anonymous>:7:1/
+//
+func (err Error) String() string {
+	str := err.Error() + "\n"
+	for _, frame := range err.trace {
+		str += "    at " + frame.location() + "\n"
+	}
+	return str
+}
+
+func (err _error) describe(format string, in ...interface{}) string {
+	return fmt.Sprintf(format, in...)
+}
+
+func (self _error) messageValue() Value {
+	if self.message == "" {
 		return Value{}
 	}
-	return toValue_string(self.Message)
+	return toValue_string(self.message)
 }
 
-func (self _error) String() string {
-	if len(self.Name) == 0 {
-		return self.Message
-	}
-	if len(self.Message) == 0 {
-		return self.Name
-	}
-	return fmt.Sprintf("%s: %s", self.Name, self.Message)
-}
-
-func newError(name string, argumentList ...interface{}) _error {
-	description := ""
-	var node ast.Node = nil
-	length := len(argumentList)
-	if length > 0 {
-		if node, _ = argumentList[length-1].(ast.Node); node != nil || argumentList[length-1] == nil {
-			argumentList = argumentList[0 : length-1]
-			length -= 1
-		}
-		if length > 0 {
-			description, argumentList = argumentList[0].(string), argumentList[1:]
-		}
-	}
-	return _error{
-		Name:    name,
-		Message: messageFromDescription(description, argumentList...),
-		Line:    -1,
-	}
-	//error := _error{
-	//    Name:    name,
-	//    Message: messageFromDescription(description, argumentList...),
-	//    Line:    -1,
-	//}
-	//if node != nil {
-	//    error.Line = ast.position()
-	//}
-	//return error
-}
-
-func newReferenceError(argumentList ...interface{}) _error {
-	return newError("ReferenceError", argumentList...)
-}
-
-func newTypeError(argumentList ...interface{}) _error {
-	return newError("TypeError", argumentList...)
-}
-
-func newRangeError(argumentList ...interface{}) _error {
-	return newError("RangeError", argumentList...)
-}
-
-func newSyntaxError(argumentList ...interface{}) _error {
-	return newError("SyntaxError", argumentList...)
-}
-
-func newURIError(argumentList ...interface{}) _error {
-	return newError("URIError", argumentList...)
-}
-
-func typeErrorResult(throw bool) bool {
+func (rt *_runtime) typeErrorResult(throw bool) bool {
 	if throw {
-		panic(newTypeError())
+		panic(rt.panicTypeError())
 	}
 	return false
 }
 
+func newError(rt *_runtime, name string, in ...interface{}) _error {
+	err := _error{
+		name:   name,
+		offset: -1,
+	}
+	description := ""
+	length := len(in)
+
+	if rt != nil {
+		scope := rt.scope
+		frame := scope.frame
+		if length > 0 {
+			if at, ok := in[length-1].(_at); ok {
+				in = in[0 : length-1]
+				if scope != nil {
+					frame.offset = int(at)
+				}
+				length -= 1
+			}
+			if length > 0 {
+				description, in = in[0].(string), in[1:]
+			}
+		}
+		limit := 10
+		err.trace = append(err.trace, frame)
+		if scope != nil {
+			for limit > 0 {
+				scope = scope.outer
+				if scope == nil {
+					break
+				}
+				if scope.frame.offset >= 0 {
+					err.trace = append(err.trace, scope.frame)
+				}
+				limit--
+			}
+		}
+	} else {
+		if length > 0 {
+			description, in = in[0].(string), in[1:]
+		}
+	}
+	err.message = err.describe(description, in...)
+	return err
+}
+
+func (rt *_runtime) _newTypeError(argumentList ...interface{}) _error {
+	return newError(rt, "TypeError", argumentList...)
+}
+
+func (rt *_runtime) _newReferenceError(argumentList ...interface{}) _error {
+	return newError(rt, "ReferenceError", argumentList...)
+}
+
+func (rt *_runtime) panicTypeError(argumentList ...interface{}) *_exception {
+	return &_exception{
+		value: newError(rt, "TypeError", argumentList...),
+	}
+}
+
+func (rt *_runtime) panicReferenceError(argumentList ...interface{}) *_exception {
+	return &_exception{
+		value: newError(rt, "ReferenceError", argumentList...),
+	}
+}
+
+func (rt *_runtime) panicURIError(argumentList ...interface{}) *_exception {
+	return &_exception{
+		value: newError(rt, "URIError", argumentList...),
+	}
+}
+
+func (rt *_runtime) panicSyntaxError(argumentList ...interface{}) *_exception {
+	return &_exception{
+		value: newError(rt, "SyntaxError", argumentList...),
+	}
+}
+
+func (rt *_runtime) panicRangeError(argumentList ...interface{}) *_exception {
+	return &_exception{
+		value: newError(rt, "RangeError", argumentList...),
+	}
+}
+
 func catchPanic(function func()) (err error) {
-	// FIXME
 	defer func() {
 		if caught := recover(); caught != nil {
 			if exception, ok := caught.(*_exception); ok {
 				caught = exception.eject()
 			}
 			switch caught := caught.(type) {
-			//case *_syntaxError:
-			//    err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+0))
-			//    return
 			case _error:
-				if caught.Line == -1 {
-					err = errors.New(caught.String())
-				} else {
-					// We're 0-based (for now), hence the + 1
-					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+1))
-				}
+				err = &Error{caught}
 				return
 			case Value:
 				err = errors.New(caught.string())
 				return
-				//case string:
-				//    if strings.HasPrefix(caught, "SyntaxError:") {
-				//        err = errors.New(caught)
-				//        return
-				//    }
 			}
 			panic(caught)
 		}

@@ -18,14 +18,14 @@ func TestOttoError(t *testing.T) {
 		is(err, "TypeError: Nothing happens.")
 
 		_, err = ToValue([]byte{})
-		is(err, "TypeError: Invalid value (slice): Missing runtime: [] ([]uint8)")
+		is(err, "TypeError: invalid value (slice): missing runtime: [] ([]uint8)")
 
 		_, err = vm.Run(`
             (function(){
                 return abcdef.length
             })()
         `)
-		is(err, "ReferenceError: abcdef is not defined")
+		is(err, "ReferenceError: 'abcdef' is not defined")
 
 		_, err = vm.Run(`
             function start() {
@@ -35,14 +35,14 @@ func TestOttoError(t *testing.T) {
 
                 xyzzy()
         `)
-		is(err, "ReferenceError: xyzzy is not defined")
+		is(err, "ReferenceError: 'xyzzy' is not defined")
 
 		_, err = vm.Run(`
             // Just a comment
 
             xyzzy
         `)
-		is(err, "ReferenceError: xyzzy is not defined")
+		is(err, "ReferenceError: 'xyzzy' is not defined")
 
 	})
 }

@@ -15,7 +15,7 @@ func Test_cmpl(t *testing.T) {
 			is(err, nil)
 			{
 				program := cmpl_parse(program)
-				value := vm.runtime.cmpl_evaluate_nodeProgram(program)
+				value := vm.runtime.cmpl_evaluate_nodeProgram(program, false)
 				if len(expect) > 0 {
 					is(value, expect[0])
 				}

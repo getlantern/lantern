@@ -64,7 +64,7 @@ func ExampleSynopsis() {
 	// 16
 	// 16
 	// undefined
-	// ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined
+	// ReferenceError: 'abcdefghijlmnopqrstuvwxyz' is not defined
 	// Hello, Xyzzy.
 	// Hello, undefined.
 	// 4

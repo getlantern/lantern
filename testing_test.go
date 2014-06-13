@@ -31,11 +31,18 @@ func is(arguments ...interface{}) bool {
 		got, expect = arguments[0], arguments[2]
 	}
 
-	if value, ok := got.(Value); ok {
-		if _, ok := expect.(Value); !ok {
-			if value.value != nil {
-				got = value.value
-			}
+	switch value := got.(type) {
+	case Value:
+		if value.value != nil {
+			got = value.value
+		}
+	case *Error:
+		if value != nil {
+			got = value.Error()
+		}
+		if expect == nil {
+			// FIXME This is weird
+			expect = ""
 		}
 	}
 

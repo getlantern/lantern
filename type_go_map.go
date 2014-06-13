@@ -70,10 +70,10 @@ func goMapDefineOwnProperty(self *_object, name string, descriptor _property, th
 	object := self.value.(*_goMapObject)
 	// TODO ...or 0222
 	if descriptor.mode != 0111 {
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 	if !descriptor.isDataDescriptor() {
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 	object.value.SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
 	return true

@@ -97,7 +97,7 @@ func goArrayEnumerate(self *_object, all bool, each func(string) bool) {
 
 func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, throw bool) bool {
 	if name == "length" {
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	} else if index := stringToArrayIndex(name); index >= 0 {
 		object := self.value.(*_goArrayObject)
 		if object.writable {
@@ -105,7 +105,7 @@ func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, 
 				return true
 			}
 		}
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 	return objectDefineOwnProperty(self, name, descriptor, throw)
 }
@@ -113,7 +113,7 @@ func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, 
 func goArrayDelete(self *_object, name string, throw bool) bool {
 	// length
 	if name == "length" {
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 
 	// .0, .1, .2, ...
@@ -127,7 +127,7 @@ func goArrayDelete(self *_object, name string, throw bool) bool {
 				return true
 			}
 		}
-		return typeErrorResult(throw)
+		return self.runtime.typeErrorResult(throw)
 	}
 
 	return self.delete(name, throw)

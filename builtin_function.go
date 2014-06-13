@@ -44,9 +44,11 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 		body = argumentList[count-1].string()
 	}
 
+	// FIXME
 	function, err := parser.ParseFunction(parameterList, body)
 	runtime.parseThrow(err) // Will panic/throw appropriately
-	cmpl_function := parseExpression(function)
+	cmpl := _compiler{}
+	cmpl_function := cmpl.parseExpression(function)
 
 	return runtime.newNodeFunction(cmpl_function.(*_nodeFunctionLiteral), runtime.globalStash)
 }
@@ -62,12 +64,12 @@ func builtinFunction_toString(call FunctionCall) Value {
 		return toValue_string("function () { [native code] }")
 	}
 
-	panic(newTypeError("Function.toString()"))
+	panic(call.runtime.panicTypeError("Function.toString()"))
 }
 
 func builtinFunction_apply(call FunctionCall) Value {
 	if !call.This.isCallable() {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	this := call.Argument(0)
 	if this.IsUndefined() {
@@ -77,10 +79,10 @@ func builtinFunction_apply(call FunctionCall) Value {
 	argumentList := call.Argument(1)
 	switch argumentList.kind {
 	case valueUndefined, valueNull:
-		return call.thisObject().call(this, nil, false)
+		return call.thisObject().call(this, nil, false, nativeFrame)
 	case valueObject:
 	default:
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 
 	arrayObject := argumentList._object()
@@ -90,12 +92,12 @@ func builtinFunction_apply(call FunctionCall) Value {
 	for index := int64(0); index < length; index++ {
 		valueArray[index] = arrayObject.get(arrayIndexToString(index))
 	}
-	return thisObject.call(this, valueArray, false)
+	return thisObject.call(this, valueArray, false, nativeFrame)
 }
 
 func builtinFunction_call(call FunctionCall) Value {
 	if !call.This.isCallable() {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	thisObject := call.thisObject()
 	this := call.Argument(0)
@@ -104,15 +106,15 @@ func builtinFunction_call(call FunctionCall) Value {
 		this = toValue_object(call.runtime.globalObject)
 	}
 	if len(call.ArgumentList) >= 1 {
-		return thisObject.call(this, call.ArgumentList[1:], false)
+		return thisObject.call(this, call.ArgumentList[1:], false, nativeFrame)
 	}
-	return thisObject.call(this, nil, false)
+	return thisObject.call(this, nil, false, nativeFrame)
 }
 
 func builtinFunction_bind(call FunctionCall) Value {
 	target := call.This
 	if !target.isCallable() {
-		panic(newTypeError())
+		panic(call.runtime.panicTypeError())
 	}
 	targetObject := target._object()
 

@@ -10,16 +10,20 @@ type _reference interface {
 // PropertyReference
 
 type _propertyReference struct {
-	name   string
-	strict bool
-	base   *_object
+	name    string
+	strict  bool
+	base    *_object
+	runtime *_runtime
+	at      _at
 }
 
-func newPropertyReference(base *_object, name string, strict bool) *_propertyReference {
+func newPropertyReference(rt *_runtime, base *_object, name string, strict bool, at _at) *_propertyReference {
 	return &_propertyReference{
-		name:   name,
-		strict: strict,
-		base:   base,
+		runtime: rt,
+		name:    name,
+		strict:  strict,
+		base:    base,
+		at:      at,
 	}
 }
 
@@ -29,7 +33,7 @@ func (self *_propertyReference) invalid() bool {
 
 func (self *_propertyReference) getValue() Value {
 	if self.base == nil {
-		panic(newReferenceError("notDefined", self.name))
+		panic(self.runtime.panicReferenceError("'%s' is not defined", self.name, self.at))
 	}
 	return self.base.get(self.name)
 }
@@ -52,11 +56,11 @@ func (self *_propertyReference) delete() bool {
 
 // ArgumentReference
 
-func newArgumentReference(base *_object, name string, strict bool) *_propertyReference {
+func newArgumentReference(runtime *_runtime, base *_object, name string, strict bool, at _at) *_propertyReference {
 	if base == nil {
 		panic(hereBeDragons())
 	}
-	return newPropertyReference(base, name, strict)
+	return newPropertyReference(runtime, base, name, strict, at)
 }
 
 type _stashReference struct {
@@ -88,12 +92,12 @@ func (self *_stashReference) delete() bool {
 
 // getIdentifierReference
 
-func getIdentifierReference(stash _stash, name string, strict bool) _reference {
+func getIdentifierReference(runtime *_runtime, stash _stash, name string, strict bool, at _at) _reference {
 	if stash == nil {
-		return newPropertyReference(nil, name, strict)
+		return newPropertyReference(runtime, nil, name, strict, at)
 	}
 	if stash.hasBinding(name) {
-		return stash.newReference(name, strict)
+		return stash.newReference(name, strict, at)
 	}
-	return getIdentifierReference(stash.outer(), name, strict)
+	return getIdentifierReference(runtime, stash.outer(), name, strict, at)
 }

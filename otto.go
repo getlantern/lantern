@@ -131,7 +131,6 @@ Caveat Emptor
 The following are some limitations with otto:
 
     * "use strict" will parse, but does nothing.
-    * Error reporting needs to be improved.
     * The regular expression engine (re2/regexp) is not fully compatible with the ECMA5 specification.
 
 Regular Expression Incompatibility
@@ -372,6 +371,12 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 		construct = true
 	}
 
+	// FIXME enterGlobalScope
+	self.runtime.enterGlobalScope()
+	defer func() {
+		self.runtime.leaveScope()
+	}()
+
 	if !construct && this == nil {
 		program, err := self.runtime.cmpl_parse("", source+"()")
 		if err == nil {
@@ -405,7 +410,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 		}
 
 		if construct {
-			result, err := fn.constructSafe(this, argumentList...)
+			result, err := fn.constructSafe(self.runtime, this, argumentList...)
 			if err != nil {
 				return Value{}, err
 			}

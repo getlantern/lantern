@@ -25,7 +25,7 @@ func builtinJSON_parse(call FunctionCall) Value {
 	var root interface{}
 	err := json.Unmarshal([]byte(call.Argument(0).string()), &root)
 	if err != nil {
-		panic(newSyntaxError(err.Error()))
+		panic(call.runtime.panicSyntaxError(err.Error()))
 	}
 	value, exists := builtinJSON_parseWalk(ctx, root)
 	if !exists {
@@ -65,7 +65,7 @@ func builtinJSON_reviveWalk(ctx _builtinJSON_parseContext, holder *_object, name
 			})
 		}
 	}
-	return ctx.reviver.call(toValue_object(holder), name, value)
+	return ctx.reviver.call(ctx.call.runtime, toValue_object(holder), name, value)
 }
 
 func builtinJSON_parseWalk(ctx _builtinJSON_parseContext, rawValue interface{}) (Value, bool) {
@@ -182,7 +182,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 	}
 	valueJSON, err := json.Marshal(value)
 	if err != nil {
-		panic(newTypeError(err.Error()))
+		panic(call.runtime.panicTypeError(err.Error()))
 	}
 	if ctx.gap != "" {
 		valueJSON1 := bytes.Buffer{}
@@ -198,7 +198,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 	if value.IsObject() {
 		object := value._object()
 		if toJSON := object.get("toJSON"); toJSON.IsFunction() {
-			value = toJSON.call(value, key)
+			value = toJSON.call(ctx.call.runtime, value, key)
 		} else {
 			// If the object is a GoStruct or something that implements json.Marshaler
 			if object.objectClass.marshalJSON != nil {
@@ -211,7 +211,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 	}
 
 	if ctx.replacerFunction != nil {
-		value = (*ctx.replacerFunction).call(toValue_object(holder), key, value)
+		value = (*ctx.replacerFunction).call(ctx.call.runtime, toValue_object(holder), key, value)
 	}
 
 	if value.kind == valueObject {
@@ -247,7 +247,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 		if value := value._object(); nil != value {
 			for _, object := range ctx.stack {
 				if holder == object {
-					panic(newTypeError("Converting circular structure to JSON"))
+					panic(ctx.call.runtime.panicTypeError("Converting circular structure to JSON"))
 				}
 			}
 			ctx.stack = append(ctx.stack, value)
@@ -263,7 +263,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 					length = uint32(value)
 				}
 			default:
-				panic(newTypeError(fmt.Sprintf("JSON.stringify: invalid length: %v (%[1]T)", value)))
+				panic(ctx.call.runtime.panicTypeError(fmt.Sprintf("JSON.stringify: invalid length: %v (%[1]T)", value)))
 			}
 			array := make([]interface{}, length)
 			for index, _ := range array {

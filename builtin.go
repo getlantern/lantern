@@ -24,7 +24,7 @@ func builtinGlobal_eval(call FunctionCall) Value {
 		runtime.enterGlobalScope()
 		defer runtime.leaveScope()
 	}
-	returnValue := runtime.cmpl_evaluate_nodeProgram(program)
+	returnValue := runtime.cmpl_evaluate_nodeProgram(program, true)
 	if returnValue.isEmpty() {
 		return Value{}
 	}
@@ -197,17 +197,17 @@ func _builtinGlobal_encodeURI(call FunctionCall, escape *regexp.Regexp) Value {
 		value := input[index]
 		decode := utf16.Decode(input[index : index+1])
 		if value >= 0xDC00 && value <= 0xDFFF {
-			panic(newURIError("URI malformed"))
+			panic(call.runtime.panicURIError("URI malformed"))
 		}
 		if value >= 0xD800 && value <= 0xDBFF {
 			index += 1
 			if index >= length {
-				panic(newURIError("URI malformed"))
+				panic(call.runtime.panicURIError("URI malformed"))
 			}
 			// input = ..., value, value1, ...
 			value1 := input[index]
 			if value1 < 0xDC00 || value1 > 0xDFFF {
-				panic(newURIError("URI malformed"))
+				panic(call.runtime.panicURIError("URI malformed"))
 			}
 			decode = []rune{((rune(value) - 0xD800) * 0x400) + (rune(value1) - 0xDC00) + 0x10000}
 		}
@@ -258,7 +258,7 @@ func _decodeURI(input string, reserve bool) (string, bool) {
 func builtinGlobal_decodeURI(call FunctionCall) Value {
 	output, err := _decodeURI(call.Argument(0).string(), true)
 	if err {
-		panic(newURIError("URI malformed"))
+		panic(call.runtime.panicURIError("URI malformed"))
 	}
 	return toValue_string(output)
 }
@@ -266,7 +266,7 @@ func builtinGlobal_decodeURI(call FunctionCall) Value {
 func builtinGlobal_decodeURIComponent(call FunctionCall) Value {
 	output, err := _decodeURI(call.Argument(0).string(), false)
 	if err {
-		panic(newURIError("URI malformed"))
+		panic(call.runtime.panicURIError("URI malformed"))
 	}
 	return toValue_string(output)
 }

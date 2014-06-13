@@ -125,14 +125,14 @@ func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value
 	case token.INSTANCEOF:
 		rightValue := right.resolve()
 		if !rightValue.IsObject() {
-			panic(newTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
+			panic(self.panicTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
 		}
 		return toValue_bool(rightValue._object().hasInstance(leftValue))
 
 	case token.IN:
 		rightValue := right.resolve()
 		if !rightValue.IsObject() {
-			panic(newTypeError())
+			panic(self.panicTypeError())
 		}
 		return toValue_bool(rightValue._object().hasProperty(leftValue.string()))
 	}

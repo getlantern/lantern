@@ -19,7 +19,7 @@ type _stash interface {
 	outer() _stash
 	runtime() *_runtime
 
-	newReference(string, bool) _reference
+	newReference(string, bool, _at) _reference
 
 	clone(clone *_clone) _stash
 }
@@ -96,7 +96,7 @@ func (self *_objectStash) getBinding(name string, throw bool) Value {
 		return self.object.get(name)
 	}
 	if throw { // strict?
-		panic(newReferenceError("Not Defined", name))
+		panic(self._runtime.panicReferenceError("Not Defined", name))
 	}
 	return Value{}
 }
@@ -109,8 +109,8 @@ func (self *_objectStash) outer() _stash {
 	return self._outer
 }
 
-func (self *_objectStash) newReference(name string, strict bool) _reference {
-	return newPropertyReference(self.object, name, strict)
+func (self *_objectStash) newReference(name string, strict bool, at _at) _reference {
+	return newPropertyReference(self._runtime, self.object, name, strict, at)
 }
 
 // =========
@@ -186,7 +186,7 @@ func (self *_dclStash) setBinding(name string, value Value, strict bool) {
 		property.value = value
 		self.property[name] = property
 	} else {
-		typeErrorResult(strict)
+		self._runtime.typeErrorResult(strict)
 	}
 }
 
@@ -206,7 +206,7 @@ func (self *_dclStash) getBinding(name string, throw bool) Value {
 	}
 	if !property.mutable && !property.readable {
 		if throw { // strict?
-			panic(newTypeError())
+			panic(self._runtime.panicTypeError())
 		}
 		return Value{}
 	}
@@ -229,7 +229,7 @@ func (self *_dclStash) outer() _stash {
 	return self._outer
 }
 
-func (self *_dclStash) newReference(name string, strict bool) _reference {
+func (self *_dclStash) newReference(name string, strict bool, _ _at) _reference {
 	return &_stashReference{
 		name: name,
 		base: self,

@@ -21,6 +21,8 @@ type _scope struct {
 	this     *_object
 	eval     bool // Replace this with kind?
 	outer    *_scope
+
+	frame _frame
 }
 
 func newScope(lexical _stash, variable _stash, this *_object) *_scope {

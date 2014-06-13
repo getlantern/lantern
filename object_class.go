@@ -214,7 +214,7 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 			canPut = setter != nil
 			return
 		default:
-			panic(newTypeError())
+			panic(self.runtime.panicTypeError())
 		}
 	}
 
@@ -238,7 +238,7 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 		canPut = setter != nil
 		return
 	default:
-		panic(newTypeError())
+		panic(self.runtime.panicTypeError())
 	}
 }
 
@@ -256,9 +256,9 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		// incompatible canPut routine
 		canPut, property, setter := _objectCanPut(self, name)
 		if !canPut {
-			typeErrorResult(throw)
+			self.runtime.typeErrorResult(throw)
 		} else if setter != nil {
-			setter.call(toValue(self), []Value{value}, false)
+			setter.call(toValue(self), []Value{value}, false, nativeFrame)
 		} else if property != nil {
 			property.value = value
 			self.defineOwnProperty(name, *property, throw)
@@ -272,7 +272,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 	//
 	// Right now, code should never get here, see above
 	if !self.canPut(name) {
-		typeErrorResult(throw)
+		self.runtime.typeErrorResult(throw)
 		return
 	}
 
@@ -281,7 +281,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		property = self.getProperty(name)
 		if property != nil {
 			if getSet, isAccessor := property.value.(_propertyGetSet); isAccessor {
-				getSet[1].call(toValue(self), []Value{value}, false)
+				getSet[1].call(toValue(self), []Value{value}, false, nativeFrame)
 				return
 			}
 		}
@@ -293,14 +293,14 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 			self.defineOwnProperty(name, *property, throw)
 		case _propertyGetSet:
 			if propertyValue[1] != nil {
-				propertyValue[1].call(toValue(self), []Value{value}, false)
+				propertyValue[1].call(toValue(self), []Value{value}, false, nativeFrame)
 				return
 			}
 			if throw {
-				panic(newTypeError())
+				panic(self.runtime.panicTypeError())
 			}
 		default:
-			panic(newTypeError())
+			panic(self.runtime.panicTypeError())
 		}
 	}
 }
@@ -440,7 +440,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 	}
 Reject:
 	if throw {
-		panic(newTypeError())
+		panic(self.runtime.panicTypeError())
 	}
 	return false
 }
@@ -454,7 +454,7 @@ func objectDelete(self *_object, name string, throw bool) bool {
 		self._delete(name)
 		return true
 	}
-	return typeErrorResult(throw)
+	return self.runtime.typeErrorResult(throw)
 }
 
 func objectClone(in *_object, out *_object, clone *_clone) *_object {

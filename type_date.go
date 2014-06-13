@@ -149,9 +149,9 @@ func (self *_object) dateValue() _dateObject {
 	return value
 }
 
-func dateObjectOf(_dateObject *_object) _dateObject {
+func dateObjectOf(rt *_runtime, _dateObject *_object) _dateObject {
 	if _dateObject == nil || _dateObject.class != "Date" {
-		panic(newTypeError())
+		panic(rt.panicTypeError())
 	}
 	return _dateObject.dateValue()
 }

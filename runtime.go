@@ -110,10 +110,7 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 			switch caught := caught.(type) {
 			case _error:
 				exception = true
-				tryValue = toValue_object(self.newError(caught.Name, caught.MessageValue()))
-			//case *_syntaxError:
-			//    exception = true
-			//    tryValue = toValue_object(self.newError("SyntaxError", toValue_string(caught.Message)))
+				tryValue = toValue_object(self.newError(caught.name, caught.messageValue()))
 			case Value:
 				exception = true
 				tryValue = caught
@@ -132,7 +129,7 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 func (self *_runtime) toObject(value Value) *_object {
 	switch value.kind {
 	case valueEmpty, valueUndefined, valueNull:
-		panic(newTypeError())
+		panic(self.panicTypeError())
 	case valueBoolean:
 		return self.newBoolean(value)
 	case valueString:
@@ -142,7 +139,7 @@ func (self *_runtime) toObject(value Value) *_object {
 	case valueObject:
 		return value._object()
 	}
-	panic(newTypeError())
+	panic(self.panicTypeError())
 }
 
 func (self *_runtime) objectCoerce(value Value) (*_object, error) {
@@ -160,13 +157,13 @@ func (self *_runtime) objectCoerce(value Value) (*_object, error) {
 	case valueObject:
 		return value._object(), nil
 	}
-	panic(newTypeError())
+	panic(self.panicTypeError())
 }
 
-func checkObjectCoercible(value Value) {
+func checkObjectCoercible(rt *_runtime, value Value) {
 	isObject, mustCoerce := testObjectCoercible(value)
 	if !isObject && !mustCoerce {
-		panic(newTypeError())
+		panic(rt.panicTypeError())
 	}
 }
 
@@ -232,7 +229,7 @@ func (self *_runtime) toValue(value interface{}) Value {
 						return Value{}
 					}
 
-					panic(newTypeError())
+					panic(call.runtime.panicTypeError())
 				}))
 			case reflect.Struct:
 				return toValue_object(self.newGoStructObject(value))
@@ -293,7 +290,7 @@ func (self *_runtime) cmpl_run(src interface{}) (Value, error) {
 		cmpl_program = cmpl_parse(program)
 	}
 	err = catchPanic(func() {
-		result = self.cmpl_evaluate_nodeProgram(cmpl_program)
+		result = self.cmpl_evaluate_nodeProgram(cmpl_program, false)
 	})
 	switch result.kind {
 	case valueEmpty:
@@ -313,12 +310,12 @@ func (self *_runtime) parseThrow(err error) {
 		{
 			err := err[0]
 			if err.Message == "Invalid left-hand side in assignment" {
-				panic(newReferenceError(err.Message))
+				panic(self.panicReferenceError(err.Message))
 			}
-			panic(newSyntaxError(err.Message))
+			panic(self.panicSyntaxError(err.Message))
 		}
 	}
-	panic(newSyntaxError(err.Error()))
+	panic(self.panicSyntaxError(err.Error()))
 }
 
 func (self *_runtime) parseOrThrow(source string) *ast.Program {

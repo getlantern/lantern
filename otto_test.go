@@ -764,7 +764,7 @@ func TestShouldError(t *testing.T) {
 		test(`raise:
             xyzzy
                 throw new TypeError("Nothing happens.")
-        `, "ReferenceError: xyzzy is not defined")
+        `, "ReferenceError: 'xyzzy' is not defined")
 	})
 }
 

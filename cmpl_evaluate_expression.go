@@ -66,7 +66,7 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 		// TODO Should be true or false (strictness) depending on context
 		// getIdentifierReference should not return nil, but we check anyway and panic
 		// so as not to propagate the nil into something else
-		reference := getIdentifierReference(self.scope.lexical, name, false)
+		reference := getIdentifierReference(self, self.scope.lexical, name, false, _at(node.idx))
 		if reference == nil {
 			// Should never get here!
 			panic(hereBeDragons("referenceError == nil: " + name))
@@ -173,12 +173,14 @@ func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpr
 	memberValue := member.resolve()
 
 	// TODO Pass in base value as-is, and defer toObject till later?
-	return toValue(newPropertyReference(self.toObject(targetValue), memberValue.string(), false))
+	return toValue(newPropertyReference(self, self.toObject(targetValue), memberValue.string(), false, _at(node.idx)))
 }
 
 func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression, withArgumentList []interface{}) Value {
+	rt := self
+	this := Value{}
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
-	calleeValue := callee.resolve()
+
 	argumentList := []Value{}
 	if withArgumentList != nil {
 		argumentList = self.toValueArray(withArgumentList...)
@@ -187,26 +189,56 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 			argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 		}
 	}
-	this := Value{}
-	calleeReference := callee.reference()
+
+	rf := callee.reference()
+	vl := callee.resolve()
+
 	eval := false // Whether this call is a (candidate for) direct call to eval
-	if calleeReference != nil {
-		switch reference := calleeReference.(type) {
+	name := ""
+	if rf != nil {
+		switch rf := rf.(type) {
 		case *_propertyReference:
-			calleeObject := reference.base
-			this = toValue_object(calleeObject)
-			eval = reference.name == "eval" // Possible direct eval
+			name = rf.name
+			object := rf.base
+			this = toValue_object(object)
+			eval = rf.name == "eval" // Possible direct eval
 		case *_stashReference:
 			// TODO ImplicitThisValue
-			eval = reference.name == "eval" // Possible direct eval
+			name = rf.name
+			eval = rf.name == "eval" // Possible direct eval
 		default:
-			panic(newTypeError("Here be dragons"))
+			// FIXME?
+			panic(rt.panicTypeError("Here be dragons"))
 		}
 	}
-	if !calleeValue.IsFunction() {
-		panic(newTypeError("%v is not a function", calleeValue))
+
+	at := _at(-1)
+	switch callee := node.callee.(type) {
+	case *_nodeIdentifier:
+		at = _at(callee.idx)
+	case *_nodeDotExpression:
+		at = _at(callee.idx)
+	case *_nodeBracketExpression:
+		at = _at(callee.idx)
 	}
-	return calleeValue._object().call(this, argumentList, eval)
+
+	frame := _frame{
+		callee: name,
+		file:   self.scope.frame.file,
+	}
+
+	// FIXME "_ is not defined"
+	if !vl.IsFunction() {
+		if name == "" {
+			// FIXME Maybe typeof?
+			panic(rt.panicTypeError("%v is not a function", vl, at))
+		}
+		panic(rt.panicTypeError("'%s' is not a function", name, at))
+	}
+
+	self.scope.frame.offset = int(at)
+
+	return vl._object().call(this, argumentList, eval, frame)
 }
 
 func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditionalExpression) Value {
@@ -224,9 +256,9 @@ func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) 
 	// TODO Pass in base value as-is, and defer toObject till later?
 	object, err := self.objectCoerce(targetValue)
 	if err != nil {
-		panic(newTypeError(fmt.Sprintf("Cannot access member '%s' of %s", node.identifier, err.Error())))
+		panic(self.panicTypeError("Cannot access member '%s' of %s", node.identifier, err.Error()))
 	}
-	return toValue(newPropertyReference(object, node.identifier, false))
+	return toValue(newPropertyReference(self, object, node.identifier, false, _at(node.idx)))
 }
 
 func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) Value {
@@ -237,7 +269,7 @@ func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) 
 		argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 	}
 	if !calleeValue.IsFunction() {
-		panic(newTypeError("%v is not a function", calleeValue))
+		panic(self.panicTypeError("%v is not a function", calleeValue))
 	}
 	return calleeValue._object().construct(argumentList)
 }
@@ -381,7 +413,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 func (self *_runtime) cmpl_evaluate_nodeVariableExpression(node *_nodeVariableExpression) Value {
 	if node.initializer != nil {
 		// FIXME If reference is nil
-		left := getIdentifierReference(self.scope.lexical, node.name, false)
+		left := getIdentifierReference(self, self.scope.lexical, node.name, false, _at(node.idx))
 		right := self.cmpl_evaluate_nodeExpression(node.initializer)
 		rightValue := right.resolve()
 

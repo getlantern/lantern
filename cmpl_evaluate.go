@@ -4,9 +4,16 @@ import (
 	"strconv"
 )
 
-func (self *_runtime) cmpl_evaluate_nodeProgram(node *_nodeProgram) Value {
+func (self *_runtime) cmpl_evaluate_nodeProgram(node *_nodeProgram, eval bool) Value {
+	if !eval {
+		self.enterGlobalScope()
+		defer func() {
+			self.leaveScope()
+		}()
+	}
 	self.cmpl_functionDeclaration(node.functionList)
 	self.cmpl_variableDeclaration(node.varList)
+	self.scope.frame.file = node.file
 	return self.cmpl_evaluate_nodeStatementList(node.body)
 }
 

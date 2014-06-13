@@ -65,8 +65,6 @@ func (in *_runtime) clone() *_runtime {
 		clone.object(in.global.URIErrorPrototype),
 	}
 
-	out.enterGlobalScope()
-
 	out.eval = out.globalObject.property["eval"].value.(Value).value.(*_object)
 	out.globalObject.prototype = out.global.ObjectPrototype
 

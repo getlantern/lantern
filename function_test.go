@@ -229,7 +229,7 @@ func TestFunction_bind(t *testing.T) {
 
 		test(`raise:
             Math.bind();
-        `, "TypeError: undefined is not a function")
+        `, "TypeError: 'bind' is not a function")
 
 		test(`
             function construct(fn, arguments) {

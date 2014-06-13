@@ -54,7 +54,7 @@ type Error struct {
 	Message  string
 }
 
-// FXIME Should this be "SyntaxError"?
+// FIXME Should this be "SyntaxError"?
 
 func (self Error) Error() string {
 	filename := self.Position.Filename

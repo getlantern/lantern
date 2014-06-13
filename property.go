@@ -85,7 +85,7 @@ func (self _property) get(this *_object) Value {
 		return value
 	case _propertyGetSet:
 		if value[0] != nil {
-			return value[0].call(toValue(this), nil, false)
+			return value[0].call(toValue(this), nil, false, nativeFrame)
 		}
 	}
 	return Value{}
@@ -115,10 +115,10 @@ func (self _property) isEmpty() bool {
 // _enumerableValue, _enumerableTrue, _enumerableFalse?
 // .enumerableValue() .enumerableExists()
 
-func toPropertyDescriptor(value Value) (descriptor _property) {
+func toPropertyDescriptor(rt *_runtime, value Value) (descriptor _property) {
 	objectDescriptor := value._object()
 	if objectDescriptor == nil {
-		panic(newTypeError())
+		panic(rt.panicTypeError())
 	}
 
 	{
@@ -155,7 +155,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		value := objectDescriptor.get("get")
 		if value.IsDefined() {
 			if !value.isCallable() {
-				panic(newTypeError())
+				panic(rt.panicTypeError())
 			}
 			getter = value._object()
 			getterSetter = true
@@ -169,7 +169,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		value := objectDescriptor.get("set")
 		if value.IsDefined() {
 			if !value.isCallable() {
-				panic(newTypeError())
+				panic(rt.panicTypeError())
 			}
 			setter = value._object()
 			getterSetter = true
@@ -181,14 +181,14 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 
 	if getterSetter {
 		if descriptor.writeSet() {
-			panic(newTypeError())
+			panic(rt.panicTypeError())
 		}
 		descriptor.value = _propertyGetSet{getter, setter}
 	}
 
 	if objectDescriptor.hasProperty("value") {
 		if getterSetter {
-			panic(newTypeError())
+			panic(rt.panicTypeError())
 		}
 		descriptor.value = objectDescriptor.get("value")
 	}

@@ -78,6 +78,8 @@ type _parser struct {
 	}
 
 	mode Mode
+
+	file *file.File
 }
 
 func _newParser(filename, src string, base int) *_parser {
@@ -86,6 +88,7 @@ func _newParser(filename, src string, base int) *_parser {
 		str:    src,
 		length: len(src),
 		base:   base,
+		file:   file.NewFile(filename, src, base),
 	}
 }
 

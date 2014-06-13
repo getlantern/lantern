@@ -717,6 +717,8 @@ type Program struct {
 	Body []Statement
 
 	DeclarationList []Declaration
+
+	File *file.File
 }
 ```
 

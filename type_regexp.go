@@ -32,18 +32,18 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		switch chr {
 		case 'g':
 			if global {
-				panic(newError("SyntaxError: newRegExpObject: %s %s", pattern, flags))
+				panic(runtime.panicSyntaxError("newRegExpObject: %s %s", pattern, flags))
 			}
 			global = true
 		case 'm':
 			if multiline {
-				panic(newError("SyntaxError: newRegExpObject: %s %s", pattern, flags))
+				panic(runtime.panicSyntaxError("newRegExpObject: %s %s", pattern, flags))
 			}
 			multiline = true
 			re2flags += "m"
 		case 'i':
 			if ignoreCase {
-				panic(newError("SyntaxError: newRegExpObject: %s %s", pattern, flags))
+				panic(runtime.panicSyntaxError("newRegExpObject: %s %s", pattern, flags))
 			}
 			ignoreCase = true
 			re2flags += "i"
@@ -52,7 +52,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 
 	re2pattern, err := parser.TransformRegExp(pattern)
 	if err != nil {
-		panic(newTypeError("Invalid regular expression: %s", err.Error()))
+		panic(runtime.panicTypeError("Invalid regular expression: %s", err.Error()))
 	}
 	if len(re2flags) > 0 {
 		re2pattern = fmt.Sprintf("(?%s:%s)", re2flags, re2pattern)
@@ -60,7 +60,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 
 	regularExpression, err := regexp.Compile(re2pattern)
 	if err != nil {
-		panic(newSyntaxError("Invalid regular expression: %s", err.Error()[22:]))
+		panic(runtime.panicSyntaxError("Invalid regular expression: %s", err.Error()[22:]))
 	}
 
 	self.value = _regExpObject{
@@ -86,7 +86,7 @@ func (self *_object) regExpValue() _regExpObject {
 
 func execRegExp(this *_object, target string) (match bool, result []int) {
 	if this.class != "RegExp" {
-		panic(newTypeError("Calling RegExp.exec on a non-RegExp object"))
+		panic(this.runtime.panicTypeError("Calling RegExp.exec on a non-RegExp object"))
 	}
 	lastIndex := this.get("lastIndex").number().int64
 	index := lastIndex

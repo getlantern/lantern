@@ -37,7 +37,12 @@ func main() {
 		return err
 	}()
 	if err != nil {
-		fmt.Println(err)
+		switch err := err.(type) {
+		case *otto.Error:
+			fmt.Print(err.String())
+		default:
+			fmt.Println(err)
+		}
 		os.Exit(64)
 	}
 }
