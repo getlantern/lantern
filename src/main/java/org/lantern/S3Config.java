@@ -196,8 +196,8 @@ public class S3Config {
         flashlightProxy.setIp(ptProps.getProperty(Flashlight.MASQUERADE_KEY));
         flashlightProxy.setPort(443);
         flashlightProxy.setProtocol(Protocol.TCP);
-        // Make this higher priority than other fallbacks
-        flashlightProxy.setPriority(-1);
+        // Make this lower priority than other fallbacks
+        flashlightProxy.setPriority(1);
         return flashlightProxy;
     }
     
