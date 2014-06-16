@@ -60,10 +60,12 @@ public class S3Config {
         boolean hasFlashlight = false;
         FallbackProxy defaultFlashlightProxy = defaultFlashlightProxy();
         Iterator<FallbackProxy> it = allFallbacks.iterator();
-        for (FallbackProxy candidate = it.next(); it.hasNext(); it.next()) {
+        while (it.hasNext()) {
+            FallbackProxy candidate = it.next();
             if (PtType.FLASHLIGHT == candidate.getPtType()) {
                 if (defaultFlashlightProxy.getPt().equals(candidate.getPt())) {
-                    // Properties matched, meaning that we already have flashlight
+                    // Properties matched, meaning that we already have
+                    // flashlight
                     hasFlashlight = true;
                 } else {
                     // Properties didn't match, remove existing flashlight
