@@ -193,7 +193,7 @@ public class S3Config {
     public static Properties flashlightProps() {
         Properties props = new Properties();
         props.setProperty("type", "flashlight");
-        props.setProperty(Flashlight.SERVER_KEY, "getiantem.org");
+        props.setProperty(Flashlight.SERVER_KEY, "v2.getiantem.org");
         props.setProperty(Flashlight.MASQUERADE_KEY, "cdnjs.com");
         props.setProperty(Flashlight.ROOT_CA_KEY, GLOBALSIGN_CA_CERT);
         return props;
