@@ -3,10 +3,10 @@ package org.lantern;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.http.HttpHost;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.pt.Flashlight;
@@ -55,11 +55,22 @@ public class S3Config {
     }
     
     public Collection<FallbackProxy> getFallbacks() {
-        List<FallbackProxy> allFallbacks = new ArrayList<FallbackProxy>(fallbacks);
+        List<FallbackProxy> allFallbacks = new ArrayList<FallbackProxy>(
+                fallbacks);
         boolean hasFlashlight = false;
-        for (FallbackProxy proxy : allFallbacks) {
-            if (PtType.FLASHLIGHT == proxy.getPtType()) {
-                hasFlashlight = true;
+        FallbackProxy defaultFlashlightProxy = defaultFlashlightProxy();
+        Iterator<FallbackProxy> it = allFallbacks.iterator();
+        while (it.hasNext()) {
+            FallbackProxy candidate = it.next();
+            if (PtType.FLASHLIGHT == candidate.getPtType()) {
+                if (defaultFlashlightProxy.getPt().equals(candidate.getPt())) {
+                    // Properties matched, meaning that we already have
+                    // flashlight
+                    hasFlashlight = true;
+                } else {
+                    // Properties didn't match, remove existing flashlight
+                    it.remove();
+                }
             }
         }
         if (!hasFlashlight) {
@@ -185,8 +196,8 @@ public class S3Config {
         flashlightProxy.setIp(ptProps.getProperty(Flashlight.MASQUERADE_KEY));
         flashlightProxy.setPort(443);
         flashlightProxy.setProtocol(Protocol.TCP);
-        // Make this higher priority than other fallbacks
-        flashlightProxy.setPriority(-1);
+        // Make this lower priority than other fallbacks
+        flashlightProxy.setPriority(1);
         return flashlightProxy;
     }
     
