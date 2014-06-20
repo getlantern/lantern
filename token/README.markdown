@@ -65,7 +65,7 @@ const (
 	NOT_EQUAL        // !=
 	STRICT_NOT_EQUAL // !==
 	LESS_OR_EQUAL    // <=
-	GREATER_OR_EQUAL // <=
+	GREATER_OR_EQUAL // >=
 
 	LEFT_PARENTHESIS // (
 	LEFT_BRACKET     // [
