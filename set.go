@@ -93,9 +93,14 @@ func Difference(set1, set2 Interface, sets ...Interface) Interface {
 func Intersection(set1, set2 Interface, sets ...Interface) Interface {
 	all := Union(set1, set2, sets...)
 	result := Union(set1, set2, sets...)
+
 	all.Each(func(item interface{}) bool {
+		if !set1.Has(item) || !set2.Has(item) {
+			result.Remove(item)
+		}
+
 		for _, set := range sets {
-			if !set.Has(item) || !set1.Has(item) || !set2.Has(item) {
+			if !set.Has(item) {
 				result.Remove(item)
 			}
 		}
