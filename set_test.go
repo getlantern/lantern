@@ -78,6 +78,22 @@ func Test_Intersection(t *testing.T) {
 	}
 }
 
+func Test_Intersection2(t *testing.T) {
+	s1 := newTS()
+	s1.Add("1", "3", "4", "5")
+	s2 := newTS()
+	s2.Add("5", "6")
+	i := Intersection(s1, s2)
+
+	if i.Size() != 1 {
+		t.Error("Intersection: size should be 1, it was", i.Size())
+	}
+
+	if !i.Has("5") {
+		t.Error("Intersection: items after intersection are not availabile in the set.")
+	}
+}
+
 func Test_SymmetricDifference(t *testing.T) {
 	s := newTS()
 	s.Add("1", "2", "3")
