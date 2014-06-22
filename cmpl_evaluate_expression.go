@@ -227,7 +227,6 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 		file:   self.scope.frame.file,
 	}
 
-	// FIXME "_ is not defined"
 	if !vl.IsFunction() {
 		if name == "" {
 			// FIXME Maybe typeof?
@@ -262,16 +261,50 @@ func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) 
 }
 
 func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) Value {
+	rt := self
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
-	calleeValue := callee.resolve()
+
 	argumentList := []Value{}
 	for _, argumentNode := range node.argumentList {
 		argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 	}
-	if !calleeValue.IsFunction() {
-		panic(self.panicTypeError("%v is not a function", calleeValue))
+
+	rf := callee.reference()
+	vl := callee.resolve()
+
+	name := ""
+	if rf != nil {
+		switch rf := rf.(type) {
+		case *_propertyReference:
+			name = rf.name
+		case *_stashReference:
+			name = rf.name
+		default:
+			panic(rt.panicTypeError("Here be dragons"))
+		}
 	}
-	return calleeValue._object().construct(argumentList)
+
+	at := _at(-1)
+	switch callee := node.callee.(type) {
+	case *_nodeIdentifier:
+		at = _at(callee.idx)
+	case *_nodeDotExpression:
+		at = _at(callee.idx)
+	case *_nodeBracketExpression:
+		at = _at(callee.idx)
+	}
+
+	if !vl.IsFunction() {
+		if name == "" {
+			// FIXME Maybe typeof?
+			panic(rt.panicTypeError("%v is not a function", vl, at))
+		}
+		panic(rt.panicTypeError("'%s' is not a function", name, at))
+	}
+
+	self.scope.frame.offset = int(at)
+
+	return vl._object().construct(argumentList)
 }
 
 func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) Value {

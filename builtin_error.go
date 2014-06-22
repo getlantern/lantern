@@ -42,7 +42,7 @@ func builtinError_toString(call FunctionCall) Value {
 }
 
 func (runtime *_runtime) newEvalError(message Value) *_object {
-	self := runtime.newErrorObject(message)
+	self := runtime.newErrorObject("EvalError", message)
 	self.prototype = runtime.global.EvalErrorPrototype
 	return self
 }
@@ -56,7 +56,7 @@ func builtinNewEvalError(self *_object, argumentList []Value) Value {
 }
 
 func (runtime *_runtime) newTypeError(message Value) *_object {
-	self := runtime.newErrorObject(message)
+	self := runtime.newErrorObject("TypeError", message)
 	self.prototype = runtime.global.TypeErrorPrototype
 	return self
 }
@@ -70,7 +70,7 @@ func builtinNewTypeError(self *_object, argumentList []Value) Value {
 }
 
 func (runtime *_runtime) newRangeError(message Value) *_object {
-	self := runtime.newErrorObject(message)
+	self := runtime.newErrorObject("RangeError", message)
 	self.prototype = runtime.global.RangeErrorPrototype
 	return self
 }
@@ -84,13 +84,13 @@ func builtinNewRangeError(self *_object, argumentList []Value) Value {
 }
 
 func (runtime *_runtime) newURIError(message Value) *_object {
-	self := runtime.newErrorObject(message)
+	self := runtime.newErrorObject("URIError", message)
 	self.prototype = runtime.global.URIErrorPrototype
 	return self
 }
 
 func (runtime *_runtime) newReferenceError(message Value) *_object {
-	self := runtime.newErrorObject(message)
+	self := runtime.newErrorObject("ReferenceError", message)
 	self.prototype = runtime.global.ReferenceErrorPrototype
 	return self
 }
@@ -104,7 +104,7 @@ func builtinNewReferenceError(self *_object, argumentList []Value) Value {
 }
 
 func (runtime *_runtime) newSyntaxError(message Value) *_object {
-	self := runtime.newErrorObject(message)
+	self := runtime.newErrorObject("SyntaxError", message)
 	self.prototype = runtime.global.SyntaxErrorPrototype
 	return self
 }

@@ -186,14 +186,6 @@ func newError(rt *_runtime, name string, in ...interface{}) _error {
 	return err
 }
 
-func (rt *_runtime) _newTypeError(argumentList ...interface{}) _error {
-	return newError(rt, "TypeError", argumentList...)
-}
-
-func (rt *_runtime) _newReferenceError(argumentList ...interface{}) _error {
-	return newError(rt, "ReferenceError", argumentList...)
-}
-
 func (rt *_runtime) panicTypeError(argumentList ...interface{}) *_exception {
 	return &_exception{
 		value: newError(rt, "TypeError", argumentList...),
@@ -235,6 +227,13 @@ func catchPanic(function func()) (err error) {
 				err = &Error{caught}
 				return
 			case Value:
+				if vl := caught._object(); vl != nil {
+					switch vl := vl.value.(type) {
+					case _error:
+						err = &Error{vl}
+						return
+					}
+				}
 				err = errors.New(caught.string())
 				return
 			}

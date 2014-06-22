@@ -183,7 +183,7 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 		return runtime.newURIError(message)
 	}
 
-	self = runtime.newErrorObject(message)
+	self = runtime.newErrorObject(name, message)
 	self.prototype = runtime.global.ErrorPrototype
 	if name != "" {
 		self.defineProperty("name", toValue_string(name), 0111, false)

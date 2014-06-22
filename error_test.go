@@ -61,7 +61,7 @@ func Test_catchPanic(t *testing.T) {
 	})
 }
 
-func Test_errorLine(t *testing.T) {
+func TestErrorContext(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
@@ -167,6 +167,26 @@ func Test_errorLine(t *testing.T) {
 			is(err.message, "'xyzzy' is not a function")
 			is(len(err.trace), 1)
 			is(err.trace[0].location(), "<anonymous>:1:1")
+		}
+
+		_, err = vm.Run(`
+            throw Error("xyzzy");
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "xyzzy")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:2:19")
+		}
+
+		_, err = vm.Run(`
+            throw new Error("xyzzy");
+        `)
+		{
+			err := err.(*Error)
+			is(err.message, "xyzzy")
+			is(len(err.trace), 1)
+			is(err.trace[0].location(), "<anonymous>:2:23")
 		}
 	})
 }
