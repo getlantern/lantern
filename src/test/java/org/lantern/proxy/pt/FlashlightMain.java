@@ -31,7 +31,7 @@ public class FlashlightMain extends ChainedMain {
                 FLASHLIGHT_CLIENT_PORT);
 
         // Client
-        Flashlight client = new Flashlight(S3Config.flashlightProps());
+        Flashlight client = new Flashlight(S3Config.flashlightProps("default.peer.getiantem.org"));
         this.clientAddress = client.startClient(getModeAddress, null);
     }
 
