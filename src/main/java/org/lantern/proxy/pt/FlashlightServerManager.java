@@ -227,7 +227,7 @@ public class FlashlightServerManager implements Shutdownable {
                        .bodyForm(Form.form().add("name", instanceId).build())
                        .execute().returnContent();
             } catch (IOException e) {
-                log.error("Exception trying to register peer: " + e);
+                log.error("Exception trying to unregister peer: " + e);
             }
         }
 
