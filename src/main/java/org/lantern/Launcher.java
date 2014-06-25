@@ -416,7 +416,6 @@ public class Launcher {
     }
     
     private void stopNetworkServices() {
-        flashlightServerManager.stop();
         xmpp.stop();
         statsManager.stop();
         friendsHandler.stop();
