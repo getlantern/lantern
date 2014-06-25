@@ -2,6 +2,8 @@ package org.lantern.proxy.pt;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
@@ -154,6 +156,7 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class PortMappedState extends State {
+
         private String ip;
         private int localPort;
         private int externalPort;
@@ -162,11 +165,16 @@ public class FlashlightServerManager implements Shutdownable {
         // but let's lean on the paranoid side and store it anyway, since it
         // needs to match for registrations and unregistrations in peerdnsreg.
         private String instanceId;
+        private Timer timer;
+
+        private long HEARTBEAT_PERIOD_MINUTES = 2;
+
         public PortMappedState(String ip, int localPort, int externalPort) {
             this.ip = ip;
             this.localPort = localPort;
             this.externalPort = externalPort;
         }
+
         @Override
         public void onEnter() {
             super.onEnter();
@@ -179,7 +187,6 @@ public class FlashlightServerManager implements Shutdownable {
                     instanceId + ".getiantem.org");
             flashlight = new Flashlight(props);
             flashlight.startServer(localPort, null);
-            registerPeer();
             startHeartbeatTimer();
         }
 
@@ -206,11 +213,20 @@ public class FlashlightServerManager implements Shutdownable {
         }
 
         private void startHeartbeatTimer() {
-            log.debug("Now I would start the heartbeat timer");
+            log.debug("Starting heartbeat timer");
+            timer = new Timer("Flashlight-Server-Manager-Heartbeat", true);
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    registerPeer();
+                }
+            }, 0, (long)(HEARTBEAT_PERIOD_MINUTES * 60000));
         }
 
         private void stopHeartbeatTimer() {
-            log.debug("Now I would stop the heartbeat timer");
+            log.debug("Stopping heartbeat timer");
+            timer.cancel();
+            timer = null;
         }
 
         @Override
