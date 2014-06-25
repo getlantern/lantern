@@ -121,7 +121,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
     @Override
     public void startServer(int listenPort, InetSocketAddress giveModeAddress) {
-        LOGGER.info("Starting {} client", getLogName());
+        LOGGER.info("Starting {} server", getLogName());
 
         try {
             String listenIp = NetworkUtils.getLocalHost().getHostAddress();
