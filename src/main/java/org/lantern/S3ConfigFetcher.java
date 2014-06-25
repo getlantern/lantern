@@ -79,7 +79,7 @@ public class S3ConfigFetcher {
             downloadAndCompareConfig();
         }
         if (model.getS3Config() == null) {
-            throw new InitException("Still could not fetch S3 config");
+            throw new InitException("No S3Config!  This shouldn't happen, since there's both a default S3Config available as well as one that we try to fetch remotely.");
         }
     }
     
@@ -135,14 +135,12 @@ public class S3ConfigFetcher {
         }
 
         final S3Config config = this.model.getS3Config();
-        this.model.setS3Config(newConfig.get());
-
-
-        if (config == null) {
-            log.warn("Rechecking config with no old one.");
-            return true;
-        } else {
+        if (newConfig.isPresent()) {
+            this.model.setS3Config(newConfig.get());
             return !newConfig.get().equals(config);
+        } else {
+            log.info("Couldn't get a remote S3 config, sticking with what we have");
+            return true;
         }
     }
 
