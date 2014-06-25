@@ -1,5 +1,7 @@
 package org.lantern.proxy.pt;
 
+import java.util.Properties;
+
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
@@ -151,6 +153,11 @@ public class FlashlightServerManager implements Shutdownable {
         private String ip;
         private int localPort;
         private int externalPort;
+        private Flashlight flashlight;
+        // I don't suppose instanceId ever changes while Lantern is running,
+        // but let's lean on the paranoid side and store it anyway, since it
+        // needs to match for registrations and unregistrations in peerdnsreg.
+        private String instanceId;
         public PortMappedState(String ip, int localPort, int externalPort) {
             this.ip = ip;
             this.localPort = localPort;
@@ -159,8 +166,26 @@ public class FlashlightServerManager implements Shutdownable {
         @Override
         public void onEnter() {
             super.onEnter();
-            log.warn("I'M PORT MAPPED AT " + ip + ":" + localPort + "<->" + externalPort);
+            log.debug("I'm port mapped at "
+                      + ip + ":" + localPort + "<->" + externalPort);
+            Properties props = new Properties();
+            instanceId = model.getInstanceId();
+            props.setProperty(
+                    Flashlight.SERVER_KEY,
+                    instanceId + ".getiantem.org");
+            flashlight = new Flashlight(props);
+            flashlight.startServer(localPort, null);
+            //XXX: register instanceId, ip and externalPort in peerdnsreg
+            //XXX: start heartbeat timer
         }
+
+        @Override
+        public void onExit() {
+            //XXX: kill heartbeat timer
+            //XXX: unregister instanceId
+            flashlight.stopServer();
+        }
+
         @Override
         public void onExitGiveMode() {
             exitTo(new ConnectedInNonGiveModeState(ip));
@@ -176,10 +201,11 @@ public class FlashlightServerManager implements Shutdownable {
             UpnpService upnpService) {
         log.warn("Flashlight port mapper starting up...");
         this.model = model;
-        this.state = getDisconnectedState();
+        state = getDisconnectedState();
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
         Events.register(this);
+        state.onEnter();
     }
 
     private State getDisconnectedState() {

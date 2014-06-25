@@ -72,10 +72,25 @@ public class Flashlight extends BasePluggableTransport {
     }
 
     @Override
-    protected void addServerArgs(CommandLine cmd, String listenIp,
-            int listenPort, InetSocketAddress giveModeAddress) {
-        throw new UnsupportedOperationException(
-                "flashlight does not support server mode");
+    protected void addServerArgs(
+            CommandLine cmd,
+            String ip__ignore,
+            int listenPort,
+            InetSocketAddress address__ignore) {
+        cmd.addArgument("-role");
+        cmd.addArgument("server");
+
+        cmd.addArgument("-server");
+        cmd.addArgument(props.getProperty(SERVER_KEY));
+
+        cmd.addArgument("-configdir");
+        cmd.addArgument(String.format("%s%spt%sflashlight",
+                LanternClientConstants.CONFIG_DIR,
+                File.separatorChar,
+                File.separatorChar));
+
+        cmd.addArgument("-addr");
+        cmd.addArgument(":" + listenPort);
     }
 
     @Override
