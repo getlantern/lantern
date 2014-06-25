@@ -11,7 +11,7 @@ import org.lantern.S3Config;
  * </p>
  * 
  * <pre>
- * curl -x 127.0.0.1:8081 https://www.google.com/humans.txt
+ * curl -x 127.0.0.1:8080 https://www.google.com/humans.txt
  * </pre>
  */
 public class FlashlightMain extends ChainedMain {

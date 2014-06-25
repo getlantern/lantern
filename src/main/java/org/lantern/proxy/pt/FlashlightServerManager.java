@@ -74,10 +74,12 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class DisconnectedInGiveModeState extends State {
+
         @Override
         public void onExitGiveMode() {
             exitTo(new DisconnectedInNonGiveModeState());
         }
+
         @Override
         public void onPublicIp(String ip) {
             exitTo(new PortMappingState(ip));
@@ -85,10 +87,12 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class DisconnectedInNonGiveModeState extends State {
+
         @Override
         public void onEnterGiveMode() {
             exitTo(new DisconnectedInGiveModeState());
         }
+
         @Override
         public void onPublicIp(String ip) {
             exitTo(new ConnectedInNonGiveModeState(ip));
@@ -96,10 +100,13 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class ConnectedInNonGiveModeState extends State {
+
         private String ip;
+
         public ConnectedInNonGiveModeState(String ip) {
             this.ip = ip;
         }
+
         @Override
         public void onEnterGiveMode() {
             exitTo(new PortMappingState(ip));
@@ -107,12 +114,15 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class PortMappingState extends State implements PortMapListener {
+
         private String ip;
         private int localPort;
         boolean current;
+
         public PortMappingState(String ip) {
             this.ip = ip;
         }
+
         @Override
         public void onEnter() {
             super.onEnter();
@@ -129,11 +139,13 @@ public class FlashlightServerManager implements Shutdownable {
                     localPort,
                     PortMappingState.this);
         }
+
         @Override
         public void onExit() {
             current = false;
             super.onExit();
         }
+
         @Override
         public void onPortMap(final int externalPort) {
             if (current) {
@@ -143,12 +155,14 @@ public class FlashlightServerManager implements Shutdownable {
                 return;
             }
         }
+
         @Override
         public void onPortMapError() {
             if (current) {
                 log.debug("Got port map error.");
             }
         }
+
         @Override
         public void onExitGiveMode() {
             exitTo(new ConnectedInNonGiveModeState(ip));
@@ -167,7 +181,7 @@ public class FlashlightServerManager implements Shutdownable {
         private String instanceId;
         private Timer timer;
 
-        private long HEARTBEAT_PERIOD_MINUTES = 2;
+        private static final long HEARTBEAT_PERIOD_MINUTES = 2;
 
         public PortMappedState(String ip, int localPort, int externalPort) {
             this.ip = ip;
