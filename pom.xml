@@ -212,7 +212,12 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
 			<version>4.2.6</version>
-		</dependency>
+            </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>fluent-hc</artifactId>
+            <version>4.2.6</version>
+        </dependency>
 
 		<dependency>
 			<groupId>org.bouncycastle</groupId>

@@ -1,5 +1,6 @@
 package org.lantern.proxy.pt;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.lantern.ConnectivityChangedEvent;
@@ -11,6 +12,9 @@ import org.lantern.event.PublicIpEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.fluent.Form;
+import org.apache.http.client.fluent.Request;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -175,14 +179,44 @@ public class FlashlightServerManager implements Shutdownable {
                     instanceId + ".getiantem.org");
             flashlight = new Flashlight(props);
             flashlight.startServer(localPort, null);
-            //XXX: register instanceId, ip and externalPort in peerdnsreg
-            //XXX: start heartbeat timer
+            registerPeer();
+            startHeartbeatTimer();
+        }
+
+        private void registerPeer() {
+            try {
+                Request.Post("https://peerdnsreg.herokuapp.com/register")
+                       .bodyForm(Form.form().add("name", instanceId)
+                                            .add("ip", ip)
+                                            .add("port", "" + externalPort).build())
+                       .execute().returnContent();
+            } catch (IOException e) {
+                log.error("Exception trying to register peer: " + e);
+            }
+        }
+
+        private void unregisterPeer() {
+            try {
+                Request.Post("https://peerdnsreg.herokuapp.com/unregister")
+                       .bodyForm(Form.form().add("name", instanceId).build())
+                       .execute().returnContent();
+            } catch (IOException e) {
+                log.error("Exception trying to register peer: " + e);
+            }
+        }
+
+        private void startHeartbeatTimer() {
+            log.debug("Now I would start the heartbeat timer");
+        }
+
+        private void stopHeartbeatTimer() {
+            log.debug("Now I would stop the heartbeat timer");
         }
 
         @Override
         public void onExit() {
-            //XXX: kill heartbeat timer
-            //XXX: unregister instanceId
+            stopHeartbeatTimer();
+            unregisterPeer();
             flashlight.stopServer();
         }
 
@@ -233,7 +267,7 @@ public class FlashlightServerManager implements Shutdownable {
 
     private void refreshConnectionState() {
         String ip = model.getConnectivity().getIp();
-        if (ip == null) {
+        if (StringUtils.isBlank(ip)) {
             // For our purposes this is equivalent to a disconnection.
             state.onDisconnect();
         } else {
