@@ -353,7 +353,7 @@ public class Launcher {
                 
                 if (!checkFallbacks) {
                     configureLoggly();
-                    //configurePapertrail();
+                    configurePapertrail();
                 }
 
                 final ConnectivityChecker connectivityChecker =
@@ -636,10 +636,12 @@ public class Launcher {
         LOG.info("Configuring PapertrailAppender");
         PapertrailAppender papertrailAppender = new PapertrailAppender(
                 model,
+                instance(ProxySocketFactory.class),
+                instance(Censored.class),
                 new PatternLayout("%-5p [%t] %c{2}.%M (%F:%L) - %m%n"));
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(papertrailAppender);
-        asyncAppender.setThreshold(Level.WARN);
+        asyncAppender.setThreshold(Level.DEBUG);
         BasicConfigurator.configure(asyncAppender);
         // When shutting down, we may see exceptions because someone is
         // still using the system while we're shutting down.  Let's not
