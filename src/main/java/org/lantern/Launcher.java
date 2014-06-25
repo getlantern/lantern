@@ -16,6 +16,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
@@ -23,6 +24,7 @@ import org.lantern.event.PublicIpAndTokenTracker;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
+import org.lantern.papertrail.PapertrailAppender;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
@@ -349,7 +351,10 @@ public class Launcher {
                 // Immediately start getModeProxy
                 getModeProxy.start();
                 
-                if (!checkFallbacks) configureLoggly();
+                if (!checkFallbacks) {
+                    configureLoggly();
+                    //configurePapertrail();
+                }
 
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
@@ -619,6 +624,26 @@ public class Launcher {
         // When shutting down, we may see exceptions because someone is
         // still using the system while we're shutting down.  Let's not
         // send these to Loggly.
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                org.apache.log4j.Logger.getRootLogger().removeAppender(asyncAppender);
+            }
+        }, "Disable-Loggly-Logging-on-Shutdown"));
+    }
+    
+    private void configurePapertrail() {
+        LOG.info("Configuring PapertrailAppender");
+        PapertrailAppender papertrailAppender = new PapertrailAppender(
+                model,
+                new PatternLayout("%-5p [%t] %c{2}.%M (%F:%L) - %m%n"));
+        final AsyncAppender asyncAppender = new AsyncAppender();
+        asyncAppender.addAppender(papertrailAppender);
+        asyncAppender.setThreshold(Level.WARN);
+        BasicConfigurator.configure(asyncAppender);
+        // When shutting down, we may see exceptions because someone is
+        // still using the system while we're shutting down.  Let's not
+        // send these to Papertrail.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
