@@ -40,12 +40,17 @@ public class FlashlightServerManager implements Shutdownable {
 
     private class State {
 
+        private String myName() {
+            String[] parts = getClass().getName().split("\\$");
+            return parts[1];
+        }
+
         public void onEnter() {
-            log.debug("Entering " + getClass().getName());
+            log.debug("Entering " + myName());
         }
 
         public void onExit() {
-            log.debug("Exiting " + getClass().getName());
+            log.debug("Exiting " + myName());
         }
 
         public void exitTo(State newState) {
@@ -299,8 +304,10 @@ public class FlashlightServerManager implements Shutdownable {
         String ip = model.getConnectivity().getIp();
         if (StringUtils.isBlank(ip)) {
             // For our purposes this is equivalent to a disconnection.
+            log.debug("got no IP");
             state.onDisconnect();
         } else {
+            log.debug("got IP");
             state.onPublicIp(ip);
         }
     }
@@ -308,8 +315,10 @@ public class FlashlightServerManager implements Shutdownable {
     @Subscribe
     public void onModeChanged(ModeChangedEvent event) {
         if (event.getNewMode() == Mode.give) {
+            log.debug("enter give mode");
             state.onEnterGiveMode();
         } else {
+            log.debug("exit give mode");
             state.onExitGiveMode();
         }
     }
