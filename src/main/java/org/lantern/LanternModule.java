@@ -33,6 +33,7 @@ import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.DispatchingChainedProxyManager;
+import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
@@ -138,6 +139,7 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);
         bind(UdtServerFiveTupleListener.class);
+        bind(FlashlightServerManager.class);
 
         try {
             copyFireFoxExtension();

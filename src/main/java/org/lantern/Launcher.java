@@ -29,6 +29,7 @@ import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
+import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
@@ -82,6 +83,7 @@ public class Launcher {
     private BrowserService browserService;
     private StatsManager statsManager;
     private FriendsHandler friendsHandler;
+    private FlashlightServerManager flashlightServerManager;
     
     /**
      * Set a dummy message service while we're not fully wired up.
@@ -300,6 +302,8 @@ public class Launcher {
         syncService = instance(SyncService.class);
 
         statsManager = instance(StatsManager.class);
+
+        flashlightServerManager = instance(FlashlightServerManager.class);
         
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
