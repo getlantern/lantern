@@ -136,12 +136,12 @@ public class FlashlightServerManager implements Shutdownable {
             upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
-                    localPort,
+                    -1, // accept whatever port we're given
                     PortMappingState.this);
             natPmpService.addNatPmpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
-                    localPort,
+                    -1, // accept whatever port we're given
                     PortMappingState.this);
         }
 
@@ -153,6 +153,10 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMap(final int externalPort) {
+            if (externalPort <= 0 || externalPort > 65535) {
+                log.warn("Got port map, but it was for an invalid port: {}", externalPort);
+                return;
+            }
             if (current) {
                 exitTo(new PortMappedState(ip, localPort, externalPort));
             } else {
@@ -239,7 +243,7 @@ public class FlashlightServerManager implements Shutdownable {
                 public void run() {
                     registerPeer();
                 }
-            }, 0, (long)(HEARTBEAT_PERIOD_MINUTES * 60000));
+            }, 0, HEARTBEAT_PERIOD_MINUTES * 60000);
         }
 
         private void stopHeartbeatTimer() {
