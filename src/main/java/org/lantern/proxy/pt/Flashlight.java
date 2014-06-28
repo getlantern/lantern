@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.util.ProcessUtil;
 
 /**
  * <p>
@@ -69,6 +70,8 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-addr");
         cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
                 listenAddress.getPort()));
+        
+        addParentPIDIfAvailable(cmd);
     }
 
     @Override
@@ -91,6 +94,16 @@ public class Flashlight extends BasePluggableTransport {
 
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);
+        
+        addParentPIDIfAvailable(cmd);
+    }
+    
+    private void addParentPIDIfAvailable(CommandLine cmd) {
+        Integer myPID = ProcessUtil.getMyPID();
+        if (myPID != null) {
+            cmd.addArgument("-parentpid");
+            cmd.addArgument(myPID.toString());
+        }
     }
 
     @Override
