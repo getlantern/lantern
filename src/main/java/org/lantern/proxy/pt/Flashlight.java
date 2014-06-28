@@ -28,7 +28,7 @@ public class Flashlight extends BasePluggableTransport {
     public static final String SERVER_KEY = "server";
     public static final String MASQUERADE_KEY = "masquerade";
     public static final String ROOT_CA_KEY = "rootca";
-    
+
     private final Properties props;
 
     /**
@@ -51,10 +51,10 @@ public class Flashlight extends BasePluggableTransport {
             InetSocketAddress proxyAddress) {
         cmd.addArgument("-role");
         cmd.addArgument("client");
-        
+
         cmd.addArgument("-server");
         cmd.addArgument(props.getProperty(SERVER_KEY));
-        
+
         cmd.addArgument("-masquerade");
         cmd.addArgument(props.getProperty(MASQUERADE_KEY));
 
@@ -70,7 +70,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-addr");
         cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
                 listenAddress.getPort()));
-        
+
         addParentPIDIfAvailable(cmd);
     }
 
@@ -94,10 +94,16 @@ public class Flashlight extends BasePluggableTransport {
 
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);
-        
+
         addParentPIDIfAvailable(cmd);
     }
-    
+
+    /**
+     * We do this to let the Windows version of flashlight know Lantern's PID so
+     * that it can terminate itself in case Lantern dies unexpectedly.
+     * 
+     * @param cmd
+     */
     private void addParentPIDIfAvailable(CommandLine cmd) {
         Integer myPID = ProcessUtil.getMyPID();
         if (myPID != null) {
