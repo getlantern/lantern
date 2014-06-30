@@ -87,12 +87,7 @@ public class ChromeRunner {
             log.warn("Could not find chrome");
             return null;
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            try {
-                return findWindowsExe();
-            } catch (Win32Exception we) {
-                // This means that we couldn't find the executable
-                return null;
-            }
+            return findWindowsExe();
         } else {
             throw new UnsupportedOperationException(
                     "Unsupported OS: "+SystemUtils.OS_NAME);
@@ -117,10 +112,15 @@ public class ChromeRunner {
         final String chromePath = "/Google/Chrome/Application/chrome.exe";
         final Collection<String> paths = new HashSet<String>();
         for (final Entry<String, Integer> entry : opts.entrySet()) {
-            final String base;
+            String base;
             final String envBase = System.getenv(entry.getKey());
             if (StringUtils.isBlank(envBase)) {
-                base = Shell32Util.getFolderPath(entry.getValue().intValue());
+                try {
+                    base = Shell32Util.getFolderPath(entry.getValue().intValue());
+                } catch (Win32Exception we) {
+                    // This means that we couldn't find the executable
+                    base = null;
+                }
             } else {
                 base = envBase;
             }
