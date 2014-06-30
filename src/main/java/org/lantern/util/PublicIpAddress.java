@@ -80,10 +80,9 @@ public class PublicIpAddress implements PublicIp {
 
     private InetAddress lookupSafe() {
         return GeoIpLookupService
-                .httpLookup(new ResponseHandler<InetAddress>() {
+                .httpLookup(null, new ResponseHandler<InetAddress>() {
                     @Override
-                    public InetAddress onResponse(HttpResponse response)
-                            throws Exception {
+                    public InetAddress onResponse(HttpResponse response) throws Exception {
                         final int responseCode = response.getStatusLine()
                                 .getStatusCode();
                         boolean ok = responseCode >= 200 && responseCode < 300;

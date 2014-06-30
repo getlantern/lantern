@@ -60,15 +60,19 @@ public class GeoIpLookupService {
         return result;
     }
 
-    public static <T> T httpLookup(ResponseHandler<T> handler) {
+    public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler) {
+        String url = "/lookup";
+        if (ipAddress != null) {
+            url += "/" + ipAddress;
+        }
         return new HostSpoofedHTTPGet(
                 StaticHttpClientFactory.newDirectClient(),
                 REAL_GEO_HOST,
-                s_masqueradeHost).get("/lookup", handler);
+                s_masqueradeHost).get(url, handler);
     }
 
     private GeoData queryGeoServe(final String ipAddress) {
-        return httpLookup(new ResponseHandler<GeoData>() {
+        return httpLookup(ipAddress, new ResponseHandler<GeoData>() {
             @Override
             public GeoData onResponse(HttpResponse response) throws Exception {
                 final int status = response.getStatusLine().getStatusCode();
