@@ -470,6 +470,14 @@ public class Launcher {
         watch.stop();
         return inst;
     }
+    
+    public <T> T lookup(Class<T> clazz) {
+        return injector.getInstance(clazz);
+    }
+    
+    public Model getModel() {
+        return model;
+    }
 
     private void addShutdownHook(final Shutdownable service) {
         LOG.info("Adding shutdown hook for {}", service);

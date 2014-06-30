@@ -8,7 +8,11 @@ import java.util.Properties;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.Launcher;
+import org.lantern.geoip.GeoData;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.ProcessUtil;
+import org.lantern.util.PublicIpAddress;
 
 /**
  * <p>
@@ -94,6 +98,14 @@ public class Flashlight extends BasePluggableTransport {
 
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);
+        
+        cmd.addArgument("-instanceid");
+        cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
+        
+        String ipAddress = new PublicIpAddress().getPublicIpAddress().getHostAddress();
+        GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
+        cmd.addArgument("-country");
+        cmd.addArgument(geoData.getCountry().getIsoCode());
 
         addParentPIDIfAvailable(cmd);
     }
