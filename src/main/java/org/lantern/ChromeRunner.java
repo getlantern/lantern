@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import com.sun.jna.platform.win32.Win32Exception;
 
 public class ChromeRunner {
 
@@ -86,7 +87,12 @@ public class ChromeRunner {
             log.warn("Could not find chrome");
             return null;
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            return findWindowsExe();
+            try {
+                return findWindowsExe();
+            } catch (Win32Exception we) {
+                // This means that we couldn't find the executable
+                return null;
+            }
         } else {
             throw new UnsupportedOperationException(
                     "Unsupported OS: "+SystemUtils.OS_NAME);
