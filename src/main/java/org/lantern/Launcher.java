@@ -663,7 +663,7 @@ public class Launcher {
             public void run() {
                 org.apache.log4j.Logger.getRootLogger().removeAppender(asyncAppender);
             }
-        }, "Disable-Loggly-Logging-on-Shutdown"));
+        }, "Disable-Papertrail-Logging-on-Shutdown"));
     }
     
     private void handleError(final Throwable t, final boolean exit) {
