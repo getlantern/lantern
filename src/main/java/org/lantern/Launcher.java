@@ -632,6 +632,8 @@ public class Launcher {
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(logglyAppender);
         asyncAppender.setThreshold(Level.WARN);
+        asyncAppender.setBlocking(false);
+        asyncAppender.setBufferSize(LanternClientConstants.ASYNC_APPENDER_BUFFER_SIZE);
         BasicConfigurator.configure(asyncAppender);
         // When shutting down, we may see exceptions because someone is
         // still using the system while we're shutting down.  Let's not
@@ -645,7 +647,6 @@ public class Launcher {
     }
     
     private void configurePapertrail() {
-        if (true) return;
         LOG.info("Configuring PapertrailAppender");
         PapertrailAppender papertrailAppender = new PapertrailAppender(
                 model,
@@ -655,6 +656,8 @@ public class Launcher {
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(papertrailAppender);
         asyncAppender.setThreshold(Level.DEBUG);
+        asyncAppender.setBlocking(false);
+        asyncAppender.setBufferSize(LanternClientConstants.ASYNC_APPENDER_BUFFER_SIZE);
         BasicConfigurator.configure(asyncAppender);
         // When shutting down, we may see exceptions because someone is
         // still using the system while we're shutting down.  Let's not
