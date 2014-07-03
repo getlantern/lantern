@@ -513,7 +513,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     private class ProxyPrioritizer implements Comparator<ProxyHolder> {
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
-            // Prioritize other Lanterns over fallback proxies
+         // Prioritize other Lanterns over fallback proxies
             Type typeA = a.getType();
             Type typeB = b.getType();
             if (typeA == pc && typeB != pc) {
@@ -537,8 +537,14 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             if (protocolPriority != 0) {
                 return protocolPriority;
             }
+            
+            // Next prioritize based on relative priority, if different
+            int priority = a.getPriority() - b.getPriority();
+            if (priority != 0) {
+                return priority;
+            }
 
-            // Prioritize based on least number of open sockets
+            // Lastly prioritize based on least number of open sockets
             long numberOfSocketsA = a.getPeer().getNSockets();
             long numberOfSocketsB = b.getPeer().getNSockets();
             if (numberOfSocketsA < numberOfSocketsB) {
