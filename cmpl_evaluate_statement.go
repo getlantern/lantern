@@ -24,8 +24,18 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 	switch node := node.(type) {
 
 	case *_nodeBlockStatement:
-		// FIXME If result is break, then return the empty value?
-		return self.cmpl_evaluate_nodeStatementList(node.list)
+		labels := self.labels
+		self.labels = nil
+
+		value := self.cmpl_evaluate_nodeStatementList(node.list)
+		switch value.kind {
+		case valueResult:
+			switch value.evaluateBreak(labels) {
+			case resultBreak:
+				return emptyValue
+			}
+		}
+		return value
 
 	case *_nodeBranchStatement:
 		target := node.label
