@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import com.sun.jna.platform.win32.Win32Exception;
 
 public class ChromeRunner {
 
@@ -111,10 +112,15 @@ public class ChromeRunner {
         final String chromePath = "/Google/Chrome/Application/chrome.exe";
         final Collection<String> paths = new HashSet<String>();
         for (final Entry<String, Integer> entry : opts.entrySet()) {
-            final String base;
+            String base;
             final String envBase = System.getenv(entry.getKey());
             if (StringUtils.isBlank(envBase)) {
-                base = Shell32Util.getFolderPath(entry.getValue().intValue());
+                try {
+                    base = Shell32Util.getFolderPath(entry.getValue().intValue());
+                } catch (Win32Exception we) {
+                    // This means that we couldn't find the executable
+                    base = null;
+                }
             } else {
                 base = envBase;
             }

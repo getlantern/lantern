@@ -32,9 +32,7 @@ public class S3ConfigFetcherTest {
     @Test
     public void testStopAndStart() throws Exception {
         final Model model = new Model();
-        final HttpClientFactory clientFactory = 
-                new DefaultHttpClientFactory(new DefaultCensored());
-        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
+        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
         
         model.setS3Config(null);
         fetcher.init();
@@ -54,9 +52,7 @@ public class S3ConfigFetcherTest {
     @Test
     public void testDefault() throws Exception {
         final Model model = new Model();
-        final HttpClientFactory clientFactory = 
-                new DefaultHttpClientFactory(new DefaultCensored());
-        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
+        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
         
         assertTrue(model.getS3Config().getFallbacks().isEmpty());
         fetcher.init();
@@ -73,7 +69,7 @@ public class S3ConfigFetcherTest {
         
         when(clientFactory.newDirectClient()).thenReturn(client);
         when(clientFactory.newProxiedClient()).thenReturn(client);
-        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, clientFactory);
+        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
         
         assertTrue(model.getS3Config().getFallbacks().isEmpty());
         

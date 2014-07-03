@@ -16,6 +16,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.log4j.AsyncAppender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
@@ -23,10 +24,12 @@ import org.lantern.event.PublicIpAndTokenTracker;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
+import org.lantern.papertrail.PapertrailAppender;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
+import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
@@ -80,6 +83,7 @@ public class Launcher {
     private BrowserService browserService;
     private StatsManager statsManager;
     private FriendsHandler friendsHandler;
+    private FlashlightServerManager flashlightServerManager;
     
     /**
      * Set a dummy message service while we're not fully wired up.
@@ -273,7 +277,7 @@ public class Launcher {
         proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
-        s3ConfigFetcher = new S3ConfigFetcher(model, httpClientFactory);
+        s3ConfigFetcher = new S3ConfigFetcher(model);
         
         if (checkFallbacks) {
             LOG.debug("Running in check-fallbacks mode");
@@ -298,6 +302,8 @@ public class Launcher {
         syncService = instance(SyncService.class);
 
         statsManager = instance(StatsManager.class);
+
+        flashlightServerManager = instance(FlashlightServerManager.class);
         
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = set.getStunServers();
@@ -349,7 +355,10 @@ public class Launcher {
                 // Immediately start getModeProxy
                 getModeProxy.start();
                 
-                if (!checkFallbacks) configureLoggly();
+                if (!checkFallbacks) {
+                    configureLoggly();
+                    configurePapertrail();
+                }
 
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
@@ -460,6 +469,14 @@ public class Launcher {
         }
         watch.stop();
         return inst;
+    }
+    
+    public <T> T lookup(Class<T> clazz) {
+        return injector.getInstance(clazz);
+    }
+    
+    public Model getModel() {
+        return model;
     }
 
     private void addShutdownHook(final Shutdownable service) {
@@ -615,6 +632,8 @@ public class Launcher {
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(logglyAppender);
         asyncAppender.setThreshold(Level.WARN);
+        asyncAppender.setBlocking(false);
+        asyncAppender.setBufferSize(LanternClientConstants.ASYNC_APPENDER_BUFFER_SIZE);
         BasicConfigurator.configure(asyncAppender);
         // When shutting down, we may see exceptions because someone is
         // still using the system while we're shutting down.  Let's not
@@ -625,6 +644,30 @@ public class Launcher {
                 org.apache.log4j.Logger.getRootLogger().removeAppender(asyncAppender);
             }
         }, "Disable-Loggly-Logging-on-Shutdown"));
+    }
+    
+    private void configurePapertrail() {
+        LOG.info("Configuring PapertrailAppender");
+        PapertrailAppender papertrailAppender = new PapertrailAppender(
+                model,
+                instance(ProxySocketFactory.class),
+                instance(Censored.class),
+                new PatternLayout("%-5p [%t] %c{2}.%M (%F:%L) - %m%n"));
+        final AsyncAppender asyncAppender = new AsyncAppender();
+        asyncAppender.addAppender(papertrailAppender);
+        asyncAppender.setThreshold(Level.DEBUG);
+        asyncAppender.setBlocking(false);
+        asyncAppender.setBufferSize(LanternClientConstants.ASYNC_APPENDER_BUFFER_SIZE);
+        BasicConfigurator.configure(asyncAppender);
+        // When shutting down, we may see exceptions because someone is
+        // still using the system while we're shutting down.  Let's not
+        // send these to Papertrail.
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                org.apache.log4j.Logger.getRootLogger().removeAppender(asyncAppender);
+            }
+        }, "Disable-Papertrail-Logging-on-Shutdown"));
     }
     
     private void handleError(final Throwable t, final boolean exit) {

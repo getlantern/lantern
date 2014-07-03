@@ -133,6 +133,7 @@ public class LanternClientConstants {
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
     public static final String LOCALHOST = "127.0.0.1";
     public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
+    public static final int ASYNC_APPENDER_BUFFER_SIZE = 1024;
 
 
     // Not final because it may be set from the command line for debugging.

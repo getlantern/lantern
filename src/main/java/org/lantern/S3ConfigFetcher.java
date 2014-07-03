@@ -17,7 +17,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.lantern.event.Events;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.state.Model;
-import org.lantern.util.HttpClientFactory;
+import org.lantern.util.StaticHttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,18 +43,14 @@ public class S3ConfigFetcher {
 
     private final Model model;
 
-    private HttpClientFactory httpClientFactory;
-
     /**
      * Creates a new class for fetching the Lantern config from S3.
      * 
      * @param model The persistent settings.
      */
-    public S3ConfigFetcher(final Model model, 
-            final HttpClientFactory httpClientFactory) {
+    public S3ConfigFetcher(final Model model) {
         log.debug("Creating s3 config fetcher...");
         this.model = model;
-        this.httpClientFactory = httpClientFactory;
         Events.register(this);
     }
     
@@ -83,7 +79,7 @@ public class S3ConfigFetcher {
             downloadAndCompareConfig();
         }
         if (model.getS3Config() == null) {
-            throw new InitException("Still could not fetch S3 config");
+            throw new InitException("No S3Config!  This shouldn't happen, since there's both a default S3Config available as well as one that we try to fetch remotely.");
         }
     }
     
@@ -139,14 +135,12 @@ public class S3ConfigFetcher {
         }
 
         final S3Config config = this.model.getS3Config();
-        this.model.setS3Config(newConfig.get());
-
-
-        if (config == null) {
-            log.warn("Rechecking config with no old one.");
-            return true;
-        } else {
+        if (newConfig.isPresent()) {
+            this.model.setS3Config(newConfig.get());
             return !newConfig.get().equals(config);
+        } else {
+            log.info("Couldn't get a remote S3 config, sticking with what we have");
+            return true;
         }
     }
 
@@ -176,10 +170,10 @@ public class S3ConfigFetcher {
     
     private Optional<S3Config> fetchRemoteConfig() {
         try {
-            final HttpClient direct = this.httpClientFactory.newDirectClient();
+            final HttpClient direct = StaticHttpClientFactory.newDirectClient();
             return fetchRemoteConfig(direct);
         } catch (final IOException e) {
-            final HttpClient proxied = this.httpClientFactory.newProxiedClient();
+            final HttpClient proxied = StaticHttpClientFactory.newProxiedClient();
             try {
                 return fetchRemoteConfig(proxied);
             } catch (IOException ioe) {
