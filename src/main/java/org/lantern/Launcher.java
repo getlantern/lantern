@@ -645,6 +645,7 @@ public class Launcher {
     }
     
     private void configurePapertrail() {
+        if (true) return;
         LOG.info("Configuring PapertrailAppender");
         PapertrailAppender papertrailAppender = new PapertrailAppender(
                 model,
