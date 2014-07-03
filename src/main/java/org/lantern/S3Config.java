@@ -3,7 +3,6 @@ package org.lantern;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -192,7 +191,6 @@ public class S3Config {
         flashlightProxy.setIp(ptProps.getProperty(Flashlight.MASQUERADE_KEY));
         flashlightProxy.setPort(443);
         flashlightProxy.setProtocol(Protocol.TCP);
-        // Make this higher priority than other fallbacks
         flashlightProxy.setPriority(priority);
         return flashlightProxy;
     }

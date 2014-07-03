@@ -886,18 +886,6 @@
 	*** setActive(boolean);
 }
 
--keep class com.apple.resources.LoadNativeBundleAction {
-	*** mBaseJavaBundle;
-	*** mFilenameOverride;
-	*** getPathToBundleFile(java.lang.String);
-}
-
--keep class com.apple.resources.MacOSXResourceBundle {
-	*** getMacResourceBundle(java.lang.String);
-	*** getMacResourceBundle(java.lang.String,java.lang.String);
-	*** setItsParent(java.util.ResourceBundle);
-}
-
 -keep class com.barchart.udt.CCC {
 	*** initOk;
 	*** log;
@@ -1456,236 +1444,13 @@
 	*** values;
 }
 
--keep class com.codahale.metrics.MetricFilter {
-	*** ALL;
-	*** matches(java.lang.String,com.codahale.metrics.Metric);
-}
-
--keep class com.codahale.metrics.MetricRegistry {
-	*** listeners;
-	*** metrics;
-	*** append(java.lang.StringBuilder,java.lang.String);
-	*** buildMap();
-	*** getCounters(com.codahale.metrics.MetricFilter);
-	*** getGauges(com.codahale.metrics.MetricFilter);
-	*** getHistograms(com.codahale.metrics.MetricFilter);
-	*** getMeters(com.codahale.metrics.MetricFilter);
-	*** getMetrics(java.lang.Class,com.codahale.metrics.MetricFilter);
-	*** getOrAdd(java.lang.String,com.codahale.metrics.MetricRegistry$MetricBuilder);
-	*** getTimers(com.codahale.metrics.MetricFilter);
-	*** name(java.lang.String,java.lang.String[]);
-	*** notifyListenerOfAddedMetric(com.codahale.metrics.MetricRegistryListener,com.codahale.metrics.Metric,java.lang.String);
-	*** notifyListenerOfRemovedMetric(java.lang.String,com.codahale.metrics.Metric,com.codahale.metrics.MetricRegistryListener);
-	*** onMetricAdded(java.lang.String,com.codahale.metrics.Metric);
-	*** onMetricRemoved(java.lang.String,com.codahale.metrics.Metric);
-	*** register(java.lang.String,com.codahale.metrics.Metric);
-	*** registerAll(java.lang.String,com.codahale.metrics.MetricSet);
-	*** remove(java.lang.String);
-}
-
--keep class com.codahale.metrics.MetricRegistry$MetricBuilder {
-	*** COUNTERS;
-	*** HISTOGRAMS;
-	*** METERS;
-	*** TIMERS;
-	*** isInstance(com.codahale.metrics.Metric);
-	*** newMetric();
-}
-
--keep class com.codahale.metrics.MetricRegistryListener {
-	*** onCounterAdded(java.lang.String,com.codahale.metrics.Counter);
-	*** onCounterRemoved(java.lang.String);
-	*** onGaugeAdded(java.lang.String,com.codahale.metrics.Gauge);
-	*** onGaugeRemoved(java.lang.String);
-	*** onHistogramAdded(java.lang.String,com.codahale.metrics.Histogram);
-	*** onHistogramRemoved(java.lang.String);
-	*** onMeterAdded(java.lang.String,com.codahale.metrics.Meter);
-	*** onMeterRemoved(java.lang.String);
-	*** onTimerAdded(java.lang.String,com.codahale.metrics.Timer);
-	*** onTimerRemoved(java.lang.String);
-}
-
--keep class com.codahale.metrics.MetricSet {
-	*** getMetrics();
-}
-
--keep class com.csvreader.CsvReader {
-	*** charset;
-	*** closed;
-	*** columnBuffer;
-	*** columnsCount;
-	*** currentRecord;
-	*** dataBuffer;
-	*** fileName;
-	*** hasMoreData;
-	*** hasReadNextLine;
-	*** headersHolder;
-	*** initialized;
-	*** inputStream;
-	*** isQualified;
-	*** lastLetter;
-	*** rawBuffer;
-	*** rawRecord;
-	*** startedColumn;
-	*** startedWithQualifier;
-	*** useCustomRecordDelimiter;
-	*** userSettings;
-	*** values;
-	com.csvreader.CsvReader(java.io.Reader);
-	com.csvreader.CsvReader(java.io.Reader,char);
-	com.csvreader.CsvReader(java.lang.String,char);
-	com.csvreader.CsvReader(java.lang.String,char,java.nio.charset.Charset);
-	*** appendLetter(char);
-	*** checkClosed();
-	*** checkDataLength();
-	*** close();
-	*** close(boolean);
-	*** endColumn();
-	*** endRecord();
-	*** get(int);
-	*** get(java.lang.String);
-	*** getIndex(java.lang.String);
-	*** hexToDec(char);
-	*** readHeaders();
-	*** readRecord();
-	*** setTextQualifier(char);
-	*** skipLine();
-	*** updateCurrentValue();
-}
-
--keep class com.csvreader.CsvReader$ColumnBuffer {
-	*** Buffer;
-	*** Position;
-	*** this$0;
-}
-
--keep class com.csvreader.CsvReader$DataBuffer {
-	*** Buffer;
-	*** ColumnStart;
-	*** Count;
-	*** LineStart;
-	*** Position;
-	*** this$0;
-}
-
--keep class com.csvreader.CsvReader$HeadersHolder {
-	*** Headers;
-	*** IndexByName;
-	*** Length;
-	*** this$0;
-}
-
--keep class com.csvreader.CsvReader$RawRecordBuffer {
-	*** Buffer;
-	*** Position;
-	*** this$0;
-}
-
--keep class com.csvreader.CsvReader$UserSettings {
-	*** CaptureRawRecord;
-	*** CaseSensitive;
-	*** Comment;
-	*** Delimiter;
-	*** EscapeMode;
-	*** RecordDelimiter;
-	*** SafetySwitch;
-	*** SkipEmptyRecords;
-	*** TextQualifier;
-	*** TrimWhitespace;
-	*** UseComments;
-	*** UseTextQualifier;
-	*** this$0;
-}
-
--keep class com.csvreader.CsvWriter {
-	*** charset;
-	*** closed;
-	*** fileName;
-	*** firstColumn;
-	*** initialized;
-	*** outputStream;
-	*** useCustomRecordDelimiter;
-	*** userSettings;
-	com.csvreader.CsvWriter(java.io.Writer,char);
-	com.csvreader.CsvWriter(java.lang.String,char,java.nio.charset.Charset);
-	*** checkClosed();
-	*** checkInit();
-	*** close();
-	*** close(boolean);
-	*** endRecord();
-	*** replace(java.lang.String,java.lang.String,java.lang.String);
-	*** write(java.lang.String,boolean);
-	*** writeComment(java.lang.String);
-	*** writeRecord(java.lang.String[]);
-	*** writeRecord(java.lang.String[],boolean);
-}
-
--keep class com.csvreader.CsvWriter$UserSettings {
-	*** Comment;
-	*** Delimiter;
-	*** EscapeMode;
-	*** ForceQualifier;
-	*** RecordDelimiter;
-	*** TextQualifier;
-	*** UseTextQualifier;
-	*** this$0;
-}
-
 -keep class com.google.api.client.auth.oauth2.ClientParametersAuthentication {
 	*** clientId;
 	*** clientSecret;
 }
 
 -keep class com.google.api.client.auth.oauth2.Credential {
-	*** LOGGER;
-	*** accessToken;
-	*** clientAuthentication;
-	*** clock;
-	*** expirationTimeMilliseconds;
-	*** jsonFactory;
-	*** lock;
-	*** method;
-	*** refreshListeners;
-	*** refreshToken;
-	*** requestInitializer;
-	*** tokenServerEncodedUrl;
-	*** transport;
-	com.google.api.client.auth.oauth2.Credential(com.google.api.client.auth.oauth2.Credential$AccessMethod,com.google.api.client.http.HttpTransport,com.google.api.client.json.JsonFactory,java.lang.String,com.google.api.client.http.HttpExecuteInterceptor,com.google.api.client.http.HttpRequestInitializer,java.util.List,com.google.api.client.util.Clock);
-	com.google.api.client.auth.oauth2.Credential(com.google.api.client.auth.oauth2.Credential$Builder);
-	*** executeRefreshToken();
-	*** getClientAuthentication();
-	*** getClock();
-	*** getExpiresInSeconds();
-	*** getJsonFactory();
-	*** getTokenServerEncodedUrl();
 	*** getTransport();
-	*** refreshToken();
-	*** setAccessToken(java.lang.String);
-	*** setExpirationTimeMilliseconds(java.lang.Long);
-	*** setExpiresInSeconds(java.lang.Long);
-	*** setFromTokenResponse(com.google.api.client.auth.oauth2.TokenResponse);
-	*** setRefreshToken(java.lang.String);
-}
-
--keep class com.google.api.client.auth.oauth2.Credential$AccessMethod {
-	*** getAccessTokenFromRequest(com.google.api.client.http.HttpRequest);
-	*** intercept(com.google.api.client.http.HttpRequest,java.lang.String);
-}
-
--keep class com.google.api.client.auth.oauth2.Credential$Builder {
-	*** clientAuthentication;
-	*** clock;
-	*** jsonFactory;
-	*** method;
-	*** refreshListeners;
-	*** requestInitializer;
-	*** tokenServerUrl;
-	*** transport;
-}
-
--keep class com.google.api.client.auth.oauth2.CredentialRefreshListener {
-	*** onTokenErrorResponse(com.google.api.client.auth.oauth2.Credential,com.google.api.client.auth.oauth2.TokenErrorResponse);
-	*** onTokenResponse(com.google.api.client.auth.oauth2.Credential,com.google.api.client.auth.oauth2.TokenResponse);
 }
 
 -keep class com.google.api.client.auth.oauth2.RefreshTokenRequest {
@@ -1745,7 +1510,6 @@
 -keep class com.google.api.client.auth.oauth2.TokenResponseException {
 	*** details;
 	*** from(com.google.api.client.json.JsonFactory,com.google.api.client.http.HttpResponse);
-	*** getDetails();
 }
 
 -keep class com.google.api.client.googleapis.auth.oauth2.GoogleBrowserClientRequestUrl {
@@ -1775,24 +1539,11 @@
 }
 
 -keep class com.google.api.client.googleapis.auth.oauth2.GoogleCredential {
-	*** serviceAccountId;
-	*** serviceAccountPrivateKey;
-	*** serviceAccountScopes;
-	*** serviceAccountUser;
-	com.google.api.client.googleapis.auth.oauth2.GoogleCredential(com.google.api.client.auth.oauth2.Credential$AccessMethod,com.google.api.client.http.HttpTransport,com.google.api.client.json.JsonFactory,java.lang.String,com.google.api.client.http.HttpExecuteInterceptor,com.google.api.client.http.HttpRequestInitializer,java.util.List,java.lang.String,java.lang.String,java.security.PrivateKey,java.lang.String,com.google.api.client.util.Clock);
-	com.google.api.client.googleapis.auth.oauth2.GoogleCredential(com.google.api.client.googleapis.auth.oauth2.GoogleCredential$Builder);
 	*** setAccessToken(java.lang.String);
-	*** setExpirationTimeMilliseconds(java.lang.Long);
-	*** setExpiresInSeconds(java.lang.Long);
-	*** setFromTokenResponse(com.google.api.client.auth.oauth2.TokenResponse);
 	*** setRefreshToken(java.lang.String);
 }
 
 -keep class com.google.api.client.googleapis.auth.oauth2.GoogleCredential$Builder {
-	*** serviceAccountId;
-	*** serviceAccountPrivateKey;
-	*** serviceAccountScopes;
-	*** serviceAccountUser;
 	*** addRefreshListener(com.google.api.client.auth.oauth2.CredentialRefreshListener);
 	*** build();
 	*** setClientAuthentication(com.google.api.client.http.HttpExecuteInterceptor);
@@ -1989,7 +1740,6 @@
 	*** setParser(com.google.api.client.util.ObjectParser);
 	*** setRequestMethod(java.lang.String);
 	*** setThrowExceptionOnExecuteError(boolean);
-	*** setUnsuccessfulResponseHandler(com.google.api.client.http.HttpUnsuccessfulResponseHandler);
 	*** setUrl(com.google.api.client.http.GenericUrl);
 	*** sleep(long);
 }
@@ -2049,7 +1799,6 @@
 	*** statusMessage;
 	com.google.api.client.http.HttpResponseException(com.google.api.client.http.HttpResponseException$Builder);
 	*** computeMessageBuffer(com.google.api.client.http.HttpResponse);
-	*** getStatusCode();
 }
 
 -keep class com.google.api.client.http.HttpResponseException$Builder {
@@ -2320,23 +2069,6 @@
 	*** getFactory();
 }
 
--keep class com.google.api.client.json.webtoken.JsonWebSignature {
-	*** signUsingRsaSha256(java.security.PrivateKey,com.google.api.client.json.JsonFactory,com.google.api.client.json.webtoken.JsonWebSignature$Header,com.google.api.client.json.webtoken.JsonWebToken$Payload);
-}
-
--keep class com.google.api.client.json.webtoken.JsonWebSignature$Header {
-	*** setAlgorithm(java.lang.String);
-	*** setType(java.lang.String);
-}
-
--keep class com.google.api.client.json.webtoken.JsonWebToken$Payload {
-	*** setAudience(java.lang.Object);
-	*** setExpirationTimeSeconds(java.lang.Long);
-	*** setIssuedAtTimeSeconds(java.lang.Long);
-	*** setIssuer(java.lang.String);
-	*** setSubject(java.lang.String);
-}
-
 -keep class com.google.api.client.repackaged.com.google.common.base.Preconditions {
 	*** badElementIndex(int,int,java.lang.String);
 	*** badPositionIndex(int,int,java.lang.String);
@@ -2442,11 +2174,6 @@
 -keep class com.google.api.client.util.ClassInfo$1 {
 	*** this$0;
 	*** compare(java.lang.String,java.lang.String);
-}
-
--keep class com.google.api.client.util.Clock {
-	*** SYSTEM;
-	*** currentTimeMillis();
 }
 
 -keep class com.google.api.client.util.Data {
@@ -2701,6 +2428,10 @@
 	*** nextEscapeIndex(java.lang.CharSequence,int,int);
 }
 
+-keep class com.google.common.base.Absent {
+	*** INSTANCE;
+}
+
 -keep class com.google.common.base.Ascii {
 	*** toLowerCase(java.lang.String);
 }
@@ -2804,7 +2535,10 @@
 }
 
 -keep class com.google.common.base.Optional {
+	com.google.common.base.Optional();
 	*** absent();
+	*** get();
+	*** isPresent();
 	*** of(java.lang.Object);
 }
 
@@ -2853,6 +2587,10 @@
 	*** in(java.util.Collection);
 	*** instanceOf(java.lang.Class);
 	*** not(com.google.common.base.Predicate);
+}
+
+-keep class com.google.common.base.Present {
+	*** reference;
 }
 
 -keep class com.google.common.base.Splitter {
@@ -3454,30 +3192,6 @@
 	*** this$0;
 }
 
--keep class com.google.common.collect.AbstractMapBasedMultiset {
-	*** backingMap;
-	*** size;
-	com.google.common.collect.AbstractMapBasedMultiset(java.util.Map);
-	*** access$122(com.google.common.collect.AbstractMapBasedMultiset,long);
-	*** add(java.lang.Object,int);
-	*** clear();
-	*** count(java.lang.Object);
-	*** entrySet();
-	*** getAndSet(com.google.common.collect.Count,int);
-	*** iterator();
-	*** remove(java.lang.Object,int);
-	*** setBackingMap(java.util.Map);
-	*** setCount(java.lang.Object,int);
-	*** size();
-}
-
--keep class com.google.common.collect.AbstractMapBasedMultiset$1 {
-	*** this$0;
-	*** toRemove;
-	*** val$backingEntries;
-	*** next();
-}
-
 -keep class com.google.common.collect.AbstractMapEntry {
 	com.google.common.collect.AbstractMapEntry();
 	*** getKey();
@@ -3515,37 +3229,6 @@
 }
 
 -keep class com.google.common.collect.AbstractMultimap$1 {
-	*** this$0;
-}
-
--keep class com.google.common.collect.AbstractMultiset {
-	*** elementSet;
-	*** entrySet;
-	com.google.common.collect.AbstractMultiset();
-	*** add(java.lang.Object);
-	*** add(java.lang.Object,int);
-	*** addAll(java.util.Collection);
-	*** contains(java.lang.Object);
-	*** count(java.lang.Object);
-	*** createElementSet();
-	*** createEntrySet();
-	*** distinctElements();
-	*** elementSet();
-	*** entryIterator();
-	*** entrySet();
-	*** equals(java.lang.Object);
-	*** hashCode();
-	*** isEmpty();
-	*** remove(java.lang.Object);
-	*** remove(java.lang.Object,int);
-	*** removeAll(java.util.Collection);
-	*** retainAll(java.util.Collection);
-	*** setCount(java.lang.Object,int,int);
-	*** size();
-	*** toString();
-}
-
--keep class com.google.common.collect.AbstractMultiset$EntrySet {
 	*** this$0;
 }
 
@@ -3599,15 +3282,6 @@
 
 -keep class com.google.common.collect.CompoundOrdering {
 	*** comparators;
-}
-
--keep class com.google.common.collect.Count {
-	*** value;
-	*** addAndGet(int);
-	*** get();
-	*** getAndAdd(int);
-	*** getAndSet(int);
-	*** set(int);
 }
 
 -keep class com.google.common.collect.DescendingImmutableSortedSet {
@@ -3689,8 +3363,6 @@
 }
 
 -keep class com.google.common.collect.HashMultiset {
-	*** create();
-	*** create(int);
 	*** create(java.lang.Iterable);
 }
 
@@ -3912,14 +3584,9 @@
 	*** SIZE_FIELD_SETTER;
 }
 
--keep class com.google.common.collect.ImmutableMultiset {
-	*** copyFromEntries(java.util.Collection);
-}
-
 -keep class com.google.common.collect.ImmutableSet {
 	*** CUTOFF;
 	com.google.common.collect.ImmutableSet();
-	*** access$000(int,java.lang.Object[]);
 	*** builder();
 	*** chooseTableSize(int);
 	*** construct(int,java.lang.Object[]);
@@ -3942,16 +3609,10 @@
 }
 
 -keep class com.google.common.collect.ImmutableSet$Builder {
-	*** contents;
-	*** size;
-	com.google.common.collect.ImmutableSet$Builder();
-	com.google.common.collect.ImmutableSet$Builder(int);
 	*** add(java.lang.Object);
-	*** add(java.lang.Object[]);
 	*** addAll(java.lang.Iterable);
 	*** addAll(java.util.Iterator);
 	*** build();
-	*** ensureCapacity(int);
 }
 
 -keep class com.google.common.collect.ImmutableSetMultimap {
@@ -4017,15 +3678,6 @@
 	*** unsafeCompare(java.util.Comparator,java.lang.Object,java.lang.Object);
 }
 
--keep class com.google.common.collect.ImmutableSortedSet$Builder {
-	*** comparator;
-	*** add(java.lang.Object);
-	*** add(java.lang.Object[]);
-	*** addAll(java.lang.Iterable);
-	*** addAll(java.util.Iterator);
-	*** build();
-}
-
 -keep class com.google.common.collect.ImmutableSortedSetFauxverideShim {
 	com.google.common.collect.ImmutableSortedSetFauxverideShim();
 }
@@ -4061,7 +3713,6 @@
 	*** all(java.util.Iterator,com.google.common.base.Predicate);
 	*** any(java.util.Iterator,com.google.common.base.Predicate);
 	*** checkNonnegative(int);
-	*** checkRemove(boolean);
 	*** clear(java.util.Iterator);
 	*** concat(java.util.Iterator);
 	*** concat(java.util.Iterator,java.util.Iterator);
@@ -4308,51 +3959,9 @@
 }
 
 -keep class com.google.common.collect.Multiset {
-	*** add(java.lang.Object);
-	*** add(java.lang.Object,int);
 	*** count(java.lang.Object);
 	*** elementSet();
-	*** entrySet();
 	*** equals(java.lang.Object);
-	*** remove(java.lang.Object,int);
-	*** setCount(java.lang.Object,int);
-	*** setCount(java.lang.Object,int,int);
-}
-
--keep class com.google.common.collect.Multiset$Entry {
-	*** getCount();
-	*** getElement();
-}
-
--keep class com.google.common.collect.Multisets {
-	*** DECREASING_COUNT_ORDERING;
-	*** addAllImpl(com.google.common.collect.Multiset,java.util.Collection);
-	*** cast(java.lang.Iterable);
-	*** checkNonnegative(int,java.lang.String);
-	*** equalsImpl(com.google.common.collect.Multiset,java.lang.Object);
-	*** inferDistinctElements(java.lang.Iterable);
-	*** iteratorImpl(com.google.common.collect.Multiset);
-	*** removeAllImpl(com.google.common.collect.Multiset,java.util.Collection);
-	*** removeOccurrencesImpl(com.google.common.collect.Multiset,com.google.common.collect.Multiset);
-	*** retainAllImpl(com.google.common.collect.Multiset,java.util.Collection);
-	*** retainOccurrencesImpl(com.google.common.collect.Multiset,com.google.common.collect.Multiset);
-	*** setCountImpl(com.google.common.collect.Multiset,java.lang.Object,int);
-	*** setCountImpl(com.google.common.collect.Multiset,java.lang.Object,int,int);
-	*** sizeImpl(com.google.common.collect.Multiset);
-}
-
--keep class com.google.common.collect.Multisets$5 {
-	*** compare(com.google.common.collect.Multiset$Entry,com.google.common.collect.Multiset$Entry);
-}
-
--keep class com.google.common.collect.Multisets$EntrySet {
-	com.google.common.collect.Multisets$EntrySet();
-	*** multiset();
-}
-
--keep class com.google.common.collect.Multisets$FilteredMultiset {
-	*** predicate;
-	*** unfiltered;
 }
 
 -keep class com.google.common.collect.NaturalOrdering {
@@ -4402,7 +4011,6 @@
 	*** nullsLast();
 	*** partition(java.lang.Object[],int,int,int);
 	*** reverse();
-	*** sortedCopy(java.lang.Iterable);
 }
 
 -keep class com.google.common.collect.Ordering$ArbitraryOrderingHolder {
@@ -4510,10 +4118,8 @@
 
 -keep class com.google.common.collect.Serialization {
 	*** populateMultimap(com.google.common.collect.Multimap,java.io.ObjectInputStream,int);
-	*** populateMultiset(com.google.common.collect.Multiset,java.io.ObjectInputStream,int);
 	*** readCount(java.io.ObjectInputStream);
 	*** writeMultimap(com.google.common.collect.Multimap,java.io.ObjectOutputStream);
-	*** writeMultiset(com.google.common.collect.Multiset,java.io.ObjectOutputStream);
 }
 
 -keep class com.google.common.collect.Serialization$FieldSetter {
@@ -4974,7 +4580,6 @@
 }
 
 -keep class com.google.common.primitives.Ints {
-	*** compare(int,int);
 	*** copyOf(int[],int);
 	*** fromBytes(byte,byte,byte,byte);
 	*** indexOf(int[],int,int,int);
@@ -8903,11 +8508,6 @@
 	*** inflateInit();
 }
 
--keep class com.librato.metrics.LibratoReporter {
-	*** builder(com.codahale.metrics.MetricRegistry,java.lang.String,java.lang.String,java.lang.String);
-	*** enable(com.librato.metrics.LibratoReporter$Builder,long,java.util.concurrent.TimeUnit);
-}
-
 -keep class com.mcdermottroe.apple.OSXKeychain {
 	*** PROTOCOLS;
 	*** instance;
@@ -8976,131 +8576,6 @@
 	*** getValue();
 	*** toString();
 	*** values();
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.Bits {
-	*** value();
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.LibraryExtractor {
-	*** extract(java.net.URL);
-	*** getCurrentOSAndArchString();
-	*** getFileName(java.net.URL);
-	*** getLibraryPath(java.lang.String,boolean,java.lang.Class);
-	*** getTracingLibrary(java.lang.Object,java.lang.Class);
-	*** shouldTraceCalls(java.lang.String);
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.MangledFunctionMapper {
-	*** DEFAULT_OPTIONS;
-	*** linked;
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.Mangling {
-	*** value();
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.Structure {
-	*** dependency;
-	com.ochafik.lang.jnaerator.runtime.Structure();
-	*** byReference();
-	*** byValue();
-	*** castToArray(int);
-	*** castToReferenceArray(int);
-	*** castToValueArray(int);
-	*** clone();
-	*** compareTo(com.ochafik.lang.jnaerator.runtime.Structure);
-	*** newArray(java.lang.Class,int);
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
-	*** read();
-	*** readDependency();
-	*** setDependency(com.ochafik.lang.jnaerator.runtime.StructureType);
-	*** setupClone(com.ochafik.lang.jnaerator.runtime.Structure,com.ochafik.lang.jnaerator.runtime.StructureType);
-	*** toArray(com.sun.jna.Structure[]);
-	*** toArray(int);
-	*** toReferenceArray(int);
-	*** toValueArray(int);
-	*** use(com.sun.jna.Pointer);
-	*** use(com.sun.jna.Pointer,long);
-	*** use(java.nio.Buffer,long);
-	*** write();
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.StructureType {
-	*** read();
-}
-
--keep class com.ochafik.lang.jnaerator.runtime.Union {
-	*** use(com.sun.jna.Pointer);
-}
-
--keep class com.ochafik.net.URLUtils {
-	*** getResource(java.lang.Class,java.lang.String);
-	*** listFiles(java.net.URL,com.ochafik.util.listenable.Filter);
-}
-
--keep class com.ochafik.util.listenable.Filter {
-	*** accept(java.lang.Object);
-}
-
--keep class com.sachingarg.CompressedOutputStream {
-	*** Encoder;
-	*** Model;
-	*** close();
-	*** write(byte[],int,int);
-	*** write(int);
-}
-
--keep class com.sachingarg.DecompressedInputStream {
-	*** Decoder;
-	*** Model;
-	*** _nextByte;
-	*** close();
-	*** read();
-	*** read(byte[],int,int);
-}
-
--keep class com.sachingarg.FenwickTreeModel {
-	*** $assertionsDisabled;
-	*** NoOfSymbols;
-	*** fw;
-	com.sachingarg.FenwickTreeModel(int);
-	*** getCumulativeFrequency(int);
-	*** getNumberOfSymbols();
-	*** getSymbolForFrequency(int);
-	*** update(int);
-}
-
--keep class com.sachingarg.IRangeEncoder {
-	*** EncodeRange(int,int,int);
-	*** Flush();
-}
-
--keep class com.sachingarg.RCModel {
-	*** getCumulativeFrequency(int);
-	*** getNumberOfSymbols();
-	*** getSymbolForFrequency(int);
-	*** update(int);
-}
-
--keep class com.sachingarg.RangeCoder64 {
-	*** Low;
-	*** Range;
-	com.sachingarg.RangeCoder64();
-}
-
--keep class com.sachingarg.RangeDecoder64 {
-	*** Code;
-	*** _in;
-	*** GetCurrentCount(int);
-	*** RemoveRange(int,int,int);
-}
-
--keep class com.sachingarg.RangeEncoder64 {
-	*** Flushed;
-	*** _out;
 }
 
 -keep class com.sun.beans.TypeResolver {
@@ -9543,72 +9018,15 @@
 }
 
 -keep class com.sun.jna.Function {
-	*** INTEGER_FALSE;
-	*** INTEGER_TRUE;
-	*** array$Lcom$sun$jna$NativeMapped;
-	*** array$Lcom$sun$jna$Pointer;
-	*** array$Lcom$sun$jna$Structure;
-	*** array$Lcom$sun$jna$Structure$ByReference;
-	*** array$Lcom$sun$jna$WString;
-	*** array$Ljava$lang$String;
-	*** callFlags;
-	*** class$com$sun$jna$Callback;
-	*** class$com$sun$jna$NativeMapped;
-	*** class$com$sun$jna$Pointer;
-	*** class$com$sun$jna$Structure;
-	*** class$com$sun$jna$Structure$ByReference;
-	*** class$com$sun$jna$Structure$ByValue;
-	*** class$com$sun$jna$WString;
-	*** class$java$lang$Boolean;
-	*** class$java$lang$Byte;
-	*** class$java$lang$Character;
-	*** class$java$lang$Double;
-	*** class$java$lang$Float;
-	*** class$java$lang$Integer;
-	*** class$java$lang$Long;
-	*** class$java$lang$Object;
-	*** class$java$lang$Short;
-	*** class$java$lang$String;
-	*** class$java$lang$Void;
-	*** functionName;
-	*** library;
-	*** options;
-	*** checkCallingConvention(int);
-	*** class$(java.lang.String);
 	*** concatenateVarArgs(java.lang.Object[]);
-	*** convertArgument(java.lang.Object[],int,java.lang.reflect.Method,com.sun.jna.TypeMapper,boolean);
 	*** getCallingConvention();
-	*** getFunction(com.sun.jna.Pointer,int);
-	*** getName();
-	*** invoke(java.lang.Class,java.lang.Object[]);
 	*** invoke(java.lang.Class,java.lang.Object[],java.util.Map);
-	*** invoke(java.lang.Object[],java.lang.Class,boolean);
-	*** invokePointer(int,java.lang.Object[]);
-	*** invokeString(int,java.lang.Object[],boolean);
-	*** isPrimitiveArray(java.lang.Class);
 	*** isVarArgs(java.lang.reflect.Method);
 	*** valueOf(boolean);
 }
 
--keep class com.sun.jna.Function$PostCallRead {
-	*** read();
-}
-
 -keep class com.sun.jna.FunctionMapper {
 	*** getFunctionName(com.sun.jna.NativeLibrary,java.lang.reflect.Method);
-}
-
--keep class com.sun.jna.FunctionParameterContext {
-	*** args;
-	*** function;
-	*** index;
-	com.sun.jna.FunctionParameterContext(com.sun.jna.Function,java.lang.Object[],int);
-}
-
--keep class com.sun.jna.FunctionResultContext {
-	*** args;
-	*** function;
-	com.sun.jna.FunctionResultContext(java.lang.Class,com.sun.jna.Function,java.lang.Object[]);
 }
 
 -keep class com.sun.jna.IntegerType {
@@ -9649,37 +9067,21 @@
 	*** handler;
 	*** isVarArgs;
 	*** options;
-	com.sun.jna.Library$Handler$FunctionInfo();
 }
 
 -keep class com.sun.jna.Memory {
 	*** buffers;
 	*** size;
-	com.sun.jna.Memory();
 	com.sun.jna.Memory(long);
 	*** boundsCheck(long,long);
 	*** clear();
 	*** dispose();
 	*** free(long);
-	*** getPointer(long);
 	*** getSize();
 	*** malloc(long);
 	*** share(long,long);
 	*** size();
-	*** toString();
 	*** valid();
-}
-
--keep class com.sun.jna.Memory$SharedMemory {
-	*** this$0;
-}
-
--keep class com.sun.jna.MethodParameterContext {
-	*** method;
-}
-
--keep class com.sun.jna.MethodResultContext {
-	*** method;
 }
 
 -keep class com.sun.jna.Native {
@@ -9713,7 +9115,6 @@
 	*** class$java$lang$Short;
 	*** class$java$lang$String;
 	*** class$java$lang$Void;
-	*** class$java$nio$Buffer;
 	*** finalizer;
 	*** lastError;
 	*** libraries;
@@ -9767,16 +9168,7 @@
 	*** getWebStartLibraryPath(java.lang.String);
 	*** indexOf(long,byte);
 	*** initIDs();
-	*** invokeDouble(long,int,java.lang.Object[]);
-	*** invokeFloat(long,int,java.lang.Object[]);
-	*** invokeInt(long,int,java.lang.Object[]);
-	*** invokeLong(long,int,java.lang.Object[]);
-	*** invokeObject(long,int,java.lang.Object[]);
-	*** invokePointer(long,int,java.lang.Object[]);
-	*** invokeStructure(long,int,java.lang.Object[],com.sun.jna.Structure);
 	*** invokeStructure(long,int,java.lang.Object[],long,long);
-	*** invokeVoid(long,int,java.lang.Object[]);
-	*** isSupportedNativeType(java.lang.Class);
 	*** loadLibrary(java.lang.String,java.lang.Class);
 	*** loadLibrary(java.lang.String,java.lang.Class,java.util.Map);
 	*** loadLibraryInstance(java.lang.Class);
@@ -9852,10 +9244,8 @@
 	*** findLibraryPath(java.lang.String,java.util.List);
 	*** functionKey(java.lang.String,int);
 	*** getFile();
-	*** getFunction(java.lang.String);
 	*** getFunction(java.lang.String,int);
 	*** getFunction(java.lang.String,java.lang.reflect.Method);
-	*** getGlobalVariableAddress(java.lang.String);
 	*** getInstance(java.lang.String);
 	*** getInstance(java.lang.String,java.util.Map);
 	*** getLibraryName(java.lang.String);
@@ -9877,17 +9267,9 @@
 -keep class com.sun.jna.NativeMapped {
 	*** fromNative(java.lang.Object,com.sun.jna.FromNativeContext);
 	*** nativeType();
-	*** toNative();
 }
 
 -keep class com.sun.jna.NativeMappedConverter {
-	*** class$com$sun$jna$NativeMapped;
-	*** class$com$sun$jna$Pointer;
-	*** converters;
-	*** instance;
-	*** nativeType;
-	*** type;
-	*** class$(java.lang.String);
 	*** defaultValue();
 	*** fromNative(java.lang.Object,com.sun.jna.FromNativeContext);
 	*** getInstance(java.lang.Class);
@@ -9896,12 +9278,7 @@
 }
 
 -keep class com.sun.jna.NativeString {
-	*** pointer;
-	*** wide;
-	com.sun.jna.NativeString(java.lang.String,boolean);
-	*** compareTo(java.lang.Object);
 	*** getPointer();
-	*** toString();
 }
 
 -keep class com.sun.jna.Platform {
@@ -9960,13 +9337,10 @@
 	*** getInt(long);
 	*** getLong(long);
 	*** getPointer(long);
-	*** getPointerArray(long);
 	*** getPointerArray(long,int);
 	*** getShort(long);
 	*** getString(long);
 	*** getString(long,boolean);
-	*** getStringArray(long);
-	*** getStringArray(long,boolean);
 	*** getStringArray(long,int,boolean);
 	*** getValue(long,java.lang.Class,java.lang.Object);
 	*** hashCode();
@@ -10012,10 +9386,8 @@
 -keep class com.sun.jna.PointerType {
 	*** class$com$sun$jna$Pointer;
 	*** pointer;
-	com.sun.jna.PointerType();
 	*** class$(java.lang.String);
 	*** getPointer();
-	*** setPointer(com.sun.jna.Pointer);
 }
 
 -keep class com.sun.jna.Structure {
@@ -10066,9 +9438,7 @@
 	*** allocateMemory(int);
 	*** autoAllocate(int);
 	*** autoRead();
-	*** autoRead(com.sun.jna.Structure[]);
 	*** autoWrite();
-	*** autoWrite(com.sun.jna.Structure[]);
 	*** baseClass();
 	*** busy();
 	*** cacheTypeInfo(com.sun.jna.Pointer);
@@ -10106,13 +9476,11 @@
 	*** setAutoWrite(boolean);
 	*** setField(com.sun.jna.Structure$StructField,java.lang.Object);
 	*** setField(com.sun.jna.Structure$StructField,java.lang.Object,boolean);
-	*** setFieldOrder(java.lang.String[]);
 	*** setTypeMapper(com.sun.jna.TypeMapper);
 	*** size();
 	*** sortFields(java.util.List,java.util.List);
 	*** structureArrayCheck(com.sun.jna.Structure[]);
 	*** toArray(com.sun.jna.Structure[]);
-	*** toArray(int);
 	*** toString(boolean);
 	*** toString(int,boolean,boolean);
 	*** updateStructureByReference(java.lang.Class,com.sun.jna.Structure,com.sun.jna.Pointer);
@@ -10120,15 +9488,6 @@
 	*** useMemory(com.sun.jna.Pointer,int);
 	*** write();
 	*** writeField(com.sun.jna.Structure$StructField);
-}
-
--keep class com.sun.jna.Structure$2$StructureSet {
-	*** count;
-	*** elements;
-	*** this$0;
-	*** contains(java.lang.Object);
-	*** ensureCapacity(int);
-	*** indexOf(java.lang.Object);
 }
 
 -keep class com.sun.jna.Structure$AutoAllocated {
@@ -10159,10 +9518,8 @@
 	*** fieldOrder;
 	*** fields;
 	*** size;
-	*** this$0;
 	*** typeMapper;
 	*** variable;
-	com.sun.jna.Structure$LayoutInfo(com.sun.jna.Structure);
 }
 
 -keep class com.sun.jna.Structure$MemberOrder {
@@ -10179,7 +9536,6 @@
 	*** offset;
 	*** readConverter;
 	*** size;
-	*** this$0;
 	*** type;
 	*** writeConverter;
 }
@@ -10213,12 +9569,6 @@
 	*** toString();
 }
 
--keep class com.sun.jna.WeakIdentityHashMap {
-	*** backingStore;
-	*** queue;
-	*** reap();
-}
-
 -keep class com.sun.jna.platform.win32.Advapi32Util {
 	*** registryGetIntValue(com.sun.jna.platform.win32.WinReg$HKEY,java.lang.String,java.lang.String);
 	*** registryGetStringValue(com.sun.jna.platform.win32.WinReg$HKEY,java.lang.String,java.lang.String);
@@ -10245,31 +9595,6 @@
 
 -keep class com.sun.jna.platform.win32.WinReg {
 	*** HKEY_CURRENT_USER;
-}
-
--keep class com.sun.jna.ptr.ByReference {
-	com.sun.jna.ptr.ByReference(int);
-}
-
--keep class com.sun.jna.ptr.IntByReference {
-	com.sun.jna.ptr.IntByReference(int);
-	*** setValue(int);
-}
-
--keep class com.sun.jna.ptr.PointerByReference {
-	com.sun.jna.ptr.PointerByReference(com.sun.jna.Pointer);
-	*** setValue(com.sun.jna.Pointer);
-}
-
--keep class com.sun.jna.ptr.ShortByReference {
-	com.sun.jna.ptr.ShortByReference(short);
-	*** setValue(short);
-}
-
--keep class com.sun.jna.win32.StdCallFunctionMapper {
-	*** class$com$sun$jna$NativeMapped;
-	*** class$(java.lang.String);
-	*** getArgumentNativeStackSize(java.lang.Class);
 }
 
 -keep class com.sun.management.OSMBeanFactory {
@@ -10312,6 +9637,7 @@
 	*** m1;
 	*** m2;
 	*** m3;
+	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy12 {
@@ -10333,6 +9659,12 @@
 	*** m1;
 	*** m2;
 	*** m3;
+	*** m4;
+	*** m5;
+	*** m6;
+	*** m7;
+	*** m8;
+	*** m9;
 }
 
 -keep class com.sun.proxy.$Proxy15 {
@@ -10340,6 +9672,7 @@
 	*** m1;
 	*** m2;
 	*** m3;
+	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy16 {
@@ -10354,7 +9687,6 @@
 	*** m1;
 	*** m2;
 	*** m3;
-	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy18 {
@@ -10362,7 +9694,6 @@
 	*** m1;
 	*** m2;
 	*** m3;
-	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy19 {
@@ -10370,12 +9701,6 @@
 	*** m1;
 	*** m2;
 	*** m3;
-	*** m4;
-	*** m5;
-	*** m6;
-	*** m7;
-	*** m8;
-	*** m9;
 }
 
 -keep class com.sun.proxy.$Proxy2 {
@@ -10398,21 +9723,27 @@
 	*** m1;
 	*** m2;
 	*** m3;
+	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy22 {
 	*** m0;
 	*** m1;
+	*** m10;
+	*** m11;
 	*** m2;
 	*** m3;
 	*** m4;
+	*** m5;
+	*** m6;
+	*** m7;
+	*** m8;
+	*** m9;
 }
 
 -keep class com.sun.proxy.$Proxy23 {
 	*** m0;
 	*** m1;
-	*** m10;
-	*** m11;
 	*** m2;
 	*** m3;
 	*** m4;
@@ -10430,10 +9761,6 @@
 	*** m3;
 	*** m4;
 	*** m5;
-	*** m6;
-	*** m7;
-	*** m8;
-	*** m9;
 }
 
 -keep class com.sun.proxy.$Proxy25 {
@@ -10442,7 +9769,6 @@
 	*** m2;
 	*** m3;
 	*** m4;
-	*** m5;
 }
 
 -keep class com.sun.proxy.$Proxy26 {
@@ -10519,7 +9845,6 @@
 	*** m13;
 	*** m14;
 	*** m15;
-	*** m16;
 	*** m2;
 	*** m3;
 	*** m4;
@@ -10533,26 +9858,9 @@
 -keep class com.sun.proxy.$Proxy34 {
 	*** m0;
 	*** m1;
-	*** m10;
-	*** m11;
-	*** m12;
-	*** m13;
-	*** m14;
-	*** m15;
-	*** m16;
-	*** m17;
-	*** m18;
-	*** m19;
 	*** m2;
-	*** m20;
-	*** m21;
 	*** m3;
 	*** m4;
-	*** m5;
-	*** m6;
-	*** m7;
-	*** m8;
-	*** m9;
 }
 
 -keep class com.sun.proxy.$Proxy35 {
@@ -10577,96 +9885,9 @@
 	*** m1;
 	*** m2;
 	*** m3;
-	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy38 {
-	*** m0;
-	*** m1;
-	*** m10;
-	*** m11;
-	*** m12;
-	*** m13;
-	*** m14;
-	*** m15;
-	*** m16;
-	*** m17;
-	*** m18;
-	*** m19;
-	*** m2;
-	*** m20;
-	*** m21;
-	*** m22;
-	*** m23;
-	*** m24;
-	*** m25;
-	*** m26;
-	*** m27;
-	*** m28;
-	*** m29;
-	*** m3;
-	*** m30;
-	*** m31;
-	*** m32;
-	*** m33;
-	*** m34;
-	*** m35;
-	*** m36;
-	*** m37;
-	*** m38;
-	*** m39;
-	*** m4;
-	*** m40;
-	*** m41;
-	*** m42;
-	*** m43;
-	*** m44;
-	*** m45;
-	*** m46;
-	*** m47;
-	*** m48;
-	*** m49;
-	*** m5;
-	*** m50;
-	*** m51;
-	*** m52;
-	*** m53;
-	*** m54;
-	*** m55;
-	*** m56;
-	*** m57;
-	*** m58;
-	*** m59;
-	*** m6;
-	*** m60;
-	*** m61;
-	*** m62;
-	*** m63;
-	*** m64;
-	*** m65;
-	*** m66;
-	*** m67;
-	*** m68;
-	*** m69;
-	*** m7;
-	*** m70;
-	*** m71;
-	*** m72;
-	*** m73;
-	*** m74;
-	*** m75;
-	*** m76;
-	*** m77;
-	*** m78;
-	*** m79;
-	*** m8;
-	*** m80;
-	*** m81;
-	*** m82;
-	*** m9;
-}
-
--keep class com.sun.proxy.$Proxy39 {
 	*** m0;
 	*** m1;
 	*** m2;
@@ -10681,19 +9902,11 @@
 	*** m3;
 }
 
--keep class com.sun.proxy.$Proxy40 {
-	*** m0;
-	*** m1;
-	*** m2;
-	*** m3;
-}
-
 -keep class com.sun.proxy.$Proxy5 {
 	*** m0;
 	*** m1;
 	*** m2;
 	*** m3;
-	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy6 {
@@ -10701,6 +9914,7 @@
 	*** m1;
 	*** m2;
 	*** m3;
+	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy7 {
@@ -10708,7 +9922,6 @@
 	*** m1;
 	*** m2;
 	*** m3;
-	*** m4;
 }
 
 -keep class com.sun.proxy.$Proxy8 {
@@ -10723,10 +9936,6 @@
 	*** m1;
 	*** m2;
 	*** m3;
-}
-
--keep class com.sun.security.auth.PrincipalComparator {
-	*** implies(javax.security.auth.Subject);
 }
 
 -keep class com.sun.security.sasl.Provider$1 {
@@ -10748,32 +9957,11 @@
 }
 
 -keep class fr.free.miniupnp.IGDdatas {
-	*** CIF;
-	*** IPv6FC;
-	*** cureltname;
 	*** first;
-	*** level;
-	*** presentationurl;
-	*** second;
-	*** tmp;
-	*** urlbase;
-	fr.free.miniupnp.IGDdatas();
-	*** initFieldOrder();
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
 }
 
 -keep class fr.free.miniupnp.IGDdatas_service {
-	*** controlurl;
-	*** eventsuburl;
-	*** scpdurl;
 	*** servicetype;
-	fr.free.miniupnp.IGDdatas_service();
-	*** initFieldOrder();
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
 }
 
 -keep class fr.free.miniupnp.MiniupnpcLibrary {
@@ -10788,52 +9976,8 @@
 	*** upnpDiscover(int,java.lang.String,java.lang.String,int,int,java.nio.IntBuffer);
 }
 
--keep class fr.free.miniupnp.NameValueParserData {
-	*** curelt;
-	*** head;
-	*** portListing;
-	*** portListingLength;
-	fr.free.miniupnp.NameValueParserData();
-	*** initFieldOrder();
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
-}
-
--keep class fr.free.miniupnp.UPNPDev {
-	*** buffer;
-	*** descURL;
-	*** pNext;
-	*** scope_id;
-	*** st;
-	fr.free.miniupnp.UPNPDev();
-	*** initFieldOrder();
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
-}
-
 -keep class fr.free.miniupnp.UPNPUrls {
 	*** controlURL;
-	*** controlURL_6FC;
-	*** controlURL_CIF;
-	*** ipcondescURL;
-	*** rootdescURL;
-	fr.free.miniupnp.UPNPUrls();
-	*** initFieldOrder();
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
-}
-
--keep class fr.free.miniupnp.UPNParg {
-	*** elt;
-	*** val;
-	fr.free.miniupnp.UPNParg();
-	*** initFieldOrder();
-	*** newByReference();
-	*** newByValue();
-	*** newInstance();
 }
 
 -keep class fr.free.miniupnp.libnatpmp.LibraryExtractor {
@@ -10878,10 +10022,6 @@
 	io.netty.bootstrap.AbstractBootstrap(io.netty.bootstrap.AbstractBootstrap);
 	*** access$000(io.netty.channel.ChannelFuture,io.netty.channel.Channel,java.net.SocketAddress,io.netty.channel.ChannelPromise);
 	*** attrs();
-	*** bind();
-	*** bind(int);
-	*** bind(java.lang.String,int);
-	*** bind(java.net.InetAddress,int);
 	*** bind(java.net.SocketAddress);
 	*** channelFactory();
 	*** channelFactory(io.netty.bootstrap.ChannelFactory);
@@ -10907,6 +10047,7 @@
 	*** val$channel;
 	*** val$localAddress;
 	*** val$promise;
+	*** val$regFuture;
 	*** operationComplete(io.netty.channel.ChannelFuture);
 }
 
@@ -10958,7 +10099,6 @@
 	*** childOptions;
 	*** logger;
 	*** access$000();
-	*** bind(java.net.SocketAddress);
 	*** childHandler(io.netty.channel.ChannelHandler);
 	*** clone();
 	*** group(io.netty.channel.EventLoopGroup);
@@ -10981,6 +10121,14 @@
 	*** childGroup;
 	*** childHandler;
 	*** childOptions;
+	*** access$100(io.netty.channel.Channel,java.lang.Throwable);
+	*** forceClose(io.netty.channel.Channel,java.lang.Throwable);
+}
+
+-keep class io.netty.bootstrap.ServerBootstrap$ServerBootstrapAcceptor$1 {
+	*** this$0;
+	*** val$child;
+	*** operationComplete(io.netty.channel.ChannelFuture);
 }
 
 -keep class io.netty.buffer.AbstractByteBuf {
@@ -11028,7 +10176,6 @@
 	*** markReaderIndex();
 	*** markWriterIndex();
 	*** maxCapacity();
-	*** nioBuffer(int,int);
 	*** order(java.nio.ByteOrder);
 	*** readByte();
 	*** readBytes(byte[]);
@@ -11102,11 +10249,17 @@
 	*** heapBuffer(int,int);
 	*** newDirectBuffer(int,int);
 	*** newHeapBuffer(int,int);
+	*** toLeakAwareBuffer(io.netty.buffer.ByteBuf);
 	*** validate(int,int);
+}
+
+-keep class io.netty.buffer.AbstractByteBufAllocator$1 {
+	*** $SwitchMap$io$netty$util$ResourceLeakDetector$Level;
 }
 
 -keep class io.netty.buffer.AbstractDerivedByteBuf {
 	io.netty.buffer.AbstractDerivedByteBuf(int);
+	*** nioBuffer(int,int);
 	*** retain();
 	*** retain(int);
 }
@@ -11117,6 +10270,12 @@
 	*** refCntUpdater;
 	io.netty.buffer.AbstractReferenceCountedByteBuf(int);
 	*** deallocate();
+	*** retain();
+	*** retain(int);
+}
+
+-keep class io.netty.buffer.AdvancedLeakAwareByteBuf {
+	*** leak;
 	*** retain();
 	*** retain(int);
 }
@@ -11278,6 +10437,7 @@
 	*** heapBuffer(int);
 	*** heapBuffer(int,int);
 	*** ioBuffer(int);
+	*** isDirectBufferPooled();
 }
 
 -keep class io.netty.buffer.ByteBufHolder {
@@ -11291,13 +10451,18 @@
 }
 
 -keep class io.netty.buffer.ByteBufUtil {
+	*** HEXDUMP_TABLE;
 	*** compare(io.netty.buffer.ByteBuf,io.netty.buffer.ByteBuf);
 	*** decodeString(java.nio.ByteBuffer,java.nio.charset.Charset);
-	*** encodeString(java.nio.CharBuffer,java.nio.charset.Charset);
+	*** encodeString(io.netty.buffer.ByteBufAllocator,java.nio.CharBuffer,java.nio.charset.Charset);
 	*** equals(io.netty.buffer.ByteBuf,io.netty.buffer.ByteBuf);
+	*** firstIndexOf(io.netty.buffer.ByteBuf,int,int,byte);
 	*** hashCode(io.netty.buffer.ByteBuf);
 	*** hexDump(io.netty.buffer.ByteBuf);
+	*** hexDump(io.netty.buffer.ByteBuf,int,int);
 	*** indexOf(io.netty.buffer.ByteBuf,int,int,byte);
+	*** lastIndexOf(io.netty.buffer.ByteBuf,int,int,byte);
+	*** readBytes(io.netty.buffer.ByteBufAllocator,io.netty.buffer.ByteBuf,int);
 	*** swapInt(int);
 	*** swapLong(long);
 	*** swapMedium(int);
@@ -11330,7 +10495,6 @@
 	*** checkComponentIndex(int,int);
 	*** clear();
 	*** consolidateIfNeeded();
-	*** copiedNioBuffer(int,int);
 	*** copyTo(int,int,int,io.netty.buffer.ByteBuf);
 	*** discardReadBytes();
 	*** discardReadComponents();
@@ -11346,8 +10510,10 @@
 	*** getBytes(int,java.nio.ByteBuffer);
 	*** internalComponent(int);
 	*** internalComponentAtOffset(int);
+	*** internalNioBuffer(int,int);
 	*** markReaderIndex();
 	*** markWriterIndex();
+	*** nioBufferCount();
 	*** nioBuffers(int,int);
 	*** numComponents();
 	*** order();
@@ -11382,7 +10548,6 @@
 	*** setZero(int,int);
 	*** skipBytes(int);
 	*** toComponentIndex(int);
-	*** toNioBuffer(io.netty.buffer.ByteBuf,int,int);
 	*** updateComponentOffsets(int);
 	*** writeBoolean(boolean);
 	*** writeByte(int);
@@ -11454,12 +10619,12 @@
 	*** _getLong(int);
 	*** _getShort(int);
 	*** _getUnsignedMedium(int);
+	*** nioBuffer(int,int);
 }
 
 -keep class io.netty.buffer.ReadOnlyByteBufferBuf {
 	*** allocator;
 	*** buffer;
-	*** leak;
 	*** tmpNioBuf;
 	io.netty.buffer.ReadOnlyByteBufferBuf(io.netty.buffer.ByteBufAllocator,java.nio.ByteBuffer);
 	*** _getByte(int);
@@ -11473,6 +10638,7 @@
 	*** getBytes(int,byte[],int,int);
 	*** getBytes(int,java.nio.ByteBuffer);
 	*** internalNioBuffer();
+	*** nioBuffer(int,int);
 	*** order();
 }
 
@@ -11482,10 +10648,15 @@
 	*** addr(int);
 }
 
+-keep class io.netty.buffer.SimpleLeakAwareByteBuf {
+	*** leak;
+}
+
 -keep class io.netty.buffer.SlicedByteBuf {
 	*** adjustment;
 	*** buffer;
 	*** length;
+	*** nioBuffer(int,int);
 }
 
 -keep class io.netty.buffer.SwappedByteBuf {
@@ -11496,6 +10667,7 @@
 	*** getLong(int);
 	*** getMedium(int);
 	*** getShort(int);
+	*** nioBuffer(int,int);
 	*** order();
 	*** readInt();
 	*** readLong();
@@ -11524,7 +10696,9 @@
 	*** copiedBuffer(io.netty.buffer.ByteBuf);
 	*** copiedBuffer(java.nio.ByteBuffer);
 	*** copiedBuffer(java.nio.CharBuffer,java.nio.charset.Charset);
+	*** directBuffer(int);
 	*** unmodifiableBuffer(io.netty.buffer.ByteBuf);
+	*** unreleasableBuffer(io.netty.buffer.ByteBuf);
 	*** wrappedBuffer(byte[]);
 	*** wrappedBuffer(byte[],int,int);
 	*** wrappedBuffer(int,byte[][]);
@@ -11543,7 +10717,6 @@
 	*** buffer;
 	*** capacity;
 	*** doNotFree;
-	*** leak;
 	*** tmpNioBuf;
 	*** _getByte(int);
 	*** _getInt(int);
@@ -11556,12 +10729,18 @@
 	*** _setMedium(int,int);
 	*** _setShort(int,int);
 	*** alloc();
+	*** allocateDirect(int);
 	*** capacity();
+	*** freeDirect(java.nio.ByteBuffer);
 	*** getByte(int);
 	*** getBytes(int,byte[],int,int);
+	*** getBytes(int,byte[],int,int,boolean);
+	*** getBytes(int,java.io.OutputStream,int,boolean);
 	*** getBytes(int,java.nio.ByteBuffer);
+	*** getBytes(int,java.nio.ByteBuffer,boolean);
+	*** getBytes(int,java.nio.channels.GatheringByteChannel,int,boolean);
 	*** internalNioBuffer();
-	*** order();
+	*** nioBuffer(int,int);
 	*** setByte(int,int);
 	*** setByteBuffer(java.nio.ByteBuffer);
 	*** setBytes(int,java.nio.ByteBuffer);
@@ -11585,6 +10764,7 @@
 	*** alloc();
 	*** capacity();
 	*** getBytes(int,byte[],int,int);
+	*** getBytes(int,java.nio.channels.GatheringByteChannel,int,boolean);
 	*** internalNioBuffer();
 	*** nioBuffer(int,int);
 	*** setArray(byte[]);
@@ -11597,23 +10777,143 @@
 	*** buffer;
 	*** capacity;
 	*** doNotFree;
-	*** leak;
 	*** memoryAddress;
 	*** tmpNioBuf;
 	*** addr(int);
 	*** alloc();
+	*** allocateDirect(int);
 	*** capacity();
+	*** freeDirect(java.nio.ByteBuffer);
+	*** getBytes(int,java.nio.ByteBuffer,boolean);
+	*** getBytes(int,java.nio.channels.GatheringByteChannel,int,boolean);
 	*** internalNioBuffer();
+	*** nioBuffer(int,int);
 	*** setByteBuffer(java.nio.ByteBuffer);
 }
 
 -keep class io.netty.buffer.UnreleasableByteBuf {
-	*** buf;
 	*** swappedBuf;
-	*** compareTo(io.netty.buffer.ByteBuf);
-	*** order();
 	*** retain();
 	*** retain(int);
+}
+
+-keep class io.netty.buffer.WrappedByteBuf {
+	*** buf;
+	io.netty.buffer.WrappedByteBuf(io.netty.buffer.ByteBuf);
+	*** bytesBefore(byte);
+	*** bytesBefore(int,byte);
+	*** bytesBefore(int,int,byte);
+	*** capacity(int);
+	*** compareTo(io.netty.buffer.ByteBuf);
+	*** copy();
+	*** copy(int,int);
+	*** discardReadBytes();
+	*** discardSomeReadBytes();
+	*** duplicate();
+	*** ensureWritable(int);
+	*** ensureWritable(int,boolean);
+	*** forEachByte(int,int,io.netty.buffer.ByteBufProcessor);
+	*** forEachByte(io.netty.buffer.ByteBufProcessor);
+	*** forEachByteDesc(int,int,io.netty.buffer.ByteBufProcessor);
+	*** forEachByteDesc(io.netty.buffer.ByteBufProcessor);
+	*** getBoolean(int);
+	*** getByte(int);
+	*** getBytes(int,byte[]);
+	*** getBytes(int,byte[],int,int);
+	*** getBytes(int,io.netty.buffer.ByteBuf);
+	*** getBytes(int,io.netty.buffer.ByteBuf,int);
+	*** getBytes(int,io.netty.buffer.ByteBuf,int,int);
+	*** getBytes(int,java.io.OutputStream,int);
+	*** getBytes(int,java.nio.ByteBuffer);
+	*** getBytes(int,java.nio.channels.GatheringByteChannel,int);
+	*** getChar(int);
+	*** getDouble(int);
+	*** getFloat(int);
+	*** getInt(int);
+	*** getLong(int);
+	*** getMedium(int);
+	*** getShort(int);
+	*** getUnsignedByte(int);
+	*** getUnsignedInt(int);
+	*** getUnsignedMedium(int);
+	*** getUnsignedShort(int);
+	*** indexOf(int,int,byte);
+	*** internalNioBuffer(int,int);
+	*** nioBuffer();
+	*** nioBuffer(int,int);
+	*** nioBufferCount();
+	*** nioBuffers();
+	*** nioBuffers(int,int);
+	*** order();
+	*** order(java.nio.ByteOrder);
+	*** readBoolean();
+	*** readByte();
+	*** readBytes(byte[]);
+	*** readBytes(byte[],int,int);
+	*** readBytes(int);
+	*** readBytes(io.netty.buffer.ByteBuf);
+	*** readBytes(io.netty.buffer.ByteBuf,int);
+	*** readBytes(io.netty.buffer.ByteBuf,int,int);
+	*** readBytes(java.io.OutputStream,int);
+	*** readBytes(java.nio.ByteBuffer);
+	*** readBytes(java.nio.channels.GatheringByteChannel,int);
+	*** readChar();
+	*** readDouble();
+	*** readFloat();
+	*** readInt();
+	*** readLong();
+	*** readMedium();
+	*** readShort();
+	*** readSlice(int);
+	*** readUnsignedByte();
+	*** readUnsignedInt();
+	*** readUnsignedMedium();
+	*** readUnsignedShort();
+	*** release();
+	*** release(int);
+	*** retain();
+	*** retain(int);
+	*** setBoolean(int,boolean);
+	*** setByte(int,int);
+	*** setBytes(int,byte[]);
+	*** setBytes(int,byte[],int,int);
+	*** setBytes(int,io.netty.buffer.ByteBuf);
+	*** setBytes(int,io.netty.buffer.ByteBuf,int);
+	*** setBytes(int,io.netty.buffer.ByteBuf,int,int);
+	*** setBytes(int,java.io.InputStream,int);
+	*** setBytes(int,java.nio.ByteBuffer);
+	*** setBytes(int,java.nio.channels.ScatteringByteChannel,int);
+	*** setChar(int,int);
+	*** setDouble(int,double);
+	*** setFloat(int,float);
+	*** setInt(int,int);
+	*** setLong(int,long);
+	*** setMedium(int,int);
+	*** setShort(int,int);
+	*** setZero(int,int);
+	*** skipBytes(int);
+	*** slice();
+	*** slice(int,int);
+	*** toString(int,int,java.nio.charset.Charset);
+	*** toString(java.nio.charset.Charset);
+	*** writeBoolean(boolean);
+	*** writeByte(int);
+	*** writeBytes(byte[]);
+	*** writeBytes(byte[],int,int);
+	*** writeBytes(io.netty.buffer.ByteBuf);
+	*** writeBytes(io.netty.buffer.ByteBuf,int);
+	*** writeBytes(io.netty.buffer.ByteBuf,int,int);
+	*** writeBytes(java.io.InputStream,int);
+	*** writeBytes(java.nio.ByteBuffer);
+	*** writeBytes(java.nio.channels.ScatteringByteChannel,int);
+	*** writeChar(int);
+	*** writeDouble(double);
+	*** writeFloat(float);
+	*** writeInt(int);
+	*** writeLong(long);
+	*** writeMedium(int);
+	*** writeShort(int);
+	*** writeZero(int);
 }
 
 -keep class io.netty.channel.AbstractChannel {
@@ -11654,7 +10954,6 @@
 	*** doWrite(io.netty.channel.ChannelOutboundBuffer);
 	*** estimatorHandle();
 	*** eventLoop();
-	*** flush();
 	*** isCompatible(io.netty.channel.EventLoop);
 	*** isRegistered();
 	*** localAddress();
@@ -11710,7 +11009,6 @@
 }
 
 -keep class io.netty.channel.AbstractChannel$CloseFuture {
-	*** this$0;
 	*** setClosed();
 	*** setFailure(java.lang.Throwable);
 }
@@ -11736,8 +11034,14 @@
 }
 
 -keep class io.netty.channel.Channel {
+	*** bind(java.net.SocketAddress,io.netty.channel.ChannelPromise);
+	*** close();
 	*** closeFuture();
 	*** config();
+	*** connect(java.net.SocketAddress,io.netty.channel.ChannelPromise);
+	*** connect(java.net.SocketAddress,java.net.SocketAddress,io.netty.channel.ChannelPromise);
+	*** deregister();
+	*** disconnect();
 	*** eventLoop();
 	*** flush();
 	*** isActive();
@@ -11745,9 +11049,15 @@
 	*** isRegistered();
 	*** isWritable();
 	*** metadata();
+	*** newFailedFuture(java.lang.Throwable);
+	*** newPromise();
+	*** newSucceededFuture();
+	*** pipeline();
 	*** read();
 	*** remoteAddress();
 	*** unsafe();
+	*** write(java.lang.Object);
+	*** writeAndFlush(java.lang.Object);
 }
 
 -keep class io.netty.channel.Channel$Unsafe {
@@ -11777,6 +11087,7 @@
 	*** getWriteBufferHighWaterMark();
 	*** getWriteBufferLowWaterMark();
 	*** getWriteSpinCount();
+	*** isAutoClose();
 	*** isAutoRead();
 	*** setAutoRead(boolean);
 	*** setOption(io.netty.channel.ChannelOption,java.lang.Object);
@@ -11830,7 +11141,14 @@
 }
 
 -keep class io.netty.channel.ChannelHandlerContext {
+	*** alloc();
+	*** bind(java.net.SocketAddress,io.netty.channel.ChannelPromise);
 	*** channel();
+	*** close();
+	*** close(io.netty.channel.ChannelPromise);
+	*** connect(java.net.SocketAddress,java.net.SocketAddress,io.netty.channel.ChannelPromise);
+	*** deregister(io.netty.channel.ChannelPromise);
+	*** disconnect(io.netty.channel.ChannelPromise);
 	*** executor();
 	*** fireChannelActive();
 	*** fireChannelInactive();
@@ -11845,6 +11163,11 @@
 	*** handler();
 	*** isRemoved();
 	*** name();
+	*** newPromise();
+	*** pipeline();
+	*** read();
+	*** write(java.lang.Object);
+	*** write(java.lang.Object,io.netty.channel.ChannelPromise);
 }
 
 -keep class io.netty.channel.ChannelInboundHandler {
@@ -11884,14 +11207,17 @@
 	*** AIO_WRITE_TIMEOUT;
 	*** ALLOCATOR;
 	*** ALLOW_HALF_CLOSURE;
+	*** AUTO_CLOSE;
 	*** AUTO_READ;
 	*** CONNECT_TIMEOUT_MILLIS;
+	*** DATAGRAM_CHANNEL_ACTIVE_ON_REGISTRATION;
 	*** IP_MULTICAST_ADDR;
 	*** IP_MULTICAST_IF;
 	*** IP_MULTICAST_LOOP_DISABLED;
 	*** IP_MULTICAST_TTL;
 	*** IP_TOS;
 	*** MAX_MESSAGES_PER_READ;
+	*** MESSAGE_SIZE_ESTIMATOR;
 	*** RCVBUF_ALLOCATOR;
 	*** SO_BACKLOG;
 	*** SO_BROADCAST;
@@ -11907,20 +11233,17 @@
 	*** WRITE_SPIN_COUNT;
 	*** names;
 	*** validate(java.lang.Object);
+	*** valueOf(java.lang.String);
 }
 
 -keep class io.netty.channel.ChannelOutboundBuffer {
 	*** RECYCLER;
 	*** TOTAL_PENDING_SIZE_UPDATER;
 	*** WRITABLE_UPDATER;
+	*** buffer;
 	*** channel;
 	*** flushed;
-	*** flushedPendingSizes;
-	*** flushedProgresses;
-	*** flushedPromises;
-	*** flushedTotals;
 	*** handle;
-	*** head;
 	*** inFail;
 	*** logger;
 	*** nioBufferCount;
@@ -11929,22 +11252,19 @@
 	*** tail;
 	*** totalPendingSize;
 	*** unflushed;
-	*** unflushedCount;
-	*** unflushedPendingSizes;
-	*** unflushedPromises;
-	*** unflushedTotals;
 	*** writable;
 	io.netty.channel.ChannelOutboundBuffer(io.netty.util.Recycler$Handle);
-	io.netty.channel.ChannelOutboundBuffer(io.netty.util.Recycler$Handle,int);
+	*** addCapacity();
 	*** addFlush();
 	*** addMessage(java.lang.Object,io.netty.channel.ChannelPromise);
 	*** close(java.nio.channels.ClosedChannelException);
 	*** current();
+	*** current(java.lang.Object);
 	*** decrementPendingOutboundBytes(int);
-	*** doubleFlushedCapacity();
-	*** doubleNioBufferArray(java.nio.ByteBuffer[],int);
-	*** doubleUnflushedCapacity();
+	*** expandNioBufferArray(java.nio.ByteBuffer[],int,int);
 	*** failFlushed(java.lang.Throwable);
+	*** fillBufferArray(java.nio.ByteBuffer[],java.nio.ByteBuffer[],int);
+	*** fillBufferArrayNonDirect(io.netty.channel.ChannelOutboundBuffer$Entry,io.netty.buffer.ByteBuf,int,int,io.netty.buffer.ByteBufAllocator,java.nio.ByteBuffer[],int);
 	*** getWritable();
 	*** incrementPendingOutboundBytes(int);
 	*** isEmpty();
@@ -11953,6 +11273,7 @@
 	*** nioBufferSize();
 	*** nioBuffers();
 	*** progress(long);
+	*** recycle();
 	*** remove();
 	*** remove(java.lang.Throwable);
 	*** safeFail(io.netty.channel.ChannelPromise,java.lang.Throwable);
@@ -11963,6 +11284,19 @@
 
 -keep class io.netty.channel.ChannelOutboundBuffer$1 {
 	*** newObject(io.netty.util.Recycler$Handle);
+}
+
+-keep class io.netty.channel.ChannelOutboundBuffer$Entry {
+	*** buf;
+	*** buffers;
+	*** count;
+	*** msg;
+	*** pendingSize;
+	*** progress;
+	*** promise;
+	*** total;
+	io.netty.channel.ChannelOutboundBuffer$Entry();
+	*** clear();
 }
 
 -keep class io.netty.channel.ChannelOutboundHandler {
@@ -11981,27 +11315,11 @@
 	*** write(io.netty.channel.ChannelHandlerContext,java.lang.Object,io.netty.channel.ChannelPromise);
 }
 
--keep class io.netty.channel.ChannelOutboundInvoker {
-	*** bind(java.net.SocketAddress,io.netty.channel.ChannelPromise);
-	*** close();
-	*** close(io.netty.channel.ChannelPromise);
-	*** connect(java.net.SocketAddress,io.netty.channel.ChannelPromise);
-	*** connect(java.net.SocketAddress,java.net.SocketAddress,io.netty.channel.ChannelPromise);
-	*** deregister();
-	*** deregister(io.netty.channel.ChannelPromise);
-	*** disconnect();
-	*** disconnect(io.netty.channel.ChannelPromise);
-	*** read();
-	*** write(java.lang.Object);
-	*** write(java.lang.Object,io.netty.channel.ChannelPromise);
-	*** writeAndFlush(java.lang.Object);
-	*** writeAndFlush(java.lang.Object,io.netty.channel.ChannelPromise);
-}
-
 -keep class io.netty.channel.ChannelPipeline {
 	*** addFirst(java.lang.String,io.netty.channel.ChannelHandler);
 	*** addLast(io.netty.channel.ChannelHandler[]);
 	*** addLast(java.lang.String,io.netty.channel.ChannelHandler);
+	*** context(io.netty.channel.ChannelHandler);
 	*** fireChannelActive();
 	*** fireChannelRead(java.lang.Object);
 	*** fireChannelReadComplete();
@@ -12019,14 +11337,6 @@
 	*** setFailure(java.lang.Throwable);
 	*** setSuccess();
 	*** trySuccess();
-}
-
--keep class io.netty.channel.ChannelPropertyAccess {
-	*** alloc();
-	*** newFailedFuture(java.lang.Throwable);
-	*** newPromise();
-	*** newSucceededFuture();
-	*** pipeline();
 }
 
 -keep class io.netty.channel.CompleteChannelFuture {
@@ -12049,6 +11359,7 @@
 	*** DEFAULT_MSG_SIZE_ESTIMATOR;
 	*** DEFAULT_RCVBUF_ALLOCATOR;
 	*** allocator;
+	*** autoClose;
 	*** autoRead;
 	*** channel;
 	*** connectTimeoutMillis;
@@ -12062,6 +11373,7 @@
 	*** getAllocator();
 	*** getConnectTimeoutMillis();
 	*** getMaxMessagesPerRead();
+	*** getMessageSizeEstimator();
 	*** getOption(io.netty.channel.ChannelOption);
 	*** getOptions();
 	*** getOptions(java.util.Map,io.netty.channel.ChannelOption[]);
@@ -12069,8 +11381,10 @@
 	*** getWriteBufferHighWaterMark();
 	*** getWriteBufferLowWaterMark();
 	*** getWriteSpinCount();
+	*** isAutoClose();
 	*** isAutoRead();
 	*** setAllocator(io.netty.buffer.ByteBufAllocator);
+	*** setAutoClose(boolean);
 	*** setAutoRead(boolean);
 	*** setConnectTimeoutMillis(int);
 	*** setMaxMessagesPerRead(int);
@@ -12087,17 +11401,19 @@
 	*** channel;
 	*** executor;
 	*** handler;
+	*** inbound;
 	*** invokeChannelReadCompleteTask;
 	*** invokeChannelWritableStateChangedTask;
 	*** invokeFlushTask;
 	*** invokeReadTask;
 	*** name;
 	*** next;
+	*** outbound;
 	*** pipeline;
 	*** prev;
 	*** removed;
 	*** succeededFuture;
-	*** access$1300(io.netty.channel.DefaultChannelHandlerContext,io.netty.channel.ChannelPromise);
+	*** access$1200(io.netty.channel.DefaultChannelHandlerContext,io.netty.channel.ChannelPromise);
 	*** access$1500(io.netty.channel.DefaultChannelHandlerContext);
 	*** access$1600(io.netty.channel.DefaultChannelHandlerContext);
 	*** access$1900(io.netty.channel.DefaultChannelHandlerContext);
@@ -12152,12 +11468,13 @@
 	*** notifyHandlerException(java.lang.Throwable);
 	*** notifyOutboundHandlerException(java.lang.Throwable,io.netty.channel.ChannelPromise);
 	*** read();
+	*** safeExecute(io.netty.util.concurrent.EventExecutor,java.lang.Runnable,io.netty.channel.ChannelPromise,java.lang.Object);
 	*** setRemoved();
-	*** submitWriteTask(io.netty.channel.DefaultChannelHandlerContext,io.netty.util.concurrent.EventExecutor,java.lang.Object,boolean,io.netty.channel.ChannelPromise);
 	*** teardown();
 	*** teardown0();
 	*** validatePromise(io.netty.channel.ChannelPromise,boolean);
 	*** write(java.lang.Object);
+	*** write(java.lang.Object,boolean,io.netty.channel.ChannelPromise);
 	*** write(java.lang.Object,io.netty.channel.ChannelPromise);
 	*** writeAndFlush(java.lang.Object);
 	*** writeAndFlush(java.lang.Object,io.netty.channel.ChannelPromise);
@@ -12233,13 +11550,9 @@
 	*** disconnect(io.netty.channel.ChannelPromise);
 	*** fireChannelActive();
 	*** fireChannelInactive();
-	*** fireChannelRead(java.lang.Object);
-	*** fireChannelReadComplete();
 	*** fireChannelRegistered();
 	*** fireChannelUnregistered();
-	*** fireChannelWritabilityChanged();
 	*** fireExceptionCaught(java.lang.Throwable);
-	*** fireUserEventTriggered(java.lang.Object);
 	*** firstContext();
 	*** flush();
 	*** generateName(io.netty.channel.ChannelHandler);
@@ -12323,7 +11636,7 @@
 }
 
 -keep class io.netty.channel.RecvByteBufAllocator$Handle {
-	*** allocate(io.netty.buffer.ByteBufAllocator);
+	*** guess();
 	*** record(int);
 }
 
@@ -12415,12 +11728,13 @@
 	*** deregister(io.netty.channel.group.ChannelMatcher);
 	*** disconnect(io.netty.channel.group.ChannelMatcher);
 	*** flush(io.netty.channel.group.ChannelMatcher);
-	*** flushAndWrite(java.lang.Object,io.netty.channel.group.ChannelMatcher);
 	*** name();
 	*** remove(java.lang.Object);
 	*** safeDuplicate(java.lang.Object);
 	*** size();
 	*** write(java.lang.Object,io.netty.channel.group.ChannelMatcher);
+	*** writeAndFlush(java.lang.Object);
+	*** writeAndFlush(java.lang.Object,io.netty.channel.group.ChannelMatcher);
 }
 
 -keep class io.netty.channel.group.DefaultChannelGroup$1 {
@@ -12464,21 +11778,25 @@
 }
 
 -keep class io.netty.channel.nio.AbstractNioByteChannel {
+	*** flushTask;
 	io.netty.channel.nio.AbstractNioByteChannel(io.netty.channel.Channel,java.nio.channels.SelectableChannel);
 	*** clearOpWrite();
 	*** doReadBytes(io.netty.buffer.ByteBuf);
 	*** doWrite(io.netty.channel.ChannelOutboundBuffer);
 	*** doWriteBytes(io.netty.buffer.ByteBuf);
 	*** doWriteFileRegion(io.netty.channel.FileRegion);
+	*** incompleteWrite(boolean);
 	*** newUnsafe();
 	*** setOpWrite();
 }
 
 -keep class io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe {
-	*** $assertionsDisabled;
 	*** allocHandle;
 	*** this$0;
 	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe(io.netty.channel.nio.AbstractNioByteChannel);
+	*** closeOnRead(io.netty.channel.ChannelPipeline);
+	*** handleReadException(io.netty.channel.ChannelPipeline,io.netty.buffer.ByteBuf,java.lang.Throwable,boolean);
+	*** removeReadOp();
 }
 
 -keep class io.netty.channel.nio.AbstractNioChannel {
@@ -12491,7 +11809,6 @@
 	*** readInterestOp;
 	*** requestedRemoteAddress;
 	*** selectionKey;
-	*** writableTasks;
 	io.netty.channel.nio.AbstractNioChannel(io.netty.channel.Channel,java.nio.channels.SelectableChannel,int);
 	*** access$000(io.netty.channel.nio.AbstractNioChannel);
 	*** access$002(io.netty.channel.nio.AbstractNioChannel,io.netty.channel.ChannelPromise);
@@ -12499,11 +11816,9 @@
 	*** access$102(io.netty.channel.nio.AbstractNioChannel,java.net.SocketAddress);
 	*** access$200(io.netty.channel.nio.AbstractNioChannel);
 	*** access$202(io.netty.channel.nio.AbstractNioChannel,java.util.concurrent.ScheduledFuture);
-	*** access$300(io.netty.channel.nio.AbstractNioChannel);
 	*** doConnect(java.net.SocketAddress,java.net.SocketAddress);
 	*** doFinishConnect();
 	*** eventLoop();
-	*** isFlushPending();
 	*** isInputShutdown();
 	*** isOpen();
 	*** javaChannel();
@@ -12516,6 +11831,8 @@
 	*** $assertionsDisabled;
 	*** this$0;
 	io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe(io.netty.channel.nio.AbstractNioChannel);
+	*** fulfillConnectPromise(io.netty.channel.ChannelPromise,boolean);
+	*** isFlushPending();
 }
 
 -keep class io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe$1 {
@@ -12537,7 +11854,7 @@
 -keep class io.netty.channel.nio.AbstractNioMessageChannel {
 	io.netty.channel.nio.AbstractNioMessageChannel(io.netty.channel.Channel,java.nio.channels.SelectableChannel,int);
 	*** doReadMessages(java.util.List);
-	*** doWriteMessage(java.lang.Object);
+	*** doWriteMessage(java.lang.Object,io.netty.channel.ChannelOutboundBuffer);
 	*** newUnsafe();
 }
 
@@ -12546,6 +11863,7 @@
 	*** readBuf;
 	*** this$0;
 	io.netty.channel.nio.AbstractNioMessageChannel$NioMessageUnsafe(io.netty.channel.nio.AbstractNioMessageChannel);
+	*** removeReadOp();
 }
 
 -keep class io.netty.channel.nio.NioEventLoop {
@@ -12568,13 +11886,11 @@
 	*** processSelectedKey(java.nio.channels.SelectionKey,io.netty.channel.nio.NioTask);
 	*** processSelectedKeysOptimized(java.nio.channels.SelectionKey[]);
 	*** processSelectedKeysPlain(java.util.Set);
-	*** processWritable(io.netty.channel.nio.AbstractNioChannel);
 	*** rebuildSelector();
 	*** select();
 	*** selectAgain();
 	*** selectNow();
 	*** setIoRatio(int);
-	*** unregisterWritableTasks(io.netty.channel.nio.AbstractNioChannel);
 }
 
 -keep class io.netty.channel.nio.NioEventLoopGroup {
@@ -12638,6 +11954,7 @@
 	*** isTcpNoDelay();
 	*** setAllocator(io.netty.buffer.ByteBufAllocator);
 	*** setAllowHalfClosure(boolean);
+	*** setAutoClose(boolean);
 	*** setAutoRead(boolean);
 	*** setConnectTimeoutMillis(int);
 	*** setKeepAlive(boolean);
@@ -12673,7 +11990,6 @@
 -keep class io.netty.channel.socket.nio.NioSocketChannel {
 	*** METADATA;
 	*** config;
-	*** logger;
 	io.netty.channel.socket.nio.NioSocketChannel(io.netty.channel.Channel,java.nio.channels.SocketChannel);
 	io.netty.channel.socket.nio.NioSocketChannel(java.nio.channels.SocketChannel);
 	*** config();
@@ -12722,13 +12038,16 @@
 -keep class io.netty.handler.codec.ByteToMessageDecoder {
 	*** cumulation;
 	*** decodeWasNull;
+	*** first;
 	*** singleDecode;
 	io.netty.handler.codec.ByteToMessageDecoder();
 	*** actualReadableBytes();
 	*** callDecode(io.netty.channel.ChannelHandlerContext,io.netty.buffer.ByteBuf,java.util.List);
 	*** channelInactive(io.netty.channel.ChannelHandlerContext);
+	*** channelReadComplete(io.netty.channel.ChannelHandlerContext);
 	*** decode(io.netty.channel.ChannelHandlerContext,io.netty.buffer.ByteBuf,java.util.List);
 	*** decodeLast(io.netty.channel.ChannelHandlerContext,io.netty.buffer.ByteBuf,java.util.List);
+	*** expandCumulation(io.netty.channel.ChannelHandlerContext,int);
 	*** handlerRemoved0(io.netty.channel.ChannelHandlerContext);
 	*** internalBuffer();
 	*** isSingleDecode();
@@ -12804,7 +12123,9 @@
 -keep class io.netty.handler.codec.http.DefaultFullHttpRequest {
 	*** content;
 	*** trailingHeader;
+	*** validateHeaders;
 	io.netty.handler.codec.http.DefaultFullHttpRequest(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpMethod,java.lang.String,io.netty.buffer.ByteBuf);
+	io.netty.handler.codec.http.DefaultFullHttpRequest(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpMethod,java.lang.String,io.netty.buffer.ByteBuf,boolean);
 	*** content();
 	*** copy();
 	*** duplicate();
@@ -12819,7 +12140,9 @@
 -keep class io.netty.handler.codec.http.DefaultFullHttpResponse {
 	*** content;
 	*** trailingHeaders;
+	*** validateHeaders;
 	io.netty.handler.codec.http.DefaultFullHttpResponse(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpResponseStatus,io.netty.buffer.ByteBuf);
+	io.netty.handler.codec.http.DefaultFullHttpResponse(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpResponseStatus,io.netty.buffer.ByteBuf,boolean);
 	*** content();
 	*** copy();
 	*** duplicate();
@@ -12844,16 +12167,24 @@
 -keep class io.netty.handler.codec.http.DefaultHttpHeaders {
 	*** entries;
 	*** head;
-	io.netty.handler.codec.http.DefaultHttpHeaders();
-	*** add0(int,int,java.lang.String,java.lang.String);
-	*** entries();
-	*** eq(java.lang.String,java.lang.String);
+	*** validate;
+	io.netty.handler.codec.http.DefaultHttpHeaders(boolean);
+	*** add(java.lang.CharSequence,java.lang.Iterable);
+	*** add(java.lang.CharSequence,java.lang.Object);
+	*** add0(int,int,java.lang.CharSequence,java.lang.CharSequence);
+	*** clear();
+	*** contains(java.lang.CharSequence,java.lang.CharSequence,boolean);
+	*** encode(io.netty.buffer.ByteBuf);
+	*** get(java.lang.CharSequence);
 	*** get(java.lang.String);
-	*** hash(java.lang.String);
+	*** getAll(java.lang.CharSequence);
 	*** index(int);
-	*** remove0(int,int,java.lang.String);
-	*** toString(java.lang.Object);
-	*** validateHeaderName0(java.lang.String);
+	*** remove(java.lang.CharSequence);
+	*** remove0(int,int,java.lang.CharSequence);
+	*** set(java.lang.CharSequence,java.lang.Iterable);
+	*** set(java.lang.CharSequence,java.lang.Object);
+	*** toCharSequence(java.lang.Object);
+	*** validateHeaderName0(java.lang.CharSequence);
 }
 
 -keep class io.netty.handler.codec.http.DefaultHttpHeaders$HeaderEntry {
@@ -12862,8 +12193,10 @@
 	*** hash;
 	*** key;
 	*** next;
+	*** this$0;
 	*** value;
 	*** addBefore(io.netty.handler.codec.http.DefaultHttpHeaders$HeaderEntry);
+	*** encode(io.netty.buffer.ByteBuf);
 	*** getKey();
 	*** getValue();
 	*** remove();
@@ -12873,7 +12206,7 @@
 -keep class io.netty.handler.codec.http.DefaultHttpMessage {
 	*** headers;
 	*** version;
-	io.netty.handler.codec.http.DefaultHttpMessage(io.netty.handler.codec.http.HttpVersion);
+	io.netty.handler.codec.http.DefaultHttpMessage(io.netty.handler.codec.http.HttpVersion,boolean);
 	*** appendHeaders(java.lang.StringBuilder);
 	*** getProtocolVersion();
 	*** headers();
@@ -12889,7 +12222,7 @@
 -keep class io.netty.handler.codec.http.DefaultHttpRequest {
 	*** method;
 	*** uri;
-	io.netty.handler.codec.http.DefaultHttpRequest(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpMethod,java.lang.String);
+	io.netty.handler.codec.http.DefaultHttpRequest(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpMethod,java.lang.String,boolean);
 	*** getMethod();
 	*** getUri();
 	*** setMethod(io.netty.handler.codec.http.HttpMethod);
@@ -12899,7 +12232,7 @@
 
 -keep class io.netty.handler.codec.http.DefaultHttpResponse {
 	*** status;
-	io.netty.handler.codec.http.DefaultHttpResponse(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpResponseStatus);
+	io.netty.handler.codec.http.DefaultHttpResponse(io.netty.handler.codec.http.HttpVersion,io.netty.handler.codec.http.HttpResponseStatus,boolean);
 	*** getStatus();
 	*** setProtocolVersion(io.netty.handler.codec.http.HttpVersion);
 	*** setStatus(io.netty.handler.codec.http.HttpResponseStatus);
@@ -12907,7 +12240,9 @@
 
 -keep class io.netty.handler.codec.http.DefaultLastHttpContent {
 	*** trailingHeaders;
+	*** validateHeaders;
 	io.netty.handler.codec.http.DefaultLastHttpContent(io.netty.buffer.ByteBuf);
+	io.netty.handler.codec.http.DefaultLastHttpContent(io.netty.buffer.ByteBuf,boolean);
 	*** appendHeaders(java.lang.StringBuilder);
 	*** copy();
 	*** duplicate();
@@ -12916,43 +12251,83 @@
 	*** trailingHeaders();
 }
 
--keep class io.netty.handler.codec.http.DefaultLastHttpContent$1 {
-	*** this$0;
-}
-
 -keep class io.netty.handler.codec.http.HttpHeaderDateFormat {
 	*** get();
 }
 
+-keep class io.netty.handler.codec.http.HttpHeaderEntity {
+	*** bytes;
+	*** hash;
+	*** name;
+	*** encode(io.netty.buffer.ByteBuf);
+	*** hash();
+}
+
 -keep class io.netty.handler.codec.http.HttpHeaders {
+	*** CHUNKED_ENTITY;
+	*** CLOSE_ENTITY;
+	*** CONNECTION_ENTITY;
+	*** CONTENT_LENGTH_ENTITY;
+	*** CONTINUE_ENTITY;
+	*** CRLF;
+	*** DATE_ENTITY;
 	*** EMPTY_HEADERS;
+	*** EXPECT_ENTITY;
+	*** HEADER_SEPERATOR;
+	*** HOST_ENTITY;
+	*** KEEP_ALIVE_ENTITY;
+	*** SEC_WEBSOCKET_KEY1_ENTITY;
+	*** SEC_WEBSOCKET_KEY2_ENTITY;
+	*** SEC_WEBSOCKET_LOCATION_ENTITY;
+	*** SEC_WEBSOCKET_ORIGIN_ENTITY;
+	*** TRANSFER_ENCODING_ENTITY;
 	io.netty.handler.codec.http.HttpHeaders();
+	*** add(io.netty.handler.codec.http.HttpHeaders);
+	*** add(java.lang.CharSequence,java.lang.Object);
+	*** add(java.lang.String,java.lang.Iterable);
 	*** add(java.lang.String,java.lang.Object);
-	*** addHeader(io.netty.handler.codec.http.HttpMessage,java.lang.String,java.lang.Object);
+	*** addHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence,java.lang.Object);
 	*** clear();
+	*** contains(java.lang.CharSequence);
+	*** contains(java.lang.CharSequence,java.lang.CharSequence,boolean);
 	*** contains(java.lang.String);
+	*** contains(java.lang.String,java.lang.String,boolean);
+	*** encode(io.netty.handler.codec.http.HttpHeaders,io.netty.buffer.ByteBuf);
+	*** encode(java.lang.CharSequence,java.lang.CharSequence,io.netty.buffer.ByteBuf);
+	*** encodeAscii(java.lang.CharSequence,io.netty.buffer.ByteBuf);
+	*** encodeAscii0(java.lang.CharSequence,io.netty.buffer.ByteBuf);
+	*** equalsIgnoreCase(java.lang.CharSequence,java.lang.CharSequence);
+	*** get(java.lang.CharSequence);
 	*** get(java.lang.String);
+	*** getAll(java.lang.CharSequence);
 	*** getAll(java.lang.String);
 	*** getContentLength(io.netty.handler.codec.http.HttpMessage,long);
-	*** getDateHeader(io.netty.handler.codec.http.HttpMessage,java.lang.String);
-	*** getDateHeader(io.netty.handler.codec.http.HttpMessage,java.lang.String,java.util.Date);
-	*** getHeader(io.netty.handler.codec.http.HttpMessage,java.lang.String);
-	*** getHeader(io.netty.handler.codec.http.HttpMessage,java.lang.String,java.lang.String);
+	*** getDateHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence);
+	*** getDateHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence,java.util.Date);
+	*** getHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence);
+	*** getHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence,java.lang.String);
+	*** getIntHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence);
+	*** getIntHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence,int);
 	*** getWebSocketContentLength(io.netty.handler.codec.http.HttpMessage);
-	*** is100ContinueExpected(io.netty.handler.codec.http.HttpMessage);
+	*** hash(java.lang.CharSequence);
 	*** isEmpty();
 	*** isKeepAlive(io.netty.handler.codec.http.HttpMessage);
 	*** isTransferEncodingChunked(io.netty.handler.codec.http.HttpMessage);
 	*** names();
+	*** newEntity(java.lang.String);
+	*** remove(java.lang.CharSequence);
 	*** remove(java.lang.String);
-	*** removeHeader(io.netty.handler.codec.http.HttpMessage,java.lang.String);
+	*** removeHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence);
 	*** removeTransferEncodingChunked(io.netty.handler.codec.http.HttpMessage);
 	*** set(io.netty.handler.codec.http.HttpHeaders);
+	*** set(java.lang.CharSequence,java.lang.Iterable);
+	*** set(java.lang.CharSequence,java.lang.Object);
 	*** set(java.lang.String,java.lang.Iterable);
 	*** set(java.lang.String,java.lang.Object);
 	*** set100ContinueExpected(io.netty.handler.codec.http.HttpMessage,boolean);
-	*** validateHeaderName(java.lang.String);
-	*** validateHeaderValue(java.lang.String);
+	*** setDateHeader(io.netty.handler.codec.http.HttpMessage,java.lang.CharSequence,java.util.Date);
+	*** validateHeaderName(java.lang.CharSequence);
+	*** validateHeaderValue(java.lang.CharSequence);
 }
 
 -keep class io.netty.handler.codec.http.HttpHeaders$1 {
@@ -12974,9 +12349,12 @@
 	*** POST;
 	*** PUT;
 	*** TRACE;
+	*** bytes;
 	*** methodMap;
 	*** name;
+	io.netty.handler.codec.http.HttpMethod(java.lang.String,boolean);
 	*** compareTo(io.netty.handler.codec.http.HttpMethod);
+	*** encode(io.netty.buffer.ByteBuf);
 	*** equals(java.lang.Object);
 	*** name();
 	*** toString();
@@ -12989,18 +12367,20 @@
 
 -keep class io.netty.handler.codec.http.HttpObjectDecoder {
 	*** $assertionsDisabled;
-	*** BUILDERS;
 	*** chunkSize;
 	*** chunkedSupported;
-	*** content;
-	*** contentRead;
+	*** contentLength;
 	*** headerSize;
 	*** maxChunkSize;
 	*** maxHeaderSize;
 	*** maxInitialLineLength;
 	*** message;
+	*** sb;
+	*** validateHeaders;
 	io.netty.handler.codec.http.HttpObjectDecoder();
 	io.netty.handler.codec.http.HttpObjectDecoder(int,int,int,boolean);
+	io.netty.handler.codec.http.HttpObjectDecoder(int,int,int,boolean,boolean);
+	*** contentLength();
 	*** createInvalidMessage();
 	*** createMessage(java.lang.String[]);
 	*** decode(io.netty.channel.ChannelHandlerContext,io.netty.buffer.ByteBuf,java.util.List);
@@ -13012,24 +12392,17 @@
 	*** invalidMessage(java.lang.Exception);
 	*** isContentAlwaysEmpty(io.netty.handler.codec.http.HttpMessage);
 	*** isDecodingRequest();
-	*** readFixedLengthContent(io.netty.buffer.ByteBuf,java.util.List);
 	*** readHeader(io.netty.buffer.ByteBuf);
 	*** readHeaders(io.netty.buffer.ByteBuf);
 	*** readLine(io.netty.buffer.ByteBuf,int);
 	*** readTrailingHeaders(io.netty.buffer.ByteBuf);
 	*** reset();
-	*** reset(java.util.List);
 	*** skipControlCharacters(io.netty.buffer.ByteBuf);
-	*** splitHeader(java.lang.StringBuilder);
-	*** splitInitialLine(java.lang.StringBuilder);
+	*** splitHeader(io.netty.util.internal.AppendableCharSequence);
+	*** splitInitialLine(io.netty.util.internal.AppendableCharSequence);
 }
 
 -keep class io.netty.handler.codec.http.HttpObjectDecoder$1 {
-	*** get();
-	*** initialValue();
-}
-
--keep class io.netty.handler.codec.http.HttpObjectDecoder$2 {
 	*** $SwitchMap$io$netty$handler$codec$http$HttpObjectDecoder$State;
 }
 
@@ -13037,33 +12410,30 @@
 	*** $VALUES;
 	*** BAD_MESSAGE;
 	*** READ_CHUNKED_CONTENT;
-	*** READ_CHUNKED_CONTENT_AS_CHUNKS;
 	*** READ_CHUNK_DELIMITER;
 	*** READ_CHUNK_FOOTER;
 	*** READ_CHUNK_SIZE;
 	*** READ_FIXED_LENGTH_CONTENT;
-	*** READ_FIXED_LENGTH_CONTENT_AS_CHUNKS;
 	*** READ_HEADER;
 	*** READ_INITIAL;
 	*** READ_VARIABLE_LENGTH_CONTENT;
-	*** READ_VARIABLE_LENGTH_CONTENT_AS_CHUNKS;
 	*** SKIP_CONTROL_CHARS;
+	*** UPGRADED;
 	*** values();
 }
 
 -keep class io.netty.handler.codec.http.HttpObjectEncoder {
 	*** CRLF;
-	*** HEADER_SEPARATOR;
+	*** CRLF_BUF;
 	*** ZERO_CRLF;
 	*** ZERO_CRLF_CRLF;
+	*** ZERO_CRLF_CRLF_BUF;
 	*** state;
 	io.netty.handler.codec.http.HttpObjectEncoder();
 	*** acceptOutboundMessage(java.lang.Object);
 	*** contentLength(java.lang.Object);
 	*** encodeAndRetain(java.lang.Object);
-	*** encodeAscii(java.lang.String,io.netty.buffer.ByteBuf);
-	*** encodeHeader(io.netty.buffer.ByteBuf,java.lang.String,java.lang.String);
-	*** encodeHeaders(io.netty.buffer.ByteBuf,io.netty.handler.codec.http.HttpHeaders);
+	*** encodeChunkedContent(io.netty.channel.ChannelHandlerContext,java.lang.Object,int,java.util.List);
 	*** encodeInitialLine(io.netty.buffer.ByteBuf,io.netty.handler.codec.http.HttpMessage);
 }
 
@@ -13148,10 +12518,13 @@
 	*** UPGRADE_REQUIRED;
 	*** USE_PROXY;
 	*** VARIANT_ALSO_NEGOTIATES;
+	*** bytes;
 	*** code;
 	*** reasonPhrase;
+	io.netty.handler.codec.http.HttpResponseStatus(int,java.lang.String,boolean);
 	*** code();
 	*** compareTo(io.netty.handler.codec.http.HttpResponseStatus);
+	*** encode(io.netty.buffer.ByteBuf);
 	*** reasonPhrase();
 	*** toString();
 }
@@ -13160,18 +12533,20 @@
 	*** HTTP_1_0;
 	*** HTTP_1_1;
 	*** VERSION_PATTERN;
+	*** bytes;
 	*** keepAliveDefault;
 	*** majorVersion;
 	*** minorVersion;
 	*** protocolName;
 	*** text;
+	io.netty.handler.codec.http.HttpVersion(java.lang.String,int,int,boolean,boolean);
 	*** compareTo(io.netty.handler.codec.http.HttpVersion);
+	*** encode(io.netty.buffer.ByteBuf);
 	*** isKeepAliveDefault();
 	*** majorVersion();
 	*** minorVersion();
 	*** protocolName();
 	*** text();
-	*** toString();
 	*** valueOf(java.lang.String);
 	*** version0(java.lang.String);
 }
@@ -13203,6 +12578,8 @@
 	*** handshakePromise;
 	*** handshakeTimeoutMillis;
 	*** logger;
+	*** maxPacketBufferSize;
+	*** needsFlush;
 	*** packetLength;
 	*** pendingUnencryptedWrites;
 	*** sentFirstMessage;
@@ -13217,11 +12594,10 @@
 	*** access$600(io.netty.handler.ssl.SslHandler);
 	*** close(io.netty.channel.ChannelPromise);
 	*** closeOutboundAndChannel(io.netty.channel.ChannelHandlerContext,io.netty.channel.ChannelPromise,boolean);
+	*** finishWrap(io.netty.channel.ChannelHandlerContext,io.netty.buffer.ByteBuf,io.netty.channel.ChannelPromise,boolean);
 	*** flush(io.netty.channel.ChannelHandlerContext);
-	*** flush0(io.netty.channel.ChannelHandlerContext);
-	*** flushNonAppData0(io.netty.channel.ChannelHandlerContext,boolean);
-	*** getEncryptedPacketLength(io.netty.buffer.ByteBuf);
-	*** handshake0();
+	*** getEncryptedPacketLength(io.netty.buffer.ByteBuf,int);
+	*** handshake();
 	*** handshakeFuture();
 	*** ignoreException(java.lang.Throwable);
 	*** notifyHandshakeFailure(java.lang.Throwable);
@@ -13234,7 +12610,9 @@
 	*** unwrap(io.netty.channel.ChannelHandlerContext);
 	*** unwrap(io.netty.channel.ChannelHandlerContext,java.nio.ByteBuffer,java.util.List);
 	*** unwrap(javax.net.ssl.SSLEngine,java.nio.ByteBuffer,io.netty.buffer.ByteBuf);
+	*** wrap(io.netty.channel.ChannelHandlerContext,boolean);
 	*** wrap(javax.net.ssl.SSLEngine,io.netty.buffer.ByteBuf,io.netty.buffer.ByteBuf);
+	*** wrapNonAppData(io.netty.channel.ChannelHandlerContext,boolean);
 	*** write(io.netty.channel.ChannelHandlerContext,java.lang.Object,io.netty.channel.ChannelPromise);
 }
 
@@ -13245,6 +12623,11 @@
 -keep class io.netty.handler.ssl.SslHandler$3 {
 	*** this$0;
 	*** val$timeoutFuture;
+}
+
+-keep class io.netty.handler.ssl.SslHandler$4 {
+	*** this$0;
+	*** val$ctx;
 }
 
 -keep class io.netty.handler.ssl.SslHandler$5 {
@@ -13277,7 +12660,6 @@
 }
 
 -keep class io.netty.handler.timeout.IdleState {
-	*** $VALUES;
 	*** ALL_IDLE;
 	*** READER_IDLE;
 	*** WRITER_IDLE;
@@ -13344,6 +12726,8 @@
 	*** UTF_8;
 	*** decoders;
 	*** encoders;
+	*** getDecoder(java.nio.charset.Charset);
+	*** getEncoder(java.nio.charset.Charset);
 }
 
 -keep class io.netty.util.CharsetUtil$1 {
@@ -13404,8 +12788,15 @@
 }
 
 -keep class io.netty.util.ReferenceCountUtil {
+	*** logger;
+	*** pendingReleases;
 	*** release(java.lang.Object);
+	*** releaseLater(java.lang.Object,int);
 	*** retain(java.lang.Object);
+}
+
+-keep class io.netty.util.ReferenceCountUtil$ReleasingTask {
+	*** future;
 }
 
 -keep class io.netty.util.ReferenceCounted {
@@ -13418,13 +12809,15 @@
 
 -keep class io.netty.util.ResourceLeak {
 	*** close();
+	*** record();
 }
 
 -keep class io.netty.util.ResourceLeakDetector {
+	*** DEFAULT_LEVEL;
 	*** active;
-	*** disabled;
 	*** head;
 	*** leakCheckCnt;
+	*** level;
 	*** loggedTooManyActive;
 	*** logger;
 	*** maxActive;
@@ -13435,60 +12828,45 @@
 	*** tail;
 	io.netty.util.ResourceLeakDetector(java.lang.String);
 	io.netty.util.ResourceLeakDetector(java.lang.String,int,long);
-	*** access$300(io.netty.util.ResourceLeakDetector);
+	*** access$200(io.netty.util.ResourceLeakDetector);
+	*** access$300();
 	*** access$400(io.netty.util.ResourceLeakDetector);
 	*** access$508(io.netty.util.ResourceLeakDetector);
 	*** access$510(io.netty.util.ResourceLeakDetector);
+	*** getLevel();
+	*** newRecord();
 	*** open(java.lang.Object);
-	*** reportLeak();
+	*** reportLeak(io.netty.util.ResourceLeakDetector$Level);
+	*** setLevel(io.netty.util.ResourceLeakDetector$Level);
 }
 
 -keep class io.netty.util.ResourceLeakDetector$DefaultResourceLeak {
-	*** exception;
+	*** creationRecord;
 	*** freed;
+	*** lastRecords;
 	*** next;
 	*** prev;
 	*** this$0;
 	*** access$002(io.netty.util.ResourceLeakDetector$DefaultResourceLeak,io.netty.util.ResourceLeakDetector$DefaultResourceLeak);
 	*** access$102(io.netty.util.ResourceLeakDetector$DefaultResourceLeak,io.netty.util.ResourceLeakDetector$DefaultResourceLeak);
-	*** access$200(io.netty.util.ResourceLeakDetector$DefaultResourceLeak);
 	*** close();
+	*** toString();
 }
 
--keep class io.netty.util.ResourceLeakException {
-	*** cachedStackTrace;
+-keep class io.netty.util.ResourceLeakDetector$Level {
+	*** $VALUES;
+	*** ADVANCED;
+	*** DISABLED;
+	*** PARANOID;
+	*** SIMPLE;
+	*** values();
 }
 
 -keep class io.netty.util.Signal {
 	*** map;
 	*** uname;
 	*** expect(io.netty.util.Signal);
-}
-
--keep class io.netty.util.Timer$$EnhancerByMockitoWithCGLIB$$1ec383d4 {
-	*** CGLIB$BOUND;
-	*** CGLIB$CALLBACK_0;
-	*** CGLIB$CALLBACK_1;
-	*** CGLIB$STATIC_CALLBACKS;
-	*** CGLIB$THREAD_CALLBACKS;
-	*** CGLIB$clone$4$Method;
-	*** CGLIB$clone$4$Proxy;
-	*** CGLIB$emptyArgs;
-	*** CGLIB$equals$1$Method;
-	*** CGLIB$equals$1$Proxy;
-	*** CGLIB$finalize$0$Method;
-	*** CGLIB$finalize$0$Proxy;
-	*** CGLIB$hashCode$3$Method;
-	*** CGLIB$hashCode$3$Proxy;
-	*** CGLIB$newTimeout$6$Method;
-	*** CGLIB$newTimeout$6$Proxy;
-	*** CGLIB$stop$5$Method;
-	*** CGLIB$stop$5$Proxy;
-	*** CGLIB$toString$2$Method;
-	*** CGLIB$toString$2$Proxy;
-	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
-	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK4();
+	*** valueOf(java.lang.String);
 }
 
 -keep class io.netty.util.UniqueName {
@@ -13553,6 +12931,7 @@
 }
 
 -keep class io.netty.util.concurrent.DefaultPromise {
+	*** CANCELLATION_CAUSE_HOLDER;
 	*** LISTENER_STACK_DEPTH;
 	*** SUCCESS;
 	*** UNCANCELLABLE;
@@ -13855,6 +13234,21 @@
 	io.netty.util.concurrent.SingleThreadEventExecutor$PurgeTask(io.netty.util.concurrent.SingleThreadEventExecutor);
 }
 
+-keep class io.netty.util.internal.AppendableCharSequence {
+	*** chars;
+	*** pos;
+	*** append(char);
+	*** append(java.lang.CharSequence);
+	*** append(java.lang.CharSequence,int,int);
+	*** charAt(int);
+	*** expand(char[],int,int);
+	*** length();
+	*** reset();
+	*** subSequence(int,int);
+	*** substring(int,int);
+	*** toString();
+}
+
 -keep class io.netty.util.internal.ConcurrentSet {
 	*** map;
 	*** add(java.lang.Object);
@@ -13957,6 +13351,7 @@
 -keep class io.netty.util.internal.PlatformDependent0 {
 	*** ADDRESS_FIELD_OFFSET;
 	*** BIG_ENDIAN;
+	*** CLEANER_FIELD;
 	*** CLEANER_FIELD_OFFSET;
 	*** UNALIGNED;
 	*** UNSAFE;
@@ -13966,6 +13361,7 @@
 	*** copyMemory(long,long,long);
 	*** directBufferAddress(java.nio.ByteBuffer);
 	*** freeDirectBuffer(java.nio.ByteBuffer);
+	*** freeDirectBufferUnsafe(java.nio.ByteBuffer);
 	*** getByte(long);
 	*** getInt(java.lang.Object,long);
 	*** getInt(long);
@@ -13987,7 +13383,6 @@
 	*** handle;
 	io.netty.util.internal.RecyclableArrayList(io.netty.util.Recycler$Handle);
 	io.netty.util.internal.RecyclableArrayList(io.netty.util.Recycler$Handle,int);
-	*** add(java.lang.Object);
 	*** checkNullElements(java.util.Collection);
 	*** newInstance();
 	*** newInstance(int);
@@ -14014,20 +13409,30 @@
 	*** get(java.lang.String,java.lang.String);
 	*** getBoolean(java.lang.String,boolean);
 	*** getInt(java.lang.String,int);
+	*** getLong(java.lang.String,long);
 	*** log(java.lang.String);
 	*** log(java.lang.String,java.lang.Exception);
 }
 
 -keep class io.netty.util.internal.ThreadLocalRandom {
+	*** initialSeedUniquifier;
 	*** initialized;
 	*** localRandom;
+	*** logger;
 	*** rnd;
+	*** seedUniquifier;
 	*** current();
+	*** getInitialSeedUniquifier();
+	*** newSeed();
 	*** next(int);
 	*** nextLong(long);
 }
 
 -keep class io.netty.util.internal.ThreadLocalRandom$1 {
+	*** val$queue;
+}
+
+-keep class io.netty.util.internal.ThreadLocalRandom$2 {
 	*** initialValue();
 }
 
@@ -14305,189 +13710,6 @@
 -keep class io.netty.util.internal.logging.Slf4JLoggerFactory$1 {
 	*** this$0;
 	*** val$buf;
-}
-
--keep class it.unimi.dsi.fastutil.Arrays {
-	*** ensureFromTo(int,int,int);
-	*** ensureOffsetLength(int,int,int);
-}
-
--keep class it.unimi.dsi.fastutil.BidirectionalIterator {
-	*** hasPrevious();
-}
-
--keep class it.unimi.dsi.fastutil.ints.AbstractIntBidirectionalIterator {
-	it.unimi.dsi.fastutil.ints.AbstractIntBidirectionalIterator();
-	*** previous();
-	*** previousInt();
-}
-
--keep class it.unimi.dsi.fastutil.ints.AbstractIntCollection {
-	it.unimi.dsi.fastutil.ints.AbstractIntCollection();
-	*** add(int);
-	*** add(java.lang.Integer);
-	*** contains(int);
-	*** contains(java.lang.Object);
-	*** isEmpty();
-	*** iterator();
-	*** rem(int);
-	*** remove(java.lang.Object);
-	*** toIntArray(int[]);
-}
-
--keep class it.unimi.dsi.fastutil.ints.AbstractIntIterator {
-	it.unimi.dsi.fastutil.ints.AbstractIntIterator();
-	*** next();
-	*** nextInt();
-}
-
--keep class it.unimi.dsi.fastutil.ints.AbstractIntList {
-	it.unimi.dsi.fastutil.ints.AbstractIntList();
-	*** add(int);
-	*** add(int,int);
-	*** add(int,java.lang.Integer);
-	*** addAll(int,it.unimi.dsi.fastutil.ints.IntCollection);
-	*** addAll(int,it.unimi.dsi.fastutil.ints.IntList);
-	*** addAll(int,java.util.Collection);
-	*** addElements(int,int[],int,int);
-	*** compareTo(java.util.List);
-	*** ensureIndex(int);
-	*** get(int);
-	*** indexOf(int);
-	*** iterator();
-	*** lastIndexOf(int);
-	*** listIterator();
-	*** listIterator(int);
-	*** peek(int);
-	*** peekInt(int);
-	*** pop();
-	*** popInt();
-	*** push(int);
-	*** push(java.lang.Integer);
-	*** rem(int);
-	*** remove(int);
-	*** removeInt(int);
-	*** set(int,int);
-	*** set(int,java.lang.Integer);
-	*** subList(int,int);
-	*** top();
-	*** topInt();
-	*** valEquals(java.lang.Object,java.lang.Object);
-}
-
--keep class it.unimi.dsi.fastutil.ints.AbstractIntListIterator {
-	it.unimi.dsi.fastutil.ints.AbstractIntListIterator();
-	*** add(int);
-	*** add(java.lang.Integer);
-	*** set(int);
-	*** set(java.lang.Integer);
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntArrayList {
-	*** a;
-	*** size;
-	it.unimi.dsi.fastutil.ints.IntArrayList();
-	it.unimi.dsi.fastutil.ints.IntArrayList(int);
-	it.unimi.dsi.fastutil.ints.IntArrayList(int[],int,int);
-	*** add(int);
-	*** add(int,int);
-	*** clone();
-	*** ensureCapacity(int);
-	*** grow(int);
-	*** indexOf(int);
-	*** listIterator(int);
-	*** removeInt(int);
-	*** set(int,int);
-	*** size();
-	*** trim(int);
-	*** wrap(int[],int);
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntArrayList$1 {
-	*** last;
-	*** pos;
-	*** this$0;
-	*** val$index;
-	*** hasNext();
-	*** hasPrevious();
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntArrays {
-	*** EMPTY_ARRAY;
-	*** HASH_STRATEGY;
-	*** binarySearch(int[],int,int,int);
-	*** binarySearch(int[],int,int,int,it.unimi.dsi.fastutil.ints.IntComparator);
-	*** ensureCapacity(int[],int);
-	*** ensureCapacity(int[],int,int);
-	*** ensureFromTo(int[],int,int);
-	*** ensureOffsetLength(int[],int,int);
-	*** equals(int[],int[]);
-	*** fill(int[],int);
-	*** fill(int[],int,int,int);
-	*** grow(int[],int,int);
-	*** insertionSort(int[],int,int);
-	*** insertionSort(int[],int,int,it.unimi.dsi.fastutil.ints.IntComparator);
-	*** insertionSortIndirect(int[],int[],int,int);
-	*** insertionSortIndirect(int[],int[],int[],int,int);
-	*** med3(int[],int,int,int);
-	*** med3(int[],int,int,int,it.unimi.dsi.fastutil.ints.IntComparator);
-	*** mergeSort(int[],int,int);
-	*** mergeSort(int[],int,int,int[]);
-	*** mergeSort(int[],int,int,it.unimi.dsi.fastutil.ints.IntComparator);
-	*** mergeSort(int[],int,int,it.unimi.dsi.fastutil.ints.IntComparator,int[]);
-	*** quickSort(int[],int,int);
-	*** quickSort(int[],int,int,it.unimi.dsi.fastutil.ints.IntComparator);
-	*** radixSort(int[],int,int);
-	*** radixSort(int[],int[],int,int);
-	*** radixSort(int[][],int,int);
-	*** radixSortIndirect(int[],int[],int,int,boolean);
-	*** radixSortIndirect(int[],int[],int[],int,int,boolean);
-	*** selectionSort(int[],int,int);
-	*** selectionSort(int[],int,int,it.unimi.dsi.fastutil.ints.IntComparator);
-	*** selectionSort(int[],int[],int,int);
-	*** selectionSort(int[][],int,int,int);
-	*** swap(int[],int,int);
-	*** trim(int[],int);
-	*** vecSwap(int[],int,int,int);
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntArrays$ArrayHashStrategy {
-	it.unimi.dsi.fastutil.ints.IntArrays$ArrayHashStrategy();
-	*** equals(int[],int[]);
-	*** hashCode(int[]);
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntBidirectionalIterator {
-	*** previousInt();
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntCollection {
-	*** contains(int);
-	*** iterator();
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntComparator {
-	*** compare(int,int);
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntIterator {
-	*** nextInt();
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntIterators {
-	*** asIntIterator(java.util.Iterator);
-	*** unwrap(it.unimi.dsi.fastutil.ints.IntIterator,int[]);
-}
-
--keep class it.unimi.dsi.fastutil.ints.IntList {
-	*** add(int);
-	*** getElements(int,int[],int,int);
-	*** getInt(int);
-	*** listIterator();
-}
-
--keep class it.unimi.dsi.fastutil.objects.ObjectIterators {
-	*** unwrap(java.util.Iterator,java.lang.Object[]);
 }
 
 -keep class java.awt.AWTEvent {
@@ -15836,6 +15058,7 @@
 	*** getAccelerationPriority();
 	*** getGraphics();
 	*** getHeight(java.awt.image.ImageObserver);
+	*** getScaledInstance(int,int,int);
 	*** getSource();
 	*** getWidth(java.awt.image.ImageObserver);
 }
@@ -16115,6 +15338,8 @@
 	*** isItemEnabled();
 	*** paramString();
 	*** processActionEvent(java.awt.event.ActionEvent);
+	*** setEnabled(boolean);
+	*** setLabel(java.lang.String);
 }
 
 -keep class java.awt.MenuShortcut {
@@ -16140,8 +15365,6 @@
 	*** x;
 	*** y;
 	java.awt.Point(int,int);
-	*** getX();
-	*** getY();
 	*** move(int,int);
 	*** setLocation(int,int);
 	*** translate(int,int);
@@ -16324,6 +15547,13 @@
 	*** updateSystemColors();
 }
 
+-keep class java.awt.SystemTray {
+	*** add(java.awt.TrayIcon);
+	*** getSystemTray();
+	*** isSupported();
+	*** remove(java.awt.TrayIcon);
+}
+
 -keep class java.awt.Toolkit {
 	*** $assertionsDisabled;
 	*** atNames;
@@ -16434,8 +15664,12 @@
 }
 
 -keep class java.awt.TrayIcon {
+	*** addActionListener(java.awt.event.ActionListener);
 	*** dispatchEvent(java.awt.AWTEvent);
 	*** getAccessControlContext();
+	*** setImage(java.awt.Image);
+	*** setPopupMenu(java.awt.PopupMenu);
+	*** setToolTip(java.lang.String);
 }
 
 -keep class java.awt.VKCollection {
@@ -17943,8 +17177,8 @@
 	*** buf;
 	java.io.BufferedInputStream(java.io.InputStream);
 	*** close();
-	*** mark(int);
-	*** reset();
+	*** read();
+	*** read(byte[],int,int);
 }
 
 -keep class java.io.BufferedOutputStream {
@@ -17968,6 +17202,7 @@
 
 -keep class java.io.BufferedWriter {
 	*** close();
+	*** flush();
 }
 
 -keep class java.io.ByteArrayInputStream {
@@ -17976,7 +17211,6 @@
 	*** mark;
 	*** pos;
 	java.io.ByteArrayInputStream(byte[]);
-	java.io.ByteArrayInputStream(byte[],int,int);
 	*** available();
 	*** close();
 	*** mark(int);
@@ -17989,7 +17223,6 @@
 -keep class java.io.ByteArrayOutputStream {
 	*** buf;
 	*** count;
-	java.io.ByteArrayOutputStream();
 	java.io.ByteArrayOutputStream(int);
 	*** close();
 	*** reset();
@@ -18030,20 +17263,14 @@
 }
 
 -keep class java.io.DataInput {
-	*** readBoolean();
 	*** readFully(byte[],int,int);
 }
 
 -keep class java.io.DataInputStream {
 	*** readFully(byte[]);
-	*** readFully(byte[],int,int);
 	*** readInt();
 	*** readLong();
 	*** readUTF();
-}
-
--keep class java.io.DataOutput {
-	*** writeBoolean(boolean);
 }
 
 -keep class java.io.DataOutputStream {
@@ -18061,7 +17288,6 @@
 
 -keep class java.io.EOFException {
 	java.io.EOFException();
-	java.io.EOFException(java.lang.String);
 }
 
 -keep class java.io.ExpiringCache {
@@ -18104,7 +17330,6 @@
 	*** getParent();
 	*** getParentFile();
 	*** getPath();
-	*** hashCode();
 	*** isAbsolute();
 	*** isDirectory();
 	*** isFile();
@@ -18180,10 +17405,12 @@
 	java.io.FilterInputStream(java.io.InputStream);
 	*** available();
 	*** close();
+	*** mark(int);
+	*** markSupported();
 	*** read();
 	*** read(byte[]);
 	*** read(byte[],int,int);
-	*** skip(long);
+	*** reset();
 }
 
 -keep class java.io.FilterOutputStream {
@@ -18239,10 +17466,6 @@
 	*** skipLF;
 	*** read(char[],int,int);
 	*** readLine();
-}
-
--keep class java.io.ObjectInput {
-	*** readObject();
 }
 
 -keep class java.io.ObjectInputStream {
@@ -18348,7 +17571,6 @@
 }
 
 -keep class java.io.ObjectInputStream$GetField {
-	*** defaulted(java.lang.String);
 	*** get(java.lang.String,boolean);
 	*** get(java.lang.String,float);
 	*** get(java.lang.String,int);
@@ -18375,10 +17597,6 @@
 	*** clear();
 	*** doCallbacks();
 	*** register(java.io.ObjectInputValidation,int);
-}
-
--keep class java.io.ObjectOutput {
-	*** writeObject(java.lang.Object);
 }
 
 -keep class java.io.ObjectOutputStream {
@@ -18556,6 +17774,7 @@
 }
 
 -keep class java.io.ObjectStreamException {
+	java.io.ObjectStreamException();
 	java.io.ObjectStreamException(java.lang.String);
 }
 
@@ -18581,11 +17800,11 @@
 
 -keep class java.io.OutputStreamWriter {
 	java.io.OutputStreamWriter(java.io.OutputStream);
-	*** close();
 	*** flush();
 }
 
 -keep class java.io.PrintStream {
+	*** checkError();
 	*** flush();
 	*** format(java.lang.String,java.lang.Object[]);
 	*** print(char);
@@ -18601,29 +17820,17 @@
 }
 
 -keep class java.io.PrintWriter {
-	*** out;
-	java.io.PrintWriter(java.io.Writer);
-	java.io.PrintWriter(java.io.Writer,boolean);
-	*** append(char);
-	*** append(java.lang.CharSequence);
-	*** checkError();
 	*** close();
 	*** flush();
-	*** print(char);
+	*** print(java.lang.Object);
 	*** print(java.lang.String);
 	*** println();
+	*** println(char);
 	*** println(java.lang.Object);
 	*** println(java.lang.String);
-	*** setError();
-	*** write(int);
-	*** write(java.lang.String);
 }
 
 -keep class java.io.PushbackInputStream {
-	*** buf;
-	*** pos;
-	java.io.PushbackInputStream(java.io.InputStream,int);
-	*** ensureOpen();
 	*** unread(byte[],int,int);
 }
 
@@ -18635,12 +17842,9 @@
 	*** lock;
 	java.io.Reader();
 	*** close();
-	*** mark(int);
-	*** markSupported();
 	*** read();
 	*** read(char[]);
 	*** read(char[],int,int);
-	*** reset();
 	*** skip(long);
 }
 
@@ -18791,8 +17995,6 @@
 	*** byteValue();
 	*** intValue();
 	*** parseByte(java.lang.String);
-	*** toString();
-	*** toString(byte);
 	*** valueOf(byte);
 	*** valueOf(java.lang.String);
 }
@@ -18837,7 +18039,6 @@
 	*** isUpperCase(char);
 	*** isValidCodePoint(int);
 	*** isWhitespace(char);
-	*** isWhitespace(int);
 	*** lowSurrogate(int);
 	*** toChars(int);
 	*** toCodePoint(char,char);
@@ -19083,7 +18284,6 @@
 -keep class java.lang.Float {
 	*** TYPE;
 	*** compare(float,float);
-	*** compareTo(java.lang.Float);
 	*** doubleValue();
 	*** floatToIntBits(float);
 	*** floatToRawIntBits(float);
@@ -19126,7 +18326,6 @@
 
 -keep class java.lang.Integer {
 	*** TYPE;
-	*** bitCount(int);
 	*** compare(int,int);
 	*** compareTo(java.lang.Integer);
 	*** decode(java.lang.String);
@@ -19136,7 +18335,6 @@
 	*** highestOneBit(int);
 	*** intValue();
 	*** numberOfLeadingZeros(int);
-	*** numberOfTrailingZeros(int);
 	*** parseInt(java.lang.String);
 	*** parseInt(java.lang.String,int);
 	*** reverseBytes(int);
@@ -19149,11 +18347,6 @@
 	*** valueOf(int);
 	*** valueOf(java.lang.String);
 	*** valueOf(java.lang.String,int);
-}
-
--keep class java.lang.Integer$IntegerCache {
-	*** cache;
-	*** high;
 }
 
 -keep class java.lang.InternalError {
@@ -19175,8 +18368,10 @@
 	*** compareTo(java.lang.Long);
 	*** decode(java.lang.String);
 	*** longValue();
+	*** numberOfTrailingZeros(long);
 	*** parseLong(java.lang.String);
 	*** parseLong(java.lang.String,int);
+	*** reverse(long);
 	*** reverseBytes(long);
 	*** signum(long);
 	*** toHexString(long);
@@ -19199,7 +18394,6 @@
 	*** ceil(double);
 	*** cos(double);
 	*** floor(double);
-	*** getExponent(double);
 	*** max(double,double);
 	*** max(float,float);
 	*** max(int,int);
@@ -19214,7 +18408,6 @@
 	*** round(float);
 	*** sin(double);
 	*** sqrt(double);
-	*** ulp(double);
 }
 
 -keep class java.lang.NoClassDefFoundError {
@@ -19407,11 +18600,14 @@
 	*** availableProcessors();
 	*** exec(java.lang.String);
 	*** exec(java.lang.String[]);
+	*** exec(java.lang.String[],java.lang.String[]);
+	*** exec(java.lang.String[],java.lang.String[],java.io.File);
 	*** freeMemory();
 	*** gc();
 	*** getRuntime();
 	*** maxMemory();
 	*** removeShutdownHook(java.lang.Thread);
+	*** totalMemory();
 }
 
 -keep class java.lang.RuntimeException {
@@ -19443,7 +18639,6 @@
 	*** checkPropertiesAccess();
 	*** checkPropertyAccess(java.lang.String);
 	*** checkRead(java.lang.String);
-	*** checkSecurityAccess(java.lang.String);
 	*** checkSetFactory();
 	*** checkSystemClipboardAccess();
 	*** checkTopLevelWindow(java.lang.Object);
@@ -19494,17 +18689,7 @@
 -keep class java.lang.StackTraceElement {
 	*** getClassName();
 	*** getMethodName();
-	*** hashCode();
 	*** toString();
-}
-
--keep class java.lang.StrictMath {
-	*** $assertionsDisabled;
-	*** negativeZeroDoubleBits;
-	*** negativeZeroFloatBits;
-	*** randomNumberGenerator;
-	*** floorOrCeil(double,double,double,double);
-	*** initRNG();
 }
 
 -keep class java.lang.String {
@@ -19577,7 +18762,6 @@
 	*** append(double);
 	*** append(float);
 	*** append(int);
-	*** append(java.lang.CharSequence,int,int);
 	*** append(java.lang.Object);
 	*** append(java.lang.String);
 	*** append(long);
@@ -19680,27 +18864,16 @@
 }
 
 -keep class java.lang.Thread {
-	*** inheritableThreadLocals;
 	java.lang.Thread();
 	java.lang.Thread(java.lang.String);
 	java.lang.Thread(java.lang.ThreadGroup,java.lang.String);
-	*** activeCount();
-	*** checkAccess();
-	*** countStackFrames();
 	*** currentThread();
-	*** destroy();
 	*** dumpStack();
-	*** enumerate(java.lang.Thread[]);
-	*** getAllStackTraces();
 	*** getContextClassLoader();
-	*** getDefaultUncaughtExceptionHandler();
 	*** getId();
 	*** getName();
 	*** getPriority();
-	*** getStackTrace();
-	*** getState();
 	*** getThreadGroup();
-	*** getUncaughtExceptionHandler();
 	*** holdsLock(java.lang.Object);
 	*** interrupt();
 	*** interrupted();
@@ -19710,7 +18883,7 @@
 	*** join();
 	*** join(long);
 	*** join(long,int);
-	*** resume();
+	*** run();
 	*** setContextClassLoader(java.lang.ClassLoader);
 	*** setDaemon(boolean);
 	*** setDefaultUncaughtExceptionHandler(java.lang.Thread$UncaughtExceptionHandler);
@@ -19720,10 +18893,6 @@
 	*** sleep(long);
 	*** sleep(long,int);
 	*** start();
-	*** stop();
-	*** stop(java.lang.Throwable);
-	*** suspend();
-	*** toString();
 	*** yield();
 }
 
@@ -19947,6 +19116,7 @@
 	*** addMXBean(javax.management.MBeanServer,java.lang.management.PlatformManagedObject);
 	*** getMemoryMXBean();
 	*** getOperatingSystemMXBean();
+	*** getRuntimeMXBean();
 }
 
 -keep class java.lang.management.MemoryMXBean {
@@ -20293,113 +19463,45 @@
 }
 
 -keep class java.math.BigInteger {
-	*** $assertionsDisabled;
 	*** ONE;
-	*** SMALL_PRIME_PRODUCT;
 	*** TEN;
-	*** TWO;
 	*** ZERO;
-	*** bitCount;
-	*** bitLength;
-	*** bitsPerDigit;
-	*** bnExpModThreshTable;
-	*** digitsPerInt;
-	*** digitsPerLong;
-	*** firstNonzeroIntNum;
-	*** intRadix;
-	*** longRadix;
-	*** lowestSetBit;
 	*** mag;
-	*** magOffset;
-	*** negConst;
-	*** posConst;
-	*** serialPersistentFields;
 	*** signum;
-	*** signumOffset;
-	*** staticRandom;
-	*** unsafe;
-	*** zeros;
-	java.math.BigInteger(int,byte[]);
-	java.math.BigInteger(java.lang.String,int);
 	*** abs();
-	*** add(int[],int[]);
 	*** add(java.math.BigInteger);
-	*** addOne(int[],int,int,int);
 	*** bitCount();
 	*** bitLength();
-	*** bitLength(int[],int);
-	*** bitLengthForInt(int);
 	*** clearBit(int);
 	*** compareMagnitude(java.math.BigInteger);
 	*** compareTo(java.math.BigInteger);
-	*** destructiveMulAdd(int[],int,int);
 	*** divide(java.math.BigInteger);
 	*** divideAndRemainder(java.math.BigInteger);
 	*** doubleValue();
 	*** equals(java.lang.Object);
-	*** firstNonzeroIntNum();
-	*** getInt(int);
 	*** getLowestSetBit();
-	*** getSecureRandom();
 	*** hashCode();
-	*** intArrayCmpToLen(int[],int[],int);
-	*** intLength();
 	*** intValue();
-	*** jacobiSymbol(int,java.math.BigInteger);
-	*** javaIncrement(int[]);
-	*** largePrime(int,int,java.util.Random);
-	*** leftShift(int[],int,int);
 	*** longValue();
-	*** lucasLehmerSequence(int,java.math.BigInteger,java.math.BigInteger);
-	*** magSerializedForm();
-	*** makePositive(byte[]);
-	*** makePositive(int[]);
 	*** mod(java.math.BigInteger);
-	*** mod2(int);
 	*** modInverse(java.math.BigInteger);
 	*** modPow(java.math.BigInteger,java.math.BigInteger);
-	*** modPow2(java.math.BigInteger,int);
-	*** montReduce(int[],int[],int,int);
-	*** mulAdd(int[],int[],int,int,int);
 	*** multiply(java.math.BigInteger);
 	*** multiply(long);
-	*** multiplyToLen(int[],int,int[],int,int[]);
 	*** negate();
-	*** oddModPow(java.math.BigInteger,java.math.BigInteger);
 	*** or(java.math.BigInteger);
-	*** parseInt(char[],int,int);
-	*** passesLucasLehmer();
-	*** passesMillerRabin(int,java.util.Random);
 	*** pow(int);
-	*** primeToCertainty(int,java.util.Random);
-	*** primitiveLeftShift(int[],int,int);
-	*** primitiveRightShift(int[],int,int);
-	*** randomBits(int,java.util.Random);
 	*** remainder(java.math.BigInteger);
 	*** setBit(int);
 	*** shiftLeft(int);
 	*** shiftRight(int);
-	*** signInt();
 	*** signum();
-	*** smallPrime(int,int,java.util.Random);
-	*** square();
-	*** squareToLen(int[],int,int[]);
-	*** stripLeadingZeroBytes(byte[]);
-	*** stripLeadingZeroInts(int[]);
-	*** subN(int[],int[],int);
-	*** subtract(int[],int[]);
 	*** subtract(java.math.BigInteger);
 	*** testBit(int);
 	*** toByteArray();
 	*** toString();
 	*** toString(int);
-	*** trustedStripLeadingZeroInts(int[]);
-	*** valueOf(int[]);
 	*** valueOf(long);
-}
-
--keep class java.math.BitSieve {
-	*** retrieve(java.math.BigInteger,int,java.util.Random);
 }
 
 -keep class java.math.MathContext {
@@ -20408,58 +19510,20 @@
 }
 
 -keep class java.math.MutableBigInteger {
-	*** $assertionsDisabled;
 	*** ONE;
 	*** intLen;
-	*** offset;
-	*** value;
 	java.math.MutableBigInteger();
 	java.math.MutableBigInteger(int);
 	java.math.MutableBigInteger(java.math.MutableBigInteger);
 	*** add(java.math.MutableBigInteger);
-	*** binaryGCD(java.math.MutableBigInteger);
-	*** binaryGcd(int,int);
-	*** clear();
-	*** compare(java.math.MutableBigInteger);
 	*** compareHalf(java.math.MutableBigInteger);
-	*** copyValue(java.math.MutableBigInteger);
-	*** difference(java.math.MutableBigInteger);
-	*** divWord(int[],long,int);
-	*** divadd(int[],int[],int);
 	*** divide(java.math.MutableBigInteger,java.math.MutableBigInteger);
 	*** divide(long,java.math.MutableBigInteger);
-	*** divideMagnitude(int[],java.math.MutableBigInteger);
-	*** divideOneWord(int,java.math.MutableBigInteger);
-	*** euclidModInverse(int);
-	*** fixup(java.math.MutableBigInteger,java.math.MutableBigInteger,int);
-	*** getLowestSetBit();
-	*** getMagnitudeArray();
-	*** hybridGCD(java.math.MutableBigInteger);
-	*** inverseMod32(int);
-	*** isEven();
 	*** isOdd();
-	*** isOne();
 	*** isZero();
-	*** leftShift(int);
-	*** modInverse(java.math.MutableBigInteger);
-	*** modInverseBP2(java.math.MutableBigInteger,int);
-	*** modInverseMP2(int);
-	*** mul(int,java.math.MutableBigInteger);
-	*** mulsub(int[],int[],int,int,int);
-	*** multiply(java.math.MutableBigInteger,java.math.MutableBigInteger);
-	*** mutableModInverse(java.math.MutableBigInteger);
-	*** normalize();
-	*** primitiveLeftShift(int);
-	*** primitiveRightShift(int);
-	*** reset();
-	*** rightShift(int);
-	*** setValue(int[],int);
 	*** subtract(java.math.MutableBigInteger);
 	*** toBigDecimal(int,int);
 	*** toBigInteger(int);
-	*** toIntArray();
-	*** toLong();
-	*** unsignedLongCompare(long,long);
 }
 
 -keep class java.math.RoundingMode {
@@ -20477,9 +19541,6 @@
 
 -keep class java.math.SignedMutableBigInteger {
 	*** sign;
-	*** signedAdd(java.math.MutableBigInteger);
-	*** signedAdd(java.math.SignedMutableBigInteger);
-	*** signedSubtract(java.math.SignedMutableBigInteger);
 }
 
 -keep class java.net.AbstractPlainDatagramSocketImpl {
@@ -20559,9 +19620,31 @@
 	*** socketShutdown(int);
 }
 
+-keep class java.net.Authenticator$RequestorType {
+	*** PROXY;
+	*** SERVER;
+}
+
+-keep class java.net.CacheRequest {
+	*** abort();
+	*** getBody();
+}
+
+-keep class java.net.CacheResponse {
+	*** getBody();
+	*** getHeaders();
+}
+
 -keep class java.net.ConnectException {
 	java.net.ConnectException();
 	java.net.ConnectException(java.lang.String);
+}
+
+-keep class java.net.CookieHandler {
+	*** cookieHandler;
+	*** get(java.net.URI,java.util.Map);
+	*** getDefault();
+	*** put(java.net.URI,java.util.Map);
 }
 
 -keep class java.net.DatagramPacket {
@@ -20680,6 +19763,10 @@
 	*** getContentTypeFor(java.lang.String);
 }
 
+-keep class java.net.HttpCookie {
+	*** isHttpOnly();
+}
+
 -keep class java.net.HttpURLConnection {
 	*** chunkLength;
 	*** fixedContentLength;
@@ -20690,9 +19777,18 @@
 	*** methods;
 	*** responseCode;
 	*** responseMessage;
+	java.net.HttpURLConnection(java.net.URL);
 	*** disconnect();
 	*** getHeaderField(int);
+	*** getHeaderFieldDate(java.lang.String,long);
+	*** getInstanceFollowRedirects();
+	*** getPermission();
+	*** getRequestMethod();
 	*** getResponseCode();
+	*** getResponseMessage();
+	*** setChunkedStreamingMode(int);
+	*** setFixedLengthStreamingMode(int);
+	*** setFixedLengthStreamingMode(long);
 	*** setInstanceFollowRedirects(boolean);
 	*** setRequestMethod(java.lang.String);
 }
@@ -20714,22 +19810,50 @@
 }
 
 -keep class java.net.Inet6Address {
+	*** FIELDS_OFFSET;
+	*** UNSAFE;
 	*** cached_scope_id;
-	*** ifname;
+	*** holder6;
+	*** serialPersistentFields;
+	*** access$000(byte[],java.net.NetworkInterface);
+	*** deriveNumericScope(byte[],java.net.NetworkInterface);
+	*** differentLocalAddressTypes(byte[],byte[]);
+	*** getAddress();
+	*** getScopeId();
+	*** init();
+	*** initif(java.lang.String,byte[],java.net.NetworkInterface);
+	*** initstr(java.lang.String,byte[],java.lang.String);
+	*** isLinkLocalAddress(byte[]);
+	*** isSiteLocalAddress(byte[]);
+	*** numericToTextFormat(byte[]);
+}
+
+-keep class java.net.Inet6Address$Inet6AddressHolder {
 	*** ipaddress;
 	*** scope_id;
 	*** scope_id_set;
 	*** scope_ifname;
 	*** scope_ifname_set;
-	*** deriveNumericScope(java.net.NetworkInterface);
-	*** differentLocalAddressTypes(java.net.Inet6Address);
-	*** getScopeId();
-	*** init();
-	*** initif(java.lang.String,byte[],java.net.NetworkInterface);
-	*** initstr(java.lang.String,byte[],java.lang.String);
+	*** this$0;
+	java.net.Inet6Address$Inet6AddressHolder(java.net.Inet6Address);
+	java.net.Inet6Address$Inet6AddressHolder(java.net.Inet6Address,byte[],int,boolean,java.net.NetworkInterface,boolean);
+	*** equals(java.lang.Object);
+	*** getHostAddress();
+	*** hashCode();
+	*** init(byte[],int);
+	*** init(byte[],java.net.NetworkInterface);
+	*** isAnyLocalAddress();
+	*** isIPv4CompatibleAddress();
 	*** isLinkLocalAddress();
+	*** isLoopbackAddress();
+	*** isMCGlobal();
+	*** isMCLinkLocal();
+	*** isMCNodeLocal();
+	*** isMCOrgLocal();
+	*** isMCSiteLocal();
+	*** isMulticastAddress();
 	*** isSiteLocalAddress();
-	*** numericToTextFormat(byte[]);
+	*** setAddr(byte[]);
 }
 
 -keep class java.net.Inet6AddressImpl {
@@ -20821,6 +19945,7 @@
 	*** getAddress();
 	*** getFamily();
 	*** getHostName();
+	*** init(java.lang.String,int);
 }
 
 -keep class java.net.InetAddressContainer {
@@ -20985,7 +20110,10 @@
 	*** NO_PROXY;
 	*** sa;
 	*** type;
+	java.net.Proxy(java.net.Proxy$Type,java.net.SocketAddress);
 	*** address();
+	*** equals(java.lang.Object);
+	*** toString();
 	*** type();
 }
 
@@ -21002,6 +20130,21 @@
 	*** connectFailed(java.net.URI,java.net.SocketAddress,java.io.IOException);
 	*** getDefault();
 	*** select(java.net.URI);
+}
+
+-keep class java.net.ResponseCache {
+	*** theResponseCache;
+	*** get(java.net.URI,java.lang.String,java.util.Map);
+	*** getDefault();
+	*** put(java.net.URI,java.net.URLConnection);
+}
+
+-keep class java.net.SecureCacheResponse {
+	*** getCipherSuite();
+	*** getLocalCertificateChain();
+	*** getLocalPrincipal();
+	*** getPeerPrincipal();
+	*** getServerCertificateChain();
 }
 
 -keep class java.net.ServerSocket {
@@ -21193,42 +20336,6 @@
 	*** init();
 	*** socketWrite(byte[],int,int);
 	*** socketWrite0(java.io.FileDescriptor,byte[],int,int);
-}
-
--keep class java.net.SocketPermission {
-	*** actions;
-	*** addresses;
-	*** cdomain;
-	*** cname;
-	*** debug;
-	*** debugInit;
-	*** defaultDeny;
-	*** hdomain;
-	*** hostname;
-	*** init_with_ip;
-	*** invalid;
-	*** mask;
-	*** portrange;
-	*** trustNameService;
-	*** trusted;
-	*** untrusted;
-	*** wildcard;
-	*** authorized(java.lang.String,byte[]);
-	*** authorizedIPv4(java.lang.String,byte[]);
-	*** authorizedIPv6(java.lang.String,byte[]);
-	*** compareHostnames(java.net.SocketPermission);
-	*** getActions();
-	*** getActions(int);
-	*** getCanonName();
-	*** getDebug();
-	*** getHost(java.lang.String);
-	*** getIP();
-	*** getMask(java.lang.String);
-	*** impliesIgnoreMask(java.net.SocketPermission);
-	*** init(java.lang.String,int);
-	*** isUntrusted();
-	*** match(java.lang.String,java.lang.String);
-	*** parsePort(java.lang.String);
 }
 
 -keep class java.net.SocksSocketImpl {
@@ -21484,6 +20591,8 @@
 
 -keep class java.net.URL {
 	*** equals(java.lang.Object);
+	*** getAuthority();
+	*** getDefaultPort();
 	*** getFile();
 	*** getHost();
 	*** getPath();
@@ -21498,7 +20607,6 @@
 	*** sameFile(java.net.URL);
 	*** toExternalForm();
 	*** toString();
-	*** toURI();
 }
 
 -keep class java.net.URL$1 {
@@ -21537,26 +20645,44 @@
 
 -keep class java.net.URLConnection {
 	*** connected;
+	*** doInput;
+	*** doOutput;
 	*** url;
 	java.net.URLConnection(java.net.URL);
 	*** access$000();
+	*** getAllowUserInteraction();
 	*** getContent();
+	*** getContent(java.lang.Class[]);
 	*** getContentEncoding();
 	*** getContentLength();
+	*** getContentLengthLong();
 	*** getContentType();
+	*** getDate();
+	*** getDefaultUseCaches();
+	*** getDoInput();
+	*** getDoOutput();
+	*** getExpiration();
 	*** getHeaderField(java.lang.String);
+	*** getHeaderFieldInt(java.lang.String,int);
+	*** getHeaderFieldLong(java.lang.String,long);
+	*** getIfModifiedSince();
 	*** getInputStream();
 	*** getLastModified();
 	*** getOutputStream();
 	*** getPermission();
 	*** getURL();
+	*** getUseCaches();
+	*** setAllowUserInteraction(boolean);
 	*** setConnectTimeout(int);
+	*** setDefaultUseCaches(boolean);
 	*** setDoInput(boolean);
 	*** setDoOutput(boolean);
 	*** setFileNameMap(java.net.FileNameMap);
+	*** setIfModifiedSince(long);
 	*** setReadTimeout(int);
 	*** setRequestProperty(java.lang.String,java.lang.String);
 	*** setUseCaches(boolean);
+	*** toString();
 }
 
 -keep class java.net.URLConnection$1 {
@@ -21623,10 +20749,7 @@
 
 -keep class java.nio.ByteBuffer {
 	*** bigEndian;
-	*** hb;
-	*** isReadOnly;
 	*** nativeByteOrder;
-	*** offset;
 	*** allocate(int);
 	*** allocateDirect(int);
 	*** array();
@@ -21777,21 +20900,11 @@
 }
 
 -keep class java.nio.HeapByteBuffer {
-	java.nio.HeapByteBuffer(byte[],int,int);
-	java.nio.HeapByteBuffer(byte[],int,int,int,int,int);
-	java.nio.HeapByteBuffer(int,int);
-}
-
--keep class java.nio.HeapByteBufferR {
-	*** duplicate();
+	*;
 }
 
 -keep class java.nio.HeapCharBuffer {
 	*;
-}
-
--keep class java.nio.HeapIntBuffer {
-	*** ix(int);
 }
 
 -keep class java.nio.IntBuffer {
@@ -21839,19 +20952,12 @@
 }
 
 -keep class java.nio.channels.Channel {
-	*** close();
 	*** isOpen();
 }
 
 -keep class java.nio.channels.Channels {
-	*** newChannel(java.io.InputStream);
-	*** newChannel(java.io.OutputStream);
 	*** newInputStream(java.nio.channels.ReadableByteChannel);
 	*** newOutputStream(java.nio.channels.WritableByteChannel);
-}
-
--keep class java.nio.channels.ClosedChannelException {
-	java.nio.channels.ClosedChannelException();
 }
 
 -keep class java.nio.channels.DatagramChannel {
@@ -21908,7 +21014,6 @@
 -keep class java.nio.channels.SelectableChannel {
 	java.nio.channels.SelectableChannel();
 	*** configureBlocking(boolean);
-	*** isBlocking();
 	*** isRegistered();
 	*** keyFor(java.nio.channels.Selector);
 	*** provider();
@@ -21939,7 +21044,6 @@
 -keep class java.nio.channels.Selector {
 	java.nio.channels.Selector();
 	*** close();
-	*** isOpen();
 	*** keys();
 	*** open();
 	*** provider();
@@ -22090,6 +21194,7 @@
 	*** charset();
 	*** decode(java.nio.ByteBuffer,java.nio.CharBuffer,boolean);
 	*** flush(java.nio.CharBuffer);
+	*** maxCharsPerByte();
 	*** onMalformedInput(java.nio.charset.CodingErrorAction);
 	*** onUnmappableCharacter(java.nio.charset.CodingErrorAction);
 	*** reset();
@@ -22264,10 +21369,6 @@
 }
 
 -keep class java.security.AlgorithmParameters {
-	*** algorithm;
-	*** initialized;
-	*** paramSpi;
-	*** provider;
 	*** getAlgorithm();
 	*** getEncoded();
 	*** getInstance(java.lang.String);
@@ -22276,18 +21377,10 @@
 	*** getParameterSpec(java.lang.Class);
 	*** init(byte[]);
 	*** init(java.security.spec.AlgorithmParameterSpec);
-	*** toString();
 }
 
 -keep class java.security.AlgorithmParametersSpi {
 	java.security.AlgorithmParametersSpi();
-	*** engineGetEncoded();
-	*** engineGetEncoded(java.lang.String);
-	*** engineGetParameterSpec(java.lang.Class);
-	*** engineInit(byte[]);
-	*** engineInit(byte[],java.lang.String);
-	*** engineInit(java.security.spec.AlgorithmParameterSpec);
-	*** engineToString();
 }
 
 -keep class java.security.AllPermission {
@@ -22300,9 +21393,7 @@
 
 -keep class java.security.BasicPermission {
 	java.security.BasicPermission(java.lang.String);
-	java.security.BasicPermission(java.lang.String,java.lang.String);
 	*** getCanonicalName();
-	*** implies(java.security.Permission);
 }
 
 -keep class java.security.BasicPermissionCollection {
@@ -22322,7 +21413,6 @@
 }
 
 -keep class java.security.CodeSource {
-	*** getCertificates();
 	*** getLocation();
 }
 
@@ -22371,27 +21461,15 @@
 }
 
 -keep class java.security.KeyFactory {
-	*** algorithm;
-	*** debug;
-	*** lock;
-	*** provider;
-	*** serviceIterator;
-	*** spi;
-	*** generatePrivate(java.security.spec.KeySpec);
 	*** generatePublic(java.security.spec.KeySpec);
 	*** getInstance(java.lang.String);
 	*** getInstance(java.lang.String,java.security.Provider);
 	*** getKeySpec(java.security.Key,java.lang.Class);
-	*** nextSpi(java.security.KeyFactorySpi);
 	*** translateKey(java.security.Key);
 }
 
 -keep class java.security.KeyFactorySpi {
 	java.security.KeyFactorySpi();
-	*** engineGeneratePrivate(java.security.spec.KeySpec);
-	*** engineGeneratePublic(java.security.spec.KeySpec);
-	*** engineGetKeySpec(java.security.Key,java.lang.Class);
-	*** engineTranslateKey(java.security.Key);
 }
 
 -keep class java.security.KeyPair {
@@ -22435,7 +21513,6 @@
 }
 
 -keep class java.security.KeyRep$Type {
-	*** PRIVATE;
 	*** PUBLIC;
 }
 
@@ -22515,15 +21592,7 @@
 }
 
 -keep class java.security.MessageDigest {
-	*** algorithm;
-	*** provider;
-	*** state;
 	java.security.MessageDigest(java.lang.String);
-	*** access$000(java.security.MessageDigest);
-	*** access$100(java.security.MessageDigest);
-	*** access$102(java.security.MessageDigest,java.security.Provider);
-	*** access$200(java.security.MessageDigest);
-	*** access$202(java.security.MessageDigest,int);
 	*** clone();
 	*** digest();
 	*** digest(byte[]);
@@ -22539,23 +21608,6 @@
 	*** update(byte[]);
 	*** update(byte[],int,int);
 	*** update(java.nio.ByteBuffer);
-}
-
--keep class java.security.MessageDigest$Delegate {
-	*** digestSpi;
-}
-
--keep class java.security.MessageDigestSpi {
-	*** tempArray;
-	java.security.MessageDigestSpi();
-	*** clone();
-	*** engineDigest();
-	*** engineDigest(byte[],int,int);
-	*** engineGetDigestLength();
-	*** engineReset();
-	*** engineUpdate(byte);
-	*** engineUpdate(byte[],int,int);
-	*** engineUpdate(java.nio.ByteBuffer);
 }
 
 -keep class java.security.Permission {
@@ -22574,7 +21626,6 @@
 	*** elements();
 	*** implies(java.security.Permission);
 	*** isReadOnly();
-	*** setReadOnly();
 }
 
 -keep class java.security.Permissions {
@@ -22582,41 +21633,8 @@
 	*** hasUnresolved;
 	*** permsMap;
 	*** serialPersistentFields;
-	*** add(java.security.Permission);
-	*** elements();
 	*** getPermissionCollection(java.security.Permission,boolean);
 	*** getUnresolvedPermissions(java.security.Permission);
-	*** implies(java.security.Permission);
-}
-
--keep class java.security.Policy {
-	*** UNSUPPORTED_EMPTY_COLLECTION;
-	*** debug;
-	*** pdMapping;
-	*** policy;
-	java.security.Policy();
-	*** addStaticPerms(java.security.PermissionCollection,java.security.PermissionCollection);
-	*** checkPermission(java.lang.String);
-	*** getPermissions(java.security.CodeSource);
-	*** getPermissions(java.security.ProtectionDomain);
-	*** getPolicy();
-	*** getPolicyNoCheck();
-	*** handleException(java.security.NoSuchAlgorithmException);
-	*** initPolicy(java.security.Policy);
-	*** refresh();
-}
-
--keep class java.security.Policy$1 {
-	*** run();
-}
-
--keep class java.security.Policy$PolicyInfo {
-	*** initialized;
-	*** policy;
-}
-
--keep class java.security.Policy$UnsupportedEmptyCollection {
-	*** perms;
 }
 
 -keep class java.security.Principal {
@@ -22639,11 +21657,7 @@
 }
 
 -keep class java.security.ProtectionDomain {
-	*** key;
-	*** getClassLoader();
 	*** getCodeSource();
-	*** getPermissions();
-	*** getPrincipals();
 }
 
 -keep class java.security.ProtectionDomain$1 {
@@ -22654,119 +21668,28 @@
 	*;
 }
 
--keep class java.security.ProtectionDomain$3$1 {
-	*** map;
-	*** this$0;
-}
-
 -keep class java.security.ProtectionDomain$Key {
 	*;
 }
 
 -keep class java.security.Provider {
-	*** ALIAS_LENGTH;
-	*** debug;
-	*** entrySet;
-	*** entrySetCallCount;
-	*** info;
-	*** initialized;
-	*** knownEngines;
-	*** legacyChanged;
-	*** legacyMap;
-	*** legacyStrings;
-	*** name;
-	*** previousKey;
-	*** serviceMap;
-	*** serviceSet;
-	*** servicesChanged;
-	*** version;
 	java.security.Provider(java.lang.String,double,java.lang.String);
-	*** access$1000();
-	*** access$900(java.lang.String);
-	*** addEngine(java.lang.String,boolean,java.lang.String);
-	*** check(java.lang.String);
-	*** checkInitialized();
-	*** ensureLegacyParsed();
-	*** getEngineName(java.lang.String);
+	*** getInfo();
 	*** getName();
-	*** getProperty(java.lang.String);
 	*** getService(java.lang.String,java.lang.String);
 	*** getServices();
-	*** getTypeAndAlgorithm(java.lang.String);
-	*** implClear();
-	*** implPut(java.lang.Object,java.lang.Object);
-	*** implPutAll(java.util.Map);
-	*** implRemove(java.lang.Object);
-	*** implRemoveService(java.security.Provider$Service);
-	*** keys();
-	*** parseLegacyPut(java.lang.String,java.lang.String);
+	*** getVersion();
 	*** put(java.lang.Object,java.lang.Object);
 	*** putAll(java.util.Map);
-	*** putId();
-	*** putPropertyStrings(java.security.Provider$Service);
-	*** removeInvalidServices(java.util.Map);
-	*** removePropertyStrings(java.security.Provider$Service);
-}
-
--keep class java.security.Provider$EngineDescription {
-	*** constructorParameterClass;
-	*** constructorParameterClassName;
-	*** name;
-	*** supportsParameter;
-	*** getConstructorParameterClass();
 }
 
 -keep class java.security.Provider$Service {
-	*** CLASS0;
-	*** algorithm;
-	*** aliases;
-	*** attributes;
-	*** className;
-	*** classRef;
-	*** hasKeyAttributes;
-	*** provider;
-	*** registered;
-	*** supportedClasses;
-	*** supportedFormats;
-	*** type;
-	java.security.Provider$Service(java.security.Provider);
-	*** access$000(java.security.Provider$Service);
-	*** access$302(java.security.Provider$Service,java.lang.String);
-	*** access$402(java.security.Provider$Service,java.lang.String);
-	*** access$500(java.security.Provider$Service,java.lang.String);
-	*** access$602(java.security.Provider$Service,java.lang.String);
-	*** access$700(java.security.Provider$Service);
-	*** access$800(java.security.Provider$Service);
-	*** addAlias(java.lang.String);
-	*** addAttribute(java.lang.String,java.lang.String);
 	*** getAlgorithm();
-	*** getAliases();
 	*** getAttribute(java.lang.String);
-	*** getClassName();
-	*** getImplClass();
-	*** getKeyClass(java.lang.String);
 	*** getProvider();
 	*** getType();
-	*** hasKeyAttributes();
-	*** isValid();
 	*** newInstance(java.lang.Object);
-	*** newInstanceGeneric(java.lang.Object);
-	*** supportsKeyClass(java.security.Key);
-	*** supportsKeyFormat(java.security.Key);
 	*** supportsParameter(java.lang.Object);
-}
-
--keep class java.security.Provider$ServiceKey {
-	*** algorithm;
-	*** originalAlgorithm;
-	*** type;
-	java.security.Provider$ServiceKey(java.lang.String,java.lang.String,boolean);
-	*** matches(java.lang.String,java.lang.String);
-}
-
--keep class java.security.Provider$UString {
-	*** lowerString;
-	*** string;
 }
 
 -keep class java.security.SecureClassLoader {
@@ -22800,70 +21723,25 @@
 }
 
 -keep class java.security.Security {
-	*** props;
-	*** sdebug;
-	*** spiMap;
-	*** access$000();
 	*** addProvider(java.security.Provider);
-	*** check(java.lang.String);
-	*** getAllQualifyingCandidates(java.lang.String,java.lang.String,java.security.Provider[]);
-	*** getFilterComponents(java.lang.String,java.lang.String);
 	*** getImpl(java.lang.String,java.lang.String,java.lang.String);
 	*** getImpl(java.lang.String,java.lang.String,java.security.Provider);
 	*** getProperty(java.lang.String);
 	*** getProvider(java.lang.String);
-	*** getProviderProperty(java.lang.String);
-	*** getProviderProperty(java.lang.String,java.security.Provider);
 	*** getProviders();
-	*** getProviders(java.util.Map);
-	*** getProvidersNotUsingCache(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.security.Provider[]);
-	*** getSpiClass(java.lang.String);
-	*** initialize();
-	*** initializeStatic();
-	*** insertProviderAt(java.security.Provider,int);
-	*** invalidateSMCache(java.lang.String);
-	*** isConstraintSatisfied(java.lang.String,java.lang.String,java.lang.String);
-	*** isCriterionSatisfied(java.security.Provider,java.lang.String,java.lang.String,java.lang.String,java.lang.String);
-	*** isStandardAttr(java.lang.String);
-	*** securityPropFile(java.lang.String);
-}
-
--keep class java.security.Security$1 {
-	*** run();
-}
-
--keep class java.security.Security$ProviderProperty {
-	*** className;
-	*** provider;
 }
 
 -keep class java.security.Signature {
-	*** algorithm;
-	*** debug;
-	*** provider;
-	*** rsaIds;
-	*** signatureInfo;
-	*** state;
-	java.security.Signature(java.lang.String);
-	*** access$000(java.security.Signature);
-	*** access$100();
-	*** access$200(java.security.Provider$Service);
-	*** chooseFirstProvider();
-	*** getAlgorithm();
 	*** getInstance(java.lang.String);
 	*** getInstance(java.lang.String,java.lang.String);
 	*** getInstance(java.lang.String,java.security.Provider);
-	*** getInstance(sun.security.jca.GetInstance$Instance,java.lang.String);
-	*** getInstanceRSA(java.security.Provider);
 	*** initSign(java.security.PrivateKey);
 	*** initSign(java.security.PrivateKey,java.security.SecureRandom);
 	*** initVerify(java.security.PublicKey);
-	*** isSpi(java.security.Provider$Service);
 	*** setParameter(java.lang.String,java.lang.Object);
 	*** sign();
 	*** update(byte);
 	*** update(byte[]);
-	*** update(byte[],int,int);
 	*** verify(byte[]);
 	*** verify(byte[],int,int);
 }
@@ -22874,36 +21752,9 @@
 	*** engineUpdate(byte[],int,int);
 }
 
--keep class java.security.Signature$Delegate {
-	*** firstService;
-	*** lock;
-	*** serviceIterator;
-	*** sigSpi;
-	*** warnCount;
-	*** chooseFirstProvider();
-	*** chooseProvider(int,java.security.Key,java.security.SecureRandom);
-	*** init(java.security.SignatureSpi,int,java.security.Key,java.security.SecureRandom);
-	*** newInstance(java.security.Provider$Service);
-}
-
 -keep class java.security.SignatureSpi {
 	*** appRandom;
 	java.security.SignatureSpi();
-	*** clone();
-	*** engineGetParameter(java.lang.String);
-	*** engineGetParameters();
-	*** engineInitSign(java.security.PrivateKey);
-	*** engineInitSign(java.security.PrivateKey,java.security.SecureRandom);
-	*** engineInitVerify(java.security.PublicKey);
-	*** engineSetParameter(java.lang.String,java.lang.Object);
-	*** engineSetParameter(java.security.spec.AlgorithmParameterSpec);
-	*** engineSign();
-	*** engineSign(byte[],int,int);
-	*** engineUpdate(byte);
-	*** engineUpdate(byte[],int,int);
-	*** engineUpdate(java.nio.ByteBuffer);
-	*** engineVerify(byte[]);
-	*** engineVerify(byte[],int,int);
 }
 
 -keep class java.security.Timestamp {
@@ -22942,11 +21793,8 @@
 }
 
 -keep class java.security.cert.CertPath {
-	*** type;
-	java.security.cert.CertPath(java.lang.String);
 	*** equals(java.lang.Object);
 	*** getCertificates();
-	*** getEncoded();
 	*** getType();
 	*** hashCode();
 }
@@ -23032,7 +21880,6 @@
 }
 
 -keep class java.security.cert.Certificate {
-	java.security.cert.Certificate(java.lang.String);
 	*** equals(java.lang.Object);
 	*** getEncoded();
 	*** getPublicKey();
@@ -23050,25 +21897,9 @@
 }
 
 -keep class java.security.cert.CertificateFactory {
-	*** certFacSpi;
-	*** provider;
-	*** type;
-	*** generateCRL(java.io.InputStream);
 	*** generateCertPath(java.util.List);
 	*** generateCertificate(java.io.InputStream);
 	*** getInstance(java.lang.String);
-}
-
--keep class java.security.cert.CertificateFactorySpi {
-	java.security.cert.CertificateFactorySpi();
-	*** engineGenerateCRL(java.io.InputStream);
-	*** engineGenerateCRLs(java.io.InputStream);
-	*** engineGenerateCertPath(java.io.InputStream);
-	*** engineGenerateCertPath(java.io.InputStream,java.lang.String);
-	*** engineGenerateCertPath(java.util.List);
-	*** engineGenerateCertificate(java.io.InputStream);
-	*** engineGenerateCertificates(java.io.InputStream);
-	*** engineGetCertPathEncodings();
 }
 
 -keep class java.security.cert.CollectionCertStoreParameters {
@@ -23185,7 +22016,6 @@
 }
 
 -keep class java.security.cert.X509CRL {
-	*** getEncoded();
 	*** getIssuerX500Principal();
 	*** getRevokedCertificate(java.security.cert.X509Certificate);
 }
@@ -23270,9 +22100,6 @@
 }
 
 -keep class java.security.cert.X509Certificate {
-	*** issuerX500Principal;
-	*** subjectX500Principal;
-	java.security.cert.X509Certificate();
 	*** checkValidity(java.util.Date);
 	*** getBasicConstraints();
 	*** getExtendedKeyUsage();
@@ -23286,14 +22113,12 @@
 	*** getSubjectAlternativeNames();
 	*** getSubjectDN();
 	*** getSubjectX500Principal();
-	*** getTBSCertificate();
 	*** getVersion();
 }
 
 -keep class java.security.cert.X509Extension {
 	*** getCriticalExtensionOIDs();
 	*** getExtensionValue(java.lang.String);
-	*** hasUnsupportedCriticalExtension();
 }
 
 -keep class java.security.interfaces.DSAKey {
@@ -23330,19 +22155,6 @@
 	*** getModulus();
 }
 
--keep class java.security.interfaces.RSAPrivateCrtKey {
-	*** getCrtCoefficient();
-	*** getPrimeExponentP();
-	*** getPrimeExponentQ();
-	*** getPrimeP();
-	*** getPrimeQ();
-	*** getPublicExponent();
-}
-
--keep class java.security.interfaces.RSAPrivateKey {
-	*** getPrivateExponent();
-}
-
 -keep class java.security.interfaces.RSAPublicKey {
 	*** getPublicExponent();
 }
@@ -23351,27 +22163,6 @@
 	*** g;
 	*** p;
 	*** q;
-	*** getG();
-	*** getP();
-	*** getQ();
-}
-
--keep class java.security.spec.DSAPrivateKeySpec {
-	*** getG();
-	*** getP();
-	*** getQ();
-	*** getX();
-}
-
--keep class java.security.spec.DSAPublicKeySpec {
-	*** g;
-	*** p;
-	*** q;
-	*** y;
-	*** getG();
-	*** getP();
-	*** getQ();
-	*** getY();
 }
 
 -keep class java.security.spec.ECField {
@@ -23439,49 +22230,16 @@
 	*** getField();
 }
 
--keep class java.security.spec.EncodedKeySpec {
-	*** encodedKey;
-	java.security.spec.EncodedKeySpec(byte[]);
-	*** getEncoded();
-}
-
 -keep class java.security.spec.MGF1ParameterSpec {
 	*** SHA1;
-	*** getDigestAlgorithm();
 }
 
 -keep class java.security.spec.PKCS8EncodedKeySpec {
 	*** getEncoded();
 }
 
--keep class java.security.spec.RSAPrivateCrtKeySpec {
-	*** crtCoefficient;
-	*** primeExponentP;
-	*** primeExponentQ;
-	*** primeP;
-	*** primeQ;
-	*** publicExponent;
-	*** getCrtCoefficient();
-	*** getPrimeExponentP();
-	*** getPrimeExponentQ();
-	*** getPrimeP();
-	*** getPrimeQ();
-	*** getPublicExponent();
-}
-
--keep class java.security.spec.RSAPrivateKeySpec {
-	*** modulus;
-	*** privateExponent;
-	java.security.spec.RSAPrivateKeySpec(java.math.BigInteger,java.math.BigInteger);
-	*** getModulus();
-	*** getPrivateExponent();
-}
-
 -keep class java.security.spec.RSAPublicKeySpec {
-	*** modulus;
-	*** publicExponent;
 	*** getModulus();
-	*** getPublicExponent();
 }
 
 -keep class java.security.spec.X509EncodedKeySpec {
@@ -23543,7 +22301,6 @@
 }
 
 -keep class java.text.CharacterIterator {
-	*** clone();
 	*** current();
 	*** first();
 	*** getBeginIndex();
@@ -23891,12 +22648,7 @@
 }
 
 -keep class java.text.Normalizer$Form {
-	*** $VALUES;
 	*** NFC;
-	*** NFD;
-	*** NFKC;
-	*** NFKD;
-	*** values();
 }
 
 -keep class java.text.NumberFormat {
@@ -23916,13 +22668,11 @@
 	*** clone();
 	*** equals(java.lang.Object);
 	*** format(double,java.lang.StringBuffer,java.text.FieldPosition);
-	*** format(long);
 	*** format(long,java.lang.StringBuffer,java.text.FieldPosition);
 	*** getCurrencyInstance(java.util.Locale);
 	*** getInstance();
 	*** getInstance(java.util.Locale);
 	*** getInstance(java.util.Locale,int);
-	*** getIntegerInstance();
 	*** getIntegerInstance(java.util.Locale);
 	*** getMaximumFractionDigits();
 	*** getMaximumIntegerDigits();
@@ -23968,7 +22718,6 @@
 	*** index;
 	*** getErrorIndex();
 	*** getIndex();
-	*** setErrorIndex(int);
 	*** setIndex(int);
 }
 
@@ -23994,6 +22743,7 @@
 	*** zeroDigit;
 	java.text.SimpleDateFormat(int,int,java.util.Locale);
 	java.text.SimpleDateFormat(java.lang.String,java.util.Locale);
+	*** applyPattern(java.lang.String);
 	*** checkNegativeNumberExpression();
 	*** compile(java.lang.String);
 	*** encode(int,int,java.lang.StringBuilder);
@@ -24125,7 +22875,6 @@
 	*** iterator();
 	*** listIterator();
 	*** remove(int);
-	*** remove(java.lang.Object);
 	*** set(int,java.lang.Object);
 	*** size();
 	*** subList(int,int);
@@ -24172,7 +22921,7 @@
 	*** copyOf(java.lang.Object[],int);
 	*** copyOf(java.lang.Object[],int,java.lang.Class);
 	*** copyOfRange(byte[],int,int);
-	*** copyOfRange(int[],int,int);
+	*** copyOfRange(char[],int,int);
 	*** copyOfRange(java.lang.Object[],int,int);
 	*** deepEquals(java.lang.Object[],java.lang.Object[]);
 	*** deepEquals0(java.lang.Object,java.lang.Object);
@@ -24190,8 +22939,6 @@
 	*** fill(int[],int,int,int);
 	*** fill(java.lang.Object[],int,int,java.lang.Object);
 	*** fill(java.lang.Object[],java.lang.Object);
-	*** hashCode(byte[]);
-	*** hashCode(int[]);
 	*** hashCode(java.lang.Object[]);
 	*** hashCode(long[]);
 	*** sort(int[]);
@@ -24263,6 +23010,8 @@
 	*** createCalendar(java.util.TimeZone,java.util.Locale);
 	*** equals(java.lang.Object);
 	*** get(int);
+	*** getActualMaximum(int);
+	*** getActualMinimum(int);
 	*** getDisplayName(int,int,java.util.Locale);
 	*** getDisplayNames(int,int,java.util.Locale);
 	*** getDisplayNamesImpl(int,int,java.util.Locale);
@@ -24352,6 +23101,7 @@
 	*** list(java.util.Enumeration);
 	*** newSetFromMap(java.util.Map);
 	*** reverse(java.util.List);
+	*** shuffle(java.util.List);
 	*** shuffle(java.util.List,java.util.Random);
 	*** singleton(java.lang.Object);
 	*** singletonIterator(java.lang.Object);
@@ -24375,11 +23125,6 @@
 -keep class java.util.Collections$1 {
 	*** hasNext;
 	*** val$e;
-}
-
--keep class java.util.Collections$2 {
-	*** i;
-	*** val$c;
 }
 
 -keep class java.util.Collections$EmptyEnumeration {
@@ -24470,27 +23215,8 @@
 	*** values;
 }
 
--keep class java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet {
-	*** contains(java.lang.Object);
-	*** containsAll(java.util.Collection);
-}
-
--keep class java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet$1 {
-	*** i;
-	*** this$0;
-	*** next();
-}
-
--keep class java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet$UnmodifiableEntry {
-	*** e;
-}
-
 -keep class java.util.Collections$UnmodifiableRandomAccessList {
 	*;
-}
-
--keep class java.util.Collections$UnmodifiableSet {
-	java.util.Collections$UnmodifiableSet(java.util.Set);
 }
 
 -keep class java.util.ComparableTimSort {
@@ -24609,11 +23335,14 @@
 
 -keep class java.util.Deque {
 	*** add(java.lang.Object);
+	*** getLast();
 	*** peek();
 	*** poll();
 	*** pop();
 	*** push(java.lang.Object);
 	*** remove();
+	*** removeFirst();
+	*** size();
 }
 
 -keep class java.util.Dictionary {
@@ -24684,7 +23413,6 @@
 	*** getUniverse(java.lang.Class);
 	*** noneOf(java.lang.Class);
 	*** of(java.lang.Enum);
-	*** of(java.lang.Enum,java.lang.Enum);
 	*** of(java.lang.Enum,java.lang.Enum[]);
 	*** typeCheck(java.lang.Enum);
 }
@@ -24918,7 +23646,6 @@
 -keep class java.util.HashMap {
 	*** size;
 	java.util.HashMap();
-	java.util.HashMap(int);
 	java.util.HashMap(java.util.Map);
 	*** clear();
 	*** clone();
@@ -24938,7 +23665,6 @@
 
 -keep class java.util.HashMap$Entry {
 	*** value;
-	*** getKey();
 }
 
 -keep class java.util.HashMap$EntryIterator {
@@ -24956,11 +23682,6 @@
 
 -keep class java.util.HashMap$Holder {
 	*;
-}
-
--keep class java.util.HashMap$KeyIterator {
-	*** this$0;
-	java.util.HashMap$KeyIterator(java.util.HashMap);
 }
 
 -keep class java.util.HashMap$KeySet {
@@ -24998,7 +23719,9 @@
 	*** containsKey(java.lang.Object);
 	*** elements();
 	*** entrySet();
+	*** equals(java.lang.Object);
 	*** get(java.lang.Object);
+	*** hashCode();
 	*** isEmpty();
 	*** keySet();
 	*** keys();
@@ -25166,13 +23889,13 @@
 -keep class java.util.LinkedList {
 	*** last;
 	*** size;
+	java.util.LinkedList();
 	*** add(int,java.lang.Object);
 	*** add(java.lang.Object);
 	*** addFirst(java.lang.Object);
 	*** addLast(java.lang.Object);
 	*** clear();
 	*** clone();
-	*** contains(java.lang.Object);
 	*** get(int);
 	*** getFirst();
 	*** getLast();
@@ -25180,6 +23903,7 @@
 	*** linkLast(java.lang.Object);
 	*** listIterator(int);
 	*** node(int);
+	*** offer(java.lang.Object);
 	*** poll();
 	*** remove(java.lang.Object);
 	*** removeFirst();
@@ -25252,7 +23976,6 @@
 }
 
 -keep class java.util.Locale {
-	*** CANADA_FRENCH;
 	*** CHINA;
 	*** CHINESE;
 	*** ENGLISH;
@@ -25334,7 +24057,6 @@
 -keep class java.util.Map$Entry {
 	*** getKey();
 	*** getValue();
-	*** hashCode();
 	*** setValue(java.lang.Object);
 }
 
@@ -25409,8 +24131,6 @@
 }
 
 -keep class java.util.Properties {
-	*** defaults;
-	java.util.Properties();
 	*** getProperty(java.lang.String);
 	*** getProperty(java.lang.String,java.lang.String);
 	*** load(java.io.InputStream);
@@ -25434,18 +24154,8 @@
 	*** this$0;
 }
 
--keep class java.util.PropertyPermission {
-	*** actions;
-	*** mask;
-	*** getActions();
-	*** getActions(int);
-	*** getMask(java.lang.String);
-	*** init(int);
-}
-
 -keep class java.util.PropertyResourceBundle {
 	*** lookup;
-	java.util.PropertyResourceBundle(java.io.InputStream);
 	*** getKeys();
 }
 
@@ -25467,7 +24177,6 @@
 	*** nextInt();
 	*** nextInt(int);
 	*** nextLong();
-	*** setSeed(long);
 }
 
 -keep class java.util.RandomAccess {
@@ -25476,8 +24185,17 @@
 
 -keep class java.util.RegularEnumSet {
 	*** elements;
+	*** access$000(java.util.RegularEnumSet);
+	*** access$074(java.util.RegularEnumSet,long);
 	*** add(java.lang.Enum);
 	*** isEmpty();
+}
+
+-keep class java.util.RegularEnumSet$EnumSetIterator {
+	*** lastReturned;
+	*** this$0;
+	*** unseen;
+	*** next();
 }
 
 -keep class java.util.ResourceBundle {
@@ -25697,6 +24415,7 @@
 	*** lastKey();
 	*** subMap(java.lang.Object,java.lang.Object);
 	*** tailMap(java.lang.Object);
+	*** values();
 }
 
 -keep class java.util.SortedSet {
@@ -25706,18 +24425,31 @@
 }
 
 -keep class java.util.Stack {
+	java.util.Stack();
+	*** empty();
 	*** peek();
 	*** pop();
 	*** push(java.lang.Object);
 }
 
 -keep class java.util.StringTokenizer {
-	java.util.StringTokenizer(java.lang.String);
 	*** countTokens();
 	*** hasMoreElements();
 	*** hasMoreTokens();
 	*** nextElement();
 	*** nextToken();
+}
+
+-keep class java.util.SubList {
+	*** l;
+	*** offset;
+	*** size;
+	java.util.SubList(java.util.AbstractList,int,int);
+	*** addAll(int,java.util.Collection);
+	*** checkForComodification();
+	*** outOfBoundsMsg(int);
+	*** rangeCheck(int);
+	*** rangeCheckForAdd(int);
 }
 
 -keep class java.util.TaskQueue {
@@ -25768,6 +24500,7 @@
 	*** $assertionsDisabled;
 	*** ID;
 	*** NO_TIMEZONE;
+	*** allowSetDefault;
 	*** defaultTimeZone;
 	*** mainAppContextDefault;
 	java.util.TimeZone();
@@ -25818,6 +24551,7 @@
 	*** sched(java.util.TimerTask,long,long);
 	*** schedule(java.util.TimerTask,long);
 	*** schedule(java.util.TimerTask,long,long);
+	*** scheduleAtFixedRate(java.util.TimerTask,long,long);
 	*** serialNumber();
 }
 
@@ -25831,7 +24565,6 @@
 	*** period;
 	*** state;
 	java.util.TimerTask();
-	*** cancel();
 	*** run();
 }
 
@@ -25917,7 +24650,6 @@
 	*** isEmpty();
 	*** iterator();
 	*** remove(java.lang.Object);
-	*** size();
 }
 
 -keep class java.util.UUID {
@@ -25927,6 +24659,7 @@
 	*** compareTo(java.util.UUID);
 	*** digits(long,int);
 	*** fromString(java.lang.String);
+	*** randomUUID();
 	*** version();
 }
 
@@ -26161,16 +24894,12 @@
 	*** headOffset;
 	*** tail;
 	*** tailOffset;
-	*** add(java.lang.Object);
 	*** casHead(java.util.concurrent.ConcurrentLinkedQueue$Node,java.util.concurrent.ConcurrentLinkedQueue$Node);
 	*** casTail(java.util.concurrent.ConcurrentLinkedQueue$Node,java.util.concurrent.ConcurrentLinkedQueue$Node);
 	*** checkNotNull(java.lang.Object);
 	*** first();
-	*** iterator();
 	*** offer(java.lang.Object);
 	*** poll();
-	*** remove(java.lang.Object);
-	*** size();
 	*** succ(java.util.concurrent.ConcurrentLinkedQueue$Node);
 	*** updateHead(java.util.concurrent.ConcurrentLinkedQueue$Node,java.util.concurrent.ConcurrentLinkedQueue$Node);
 }
@@ -26858,7 +25587,6 @@
 	*** compareAndSet(long,long);
 	*** get();
 	*** getAndIncrement();
-	*** incrementAndGet();
 	*** set(long);
 }
 
@@ -26879,20 +25607,8 @@
 }
 
 -keep class java.util.concurrent.atomic.AtomicMarkableReference {
-	*** UNSAFE;
-	*** pair;
-	*** pairOffset;
-	*** casPair(java.util.concurrent.atomic.AtomicMarkableReference$Pair,java.util.concurrent.atomic.AtomicMarkableReference$Pair);
-	*** compareAndSet(java.lang.Object,java.lang.Object,boolean,boolean);
 	*** getReference();
 	*** isMarked();
-	*** objectFieldOffset(sun.misc.Unsafe,java.lang.String,java.lang.Class);
-}
-
--keep class java.util.concurrent.atomic.AtomicMarkableReference$Pair {
-	*** mark;
-	*** reference;
-	*** of(java.lang.Object,boolean);
 }
 
 -keep class java.util.concurrent.atomic.AtomicReference {
@@ -27160,7 +25876,6 @@
 	java.util.jar.JarInputStream(java.io.InputStream,boolean);
 	*** checkManifest(java.util.jar.JarEntry);
 	*** getBytes(java.io.InputStream);
-	*** getManifest();
 	*** getNextEntry();
 	*** getNextJarEntry();
 }
@@ -27203,7 +25918,6 @@
 	*** signerMap();
 	*** unsignedEntryNames(java.util.jar.JarFile);
 	*** update(int,byte[],int,int,sun.security.util.ManifestEntryVerifier);
-	*** update(int,sun.security.util.ManifestEntryVerifier);
 }
 
 -keep class java.util.jar.JarVerifier$3 {
@@ -27216,13 +25930,6 @@
 	*** isSameDomain(java.lang.Object);
 }
 
--keep class java.util.jar.JarVerifier$VerifierStream {
-	*** is;
-	*** jv;
-	*** mev;
-	*** numLeft;
-}
-
 -keep class java.util.jar.Manifest {
 	*** attr;
 	*** entries;
@@ -27233,7 +25940,6 @@
 	*** parseName(byte[],int);
 	*** read(java.io.InputStream);
 	*** toLower(int);
-	*** write(java.io.OutputStream);
 }
 
 -keep class java.util.jar.Manifest$FastInputStream {
@@ -27247,25 +25953,12 @@
 	*** readLine(byte[],int,int);
 }
 
--keep class java.util.logging.ConsoleHandler {
-	*** configure();
-}
-
 -keep class java.util.logging.ErrorManager {
-	*** reported;
 	*** error(java.lang.String,java.lang.Exception,int);
 }
 
 -keep class java.util.logging.Filter {
 	*** isLoggable(java.util.logging.LogRecord);
-}
-
--keep class java.util.logging.Formatter {
-	java.util.logging.Formatter();
-	*** format(java.util.logging.LogRecord);
-	*** formatMessage(java.util.logging.LogRecord);
-	*** getHead(java.util.logging.Handler);
-	*** getTail(java.util.logging.Handler);
 }
 
 -keep class java.util.logging.Handler {
@@ -27277,19 +25970,11 @@
 	*** manager;
 	*** offValue;
 	*** sealed;
-	java.util.logging.Handler();
 	*** checkPermission();
 	*** close();
-	*** getEncoding();
 	*** getFilter();
-	*** getFormatter();
 	*** getLevel();
-	*** isLoggable(java.util.logging.LogRecord);
 	*** publish(java.util.logging.LogRecord);
-	*** reportError(java.lang.String,java.lang.Exception,int);
-	*** setEncoding(java.lang.String);
-	*** setFilter(java.util.logging.Filter);
-	*** setFormatter(java.util.logging.Formatter);
 	*** setLevel(java.util.logging.Level);
 }
 
@@ -27369,14 +26054,11 @@
 	*** doSetParent(java.util.logging.Logger,java.util.logging.Logger);
 	*** drainLoggerRefQueueBounded();
 	*** getBooleanProperty(java.lang.String,boolean);
-	*** getFilterProperty(java.lang.String,java.util.logging.Filter);
-	*** getFormatterProperty(java.lang.String,java.util.logging.Formatter);
 	*** getLevelProperty(java.lang.String,java.util.logging.Level);
 	*** getLogManager();
 	*** getLogger(java.lang.String);
 	*** getLoggingMXBean();
 	*** getProperty(java.lang.String);
-	*** getStringProperty(java.lang.String,java.lang.String);
 	*** getUserContext();
 	*** initializeGlobalHandlers();
 	*** loadLoggerHandlers(java.util.logging.Logger,java.lang.String,java.lang.String);
@@ -27457,34 +26139,7 @@
 }
 
 -keep class java.util.logging.LogRecord {
-	*** globalSequenceNumber;
-	*** level;
-	*** loggerName;
-	*** message;
-	*** millis;
-	*** needToInferCaller;
-	*** nextThreadId;
-	*** parameters;
-	*** resourceBundle;
-	*** resourceBundleName;
-	*** sequenceNumber;
-	*** sourceClassName;
-	*** sourceMethodName;
-	*** threadID;
-	*** threadIds;
-	*** thrown;
-	*** defaultThreadID();
 	*** getLevel();
-	*** getLoggerName();
-	*** getMessage();
-	*** getMillis();
-	*** getParameters();
-	*** getResourceBundle();
-	*** getSourceClassName();
-	*** getSourceMethodName();
-	*** getThrown();
-	*** inferCaller();
-	*** isLoggerImplFrame(java.lang.String);
 	*** setLoggerName(java.lang.String);
 	*** setParameters(java.lang.Object[]);
 	*** setResourceBundle(java.util.ResourceBundle);
@@ -27581,37 +26236,21 @@
 	*** INSTANCE;
 }
 
--keep class java.util.logging.SimpleFormatter {
-	*** dat;
-	*** format;
-}
-
--keep class java.util.logging.StreamHandler {
-	*** doneHeader;
-	*** manager;
-	*** output;
-	*** writer;
-	java.util.logging.StreamHandler();
-	*** configure();
-	*** flush();
-	*** flushAndClose();
-	*** isLoggable(java.util.logging.LogRecord);
-	*** publish(java.util.logging.LogRecord);
-	*** setEncoding(java.lang.String);
-	*** setOutputStream(java.io.OutputStream);
-}
-
 -keep class java.util.regex.ASCII {
 	*;
 }
 
 -keep class java.util.regex.Matcher {
+	*** appendReplacement(java.lang.StringBuffer,java.lang.String);
+	*** appendTail(java.lang.StringBuffer);
 	*** end();
 	*** find();
 	*** find(int);
 	*** group(int);
+	*** lookingAt();
 	*** matches();
 	*** replaceAll(java.lang.String);
+	*** reset(java.lang.CharSequence);
 	*** start();
 }
 
@@ -27619,7 +26258,6 @@
 	*** compile(java.lang.String);
 	*** compile(java.lang.String,int);
 	*** matcher(java.lang.CharSequence);
-	*** matches(java.lang.String,java.lang.CharSequence);
 	*** split(java.lang.CharSequence);
 }
 
@@ -27944,7 +26582,6 @@
 	*** size;
 	*** time;
 	*** getName();
-	*** getSize();
 	*** getTime();
 	*** isDirectory();
 	*** setExtra(byte[]);
@@ -27961,7 +26598,6 @@
 	*** access$800(java.util.zip.ZipFile);
 	*** access$900(java.util.zip.ZipFile,java.lang.String,long);
 	*** close();
-	*** getName();
 }
 
 -keep class java.util.zip.ZipFile$1 {
@@ -29336,11 +27972,48 @@
 
 -keep class javax.crypto.JarVerifier {
 	*** appPerms;
+	*** exemptValidator;
+	*** frameworkCertificate;
 	*** jarURL;
+	*** providerValidator;
 	*** savePerms;
+	*** validator;
+	*** verifiedSignerCache;
+	*** access$000();
+	*** access$002(java.security.cert.X509Certificate);
+	*** access$100(java.lang.String,java.security.cert.CertificateFactory);
+	*** access$200();
+	*** access$202(sun.security.validator.Validator);
+	*** access$302(sun.security.validator.Validator);
+	*** access$400(java.security.cert.X509Certificate,java.security.cert.CertificateFactory);
+	*** convertCertsToChains(java.security.cert.Certificate[]);
+	*** getAChain(java.security.cert.Certificate[],int);
 	*** getPermissions();
+	*** getSystemEntropy();
+	*** isTrusted(java.security.cert.X509Certificate[]);
+	*** longToByteArray(long);
+	*** parseAttrClasspath(java.lang.String);
+	*** parseCertificate(java.lang.String,java.security.cert.CertificateFactory);
+	*** testSignatures(java.security.cert.X509Certificate,java.security.cert.CertificateFactory);
 	*** verify();
+	*** verifyJars(java.net.URL,java.util.Vector);
+	*** verifyManifestClassPathJars(java.net.URL,java.lang.String,java.util.Vector);
 	*** verifyPolicySigned(java.security.cert.Certificate[]);
+	*** verifySingleJar(java.net.URL);
+}
+
+-keep class javax.crypto.JarVerifier$1 {
+	*** run();
+}
+
+-keep class javax.crypto.JarVerifier$2 {
+	*** this$0;
+	*** val$url;
+}
+
+-keep class javax.crypto.JarVerifier$JarHolder {
+	*** file;
+	*** useCaches;
 }
 
 -keep class javax.crypto.JceSecurity {
@@ -29461,6 +28134,7 @@
 	*** chooseFirstProvider();
 	*** chooseProvider(java.security.Key,java.security.spec.AlgorithmParameterSpec);
 	*** doFinal();
+	*** doFinal(byte[]);
 	*** getInstance(java.lang.String);
 	*** getInstance(java.lang.String,java.security.Provider);
 	*** getMacLength();
@@ -29512,13 +28186,6 @@
 	*** getIV();
 }
 
--keep class javax.crypto.spec.OAEPParameterSpec {
-	*** getDigestAlgorithm();
-	*** getMGFAlgorithm();
-	*** getMGFParameters();
-	*** getPSource();
-}
-
 -keep class javax.crypto.spec.PBEParameterSpec {
 	*** getIterationCount();
 }
@@ -29526,13 +28193,11 @@
 -keep class javax.crypto.spec.PSource {
 	*** pSrcName;
 	javax.crypto.spec.PSource(java.lang.String);
-	*** getAlgorithm();
 }
 
 -keep class javax.crypto.spec.PSource$PSpecified {
 	*** DEFAULT;
 	*** p;
-	*** getValue();
 }
 
 -keep class javax.crypto.spec.RC2ParameterSpec {
@@ -29619,15 +28284,34 @@
 	*** session;
 	*** getLocalCertificates();
 	*** getPeerCertificates();
+	*** getSession();
 }
 
 -keep class javax.net.ssl.HandshakeCompletedListener {
 	*** handshakeCompleted(javax.net.ssl.HandshakeCompletedEvent);
 }
 
+-keep class javax.net.ssl.HostnameVerifier {
+	*** verify(java.lang.String,javax.net.ssl.SSLSession);
+}
+
 -keep class javax.net.ssl.HttpsURLConnection {
+	*** defaultHostnameVerifier;
+	*** defaultSSLSocketFactory;
+	*** hostnameVerifier;
+	*** sslSocketFactory;
+	javax.net.ssl.HttpsURLConnection(java.net.URL);
+	*** getDefaultSSLSocketFactory();
+	*** getHostnameVerifier();
+	*** getLocalCertificates();
+	*** getSSLSocketFactory();
+	*** getServerCertificates();
 	*** setHostnameVerifier(javax.net.ssl.HostnameVerifier);
 	*** setSSLSocketFactory(javax.net.ssl.SSLSocketFactory);
+}
+
+-keep class javax.net.ssl.HttpsURLConnection$DefaultHostnameVerifier {
+	javax.net.ssl.HttpsURLConnection$DefaultHostnameVerifier();
 }
 
 -keep class javax.net.ssl.KeyManagerFactory {
@@ -29939,12 +28623,9 @@
 }
 
 -keep class javax.security.auth.x500.X500Principal {
-	*** thisX500Name;
-	javax.security.auth.x500.X500Principal(java.lang.String,java.util.Map);
 	*** equals(java.lang.Object);
 	*** getEncoded();
 	*** getName();
-	*** getName(java.lang.String);
 	*** toString();
 }
 
@@ -29966,40 +28647,10 @@
 	*** initCause(java.lang.Throwable);
 }
 
--keep class javax.servlet.AsyncEvent {
-	*** context;
-	*** request;
-	*** response;
-	*** throwable;
-	javax.servlet.AsyncEvent(javax.servlet.AsyncContext,javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-	javax.servlet.AsyncEvent(javax.servlet.AsyncContext,javax.servlet.ServletRequest,javax.servlet.ServletResponse,java.lang.Throwable);
-	*** getSuppliedRequest();
-	*** getSuppliedResponse();
-}
-
--keep class javax.servlet.AsyncListener {
-	*** onComplete(javax.servlet.AsyncEvent);
-	*** onError(javax.servlet.AsyncEvent);
-	*** onStartAsync(javax.servlet.AsyncEvent);
-	*** onTimeout(javax.servlet.AsyncEvent);
-}
-
 -keep class javax.servlet.DispatcherType {
-	*** $VALUES;
 	*** ASYNC;
-	*** ERROR;
-	*** FORWARD;
 	*** INCLUDE;
 	*** REQUEST;
-}
-
--keep class javax.servlet.Filter {
-	*** destroy();
-	*** init(javax.servlet.FilterConfig);
-}
-
--keep class javax.servlet.FilterChain {
-	*** doFilter(javax.servlet.ServletRequest,javax.servlet.ServletResponse);
 }
 
 -keep class javax.servlet.GenericServlet {
@@ -30024,12 +28675,6 @@
 	*** include(javax.servlet.ServletRequest,javax.servlet.ServletResponse);
 }
 
--keep class javax.servlet.Servlet {
-	*** destroy();
-	*** init(javax.servlet.ServletConfig);
-	*** service(javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-}
-
 -keep class javax.servlet.ServletConfig {
 	*** getInitParameter(java.lang.String);
 	*** getInitParameterNames();
@@ -30049,12 +28694,6 @@
 	*** setAttribute(java.lang.String,java.lang.Object);
 }
 
--keep class javax.servlet.ServletContextAttributeListener {
-	*** attributeAdded(javax.servlet.ServletContextAttributeEvent);
-	*** attributeRemoved(javax.servlet.ServletContextAttributeEvent);
-	*** attributeReplaced(javax.servlet.ServletContextAttributeEvent);
-}
-
 -keep class javax.servlet.ServletContextListener {
 	*** contextDestroyed(javax.servlet.ServletContextEvent);
 	*** contextInitialized(javax.servlet.ServletContextEvent);
@@ -30063,16 +28702,10 @@
 -keep class javax.servlet.ServletException {
 	*** rootCause;
 	javax.servlet.ServletException(java.lang.String);
-	*** getRootCause();
-}
-
--keep class javax.servlet.ServletInputStream {
-	javax.servlet.ServletInputStream();
 }
 
 -keep class javax.servlet.ServletOutputStream {
 	*** lStrings;
-	javax.servlet.ServletOutputStream();
 	*** print(boolean);
 	*** print(char);
 	*** print(double);
@@ -30084,48 +28717,14 @@
 }
 
 -keep class javax.servlet.ServletRequest {
-	*** getAsyncContext();
 	*** getAttribute(java.lang.String);
-	*** getAttributeNames();
-	*** getCharacterEncoding();
 	*** getContentLength();
-	*** getContentType();
-	*** getDispatcherType();
 	*** getInputStream();
-	*** getLocalAddr();
-	*** getLocalName();
-	*** getLocalPort();
-	*** getLocale();
-	*** getLocales();
 	*** getParameter(java.lang.String);
 	*** getParameterMap();
-	*** getParameterNames();
-	*** getParameterValues(java.lang.String);
 	*** getProtocol();
-	*** getReader();
-	*** getRealPath(java.lang.String);
-	*** getRemoteAddr();
-	*** getRemoteHost();
-	*** getRemotePort();
 	*** getRequestDispatcher(java.lang.String);
-	*** getScheme();
-	*** getServerName();
-	*** getServerPort();
-	*** getServletContext();
-	*** isAsyncStarted();
-	*** isAsyncSupported();
-	*** isSecure();
-	*** removeAttribute(java.lang.String);
 	*** setAttribute(java.lang.String,java.lang.Object);
-	*** setCharacterEncoding(java.lang.String);
-	*** startAsync();
-	*** startAsync(javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-}
-
--keep class javax.servlet.ServletRequestAttributeListener {
-	*** attributeAdded(javax.servlet.ServletRequestAttributeEvent);
-	*** attributeRemoved(javax.servlet.ServletRequestAttributeEvent);
-	*** attributeReplaced(javax.servlet.ServletRequestAttributeEvent);
 }
 
 -keep class javax.servlet.ServletRequestListener {
@@ -30133,90 +28732,21 @@
 	*** requestInitialized(javax.servlet.ServletRequestEvent);
 }
 
--keep class javax.servlet.ServletRequestWrapper {
-	*** request;
-	javax.servlet.ServletRequestWrapper(javax.servlet.ServletRequest);
-	*** getRequest();
-	*** isWrapperFor(java.lang.Class);
-	*** isWrapperFor(javax.servlet.ServletRequest);
-}
-
 -keep class javax.servlet.ServletResponse {
 	*** flushBuffer();
 	*** getBufferSize();
-	*** getCharacterEncoding();
 	*** getContentType();
-	*** getLocale();
 	*** getOutputStream();
 	*** getWriter();
 	*** isCommitted();
-	*** reset();
-	*** resetBuffer();
-	*** setBufferSize(int);
-	*** setCharacterEncoding(java.lang.String);
 	*** setContentLength(int);
 	*** setContentType(java.lang.String);
-	*** setLocale(java.util.Locale);
-}
-
--keep class javax.servlet.ServletResponseWrapper {
-	*** response;
-	javax.servlet.ServletResponseWrapper(javax.servlet.ServletResponse);
-	*** getResponse();
-	*** isWrapperFor(java.lang.Class);
-	*** isWrapperFor(javax.servlet.ServletResponse);
-}
-
--keep class javax.servlet.SessionCookieConfig {
-	*** getMaxAge();
-	*** getName();
-	*** isHttpOnly();
-	*** isSecure();
-}
-
--keep class javax.servlet.SessionTrackingMode {
-	*** $VALUES;
-	*** COOKIE;
-	*** SSL;
-	*** URL;
 }
 
 -keep class javax.servlet.UnavailableException {
 	*** permanent;
 	*** seconds;
 	*** servlet;
-	javax.servlet.UnavailableException(java.lang.String,int);
-	*** getUnavailableSeconds();
-	*** isPermanent();
-}
-
--keep class javax.servlet.http.Cookie {
-	*** TSPECIALS;
-	*** comment;
-	*** domain;
-	*** isHttpOnly;
-	*** lStrings;
-	*** maxAge;
-	*** name;
-	*** path;
-	*** secure;
-	*** value;
-	*** version;
-	*** getComment();
-	*** getDomain();
-	*** getMaxAge();
-	*** getName();
-	*** getPath();
-	*** getSecure();
-	*** getValue();
-	*** getVersion();
-	*** isHttpOnly();
-	*** isToken(java.lang.String);
-	*** setComment(java.lang.String);
-	*** setDomain(java.lang.String);
-	*** setMaxAge(int);
-	*** setPath(java.lang.String);
-	*** setVersion(int);
 }
 
 -keep class javax.servlet.http.HttpServlet {
@@ -30237,7 +28767,6 @@
 }
 
 -keep class javax.servlet.http.HttpServletRequest {
-	*** getCookies();
 	*** getDateHeader(java.lang.String);
 	*** getHeader(java.lang.String);
 	*** getHeaderNames();
@@ -30247,9 +28776,7 @@
 	*** getQueryString();
 	*** getRequestURI();
 	*** getRequestURL();
-	*** getRequestedSessionId();
 	*** getServletPath();
-	*** getSession(boolean);
 }
 
 -keep class javax.servlet.http.HttpServletResponse {
@@ -30263,36 +28790,6 @@
 	*** setDateHeader(java.lang.String,long);
 	*** setHeader(java.lang.String,java.lang.String);
 	*** setStatus(int);
-}
-
--keep class javax.servlet.http.HttpSession {
-	*** getAttribute(java.lang.String);
-	*** getAttributeNames();
-	*** getId();
-	*** invalidate();
-	*** removeAttribute(java.lang.String);
-	*** setAttribute(java.lang.String,java.lang.Object);
-}
-
--keep class javax.servlet.http.HttpSessionActivationListener {
-	*** sessionDidActivate(javax.servlet.http.HttpSessionEvent);
-	*** sessionWillPassivate(javax.servlet.http.HttpSessionEvent);
-}
-
--keep class javax.servlet.http.HttpSessionAttributeListener {
-	*** attributeAdded(javax.servlet.http.HttpSessionBindingEvent);
-	*** attributeRemoved(javax.servlet.http.HttpSessionBindingEvent);
-	*** attributeReplaced(javax.servlet.http.HttpSessionBindingEvent);
-}
-
--keep class javax.servlet.http.HttpSessionBindingListener {
-	*** valueBound(javax.servlet.http.HttpSessionBindingEvent);
-	*** valueUnbound(javax.servlet.http.HttpSessionBindingEvent);
-}
-
--keep class javax.servlet.http.HttpSessionListener {
-	*** sessionCreated(javax.servlet.http.HttpSessionEvent);
-	*** sessionDestroyed(javax.servlet.http.HttpSessionEvent);
 }
 
 -keep class javax.servlet.http.NoBodyResponse {
@@ -30836,6 +29333,8 @@
 
 -keep class javax.swing.JOptionPane {
 	*** showConfirmDialog(java.awt.Component,java.lang.Object,java.lang.String,int,int);
+	*** showMessageDialog(java.awt.Component,java.lang.Object,java.lang.String,int);
+	*** showOptionDialog(java.awt.Component,java.lang.Object,java.lang.String,int,int,javax.swing.Icon,java.lang.Object[],java.lang.Object);
 }
 
 -keep class javax.swing.JPanel {
@@ -32331,17 +30830,6 @@
 	*** warning(java.lang.String);
 }
 
--keep class kp.FenwickTree {
-	*** size;
-	*** tree;
-	*** addValue(int,int);
-	*** bitAnd(int,int);
-	*** getCumulativeFrequency(int);
-	*** getFrequency(int);
-	*** indexOfCumulativeFrequency(int);
-	*** validateIdx(int);
-}
-
 -keep class net.sourceforge.jdpapi.DataProtector {
 	*** protect(java.lang.String);
 	*** unprotect(byte[]);
@@ -32576,10 +31064,7 @@
 -keep class org.apache.commons.beanutils.PropertyUtils {
 	*** debug;
 	*** getProperty(java.lang.Object,java.lang.String);
-	*** getPropertyDescriptors(java.lang.Class);
-	*** getSimpleProperty(java.lang.Object,java.lang.String);
 	*** setProperty(java.lang.Object,java.lang.String,java.lang.Object);
-	*** setSimpleProperty(java.lang.Object,java.lang.String,java.lang.Object);
 }
 
 -keep class org.apache.commons.beanutils.PropertyUtilsBean {
@@ -32873,6 +31358,7 @@
 	*** addOption(org.apache.commons.cli.Option);
 	*** getArgs();
 	*** getOptionObject(java.lang.String);
+	*** getOptionProperties(java.lang.String);
 	*** getOptionValue(java.lang.String);
 	*** getOptionValue(java.lang.String,java.lang.String);
 	*** getOptionValues(java.lang.String);
@@ -32932,7 +31418,33 @@
 	*** hasValueSeparator();
 	*** isRequired();
 	*** processValue(java.lang.String);
+	*** setArgName(java.lang.String);
+	*** setArgs(int);
+	*** setLongOpt(java.lang.String);
+	*** setOptionalArg(boolean);
 	*** setRequired(boolean);
+	*** setType(java.lang.Object);
+	*** setValueSeparator(char);
+}
+
+-keep class org.apache.commons.cli.OptionBuilder {
+	*** argName;
+	*** description;
+	*** instance;
+	*** longopt;
+	*** numberOfArgs;
+	*** optionalArg;
+	*** required;
+	*** type;
+	*** valuesep;
+	*** create();
+	*** create(java.lang.String);
+	*** hasArgs(int);
+	*** reset();
+	*** withArgName(java.lang.String);
+	*** withDescription(java.lang.String);
+	*** withLongOpt(java.lang.String);
+	*** withValueSeparator();
 }
 
 -keep class org.apache.commons.cli.OptionGroup {
@@ -33126,8 +31638,484 @@
 	*** setFast(boolean);
 }
 
+-keep class org.apache.commons.exec.CommandLine {
+	*** arguments;
+	*** executable;
+	*** isFile;
+	*** substitutionMap;
+	*** addArgument(java.lang.String);
+	*** addArgument(java.lang.String,boolean);
+	*** addArguments(java.lang.String,boolean);
+	*** addArguments(java.lang.String[]);
+	*** addArguments(java.lang.String[],boolean);
+	*** expandArgument(java.lang.String);
+	*** getArguments();
+	*** getExecutable();
+	*** getExecutable(java.lang.String);
+	*** getSubstitutionMap();
+	*** isFile();
+	*** parse(java.lang.String,java.util.Map);
+	*** setSubstitutionMap(java.util.Map);
+	*** toStrings();
+	*** translateCommandline(java.lang.String);
+}
+
+-keep class org.apache.commons.exec.CommandLine$Argument {
+	*** handleQuoting;
+	*** this$0;
+	*** value;
+	org.apache.commons.exec.CommandLine$Argument(org.apache.commons.exec.CommandLine,java.lang.String,boolean);
+	*** access$100(org.apache.commons.exec.CommandLine$Argument);
+	*** access$200(org.apache.commons.exec.CommandLine$Argument);
+	*** getValue();
+	*** isHandleQuoting();
+}
+
+-keep class org.apache.commons.exec.DefaultExecuteResultHandler {
+	*** exception;
+	*** exitValue;
+	*** hasResult;
+	*** hasResult();
+}
+
+-keep class org.apache.commons.exec.DefaultExecutor {
+	*** exceptionCaught;
+	*** executorThread;
+	*** exitValues;
+	*** launcher;
+	*** processDestroyer;
+	*** streamHandler;
+	*** watchdog;
+	*** workingDirectory;
+	*** access$000(org.apache.commons.exec.DefaultExecutor);
+	*** access$100(org.apache.commons.exec.DefaultExecutor);
+	*** access$200(org.apache.commons.exec.DefaultExecutor,org.apache.commons.exec.CommandLine,java.util.Map,java.io.File,org.apache.commons.exec.ExecuteStreamHandler);
+	*** closeProcessStreams(java.lang.Process);
+	*** createThread(java.lang.Runnable,java.lang.String);
+	*** execute(org.apache.commons.exec.CommandLine,java.util.Map);
+	*** execute(org.apache.commons.exec.CommandLine,java.util.Map,org.apache.commons.exec.ExecuteResultHandler);
+	*** executeInternal(org.apache.commons.exec.CommandLine,java.util.Map,java.io.File,org.apache.commons.exec.ExecuteStreamHandler);
+	*** getExceptionCaught();
+	*** getExecutorThread();
+	*** getProcessDestroyer();
+	*** isFailure(int);
+	*** launch(org.apache.commons.exec.CommandLine,java.util.Map,java.io.File);
+	*** setExceptionCaught(java.io.IOException);
+	*** setExitValues(int[]);
+}
+
+-keep class org.apache.commons.exec.DefaultExecutor$1 {
+	*** this$0;
+	*** val$command;
+	*** val$environment;
+	*** val$handler;
+}
+
+-keep class org.apache.commons.exec.ExecuteException {
+	*** cause;
+	*** exitValue;
+	*** getExitValue();
+}
+
+-keep class org.apache.commons.exec.ExecuteResultHandler {
+	*** onProcessComplete(int);
+	*** onProcessFailed(org.apache.commons.exec.ExecuteException);
+}
+
+-keep class org.apache.commons.exec.ExecuteStreamHandler {
+	*** setProcessErrorStream(java.io.InputStream);
+	*** setProcessInputStream(java.io.OutputStream);
+	*** setProcessOutputStream(java.io.InputStream);
+	*** start();
+	*** stop();
+}
+
+-keep class org.apache.commons.exec.ExecuteWatchdog {
+	*** caught;
+	*** hasWatchdog;
+	*** killedProcess;
+	*** process;
+	*** processStarted;
+	*** watch;
+	*** watchdog;
+	*** checkException();
+	*** cleanUp();
+	*** destroyProcess();
+	*** ensureStarted();
+	*** setProcessNotStarted();
+	*** start(java.lang.Process);
+	*** stop();
+	*** timeoutOccured(org.apache.commons.exec.Watchdog);
+}
+
+-keep class org.apache.commons.exec.Executor {
+	*** execute(org.apache.commons.exec.CommandLine);
+	*** execute(org.apache.commons.exec.CommandLine,org.apache.commons.exec.ExecuteResultHandler);
+	*** getWatchdog();
+	*** setProcessDestroyer(org.apache.commons.exec.ProcessDestroyer);
+	*** setStreamHandler(org.apache.commons.exec.ExecuteStreamHandler);
+	*** setWatchdog(org.apache.commons.exec.ExecuteWatchdog);
+}
+
+-keep class org.apache.commons.exec.InputStreamPumper {
+	*** is;
+	*** os;
+	*** stop;
+	*** stopProcessing();
+}
+
+-keep class org.apache.commons.exec.OS {
+	*** OS_ARCH;
+	*** OS_NAME;
+	*** OS_VERSION;
+	*** PATH_SEP;
+	*** isFamily(java.lang.String);
+	*** isFamilyNetware();
+	*** isFamilyOS2();
+	*** isFamilyOS400();
+	*** isFamilyOpenVms();
+	*** isFamilyUnix();
+	*** isFamilyWin9x();
+	*** isFamilyWindows();
+	*** isFamilyZOS();
+	*** isOs(java.lang.String,java.lang.String,java.lang.String,java.lang.String);
+}
+
+-keep class org.apache.commons.exec.ProcessDestroyer {
+	*** add(java.lang.Process);
+	*** remove(java.lang.Process);
+}
+
+-keep class org.apache.commons.exec.PumpStreamHandler {
+	*** caught;
+	*** err;
+	*** errorThread;
+	*** input;
+	*** inputStreamPumper;
+	*** inputThread;
+	*** out;
+	*** outputThread;
+	*** stopTimeout;
+	org.apache.commons.exec.PumpStreamHandler(java.io.OutputStream,java.io.OutputStream);
+	org.apache.commons.exec.PumpStreamHandler(java.io.OutputStream,java.io.OutputStream,java.io.InputStream);
+	*** createProcessErrorPump(java.io.InputStream,java.io.OutputStream);
+	*** createProcessOutputPump(java.io.InputStream,java.io.OutputStream);
+	*** createPump(java.io.InputStream,java.io.OutputStream);
+	*** createPump(java.io.InputStream,java.io.OutputStream,boolean);
+	*** createSystemInPump(java.io.InputStream,java.io.OutputStream);
+	*** stopThread(java.lang.Thread,long);
+}
+
+-keep class org.apache.commons.exec.ShutdownHookProcessDestroyer {
+	*** added;
+	*** destroyProcessThread;
+	*** processes;
+	*** running;
+	*** addShutdownHook();
+	*** removeShutdownHook();
+	*** run();
+}
+
+-keep class org.apache.commons.exec.ShutdownHookProcessDestroyer$ProcessDestroyerImpl {
+	*** shouldDestroy;
+	*** this$0;
+	*** setShouldDestroy(boolean);
+}
+
+-keep class org.apache.commons.exec.Watchdog {
+	*** addTimeoutObserver(org.apache.commons.exec.TimeoutObserver);
+	*** start();
+	*** stop();
+}
+
+-keep class org.apache.commons.exec.environment.DefaultProcessingEnvironment {
+	*** LINE_SEPARATOR;
+	*** class$java$lang$System;
+	*** procEnvironment;
+	org.apache.commons.exec.environment.DefaultProcessingEnvironment();
+	*** class$(java.lang.String);
+	*** createEnvironmentMap();
+	*** createProcEnvironment();
+	*** getProcEnvCommand();
+	*** getProcEnvironment();
+	*** runProcEnvCommand();
+	*** toString(java.io.ByteArrayOutputStream);
+}
+
+-keep class org.apache.commons.exec.environment.EnvironmentUtils {
+	*** PROCESSING_ENVIRONMENT_IMPLEMENTATION;
+	*** addVariableToEnvironment(java.util.Map,java.lang.String);
+	*** parseEnvironmentVariable(java.lang.String);
+	*** toStrings(java.util.Map);
+}
+
+-keep class org.apache.commons.exec.environment.OpenVmsProcessingEnvironment {
+	*** addVMSenvironmentVariables(java.util.Map,java.io.BufferedReader);
+}
+
+-keep class org.apache.commons.exec.launcher.CommandLauncher {
+	*** exec(org.apache.commons.exec.CommandLine,java.util.Map,java.io.File);
+	*** isFailure(int);
+}
+
+-keep class org.apache.commons.exec.launcher.CommandLauncherFactory {
+	*** createVMLauncher();
+}
+
+-keep class org.apache.commons.exec.launcher.CommandLauncherImpl {
+	org.apache.commons.exec.launcher.CommandLauncherImpl();
+	*** exec(org.apache.commons.exec.CommandLine,java.util.Map);
+}
+
+-keep class org.apache.commons.exec.launcher.Java13CommandLauncher {
+	org.apache.commons.exec.launcher.Java13CommandLauncher();
+	*** exec(org.apache.commons.exec.CommandLine,java.util.Map,java.io.File);
+}
+
+-keep class org.apache.commons.exec.launcher.VmsCommandLauncher {
+	*** createCommandFile(org.apache.commons.exec.CommandLine,java.util.Map);
+}
+
+-keep class org.apache.commons.exec.util.DebugUtils {
+	*** handleException(java.lang.String,java.lang.Exception);
+}
+
+-keep class org.apache.commons.exec.util.StringUtils {
+	*** fixFileSeparatorChar(java.lang.String);
+	*** quoteArgument(java.lang.String);
+	*** split(java.lang.String,java.lang.String);
+	*** stringSubstitution(java.lang.String,java.util.Map,boolean);
+	*** toString(java.lang.String[],java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.AutoCloseInputStream {
+	*** selfClosed;
+	*** streamOpen;
+	*** watcher;
+	*** checkClose(int);
+	*** isReadAllowed();
+	*** notifyWatcher();
+}
+
+-keep class org.apache.commons.httpclient.ChunkedInputStream {
+	*** LOG;
+	*** bof;
+	*** chunkSize;
+	*** class$org$apache$commons$httpclient$ChunkedInputStream;
+	*** closed;
+	*** eof;
+	*** in;
+	*** method;
+	*** pos;
+	org.apache.commons.httpclient.ChunkedInputStream(java.io.InputStream,org.apache.commons.httpclient.HttpMethod);
+	*** class$(java.lang.String);
+	*** exhaustInputStream(java.io.InputStream);
+	*** getChunkSizeFromInputStream(java.io.InputStream);
+	*** nextChunk();
+	*** parseTrailerHeaders();
+	*** read(byte[],int,int);
+	*** readCRLF();
+}
+
+-keep class org.apache.commons.httpclient.ConnectMethod {
+	*** execute(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+}
+
+-keep class org.apache.commons.httpclient.ContentLengthInputStream {
+	*** closed;
+	*** contentLength;
+	*** pos;
+	*** wrappedStream;
+	org.apache.commons.httpclient.ContentLengthInputStream(java.io.InputStream,long);
+	*** read(byte[],int,int);
+}
+
+-keep class org.apache.commons.httpclient.Cookie {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$Cookie;
+	*** cookieComment;
+	*** cookieDomain;
+	*** cookieExpiryDate;
+	*** cookiePath;
+	*** cookieVersion;
+	*** hasDomainAttribute;
+	*** hasPathAttribute;
+	*** isSecure;
+	org.apache.commons.httpclient.Cookie(java.lang.String,java.lang.String,java.lang.String);
+	org.apache.commons.httpclient.Cookie(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Date,boolean);
+	*** class$(java.lang.String);
+	*** compare(java.lang.Object,java.lang.Object);
+	*** equals(java.lang.Object);
+	*** getDomain();
+	*** getExpiryDate();
+	*** getPath();
+	*** getSecure();
+	*** getVersion();
+	*** isDomainAttributeSpecified();
+	*** isExpired();
+	*** isExpired(java.util.Date);
+	*** isPathAttributeSpecified();
+	*** isPersistent();
+	*** setComment(java.lang.String);
+	*** setDomain(java.lang.String);
+	*** setDomainAttributeSpecified(boolean);
+	*** setExpiryDate(java.util.Date);
+	*** setPath(java.lang.String);
+	*** setPathAttributeSpecified(boolean);
+	*** setSecure(boolean);
+	*** setVersion(int);
+	*** toExternalForm();
+}
+
+-keep class org.apache.commons.httpclient.DefaultHttpMethodRetryHandler {
+	*** SSL_HANDSHAKE_EXCEPTION;
+	*** requestSentRetryEnabled;
+	*** retryCount;
+	org.apache.commons.httpclient.DefaultHttpMethodRetryHandler(int,boolean);
+}
+
+-keep class org.apache.commons.httpclient.Header {
+	*** isAutogenerated;
+	org.apache.commons.httpclient.Header(java.lang.String,java.lang.String);
+	*** getElements();
+	*** isAutogenerated();
+	*** toExternalForm();
+}
+
+-keep class org.apache.commons.httpclient.HeaderElement {
+	*** getParameterByName(java.lang.String);
+	*** getParameters();
+	*** parse(java.lang.String);
+	*** parseElements(char[]);
+	*** parseElements(java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.HeaderGroup {
+	*** headers;
+	*** addHeader(org.apache.commons.httpclient.Header);
+	*** clear();
+	*** getAllHeaders();
+	*** getCondensedHeader(java.lang.String);
+	*** getFirstHeader(java.lang.String);
+	*** getHeaders(java.lang.String);
+	*** removeHeader(org.apache.commons.httpclient.Header);
+	*** setHeaders(org.apache.commons.httpclient.Header[]);
+}
+
+-keep class org.apache.commons.httpclient.HostConfiguration {
+	*** ANY_HOST_CONFIGURATION;
+	*** host;
+	*** localAddress;
+	*** params;
+	*** proxyHost;
+	*** clone();
+	*** getHost();
+	*** getLocalAddress();
+	*** getParams();
+	*** getPort();
+	*** getProtocol();
+	*** getProxyHost();
+	*** getProxyPort();
+	*** hostEquals(org.apache.commons.httpclient.HttpConnection);
+	*** init(org.apache.commons.httpclient.HostConfiguration);
+	*** proxyEquals(org.apache.commons.httpclient.HttpConnection);
+	*** setHost(java.lang.String,int,java.lang.String);
+	*** setHost(java.lang.String,int,org.apache.commons.httpclient.protocol.Protocol);
+	*** setHost(org.apache.commons.httpclient.HttpHost);
+	*** setHost(org.apache.commons.httpclient.URI);
+}
+
 -keep class org.apache.commons.httpclient.HttpClient {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$HttpClient;
+	*** hostConfiguration;
+	*** httpConnectionManager;
+	*** params;
+	*** state;
+	org.apache.commons.httpclient.HttpClient(org.apache.commons.httpclient.params.HttpClientParams);
+	org.apache.commons.httpclient.HttpClient(org.apache.commons.httpclient.params.HttpClientParams,org.apache.commons.httpclient.HttpConnectionManager);
+	*** class$(java.lang.String);
+	*** executeMethod(org.apache.commons.httpclient.HostConfiguration,org.apache.commons.httpclient.HttpMethod,org.apache.commons.httpclient.HttpState);
 	*** executeMethod(org.apache.commons.httpclient.HttpMethod);
+	*** getHostConfiguration();
+	*** getHttpConnectionManager();
+	*** getState();
+}
+
+-keep class org.apache.commons.httpclient.HttpConnection {
+	*** CRLF;
+	*** LOG;
+	*** class$org$apache$commons$httpclient$HttpConnection;
+	*** hostName;
+	*** httpConnectionManager;
+	*** inputStream;
+	*** isOpen;
+	*** lastResponseInputStream;
+	*** localAddress;
+	*** locked;
+	*** outputStream;
+	*** params;
+	*** portNumber;
+	*** protocolInUse;
+	*** proxyHostName;
+	*** proxyPortNumber;
+	*** socket;
+	*** tunnelEstablished;
+	*** usingSecureSocket;
+	org.apache.commons.httpclient.HttpConnection(java.lang.String,int,java.lang.String,int,org.apache.commons.httpclient.protocol.Protocol);
+	org.apache.commons.httpclient.HttpConnection(java.lang.String,int,java.lang.String,java.lang.String,int,org.apache.commons.httpclient.protocol.Protocol);
+	*** assertNotOpen();
+	*** assertOpen();
+	*** class$(java.lang.String);
+	*** close();
+	*** closeIfStale();
+	*** closeSocketAndStreams();
+	*** flushRequestOutputStream();
+	*** getHost();
+	*** getLastResponseInputStream();
+	*** getLocalAddress();
+	*** getParams();
+	*** getPort();
+	*** getProtocol();
+	*** getProxyHost();
+	*** getProxyPort();
+	*** getResponseInputStream();
+	*** isOpen();
+	*** isProxied();
+	*** isResponseAvailable();
+	*** isResponseAvailable(int);
+	*** isSecure();
+	*** isStale();
+	*** isTransparent();
+	*** open();
+	*** print(java.lang.String,java.lang.String);
+	*** readLine(java.lang.String);
+	*** releaseConnection();
+	*** setHost(java.lang.String);
+	*** setHttpConnectionManager(org.apache.commons.httpclient.HttpConnectionManager);
+	*** setLastResponseInputStream(java.io.InputStream);
+	*** setLocalAddress(java.net.InetAddress);
+	*** setLocked(boolean);
+	*** setPort(int);
+	*** setProtocol(org.apache.commons.httpclient.protocol.Protocol);
+	*** setProxyHost(java.lang.String);
+	*** setProxyPort(int);
+	*** setSocketTimeout(int);
+	*** tunnelCreated();
+	*** write(byte[]);
+	*** write(byte[],int,int);
+	*** writeLine();
+	*** writeLine(byte[]);
+}
+
+-keep class org.apache.commons.httpclient.HttpConnectionManager {
+	*** getConnectionWithTimeout(org.apache.commons.httpclient.HostConfiguration,long);
+	*** getParams();
+	*** releaseConnection(org.apache.commons.httpclient.HttpConnection);
+}
+
+-keep class org.apache.commons.httpclient.HttpContentTooLargeException {
+	*** maxlen;
 }
 
 -keep class org.apache.commons.httpclient.HttpException {
@@ -33137,27 +32125,296 @@
 	*** reasonCode;
 	org.apache.commons.httpclient.HttpException();
 	org.apache.commons.httpclient.HttpException(java.lang.String);
+	org.apache.commons.httpclient.HttpException(java.lang.String,java.lang.Throwable);
 	*** class$(java.lang.String);
 	*** printStackTrace(java.io.PrintStream);
 }
 
+-keep class org.apache.commons.httpclient.HttpHost {
+	*** hostname;
+	*** port;
+	*** protocol;
+	org.apache.commons.httpclient.HttpHost(java.lang.String,int,org.apache.commons.httpclient.protocol.Protocol);
+	*** clone();
+	*** getHostName();
+	*** getPort();
+	*** getProtocol();
+	*** init(org.apache.commons.httpclient.HttpHost);
+	*** toURI();
+}
+
 -keep class org.apache.commons.httpclient.HttpMethod {
+	*** addRequestHeader(org.apache.commons.httpclient.Header);
+	*** addResponseFooter(org.apache.commons.httpclient.Header);
+	*** execute(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** getDoAuthentication();
+	*** getFollowRedirects();
+	*** getHostAuthState();
+	*** getParams();
+	*** getPath();
+	*** getProxyAuthState();
+	*** getRequestHeaders(java.lang.String);
 	*** getResponseBody();
+	*** getResponseBodyAsStream();
+	*** getResponseHeader(java.lang.String);
+	*** getResponseHeaders(java.lang.String);
+	*** getStatusCode();
 	*** getStatusLine();
+	*** getURI();
+	*** isRequestSent();
 	*** releaseConnection();
+	*** removeRequestHeader(org.apache.commons.httpclient.Header);
+	*** setURI(org.apache.commons.httpclient.URI);
 }
 
 -keep class org.apache.commons.httpclient.HttpMethodBase {
+	*** LOG;
+	*** aborted;
+	*** class$org$apache$commons$httpclient$HttpMethodBase;
+	*** connectionCloseForced;
+	*** cookiespec;
+	*** doAuthentication;
+	*** effectiveVersion;
+	*** followRedirects;
+	*** hostAuthState;
+	*** httphost;
+	*** methodRetryHandler;
+	*** params;
+	*** path;
+	*** proxyAuthState;
+	*** queryString;
+	*** recoverableExceptionCount;
+	*** requestHeaders;
+	*** requestSent;
+	*** responseBody;
+	*** responseConnection;
+	*** responseHeaders;
+	*** responseStream;
+	*** responseTrailerHeaders;
+	*** statusLine;
+	*** used;
+	org.apache.commons.httpclient.HttpMethodBase();
+	org.apache.commons.httpclient.HttpMethodBase(java.lang.String);
+	*** addCookieRequestHeader(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** addHostRequestHeader(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** addProxyConnectionHeader(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** addRequestHeader(java.lang.String,java.lang.String);
+	*** addRequestHeader(org.apache.commons.httpclient.Header);
+	*** addRequestHeaders(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** addUserAgentRequestHeader(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** canResponseHaveBody(int);
+	*** checkExecuteConditions(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** class$(java.lang.String);
+	*** ensureConnectionRelease();
+	*** fakeResponse(org.apache.commons.httpclient.StatusLine,org.apache.commons.httpclient.HeaderGroup,java.io.InputStream);
+	*** generateRequestLine(org.apache.commons.httpclient.HttpConnection,java.lang.String,java.lang.String,java.lang.String,java.lang.String);
+	*** getContentCharSet(org.apache.commons.httpclient.Header);
+	*** getCookieSpec(org.apache.commons.httpclient.HttpState);
+	*** getMethodRetryHandler();
+	*** getName();
+	*** getParams();
+	*** getPath();
+	*** getProxyAuthState();
+	*** getQueryString();
+	*** getRequestHeader(java.lang.String);
+	*** getRequestHeaderGroup();
+	*** getRequestHeaders();
+	*** getRequestLine(org.apache.commons.httpclient.HttpConnection);
 	*** getResponseBody();
+	*** getResponseBody(int);
 	*** getResponseBodyAsStream();
+	*** getResponseCharSet();
+	*** getResponseContentLength();
+	*** getResponseHeader(java.lang.String);
+	*** getResponseHeaderGroup();
+	*** getResponseTrailerHeaderGroup();
+	*** getStatusCode();
+	*** getStatusLine();
+	*** isAborted();
+	*** isConnectionCloseForced();
+	*** processCookieHeaders(org.apache.commons.httpclient.cookie.CookieSpec,org.apache.commons.httpclient.Header[],org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** processResponseBody(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** processResponseHeaders(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** processStatusLine(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** readResponse(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** readResponseBody(org.apache.commons.httpclient.HttpConnection);
+	*** readResponseBody(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** readResponseHeaders(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** readStatusLine(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** recycle();
 	*** releaseConnection();
+	*** removeRequestHeader(java.lang.String);
+	*** responseAvailable();
+	*** responseBodyConsumed();
+	*** setConnectionCloseForced(boolean);
 	*** setFollowRedirects(boolean);
+	*** setPath(java.lang.String);
+	*** setQueryString(java.lang.String);
 	*** setRequestHeader(java.lang.String,java.lang.String);
+	*** setRequestHeader(org.apache.commons.httpclient.Header);
+	*** setResponseStream(java.io.InputStream);
+	*** setURI(org.apache.commons.httpclient.URI);
+	*** shouldCloseConnection(org.apache.commons.httpclient.HttpConnection);
+	*** validate();
+	*** writeRequest(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** writeRequestBody(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** writeRequestHeaders(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+	*** writeRequestLine(org.apache.commons.httpclient.HttpState,org.apache.commons.httpclient.HttpConnection);
+}
+
+-keep class org.apache.commons.httpclient.HttpMethodBase$1 {
+	*** this$0;
+}
+
+-keep class org.apache.commons.httpclient.HttpMethodDirector {
+	*** LOG;
+	*** authProcessor;
+	*** class$org$apache$commons$httpclient$HttpMethodDirector;
+	*** conn;
+	*** connectMethod;
+	*** connectionManager;
+	*** hostConfiguration;
+	*** params;
+	*** redirectLocations;
+	*** releaseConnection;
+	*** state;
+	*** applyConnectionParams(org.apache.commons.httpclient.HttpMethod);
+	*** authenticate(org.apache.commons.httpclient.HttpMethod);
+	*** authenticateHost(org.apache.commons.httpclient.HttpMethod);
+	*** authenticateProxy(org.apache.commons.httpclient.HttpMethod);
+	*** class$(java.lang.String);
+	*** cleanAuthHeaders(org.apache.commons.httpclient.HttpMethod,java.lang.String);
+	*** executeConnect();
+	*** executeMethod(org.apache.commons.httpclient.HttpMethod);
+	*** executeWithRetry(org.apache.commons.httpclient.HttpMethod);
+	*** fakeResponse(org.apache.commons.httpclient.HttpMethod);
+	*** isAuthenticationNeeded(org.apache.commons.httpclient.HttpMethod);
+	*** isRedirectNeeded(org.apache.commons.httpclient.HttpMethod);
+	*** processAuthenticationResponse(org.apache.commons.httpclient.HttpMethod);
+	*** processProxyAuthChallenge(org.apache.commons.httpclient.HttpMethod);
+	*** processRedirectResponse(org.apache.commons.httpclient.HttpMethod);
+	*** processWWWAuthChallenge(org.apache.commons.httpclient.HttpMethod);
+	*** promptForCredentials(org.apache.commons.httpclient.auth.AuthScheme,org.apache.commons.httpclient.params.HttpParams,org.apache.commons.httpclient.auth.AuthScope);
+	*** promptForProxyCredentials(org.apache.commons.httpclient.auth.AuthScheme,org.apache.commons.httpclient.params.HttpParams,org.apache.commons.httpclient.auth.AuthScope);
+}
+
+-keep class org.apache.commons.httpclient.HttpMethodRetryHandler {
+	*** retryMethod(org.apache.commons.httpclient.HttpMethod,java.io.IOException,int);
+}
+
+-keep class org.apache.commons.httpclient.HttpParser {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$HttpParser;
+	*** class$(java.lang.String);
+	*** parseHeaders(java.io.InputStream,java.lang.String);
+	*** readLine(java.io.InputStream);
+	*** readLine(java.io.InputStream,java.lang.String);
+	*** readRawLine(java.io.InputStream);
+}
+
+-keep class org.apache.commons.httpclient.HttpState {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$HttpState;
+	*** cookiePolicy;
+	*** cookies;
+	*** credMap;
+	*** preemptive;
+	*** proxyCred;
+	*** addCookie(org.apache.commons.httpclient.Cookie);
+	*** class$(java.lang.String);
+	*** clearCookies();
+	*** clearCredentials();
+	*** clearProxyCredentials();
+	*** getCookiePolicy();
+	*** getCookies();
+	*** getCookiesStringRepresentation(java.util.List);
+	*** getCredentials(org.apache.commons.httpclient.auth.AuthScope);
+	*** getCredentialsStringRepresentation(java.util.Map);
+	*** getProxyCredentials(org.apache.commons.httpclient.auth.AuthScope);
+	*** isAuthenticationPreemptive();
+	*** matchCredentials(java.util.HashMap,org.apache.commons.httpclient.auth.AuthScope);
+	*** purgeExpiredCookies(java.util.Date);
+	*** setCredentials(org.apache.commons.httpclient.auth.AuthScope,org.apache.commons.httpclient.Credentials);
+	*** setProxyCredentials(org.apache.commons.httpclient.auth.AuthScope,org.apache.commons.httpclient.Credentials);
+}
+
+-keep class org.apache.commons.httpclient.HttpVersion {
+	*** HTTP_0_9;
+	*** HTTP_1_0;
+	*** HTTP_1_1;
+	*** major;
+	*** minor;
+	*** compareTo(org.apache.commons.httpclient.HttpVersion);
+	*** equals(org.apache.commons.httpclient.HttpVersion);
+	*** getMajor();
+	*** getMinor();
+	*** greaterEquals(org.apache.commons.httpclient.HttpVersion);
+	*** lessEquals(org.apache.commons.httpclient.HttpVersion);
+	*** parse(java.lang.String);
+	*** toString();
+}
+
+-keep class org.apache.commons.httpclient.InvalidRedirectLocationException {
+	*** location;
+}
+
+-keep class org.apache.commons.httpclient.MethodRetryHandler {
+	*** retryMethod(org.apache.commons.httpclient.HttpMethod,org.apache.commons.httpclient.HttpConnection,org.apache.commons.httpclient.HttpRecoverableException,int,boolean);
 }
 
 -keep class org.apache.commons.httpclient.NameValuePair {
+	*** name;
+	*** value;
+	org.apache.commons.httpclient.NameValuePair(java.lang.String,java.lang.String);
 	*** getName();
 	*** getValue();
+	*** toString();
+}
+
+-keep class org.apache.commons.httpclient.ProtocolException {
+	org.apache.commons.httpclient.ProtocolException();
+	org.apache.commons.httpclient.ProtocolException(java.lang.String);
+	org.apache.commons.httpclient.ProtocolException(java.lang.String,java.lang.Throwable);
+}
+
+-keep class org.apache.commons.httpclient.ProxyHost {
+	*** clone();
+}
+
+-keep class org.apache.commons.httpclient.RedirectException {
+	org.apache.commons.httpclient.RedirectException();
+	org.apache.commons.httpclient.RedirectException(java.lang.String);
+	org.apache.commons.httpclient.RedirectException(java.lang.String,java.lang.Throwable);
+}
+
+-keep class org.apache.commons.httpclient.ResponseConsumedWatcher {
+	*** responseConsumed();
+}
+
+-keep class org.apache.commons.httpclient.SimpleHttpConnectionManager {
+	*** LOG;
+	*** alwaysClose;
+	*** class$org$apache$commons$httpclient$SimpleHttpConnectionManager;
+	*** httpConnection;
+	*** idleStartTime;
+	*** inUse;
+	*** params;
+	*** class$(java.lang.String);
+	*** finishLastResponse(org.apache.commons.httpclient.HttpConnection);
+	*** getConnection(org.apache.commons.httpclient.HostConfiguration,long);
+	*** getConnectionWithTimeout(org.apache.commons.httpclient.HostConfiguration,long);
+}
+
+-keep class org.apache.commons.httpclient.StatusLine {
+	*** httpVersion;
+	*** reasonPhrase;
+	*** statusCode;
+	*** statusLine;
+	*** getHttpVersion();
+	*** getReasonPhrase();
+	*** getStatusCode();
+	*** startsWithHTTP(java.lang.String);
+	*** toString();
 }
 
 -keep class org.apache.commons.httpclient.URI {
@@ -33257,8 +32514,12 @@
 	*** decode(java.lang.String,java.lang.String);
 	*** encode(java.lang.String,java.util.BitSet,java.lang.String);
 	*** equals(char[],char[]);
+	*** getEscapedPath();
+	*** getEscapedQuery();
 	*** getEscapedURI();
 	*** getHost();
+	*** getPath();
+	*** getPort();
 	*** getProtocolCharset();
 	*** getRawAboveHierPath();
 	*** getRawAuthority();
@@ -33268,10 +32529,14 @@
 	*** getRawPath();
 	*** getRawPathQuery();
 	*** getRawURIReference();
+	*** getScheme();
+	*** hasQuery();
 	*** indexFirstOf(char[],char);
 	*** indexFirstOf(char[],char,int);
 	*** indexFirstOf(java.lang.String,java.lang.String,int);
 	*** isAbsPath();
+	*** isAbsoluteURI();
+	*** isRelativeURI();
 	*** normalize(char[]);
 	*** parseAuthority(java.lang.String,boolean);
 	*** parseUriReference(java.lang.String,boolean);
@@ -33279,6 +32544,7 @@
 	*** removeFragmentIdentifier(char[]);
 	*** resolvePath(char[],char[]);
 	*** setPath(java.lang.String);
+	*** setQuery(java.lang.String);
 	*** setRawFragment(char[]);
 	*** setRawPath(char[]);
 	*** setRawQuery(char[]);
@@ -33303,17 +32569,385 @@
 	*** reasonCode;
 }
 
+-keep class org.apache.commons.httpclient.Wire {
+	*** CONTENT_WIRE;
+	*** HEADER_WIRE;
+	*** log;
+	*** enabled();
+	*** input(byte[]);
+	*** input(byte[],int,int);
+	*** input(int);
+	*** input(java.lang.String);
+	*** output(byte[]);
+	*** output(byte[],int,int);
+	*** output(int);
+	*** output(java.lang.String);
+	*** wire(java.lang.String,java.io.InputStream);
+}
+
+-keep class org.apache.commons.httpclient.WireLogInputStream {
+	*** in;
+	*** wire;
+}
+
+-keep class org.apache.commons.httpclient.WireLogOutputStream {
+	*** out;
+	*** wire;
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthChallengeParser {
+	*** parseChallenges(org.apache.commons.httpclient.Header[]);
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthChallengeProcessor {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$auth$AuthChallengeProcessor;
+	*** params;
+	*** class$(java.lang.String);
+	*** processChallenge(org.apache.commons.httpclient.auth.AuthState,java.util.Map);
+	*** selectAuthScheme(java.util.Map);
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthPolicy {
+	*** getAuthScheme(java.lang.String);
+	*** getDefaultAuthPrefs();
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthScheme {
+	*** authenticate(org.apache.commons.httpclient.Credentials,org.apache.commons.httpclient.HttpMethod);
+	*** getRealm();
+	*** getSchemeName();
+	*** isComplete();
+	*** isConnectionBased();
+	*** processChallenge(java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthScope {
+	*** ANY_SCHEME;
+	*** getHost();
+	*** getPort();
+	*** match(org.apache.commons.httpclient.auth.AuthScope);
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthState {
+	*** authAttempted;
+	*** authRequested;
+	*** authScheme;
+	*** preemptive;
+	*** getAuthScheme();
+	*** getRealm();
+	*** invalidate();
+	*** isAuthAttempted();
+	*** isAuthRequested();
+	*** isPreemptive();
+	*** setAuthAttempted(boolean);
+	*** setAuthRequested(boolean);
+	*** setAuthScheme(org.apache.commons.httpclient.auth.AuthScheme);
+	*** setPreemptive();
+}
+
+-keep class org.apache.commons.httpclient.auth.AuthenticationException {
+	org.apache.commons.httpclient.auth.AuthenticationException();
+	org.apache.commons.httpclient.auth.AuthenticationException(java.lang.String);
+	org.apache.commons.httpclient.auth.AuthenticationException(java.lang.String,java.lang.Throwable);
+}
+
+-keep class org.apache.commons.httpclient.auth.CredentialsProvider {
+	*** getCredentials(org.apache.commons.httpclient.auth.AuthScheme,java.lang.String,int,boolean);
+}
+
+-keep class org.apache.commons.httpclient.cookie.Cookie2 {
+	*** cookieCommentURL;
+	*** cookiePorts;
+	*** discard;
+	*** hasPortAttribute;
+	*** hasVersionAttribute;
+	*** isPortAttributeBlank;
+	*** getPorts();
+	*** isPortAttributeBlank();
+	*** isPortAttributeSpecified();
+	*** setPorts(int[]);
+}
+
+-keep class org.apache.commons.httpclient.cookie.CookieAttributeHandler {
+	*** match(org.apache.commons.httpclient.Cookie,org.apache.commons.httpclient.cookie.CookieOrigin);
+	*** parse(org.apache.commons.httpclient.Cookie,java.lang.String);
+	*** validate(org.apache.commons.httpclient.Cookie,org.apache.commons.httpclient.cookie.CookieOrigin);
+}
+
+-keep class org.apache.commons.httpclient.cookie.CookiePathComparator {
+	*** normalizePath(org.apache.commons.httpclient.Cookie);
+}
+
+-keep class org.apache.commons.httpclient.cookie.CookiePolicy {
+	*** LOG;
+	*** SPECS;
+	*** class$org$apache$commons$httpclient$cookie$CookiePolicy;
+	*** class$org$apache$commons$httpclient$cookie$CookieSpecBase;
+	*** class$org$apache$commons$httpclient$cookie$IgnoreCookiesSpec;
+	*** class$org$apache$commons$httpclient$cookie$NetscapeDraftSpec;
+	*** class$org$apache$commons$httpclient$cookie$RFC2109Spec;
+	*** class$org$apache$commons$httpclient$cookie$RFC2965Spec;
+	*** defaultPolicy;
+	*** class$(java.lang.String);
+	*** getCookieSpec(java.lang.String);
+	*** getDefaultSpec();
+	*** getSpecByPolicy(int);
+	*** registerCookieSpec(java.lang.String,java.lang.Class);
+}
+
+-keep class org.apache.commons.httpclient.cookie.CookieSpec {
+	*** PATH_DELIM_CHAR;
+	*** formatCookie(org.apache.commons.httpclient.Cookie);
+	*** formatCookies(org.apache.commons.httpclient.Cookie[]);
+	*** match(java.lang.String,int,java.lang.String,boolean,org.apache.commons.httpclient.Cookie);
+	*** match(java.lang.String,int,java.lang.String,boolean,org.apache.commons.httpclient.Cookie[]);
+	*** parse(java.lang.String,int,java.lang.String,boolean,java.lang.String);
+	*** parse(java.lang.String,int,java.lang.String,boolean,org.apache.commons.httpclient.Header);
+	*** setValidDateFormats(java.util.Collection);
+	*** validate(java.lang.String,int,java.lang.String,boolean,org.apache.commons.httpclient.Cookie);
+}
+
+-keep class org.apache.commons.httpclient.cookie.CookieSpecBase {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$cookie$CookieSpec;
+	*** datepatterns;
+	org.apache.commons.httpclient.cookie.CookieSpecBase();
+	*** addInPathOrder(java.util.List,org.apache.commons.httpclient.Cookie);
+	*** class$(java.lang.String);
+	*** domainMatch(java.lang.String,java.lang.String);
+	*** formatCookie(org.apache.commons.httpclient.Cookie);
+	*** formatCookies(org.apache.commons.httpclient.Cookie[]);
+	*** match(java.lang.String,int,java.lang.String,boolean,org.apache.commons.httpclient.Cookie);
+	*** parse(java.lang.String,int,java.lang.String,boolean,java.lang.String);
+	*** parseAttribute(org.apache.commons.httpclient.NameValuePair,org.apache.commons.httpclient.Cookie);
+	*** pathMatch(java.lang.String,java.lang.String);
+	*** validate(java.lang.String,int,java.lang.String,boolean,org.apache.commons.httpclient.Cookie);
+}
+
+-keep class org.apache.commons.httpclient.cookie.CookieVersionSupport {
+	*** getVersion();
+	*** getVersionHeader();
+}
+
+-keep class org.apache.commons.httpclient.cookie.NetscapeDraftSpec {
+	*** isSpecialDomain(java.lang.String);
+	*** parseAttribute(org.apache.commons.httpclient.NameValuePair,org.apache.commons.httpclient.Cookie);
+}
+
+-keep class org.apache.commons.httpclient.cookie.RFC2109Spec {
+	*** formatter;
+	*** formatCookieAsVer(java.lang.StringBuffer,org.apache.commons.httpclient.Cookie,int);
+	*** formatParam(java.lang.StringBuffer,org.apache.commons.httpclient.NameValuePair,int);
+}
+
+-keep class org.apache.commons.httpclient.cookie.RFC2965Spec {
+	*** PATH_COMPOARATOR;
+	*** attribHandlerList;
+	*** attribHandlerMap;
+	*** formatter;
+	*** rfc2109;
+	*** createPortAttribute(int[]);
+	*** doFormatCookie2(org.apache.commons.httpclient.cookie.Cookie2,java.lang.StringBuffer);
+	*** findAttribHandler(java.lang.String);
+	*** getAttribHandlerIterator();
+	*** getEffectiveHost(java.lang.String);
+	*** getVersion();
+	*** parse(java.lang.String,int,java.lang.String,boolean,java.lang.String);
+	*** parseAttribute(org.apache.commons.httpclient.NameValuePair,org.apache.commons.httpclient.Cookie);
+	*** parsePortAttribute(java.lang.String);
+	*** portMatch(int,int[]);
+	*** registerAttribHandler(java.lang.String,org.apache.commons.httpclient.cookie.CookieAttributeHandler);
+}
+
+-keep class org.apache.commons.httpclient.methods.GetMethod {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$methods$GetMethod;
+	*** class$(java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.params.DefaultHttpParams {
+	*** LOG;
+	*** class$org$apache$commons$httpclient$params$DefaultHttpParams;
+	*** defaults;
+	*** httpParamsFactory;
+	*** parameters;
+	org.apache.commons.httpclient.params.DefaultHttpParams();
+	org.apache.commons.httpclient.params.DefaultHttpParams(org.apache.commons.httpclient.params.HttpParams);
+	*** class$(java.lang.String);
+	*** clone();
+	*** getBooleanParameter(java.lang.String,boolean);
+	*** getDefaultParams();
+	*** getIntParameter(java.lang.String,int);
+	*** getLongParameter(java.lang.String,long);
+	*** getParameter(java.lang.String);
+	*** isParameterFalse(java.lang.String);
+	*** isParameterTrue(java.lang.String);
+	*** setBooleanParameter(java.lang.String,boolean);
+	*** setDefaults(org.apache.commons.httpclient.params.HttpParams);
+	*** setIntParameter(java.lang.String,int);
+	*** setLongParameter(java.lang.String,long);
+	*** setParameter(java.lang.String,java.lang.Object);
+	*** setParameters(java.lang.String[],java.lang.Object);
+}
+
+-keep class org.apache.commons.httpclient.params.DefaultHttpParamsFactory {
+	*** class$org$apache$commons$httpclient$SimpleHttpConnectionManager;
+	*** httpParams;
+	*** class$(java.lang.String);
+	*** createParams();
+}
+
+-keep class org.apache.commons.httpclient.params.HostParams {
+	*** getVirtualHost();
+	*** setVirtualHost(java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.params.HttpClientParams {
+	*** PROTOCOL_STRICTNESS_PARAMETERS;
+	*** getConnectionManagerClass();
+	*** getConnectionManagerTimeout();
+	*** isAuthenticationPreemptive();
+	*** makeLenient();
+	*** makeStrict();
+	*** setConnectionManagerClass(java.lang.Class);
+	*** setConnectionManagerTimeout(long);
+}
+
+-keep class org.apache.commons.httpclient.params.HttpConnectionManagerParams {
+	*** getMaxConnectionsPerHost(org.apache.commons.httpclient.HostConfiguration);
+	*** setMaxConnectionsPerHost(org.apache.commons.httpclient.HostConfiguration,int);
+}
+
+-keep class org.apache.commons.httpclient.params.HttpConnectionParams {
+	org.apache.commons.httpclient.params.HttpConnectionParams();
+	*** getConnectionTimeout();
+	*** getLinger();
+	*** getReceiveBufferSize();
+	*** getSendBufferSize();
+	*** getSoTimeout();
+	*** getTcpNoDelay();
+	*** isStaleCheckingEnabled();
+	*** setConnectionTimeout(int);
+	*** setSendBufferSize(int);
+	*** setSoTimeout(int);
+	*** setStaleCheckingEnabled(boolean);
+}
+
+-keep class org.apache.commons.httpclient.params.HttpMethodParams {
+	*** LOG;
+	*** PROTOCOL_STRICTNESS_PARAMETERS;
+	*** class$org$apache$commons$httpclient$params$HttpMethodParams;
+	org.apache.commons.httpclient.params.HttpMethodParams();
+	org.apache.commons.httpclient.params.HttpMethodParams(org.apache.commons.httpclient.params.HttpParams);
+	*** class$(java.lang.String);
+	*** getContentCharset();
+	*** getCookiePolicy();
+	*** getHttpElementCharset();
+	*** getUriCharset();
+	*** getVersion();
+	*** getVirtualHost();
+	*** makeLenient();
+	*** makeStrict();
+	*** setContentCharset(java.lang.String);
+	*** setCookiePolicy(java.lang.String);
+	*** setHttpElementCharset(java.lang.String);
+	*** setSoTimeout(int);
+	*** setVersion(org.apache.commons.httpclient.HttpVersion);
+}
+
+-keep class org.apache.commons.httpclient.params.HttpParams {
+	*** getParameter(java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.params.HttpParamsFactory {
+	*** getDefaultParams();
+}
+
+-keep class org.apache.commons.httpclient.protocol.ControllerThreadSocketFactory {
+	*** createSocket(org.apache.commons.httpclient.protocol.ProtocolSocketFactory,java.lang.String,int,java.net.InetAddress,int,int);
+}
+
+-keep class org.apache.commons.httpclient.protocol.DefaultProtocolSocketFactory {
+	*** factory;
+	*** createSocket(java.lang.String,int,java.net.InetAddress,int);
+	*** getSocketFactory();
+}
+
+-keep class org.apache.commons.httpclient.protocol.Protocol {
+	*** PROTOCOLS;
+	*** defaultPort;
+	*** scheme;
+	*** secure;
+	*** socketFactory;
+	org.apache.commons.httpclient.protocol.Protocol(java.lang.String,org.apache.commons.httpclient.protocol.ProtocolSocketFactory,int);
+	*** equals(java.lang.Object);
+	*** getDefaultPort();
+	*** getProtocol(java.lang.String);
+	*** getScheme();
+	*** getSocketFactory();
+	*** isSecure();
+	*** lazyRegisterProtocol(java.lang.String);
+	*** registerProtocol(java.lang.String,org.apache.commons.httpclient.protocol.Protocol);
+	*** resolvePort(int);
+}
+
+-keep class org.apache.commons.httpclient.protocol.ProtocolSocketFactory {
+	*** createSocket(java.lang.String,int,java.net.InetAddress,int,org.apache.commons.httpclient.params.HttpConnectionParams);
+}
+
+-keep class org.apache.commons.httpclient.protocol.ReflectionSocketFactory {
+	*** createSocket(java.lang.String,java.lang.String,int,java.net.InetAddress,int,int);
+}
+
+-keep class org.apache.commons.httpclient.protocol.SSLProtocolSocketFactory {
+	*** getSocketFactory();
+}
+
+-keep class org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory {
+	*** createSocket(java.net.Socket,java.lang.String,int,boolean);
+}
+
+-keep class org.apache.commons.httpclient.util.DateUtil {
+	*** parseDate(java.lang.String,java.util.Collection);
+}
+
 -keep class org.apache.commons.httpclient.util.EncodingUtil {
 	*** LOG;
 	*** class$org$apache$commons$httpclient$util$EncodingUtil;
 	*** class$(java.lang.String);
 	*** doFormUrlEncode(org.apache.commons.httpclient.NameValuePair[],java.lang.String);
+	*** formUrlEncode(org.apache.commons.httpclient.NameValuePair[],java.lang.String);
 	*** getAsciiBytes(java.lang.String);
 	*** getAsciiString(byte[]);
 	*** getAsciiString(byte[],int,int);
 	*** getBytes(java.lang.String,java.lang.String);
 	*** getString(byte[],int,int,java.lang.String);
 	*** getString(byte[],java.lang.String);
+}
+
+-keep class org.apache.commons.httpclient.util.ExceptionUtil {
+	*** initCause(java.lang.Throwable,java.lang.Throwable);
+	*** isSocketTimeoutException(java.io.InterruptedIOException);
+}
+
+-keep class org.apache.commons.httpclient.util.LangUtils {
+	*** equals(java.lang.Object,java.lang.Object);
+	*** hashCode(int,boolean);
+	*** hashCode(int,int);
+	*** hashCode(int,java.lang.Object);
+}
+
+-keep class org.apache.commons.httpclient.util.ParameterFormatter {
+	*** SEPARATORS;
+	*** UNSAFE_CHARS;
+	*** alwaysUseQuotes;
+	*** format(java.lang.StringBuffer,org.apache.commons.httpclient.NameValuePair);
+	*** formatValue(java.lang.StringBuffer,java.lang.String,boolean);
+	*** isOneOf(char[],char);
+	*** isSeparator(char);
+	*** isUnsafeChar(char);
+	*** setAlwaysUseQuotes(boolean);
 }
 
 -keep class org.apache.commons.id.DigestUtils {
@@ -33393,7 +33027,6 @@
 	*** INSTANCE;
 	*** OS;
 	*** freeSpaceKb();
-	*** freeSpaceKb(java.lang.String);
 	*** freeSpaceKb(java.lang.String,long);
 	*** freeSpaceKb(long);
 	*** freeSpaceOS(java.lang.String,int,boolean,long);
@@ -33610,13 +33243,6 @@
 	*** CLOSED_INPUT_STREAM;
 }
 
--keep class org.apache.commons.io.input.ProxyInputStream {
-	org.apache.commons.io.input.ProxyInputStream(java.io.InputStream);
-	*** afterRead(int);
-	*** beforeRead(int);
-	*** handleIOException(java.io.IOException);
-}
-
 -keep class org.apache.commons.io.output.ByteArrayOutputStream {
 	*** EMPTY_BYTE_ARRAY;
 	*** buffers;
@@ -33632,27 +33258,8 @@
 	*** write(java.io.InputStream);
 }
 
--keep class org.apache.commons.io.output.ClosedOutputStream {
-	*** CLOSED_OUTPUT_STREAM;
-}
-
--keep class org.apache.commons.io.output.CountingOutputStream {
-	*** count;
-	*** getByteCount();
-	*** resetByteCount();
-}
-
 -keep class org.apache.commons.io.output.NullOutputStream {
 	*** NULL_OUTPUT_STREAM;
-}
-
--keep class org.apache.commons.io.output.ProxyOutputStream {
-	org.apache.commons.io.output.ProxyOutputStream(java.io.OutputStream);
-	*** afterWrite(int);
-	*** beforeWrite(int);
-	*** close();
-	*** handleIOException(java.io.IOException);
-	*** write(byte[]);
 }
 
 -keep class org.apache.commons.io.output.StringBuilderWriter {
@@ -33714,7 +33321,6 @@
 	*** isBlank(java.lang.String);
 	*** isEmpty(java.lang.String);
 	*** isNotBlank(java.lang.String);
-	*** isNotEmpty(java.lang.String);
 	*** join(java.lang.Object[],char);
 	*** join(java.lang.Object[],char,int,int);
 	*** join(java.lang.Object[],java.lang.String);
@@ -34044,11 +33650,8 @@
 
 -keep class org.apache.commons.lang3.ArrayUtils {
 	*** EMPTY_STRING_ARRAY;
-	*** add(java.lang.Object[],java.lang.Object);
-	*** addAll(java.lang.Object[],java.lang.Object[]);
 	*** isEmpty(char[]);
 	*** isEmpty(java.lang.Object[]);
-	*** isNotEmpty(java.lang.Object[]);
 	*** reverse(java.lang.Object[]);
 }
 
@@ -34083,12 +33686,6 @@
 }
 
 -keep class org.apache.commons.lang3.ObjectUtils {
-	*** NULL;
-	*** clone(java.lang.Object);
-	*** compare(java.lang.Comparable,java.lang.Comparable,boolean);
-	*** equals(java.lang.Object,java.lang.Object);
-	*** hashCode(java.lang.Object);
-	*** identityToString(java.lang.StringBuffer,java.lang.Object);
 	*** toString(java.lang.Object);
 }
 
@@ -34240,165 +33837,47 @@
 	*** getOSMatches(java.lang.String,java.lang.String);
 	*** getOSMatchesName(java.lang.String);
 	*** getSystemProperty(java.lang.String);
+	*** getUserDir();
 	*** getUserHome();
 	*** isJavaVersionMatch(java.lang.String,java.lang.String);
 	*** isOSMatch(java.lang.String,java.lang.String,java.lang.String,java.lang.String);
 	*** isOSNameMatch(java.lang.String,java.lang.String);
 }
 
--keep class org.apache.commons.lang3.Validate {
-	*** isTrue(boolean,java.lang.String,long);
-	*** noNullElements(java.lang.Iterable,java.lang.String,java.lang.Object[]);
-	*** noNullElements(java.lang.Object[]);
-	*** noNullElements(java.lang.Object[],java.lang.String,java.lang.Object[]);
-	*** notBlank(java.lang.CharSequence,java.lang.String,java.lang.Object[]);
-	*** notEmpty(java.lang.CharSequence,java.lang.String,java.lang.Object[]);
-	*** notEmpty(java.lang.Object[]);
-	*** notEmpty(java.lang.Object[],java.lang.String,java.lang.Object[]);
-	*** notEmpty(java.util.Collection,java.lang.String,java.lang.Object[]);
-	*** notEmpty(java.util.Map,java.lang.String,java.lang.Object[]);
-	*** notNull(java.lang.Object);
-	*** notNull(java.lang.Object,java.lang.String,java.lang.Object[]);
-	*** validIndex(java.lang.CharSequence,int,java.lang.String,java.lang.Object[]);
-	*** validIndex(java.lang.Object[],int,java.lang.String,java.lang.Object[]);
-	*** validIndex(java.util.Collection,int,java.lang.String,java.lang.Object[]);
-}
-
--keep class org.apache.commons.lang3.builder.CompareToBuilder {
-	*** append(java.lang.Object,java.lang.Object);
-	*** toComparison();
-}
-
 -keep class org.apache.commons.lang3.math.NumberUtils {
 	*** isNumber(java.lang.String);
 }
 
--keep class org.apache.commons.lang3.mutable.MutableInt {
-	*** increment();
-	*** intValue();
+-keep class org.apache.commons.lang3.time.DateFormatUtils {
+	*** format(java.util.Date,java.lang.String);
 }
 
--keep class org.apache.commons.lang3.time.DateFormatUtils {
-	*** ISO_DATETIME_FORMAT;
-	*** ISO_DATETIME_TIME_ZONE_FORMAT;
-	*** ISO_DATE_FORMAT;
-	*** ISO_DATE_TIME_ZONE_FORMAT;
-	*** ISO_TIME_FORMAT;
-	*** ISO_TIME_NO_T_FORMAT;
-	*** ISO_TIME_NO_T_TIME_ZONE_FORMAT;
-	*** ISO_TIME_TIME_ZONE_FORMAT;
-	*** SMTP_DATETIME_FORMAT;
-	*** UTC_TIME_ZONE;
-	*** format(java.util.Calendar,java.lang.String,java.util.TimeZone,java.util.Locale);
-	*** format(java.util.Date,java.lang.String);
-	*** format(java.util.Date,java.lang.String,java.util.TimeZone,java.util.Locale);
+-keep class org.apache.commons.lang3.time.DateUtils {
+	*** fields;
+	*** add(java.util.Date,int,int);
+	*** ceiling(java.util.Calendar,int);
+	*** ceiling(java.util.Date,int);
+	*** getFragment(java.util.Calendar,int,int);
+	*** getFragment(java.util.Date,int,int);
+	*** getMillisPerUnit(int);
+	*** isSameDay(java.util.Calendar,java.util.Calendar);
+	*** iterator(java.util.Calendar,int);
+	*** iterator(java.util.Date,int);
+	*** modify(java.util.Calendar,int,int);
+	*** parseDate(java.lang.String,java.lang.String[]);
+	*** parseDateWithLeniency(java.lang.String,java.lang.String[],boolean);
+	*** round(java.util.Calendar,int);
+	*** round(java.util.Date,int);
+	*** set(java.util.Date,int,int);
+	*** truncate(java.util.Calendar,int);
+	*** truncate(java.util.Date,int);
+	*** truncatedCompareTo(java.util.Calendar,java.util.Calendar,int);
+	*** truncatedCompareTo(java.util.Date,java.util.Date,int);
 }
 
 -keep class org.apache.commons.lang3.time.FastDateFormat {
-	*** cTimeZoneDisplayCache;
-	*** cache;
-	*** mLocale;
-	*** mMaxLengthEstimate;
-	*** mPattern;
-	*** mRules;
-	*** mTimeZone;
-	*** applyRules(java.util.Calendar,java.lang.StringBuffer);
-	*** format(java.util.Calendar);
-	*** format(java.util.Calendar,java.lang.StringBuffer);
-	*** format(java.util.Date);
-	*** format(java.util.Date,java.lang.StringBuffer);
 	*** format(long);
-	*** format(long,java.lang.StringBuffer);
-	*** getDateTimeInstance(int,int,java.util.TimeZone,java.util.Locale);
 	*** getInstance(java.lang.String);
-	*** getInstance(java.lang.String,java.util.Locale);
-	*** getInstance(java.lang.String,java.util.TimeZone,java.util.Locale);
-	*** init();
-	*** parsePattern();
-	*** parseToken(java.lang.String,int[]);
-	*** selectNumberRule(int,int);
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$1 {
-	*** createInstance(java.lang.String,java.util.TimeZone,java.util.Locale);
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$CharacterLiteral {
-	*** mValue;
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$PaddedNumberField {
-	*** mField;
-	*** mSize;
-	*** appendTo(java.lang.StringBuffer,int);
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$Rule {
-	*** appendTo(java.lang.StringBuffer,java.util.Calendar);
-	*** estimateLength();
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$StringLiteral {
-	*** mValue;
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$TextField {
-	*** mField;
-	*** mValues;
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$TimeZoneNumberRule {
-	*** INSTANCE_COLON;
-	*** INSTANCE_NO_COLON;
-	*** mColon;
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$TwoDigitMonthField {
-	*** INSTANCE;
-	*** appendTo(java.lang.StringBuffer,int);
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$TwoDigitNumberField {
-	*** mField;
-	*** appendTo(java.lang.StringBuffer,int);
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$TwoDigitYearField {
-	*** INSTANCE;
-	*** appendTo(java.lang.StringBuffer,int);
-}
-
--keep class org.apache.commons.lang3.time.FastDateFormat$UnpaddedMonthField {
-	*** INSTANCE;
-}
-
--keep class org.apache.commons.lang3.time.FormatCache {
-	*** cDateTimeInstanceCache;
-	*** cInstanceCache;
-	org.apache.commons.lang3.time.FormatCache();
-	*** createInstance(java.lang.String,java.util.TimeZone,java.util.Locale);
-	*** getDateTimeInstance(java.lang.Integer,java.lang.Integer,java.util.TimeZone,java.util.Locale);
-	*** getInstance(java.lang.String,java.util.TimeZone,java.util.Locale);
-}
-
--keep class org.apache.commons.lang3.time.FormatCache$MultipartKey {
-	*** hashCode;
-	*** keys;
-}
-
--keep class org.apache.commons.lang3.tuple.ImmutablePair {
-	*** left;
-	*** right;
-}
-
--keep class org.apache.commons.lang3.tuple.Pair {
-	org.apache.commons.lang3.tuple.Pair();
-	*** compareTo(org.apache.commons.lang3.tuple.Pair);
-	*** getKey();
-	*** getLeft();
-	*** getRight();
-	*** getValue();
-	*** of(java.lang.Object,java.lang.Object);
 }
 
 -keep class org.apache.commons.logging.Log {
@@ -34873,9 +34352,52 @@
 }
 
 -keep class org.apache.http.client.HttpClient {
+	*** execute(org.apache.http.HttpHost,org.apache.http.HttpRequest);
 	*** execute(org.apache.http.client.methods.HttpUriRequest);
 	*** getConnectionManager();
 	*** getParams();
+}
+
+-keep class org.apache.http.client.HttpClient$$EnhancerByMockitoWithCGLIB$$52bcfd4a {
+	*** CGLIB$BOUND;
+	*** CGLIB$CALLBACK_0;
+	*** CGLIB$CALLBACK_1;
+	*** CGLIB$STATIC_CALLBACKS;
+	*** CGLIB$THREAD_CALLBACKS;
+	*** CGLIB$clone$4$Method;
+	*** CGLIB$clone$4$Proxy;
+	*** CGLIB$emptyArgs;
+	*** CGLIB$equals$1$Method;
+	*** CGLIB$equals$1$Proxy;
+	*** CGLIB$execute$10$Method;
+	*** CGLIB$execute$10$Proxy;
+	*** CGLIB$execute$11$Method;
+	*** CGLIB$execute$11$Proxy;
+	*** CGLIB$execute$12$Method;
+	*** CGLIB$execute$12$Proxy;
+	*** CGLIB$execute$13$Method;
+	*** CGLIB$execute$13$Proxy;
+	*** CGLIB$execute$14$Method;
+	*** CGLIB$execute$14$Proxy;
+	*** CGLIB$execute$7$Method;
+	*** CGLIB$execute$7$Proxy;
+	*** CGLIB$execute$8$Method;
+	*** CGLIB$execute$8$Proxy;
+	*** CGLIB$execute$9$Method;
+	*** CGLIB$execute$9$Proxy;
+	*** CGLIB$finalize$0$Method;
+	*** CGLIB$finalize$0$Proxy;
+	*** CGLIB$getConnectionManager$6$Method;
+	*** CGLIB$getConnectionManager$6$Proxy;
+	*** CGLIB$getParams$5$Method;
+	*** CGLIB$getParams$5$Proxy;
+	*** CGLIB$hashCode$3$Method;
+	*** CGLIB$hashCode$3$Proxy;
+	*** CGLIB$toString$2$Method;
+	*** CGLIB$toString$2$Proxy;
+	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
+	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
+	*** CGLIB$STATICHOOK6();
 }
 
 -keep class org.apache.http.client.HttpRequestRetryHandler {
@@ -34910,8 +34432,20 @@
 	*** getUserToken(org.apache.http.protocol.HttpContext);
 }
 
--keep class org.apache.http.client.entity.UrlEncodedFormEntity {
-	org.apache.http.client.entity.UrlEncodedFormEntity(java.lang.Iterable,java.nio.charset.Charset);
+-keep class org.apache.http.client.fluent.Form {
+	*** add(java.lang.String,java.lang.String);
+	*** build();
+	*** form();
+}
+
+-keep class org.apache.http.client.fluent.Request {
+	*** Post(java.lang.String);
+	*** bodyForm(java.lang.Iterable);
+	*** execute();
+}
+
+-keep class org.apache.http.client.fluent.Response {
+	*** returnContent();
 }
 
 -keep class org.apache.http.client.methods.AbortableHttpRequest {
@@ -34922,180 +34456,7 @@
 -keep class org.apache.http.client.methods.HttpEntityEnclosingRequestBase {
 	*** entity;
 	org.apache.http.client.methods.HttpEntityEnclosingRequestBase();
-	*** clone();
-	*** expectContinue();
-	*** getEntity();
 	*** setEntity(org.apache.http.HttpEntity);
-}
-
--keep class org.apache.http.client.methods.HttpPost {
-	org.apache.http.client.methods.HttpPost();
-	org.apache.http.client.methods.HttpPost(java.lang.String);
-	org.apache.http.client.methods.HttpPost(java.net.URI);
-	*** getMethod();
-}
-
--keep class org.apache.http.client.methods.HttpPost$$EnhancerByMockitoWithCGLIB$$f2a749df {
-	*** CGLIB$BOUND;
-	*** CGLIB$CALLBACK_0;
-	*** CGLIB$CALLBACK_1;
-	*** CGLIB$STATIC_CALLBACKS;
-	*** CGLIB$THREAD_CALLBACKS;
-	*** CGLIB$abort$12$Method;
-	*** CGLIB$abort$12$Proxy;
-	*** CGLIB$addHeader$19$Method;
-	*** CGLIB$addHeader$19$Proxy;
-	*** CGLIB$addHeader$20$Method;
-	*** CGLIB$addHeader$20$Proxy;
-	*** CGLIB$clone$1$Method;
-	*** CGLIB$clone$1$Proxy;
-	*** CGLIB$containsHeader$16$Method;
-	*** CGLIB$containsHeader$16$Proxy;
-	*** CGLIB$emptyArgs;
-	*** CGLIB$equals$33$Method;
-	*** CGLIB$equals$33$Proxy;
-	*** CGLIB$expectContinue$2$Method;
-	*** CGLIB$expectContinue$2$Proxy;
-	*** CGLIB$finalize$32$Method;
-	*** CGLIB$finalize$32$Proxy;
-	*** CGLIB$getAllHeaders$30$Method;
-	*** CGLIB$getAllHeaders$30$Proxy;
-	*** CGLIB$getEntity$3$Method;
-	*** CGLIB$getEntity$3$Proxy;
-	*** CGLIB$getFirstHeader$17$Method;
-	*** CGLIB$getFirstHeader$17$Proxy;
-	*** CGLIB$getHeaders$31$Method;
-	*** CGLIB$getHeaders$31$Proxy;
-	*** CGLIB$getLastHeader$18$Method;
-	*** CGLIB$getLastHeader$18$Proxy;
-	*** CGLIB$getMethod$0$Method;
-	*** CGLIB$getMethod$0$Proxy;
-	*** CGLIB$getParams$29$Method;
-	*** CGLIB$getParams$29$Proxy;
-	*** CGLIB$getProtocolVersion$11$Method;
-	*** CGLIB$getProtocolVersion$11$Proxy;
-	*** CGLIB$getRequestLine$9$Method;
-	*** CGLIB$getRequestLine$9$Proxy;
-	*** CGLIB$getURI$8$Method;
-	*** CGLIB$getURI$8$Proxy;
-	*** CGLIB$hashCode$34$Method;
-	*** CGLIB$hashCode$34$Proxy;
-	*** CGLIB$headerIterator$24$Method;
-	*** CGLIB$headerIterator$24$Proxy;
-	*** CGLIB$headerIterator$25$Method;
-	*** CGLIB$headerIterator$25$Proxy;
-	*** CGLIB$isAborted$10$Method;
-	*** CGLIB$isAborted$10$Proxy;
-	*** CGLIB$releaseConnection$13$Method;
-	*** CGLIB$releaseConnection$13$Proxy;
-	*** CGLIB$removeHeader$22$Method;
-	*** CGLIB$removeHeader$22$Proxy;
-	*** CGLIB$removeHeaders$23$Method;
-	*** CGLIB$removeHeaders$23$Proxy;
-	*** CGLIB$reset$6$Method;
-	*** CGLIB$reset$6$Proxy;
-	*** CGLIB$setConnectionRequest$14$Method;
-	*** CGLIB$setConnectionRequest$14$Proxy;
-	*** CGLIB$setEntity$4$Method;
-	*** CGLIB$setEntity$4$Proxy;
-	*** CGLIB$setHeader$27$Method;
-	*** CGLIB$setHeader$27$Proxy;
-	*** CGLIB$setHeader$28$Method;
-	*** CGLIB$setHeader$28$Proxy;
-	*** CGLIB$setHeaders$21$Method;
-	*** CGLIB$setHeaders$21$Proxy;
-	*** CGLIB$setParams$26$Method;
-	*** CGLIB$setParams$26$Proxy;
-	*** CGLIB$setReleaseTrigger$15$Method;
-	*** CGLIB$setReleaseTrigger$15$Proxy;
-	*** CGLIB$setURI$7$Method;
-	*** CGLIB$setURI$7$Proxy;
-	*** CGLIB$toString$5$Method;
-	*** CGLIB$toString$5$Proxy;
-	org.apache.http.client.methods.HttpPost$$EnhancerByMockitoWithCGLIB$$f2a749df();
-	org.apache.http.client.methods.HttpPost$$EnhancerByMockitoWithCGLIB$$f2a749df(java.lang.String);
-	org.apache.http.client.methods.HttpPost$$EnhancerByMockitoWithCGLIB$$f2a749df(java.net.URI);
-	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
-	*** CGLIB$SET_STATIC_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK9();
-	*** CGLIB$abort$12();
-	*** CGLIB$addHeader$19(org.apache.http.Header);
-	*** CGLIB$addHeader$20(java.lang.String,java.lang.String);
-	*** CGLIB$clone$1();
-	*** CGLIB$containsHeader$16(java.lang.String);
-	*** CGLIB$equals$33(java.lang.Object);
-	*** CGLIB$expectContinue$2();
-	*** CGLIB$finalize$32();
-	*** CGLIB$findMethodProxy(org.mockito.cglib.core.Signature);
-	*** CGLIB$getAllHeaders$30();
-	*** CGLIB$getEntity$3();
-	*** CGLIB$getFirstHeader$17(java.lang.String);
-	*** CGLIB$getHeaders$31(java.lang.String);
-	*** CGLIB$getLastHeader$18(java.lang.String);
-	*** CGLIB$getMethod$0();
-	*** CGLIB$getParams$29();
-	*** CGLIB$getProtocolVersion$11();
-	*** CGLIB$getRequestLine$9();
-	*** CGLIB$getURI$8();
-	*** CGLIB$hashCode$34();
-	*** CGLIB$headerIterator$24(java.lang.String);
-	*** CGLIB$headerIterator$25();
-	*** CGLIB$isAborted$10();
-	*** CGLIB$releaseConnection$13();
-	*** CGLIB$removeHeader$22(org.apache.http.Header);
-	*** CGLIB$removeHeaders$23(java.lang.String);
-	*** CGLIB$reset$6();
-	*** CGLIB$setConnectionRequest$14(org.apache.http.conn.ClientConnectionRequest);
-	*** CGLIB$setEntity$4(org.apache.http.HttpEntity);
-	*** CGLIB$setHeader$27(org.apache.http.Header);
-	*** CGLIB$setHeader$28(java.lang.String,java.lang.String);
-	*** CGLIB$setHeaders$21(org.apache.http.Header[]);
-	*** CGLIB$setParams$26(org.apache.http.params.HttpParams);
-	*** CGLIB$setReleaseTrigger$15(org.apache.http.conn.ConnectionReleaseTrigger);
-	*** CGLIB$setURI$7(java.net.URI);
-	*** CGLIB$toString$5();
-	*** abort();
-	*** addHeader(java.lang.String,java.lang.String);
-	*** addHeader(org.apache.http.Header);
-	*** clone();
-	*** containsHeader(java.lang.String);
-	*** equals(java.lang.Object);
-	*** expectContinue();
-	*** getAllHeaders();
-	*** getCallback(int);
-	*** getCallbacks();
-	*** getEntity();
-	*** getFirstHeader(java.lang.String);
-	*** getHeaders(java.lang.String);
-	*** getLastHeader(java.lang.String);
-	*** getMethod();
-	*** getParams();
-	*** getProtocolVersion();
-	*** getRequestLine();
-	*** getURI();
-	*** hashCode();
-	*** headerIterator();
-	*** headerIterator(java.lang.String);
-	*** isAborted();
-	*** newInstance(java.lang.Class[],java.lang.Object[],org.mockito.cglib.proxy.Callback[]);
-	*** newInstance(org.mockito.cglib.proxy.Callback);
-	*** newInstance(org.mockito.cglib.proxy.Callback[]);
-	*** releaseConnection();
-	*** removeHeader(org.apache.http.Header);
-	*** removeHeaders(java.lang.String);
-	*** reset();
-	*** setCallback(int,org.mockito.cglib.proxy.Callback);
-	*** setCallbacks(org.mockito.cglib.proxy.Callback[]);
-	*** setConnectionRequest(org.apache.http.conn.ClientConnectionRequest);
-	*** setEntity(org.apache.http.HttpEntity);
-	*** setHeader(java.lang.String,java.lang.String);
-	*** setHeader(org.apache.http.Header);
-	*** setHeaders(org.apache.http.Header[]);
-	*** setParams(org.apache.http.params.HttpParams);
-	*** setReleaseTrigger(org.apache.http.conn.ConnectionReleaseTrigger);
-	*** setURI(java.net.URI);
-	*** toString();
 }
 
 -keep class org.apache.http.client.methods.HttpRequestBase {
@@ -35112,13 +34473,9 @@
 	*** getProtocolVersion();
 	*** getRequestLine();
 	*** getURI();
-	*** isAborted();
 	*** releaseConnection();
 	*** reset();
-	*** setConnectionRequest(org.apache.http.conn.ClientConnectionRequest);
-	*** setReleaseTrigger(org.apache.http.conn.ConnectionReleaseTrigger);
 	*** setURI(java.net.URI);
-	*** toString();
 }
 
 -keep class org.apache.http.client.methods.HttpUriRequest {
@@ -35226,7 +34583,6 @@
 	*** encodeFormFields(java.lang.String,java.lang.String);
 	*** encodeFormFields(java.lang.String,java.nio.charset.Charset);
 	*** format(java.lang.Iterable,java.nio.charset.Charset);
-	*** format(java.util.List,java.lang.String);
 	*** parse(java.lang.String,java.nio.charset.Charset);
 	*** parse(java.util.List,java.util.Scanner,java.lang.String);
 	*** urldecode(java.lang.String,java.nio.charset.Charset,boolean);
@@ -35489,7 +34845,6 @@
 	org.apache.http.conn.ssl.SSLSocketFactory(java.lang.String,java.security.KeyStore,java.lang.String,java.security.KeyStore,java.security.SecureRandom,org.apache.http.conn.ssl.TrustStrategy,org.apache.http.conn.ssl.X509HostnameVerifier);
 	org.apache.http.conn.ssl.SSLSocketFactory(javax.net.ssl.SSLContext,org.apache.http.conn.scheme.HostNameResolver);
 	org.apache.http.conn.ssl.SSLSocketFactory(javax.net.ssl.SSLContext,org.apache.http.conn.ssl.X509HostnameVerifier);
-	org.apache.http.conn.ssl.SSLSocketFactory(javax.net.ssl.SSLSocketFactory,org.apache.http.conn.ssl.X509HostnameVerifier);
 	*** connectSocket(java.net.Socket,java.net.InetSocketAddress,java.net.InetSocketAddress,org.apache.http.params.HttpParams);
 	*** createLayeredSocket(java.net.Socket,java.lang.String,int,boolean);
 	*** createSSLContext(java.lang.String,java.security.KeyStore,java.lang.String,java.security.KeyStore,java.security.SecureRandom,org.apache.http.conn.ssl.TrustStrategy);
@@ -35700,7 +35055,6 @@
 	*** reasonCatalog;
 	org.apache.http.impl.DefaultHttpResponseFactory(org.apache.http.ReasonPhraseCatalog);
 	*** determineLocale(org.apache.http.protocol.HttpContext);
-	*** newHttpResponse(org.apache.http.ProtocolVersion,int,org.apache.http.protocol.HttpContext);
 }
 
 -keep class org.apache.http.impl.EnglishReasonPhraseCatalog {
@@ -35765,6 +35119,7 @@
 	*** targetAuthStrategy;
 	*** userTokenHandler;
 	org.apache.http.impl.client.AbstractHttpClient(org.apache.http.conn.ClientConnectionManager,org.apache.http.params.HttpParams);
+	*** addRequestInterceptor(org.apache.http.HttpRequestInterceptor);
 	*** createAuthSchemeRegistry();
 	*** createClientConnectionManager();
 	*** createClientRequestDirector(org.apache.http.protocol.HttpRequestExecutor,org.apache.http.conn.ClientConnectionManager,org.apache.http.ConnectionReuseStrategy,org.apache.http.conn.ConnectionKeepAliveStrategy,org.apache.http.conn.routing.HttpRoutePlanner,org.apache.http.protocol.HttpProcessor,org.apache.http.client.HttpRequestRetryHandler,org.apache.http.client.RedirectStrategy,org.apache.http.client.AuthenticationStrategy,org.apache.http.client.AuthenticationStrategy,org.apache.http.client.UserTokenHandler,org.apache.http.params.HttpParams);
@@ -36418,19 +35773,9 @@
 	org.apache.http.message.AbstractHttpMessage();
 	org.apache.http.message.AbstractHttpMessage(org.apache.http.params.HttpParams);
 	*** addHeader(java.lang.String,java.lang.String);
-	*** addHeader(org.apache.http.Header);
-	*** containsHeader(java.lang.String);
-	*** getAllHeaders();
 	*** getFirstHeader(java.lang.String);
-	*** getHeaders(java.lang.String);
-	*** getLastHeader(java.lang.String);
 	*** getParams();
-	*** headerIterator();
-	*** headerIterator(java.lang.String);
-	*** removeHeader(org.apache.http.Header);
-	*** removeHeaders(java.lang.String);
 	*** setHeader(java.lang.String,java.lang.String);
-	*** setHeader(org.apache.http.Header);
 	*** setHeaders(org.apache.http.Header[]);
 	*** setParams(org.apache.http.params.HttpParams);
 }
@@ -36811,6 +36156,7 @@
 
 -keep class org.apache.http.util.EntityUtils {
 	*** consume(org.apache.http.HttpEntity);
+	*** consumeQuietly(org.apache.http.HttpEntity);
 	*** toString(org.apache.http.HttpEntity,java.nio.charset.Charset);
 }
 
@@ -36854,8 +36200,16 @@
 	*** threshold;
 	org.apache.log4j.AppenderSkeleton();
 	*** append(org.apache.log4j.spi.LoggingEvent);
+	*** getLayout();
 	*** isAsSevereAsThreshold(org.apache.log4j.Priority);
 	*** setLayout(org.apache.log4j.Layout);
+	*** setThreshold(org.apache.log4j.Priority);
+}
+
+-keep class org.apache.log4j.AsyncAppender {
+	*** addAppender(org.apache.log4j.Appender);
+	*** setBlocking(boolean);
+	*** setBufferSize(int);
 }
 
 -keep class org.apache.log4j.BasicConfigurator {
@@ -37420,12 +36774,15 @@
 	*** getLoggerName();
 	*** getMDC(java.lang.String);
 	*** getMDCCopy();
+	*** getMessage();
 	*** getNDC();
 	*** getProperties();
 	*** getRenderedMessage();
 	*** getStartTime();
 	*** getThreadName();
+	*** getThrowableInformation();
 	*** getThrowableStrRep();
+	*** getTimeStamp();
 	*** readLevel(java.io.ObjectInputStream);
 	*** writeLevel(java.io.ObjectOutputStream);
 }
@@ -37451,6 +36808,7 @@
 	*** category;
 	*** rep;
 	*** throwable;
+	*** getThrowable();
 	*** getThrowableStrRep();
 }
 
@@ -43095,11 +42453,9 @@
 }
 
 -keep class org.codehaus.jackson.JsonParser$NumberType {
-	*** $VALUES;
 	*** BIG_DECIMAL;
 	*** BIG_INTEGER;
 	*** DOUBLE;
-	*** FLOAT;
 	*** INT;
 	*** LONG;
 }
@@ -44134,7 +43490,6 @@
 	*** getBase64Variant();
 	*** getConfig();
 	*** getDeserializerProvider();
-	*** getNodeFactory();
 	*** getParser();
 	*** getTypeFactory();
 	*** handleUnknownProperty(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.JsonDeserializer,java.lang.Object,java.lang.String);
@@ -44402,6 +43757,7 @@
 	*** _readValue(org.codehaus.jackson.map.DeserializationConfig,org.codehaus.jackson.JsonParser,org.codehaus.jackson.type.JavaType);
 	*** _unwrapAndDeserialize(org.codehaus.jackson.JsonParser,org.codehaus.jackson.type.JavaType,org.codehaus.jackson.map.DeserializationContext,org.codehaus.jackson.map.JsonDeserializer);
 	*** _writeCloseableValue(org.codehaus.jackson.JsonGenerator,java.lang.Object,org.codehaus.jackson.map.SerializationConfig);
+	*** configure(org.codehaus.jackson.map.DeserializationConfig$Feature,boolean);
 	*** configure(org.codehaus.jackson.map.SerializationConfig$Feature,boolean);
 	*** constructType(java.lang.reflect.Type);
 	*** copyDeserializationConfig();
@@ -44415,10 +43771,12 @@
 	*** getSerializationConfig();
 	*** getSubtypeResolver();
 	*** readTree(org.codehaus.jackson.JsonParser);
+	*** readValue(java.io.InputStream,java.lang.Class);
 	*** readValue(java.io.InputStream,org.codehaus.jackson.type.JavaType);
 	*** readValue(java.io.Reader,org.codehaus.jackson.type.JavaType);
 	*** readValue(java.lang.String,java.lang.Class);
 	*** readValue(java.lang.String,org.codehaus.jackson.type.JavaType);
+	*** readValue(java.lang.String,org.codehaus.jackson.type.TypeReference);
 	*** readValue(org.codehaus.jackson.JsonParser,java.lang.Class);
 	*** readValue(org.codehaus.jackson.JsonParser,org.codehaus.jackson.type.JavaType);
 	*** readValues(org.codehaus.jackson.JsonParser,java.lang.Class);
@@ -44432,7 +43790,10 @@
 	*** setSerializationConfig(org.codehaus.jackson.map.SerializationConfig);
 	*** setSerializerFactory(org.codehaus.jackson.map.SerializerFactory);
 	*** treeAsTokens(org.codehaus.jackson.JsonNode);
+	*** writeValue(java.io.File,java.lang.Object);
+	*** writeValue(java.io.OutputStream,java.lang.Object);
 	*** writeValue(org.codehaus.jackson.JsonGenerator,java.lang.Object);
+	*** writeValueAsBytes(java.lang.Object);
 	*** writeValueAsString(java.lang.Object);
 	*** writer(org.codehaus.jackson.FormatSchema);
 	*** writer(org.codehaus.jackson.PrettyPrinter);
@@ -45132,19 +44493,6 @@
 	*** deserialize(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext);
 }
 
--keep class org.codehaus.jackson.map.deser.std.BaseNodeDeserializer {
-	org.codehaus.jackson.map.deser.std.BaseNodeDeserializer(java.lang.Class);
-	*** _handleDuplicateField(java.lang.String,org.codehaus.jackson.node.ObjectNode,org.codehaus.jackson.JsonNode,org.codehaus.jackson.JsonNode);
-	*** deserializeAny(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext,org.codehaus.jackson.node.JsonNodeFactory);
-	*** deserializeArray(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext,org.codehaus.jackson.node.JsonNodeFactory);
-	*** deserializeObject(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext,org.codehaus.jackson.node.JsonNodeFactory);
-	*** deserializeWithType(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext,org.codehaus.jackson.map.TypeDeserializer);
-}
-
--keep class org.codehaus.jackson.map.deser.std.BaseNodeDeserializer$1 {
-	*** $SwitchMap$org$codehaus$jackson$JsonToken;
-}
-
 -keep class org.codehaus.jackson.map.deser.std.CalendarDeserializer {
 	*** _calendarClass;
 	org.codehaus.jackson.map.deser.std.CalendarDeserializer(java.lang.Class);
@@ -45253,25 +44601,7 @@
 }
 
 -keep class org.codehaus.jackson.map.deser.std.JsonNodeDeserializer {
-	*** instance;
-	*** deserialize(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext);
 	*** getDeserializer(java.lang.Class);
-}
-
--keep class org.codehaus.jackson.map.deser.std.JsonNodeDeserializer$1 {
-	*** $SwitchMap$org$codehaus$jackson$JsonToken;
-}
-
--keep class org.codehaus.jackson.map.deser.std.JsonNodeDeserializer$ArrayDeserializer {
-	*** _instance;
-	*** deserialize(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext);
-	*** getInstance();
-}
-
--keep class org.codehaus.jackson.map.deser.std.JsonNodeDeserializer$ObjectDeserializer {
-	*** _instance;
-	*** deserialize(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext);
-	*** getInstance();
 }
 
 -keep class org.codehaus.jackson.map.deser.std.MapDeserializer {
@@ -47056,12 +46386,24 @@
 }
 
 -keep class org.codehaus.jackson.map.util.ObjectBuffer {
+	*** _bufferHead;
+	*** _bufferTail;
+	*** _bufferedEntryCount;
+	*** _freeBuffer;
+	*** _copyTo(java.lang.Object,int,java.lang.Object[],int);
+	*** _reset();
 	*** appendCompletedChunk(java.lang.Object[]);
 	*** completeAndClearBuffer(java.lang.Object[],int);
 	*** completeAndClearBuffer(java.lang.Object[],int,java.lang.Class);
 	*** completeAndClearBuffer(java.lang.Object[],int,java.util.List);
 	*** initialCapacity();
 	*** resetAndStart();
+}
+
+-keep class org.codehaus.jackson.map.util.ObjectBuffer$Node {
+	*** getData();
+	*** linkNext(org.codehaus.jackson.map.util.ObjectBuffer$Node);
+	*** next();
 }
 
 -keep class org.codehaus.jackson.map.util.PrimitiveArrayBuilder {
@@ -47106,7 +46448,6 @@
 	*** _sameChildren(java.util.ArrayList);
 	*** _set(int,org.codehaus.jackson.JsonNode);
 	*** add(java.lang.String);
-	*** add(org.codehaus.jackson.JsonNode);
 	*** addContentsTo(java.util.List);
 	*** addNull();
 	*** findParent(java.lang.String);
@@ -47128,16 +46469,12 @@
 }
 
 -keep class org.codehaus.jackson.node.BinaryNode {
-	*** EMPTY_BINARY_NODE;
-	*** _data;
 	*** getBinaryValue();
 	*** valueOf(byte[]);
 	*** valueOf(byte[],int,int);
 }
 
 -keep class org.codehaus.jackson.node.BooleanNode {
-	*** FALSE;
-	*** TRUE;
 	*** getFalse();
 	*** getTrue();
 }
@@ -47161,15 +46498,11 @@
 }
 
 -keep class org.codehaus.jackson.node.ContainerNode$NoNodesIterator {
-	*** instance;
 	*** instance();
-	*** next();
 }
 
 -keep class org.codehaus.jackson.node.ContainerNode$NoStringsIterator {
-	*** instance;
 	*** instance();
-	*** next();
 }
 
 -keep class org.codehaus.jackson.node.DecimalNode {
@@ -47202,7 +46535,6 @@
 	*** numberNode(float);
 	*** numberNode(int);
 	*** numberNode(java.math.BigDecimal);
-	*** numberNode(java.math.BigInteger);
 	*** numberNode(long);
 	*** numberNode(short);
 	*** objectNode();
@@ -47215,7 +46547,6 @@
 }
 
 -keep class org.codehaus.jackson.node.MissingNode {
-	*** instance;
 	*** getInstance();
 }
 
@@ -47263,18 +46594,11 @@
 }
 
 -keep class org.codehaus.jackson.node.POJONode {
-	*** _value;
 	*** getPojo();
 }
 
 -keep class org.codehaus.jackson.node.TextNode {
-	*** EMPTY_STRING_NODE;
-	*** _value;
-	*** _reportBase64EOF();
-	*** _reportInvalidBase64(org.codehaus.jackson.Base64Variant,char,int);
-	*** _reportInvalidBase64(org.codehaus.jackson.Base64Variant,char,int,java.lang.String);
 	*** appendQuoted(java.lang.StringBuilder,java.lang.String);
-	*** getBinaryValue(org.codehaus.jackson.Base64Variant);
 	*** valueOf(java.lang.String);
 }
 
@@ -47498,6 +46822,9 @@
 }
 
 -keep class org.codehaus.jackson.type.TypeReference {
+	*** _type;
+	org.codehaus.jackson.type.TypeReference();
+	*** compareTo(org.codehaus.jackson.type.TypeReference);
 	*** getType();
 }
 
@@ -47702,81 +47029,8 @@
 	*** versionFor(java.lang.Class);
 }
 
--keep class org.cometd.annotation.AnnotationProcessor {
-	*** logger;
-	org.cometd.annotation.AnnotationProcessor();
-	*** findGetterMethod(java.lang.Class,java.lang.reflect.Method);
-	*** getField(java.lang.Object,java.lang.reflect.Field);
-	*** invokeMethod(java.lang.Object,java.lang.reflect.Method,java.lang.Object[]);
-	*** processInjectable(java.lang.Object,java.lang.Object);
-	*** processInjectables(java.lang.Object,java.util.List);
-	*** processPostConstruct(java.lang.Object);
-	*** processPreDestroy(java.lang.Object);
-	*** setField(java.lang.Object,java.lang.reflect.Field,java.lang.Object);
-	*** signaturesMatch(java.lang.Class[],java.lang.Class[]);
-}
-
--keep class org.cometd.annotation.Configure {
-	*** configureIfExists();
-	*** errorIfExists();
-	*** value();
-}
-
--keep class org.cometd.annotation.Listener {
-	*** receiveOwnPublishes();
-	*** value();
-}
-
 -keep class org.cometd.annotation.ServerAnnotationProcessor {
-	*** bayeuxServer;
-	*** injectables;
-	*** listeners;
-	*** sessions;
-	*** subscribers;
-	org.cometd.annotation.ServerAnnotationProcessor(org.cometd.bayeux.server.BayeuxServer,java.lang.Object[]);
-	*** deprocessCallbacks(java.lang.Object);
-	*** deprocessListener(java.lang.Object);
-	*** deprocessSubscription(java.lang.Object);
-	*** findOrCreateLocalSession(java.lang.Object,java.lang.String);
 	*** process(java.lang.Object);
-	*** processCallbacks(java.lang.Object);
-	*** processConfigurations(java.lang.Object);
-	*** processDependencies(java.lang.Object);
-	*** processListener(java.lang.Object,org.cometd.bayeux.server.LocalSession);
-	*** processPostConstruct(java.lang.Object);
-	*** processPreDestroy(java.lang.Object);
-	*** processSession(java.lang.Object,org.cometd.bayeux.server.LocalSession);
-	*** processSubscription(java.lang.Object,org.cometd.bayeux.server.LocalSession);
-}
-
--keep class org.cometd.annotation.ServerAnnotationProcessor$1 {
-	*** this$0;
-	*** val$bean;
-	*** val$method;
-}
-
--keep class org.cometd.annotation.ServerAnnotationProcessor$ListenerCallback {
-	*** channel;
-	*** localSession;
-	*** method;
-	*** receiveOwnPublishes;
-	*** signature;
-	*** target;
-	org.cometd.annotation.ServerAnnotationProcessor$ListenerCallback(org.cometd.bayeux.server.LocalSession,java.lang.Object,java.lang.reflect.Method,java.lang.String,boolean);
-	*** access$100(org.cometd.annotation.ServerAnnotationProcessor$ListenerCallback);
-}
-
--keep class org.cometd.annotation.ServerAnnotationProcessor$SubscriptionCallback {
-	*** access$200(org.cometd.annotation.ServerAnnotationProcessor$SubscriptionCallback);
-	*** access$300(org.cometd.annotation.ServerAnnotationProcessor$SubscriptionCallback);
-}
-
--keep class org.cometd.annotation.Service {
-	*** value();
-}
-
--keep class org.cometd.annotation.Subscription {
-	*** value();
 }
 
 -keep class org.cometd.bayeux.Channel {
@@ -47786,50 +47040,30 @@
 }
 
 -keep class org.cometd.bayeux.ChannelId {
-	*** _id;
-	*** _parent;
-	*** _segments;
-	*** _wild;
-	*** _wilds;
 	*** depth();
-	*** equals(java.lang.Object);
 	*** getParent();
 	*** getWilds();
 	*** isBroadcast(java.lang.String);
-	*** isDeepWild();
-	*** isMeta();
-	*** isMeta(java.lang.String);
-	*** isService();
-	*** isService(java.lang.String);
-	*** isWild();
-	*** resolve();
 	*** toString();
 }
 
 -keep class org.cometd.bayeux.Message {
 	*** getAdvice();
 	*** getChannel();
-	*** getClientId();
 	*** getData();
 	*** getId();
-	*** getJSON();
 	*** isMeta();
-	*** isPublishReply();
 	*** isSuccessful();
 }
 
 -keep class org.cometd.bayeux.Message$Mutable {
-	*** getAdvice(boolean);
 	*** setChannel(java.lang.String);
-	*** setClientId(java.lang.String);
-	*** setData(java.lang.Object);
 	*** setId(java.lang.String);
 	*** setSuccessful(boolean);
 }
 
 -keep class org.cometd.bayeux.Session {
 	*** getId();
-	*** isHandshook();
 }
 
 -keep class org.cometd.bayeux.Transport {
@@ -47841,23 +47075,10 @@
 	*** handshake();
 }
 
--keep class org.cometd.bayeux.client.ClientSession$Extension {
-	*** rcv(org.cometd.bayeux.client.ClientSession,org.cometd.bayeux.Message$Mutable);
-	*** rcvMeta(org.cometd.bayeux.client.ClientSession,org.cometd.bayeux.Message$Mutable);
-	*** send(org.cometd.bayeux.client.ClientSession,org.cometd.bayeux.Message$Mutable);
-	*** sendMeta(org.cometd.bayeux.client.ClientSession,org.cometd.bayeux.Message$Mutable);
-}
-
 -keep class org.cometd.bayeux.client.ClientSessionChannel {
 	*** addListener(org.cometd.bayeux.client.ClientSessionChannel$ClientSessionChannelListener);
 	*** publish(java.lang.Object);
-	*** publish(java.lang.Object,org.cometd.bayeux.client.ClientSessionChannel$MessageListener);
 	*** subscribe(org.cometd.bayeux.client.ClientSessionChannel$MessageListener);
-	*** unsubscribe(org.cometd.bayeux.client.ClientSessionChannel$MessageListener);
-}
-
--keep class org.cometd.bayeux.client.ClientSessionChannel$MessageListener {
-	*** onMessage(org.cometd.bayeux.client.ClientSessionChannel,org.cometd.bayeux.Message);
 }
 
 -keep class org.cometd.bayeux.server.Authorizer {
@@ -47865,40 +47086,19 @@
 }
 
 -keep class org.cometd.bayeux.server.Authorizer$Operation {
-	*** $VALUES;
 	*** CREATE;
 	*** PUBLISH;
 	*** SUBSCRIBE;
 }
 
 -keep class org.cometd.bayeux.server.Authorizer$Result {
-	org.cometd.bayeux.server.Authorizer$Result();
 	*** deny(java.lang.String);
 	*** grant();
 	*** ignore();
-	*** toString();
 }
 
 -keep class org.cometd.bayeux.server.Authorizer$Result$Denied {
-	*** reason;
-	org.cometd.bayeux.server.Authorizer$Result$Denied(java.lang.String);
 	*** getReason();
-}
-
--keep class org.cometd.bayeux.server.Authorizer$Result$Granted {
-	*** GRANTED;
-	*** access$100();
-}
-
--keep class org.cometd.bayeux.server.Authorizer$Result$Ignored {
-	*** IGNORED;
-	*** access$200();
-}
-
--keep class org.cometd.bayeux.server.BayeuxServer {
-	*** createIfAbsent(java.lang.String,org.cometd.bayeux.server.ConfigurableServerChannel$Initializer[]);
-	*** getChannel(java.lang.String);
-	*** newLocalSession(java.lang.String);
 }
 
 -keep class org.cometd.bayeux.server.BayeuxServer$ChannelListener {
@@ -47918,15 +47118,8 @@
 	*** sessionRemoved(org.cometd.bayeux.server.ServerSession,boolean);
 }
 
--keep class org.cometd.bayeux.server.BayeuxServer$SubscriptionListener {
-	*** subscribed(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-	*** unsubscribed(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-}
-
 -keep class org.cometd.bayeux.server.ConfigurableServerChannel {
-	*** addListener(org.cometd.bayeux.server.ServerChannel$ServerChannelListener);
 	*** getAuthorizers();
-	*** removeListener(org.cometd.bayeux.server.ServerChannel$ServerChannelListener);
 	*** setPersistent(boolean);
 }
 
@@ -47934,13 +47127,8 @@
 	*** configureChannel(org.cometd.bayeux.server.ConfigurableServerChannel);
 }
 
--keep class org.cometd.bayeux.server.LocalSession {
-	*** getServerSession();
-}
-
 -keep class org.cometd.bayeux.server.SecurityPolicy {
 	*** canCreate(org.cometd.bayeux.server.BayeuxServer,org.cometd.bayeux.server.ServerSession,java.lang.String,org.cometd.bayeux.server.ServerMessage);
-	*** canHandshake(org.cometd.bayeux.server.BayeuxServer,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
 	*** canPublish(org.cometd.bayeux.server.BayeuxServer,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel,org.cometd.bayeux.server.ServerMessage);
 	*** canSubscribe(org.cometd.bayeux.server.BayeuxServer,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel,org.cometd.bayeux.server.ServerMessage);
 }
@@ -47953,16 +47141,6 @@
 	*** onMessage(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel,org.cometd.bayeux.server.ServerMessage$Mutable);
 }
 
--keep class org.cometd.bayeux.server.ServerChannel$SubscriptionListener {
-	*** subscribed(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-	*** unsubscribed(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-}
-
--keep class org.cometd.bayeux.server.ServerMessage {
-	*** getAssociated();
-	*** isLazy();
-}
-
 -keep class org.cometd.bayeux.server.ServerMessage$Mutable {
 	*** setAssociated(org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** setLazy(boolean);
@@ -47970,36 +47148,10 @@
 
 -keep class org.cometd.bayeux.server.ServerSession {
 	*** getLocalSession();
-	*** isLocalSession();
-}
-
--keep class org.cometd.bayeux.server.ServerSession$DeQueueListener {
-	*** deQueue(org.cometd.bayeux.server.ServerSession,java.util.Queue);
-}
-
--keep class org.cometd.bayeux.server.ServerSession$Extension {
-	*** rcv(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** rcvMeta(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** send(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
-	*** sendMeta(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
-}
-
--keep class org.cometd.bayeux.server.ServerSession$MaxQueueListener {
-	*** queueMaxed(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.Session,org.cometd.bayeux.Message);
-}
-
--keep class org.cometd.bayeux.server.ServerSession$MessageListener {
-	*** onMessage(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
-}
-
--keep class org.cometd.bayeux.server.ServerSession$RemoveListener {
-	*** removed(org.cometd.bayeux.server.ServerSession,boolean);
 }
 
 -keep class org.cometd.bayeux.server.ServerTransport {
 	*** getContext();
-	*** getInterval();
-	*** getTimeout();
 }
 
 -keep class org.cometd.client.transport.ClientTransport {
@@ -48050,68 +47202,6 @@
 	*** onException(java.lang.Throwable,org.cometd.bayeux.Message[]);
 }
 
--keep class org.cometd.common.AbstractClientSession {
-	*** _attributes;
-	*** _batch;
-	*** _channels;
-	*** _extensions;
-	*** _idGen;
-	*** logger;
-	org.cometd.common.AbstractClientSession();
-	*** access$100(org.cometd.common.AbstractClientSession);
-	*** dump(java.lang.StringBuilder,java.lang.String);
-	*** endBatch();
-	*** extendRcv(org.cometd.bayeux.Message$Mutable);
-	*** extendSend(org.cometd.bayeux.Message$Mutable);
-	*** getChannel(java.lang.String);
-	*** getChannels();
-	*** getReleasableChannel(java.lang.String);
-	*** isBatching();
-	*** newChannel(org.cometd.bayeux.ChannelId);
-	*** newChannelId(java.lang.String);
-	*** newMessageId();
-	*** notifyListener(org.cometd.bayeux.client.ClientSessionChannel$MessageListener,org.cometd.bayeux.Message$Mutable);
-	*** notifyListeners(org.cometd.bayeux.Message$Mutable);
-	*** receive(org.cometd.bayeux.Message$Mutable);
-	*** sendBatch();
-	*** startBatch();
-}
-
--keep class org.cometd.common.AbstractClientSession$AbstractSessionChannel {
-	*** _attributes;
-	*** _id;
-	*** _listeners;
-	*** _released;
-	*** _subscriptionCount;
-	*** _subscriptions;
-	*** this$0;
-	org.cometd.common.AbstractClientSession$AbstractSessionChannel(org.cometd.common.AbstractClientSession,org.cometd.bayeux.ChannelId);
-	*** dump(java.lang.StringBuilder,java.lang.String);
-	*** getAttribute(java.lang.String);
-	*** getChannelId();
-	*** getId();
-	*** isMeta();
-	*** isReleased();
-	*** isService();
-	*** notifyMessageListeners(org.cometd.bayeux.Message);
-	*** notifyOnMessage(org.cometd.bayeux.client.ClientSessionChannel$MessageListener,org.cometd.bayeux.Message);
-	*** release();
-	*** resetSubscriptions();
-	*** sendSubscribe();
-	*** sendUnSubscribe();
-	*** throwIfReleased();
-	*** toString();
-	*** unsubscribe(org.cometd.bayeux.client.ClientSessionChannel$MessageListener);
-}
-
--keep class org.cometd.common.AbstractClientSession$MarkableReference {
-	*** mark;
-	*** reference;
-	org.cometd.common.AbstractClientSession$MarkableReference(java.lang.Object,boolean);
-	*** getReference();
-	*** isMarked();
-}
-
 -keep class org.cometd.common.AbstractTransport {
 	*** _name;
 	*** _optionPrefix;
@@ -48120,22 +47210,9 @@
 	org.cometd.common.AbstractTransport(java.lang.String,java.util.Map);
 	*** getOption(java.lang.String);
 	*** getOption(java.lang.String,boolean);
-	*** getOption(java.lang.String,int);
-	*** getOption(java.lang.String,java.lang.String);
 	*** getOption(java.lang.String,long);
 	*** getOptionPrefix();
 	*** setOptionPrefix(java.lang.String);
-}
-
--keep class org.cometd.common.HashMapMessage {
-	*** _jsonContext;
-	org.cometd.common.HashMapMessage();
-	*** getAdvice();
-	*** getChannel();
-	*** getData();
-	*** getDataAsMap();
-	*** getExt();
-	*** isMeta();
 }
 
 -keep class org.cometd.common.JSONParserGenerator {
@@ -48153,37 +47230,6 @@
 	*** rootArrayClass();
 }
 
--keep class org.cometd.common.JettyJSONContext {
-	*** _jsonParser;
-	*** _messageParser;
-	*** _messagesParser;
-	org.cometd.common.JettyJSONContext();
-	*** access$300(org.cometd.common.JettyJSONContext);
-	*** access$400(org.cometd.common.JettyJSONContext);
-	*** adapt(java.lang.Object);
-	*** getJSON();
-	*** newRoot();
-	*** newRootArray(int);
-	*** parse(java.io.Reader);
-}
-
--keep class org.cometd.common.JettyJSONContext$FieldJSON {
-	*** this$0;
-	org.cometd.common.JettyJSONContext$FieldJSON(org.cometd.common.JettyJSONContext);
-	org.cometd.common.JettyJSONContext$FieldJSON(org.cometd.common.JettyJSONContext,org.cometd.common.JettyJSONContext$1);
-	*** getConvertor(java.lang.Class);
-}
-
--keep class org.cometd.common.JettyJSONContext$MessageJSON {
-	*** this$0;
-	org.cometd.common.JettyJSONContext$MessageJSON(org.cometd.common.JettyJSONContext);
-}
-
--keep class org.cometd.common.JettyJSONContext$MessagesJSON {
-	*** this$0;
-	org.cometd.common.JettyJSONContext$MessagesJSON(org.cometd.common.JettyJSONContext);
-}
-
 -keep class org.cometd.server.AbstractServerTransport {
 	*** _advice;
 	*** _bayeux;
@@ -48196,22 +47242,9 @@
 	*** jsonContext;
 	org.cometd.server.AbstractServerTransport(org.cometd.server.BayeuxServerImpl,java.lang.String);
 	*** destroy();
-	*** getBayeux();
-	*** getInterval();
-	*** getMaxInterval();
-	*** getMaxLazyTimeout();
-	*** getTimeout();
 	*** init();
-	*** isMetaConnectDeliveryOnly();
-	*** parseMessages(java.io.BufferedReader,boolean);
 	*** parseMessages(java.lang.String);
-	*** setMetaConnectDeliveryOnly(boolean);
 	*** sweep();
-}
-
--keep class org.cometd.server.AbstractServerTransport$Scheduler {
-	*** cancel();
-	*** schedule();
 }
 
 -keep class org.cometd.server.BayeuxServerImpl {
@@ -48232,35 +47265,24 @@
 	*** _timeout;
 	*** _timer;
 	*** _transports;
-	*** access$000(org.cometd.server.BayeuxServerImpl);
-	*** access$600(org.cometd.server.BayeuxServerImpl);
-	*** access$700(org.cometd.server.BayeuxServerImpl,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage,java.lang.String);
-	*** access$800(org.cometd.server.BayeuxServerImpl,java.lang.String,org.cometd.bayeux.server.ConfigurableServerChannel$Initializer[]);
-	*** access$900(org.cometd.server.BayeuxServerImpl,org.cometd.bayeux.server.ServerChannel,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
-	*** addServerSession(org.cometd.server.ServerSessionImpl);
 	*** addTransport(org.cometd.bayeux.server.ServerTransport);
-	*** cancelTimeout(org.eclipse.jetty.util.thread.Timeout$Task);
 	*** createChannelIfAbsent(java.lang.String,org.cometd.bayeux.server.ConfigurableServerChannel$Initializer[]);
 	*** createReply(org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** debug(java.lang.String,java.lang.Object[]);
 	*** doPublish(org.cometd.server.ServerSessionImpl,org.cometd.server.ServerChannelImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** error(org.cometd.bayeux.server.ServerMessage$Mutable,java.lang.String);
 	*** extendRecv(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** extendReply(org.cometd.server.ServerSessionImpl,org.cometd.server.ServerSessionImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** extendSend(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** freeze(org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** getAllowedTransports();
 	*** getChannel(java.lang.String);
 	*** getCurrentTransport();
-	*** getListeners();
 	*** getLogLevel();
 	*** getOption(java.lang.String);
 	*** getOption(java.lang.String,long);
 	*** getOptions();
-	*** getSession(java.lang.String);
 	*** getSessions();
 	*** getTransport(java.lang.String);
-	*** handle(org.cometd.server.ServerSessionImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** initializeDefaultTransports();
 	*** initializeJSONContext();
 	*** initializeMetaChannels();
@@ -48268,10 +47290,8 @@
 	*** isOperationAuthorized(org.cometd.bayeux.server.Authorizer$Operation,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage,org.cometd.bayeux.ChannelId);
 	*** isPublishAuthorized(org.cometd.bayeux.server.ServerChannel,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
 	*** isSubscribeAuthorized(org.cometd.bayeux.server.ServerChannel,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
-	*** newChannelId(java.lang.String);
 	*** newMessage();
 	*** newMessage(org.cometd.bayeux.server.ServerMessage);
-	*** newServerSession();
 	*** notifyChannelAdded(org.cometd.bayeux.server.BayeuxServer$ChannelListener,org.cometd.bayeux.server.ServerChannel);
 	*** notifyChannelRemoved(org.cometd.bayeux.server.BayeuxServer$ChannelListener,org.cometd.server.ServerChannelImpl);
 	*** notifyConfigureChannel(org.cometd.bayeux.server.ConfigurableServerChannel$Initializer,org.cometd.bayeux.server.ServerChannel);
@@ -48282,58 +47302,16 @@
 	*** notifySendMeta(org.cometd.bayeux.server.BayeuxServer$Extension,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** notifySessionAdded(org.cometd.bayeux.server.BayeuxServer$SessionListener,org.cometd.bayeux.server.ServerSession);
 	*** notifySessionRemoved(org.cometd.bayeux.server.BayeuxServer$SessionListener,org.cometd.bayeux.server.ServerSession,boolean);
-	*** randomLong();
-	*** removeServerChannel(org.cometd.server.ServerChannelImpl);
-	*** removeServerSession(org.cometd.bayeux.server.ServerSession,boolean);
 	*** setAllowedTransports(java.lang.String[]);
 	*** setAllowedTransports(java.util.List);
 	*** setCurrentTransport(org.cometd.server.AbstractServerTransport);
 	*** setOption(java.lang.String,java.lang.Object);
 	*** setTransports(java.util.List);
-	*** startTimeout(org.eclipse.jetty.util.thread.Timeout$Task,long);
-	*** sweep();
 	*** unknownSession(org.cometd.bayeux.server.ServerMessage$Mutable);
 }
 
--keep class org.cometd.server.BayeuxServerImpl$1 {
-	*** this$0;
-}
-
--keep class org.cometd.server.BayeuxServerImpl$2 {
-	*** this$0;
-}
-
--keep class org.cometd.server.BayeuxServerImpl$ConnectHandler {
-	*** this$0;
-	org.cometd.server.BayeuxServerImpl$ConnectHandler(org.cometd.server.BayeuxServerImpl);
-}
-
--keep class org.cometd.server.BayeuxServerImpl$DisconnectHandler {
-	*** this$0;
-	org.cometd.server.BayeuxServerImpl$DisconnectHandler(org.cometd.server.BayeuxServerImpl);
-}
-
 -keep class org.cometd.server.BayeuxServerImpl$HandlerListener {
-	*** this$0;
-	org.cometd.server.BayeuxServerImpl$HandlerListener(org.cometd.server.BayeuxServerImpl);
-	*** isSessionUnknown(org.cometd.bayeux.server.ServerSession);
 	*** onMessage(org.cometd.server.ServerSessionImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** toChannelList(java.lang.Object);
-}
-
--keep class org.cometd.server.BayeuxServerImpl$HandshakeHandler {
-	*** this$0;
-	org.cometd.server.BayeuxServerImpl$HandshakeHandler(org.cometd.server.BayeuxServerImpl);
-}
-
--keep class org.cometd.server.BayeuxServerImpl$SubscribeHandler {
-	*** this$0;
-	org.cometd.server.BayeuxServerImpl$SubscribeHandler(org.cometd.server.BayeuxServerImpl);
-}
-
--keep class org.cometd.server.BayeuxServerImpl$UnsubscribeHandler {
-	*** this$0;
-	org.cometd.server.BayeuxServerImpl$UnsubscribeHandler(org.cometd.server.BayeuxServerImpl);
 }
 
 -keep class org.cometd.server.CometdServlet {
@@ -48349,223 +47327,43 @@
 	org.cometd.server.JacksonJSONContextServer();
 }
 
--keep class org.cometd.server.JettyJSONContextServer {
-	*** newRoot();
-	*** newRootArray(int);
-}
-
--keep class org.cometd.server.LocalSessionImpl {
-	*** _bayeux;
-	*** _idHint;
-	*** _queue;
-	*** _session;
-	*** publishCallbacks;
-	*** access$000(org.cometd.server.LocalSessionImpl);
-	*** access$100(org.cometd.server.LocalSessionImpl);
-	*** doSend(org.cometd.server.ServerSessionImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** getId();
-	*** handshake(java.util.Map);
-	*** receive(org.cometd.bayeux.Message$Mutable);
-	*** send(org.cometd.server.ServerSessionImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** toString();
-}
-
--keep class org.cometd.server.LocalSessionImpl$LocalChannel {
-	*** this$0;
-}
-
 -keep class org.cometd.server.ServerChannelImpl {
-	*** _attributes;
-	*** _authorizers;
-	*** _bayeux;
-	*** _children;
-	*** _id;
-	*** _initialized;
-	*** _lazy;
-	*** _listeners;
-	*** _logger;
-	*** _parent;
-	*** _persistent;
-	*** _subscribers;
-	*** _sweeperPasses;
-	*** addChild(org.cometd.server.ServerChannelImpl);
 	*** addListener(org.cometd.bayeux.server.ServerChannel$ServerChannelListener);
 	*** dump(java.lang.StringBuilder,java.lang.String);
-	*** getAttribute(java.lang.String);
 	*** getChannelId();
 	*** getId();
 	*** getListeners();
 	*** getSubscribers();
 	*** initialized();
-	*** isBroadcast();
 	*** isLazy();
 	*** isMeta();
-	*** isPersistent();
-	*** isService();
-	*** isWild();
-	*** notifySubscribed(org.cometd.bayeux.server.BayeuxServer$SubscriptionListener,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-	*** notifySubscribed(org.cometd.bayeux.server.ServerChannel$SubscriptionListener,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-	*** notifyUnsubscribed(org.cometd.bayeux.server.BayeuxServer$SubscriptionListener,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-	*** notifyUnsubscribed(org.cometd.bayeux.server.ServerChannel$SubscriptionListener,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerChannel);
-	*** publish(org.cometd.bayeux.Session,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** remove();
-	*** removeChild(org.cometd.server.ServerChannelImpl);
 	*** resetSweeperPasses();
-	*** setPersistent(boolean);
-	*** subscribe(org.cometd.bayeux.server.ServerSession);
-	*** subscribe(org.cometd.server.ServerSessionImpl);
 	*** sweep();
-	*** toString();
-	*** unsubscribe(org.cometd.bayeux.server.ServerSession);
-	*** unsubscribe(org.cometd.server.ServerSessionImpl);
 	*** waitForInitialized();
 }
 
 -keep class org.cometd.server.ServerMessageImpl {
-	*** $assertionsDisabled;
-	*** _associated;
-	*** _json;
-	*** _jsonContext;
-	*** _lazy;
 	*** freeze(java.lang.String);
 	*** isFrozen();
-	*** put(java.lang.String,java.lang.Object);
 }
 
 -keep class org.cometd.server.ServerSessionImpl {
-	*** _advisedTransport;
-	*** _attributes;
-	*** _batch;
-	*** _bayeux;
-	*** _connectTimestamp;
-	*** _connected;
-	*** _extensions;
-	*** _handshook;
-	*** _id;
-	*** _idCount;
-	*** _interval;
-	*** _intervalTimestamp;
-	*** _lastConnect;
-	*** _lazyDispatch;
-	*** _lazyTask;
-	*** _listeners;
-	*** _localSession;
-	*** _logger;
-	*** _maxInterval;
-	*** _maxLazy;
-	*** _maxQueue;
-	*** _maxServerInterval;
-	*** _metaConnectDelivery;
-	*** _queue;
-	*** _scheduler;
-	*** _subscribedTo;
-	*** _timeout;
-	*** _transientInterval;
-	*** _transientTimeout;
-	*** _userAgent;
-	org.cometd.server.ServerSessionImpl(org.cometd.server.BayeuxServerImpl,org.cometd.server.LocalSessionImpl,java.lang.String);
-	*** calculateInterval(long);
-	*** calculateTimeout(long);
-	*** cancelIntervalTimeout();
 	*** cancelSchedule();
-	*** connect();
-	*** deliver(org.cometd.bayeux.Session,org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** doDeliver(org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** dump(java.lang.StringBuilder,java.lang.String);
-	*** endBatch();
 	*** extendRecv(org.cometd.bayeux.server.ServerMessage$Mutable);
 	*** extendSendMessage(org.cometd.bayeux.server.ServerMessage);
 	*** extendSendMeta(org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** flush();
-	*** flushLazy();
-	*** getAttribute(java.lang.String);
 	*** getId();
-	*** getTimeout();
-	*** handshake();
-	*** isConnected();
-	*** isHandshook();
-	*** isLocalSession();
-	*** isMetaConnectDeliveryOnly();
-	*** isQueueEmpty();
-	*** notifyDeQueue(org.cometd.bayeux.server.ServerSession$DeQueueListener,org.cometd.bayeux.server.ServerSession,java.util.Queue);
-	*** notifyOnMessage(org.cometd.bayeux.server.ServerSession$MessageListener,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
-	*** notifyQueueMaxed(org.cometd.bayeux.server.ServerSession$MaxQueueListener,org.cometd.bayeux.server.ServerSession,org.cometd.bayeux.server.ServerMessage);
-	*** notifyRcv(org.cometd.bayeux.server.ServerSession$Extension,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** notifyRcvMeta(org.cometd.bayeux.server.ServerSession$Extension,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** notifyRemoved(org.cometd.bayeux.server.ServerSession$RemoveListener,org.cometd.bayeux.server.ServerSession,boolean);
-	*** notifySend(org.cometd.bayeux.server.ServerSession$Extension,org.cometd.bayeux.server.ServerMessage);
-	*** notifySendMeta(org.cometd.bayeux.server.ServerSession$Extension,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** reAdvise();
 	*** removed(boolean);
-	*** setScheduler(org.cometd.server.AbstractServerTransport$Scheduler);
-	*** setUserAgent(java.lang.String);
-	*** startBatch();
-	*** startIntervalTimeout(long);
-	*** subscribedTo(org.cometd.server.ServerChannelImpl);
 	*** sweep(long);
-	*** takeAdvice();
-	*** takeQueue();
-	*** toString();
-	*** unsubscribedFrom(org.cometd.server.ServerChannelImpl);
-	*** updateTransientInterval(long);
-	*** updateTransientTimeout(long);
-}
-
--keep class org.cometd.server.ServerSessionImpl$1 {
-	*** this$0;
 }
 
 -keep class org.cometd.server.transport.HttpTransport {
 	*** _currentRequest;
-	org.cometd.server.transport.HttpTransport(org.cometd.server.BayeuxServerImpl,java.lang.String);
 	*** accept(javax.servlet.http.HttpServletRequest);
 	*** getCurrentRequest();
 	*** handle(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** setCurrentRequest(javax.servlet.http.HttpServletRequest);
-}
-
--keep class org.cometd.server.transport.JSONPTransport {
-	*** _callbackParam;
-	*** _mimeType;
-	*** getCallbackParameter();
-}
-
--keep class org.cometd.server.transport.JSONTransport {
-	*** _jsonDebug;
-	*** _mimeType;
-}
-
--keep class org.cometd.server.transport.LongPollingTransport {
-	*** _allowMultiSessionsNoBrowser;
-	*** _autoBatch;
-	*** _browserId;
-	*** _browserMap;
-	*** _browserSweep;
-	*** _lastSweep;
-	*** _logger;
-	*** _maxSessionsPerBrowser;
-	*** _multiSessionInterval;
-	org.cometd.server.transport.LongPollingTransport(org.cometd.server.BayeuxServerImpl,java.lang.String);
-	*** bayeuxServerHandle(org.cometd.server.ServerSessionImpl,org.cometd.bayeux.server.ServerMessage$Mutable);
-	*** complete(java.io.PrintWriter);
-	*** decBrowserId(java.lang.String);
-	*** findBrowserId(javax.servlet.http.HttpServletRequest);
-	*** handleJSONParseException(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.String,java.lang.Throwable);
-	*** incBrowserId(java.lang.String);
-	*** init();
-	*** isAlwaysFlushingAfterHandle();
-	*** metaConnectResumed(javax.servlet.http.HttpServletRequest,org.cometd.bayeux.server.ServerSession);
-	*** metaConnectSuspended(javax.servlet.http.HttpServletRequest,org.cometd.bayeux.server.ServerSession,long);
-	*** parseMessages(java.lang.String[]);
-	*** parseMessages(javax.servlet.http.HttpServletRequest);
-	*** send(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.io.PrintWriter,org.cometd.bayeux.server.ServerMessage);
-	*** sendQueue(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,org.cometd.server.ServerSessionImpl,java.io.PrintWriter);
-	*** setBrowserId(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
-}
-
--keep class org.cometd.server.transport.LongPollingTransport$LongPollScheduler {
-	*** getReply();
-	*** getSession();
 }
 
 -keep class org.eclipse.jdt.internal.junit.runner.AbstractTestLoader {
@@ -48919,134 +47717,8 @@
 	*** setURL(java.lang.String);
 }
 
--keep class org.eclipse.jetty.continuation.Continuation {
-	*** setTimeout(long);
-	*** suspend(javax.servlet.ServletResponse);
-}
-
--keep class org.eclipse.jetty.continuation.ContinuationListener {
-	*** onComplete(org.eclipse.jetty.continuation.Continuation);
-	*** onTimeout(org.eclipse.jetty.continuation.Continuation);
-}
-
--keep class org.eclipse.jetty.continuation.ContinuationSupport {
-	*** getContinuation(javax.servlet.ServletRequest);
-}
-
--keep class org.eclipse.jetty.http.AbstractGenerator {
-	*** LOG;
-	*** NO_BYTES;
-	*** _buffer;
-	*** _buffers;
-	*** _content;
-	*** _contentLength;
-	*** _contentWritten;
-	*** _date;
-	*** _endp;
-	*** _head;
-	*** _header;
-	*** _last;
-	*** _method;
-	*** _noContent;
-	*** _persistent;
-	*** _reason;
-	*** _sendServerVersion;
-	*** _state;
-	*** _status;
-	*** _uri;
-	*** _version;
-	org.eclipse.jetty.http.AbstractGenerator(org.eclipse.jetty.io.Buffers,org.eclipse.jetty.io.EndPoint);
-	*** blockForOutput(long);
-	*** complete();
-	*** completeHeader(org.eclipse.jetty.http.HttpFields,boolean);
-	*** completeUncheckedAddContent();
-	*** flush(long);
-	*** flushBuffer();
-	*** getContentWritten();
-	*** getSendServerVersion();
-	*** getUncheckedBuffer();
-	*** isAllContentWritten();
-	*** isBufferFull();
-	*** isCommitted();
-	*** isOpen();
-	*** isRequest();
-	*** isWritten();
-	*** prepareUncheckedAddContent();
-	*** reset();
-	*** setResponse(int,java.lang.String);
-}
-
--keep class org.eclipse.jetty.http.EncodedHttpURI {
-	*** _encoding;
-	*** toString();
-}
-
 -keep class org.eclipse.jetty.http.Generator {
-	*** addContent(org.eclipse.jetty.io.Buffer,boolean);
-	*** complete();
-	*** completeHeader(org.eclipse.jetty.http.HttpFields,boolean);
-	*** flushBuffer();
-	*** getContentBufferSize();
-	*** getContentWritten();
-	*** increaseContentBufferSize(int);
-	*** isAllContentWritten();
-	*** isCommitted();
-	*** isComplete();
-	*** isIdle();
-	*** isPersistent();
 	*** isWritten();
-	*** reset();
-	*** resetBuffer();
-	*** returnBuffers();
-	*** sendError(int,java.lang.String,java.lang.String,boolean);
-	*** setContentLength(long);
-	*** setDate(org.eclipse.jetty.io.Buffer);
-	*** setHead(boolean);
-	*** setPersistent(boolean);
-	*** setResponse(int,java.lang.String);
-	*** setSendServerVersion(boolean);
-	*** setVersion(int);
-}
-
--keep class org.eclipse.jetty.http.HttpBuffers {
-	*** getRequestBuffers();
-	*** getResponseBuffers();
-}
-
--keep class org.eclipse.jetty.http.HttpBuffersImpl {
-	*** _maxBuffers;
-	*** _requestBufferSize;
-	*** _requestBufferType;
-	*** _requestBuffers;
-	*** _requestHeaderSize;
-	*** _requestHeaderType;
-	*** _responseBufferSize;
-	*** _responseBufferType;
-	*** _responseBuffers;
-	*** _responseHeaderSize;
-	*** _responseHeaderType;
-	*** getMaxBuffers();
-	*** getRequestBufferSize();
-	*** getRequestBufferType();
-	*** getRequestBuffers();
-	*** getRequestHeaderSize();
-	*** getRequestHeaderType();
-	*** getResponseBufferSize();
-	*** getResponseBufferType();
-	*** getResponseBuffers();
-	*** getResponseHeaderSize();
-	*** getResponseHeaderType();
-	*** setMaxBuffers(int);
-	*** setRequestBufferSize(int);
-	*** setRequestBufferType(org.eclipse.jetty.io.Buffers$Type);
-	*** setRequestBuffers(org.eclipse.jetty.io.Buffers);
-	*** setRequestHeaderSize(int);
-	*** setRequestHeaderType(org.eclipse.jetty.io.Buffers$Type);
-	*** setResponseBufferSize(int);
-	*** setResponseBufferType(org.eclipse.jetty.io.Buffers$Type);
-	*** setResponseBuffers(org.eclipse.jetty.io.Buffers);
-	*** setResponseHeaderSize(int);
-	*** setResponseHeaderType(org.eclipse.jetty.io.Buffers$Type);
 }
 
 -keep class org.eclipse.jetty.http.HttpContent {
@@ -49054,786 +47726,49 @@
 	*** getContentType();
 	*** getDirectBuffer();
 	*** getIndirectBuffer();
-	*** getInputStream();
 	*** getLastModified();
 	*** getResource();
 	*** release();
 }
 
--keep class org.eclipse.jetty.http.HttpCookie {
-	*** getComment();
-	*** getDomain();
-	*** getMaxAge();
-	*** getName();
-	*** getPath();
-	*** getValue();
-	*** getVersion();
-	*** isHttpOnly();
-	*** isSecure();
-}
-
 -keep class org.eclipse.jetty.http.HttpException {
-	*** _reason;
-	*** _status;
 	*** getReason();
 	*** getStatus();
 }
 
 -keep class org.eclipse.jetty.http.HttpFields {
-	*** DAYS;
-	*** LOG;
-	*** MONTHS;
-	*** __01Jan1970;
-	*** __01Jan1970_BUFFER;
-	*** __01Jan1970_COOKIE;
-	*** __GMT;
-	*** __cache;
-	*** __cacheSize;
-	*** __dateCache;
-	*** __dateGenerator;
-	*** __dateParser;
-	*** __dateReceiveFmt;
-	*** __one;
-	*** __qualities;
-	*** __zero;
-	*** _fields;
-	*** _names;
-	*** access$000();
-	*** access$100();
-	*** add(java.lang.String,java.lang.String);
-	*** add(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** addDateField(java.lang.String,long);
-	*** addLongField(java.lang.String,long);
-	*** addSetCookie(java.lang.String,java.lang.String,java.lang.String,java.lang.String,long,java.lang.String,boolean,boolean,int);
-	*** addSetCookie(org.eclipse.jetty.http.HttpCookie);
-	*** clear();
-	*** containsKey(java.lang.String);
-	*** containsKey(org.eclipse.jetty.io.Buffer);
-	*** convertValue(java.lang.String);
-	*** formatCookieDate(java.lang.StringBuilder,long);
-	*** formatCookieDate(long);
-	*** formatDate(long);
-	*** get(org.eclipse.jetty.io.Buffer);
-	*** getDateField(java.lang.String);
-	*** getField(int);
-	*** getField(java.lang.String);
-	*** getField(org.eclipse.jetty.io.Buffer);
-	*** getFieldNames();
-	*** getLongField(java.lang.String);
-	*** getLongField(org.eclipse.jetty.io.Buffer);
-	*** getQuality(java.lang.String);
-	*** getStringField(java.lang.String);
-	*** getStringField(org.eclipse.jetty.io.Buffer);
-	*** getValues(java.lang.String);
-	*** getValues(java.lang.String,java.lang.String);
-	*** getValues(org.eclipse.jetty.io.Buffer);
-	*** put(java.lang.String,java.lang.String);
-	*** put(org.eclipse.jetty.io.Buffer,java.lang.String);
 	*** put(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** putDateField(java.lang.String,long);
 	*** putDateField(org.eclipse.jetty.io.Buffer,long);
-	*** putLongField(java.lang.String,long);
-	*** putLongField(org.eclipse.jetty.io.Buffer,long);
-	*** qualityList(java.util.Enumeration);
-	*** remove(java.lang.String);
-	*** remove(org.eclipse.jetty.io.Buffer);
-	*** size();
-	*** toString();
-	*** valueParameters(java.lang.String,java.util.Map);
-}
-
--keep class org.eclipse.jetty.http.HttpFields$1 {
-	*** initialValue();
-}
-
--keep class org.eclipse.jetty.http.HttpFields$2 {
-	*** initialValue();
-}
-
--keep class org.eclipse.jetty.http.HttpFields$DateGenerator {
-	*** buf;
-	*** gc;
-	org.eclipse.jetty.http.HttpFields$DateGenerator();
-	*** formatCookieDate(java.lang.StringBuilder,long);
-	*** formatDate(long);
-}
-
--keep class org.eclipse.jetty.http.HttpFields$DateParser {
-	*** parse(java.lang.String);
-}
-
--keep class org.eclipse.jetty.http.HttpFields$Field {
-	*** _name;
-	*** _next;
-	*** _value;
-	org.eclipse.jetty.http.HttpFields$Field(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** access$500(org.eclipse.jetty.http.HttpFields$Field);
-	*** access$600(org.eclipse.jetty.http.HttpFields$Field);
-	*** access$602(org.eclipse.jetty.http.HttpFields$Field,org.eclipse.jetty.http.HttpFields$Field);
-	*** getLongValue();
-	*** getName();
-	*** getNameOrdinal();
-	*** getValue();
-	*** getValueBuffer();
-	*** getValueOrdinal();
-	*** putTo(org.eclipse.jetty.io.Buffer);
 }
 
 -keep class org.eclipse.jetty.http.HttpGenerator {
-	*** CONNECTION_;
-	*** CONNECTION_CLOSE;
-	*** CONNECTION_KEEP_ALIVE;
-	*** CONTENT_LENGTH_0;
-	*** CRLF;
-	*** LAST_CHUNK;
-	*** LOG;
-	*** SERVER;
-	*** TRANSFER_ENCODING_CHUNKED;
-	*** __status;
-	*** _bufferChunked;
-	*** _bypass;
-	*** _needCRLF;
-	*** _needEOC;
-	*** flushBuffer();
-	*** flushMask();
-	*** isRequest();
-	*** isResponse();
-	*** prepareBuffers();
-	*** send1xx(int);
-	*** sendResponse(org.eclipse.jetty.io.Buffer);
 	*** setServerVersion(java.lang.String);
-}
-
--keep class org.eclipse.jetty.http.HttpGenerator$Status {
-	*** _reason;
-	*** _responseLine;
-	*** _schemeCode;
-	org.eclipse.jetty.http.HttpGenerator$Status();
 }
 
 -keep class org.eclipse.jetty.http.HttpHeaderValues {
 	*** BYTES_BUFFER;
-	*** CACHE;
-	*** CHUNKED_BUFFER;
-	*** CLOSE_BUFFER;
-	*** CONTINUE_BUFFER;
-	*** GZIP_BUFFER;
-	*** IDENTITY_BUFFER;
-	*** KEEP_ALIVE_BUFFER;
-	*** NO_CACHE_BUFFER;
-	*** PROCESSING_BUFFER;
-	*** TE_BUFFER;
-	*** UPGRADE_BUFFER;
-	*** hasKnownValues(int);
 }
 
 -keep class org.eclipse.jetty.http.HttpHeaders {
-	*** ACCEPT_BUFFER;
-	*** ACCEPT_CHARSET_BUFFER;
-	*** ACCEPT_ENCODING_BUFFER;
-	*** ACCEPT_LANGUAGE_BUFFER;
 	*** ACCEPT_RANGES_BUFFER;
-	*** AGE_BUFFER;
-	*** ALLOW_BUFFER;
-	*** AUTHORIZATION_BUFFER;
-	*** CACHE;
 	*** CACHE_CONTROL_BUFFER;
-	*** CONNECTION_BUFFER;
-	*** CONTENT_ENCODING_BUFFER;
-	*** CONTENT_LANGUAGE_BUFFER;
-	*** CONTENT_LENGTH_BUFFER;
-	*** CONTENT_LOCATION_BUFFER;
-	*** CONTENT_MD5_BUFFER;
-	*** CONTENT_RANGE_BUFFER;
-	*** CONTENT_TYPE_BUFFER;
-	*** COOKIE_BUFFER;
-	*** DATE_BUFFER;
-	*** ETAG_BUFFER;
-	*** EXPECT_BUFFER;
-	*** EXPIRES_BUFFER;
-	*** FORWARDED_BUFFER;
-	*** FROM_BUFFER;
-	*** HOST_BUFFER;
-	*** IDENTITY_BUFFER;
-	*** IF_MATCH_BUFFER;
-	*** IF_MODIFIED_SINCE_BUFFER;
-	*** IF_NONE_MATCH_BUFFER;
-	*** IF_RANGE_BUFFER;
-	*** IF_UNMODIFIED_SINCE_BUFFER;
-	*** KEEP_ALIVE_BUFFER;
 	*** LAST_MODIFIED_BUFFER;
-	*** LOCATION_BUFFER;
-	*** MAX_FORWARDS_BUFFER;
-	*** MIME_VERSION_BUFFER;
-	*** PRAGMA_BUFFER;
-	*** PROXY_AUTHENTICATE_BUFFER;
-	*** PROXY_AUTHORIZATION_BUFFER;
-	*** PROXY_CONNECTION_BUFFER;
-	*** RANGE_BUFFER;
-	*** REFERER_BUFFER;
-	*** REQUEST_RANGE_BUFFER;
-	*** RETRY_AFTER_BUFFER;
-	*** SERVER_BUFFER;
-	*** SERVLET_ENGINE_BUFFER;
-	*** SET_COOKIE2_BUFFER;
-	*** SET_COOKIE_BUFFER;
-	*** TE_BUFFER;
-	*** TRAILER_BUFFER;
-	*** TRANSFER_ENCODING_BUFFER;
-	*** UPGRADE_BUFFER;
-	*** USER_AGENT_BUFFER;
-	*** VARY_BUFFER;
-	*** VIA_BUFFER;
-	*** WARNING_BUFFER;
-	*** WWW_AUTHENTICATE_BUFFER;
-	*** X_FORWARDED_FOR_BUFFER;
-	*** X_FORWARDED_HOST_BUFFER;
-	*** X_FORWARDED_PROTO_BUFFER;
-	*** X_FORWARDED_SERVER_BUFFER;
-}
-
--keep class org.eclipse.jetty.http.HttpMethods {
-	*** CACHE;
-	*** CONNECT_BUFFER;
-	*** DELETE_BUFFER;
-	*** GET_BUFFER;
-	*** HEAD_BUFFER;
-	*** MOVE_BUFFER;
-	*** OPTIONS_BUFFER;
-	*** POST_BUFFER;
-	*** PUT_BUFFER;
-	*** TRACE_BUFFER;
-}
-
--keep class org.eclipse.jetty.http.HttpParser {
-	*** LOG;
-	*** _body;
-	*** _buffer;
-	*** _buffers;
-	*** _cached;
-	*** _chunkLength;
-	*** _chunkPosition;
-	*** _contentLength;
-	*** _contentPosition;
-	*** _contentView;
-	*** _endp;
-	*** _eol;
-	*** _forceContentBuffer;
-	*** _handler;
-	*** _headResponse;
-	*** _header;
-	*** _length;
-	*** _multiLineValue;
-	*** _persistent;
-	*** _responseStatus;
-	*** _state;
-	*** _tok0;
-	*** _tok1;
-	*** available();
-	*** blockForContent(long);
-	*** fill();
-	*** getContentLength();
-	*** getContentRead();
-	*** getHeaderBuffer();
-	*** getState();
-	*** isChunking();
-	*** isComplete();
-	*** isIdle();
-	*** isState(int);
-	*** parseNext();
-	*** reset();
-	*** returnBuffers();
-	*** toString();
-}
-
--keep class org.eclipse.jetty.http.HttpParser$EventHandler {
-	org.eclipse.jetty.http.HttpParser$EventHandler();
-	*** content(org.eclipse.jetty.io.Buffer);
-	*** earlyEOF();
-	*** headerComplete();
-	*** messageComplete(long);
-	*** parsedHeader(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** startRequest(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** startResponse(org.eclipse.jetty.io.Buffer,int,org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.http.HttpStatus {
-	*** codeMap;
-	*** getCode(int);
-	*** getMessage(int);
-	*** isClientError(int);
-	*** isInformational(int);
-	*** isRedirection(int);
-	*** isServerError(int);
-	*** isSuccess(int);
-}
-
--keep class org.eclipse.jetty.http.HttpStatus$Code {
-	*** $VALUES;
-	*** ACCEPTED;
-	*** BAD_GATEWAY;
-	*** BAD_REQUEST;
-	*** CONFLICT;
-	*** CONTINUE;
-	*** CREATED;
-	*** EXPECTATION_FAILED;
-	*** FAILED_DEPENDENCY;
-	*** FORBIDDEN;
-	*** FOUND;
-	*** GATEWAY_TIMEOUT;
-	*** GONE;
-	*** HTTP_VERSION_NOT_SUPPORTED;
-	*** INSUFFICIENT_STORAGE;
-	*** INTERNAL_SERVER_ERROR;
-	*** LENGTH_REQUIRED;
-	*** LOCKED;
-	*** METHOD_NOT_ALLOWED;
-	*** MOVED_PERMANENTLY;
-	*** MOVED_TEMPORARILY;
-	*** MULTIPLE_CHOICES;
-	*** MULTI_STATUS;
-	*** NON_AUTHORITATIVE_INFORMATION;
-	*** NOT_ACCEPTABLE;
-	*** NOT_FOUND;
-	*** NOT_IMPLEMENTED;
-	*** NOT_MODIFIED;
-	*** NO_CONTENT;
-	*** OK;
-	*** PARTIAL_CONTENT;
-	*** PAYMENT_REQUIRED;
-	*** PRECONDITION_FAILED;
-	*** PROCESSING;
-	*** PROXY_AUTHENTICATION_REQUIRED;
-	*** REQUESTED_RANGE_NOT_SATISFIABLE;
-	*** REQUEST_ENTITY_TOO_LARGE;
-	*** REQUEST_TIMEOUT;
-	*** REQUEST_URI_TOO_LONG;
-	*** RESET_CONTENT;
-	*** SEE_OTHER;
-	*** SERVICE_UNAVAILABLE;
-	*** SWITCHING_PROTOCOLS;
-	*** TEMPORARY_REDIRECT;
-	*** UNAUTHORIZED;
-	*** UNPROCESSABLE_ENTITY;
-	*** UNSUPPORTED_MEDIA_TYPE;
-	*** USE_PROXY;
-	*** _code;
-	*** _message;
-	*** access$000(org.eclipse.jetty.http.HttpStatus$Code);
-	*** getMessage();
-	*** values();
-}
-
--keep class org.eclipse.jetty.http.HttpTokens {
-	*** CRLF;
 }
 
 -keep class org.eclipse.jetty.http.HttpURI {
-	*** __empty;
-	*** _authority;
-	*** _encoded;
-	*** _end;
-	*** _fragment;
-	*** _host;
-	*** _param;
-	*** _partial;
-	*** _path;
-	*** _port;
-	*** _portValue;
-	*** _query;
-	*** _raw;
-	*** _rawString;
-	*** _scheme;
-	*** _utf8b;
-	org.eclipse.jetty.http.HttpURI();
-	*** clear();
-	*** decodeQueryTo(org.eclipse.jetty.util.MultiMap);
-	*** decodeQueryTo(org.eclipse.jetty.util.MultiMap,java.lang.String);
-	*** getDecodedPath();
-	*** getDecodedPath(java.lang.String);
-	*** getFragment();
-	*** getHost();
-	*** getPath();
-	*** getPathAndParam();
-	*** getPort();
 	*** getQuery();
-	*** getQuery(java.lang.String);
-	*** getScheme();
-	*** hasQuery();
-	*** parse(byte[],int,int);
-	*** parse(java.lang.String);
-	*** parse2(byte[],int,int);
-	*** parseConnect(byte[],int,int);
-	*** toUtf8String(int,int);
-}
-
--keep class org.eclipse.jetty.http.HttpVersions {
-	*** CACHE;
-	*** HTTP_0_9_BUFFER;
-	*** HTTP_1_0_BUFFER;
-	*** HTTP_1_1_BUFFER;
 }
 
 -keep class org.eclipse.jetty.http.MimeTypes {
-	*** CACHE;
-	*** FORM_ENCODED_BUFFER;
-	*** LOG;
-	*** MESSAGE_HTTP_BUFFER;
-	*** MULTIPART_BYTERANGES_BUFFER;
-	*** TEXT_HTML_8859_1_BUFFER;
-	*** TEXT_HTML_BUFFER;
-	*** TEXT_HTML_UTF_8_BUFFER;
-	*** TEXT_HTML__8859_1_BUFFER;
-	*** TEXT_HTML__UTF_8_BUFFER;
-	*** TEXT_JSON_BUFFER;
-	*** TEXT_JSON_UTF_8_BUFFER;
-	*** TEXT_JSON__UTF_8_BUFFER;
-	*** TEXT_PLAIN_8859_1_BUFFER;
-	*** TEXT_PLAIN_BUFFER;
-	*** TEXT_PLAIN_UTF_8_BUFFER;
-	*** TEXT_PLAIN__8859_1_BUFFER;
-	*** TEXT_PLAIN__UTF_8_BUFFER;
-	*** TEXT_XML_8859_1_BUFFER;
-	*** TEXT_XML_BUFFER;
-	*** TEXT_XML_UTF_8_BUFFER;
-	*** TEXT_XML__8859_1_BUFFER;
-	*** TEXT_XML__UTF_8_BUFFER;
-	*** __dftMimeMap;
-	*** __encodings;
-	*** __index;
-	*** _mimeMap;
-	*** getCharsetFromContentType(org.eclipse.jetty.io.Buffer);
 	*** getMimeByExtension(java.lang.String);
-	*** normalizeMimeType(java.lang.String);
-}
-
--keep class org.eclipse.jetty.http.Parser {
-	*** isComplete();
-	*** isIdle();
-	*** isPersistent();
-	*** parseAvailable();
-	*** reset();
-	*** returnBuffers();
-	*** setPersistent(boolean);
-}
-
--keep class org.eclipse.jetty.http.PathMap {
-	*** __pathSpecSeparators;
-	*** _default;
-	*** _defaultSingletonList;
-	*** _entrySet;
-	*** _exactMap;
-	*** _nodefault;
-	*** _prefixDefault;
-	*** _prefixMap;
-	*** _suffixMap;
-	*** clear();
-	*** getLazyMatches(java.lang.String);
-	*** getMatch(java.lang.String);
-	*** isPathWildcardMatch(java.lang.String,java.lang.String);
-	*** match(java.lang.String);
-	*** match(java.lang.String,java.lang.String,boolean);
-	*** pathInfo(java.lang.String,java.lang.String);
-	*** pathMatch(java.lang.String,java.lang.String);
-	*** put(java.lang.Object,java.lang.Object);
-}
-
--keep class org.eclipse.jetty.http.PathMap$Entry {
-	*** key;
-	*** mapped;
-	*** string;
-	*** value;
-	*** getKey();
-	*** getMapped();
-	*** getValue();
-	*** setMapped(java.lang.String);
 }
 
 -keep class org.eclipse.jetty.io.AbstractBuffer {
-	*** $assertionsDisabled;
-	*** LOG;
-	*** __boundsChecking;
-	*** _access;
-	*** _get;
-	*** _hash;
-	*** _hashGet;
-	*** _hashPut;
-	*** _mark;
-	*** _put;
-	*** _string;
-	*** _view;
-	*** _volatile;
-	org.eclipse.jetty.io.AbstractBuffer(int,boolean);
-	*** asArray();
-	*** buffer();
-	*** clear();
-	*** duplicate(int);
-	*** equals(java.lang.Object);
-	*** equalsIgnoreCase(org.eclipse.jetty.io.Buffer);
-	*** getIndex();
-	*** hasContent();
-	*** isImmutable();
-	*** isReadOnly();
-	*** isVolatile();
-	*** length();
-	*** markIndex();
-	*** peek(int,int);
-	*** poke(int,byte[],int,int);
-	*** poke(int,org.eclipse.jetty.io.Buffer);
-	*** put(byte);
-	*** put(byte[],int,int);
-	*** putIndex();
-	*** setGetIndex(int);
-	*** setMarkIndex(int);
-	*** setPutIndex(int);
-	*** skip(int);
-	*** sliceFromMark(int);
-	*** space();
 	*** toString();
-	*** toString(java.lang.String);
-}
-
--keep class org.eclipse.jetty.io.AbstractBuffers {
-	*** _bufferSize;
-	*** _bufferType;
-	*** _headerSize;
-	*** _headerType;
-	*** _otherType;
-	org.eclipse.jetty.io.AbstractBuffers(org.eclipse.jetty.io.Buffers$Type,int,org.eclipse.jetty.io.Buffers$Type,int,org.eclipse.jetty.io.Buffers$Type);
-	*** getBufferSize();
-	*** getHeaderSize();
-	*** isBuffer(org.eclipse.jetty.io.Buffer);
-	*** isHeader(org.eclipse.jetty.io.Buffer);
-	*** newBuffer();
-	*** newBuffer(int);
-	*** newHeader();
-}
-
--keep class org.eclipse.jetty.io.AbstractBuffers$1 {
-	*** $SwitchMap$org$eclipse$jetty$io$Buffers$Type;
-}
-
--keep class org.eclipse.jetty.io.AbstractConnection {
-	*** LOG;
-	*** _endp;
-	*** _timeStamp;
-	org.eclipse.jetty.io.AbstractConnection(org.eclipse.jetty.io.EndPoint);
-	*** getEndPoint();
-	*** toString();
-}
-
--keep class org.eclipse.jetty.io.AsyncEndPoint {
-	*** asyncDispatch();
-	*** cancelTimeout(org.eclipse.jetty.util.thread.Timeout$Task);
-	*** hasProgressed();
-	*** scheduleTimeout(org.eclipse.jetty.util.thread.Timeout$Task,long);
-	*** setCheckForIdle(boolean);
 }
 
 -keep class org.eclipse.jetty.io.Buffer {
-	*** array();
-	*** asArray();
-	*** asImmutableBuffer();
-	*** buffer();
-	*** capacity();
-	*** clear();
-	*** compact();
-	*** equalsIgnoreCase(org.eclipse.jetty.io.Buffer);
-	*** get();
-	*** get(byte[],int,int);
-	*** get(int);
-	*** getIndex();
-	*** hasContent();
-	*** isImmutable();
-	*** isReadOnly();
-	*** isVolatile();
-	*** length();
-	*** mark();
-	*** markIndex();
-	*** peek();
-	*** peek(int);
-	*** peek(int,byte[],int,int);
-	*** peek(int,int);
-	*** poke(int,byte);
-	*** poke(int,byte[],int,int);
-	*** poke(int,org.eclipse.jetty.io.Buffer);
-	*** put(byte);
-	*** put(byte[]);
-	*** put(org.eclipse.jetty.io.Buffer);
-	*** putIndex();
-	*** readFrom(java.io.InputStream,int);
-	*** setGetIndex(int);
-	*** setMarkIndex(int);
-	*** setPutIndex(int);
-	*** skip(int);
-	*** sliceFromMark();
-	*** space();
-	*** toString(java.lang.String);
 	*** writeTo(java.io.OutputStream);
-}
-
--keep class org.eclipse.jetty.io.BufferCache {
-	*** _bufferMap;
-	*** _index;
-	*** _stringMap;
-	org.eclipse.jetty.io.BufferCache();
-	*** add(java.lang.String,int);
-	*** get(java.lang.String);
-	*** get(org.eclipse.jetty.io.Buffer);
-	*** getBest(byte[],int,int);
-	*** getOrdinal(java.lang.String);
-	*** getOrdinal(org.eclipse.jetty.io.Buffer);
-	*** lookup(java.lang.String);
-	*** lookup(org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.io.BufferCache$CachedBuffer {
-	*** _associateMap;
-	*** _ordinal;
-	*** getAssociate(java.lang.Object);
-	*** getOrdinal();
-	*** setAssociate(java.lang.Object,org.eclipse.jetty.io.BufferCache$CachedBuffer);
-}
-
--keep class org.eclipse.jetty.io.BufferDateCache {
-	*** _buffer;
-	*** _last;
-	*** formatBuffer(long);
-}
-
--keep class org.eclipse.jetty.io.BufferUtil {
-	*** DIGIT;
-	*** decDivisors;
-	*** decDivisorsL;
-	*** hexDivisors;
-	*** isPrefix(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** prependHexInt(org.eclipse.jetty.io.Buffer,int);
-	*** putCRLF(org.eclipse.jetty.io.Buffer);
-	*** putDecLong(org.eclipse.jetty.io.Buffer,long);
-	*** putHexInt(org.eclipse.jetty.io.Buffer,int);
-	*** to8859_1_String(org.eclipse.jetty.io.Buffer);
-	*** toBuffer(long);
-	*** toInt(org.eclipse.jetty.io.Buffer);
-	*** toLong(org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.io.Buffers {
-	*** getBuffer();
-	*** getBuffer(int);
-	*** getHeader();
-	*** returnBuffer(org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.io.Buffers$Type {
-	*** $VALUES;
-	*** BYTE_ARRAY;
-	*** DIRECT;
-	*** INDIRECT;
-	*** values();
-}
-
--keep class org.eclipse.jetty.io.BuffersFactory {
-	*** newBuffers(org.eclipse.jetty.io.Buffers$Type,int,org.eclipse.jetty.io.Buffers$Type,int,org.eclipse.jetty.io.Buffers$Type,int);
-}
-
--keep class org.eclipse.jetty.io.ByteArrayBuffer {
-	*** _bytes;
-	org.eclipse.jetty.io.ByteArrayBuffer(byte[],int,int,int);
-	org.eclipse.jetty.io.ByteArrayBuffer(byte[],int,int,int,boolean);
-	org.eclipse.jetty.io.ByteArrayBuffer(int,int,boolean);
-	org.eclipse.jetty.io.ByteArrayBuffer(java.lang.String);
-	*** capacity();
-	*** equalsIgnoreCase(org.eclipse.jetty.io.Buffer);
-	*** space();
-}
-
--keep class org.eclipse.jetty.io.ByteArrayBuffer$CaseInsensitive {
-	org.eclipse.jetty.io.ByteArrayBuffer$CaseInsensitive(java.lang.String);
-}
-
--keep class org.eclipse.jetty.io.ConnectedEndPoint {
-	*** getConnection();
-}
-
--keep class org.eclipse.jetty.io.Connection {
-	*** getTimeStamp();
-	*** handle();
-	*** isSuspended();
-	*** onClose();
-	*** onIdleExpired(long);
-}
-
--keep class org.eclipse.jetty.io.EndPoint {
-	*** blockReadable(long);
-	*** blockWritable(long);
-	*** close();
-	*** fill(org.eclipse.jetty.io.Buffer);
-	*** flush();
-	*** flush(org.eclipse.jetty.io.Buffer);
-	*** flush(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** getLocalAddr();
-	*** getLocalHost();
-	*** getLocalPort();
-	*** getMaxIdleTime();
-	*** getRemoteAddr();
-	*** getRemoteHost();
-	*** getRemotePort();
-	*** isBlocking();
-	*** isInputShutdown();
-	*** isOpen();
-	*** isOutputShutdown();
-	*** setMaxIdleTime(int);
-	*** shutdownOutput();
-}
-
--keep class org.eclipse.jetty.io.PooledBuffers {
-	*** _buffers;
-	*** _headers;
-	*** _maxSize;
-	*** _otherBuffers;
-	*** _otherHeaders;
-	*** _others;
-	*** _size;
-	*** getBuffer();
-	*** getHeader();
-}
-
--keep class org.eclipse.jetty.io.UncheckedPrintWriter {
-	*** LOG;
-	*** _autoFlush;
-	*** _ioException;
-	*** _isClosed;
-	*** _lineSeparator;
-	org.eclipse.jetty.io.UncheckedPrintWriter(java.io.OutputStream,boolean);
-	org.eclipse.jetty.io.UncheckedPrintWriter(java.io.Writer,boolean);
-	*** isOpen();
-	*** newLine();
-	*** print(boolean);
-	*** print(char);
-	*** print(char[]);
-	*** print(double);
-	*** print(float);
-	*** print(int);
-	*** print(java.lang.Object);
-	*** print(java.lang.String);
-	*** print(long);
-	*** println();
-	*** setError(java.lang.Throwable);
-	*** write(char[]);
-	*** write(char[],int,int);
-	*** write(int);
-	*** write(java.lang.String);
-	*** write(java.lang.String,int,int);
-}
-
--keep class org.eclipse.jetty.io.View {
-	*** _buffer;
-	org.eclipse.jetty.io.View();
-	org.eclipse.jetty.io.View(org.eclipse.jetty.io.Buffer);
-	org.eclipse.jetty.io.View(org.eclipse.jetty.io.Buffer,int,int,int,int);
-	*** equals(java.lang.Object);
-	*** update(int,int);
-	*** update(org.eclipse.jetty.io.Buffer);
 }
 
 -keep class org.eclipse.jetty.io.WriterOutputStream {
@@ -49843,596 +47778,55 @@
 	*** write(byte[]);
 }
 
--keep class org.eclipse.jetty.io.bio.StreamEndPoint {
-	*** getInputStream();
-}
-
--keep class org.eclipse.jetty.io.nio.AsyncConnection {
-	*** onInputShutdown();
-}
-
--keep class org.eclipse.jetty.io.nio.ChannelEndPoint {
-	*** LOG;
-	*** _channel;
-	*** _gather2;
-	*** _ishut;
-	*** _local;
-	*** _maxIdleTime;
-	*** _oshut;
-	*** _remote;
-	*** _socket;
-	org.eclipse.jetty.io.nio.ChannelEndPoint(java.nio.channels.ByteChannel,int);
-	*** close();
-	*** fill(org.eclipse.jetty.io.Buffer);
-	*** flush(org.eclipse.jetty.io.Buffer);
-	*** flush(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** gatheringFlush(org.eclipse.jetty.io.Buffer,java.nio.ByteBuffer,org.eclipse.jetty.io.Buffer,java.nio.ByteBuffer);
-	*** getChannel();
-	*** isInputShutdown();
-	*** isOpen();
-	*** isOutputShutdown();
-	*** shutdownChannelInput();
-	*** shutdownChannelOutput();
-	*** shutdownInput();
-}
-
--keep class org.eclipse.jetty.io.nio.DirectNIOBuffer {
-	*** _buf;
-	*** _in;
-	*** _inStream;
-	*** _out;
-	*** _outStream;
-	*** capacity();
-	*** poke(int,byte[],int,int);
-}
-
--keep class org.eclipse.jetty.io.nio.IndirectNIOBuffer {
-	*** _buf;
-}
-
--keep class org.eclipse.jetty.io.nio.NIOBuffer {
-	*** getByteBuffer();
-}
-
--keep class org.eclipse.jetty.io.nio.RandomAccessFileBuffer {
-	*** writeTo(java.nio.channels.WritableByteChannel,int,int);
-}
-
--keep class org.eclipse.jetty.io.nio.SelectChannelEndPoint {
-	*** LOG;
-	*** WORK_AROUND_JVM_BUG_6346658;
-	*** _asyncDispatch;
-	*** _connection;
-	*** _dispatched;
-	*** _handler;
-	*** _idleTimestamp;
-	*** _interestOps;
-	*** _ishut;
-	*** _key;
-	*** _manager;
-	*** _open;
-	*** _readBlocked;
-	*** _selectSet;
-	*** _writable;
-	*** _writeBlocked;
-	*** checkIdleTimestamp(long);
-	*** close();
-	*** dispatch();
-	*** doUpdateKey();
-	*** getConnection();
-	*** getSelectSet();
-	*** handle();
-	*** isCheckForIdle();
-	*** notIdle();
-	*** onIdleExpired(long);
-	*** schedule();
-	*** setCheckForIdle(boolean);
-	*** setConnection(org.eclipse.jetty.io.Connection);
-	*** undispatch();
-	*** updateKey();
-}
-
--keep class org.eclipse.jetty.io.nio.SelectChannelEndPoint$1 {
-	*** this$0;
-}
-
--keep class org.eclipse.jetty.io.nio.SelectChannelEndPoint$2 {
-	*** this$0;
-	*** val$idleForMs;
-}
-
--keep class org.eclipse.jetty.io.nio.SelectorManager {
-	*** LOG;
-	*** __BUSY_PAUSE;
-	*** __IDLE_TICK;
-	*** __MAX_SELECTS;
-	*** __MONITOR_PERIOD;
-	*** _deferringInterestedOps0;
-	*** _lowResourcesConnections;
-	*** _lowResourcesMaxIdleTime;
-	*** _maxIdleTime;
-	*** _selectSet;
-	*** _selectSets;
-	*** _selectorPriorityDelta;
-	*** _set;
-	org.eclipse.jetty.io.nio.SelectorManager();
-	*** access$000(org.eclipse.jetty.io.nio.SelectorManager);
-	*** access$100();
-	*** access$200();
-	*** access$300();
-	*** access$400();
-	*** access$500(org.eclipse.jetty.io.nio.SelectorManager);
-	*** access$600(org.eclipse.jetty.io.nio.SelectorManager);
-	*** access$700(org.eclipse.jetty.io.nio.SelectorManager);
-	*** connectionFailed(java.nio.channels.SocketChannel,java.lang.Throwable,java.lang.Object);
-	*** dispatch(java.lang.Runnable);
-	*** endPointClosed(org.eclipse.jetty.io.nio.SelectChannelEndPoint);
-	*** endPointOpened(org.eclipse.jetty.io.nio.SelectChannelEndPoint);
-	*** endPointUpgraded(org.eclipse.jetty.io.ConnectedEndPoint,org.eclipse.jetty.io.Connection);
-	*** getSelectSets();
-	*** getSelectorPriorityDelta();
-	*** isDeferringInterestedOps0();
-	*** newConnection(java.nio.channels.SocketChannel,org.eclipse.jetty.io.AsyncEndPoint,java.lang.Object);
-	*** newEndPoint(java.nio.channels.SocketChannel,org.eclipse.jetty.io.nio.SelectorManager$SelectSet,java.nio.channels.SelectionKey);
-	*** register(java.nio.channels.SocketChannel);
-	*** setLowResourcesConnections(long);
-	*** setLowResourcesMaxIdleTime(long);
-	*** setMaxIdleTime(long);
-	*** setSelectSets(int);
-}
-
--keep class org.eclipse.jetty.io.nio.SelectorManager$1 {
-	*** this$0;
-	*** val$id;
-}
-
--keep class org.eclipse.jetty.io.nio.SelectorManager$ChannelAndAttachment {
-	*** _attachment;
-	*** _channel;
-}
-
--keep class org.eclipse.jetty.io.nio.SelectorManager$SelectSet {
-	*** _busySelects;
-	*** _changes;
-	*** _endPoints;
-	*** _idleTick;
-	*** _monitorNext;
-	*** _paused;
-	*** _pausing;
-	*** _selecting;
-	*** _selector;
-	*** _setID;
-	*** _timeout;
-	*** this$0;
-	*** access$800(org.eclipse.jetty.io.nio.SelectorManager$SelectSet);
-	*** addChange(java.lang.Object);
-	*** addChange(java.nio.channels.SelectableChannel,java.lang.Object);
-	*** cancelTimeout(org.eclipse.jetty.util.thread.Timeout$Task);
-	*** createEndPoint(java.nio.channels.SocketChannel,java.nio.channels.SelectionKey);
-	*** destroyEndPoint(org.eclipse.jetty.io.nio.SelectChannelEndPoint);
-	*** doSelect();
-	*** getManager();
-	*** getNow();
-	*** getSelector();
-	*** renewSelector();
-	*** scheduleTimeout(org.eclipse.jetty.util.thread.Timeout$Task,long);
-	*** stop();
-	*** wakeup();
-}
-
--keep class org.eclipse.jetty.io.nio.SelectorManager$SelectSet$1 {
-	*** this$1;
-	*** val$idle_now;
-}
-
--keep class org.eclipse.jetty.security.Authenticator {
-	*** getAuthMethod();
-	*** secureResponse(javax.servlet.ServletRequest,javax.servlet.ServletResponse,boolean,org.eclipse.jetty.server.Authentication$User);
-	*** setConfiguration(org.eclipse.jetty.security.Authenticator$AuthConfiguration);
-	*** validateRequest(javax.servlet.ServletRequest,javax.servlet.ServletResponse,boolean);
-}
-
--keep class org.eclipse.jetty.security.Authenticator$Factory {
-	*** getAuthenticator(org.eclipse.jetty.server.Server,javax.servlet.ServletContext,org.eclipse.jetty.security.Authenticator$AuthConfiguration,org.eclipse.jetty.security.IdentityService,org.eclipse.jetty.security.LoginService);
-}
-
 -keep class org.eclipse.jetty.security.ConstraintAware {
 	*** getRoles();
 }
 
--keep class org.eclipse.jetty.security.ConstraintMapping {
-	*** getConstraint();
-	*** getMethod();
-	*** getPathSpec();
-}
-
 -keep class org.eclipse.jetty.security.ConstraintSecurityHandler {
-	*** _constraintMap;
-	*** _constraintMappings;
-	*** _roles;
-	*** _strict;
-	*** addRole(java.lang.String);
-	*** processConstraintMapping(org.eclipse.jetty.security.ConstraintMapping);
-	*** setConstraintMappings(java.util.List,java.util.Set);
 	*** setRoles(java.util.Set);
 }
 
--keep class org.eclipse.jetty.security.IdentityService {
-	*** associate(org.eclipse.jetty.server.UserIdentity);
-	*** disassociate(java.lang.Object);
-	*** getSystemUserIdentity();
-	*** newRunAsToken(java.lang.String);
-	*** setRunAs(org.eclipse.jetty.server.UserIdentity,org.eclipse.jetty.security.RunAsToken);
-	*** unsetRunAs(java.lang.Object);
-}
-
--keep class org.eclipse.jetty.security.LoginService {
-	*** getIdentityService();
-	*** getName();
-	*** logout(org.eclipse.jetty.server.UserIdentity);
-	*** setIdentityService(org.eclipse.jetty.security.IdentityService);
-}
-
--keep class org.eclipse.jetty.security.RoleInfo {
-	*** addRole(java.lang.String);
-	*** combine(org.eclipse.jetty.security.RoleInfo);
-	*** getRoles();
-	*** getUserDataConstraint();
-	*** isAnyRole();
-	*** isChecked();
-	*** isForbidden();
-	*** setAnyRole(boolean);
-	*** setChecked(boolean);
-	*** setForbidden(boolean);
-	*** setUserDataConstraint(org.eclipse.jetty.security.UserDataConstraint);
-}
-
--keep class org.eclipse.jetty.security.SecurityHandler {
-	*** LOG;
-	*** __NOBODY;
-	*** __NO_USER;
-	*** _authMethod;
-	*** _authenticator;
-	*** _authenticatorFactory;
-	*** _checkWelcomeFiles;
-	*** _identityService;
-	*** _initParameters;
-	*** _loginService;
-	*** _loginServiceShared;
-	*** _realmName;
-	*** _renewSession;
-	org.eclipse.jetty.security.SecurityHandler();
-	*** checkSecurity(org.eclipse.jetty.server.Request);
-	*** checkUserDataPermissions(java.lang.String,org.eclipse.jetty.server.Request,org.eclipse.jetty.server.Response,java.lang.Object);
-	*** checkWebResourcePermissions(java.lang.String,org.eclipse.jetty.server.Request,org.eclipse.jetty.server.Response,java.lang.Object,org.eclipse.jetty.server.UserIdentity);
-	*** doStart();
-	*** doStop();
-	*** findIdentityService();
-	*** findLoginService();
-	*** getAuthenticator();
-	*** getIdentityService();
-	*** getInitParameter(java.lang.String);
-	*** getLoginService();
-	*** getRealmName();
-	*** isAuthMandatory(org.eclipse.jetty.server.Request,org.eclipse.jetty.server.Response,java.lang.Object);
-	*** prepareConstraintInfo(java.lang.String,org.eclipse.jetty.server.Request);
-	*** setInitParameter(java.lang.String,java.lang.String);
-}
-
--keep class org.eclipse.jetty.security.SecurityHandler$4 {
-	*** $SwitchMap$javax$servlet$DispatcherType;
-}
-
--keep class org.eclipse.jetty.security.UserDataConstraint {
-	*** Confidential;
-	*** Integral;
-	*** None;
-	*** get(int);
-}
-
--keep class org.eclipse.jetty.security.authentication.DeferredAuthentication {
-	*** getPreviousAssociation();
-	*** setIdentityService(org.eclipse.jetty.security.IdentityService);
-	*** setLoginService(org.eclipse.jetty.security.LoginService);
-}
-
 -keep class org.eclipse.jetty.server.AbstractConnector {
-	*** LOG;
-	*** _acceptQueueSize;
-	*** _acceptorPriorityOffset;
-	*** _acceptorThreads;
-	*** _acceptors;
-	*** _buffers;
-	*** _confidentialPort;
-	*** _confidentialScheme;
-	*** _connectionDurationStats;
-	*** _connectionStats;
-	*** _forwarded;
-	*** _forwardedCipherSuiteHeader;
-	*** _forwardedForHeader;
-	*** _forwardedHostHeader;
-	*** _forwardedProtoHeader;
-	*** _forwardedServerHeader;
-	*** _forwardedSslSessionIdHeader;
-	*** _host;
-	*** _hostHeader;
-	*** _integralPort;
-	*** _integralScheme;
-	*** _lowResourceMaxIdleTime;
-	*** _maxIdleTime;
-	*** _name;
-	*** _port;
-	*** _requestStats;
-	*** _reuseAddress;
-	*** _server;
-	*** _soLingerTime;
-	*** _statsStartedAt;
-	*** _threadPool;
-	*** _useDNS;
-	org.eclipse.jetty.server.AbstractConnector();
-	*** accept(int);
-	*** access$000(org.eclipse.jetty.server.AbstractConnector);
-	*** access$100(org.eclipse.jetty.server.AbstractConnector);
-	*** access$200();
-	*** checkForwardedHeaders(org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.server.Request);
-	*** configure(java.net.Socket);
-	*** connectionClosed(org.eclipse.jetty.io.Connection);
-	*** connectionOpened(org.eclipse.jetty.io.Connection);
-	*** connectionUpgraded(org.eclipse.jetty.io.Connection,org.eclipse.jetty.io.Connection);
-	*** customize(org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.server.Request);
-	*** doStart();
-	*** getAcceptQueueSize();
-	*** getAcceptors();
-	*** getForwardedCipherSuiteHeader();
-	*** getForwardedForHeader();
-	*** getForwardedHostHeader();
-	*** getForwardedProtoHeader();
-	*** getForwardedServerHeader();
-	*** getForwardedSslSessionIdHeader();
-	*** getHost();
-	*** getLeftMostFieldValue(org.eclipse.jetty.http.HttpFields,java.lang.String);
-	*** getLowResourcesMaxIdleTime();
-	*** getMaxIdleTime();
-	*** getPort();
-	*** getRequestBufferType();
-	*** getReuseAddress();
-	*** getServer();
-	*** getThreadPool();
-	*** isForwarded();
-	*** persist(org.eclipse.jetty.io.EndPoint);
 	*** setAcceptQueueSize(int);
 	*** setAcceptors(int);
 	*** setHost(java.lang.String);
-	*** setLowResourcesMaxIdleTime(int);
-	*** setMaxIdleTime(int);
 	*** setName(java.lang.String);
 	*** setPort(int);
-	*** setThreadPool(org.eclipse.jetty.util.thread.ThreadPool);
-	*** statsReset();
-	*** updateNotEqual(java.util.concurrent.atomic.AtomicLong,long,long);
-}
-
--keep class org.eclipse.jetty.server.AbstractConnector$Acceptor {
-	*** _acceptor;
-	*** this$0;
 }
 
 -keep class org.eclipse.jetty.server.AbstractHttpConnection {
-	*** LOG;
-	*** __currentConnection;
-	*** _associatedObject;
-	*** _charset;
-	*** _connector;
-	*** _delayedHandling;
-	*** _earlyEOF;
-	*** _expect;
-	*** _expect100Continue;
-	*** _expect102Processing;
-	*** _generator;
-	*** _head;
-	*** _host;
-	*** _in;
-	*** _include;
-	*** _out;
-	*** _parser;
-	*** _printWriter;
-	*** _request;
-	*** _requestFields;
-	*** _requests;
-	*** _response;
-	*** _responseFields;
-	*** _server;
-	*** _uri;
-	*** _version;
-	*** _writer;
-	org.eclipse.jetty.server.AbstractHttpConnection(org.eclipse.jetty.server.Connector,org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.server.Server);
-	*** access$100();
-	*** commitResponse(boolean);
-	*** completeResponse();
-	*** content(org.eclipse.jetty.io.Buffer);
-	*** earlyEOF();
-	*** flushResponse();
 	*** getConnector();
 	*** getCurrentConnection();
 	*** getGenerator();
-	*** getInputStream();
-	*** getMaxIdleTime();
-	*** getOutputStream();
-	*** getParser();
-	*** getPrintWriter(java.lang.String);
 	*** getRequest();
-	*** getRequestFields();
-	*** getRequests();
-	*** getResolveNames();
 	*** getResponse();
-	*** getResponseFields();
-	*** getServer();
-	*** handleRequest();
-	*** headerComplete();
-	*** isConfidential(org.eclipse.jetty.server.Request);
-	*** isEarlyEOF();
-	*** isExpecting102Processing();
-	*** isIncluding();
-	*** isResponseCommitted();
-	*** isSuspended();
-	*** messageComplete(long);
-	*** newHttpGenerator(org.eclipse.jetty.io.Buffers,org.eclipse.jetty.io.EndPoint);
-	*** newHttpParser(org.eclipse.jetty.io.Buffers,org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.http.HttpParser$EventHandler);
-	*** parsedHeader(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-	*** reset();
-	*** setCurrentConnection(org.eclipse.jetty.server.AbstractHttpConnection);
-	*** startRequest(org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer,org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.server.AbstractHttpConnection$1 {
-	*** this$0;
 }
 
 -keep class org.eclipse.jetty.server.AbstractHttpConnection$Output {
-	*** this$0;
-	*** flush();
 	*** sendContent(java.lang.Object);
-	*** sendResponse(org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.server.AbstractHttpConnection$OutputWriter {
-	*** this$0;
-}
-
--keep class org.eclipse.jetty.server.AbstractHttpConnection$RequestHandler {
-	*** this$0;
-	org.eclipse.jetty.server.AbstractHttpConnection$RequestHandler(org.eclipse.jetty.server.AbstractHttpConnection);
 }
 
 -keep class org.eclipse.jetty.server.AsyncContinuation {
-	*** LOG;
-	*** __exception;
-	*** _asyncListeners;
-	*** _connection;
-	*** _continuation;
-	*** _continuationListeners;
-	*** _event;
-	*** _expireAt;
-	*** _expired;
-	*** _initial;
-	*** _lastAsyncListeners;
-	*** _responseWrapped;
-	*** _resumed;
-	*** _state;
-	*** _timeoutMs;
-	*** cancelTimeout();
-	*** complete();
-	*** dispatch();
-	*** doComplete(java.lang.Throwable);
-	*** doSuspend(javax.servlet.ServletContext,javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-	*** expired();
 	*** getAsyncEventState();
-	*** getContextHandler();
 	*** getRequest();
 	*** getResponse();
-	*** getStatusString();
-	*** handling();
-	*** isAsync();
-	*** isAsyncStarted();
-	*** isDispatchable();
-	*** isInitial();
-	*** isSuspended();
-	*** isUncompleted();
-	*** recycle();
-	*** scheduleDispatch();
-	*** scheduleTimeout();
-	*** setConnection(org.eclipse.jetty.server.AbstractHttpConnection);
-	*** suspend();
-	*** suspend(javax.servlet.ServletContext,javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-	*** unhandle();
 }
 
 -keep class org.eclipse.jetty.server.AsyncContinuation$AsyncEventState {
-	*** _dispatchContext;
-	*** _pathInContext;
-	*** _suspendedContext;
-	*** _timeout;
-	*** this$0;
-	*** access$002(org.eclipse.jetty.server.AsyncContinuation$AsyncEventState,javax.servlet.ServletContext);
-	*** access$102(org.eclipse.jetty.server.AsyncContinuation$AsyncEventState,java.lang.String);
-	*** access$200(org.eclipse.jetty.server.AsyncContinuation$AsyncEventState);
 	*** getPath();
 	*** getServletContext();
 }
 
--keep class org.eclipse.jetty.server.AsyncHttpConnection {
-	*** LOG;
-	*** NO_PROGRESS_CLOSE;
-	*** NO_PROGRESS_INFO;
-	*** _asyncEndp;
-	*** _readInterested;
-	*** _total_no_progress;
-	*** reset();
-}
-
--keep class org.eclipse.jetty.server.Authentication {
-	*** NOT_CHECKED;
-	*** UNAUTHENTICATED;
-}
-
--keep class org.eclipse.jetty.server.Authentication$Deferred {
-	*** authenticate(javax.servlet.ServletRequest);
-	*** authenticate(javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-	*** login(java.lang.String,java.lang.String);
-}
-
--keep class org.eclipse.jetty.server.Authentication$User {
-	*** getAuthMethod();
-	*** getUserIdentity();
-	*** isUserInRole(org.eclipse.jetty.server.UserIdentity$Scope,java.lang.String);
-	*** logout();
-}
-
--keep class org.eclipse.jetty.server.Authentication$Wrapped {
-	*** getHttpServletRequest();
-	*** getHttpServletResponse();
-}
-
 -keep class org.eclipse.jetty.server.Connector {
 	*** close();
-	*** customize(org.eclipse.jetty.io.EndPoint,org.eclipse.jetty.server.Request);
-	*** getConfidentialPort();
-	*** getConfidentialScheme();
-	*** getConnection();
-	*** getIntegralPort();
-	*** getIntegralScheme();
-	*** getLocalPort();
-	*** getLowResourceMaxIdleTime();
-	*** getMaxIdleTime();
 	*** getName();
-	*** getResolveNames();
-	*** getServer();
-	*** isConfidential(org.eclipse.jetty.server.Request);
-	*** isIntegral(org.eclipse.jetty.server.Request);
-	*** isLowResources();
-	*** open();
-	*** persist(org.eclipse.jetty.io.EndPoint);
 	*** setHost(java.lang.String);
 	*** setPort(int);
 	*** setServer(org.eclipse.jetty.server.Server);
 }
 
--keep class org.eclipse.jetty.server.CookieCutter {
-	*** LOG;
-	*** _cookies;
-	*** _fields;
-	*** _lastCookies;
-	*** _lazyFields;
-	*** addCookieField(java.lang.String);
-	*** getCookies();
-	*** parseFields();
-	*** reset();
-	*** setCookies(javax.servlet.http.Cookie[]);
-}
-
 -keep class org.eclipse.jetty.server.Handler {
 	*** destroy();
-	*** getServer();
 	*** handle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** setServer(org.eclipse.jetty.server.Server);
 }
@@ -50443,42 +47837,8 @@
 	*** getHandlers();
 }
 
--keep class org.eclipse.jetty.server.HttpInput {
-	*** _connection;
-	*** _parser;
-	*** read(byte[],int,int);
-}
-
 -keep class org.eclipse.jetty.server.HttpOutput {
-	*** _bytes;
-	*** _characterEncoding;
-	*** _chars;
-	*** _closed;
-	*** _connection;
-	*** _converter;
-	*** _generator;
-	*** _onebyte;
-	org.eclipse.jetty.server.HttpOutput(org.eclipse.jetty.server.AbstractHttpConnection);
-	*** close();
-	*** flush();
-	*** getMaxIdleTime();
-	*** isClosed();
 	*** isWritten();
-	*** reopen();
-	*** write(byte[]);
-	*** write(org.eclipse.jetty.io.Buffer);
-}
-
--keep class org.eclipse.jetty.server.HttpWriter {
-	*** _generator;
-	*** _out;
-	*** _surrogate;
-	*** _writeMode;
-	org.eclipse.jetty.server.HttpWriter(org.eclipse.jetty.server.HttpOutput);
-	*** getConverter();
-	*** setCharacterEncoding(java.lang.String);
-	*** write(char[],int,int);
-	*** write(java.lang.String,int,int);
 }
 
 -keep class org.eclipse.jetty.server.InclusiveByteRange {
@@ -50491,137 +47851,27 @@
 }
 
 -keep class org.eclipse.jetty.server.Request {
-	*** LOG;
-	*** __defaultLocale;
-	*** _async;
-	*** _asyncSupported;
-	*** _attributes;
-	*** _authentication;
-	*** _baseParameters;
-	*** _characterEncoding;
-	*** _connection;
-	*** _context;
-	*** _contextPath;
-	*** _cookies;
-	*** _cookiesExtracted;
-	*** _dispatchTime;
-	*** _dispatcherType;
-	*** _dns;
-	*** _endp;
-	*** _handled;
-	*** _inputState;
-	*** _method;
-	*** _multiPartInputStream;
-	*** _newContext;
-	*** _parameters;
-	*** _paramsExtracted;
-	*** _pathInfo;
-	*** _port;
-	*** _protocol;
-	*** _queryEncoding;
-	*** _queryString;
-	*** _reader;
-	*** _readerEncoding;
-	*** _remoteAddr;
-	*** _remoteHost;
-	*** _requestAttributeListeners;
-	*** _requestURI;
-	*** _requestedSessionId;
-	*** _requestedSessionIdFromCookie;
-	*** _savedNewSessions;
-	*** _scheme;
-	*** _scope;
-	*** _serverName;
-	*** _servletPath;
-	*** _session;
-	*** _sessionManager;
-	*** _timeStamp;
-	*** _timeStampBuffer;
-	*** _uri;
 	*** addEventListener(java.util.EventListener);
-	*** extractParameters();
 	*** getAsyncContinuation();
-	*** getAttribute(java.lang.String);
-	*** getAuthType();
-	*** getAuthentication();
-	*** getCharacterEncoding();
-	*** getConnection();
-	*** getContentLength();
-	*** getContentType();
 	*** getContext();
 	*** getContextPath();
 	*** getDispatcherType();
-	*** getInputStream();
-	*** getLocalName();
-	*** getLocalPort();
-	*** getMethod();
-	*** getParameter(java.lang.String);
-	*** getParameters();
 	*** getPathInfo();
-	*** getProtocol();
 	*** getQueryString();
-	*** getRemoteAddr();
 	*** getRequestURI();
-	*** getResolvedUserIdentity();
-	*** getResponse();
-	*** getRootURL();
-	*** getScheme();
 	*** getServerName();
-	*** getServerPort();
-	*** getServletContext();
-	*** getServletName();
 	*** getServletPath();
-	*** getServletResponse();
-	*** getSession(boolean);
-	*** getSessionManager();
-	*** getTimeStamp();
-	*** getTimeStampBuffer();
-	*** getUserIdentityScope();
-	*** getUserPrincipal();
-	*** isAsyncSupported();
 	*** isHandled();
-	*** isRequestedSessionIdFromCookie();
-	*** isSecure();
 	*** mergeQueryString(java.lang.String);
-	*** recoverNewSession(java.lang.Object);
-	*** recycle();
-	*** removeAttribute(java.lang.String);
 	*** removeEventListener(java.util.EventListener);
-	*** setAsyncSupported(boolean);
-	*** setAttribute(java.lang.String,java.lang.Object);
-	*** setAuthentication(org.eclipse.jetty.server.Authentication);
-	*** setCharacterEncodingUnchecked(java.lang.String);
-	*** setConnection(org.eclipse.jetty.server.AbstractHttpConnection);
 	*** setContext(org.eclipse.jetty.server.handler.ContextHandler$Context);
 	*** setContextPath(java.lang.String);
-	*** setDispatcherType(javax.servlet.DispatcherType);
 	*** setHandled(boolean);
-	*** setMethod(java.lang.String);
-	*** setParameters(org.eclipse.jetty.util.MultiMap);
 	*** setPathInfo(java.lang.String);
-	*** setProtocol(java.lang.String);
-	*** setQueryEncoding(java.lang.String);
-	*** setQueryString(java.lang.String);
-	*** setRemoteAddr(java.lang.String);
-	*** setRemoteHost(java.lang.String);
 	*** setRequestURI(java.lang.String);
-	*** setRequestedSessionId(java.lang.String);
-	*** setRequestedSessionIdFromCookie(boolean);
-	*** setScheme(java.lang.String);
-	*** setServerName(java.lang.String);
-	*** setServerPort(int);
 	*** setServletPath(java.lang.String);
-	*** setSession(javax.servlet.http.HttpSession);
-	*** setSessionManager(org.eclipse.jetty.server.SessionManager);
-	*** setTimeStamp(long);
 	*** setUri(org.eclipse.jetty.http.HttpURI);
-	*** setUserIdentityScope(org.eclipse.jetty.server.UserIdentity$Scope);
 	*** takeNewContext();
-}
-
--keep class org.eclipse.jetty.server.Request$1 {
-	*** this$0;
-	*** val$in;
 }
 
 -keep class org.eclipse.jetty.server.ResourceCache {
@@ -50633,48 +47883,13 @@
 }
 
 -keep class org.eclipse.jetty.server.Response {
-	*** LOG;
-	*** _cachedMimeType;
-	*** _characterEncoding;
-	*** _connection;
-	*** _contentType;
-	*** _explicitEncoding;
-	*** _locale;
-	*** _mimeType;
-	*** _outputState;
-	*** _reason;
-	*** _status;
-	*** _writer;
-	*** addCookie(org.eclipse.jetty.http.HttpCookie);
-	*** complete();
-	*** encodeRedirectURL(java.lang.String);
-	*** encodeURL(java.lang.String);
 	*** flushBuffer();
-	*** fwdReset();
-	*** getContentCount();
-	*** getContentType();
 	*** getHttpFields();
-	*** getOutputStream();
-	*** getReason();
 	*** getResponse(javax.servlet.http.HttpServletResponse);
-	*** getSetCharacterEncoding();
 	*** getStatus();
-	*** isCommitted();
-	*** recycle();
-	*** reset();
 	*** reset(boolean);
-	*** resetBuffer();
-	*** sendError(int);
-	*** sendError(int,java.lang.String);
-	*** sendProcessing();
-	*** sendRedirect(java.lang.String);
-	*** setCharacterEncoding(java.lang.String);
-	*** setContentLength(int);
-	*** setContentType(java.lang.String);
-	*** setHeader(java.lang.String,java.lang.String);
 	*** setLongContentLength(long);
 	*** setStatus(int);
-	*** setStatus(int,java.lang.String);
 }
 
 -keep class org.eclipse.jetty.server.Server {
@@ -50693,71 +47908,22 @@
 	*** _threadPool;
 	*** _uncheckedPrintWriter;
 	*** addBean(java.lang.Object);
-	*** getAttribute(java.lang.String);
 	*** getConnectors();
 	*** getContainer();
-	*** getSendDateHeader();
-	*** getSendServerVersion();
-	*** getSessionIdManager();
 	*** getStopAtShutdown();
 	*** getThreadPool();
 	*** getVersion();
-	*** handle(org.eclipse.jetty.server.AbstractHttpConnection);
-	*** handleAsync(org.eclipse.jetty.server.AbstractHttpConnection);
 	*** isDumpAfterStart();
 	*** isDumpBeforeStop();
-	*** isUncheckedPrintWriter();
 	*** join();
 	*** removeBean(java.lang.Object);
 	*** setConnectors(org.eclipse.jetty.server.Connector[]);
-	*** setSessionIdManager(org.eclipse.jetty.server.SessionIdManager);
 	*** setStopAtShutdown(boolean);
 	*** setThreadPool(org.eclipse.jetty.util.thread.ThreadPool);
 }
 
 -keep class org.eclipse.jetty.server.Server$Graceful {
 	*** setShutdown(boolean);
-}
-
--keep class org.eclipse.jetty.server.SessionIdManager {
-	*** addSession(javax.servlet.http.HttpSession);
-	*** getClusterId(java.lang.String);
-	*** getNodeId(java.lang.String,javax.servlet.http.HttpServletRequest);
-	*** idInUse(java.lang.String);
-	*** invalidateAll(java.lang.String);
-	*** newSessionId(javax.servlet.http.HttpServletRequest,long);
-	*** removeSession(javax.servlet.http.HttpSession);
-}
-
--keep class org.eclipse.jetty.server.SessionManager {
-	*** access(javax.servlet.http.HttpSession,boolean);
-	*** addEventListener(java.util.EventListener);
-	*** clearEventListeners();
-	*** complete(javax.servlet.http.HttpSession);
-	*** getClusterId(javax.servlet.http.HttpSession);
-	*** getDefaultSessionTrackingModes();
-	*** getEffectiveSessionTrackingModes();
-	*** getHttpSession(java.lang.String);
-	*** getNodeId(javax.servlet.http.HttpSession);
-	*** getSessionCookie(javax.servlet.http.HttpSession,java.lang.String,boolean);
-	*** getSessionCookieConfig();
-	*** getSessionIdManager();
-	*** getSessionIdPathParameterNamePrefix();
-	*** isCheckingRemoteSessionIdEncoding();
-	*** isUsingCookies();
-	*** isValid(javax.servlet.http.HttpSession);
-	*** newHttpSession(javax.servlet.http.HttpServletRequest);
-	*** setSessionHandler(org.eclipse.jetty.server.session.SessionHandler);
-	*** setSessionTrackingModes(java.util.Set);
-}
-
--keep class org.eclipse.jetty.server.UserIdentity {
-	*** getUserPrincipal();
-	*** isUserInRole(java.lang.String,org.eclipse.jetty.server.UserIdentity$Scope);
-}
-
--keep class org.eclipse.jetty.server.UserIdentity$Scope {
-	*** getName();
 }
 
 -keep class org.eclipse.jetty.server.handler.AbstractHandler {
@@ -50777,7 +47943,6 @@
 	*** expandChildren(java.lang.Object,java.lang.Class);
 	*** expandHandler(org.eclipse.jetty.server.Handler,java.lang.Object,java.lang.Class);
 	*** getChildHandlerByClass(java.lang.Class);
-	*** getChildHandlers();
 	*** getChildHandlersByClass(java.lang.Class);
 }
 
@@ -50816,39 +47981,21 @@
 	*** _welcomeFiles;
 	org.eclipse.jetty.server.handler.ContextHandler();
 	org.eclipse.jetty.server.handler.ContextHandler(org.eclipse.jetty.server.handler.ContextHandler$Context);
-	*** access$000(org.eclipse.jetty.server.handler.ContextHandler);
-	*** access$100();
-	*** access$200(org.eclipse.jetty.server.handler.ContextHandler);
-	*** access$300(org.eclipse.jetty.server.handler.ContextHandler);
-	*** access$400(org.eclipse.jetty.server.handler.ContextHandler);
-	*** access$500(org.eclipse.jetty.server.handler.ContextHandler);
-	*** access$600(org.eclipse.jetty.server.handler.ContextHandler);
-	*** access$700(org.eclipse.jetty.server.handler.ContextHandler);
-	*** addEventListener(java.util.EventListener);
 	*** callContextDestroyed(javax.servlet.ServletContextListener,javax.servlet.ServletContextEvent);
 	*** callContextInitialized(javax.servlet.ServletContextListener,javax.servlet.ServletContextEvent);
 	*** checkContext(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletResponse);
 	*** checkManagedAttribute(java.lang.String,java.lang.Object);
 	*** doHandle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** doStop();
-	*** getAttribute(java.lang.String);
 	*** getBaseResource();
 	*** getClassLoader();
-	*** getClassPath();
 	*** getContextPath();
 	*** getCurrentContext();
 	*** getDisplayName();
-	*** getErrorHandler();
 	*** getEventListeners();
-	*** getInitParameter(java.lang.String);
-	*** getInitParameterNames();
 	*** getInitParams();
-	*** getLocaleEncoding(java.util.Locale);
-	*** getMaxFormContentSize();
-	*** getMaxFormKeys();
 	*** getMimeTypes();
 	*** getResource(java.lang.String);
-	*** getResourcePaths(java.lang.String);
 	*** getServletContext();
 	*** getVirtualHosts();
 	*** getWelcomeFiles();
@@ -50857,9 +48004,7 @@
 	*** newResource(java.lang.String);
 	*** newResource(java.net.URL);
 	*** normalizeHostname(java.lang.String);
-	*** restrictEventListener(java.util.EventListener);
 	*** setAliases(boolean);
-	*** setAttribute(java.lang.String,java.lang.Object);
 	*** setBaseResource(org.eclipse.jetty.util.resource.Resource);
 	*** setConnectorNames(java.lang.String[]);
 	*** setContextPath(java.lang.String);
@@ -50868,53 +48013,21 @@
 	*** setManagedAttribute(java.lang.String,java.lang.Object);
 	*** setResourceBase(java.lang.String);
 	*** startContext();
-	*** toString();
 }
 
 -keep class org.eclipse.jetty.server.handler.ContextHandler$Context {
-	*** _enabled;
-	*** _majorVersion;
-	*** _minorVersion;
-	*** this$0;
-	org.eclipse.jetty.server.handler.ContextHandler$Context(org.eclipse.jetty.server.handler.ContextHandler);
-	*** addListener(java.lang.Class);
-	*** addListener(java.lang.String);
-	*** addListener(java.util.EventListener);
-	*** createListener(java.lang.Class);
 	*** getAttribute(java.lang.String);
 	*** getAttributeNames();
 	*** getContextHandler();
-	*** getContextPath();
-	*** getInitParameter(java.lang.String);
-	*** getInitParameterNames();
-	*** getRealPath(java.lang.String);
-	*** getRequestDispatcher(java.lang.String);
-	*** getResource(java.lang.String);
 	*** setEnabled(boolean);
-	*** setInitParameter(java.lang.String,java.lang.String);
 }
 
 -keep class org.eclipse.jetty.server.handler.ContextHandlerCollection {
-	*** LOG;
-	*** _contextClass;
-	*** _contextMap;
 	*** mapContexts();
-	*** normalizeHostname(java.lang.String);
-}
-
--keep class org.eclipse.jetty.server.handler.ErrorHandler {
-	*** handle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 }
 
 -keep class org.eclipse.jetty.server.handler.HandlerCollection {
-	*** _handlers;
-	*** _mutableWhenRunning;
-	*** _parallelStart;
-	org.eclipse.jetty.server.handler.HandlerCollection(boolean);
 	*** addHandler(org.eclipse.jetty.server.Handler);
-	*** doStart();
-	*** getHandlers();
-	*** setHandlers(org.eclipse.jetty.server.Handler[]);
 }
 
 -keep class org.eclipse.jetty.server.handler.HandlerWrapper {
@@ -50937,14 +48050,9 @@
 	*** doHandle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** doScope(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** doStart();
-	*** handle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** never();
 	*** nextHandle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** nextScope(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
-}
-
--keep class org.eclipse.jetty.server.nio.AbstractNIOConnector {
-	org.eclipse.jetty.server.nio.AbstractNIOConnector();
 }
 
 -keep class org.eclipse.jetty.server.nio.NIOConnector {
@@ -50952,222 +48060,10 @@
 }
 
 -keep class org.eclipse.jetty.server.nio.SelectChannelConnector {
-	*** _acceptChannel;
-	*** _localPort;
-	*** _lowResourcesConnections;
-	*** _lowResourcesMaxIdleTime;
-	*** _manager;
-	*** access$100(org.eclipse.jetty.server.nio.SelectChannelConnector,org.eclipse.jetty.io.Connection);
-	*** access$200(org.eclipse.jetty.server.nio.SelectChannelConnector,org.eclipse.jetty.io.Connection,org.eclipse.jetty.io.Connection);
-	*** endPointClosed(org.eclipse.jetty.io.nio.SelectChannelEndPoint);
-	*** getLowResourcesConnections();
-	*** getLowResourcesMaxIdleTime();
-	*** newConnection(java.nio.channels.SocketChannel,org.eclipse.jetty.io.AsyncEndPoint);
-	*** newEndPoint(java.nio.channels.SocketChannel,org.eclipse.jetty.io.nio.SelectorManager$SelectSet,java.nio.channels.SelectionKey);
+	*** getLocalPort();
 	*** setLowResourcesConnections(int);
 	*** setLowResourcesMaxIdleTime(int);
 	*** setMaxIdleTime(int);
-}
-
--keep class org.eclipse.jetty.server.nio.SelectChannelConnector$ConnectorSelectorManager {
-	*** this$0;
-	org.eclipse.jetty.server.nio.SelectChannelConnector$ConnectorSelectorManager(org.eclipse.jetty.server.nio.SelectChannelConnector);
-}
-
--keep class org.eclipse.jetty.server.session.AbstractSession {
-	*** LOG;
-	*** _accessed;
-	*** _attributes;
-	*** _clusterId;
-	*** _cookieSet;
-	*** _created;
-	*** _doInvalidate;
-	*** _idChanged;
-	*** _invalid;
-	*** _jdbcAttributes;
-	*** _lastAccessed;
-	*** _manager;
-	*** _maxIdleMs;
-	*** _newSession;
-	*** _nodeId;
-	*** _requests;
-	org.eclipse.jetty.server.session.AbstractSession(org.eclipse.jetty.server.session.AbstractSessionManager,javax.servlet.http.HttpServletRequest);
-	org.eclipse.jetty.server.session.AbstractSession(org.eclipse.jetty.server.session.AbstractSessionManager,long,long,java.lang.String);
-	*** access(long);
-	*** bindValue(java.lang.String,java.lang.Object);
-	*** checkValid();
-	*** clearAttributes();
-	*** complete();
-	*** cookieSet();
-	*** didActivate();
-	*** doGet(java.lang.String);
-	*** doInvalidate();
-	*** doPutOrRemove(java.lang.String,java.lang.Object);
-	*** getAccessed();
-	*** getAttribute(java.lang.String);
-	*** getAttributeNames();
-	*** getAttributes();
-	*** getClusterId();
-	*** getCookieSetTime();
-	*** getCreationTime();
-	*** getId();
-	*** getMaxInactiveInterval();
-	*** getNodeId();
-	*** getRequests();
-	*** invalidate();
-	*** isIdChanged();
-	*** isValid();
-	*** removeAttribute(java.lang.String);
-	*** setAttribute(java.lang.String,java.lang.Object);
-	*** setIdChanged(boolean);
-	*** setMaxInactiveInterval(int);
-	*** setRequests(int);
-	*** timeout();
-	*** unbindValue(java.lang.String,java.lang.Object);
-	*** willPassivate();
-}
-
--keep class org.eclipse.jetty.server.session.AbstractSessionIdManager {
-	*** LOG;
-	*** _random;
-	*** _weakRandom;
-	*** _workerName;
-	org.eclipse.jetty.server.session.AbstractSessionIdManager();
-	org.eclipse.jetty.server.session.AbstractSessionIdManager(java.util.Random);
-	*** doStart();
-	*** doStop();
-	*** initRandom();
-}
-
--keep class org.eclipse.jetty.server.session.AbstractSessionManager {
-	*** __defaultSessionTrackingModes;
-	*** __log;
-	*** __nullSessionContext;
-	*** _checkingRemoteSessionIdEncoding;
-	*** _context;
-	*** _cookieConfig;
-	*** _dftMaxIdleSecs;
-	*** _httpOnly;
-	*** _loader;
-	*** _maxCookieAge;
-	*** _nodeIdInSessionId;
-	*** _refreshCookieAge;
-	*** _secureCookies;
-	*** _secureRequestOnly;
-	*** _sessionAttributeListeners;
-	*** _sessionComment;
-	*** _sessionCookie;
-	*** _sessionDomain;
-	*** _sessionHandler;
-	*** _sessionIdManager;
-	*** _sessionIdPathParameterName;
-	*** _sessionIdPathParameterNamePrefix;
-	*** _sessionListeners;
-	*** _sessionPath;
-	*** _sessionTimeStats;
-	*** _sessionTrackingModes;
-	*** _sessionsStats;
-	*** _usingCookies;
-	*** _usingURLs;
-	org.eclipse.jetty.server.session.AbstractSessionManager();
-	*** addSession(org.eclipse.jetty.server.session.AbstractSession);
-	*** addSession(org.eclipse.jetty.server.session.AbstractSession,boolean);
-	*** doSessionAttributeListeners(org.eclipse.jetty.server.session.AbstractSession,java.lang.String,java.lang.Object,java.lang.Object);
-	*** doStart();
-	*** doStop();
-	*** getNodeId(javax.servlet.http.HttpSession);
-	*** getRefreshCookieAge();
-	*** getSession(java.lang.String);
-	*** getSessionCookie(javax.servlet.http.HttpSession,java.lang.String,boolean);
-	*** getSessionCookieConfig();
-	*** getSessionHandler();
-	*** getSessionIdManager();
-	*** getSessions();
-	*** getSessionsMax();
-	*** invalidateSessions();
-	*** isSecureRequestOnly();
-	*** isUsingCookies();
-	*** newSession(javax.servlet.http.HttpServletRequest);
-	*** removeSession(java.lang.String);
-	*** removeSession(org.eclipse.jetty.server.session.AbstractSession,boolean);
-	*** setMaxInactiveInterval(int);
-	*** setSessionIdManager(org.eclipse.jetty.server.SessionIdManager);
-	*** setSessionIdPathParameterName(java.lang.String);
-	*** setSessionTrackingModes(java.util.Set);
-	*** statsReset();
-}
-
--keep class org.eclipse.jetty.server.session.AbstractSessionManager$2 {
-	*** this$0;
-}
-
--keep class org.eclipse.jetty.server.session.AbstractSessionManager$SessionIf {
-	*** getSession();
-}
-
--keep class org.eclipse.jetty.server.session.HashSessionIdManager {
-	*** _sessions;
-	*** getClusterId(java.lang.String);
-}
-
--keep class org.eclipse.jetty.server.session.HashSessionManager {
-	*** __id;
-	*** __log;
-	*** _deleteUnrestorableSessions;
-	*** _idleSavePeriodMs;
-	*** _lazyLoad;
-	*** _savePeriodMs;
-	*** _saveTask;
-	*** _scavengePeriodMs;
-	*** _sessions;
-	*** _sessionsLoaded;
-	*** _storeDir;
-	*** _task;
-	*** _timer;
-	*** _timerStop;
-	*** getSavePeriod();
-	*** getScavengePeriod();
-	*** isDeleteUnrestorableSessions();
-	*** newSession(long,long,java.lang.String);
-	*** restoreSession(java.io.InputStream,org.eclipse.jetty.server.session.HashedSession);
-	*** restoreSession(java.lang.String);
-	*** restoreSessions();
-	*** saveSessions(boolean);
-	*** scavenge();
-	*** setSavePeriod(int);
-	*** setScavengePeriod(int);
-}
-
--keep class org.eclipse.jetty.server.session.HashSessionManager$1 {
-	*** this$0;
-}
-
--keep class org.eclipse.jetty.server.session.HashSessionManager$2 {
-	*** this$0;
-}
-
--keep class org.eclipse.jetty.server.session.HashedSession {
-	*** LOG;
-	*** _hashSessionManager;
-	*** _idled;
-	*** _saveFailed;
-	*** deIdle();
-	*** idle();
-	*** isIdled();
-	*** save(boolean);
-	*** save(java.io.OutputStream);
-	*** saveFailed();
-}
-
--keep class org.eclipse.jetty.server.session.SessionHandler {
-	*** DEFAULT_TRACKING;
-	*** LOG;
-	*** _sessionManager;
-	org.eclipse.jetty.server.session.SessionHandler(org.eclipse.jetty.server.SessionManager);
-	*** checkRequestedSessionId(org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest);
-	*** doHandle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
-	*** getSessionManager();
-	*** setSessionManager(org.eclipse.jetty.server.SessionManager);
 }
 
 -keep class org.eclipse.jetty.servlet.DefaultServlet {
@@ -51208,95 +48104,13 @@
 	*** writeOptionHeaders(org.eclipse.jetty.http.HttpFields);
 }
 
--keep class org.eclipse.jetty.servlet.FilterHolder {
-	*** LOG;
-	*** _config;
-	*** _filter;
-	*** _registration;
-	*** destroyInstance(java.lang.Object);
-	*** getRegistration();
-	*** setFilter(javax.servlet.Filter);
-}
-
--keep class org.eclipse.jetty.servlet.FilterMapping {
-	*** appliesTo(int);
-	*** appliesTo(java.lang.String,int);
-	*** dispatch(javax.servlet.DispatcherType);
-	*** getFilterHolder();
-	*** getFilterName();
-	*** getPathSpecs();
-	*** getServletNames();
-	*** setDispatcherTypes(java.util.EnumSet);
-	*** setDispatches(int);
-	*** setFilterHolder(org.eclipse.jetty.servlet.FilterHolder);
-	*** setFilterName(java.lang.String);
-	*** setPathSpec(java.lang.String);
-}
-
 -keep class org.eclipse.jetty.servlet.Holder {
-	*** LOG;
-	*** _asyncSupported;
-	*** _class;
-	*** _className;
-	*** _displayName;
-	*** _extInstance;
-	*** _initParams;
-	*** _name;
-	*** _servletHandler;
-	*** _source;
-	org.eclipse.jetty.servlet.Holder(org.eclipse.jetty.servlet.Holder$Source);
-	*** access$000();
-	*** doStart();
-	*** doStop();
-	*** getClassName();
-	*** getHeldClass();
-	*** getInitParameter(java.lang.String);
-	*** getInitParameterNames();
-	*** getInitParameters();
-	*** getName();
-	*** getServletHandler();
-	*** illegalStateIfContextStarted();
-	*** isAsyncSupported();
-	*** setAsyncSupported(boolean);
-	*** setClassName(java.lang.String);
-	*** setHeldClass(java.lang.Class);
 	*** setInitParameter(java.lang.String,java.lang.String);
-	*** setName(java.lang.String);
-	*** setServletHandler(org.eclipse.jetty.servlet.ServletHandler);
-	*** toString();
-}
-
--keep class org.eclipse.jetty.servlet.Holder$HolderConfig {
-	*** this$0;
-	org.eclipse.jetty.servlet.Holder$HolderConfig(org.eclipse.jetty.servlet.Holder);
-	*** getServletContext();
-}
-
--keep class org.eclipse.jetty.servlet.Holder$HolderRegistration {
-	*** this$0;
-	org.eclipse.jetty.servlet.Holder$HolderRegistration(org.eclipse.jetty.servlet.Holder);
-	*** getClassName();
-	*** getInitParameter(java.lang.String);
-	*** getInitParameters();
-	*** getName();
-	*** setAsyncSupported(boolean);
-	*** setDescription(java.lang.String);
-	*** setInitParameter(java.lang.String,java.lang.String);
-	*** setInitParameters(java.util.Map);
-}
-
--keep class org.eclipse.jetty.servlet.Holder$Source {
-	*** $VALUES;
-	*** ANNOTATION;
-	*** DESCRIPTOR;
-	*** EMBEDDED;
-	*** JAVAX_API;
 }
 
 -keep class org.eclipse.jetty.servlet.ServletContextHandler {
 	*** _decorators;
 	*** _defaultSecurityHandlerClass;
-	*** _jspConfig;
 	*** _options;
 	*** _restrictListeners;
 	*** _restrictedContextListeners;
@@ -51307,193 +48121,44 @@
 	org.eclipse.jetty.servlet.ServletContextHandler(org.eclipse.jetty.server.HandlerContainer,java.lang.String,int);
 	org.eclipse.jetty.servlet.ServletContextHandler(org.eclipse.jetty.server.HandlerContainer,java.lang.String,org.eclipse.jetty.server.session.SessionHandler,org.eclipse.jetty.security.SecurityHandler,org.eclipse.jetty.servlet.ServletHandler,org.eclipse.jetty.server.handler.ErrorHandler);
 	org.eclipse.jetty.servlet.ServletContextHandler(org.eclipse.jetty.server.HandlerContainer,org.eclipse.jetty.server.session.SessionHandler,org.eclipse.jetty.security.SecurityHandler,org.eclipse.jetty.servlet.ServletHandler,org.eclipse.jetty.server.handler.ErrorHandler);
-	*** addRoles(java.lang.String[]);
 	*** addServlet(org.eclipse.jetty.servlet.ServletHolder,java.lang.String);
-	*** destroyFilter(javax.servlet.Filter);
-	*** destroyServlet(javax.servlet.Servlet);
-	*** dynamicHolderAdded(org.eclipse.jetty.servlet.ServletHolder);
 	*** getSecurityHandler();
 	*** getServletHandler();
 	*** getSessionHandler();
 	*** newSecurityHandler();
 	*** newServletHandler();
 	*** newSessionHandler();
-	*** setServletSecurity(javax.servlet.ServletRegistration$Dynamic,javax.servlet.ServletSecurityElement);
-}
-
--keep class org.eclipse.jetty.servlet.ServletContextHandler$Context {
-	*** this$0;
-	*** createFilter(java.lang.Class);
-	*** createServlet(java.lang.Class);
 }
 
 -keep class org.eclipse.jetty.servlet.ServletContextHandler$Decorator {
 	*** decorateFilterHolder(org.eclipse.jetty.servlet.FilterHolder);
-	*** decorateFilterInstance(javax.servlet.Filter);
-	*** decorateListenerInstance(java.util.EventListener);
 	*** decorateServletHolder(org.eclipse.jetty.servlet.ServletHolder);
-	*** decorateServletInstance(javax.servlet.Servlet);
 	*** destroyFilterInstance(javax.servlet.Filter);
 	*** destroyServletInstance(javax.servlet.Servlet);
 }
 
 -keep class org.eclipse.jetty.servlet.ServletHandler {
-	*** LOG;
-	*** _chainCache;
-	*** _chainLRU;
-	*** _contextHandler;
-	*** _filterChainsCached;
-	*** _filterMappings;
-	*** _filterNameMap;
-	*** _filterNameMappings;
-	*** _filterPathMappings;
-	*** _filters;
-	*** _identityService;
-	*** _maxFilterChainsCacheSize;
-	*** _servletContext;
-	*** _servletMappings;
-	*** _servletNameMap;
-	*** _servletPathMap;
-	*** _servlets;
-	*** _startWithUnavailable;
-	*** addFilter(org.eclipse.jetty.servlet.FilterHolder);
 	*** addFilterWithMapping(java.lang.Class,java.lang.String,java.util.EnumSet);
 	*** addFilterWithMapping(java.lang.String,java.lang.String,java.util.EnumSet);
-	*** addFilterWithMapping(org.eclipse.jetty.servlet.FilterHolder,java.lang.String,int);
 	*** addFilterWithMapping(org.eclipse.jetty.servlet.FilterHolder,java.lang.String,java.util.EnumSet);
 	*** addServlet(org.eclipse.jetty.servlet.ServletHolder);
-	*** addServletMapping(org.eclipse.jetty.servlet.ServletMapping);
 	*** addServletWithMapping(java.lang.String,java.lang.String);
 	*** addServletWithMapping(org.eclipse.jetty.servlet.ServletHolder,java.lang.String);
-	*** destroyFilter(javax.servlet.Filter);
-	*** destroyServlet(javax.servlet.Servlet);
-	*** doHandle(java.lang.String,org.eclipse.jetty.server.Request,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
-	*** getFilter(java.lang.String);
-	*** getFilterChain(org.eclipse.jetty.server.Request,java.lang.String,org.eclipse.jetty.servlet.ServletHolder);
-	*** getFilterMappings();
 	*** getFilters();
 	*** getHolderEntry(java.lang.String);
-	*** getIdentityService();
-	*** getServlet(java.lang.String);
-	*** getServletContext();
-	*** getServletMapping(java.lang.String);
-	*** getServletMappings();
 	*** getServlets();
 	*** initialize();
-	*** invalidateChainsCache();
-	*** isStartWithUnavailable();
-	*** newFilterHolder(org.eclipse.jetty.servlet.Holder$Source);
-	*** newServletHolder(org.eclipse.jetty.servlet.Holder$Source);
-	*** notFound(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
-	*** setFilterMappings(org.eclipse.jetty.servlet.FilterMapping[]);
-	*** setFilters(org.eclipse.jetty.servlet.FilterHolder[]);
-	*** setServletMappings(org.eclipse.jetty.servlet.ServletMapping[]);
-	*** setServletSecurity(javax.servlet.ServletRegistration$Dynamic,javax.servlet.ServletSecurityElement);
-	*** setServlets(org.eclipse.jetty.servlet.ServletHolder[]);
-	*** updateMappings();
-	*** updateNameMappings();
 }
 
 -keep class org.eclipse.jetty.servlet.ServletHolder {
-	*** LOG;
-	*** NO_MAPPED_ROLES;
-	*** _config;
-	*** _enabled;
-	*** _forcedPath;
-	*** _identityService;
-	*** _initOnStartup;
-	*** _initOrder;
-	*** _registration;
-	*** _roleMap;
-	*** _runAsRole;
-	*** _runAsToken;
-	*** _servlet;
-	*** _unavailable;
-	*** _unavailableEx;
-	*** access$100(org.eclipse.jetty.servlet.ServletHolder);
-	*** access$102(org.eclipse.jetty.servlet.ServletHolder,java.lang.String);
-	*** checkServletType();
-	*** compareTo(java.lang.Object);
-	*** destroyInstance(java.lang.Object);
-	*** getForcedPath();
-	*** getInitOrder();
 	*** getRegistration();
-	*** getServlet();
 	*** getServletInstance();
-	*** handle(org.eclipse.jetty.server.Request,javax.servlet.ServletRequest,javax.servlet.ServletResponse);
-	*** hashCode();
-	*** initJspServlet();
-	*** initServlet();
-	*** isAvailable();
-	*** isEnabled();
-	*** isJspServlet();
-	*** isJspServlet(java.lang.String);
-	*** makeUnavailable(java.lang.Throwable);
-	*** makeUnavailable(javax.servlet.UnavailableException);
-	*** newInstance();
 	*** setInitOrder(int);
-	*** setServlet(javax.servlet.Servlet);
-}
-
--keep class org.eclipse.jetty.servlet.ServletHolder$1 {
-	*** this$0;
-	*** val$e;
-}
-
--keep class org.eclipse.jetty.servlet.ServletHolder$Config {
-	*** this$0;
-}
-
--keep class org.eclipse.jetty.servlet.ServletHolder$Registration {
-	*** _multipartConfig;
-	*** this$0;
-	*** getMultipartConfig();
-	*** getName();
-}
-
--keep class org.eclipse.jetty.servlet.ServletMapping {
-	*** _default;
-	*** _pathSpecs;
-	*** _servletName;
-	*** getPathSpecs();
-	*** getServletName();
-	*** isDefault();
-	*** setPathSpec(java.lang.String);
-	*** setPathSpecs(java.lang.String[]);
-	*** setServletName(java.lang.String);
-}
-
--keep class org.eclipse.jetty.util.ArrayQueue {
-	*** _elements;
-	*** _growCapacity;
-	*** _lock;
-	*** _nextE;
-	*** _nextSlot;
-	*** _size;
-	org.eclipse.jetty.util.ArrayQueue(int,int);
-	org.eclipse.jetty.util.ArrayQueue(int,int,java.lang.Object);
-	*** add(java.lang.Object);
-	*** at(int);
-	*** clear();
-	*** dequeue();
-	*** enqueue(java.lang.Object);
-	*** getUnsafe(int);
-	*** grow();
-	*** isEmpty();
-	*** offer(java.lang.Object);
-	*** size();
-}
-
--keep class org.eclipse.jetty.util.Atomics {
-	*** updateMax(java.util.concurrent.atomic.AtomicLong,long);
 }
 
 -keep class org.eclipse.jetty.util.Attributes {
-	*** clearAttributes();
 	*** getAttribute(java.lang.String);
 	*** getAttributeNames();
-	*** removeAttribute(java.lang.String);
-	*** setAttribute(java.lang.String,java.lang.Object);
 }
 
 -keep class org.eclipse.jetty.util.AttributesMap {
@@ -51502,149 +48167,41 @@
 	*** clearAttributes();
 	*** getAttribute(java.lang.String);
 	*** getAttributeEntrySet();
-	*** getAttributeNameSet();
 	*** getAttributeNames();
 	*** getAttributeNamesCopy(org.eclipse.jetty.util.Attributes);
-	*** keySet();
 	*** removeAttribute(java.lang.String);
 	*** setAttribute(java.lang.String,java.lang.Object);
 }
 
--keep class org.eclipse.jetty.util.BlockingArrayQueue {
-	*** DEFAULT_CAPACITY;
-	*** DEFAULT_GROWTH;
-	*** _capacity;
-	*** _elements;
-	*** _growCapacity;
-	*** _head;
-	*** _headLock;
-	*** _limit;
-	*** _notEmpty;
-	*** _size;
-	*** _space0;
-	*** _space1;
-	*** _space2;
-	*** _space3;
-	*** _space4;
-	*** _space5;
-	*** _space6;
-	*** _space7;
-	*** _tail;
-	*** _tailLock;
-	*** add(java.lang.Object);
-	*** getCapacity();
-	*** grow();
-	*** offer(java.lang.Object);
-	*** peek();
-	*** poll();
-	*** size();
-}
-
--keep class org.eclipse.jetty.util.ByteArrayISO8859Writer {
-	*** destroy();
-	*** flush();
-	*** size();
-	*** write(char);
-	*** write(java.lang.String);
-	*** writeTo(java.io.OutputStream);
-}
-
--keep class org.eclipse.jetty.util.ByteArrayOutputStream2 {
-	*** getBuf();
-	*** getCount();
-	*** setCount(int);
-}
-
--keep class org.eclipse.jetty.util.ConcurrentHashSet {
-	*** _keys;
-	*** _map;
-}
-
--keep class org.eclipse.jetty.util.DateCache {
-	*** DEFAULT_FORMAT;
-	*** __hitWindow;
-	*** _dfs;
-	*** _formatString;
-	*** _lastMinutes;
-	*** _lastMs;
-	*** _lastResult;
-	*** _lastSeconds;
-	*** _locale;
-	*** _minFormat;
-	*** _minFormatString;
-	*** _secFormatString;
-	*** _secFormatString0;
-	*** _secFormatString1;
-	*** _tzFormat;
-	*** _tzFormatString;
-	org.eclipse.jetty.util.DateCache();
-	org.eclipse.jetty.util.DateCache(java.lang.String);
-	org.eclipse.jetty.util.DateCache(java.lang.String,java.text.DateFormatSymbols);
-	org.eclipse.jetty.util.DateCache(java.lang.String,java.util.Locale);
-	*** format(long);
-	*** getFormat();
-	*** setMinFormatString();
-	*** setTimeZone(java.util.TimeZone);
-	*** setTzFormatString(java.util.TimeZone);
-}
-
 -keep class org.eclipse.jetty.util.IO {
 	*** close(java.io.InputStream);
-	*** close(java.io.OutputStream);
-	*** copy(java.io.File,java.io.File);
-	*** copy(java.io.InputStream,java.io.OutputStream);
 	*** copy(java.io.InputStream,java.io.OutputStream,long);
-	*** copyDir(java.io.File,java.io.File);
-	*** getClosedStream();
-	*** toString(java.io.InputStream);
 	*** toString(java.io.Reader);
 }
 
 -keep class org.eclipse.jetty.util.LazyList {
 	*** __EMTPY_STRING_ARRAY;
-	*** add(java.lang.Object,int,java.lang.Object);
 	*** add(java.lang.Object,java.lang.Object);
 	*** addArray(java.lang.Object,java.lang.Object[]);
 	*** addToArray(java.lang.Object[],java.lang.Object,java.lang.Class);
 	*** contains(java.lang.Object,java.lang.Object);
-	*** ensureSize(java.lang.Object,int);
 	*** get(java.lang.Object,int);
 	*** getList(java.lang.Object);
 	*** getList(java.lang.Object,boolean);
-	*** remove(java.lang.Object,int);
-	*** remove(java.lang.Object,java.lang.Object);
 	*** removeFromArray(java.lang.Object[],java.lang.Object);
 	*** size(java.lang.Object);
 	*** toArray(java.lang.Object,java.lang.Class);
 }
 
 -keep class org.eclipse.jetty.util.Loader {
-	*** getClassPath(java.lang.ClassLoader);
-	*** getResource(java.lang.Class,java.lang.String,boolean);
 	*** loadClass(java.lang.Class,java.lang.String);
 	*** loadClass(java.lang.Class,java.lang.String,boolean);
 }
 
 -keep class org.eclipse.jetty.util.MultiException {
-	*** nested;
 	*** add(java.lang.Throwable);
-	*** getThrowable(int);
 	*** ifExceptionThrow();
-	*** ifExceptionThrowRuntime();
 	*** size();
-}
-
--keep class org.eclipse.jetty.util.MultiMap {
-	*** add(java.lang.Object,java.lang.Object);
-	*** clear();
-	*** containsKey(java.lang.Object);
-	*** entrySet();
-	*** get(java.lang.Object);
-	*** getValue(java.lang.Object,int);
-	*** getValues(java.lang.Object);
-	*** keySet();
-	*** size();
-	*** toStringArrayMap();
 }
 
 -keep class org.eclipse.jetty.util.MultiPartOutputStream {
@@ -51660,193 +48217,18 @@
 	*** startPart(java.lang.String,java.lang.String[]);
 }
 
--keep class org.eclipse.jetty.util.QuotedStringTokenizer {
-	*** _delim;
-	*** _double;
-	*** _hasToken;
-	*** _i;
-	*** _lastStart;
-	*** _returnDelimiters;
-	*** _returnQuotes;
-	*** _single;
-	*** _string;
-	*** _token;
-	*** escapes;
-	org.eclipse.jetty.util.QuotedStringTokenizer(java.lang.String,java.lang.String,boolean,boolean);
-	*** hasMoreTokens();
-	*** nextToken();
-	*** quote(java.lang.Appendable,java.lang.String);
-	*** quoteIfNeeded(java.lang.Appendable,java.lang.String,java.lang.String);
-	*** quoteIfNeeded(java.lang.String,java.lang.String);
-	*** unquote(java.lang.String);
-}
-
--keep class org.eclipse.jetty.util.StringMap {
-	*** _entrySet;
-	*** _ignoreCase;
-	*** _nullEntry;
-	*** _nullValue;
-	*** _root;
-	*** _umEntrySet;
-	*** _width;
-	org.eclipse.jetty.util.StringMap();
-	*** clear();
-	*** get(java.lang.String);
-	*** getBestEntry(byte[],int,int);
-	*** getEntry(java.lang.String,int,int);
-	*** put(java.lang.String,java.lang.Object);
-	*** remove(java.lang.String);
-	*** setIgnoreCase(boolean);
-}
-
--keep class org.eclipse.jetty.util.StringMap$Node {
-	*** _char;
-	*** _children;
-	*** _key;
-	*** _next;
-	*** _ochar;
-	*** _value;
-	*** split(org.eclipse.jetty.util.StringMap,int);
-	*** toString(java.lang.StringBuilder);
-}
-
--keep class org.eclipse.jetty.util.StringMap$NullEntry {
-	*** this$0;
-	org.eclipse.jetty.util.StringMap$NullEntry(org.eclipse.jetty.util.StringMap);
-}
-
 -keep class org.eclipse.jetty.util.StringUtil {
-	*** LOG;
-	*** __ISO_8859_1_CHARSET;
-	*** __LINE_SEPARATOR;
-	*** __UTF8_CHARSET;
-	*** lowercases;
-	*** append(java.lang.StringBuilder,byte,int);
-	*** append2digits(java.lang.StringBuilder,int);
-	*** asciiToLowerCase(java.lang.String);
-	*** getBytes(java.lang.String);
-	*** isUTF8(java.lang.String);
-	*** replace(java.lang.String,java.lang.String,java.lang.String);
 	*** startsWithIgnoreCase(java.lang.String,java.lang.String);
-	*** toString(byte[],int,int,java.lang.String);
 }
 
 -keep class org.eclipse.jetty.util.TypeUtil {
 	*** asList(java.lang.Object[]);
-	*** convertHexDigit(byte);
-	*** parseInt(byte[],int,int,int);
-	*** parseInt(java.lang.String,int,int,int);
-	*** toHex(byte,java.lang.Appendable);
-	*** toHexString(byte);
 }
 
 -keep class org.eclipse.jetty.util.URIUtil {
-	*** __CHARSET;
 	*** addPaths(java.lang.String,java.lang.String);
 	*** canonicalPath(java.lang.String);
 	*** compactPath(java.lang.String);
-	*** decodePath(byte[],int,int);
-	*** decodePath(java.lang.String);
-	*** encodePath(java.lang.String);
-	*** encodePath(java.lang.StringBuilder,java.lang.String);
-	*** hasScheme(java.lang.String);
-	*** parentPath(java.lang.String);
-}
-
--keep class org.eclipse.jetty.util.UrlEncoded {
-	*** decodeTo(java.io.InputStream,org.eclipse.jetty.util.MultiMap,java.lang.String,int,int);
-	*** decodeTo(java.lang.String,org.eclipse.jetty.util.MultiMap,java.lang.String);
-	*** decodeUtf8To(byte[],int,int,org.eclipse.jetty.util.MultiMap);
-	*** decodeUtf8To(byte[],int,int,org.eclipse.jetty.util.MultiMap,org.eclipse.jetty.util.Utf8StringBuilder);
-}
-
--keep class org.eclipse.jetty.util.Utf8Appendable {
-	*** BYTE_TABLE;
-	*** TRANS_TABLE;
-	*** _appendable;
-	*** _codep;
-	*** _state;
-	org.eclipse.jetty.util.Utf8Appendable(java.lang.Appendable);
-	*** append(byte[],int,int);
-	*** appendByte(byte);
-	*** isUtf8SequenceComplete();
-	*** length();
-	*** reset();
-}
-
--keep class org.eclipse.jetty.util.Utf8StringBuffer {
-	*** getStringBuffer();
-}
-
--keep class org.eclipse.jetty.util.Utf8StringBuilder {
-	*** _buffer;
-	*** checkState();
-	*** reset();
-	*** toString();
-}
-
--keep class org.eclipse.jetty.util.ajax.JSON {
-	*** DEFAULT;
-	*** LOG;
-	*** _convertors;
-	*** _stringBufferSize;
-	org.eclipse.jetty.util.ajax.JSON();
-	*** addConvertor(java.lang.Class,org.eclipse.jetty.util.ajax.JSON$Convertor);
-	*** append(java.lang.Appendable,java.lang.Object);
-	*** appendArray(java.lang.Appendable,java.lang.Object);
-	*** appendArray(java.lang.Appendable,java.util.Collection);
-	*** appendBoolean(java.lang.Appendable,java.lang.Boolean);
-	*** appendJSON(java.lang.Appendable,org.eclipse.jetty.util.ajax.JSON$Convertible);
-	*** appendJSON(java.lang.Appendable,org.eclipse.jetty.util.ajax.JSON$Convertor,java.lang.Object);
-	*** appendJSON(java.lang.Appendable,org.eclipse.jetty.util.ajax.JSON$Generator);
-	*** appendMap(java.lang.Appendable,java.util.Map);
-	*** appendNull(java.lang.Appendable);
-	*** appendNumber(java.lang.Appendable,java.lang.Number);
-	*** appendString(java.lang.Appendable,java.lang.String);
-	*** complete(java.lang.String,org.eclipse.jetty.util.ajax.JSON$Source);
-	*** contextFor(java.lang.String);
-	*** contextForArray();
-	*** convertTo(java.lang.Class,java.util.Map);
-	*** getConvertor(java.lang.Class);
-	*** getConvertorFor(java.lang.String);
-	*** getStringBufferSize();
-	*** handleUnknown(org.eclipse.jetty.util.ajax.JSON$Source,char);
-	*** newArray(int);
-	*** newMap();
-	*** parse(org.eclipse.jetty.util.ajax.JSON$Source);
-	*** parse(org.eclipse.jetty.util.ajax.JSON$Source,boolean);
-	*** parseArray(org.eclipse.jetty.util.ajax.JSON$Source);
-	*** parseNumber(org.eclipse.jetty.util.ajax.JSON$Source);
-	*** parseObject(org.eclipse.jetty.util.ajax.JSON$Source);
-	*** parseString(org.eclipse.jetty.util.ajax.JSON$Source);
-	*** seekTo(char,org.eclipse.jetty.util.ajax.JSON$Source);
-	*** seekTo(java.lang.String,org.eclipse.jetty.util.ajax.JSON$Source);
-	*** toJSON(java.lang.Object);
-	*** toString(char[],int,int);
-}
-
--keep class org.eclipse.jetty.util.ajax.JSON$ConvertableOutput {
-	*** complete();
-}
-
--keep class org.eclipse.jetty.util.ajax.JSON$Convertible {
-	*** fromJSON(java.util.Map);
-	*** toJSON(org.eclipse.jetty.util.ajax.JSON$Output);
-}
-
--keep class org.eclipse.jetty.util.ajax.JSON$Convertor {
-	*** fromJSON(java.util.Map);
-}
-
--keep class org.eclipse.jetty.util.ajax.JSON$Generator {
-	*** addJSON(java.lang.Appendable);
-}
-
--keep class org.eclipse.jetty.util.ajax.JSON$Source {
-	*** hasNext();
-	*** next();
-	*** peek();
-	*** scratchBuffer();
 }
 
 -keep class org.eclipse.jetty.util.component.AbstractLifeCycle {
@@ -51868,7 +48250,6 @@
 	*** isStarted();
 	*** isStarting();
 	*** isStopped();
-	*** isStopping();
 	*** setFailed(java.lang.Throwable);
 	*** setStarted();
 	*** setStarting();
@@ -51895,7 +48276,6 @@
 	*** dumpObject(java.lang.Appendable,java.lang.Object);
 	*** dumpStdErr();
 	*** dumpThis(java.lang.Appendable);
-	*** getBean(java.lang.Class);
 	*** getBeans();
 	*** getBeans(java.lang.Class);
 	*** removeBean(java.lang.Object);
@@ -51904,7 +48284,6 @@
 -keep class org.eclipse.jetty.util.component.AggregateLifeCycle$Bean {
 	*** _bean;
 	*** _managed;
-	*** this$0;
 }
 
 -keep class org.eclipse.jetty.util.component.Container {
@@ -51925,14 +48304,6 @@
 	*** addBean(java.lang.Object);
 	*** remove(org.eclipse.jetty.util.component.Container$Relationship);
 	*** removeBean(java.lang.Object);
-}
-
--keep class org.eclipse.jetty.util.component.Container$Relationship {
-	*** _child;
-	*** _container;
-	*** _parent;
-	*** _relationship;
-	org.eclipse.jetty.util.component.Container$Relationship(org.eclipse.jetty.util.component.Container,java.lang.Object,java.lang.Object,java.lang.String);
 }
 
 -keep class org.eclipse.jetty.util.component.Destroyable {
@@ -52000,7 +48371,6 @@
 	*** getName();
 	*** ignore(java.lang.Throwable);
 	*** info(java.lang.String,java.lang.Object[]);
-	*** info(java.lang.String,java.lang.Throwable);
 	*** isDebugEnabled();
 	*** warn(java.lang.String,java.lang.Object[]);
 	*** warn(java.lang.String,java.lang.Throwable);
@@ -52016,238 +48386,49 @@
 	*** warn(java.lang.String,java.lang.Throwable);
 }
 
--keep class org.eclipse.jetty.util.resource.BadResource {
-	*** _message;
-}
-
 -keep class org.eclipse.jetty.util.resource.FileResource {
-	*** LOG;
-	*** __checkAliases;
-	*** _alias;
-	*** _aliasChecked;
-	*** _file;
 	*** getCheckAliases();
-	*** getFile();
-	*** isDirectory();
-}
-
--keep class org.eclipse.jetty.util.resource.JarFileResource {
-	*** LOG;
-	*** _directory;
-	*** _entry;
-	*** _exists;
-	*** _file;
-	*** _jarFile;
-	*** _jarUrl;
-	*** _list;
-	*** _path;
-	*** checkConnection();
-	*** exists();
-	*** isDirectory();
-	*** listEntries();
-	*** release();
-}
-
--keep class org.eclipse.jetty.util.resource.JarResource {
-	*** LOG;
-	*** _jarConnection;
-	org.eclipse.jetty.util.resource.JarResource(java.net.URL);
-	org.eclipse.jetty.util.resource.JarResource(java.net.URL,boolean);
-	*** checkConnection();
-	*** exists();
-	*** newConnection();
-	*** release();
-}
-
--keep class org.eclipse.jetty.util.resource.JarResource$1 {
-	*** this$0;
 }
 
 -keep class org.eclipse.jetty.util.resource.Resource {
-	*** LOG;
-	*** __defaultUseCaches;
-	*** _associate;
-	org.eclipse.jetty.util.resource.Resource();
 	*** addPath(java.lang.String);
-	*** deTag(java.lang.String);
 	*** exists();
 	*** getAlias();
 	*** getFile();
 	*** getInputStream();
 	*** getListHTML(java.lang.String,boolean);
-	*** getURL();
-	*** hrefEncodeURI(java.lang.String);
-	*** isContainedIn(org.eclipse.jetty.util.resource.Resource);
 	*** isDirectory();
 	*** lastModified();
 	*** length();
 	*** list();
-	*** newClassPathResource(java.lang.String,boolean,boolean);
 	*** newResource(java.lang.String);
-	*** newResource(java.lang.String,boolean);
 	*** newResource(java.net.URL);
-	*** newResource(java.net.URL,boolean);
 	*** release();
-	*** toURL(java.io.File);
 	*** writeTo(java.io.OutputStream,long,long);
 }
 
--keep class org.eclipse.jetty.util.resource.URLResource {
-	*** LOG;
-	*** _connection;
-	*** _in;
-	*** _url;
-	*** _urlString;
-	*** _useCaches;
-	org.eclipse.jetty.util.resource.URLResource(java.net.URL,java.net.URLConnection);
-	org.eclipse.jetty.util.resource.URLResource(java.net.URL,java.net.URLConnection,boolean);
-	*** addPath(java.lang.String);
-	*** checkConnection();
-	*** exists();
-	*** getInputStream();
-	*** getURL();
-	*** getUseCaches();
-	*** hashCode();
-	*** isDirectory();
-	*** release();
-	*** toString();
-}
-
--keep class org.eclipse.jetty.util.security.Constraint {
-	*** getAuthenticate();
-	*** getDataConstraint();
-	*** getRoles();
-	*** isAnyRole();
-	*** isForbidden();
-}
-
--keep class org.eclipse.jetty.util.statistic.CounterStatistic {
-	*** _curr;
-	*** _max;
-	*** _total;
-	*** add(long);
-	*** decrement();
-	*** getCurrent();
-	*** getMax();
-	*** getTotal();
-	*** increment();
-	*** reset();
-	*** reset(long);
-}
-
--keep class org.eclipse.jetty.util.statistic.SampleStatistic {
-	*** _count;
-	*** _max;
-	*** _total;
-	*** _totalVariance100;
-	*** getMax();
-	*** getMean();
-	*** getStdDev();
-	*** getTotal();
-	*** getVariance();
-	*** reset();
-	*** set(long);
-}
-
 -keep class org.eclipse.jetty.util.thread.QueuedThreadPool {
-	*** LOG;
-	*** _daemon;
-	*** _detailedDump;
-	*** _jobs;
-	*** _joinLock;
-	*** _lastShrink;
-	*** _maxIdleTimeMs;
-	*** _maxQueued;
-	*** _maxStopTime;
-	*** _maxThreads;
-	*** _minThreads;
-	*** _name;
-	*** _priority;
-	*** _runnable;
-	*** _threads;
-	*** _threadsIdle;
-	*** _threadsStarted;
-	org.eclipse.jetty.util.thread.QueuedThreadPool();
-	*** access$000(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$100(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$200(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$300(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$400(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$500(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$600(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** access$700();
-	*** access$800(org.eclipse.jetty.util.thread.QueuedThreadPool);
-	*** dispatch(java.lang.Runnable);
-	*** getIdleThreads();
-	*** getMaxThreads();
-	*** getMinThreads();
-	*** getThreads();
-	*** idleJobPoll();
-	*** newThread(java.lang.Runnable);
-	*** runJob(java.lang.Runnable);
 	*** setDaemon(boolean);
 	*** setMaxThreads(int);
 	*** setMinThreads(int);
 	*** setName(java.lang.String);
-	*** startThread(int);
-}
-
--keep class org.eclipse.jetty.util.thread.QueuedThreadPool$3 {
-	*** this$0;
 }
 
 -keep class org.eclipse.jetty.util.thread.ShutdownThread {
-	*** LOG;
-	*** _hooked;
-	*** _lifeCycles;
-	*** _thread;
 	*** deregister(org.eclipse.jetty.util.component.LifeCycle);
-	*** hook();
 	*** register(org.eclipse.jetty.util.component.LifeCycle[]);
-	*** unhook();
 }
 
 -keep class org.eclipse.jetty.util.thread.ThreadPool {
-	*** dispatch(java.lang.Runnable);
-	*** isLowOnThreads();
 	*** join();
 }
 
 -keep class org.eclipse.jetty.util.thread.Timeout {
-	*** LOG;
-	*** _duration;
-	*** _head;
-	*** _lock;
-	*** _now;
-	*** access$200(org.eclipse.jetty.util.thread.Timeout);
-	*** access$300(org.eclipse.jetty.util.thread.Timeout);
-	*** cancelAll();
-	*** expired();
-	*** getNow();
-	*** getTimeToNext();
-	*** schedule(org.eclipse.jetty.util.thread.Timeout$Task);
 	*** schedule(org.eclipse.jetty.util.thread.Timeout$Task,long);
-	*** setDuration(long);
-	*** setNow(long);
-	*** tick();
-	*** tick(long);
 }
 
 -keep class org.eclipse.jetty.util.thread.Timeout$Task {
-	*** _delay;
-	*** _expired;
-	*** _next;
-	*** _prev;
-	*** _timeout;
-	*** _timestamp;
-	org.eclipse.jetty.util.thread.Timeout$Task();
-	*** access$000(org.eclipse.jetty.util.thread.Timeout$Task);
-	*** access$100(org.eclipse.jetty.util.thread.Timeout$Task,org.eclipse.jetty.util.thread.Timeout$Task);
 	*** cancel();
-	*** expire();
-	*** expired();
-	*** link(org.eclipse.jetty.util.thread.Timeout$Task);
-	*** unlink();
 }
 
 -keep class org.freedesktop.Secret.Collection {
@@ -52939,7 +49120,6 @@
 	*** getPresenceMapKey(java.lang.String);
 	*** getPresences(java.lang.String);
 	*** reload();
-	*** removeEntry(org.jivesoftware.smack.RosterEntry);
 	*** setOfflinePresences();
 	*** setSubscriptionMode(org.jivesoftware.smack.Roster$SubscriptionMode);
 }
@@ -53003,13 +49183,9 @@
 }
 
 -keep class org.jivesoftware.smack.RosterGroup {
-	*** connection;
-	*** entries;
-	*** name;
 	*** addEntryLocal(org.jivesoftware.smack.RosterEntry);
 	*** contains(org.jivesoftware.smack.RosterEntry);
 	*** getEntries();
-	*** getEntry(java.lang.String);
 	*** getEntryCount();
 	*** getName();
 	*** removeEntryLocal(org.jivesoftware.smack.RosterEntry);
@@ -53425,7 +49601,6 @@
 	*** getW();
 	*** isAutosub();
 	*** isRejected();
-	*** removeGroupName(java.lang.String);
 	*** setItemType(org.jivesoftware.smack.packet.RosterPacket$ItemType);
 	*** toXML();
 }
@@ -54445,6 +50620,7 @@
 	*** sb;
 	*** this$0;
 	*** access$100(org.jivesoftware.smackx.packet.VCard$VCardWriter);
+	*** access$1900(org.jivesoftware.smackx.packet.VCard$VCardWriter);
 	*** appendAddress(java.util.Map,java.lang.String);
 	*** appendEmail(java.lang.String,java.lang.String);
 	*** appendEmptyTag(java.lang.Object);
@@ -54461,6 +50637,11 @@
 
 -keep class org.jivesoftware.smackx.packet.VCard$VCardWriter$1 {
 	*** this$1;
+}
+
+-keep class org.jivesoftware.smackx.packet.VCard$VCardWriter$7 {
+	*** this$1;
+	*** val$tagText;
 }
 
 -keep class org.jivesoftware.smackx.packet.Version {
@@ -55525,8 +51706,6 @@
 }
 
 -keep class org.lantern.AppIndicatorTray {
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus;
-	*** $SWITCH_TABLE$org$lantern$GoogleTalkState;
 	*** LOG;
 	*** active;
 	*** appIndicator;
@@ -55546,11 +51725,10 @@
 	*** updateData;
 	*** updateItem;
 	*** updateItemCallback;
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus();
-	*** $SWITCH_TABLE$org$lantern$GoogleTalkState();
-	*** access$0();
-	*** access$1(org.lantern.AppIndicatorTray);
-	*** access$2(org.lantern.AppIndicatorTray);
+	*** access$000();
+	*** access$100(org.lantern.AppIndicatorTray);
+	*** access$200(org.lantern.AppIndicatorTray);
+	*** access$300();
 	*** addUpdate(java.util.Map);
 	*** changeIcon(java.lang.String,java.lang.String);
 	*** createTray();
@@ -55582,7 +51760,16 @@
 
 -keep class org.lantern.AppIndicatorTray$4 {
 	*** this$0;
+}
+
+-keep class org.lantern.AppIndicatorTray$5 {
+	*** this$0;
 	*** val$data;
+}
+
+-keep class org.lantern.AppIndicatorTray$6 {
+	*** $SwitchMap$org$lantern$ConnectivityStatus;
+	*** $SwitchMap$org$lantern$GoogleTalkState;
 }
 
 -keep class org.lantern.AppIndicatorTray$FailureCallback {
@@ -55600,6 +51787,7 @@
 
 -keep class org.lantern.Censored {
 	*** isCensored();
+	*** isCensored(java.net.InetAddress);
 	*** isCountryCodeCensored(java.lang.String);
 	*** isExportRestricted(java.lang.String);
 }
@@ -55608,7 +51796,7 @@
 	*** chrome;
 	*** log;
 	*** messageService;
-	*** access$0(org.lantern.ChromeBrowserService,int,java.lang.String);
+	*** access$000(org.lantern.ChromeBrowserService,int,java.lang.String);
 	*** launchChrome(int,java.lang.String);
 	*** openBrowser();
 	*** openBrowser(int,java.lang.String);
@@ -55632,6 +51820,7 @@
 -keep class org.lantern.ChromeRunner {
 	*** location;
 	*** log;
+	*** model;
 	*** process;
 	*** screenHeight;
 	*** screenWidth;
@@ -55641,6 +51830,7 @@
 	*** determineExecutablePath();
 	*** findWindowsExe();
 	*** open(int,java.lang.String);
+	*** openSystemDefaultBrowser(java.lang.String);
 }
 
 -keep class org.lantern.ChromeRunner$Analyzer {
@@ -55657,134 +51847,13 @@
 }
 
 -keep class org.lantern.ClientMessage$Type {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** friendSync;
-}
-
--keep class org.lantern.ClientStats {
-	*** addBytesProxied(long,java.net.InetSocketAddress);
-	*** addDirectBytes(long);
-	*** addDownBytesForPeers(long);
-	*** addDownBytesFromPeers(long);
-	*** addDownBytesViaProxies(long);
-	*** addProxiedClientAddress(java.net.InetAddress);
-	*** addUpBytesForPeers(long);
-	*** addUpBytesToPeers(long);
-	*** addUpBytesViaProxies(long);
-	*** getCountOfDistinctProxiedClientAddresses();
-	*** incrementProxiedRequests();
-	*** resetCumulativeStats();
-	*** setNatpmp(boolean);
-	*** setUpnp(boolean);
-}
-
--keep class org.lantern.ClientStats$$EnhancerByMockitoWithCGLIB$$7a32121 {
-	*** CGLIB$BOUND;
-	*** CGLIB$CALLBACK_0;
-	*** CGLIB$CALLBACK_1;
-	*** CGLIB$STATIC_CALLBACKS;
-	*** CGLIB$THREAD_CALLBACKS;
-	*** CGLIB$addBytesProxied$16$Method;
-	*** CGLIB$addBytesProxied$16$Proxy;
-	*** CGLIB$addDirectBytes$15$Method;
-	*** CGLIB$addDirectBytes$15$Proxy;
-	*** CGLIB$addDownBytesForPeers$14$Method;
-	*** CGLIB$addDownBytesForPeers$14$Proxy;
-	*** CGLIB$addDownBytesFromPeers$12$Method;
-	*** CGLIB$addDownBytesFromPeers$12$Proxy;
-	*** CGLIB$addDownBytesViaProxies$8$Method;
-	*** CGLIB$addDownBytesViaProxies$8$Proxy;
-	*** CGLIB$addProxiedClientAddress$17$Method;
-	*** CGLIB$addProxiedClientAddress$17$Proxy;
-	*** CGLIB$addUpBytesForPeers$13$Method;
-	*** CGLIB$addUpBytesForPeers$13$Proxy;
-	*** CGLIB$addUpBytesToPeers$11$Method;
-	*** CGLIB$addUpBytesToPeers$11$Proxy;
-	*** CGLIB$addUpBytesViaProxies$9$Method;
-	*** CGLIB$addUpBytesViaProxies$9$Proxy;
-	*** CGLIB$clone$4$Method;
-	*** CGLIB$clone$4$Proxy;
-	*** CGLIB$emptyArgs;
-	*** CGLIB$equals$1$Method;
-	*** CGLIB$equals$1$Proxy;
-	*** CGLIB$finalize$0$Method;
-	*** CGLIB$finalize$0$Proxy;
-	*** CGLIB$getCountOfDistinctProxiedClientAddresses$18$Method;
-	*** CGLIB$getCountOfDistinctProxiedClientAddresses$18$Proxy;
-	*** CGLIB$getCountryCode$45$Method;
-	*** CGLIB$getCountryCode$45$Proxy;
-	*** CGLIB$getDirectBytes$38$Method;
-	*** CGLIB$getDirectBytes$38$Proxy;
-	*** CGLIB$getDirectRequests$40$Method;
-	*** CGLIB$getDirectRequests$40$Proxy;
-	*** CGLIB$getDownBytesPerSecond$30$Method;
-	*** CGLIB$getDownBytesPerSecond$30$Proxy;
-	*** CGLIB$getDownBytesPerSecondForPeers$33$Method;
-	*** CGLIB$getDownBytesPerSecondForPeers$33$Proxy;
-	*** CGLIB$getDownBytesPerSecondFromPeers$35$Method;
-	*** CGLIB$getDownBytesPerSecondFromPeers$35$Proxy;
-	*** CGLIB$getDownBytesPerSecondViaProxies$34$Method;
-	*** CGLIB$getDownBytesPerSecondViaProxies$34$Proxy;
-	*** CGLIB$getDownBytesThisRun$22$Method;
-	*** CGLIB$getDownBytesThisRun$22$Proxy;
-	*** CGLIB$getDownBytesThisRunForPeers$26$Method;
-	*** CGLIB$getDownBytesThisRunForPeers$26$Proxy;
-	*** CGLIB$getDownBytesThisRunFromPeers$28$Method;
-	*** CGLIB$getDownBytesThisRunFromPeers$28$Proxy;
-	*** CGLIB$getDownBytesThisRunViaProxies$27$Method;
-	*** CGLIB$getDownBytesThisRunViaProxies$27$Proxy;
-	*** CGLIB$getPeerCount$43$Method;
-	*** CGLIB$getPeerCount$43$Proxy;
-	*** CGLIB$getPeerCountThisRun$44$Method;
-	*** CGLIB$getPeerCountThisRun$44$Proxy;
-	*** CGLIB$getTotalBytesProxied$37$Method;
-	*** CGLIB$getTotalBytesProxied$37$Proxy;
-	*** CGLIB$getTotalProxiedRequests$39$Method;
-	*** CGLIB$getTotalProxiedRequests$39$Proxy;
-	*** CGLIB$getUpBytesPerSecond$29$Method;
-	*** CGLIB$getUpBytesPerSecond$29$Proxy;
-	*** CGLIB$getUpBytesPerSecondForPeers$31$Method;
-	*** CGLIB$getUpBytesPerSecondForPeers$31$Proxy;
-	*** CGLIB$getUpBytesPerSecondToPeers$36$Method;
-	*** CGLIB$getUpBytesPerSecondToPeers$36$Proxy;
-	*** CGLIB$getUpBytesPerSecondViaProxies$32$Method;
-	*** CGLIB$getUpBytesPerSecondViaProxies$32$Proxy;
-	*** CGLIB$getUpBytesThisRun$21$Method;
-	*** CGLIB$getUpBytesThisRun$21$Proxy;
-	*** CGLIB$getUpBytesThisRunForPeers$23$Method;
-	*** CGLIB$getUpBytesThisRunForPeers$23$Proxy;
-	*** CGLIB$getUpBytesThisRunToPeers$25$Method;
-	*** CGLIB$getUpBytesThisRunToPeers$25$Proxy;
-	*** CGLIB$getUpBytesThisRunViaProxies$24$Method;
-	*** CGLIB$getUpBytesThisRunViaProxies$24$Proxy;
-	*** CGLIB$getUptime$20$Method;
-	*** CGLIB$getUptime$20$Proxy;
-	*** CGLIB$getVersion$19$Method;
-	*** CGLIB$getVersion$19$Proxy;
-	*** CGLIB$hashCode$3$Method;
-	*** CGLIB$hashCode$3$Proxy;
-	*** CGLIB$incrementProxiedRequests$10$Method;
-	*** CGLIB$incrementProxiedRequests$10$Proxy;
-	*** CGLIB$isNatpmp$42$Method;
-	*** CGLIB$isNatpmp$42$Proxy;
-	*** CGLIB$isUpnp$41$Method;
-	*** CGLIB$isUpnp$41$Proxy;
-	*** CGLIB$resetCumulativeStats$7$Method;
-	*** CGLIB$resetCumulativeStats$7$Proxy;
-	*** CGLIB$setNatpmp$5$Method;
-	*** CGLIB$setNatpmp$5$Proxy;
-	*** CGLIB$setUpnp$6$Method;
-	*** CGLIB$setUpnp$6$Proxy;
-	*** CGLIB$toString$2$Method;
-	*** CGLIB$toString$2$Proxy;
-	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
-	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK3();
 }
 
 -keep class org.lantern.CometDTest {
 	*** log;
-	*** access$0(org.lantern.CometDTest);
+	*** access$000(org.lantern.CometDTest);
 	*** startJetty(org.lantern.http.JettyLauncher,int);
 	*** subscribe(org.cometd.bayeux.client.ClientSession,org.cometd.bayeux.client.ClientSessionChannel$MessageListener);
 	*** waitForBoolean(java.util.concurrent.atomic.AtomicBoolean);
@@ -55820,10 +51889,10 @@
 	*** exitCode;
 	*** log;
 	*** proc;
-	*** access$0(org.lantern.CommandLine);
-	*** access$1(org.lantern.CommandLine);
-	*** access$2(org.lantern.CommandLine);
-	*** access$3(org.lantern.CommandLine);
+	*** access$000(org.lantern.CommandLine);
+	*** access$100(org.lantern.CommandLine);
+	*** access$200(org.lantern.CommandLine);
+	*** access$300(org.lantern.CommandLine);
 	*** canExecute(java.io.File);
 	*** createProcess();
 	*** execute();
@@ -55854,45 +51923,38 @@
 }
 
 -keep class org.lantern.ConnectivityChangedEvent {
-	*** ipChanged;
 	*** isConnected;
-	*** newIp;
-	*** getNewIp();
 	*** isConnected();
-	*** isIpChanged();
 }
 
 -keep class org.lantern.ConnectivityChecker {
 	*** LOG;
 	*** TEST_SITES;
 	*** model;
-	*** wasConnected;
 	*** areAnyTestSitesReachable();
-	*** determineCurrentIpAddress();
+	*** checkConnectivity();
 	*** isReachable(java.lang.String);
-	*** notifyConnected(java.net.InetAddress);
+	*** notifyConnected();
 	*** notifyDisconnected();
+	*** notifyListeners(boolean);
 }
 
 -keep class org.lantern.ConnectivityStatus {
+	*** $VALUES;
 	*** CONNECTED;
 	*** CONNECTING;
 	*** DISCONNECTED;
-	*** ENUM$VALUES;
 	*** values();
 }
 
 -keep class org.lantern.Country {
-	*** bps;
-	*** bytesEver;
 	*** censors;
 	*** code;
 	*** name;
-	*** npeers;
-	*** nusers;
+	*** stats;
 	*** getCode();
-	*** getName();
 	*** isCensors();
+	*** setStats(org.lantern.monitoring.Stats);
 }
 
 -keep class org.lantern.CountryService {
@@ -55904,41 +51966,9 @@
 	*** initCountries();
 }
 
--keep class org.lantern.Dashboard {
-	*** browser;
-	*** completed;
-	*** log;
-	*** model;
-	*** pendingCalls;
-	*** shell;
-	*** access$0(org.lantern.Dashboard);
-	*** access$1(org.lantern.Dashboard);
-	*** access$2(org.lantern.Dashboard);
-	*** buildBrowser();
-	*** evaluate(java.lang.String);
-	*** newImage(java.lang.String);
-	*** openBrowser();
-	*** openBrowser(int,java.lang.String);
-	*** openBrowserWhenPortReady(int,java.lang.String);
-	*** windowsBugWorkaround();
-}
-
--keep class org.lantern.Dashboard$1 {
-	*** this$0;
-}
-
--keep class org.lantern.Dashboard$2 {
-	*** this$0;
-	*** val$display;
-}
-
--keep class org.lantern.Dashboard$3 {
-	*** this$0;
-}
-
--keep class org.lantern.Dashboard$4 {
-	*** this$0;
-	*** val$call;
+-keep class org.lantern.DateSerializer {
+	*** formattedDate(java.util.Date);
+	*** serialize(java.util.Date,org.codehaus.jackson.JsonGenerator,org.codehaus.jackson.map.SerializerProvider);
 }
 
 -keep class org.lantern.DefaultCensored {
@@ -55946,6 +51976,7 @@
 	*** EXPORT_RESTRICTED;
 	*** LOG;
 	*** lookupService;
+	org.lantern.DefaultCensored();
 	org.lantern.DefaultCensored(org.lantern.geoip.GeoIpLookupService);
 	*** countryCode(java.net.InetAddress);
 	*** isCensored();
@@ -55984,89 +52015,9 @@
 	*** updatePeer(org.lantern.state.Peer,java.net.InetSocketAddress,org.lantern.state.Peer$Type);
 }
 
--keep class org.lantern.DefaultProxyTracker {
-	*** EMPTY_UDP_TUPLE;
-	*** LOG;
-	*** PROXY_PRIORITIZER;
-	*** fallbackServerHost;
-	*** fallbackServerPort;
-	*** lanternTrustStore;
-	*** model;
-	*** noProxies;
-	*** p2pSocketThreadPool;
-	*** peerFactory;
-	*** proxies;
-	*** proxiesPopulated;
-	*** proxyCheckThreadPool;
-	*** proxyRetryService;
-	*** tcpProxyLock;
-	*** xmppHandler;
-	*** access$0(org.lantern.DefaultProxyTracker);
-	*** access$1(org.lantern.DefaultProxyTracker);
-	*** access$2(org.lantern.DefaultProxyTracker);
-	*** access$3(org.lantern.DefaultProxyTracker,org.lantern.ProxyHolder);
-	*** access$4();
-	*** access$5(org.lantern.DefaultProxyTracker);
-	*** access$6(org.lantern.DefaultProxyTracker);
-	*** access$7(org.lantern.DefaultProxyTracker);
-	*** access$8(org.lantern.DefaultProxyTracker);
-	*** addFallbackProxies();
-	*** addProxy(java.net.URI);
-	*** addProxy(java.net.URI,java.net.InetSocketAddress);
-	*** addProxy(java.net.URI,java.net.InetSocketAddress,org.lantern.state.Peer$Type);
-	*** addSingleFallbackProxy(java.lang.String,int);
-	*** addressForConfiguredFallbackProxy();
-	*** checkConnectivityToNattedProxy(org.lantern.ProxyHolder);
-	*** checkConnectivityToProxy(org.lantern.ProxyHolder);
-	*** checkConnectivityToTcpProxy(org.lantern.ProxyHolder);
-	*** clear();
-	*** clearPeerProxySet();
-	*** copyFallback();
-	*** doAddProxy(java.net.URI,org.lantern.ProxyHolder);
-	*** firstConnectedTcpProxy();
-	*** firstConnectedTcpProxyBlocking();
-	*** getConnectedProxiesInOrderOfFallbackPreference();
-	*** hasProxy();
-	*** notifyProxiesSize();
-	*** notifyTcpProxyAvailable();
-	*** onConnectivityChanged(org.lantern.ConnectivityChangedEvent);
-	*** onCouldNotConnect(org.lantern.ProxyHolder);
-	*** onError(java.net.URI);
-	*** onModeChanged(org.lantern.event.ModeChangedEvent);
-	*** onReset(org.lantern.event.ResetEvent);
-	*** parseFallbackProxy();
-	*** prepopulateProxies();
-	*** removeNattedProxy(java.net.URI);
-	*** restoreDeceasedProxies();
-	*** restoreTimedInProxies();
-	*** start();
-	*** stop();
-	*** successfullyConnectedToProxy(org.lantern.ProxyHolder);
-}
-
--keep class org.lantern.DefaultProxyTracker$1 {
-	*** this$0;
-}
-
--keep class org.lantern.DefaultProxyTracker$2 {
-	*** this$0;
-	*** val$proxy;
-}
-
--keep class org.lantern.DefaultProxyTracker$3 {
-	*** this$0;
-	*** val$proxy;
-}
-
--keep class org.lantern.DefaultProxyTracker$ProxyPrioritizer {
-	*** this$0;
-	org.lantern.DefaultProxyTracker$ProxyPrioritizer(org.lantern.DefaultProxyTracker);
-	*** compare(org.lantern.ProxyHolder,org.lantern.ProxyHolder);
-}
-
 -keep class org.lantern.DefaultProxyTrackerTest {
-	*** getProxyPort(org.lantern.ProxyHolder);
-	*** waitForProxy(org.lantern.DefaultProxyTracker);
+	*** getProxyPort(org.lantern.proxy.ProxyHolder);
+	*** waitForProxy(org.lantern.proxy.DefaultProxyTracker);
 }
 
 -keep class org.lantern.DefaultProxyTrackerTest$Miniproxy {
@@ -56077,8 +52028,8 @@
 }
 
 -keep class org.lantern.DefaultXmppHandler {
-	*** $SWITCH_TABLE$org$lantern$GoogleTalkState;
 	*** LOG;
+	*** censored;
 	*** client;
 	*** closedBetaEvent;
 	*** closedBetaLock;
@@ -56086,46 +52037,34 @@
 	*** keyStoreManager;
 	*** kscopeAdHandler;
 	*** lastInfoMessageScheduled;
-	*** lastJson;
 	*** mappedServer;
 	*** model;
 	*** modelUtils;
-	*** msgs;
 	*** natPmpService;
 	*** networkTracker;
-	*** pingTimeout;
-	*** previousConnection;
 	*** proxyTracker;
-	*** reconnectIfNoPong;
 	*** roster;
 	*** socketsUtil;
-	*** started;
 	*** state;
-	*** stats;
 	*** timer;
 	*** typedListener;
 	*** udtFiveTupleListener;
 	*** upnpService;
-	*** waitingForPong;
 	*** xmppProcessors;
 	*** xmppUtil;
-	org.lantern.DefaultXmppHandler(org.lantern.state.Model,java.util.Timer,org.lantern.ClientStats,org.lantern.LanternKeyStoreManager,org.lantern.LanternSocketsUtil,org.lantern.LanternXmppUtil,org.lantern.state.ModelUtils,org.lantern.Roster,org.lantern.ProxyTracker,org.lantern.kscope.KscopeAdHandler,org.lastbamboo.common.portmapping.NatPmpService,org.lastbamboo.common.portmapping.UpnpService,org.lantern.proxy.UdtServerFiveTupleListener,org.lantern.state.FriendsHandler,org.lantern.network.NetworkTracker,org.lantern.Messages);
-	*** $SWITCH_TABLE$org$lantern$GoogleTalkState();
-	*** access$0();
-	*** access$1(org.lantern.DefaultXmppHandler,org.jivesoftware.smack.packet.Message);
-	*** access$10(org.lantern.DefaultXmppHandler);
-	*** access$11(org.lantern.DefaultXmppHandler,java.lang.String,org.jivesoftware.smack.packet.Presence);
-	*** access$13(org.lantern.DefaultXmppHandler);
-	*** access$2(org.lantern.DefaultXmppHandler,org.jivesoftware.smack.packet.Message,java.lang.Integer);
-	*** access$3(org.lantern.DefaultXmppHandler);
-	*** access$4(org.lantern.DefaultXmppHandler);
-	*** access$5(org.lantern.DefaultXmppHandler);
-	*** access$6(org.lantern.DefaultXmppHandler);
-	*** access$7(org.lantern.DefaultXmppHandler);
-	*** access$8(org.lantern.DefaultXmppHandler,java.lang.String,org.jivesoftware.smack.packet.Presence);
-	*** access$9(org.lantern.DefaultXmppHandler);
+	*** access$000();
+	*** access$100(org.lantern.DefaultXmppHandler,org.jivesoftware.smack.packet.Message);
+	*** access$1000(org.lantern.DefaultXmppHandler);
+	*** access$1100(org.lantern.DefaultXmppHandler,java.lang.String,org.jivesoftware.smack.packet.Presence);
+	*** access$1200(org.lantern.DefaultXmppHandler);
+	*** access$200(org.lantern.DefaultXmppHandler,org.jivesoftware.smack.packet.Message,java.lang.Integer);
+	*** access$400(org.lantern.DefaultXmppHandler);
+	*** access$700(org.lantern.DefaultXmppHandler);
+	*** access$800(org.lantern.DefaultXmppHandler,java.lang.String,org.jivesoftware.smack.packet.Presence);
+	*** access$900(org.lantern.DefaultXmppHandler);
 	*** addOrRemovePeer(org.jivesoftware.smack.packet.Presence,java.lang.String);
 	*** addToRoster(java.lang.String);
+	*** addressForConfiguredFallbackProxy();
 	*** addressToHostAndPort(java.net.InetSocketAddress);
 	*** connect();
 	*** connect(java.lang.String,java.lang.String);
@@ -56136,16 +52075,12 @@
 	*** getJid();
 	*** getMappedServer();
 	*** getP2PClient();
-	*** getPingTimeout();
 	*** getProxyTracker();
 	*** getResource();
 	*** getStunServers(org.jivesoftware.smack.XMPPConnection);
 	*** handleConnectionFailure();
 	*** handleSetDelay(org.json.simple.JSONObject);
-	*** handleUpdate(org.json.simple.JSONObject);
-	*** hasConnection();
-	*** instanceOfflineOrUntrusted(org.lantern.network.InstanceInfo);
-	*** instanceOnlineAndTrusted(org.lantern.network.InstanceInfo);
+	*** handleVersionUpdate(org.json.simple.JSONObject);
 	*** isLoggedIn();
 	*** login(org.littleshoot.commom.xmpp.XmppCredentials);
 	*** makeClient(java.net.InetSocketAddress);
@@ -56153,116 +52088,28 @@
 	*** notInClosedBeta(java.lang.String);
 	*** onAuthStatus(org.lantern.event.GoogleTalkStateEvent);
 	*** onClosedBetaEvent(org.lantern.event.ClosedBetaEvent);
-	*** onConnectivityChanged(org.lantern.ConnectivityChangedEvent);
 	*** onReset(org.lantern.event.ResetEvent);
 	*** onUpdatePresenceEvent(org.lantern.event.UpdatePresenceEvent);
 	*** peerAvailable(java.lang.String,org.jivesoftware.smack.packet.Presence);
 	*** peerUnavailable(java.lang.String,org.jivesoftware.smack.packet.Presence);
-	*** ping();
 	*** processInfoData(org.jivesoftware.smack.packet.Message);
 	*** processKscopePayload(java.lang.String,java.lang.String);
 	*** processLanternHubMessage(org.jivesoftware.smack.packet.Message);
 	*** processTypedMessage(org.jivesoftware.smack.packet.Message,java.lang.Integer);
-	*** reconnect();
-	*** removeFromRoster(java.lang.String);
 	*** sendAndRequestCert(java.lang.String);
 	*** sendFallbackHostAndPort(org.jivesoftware.smack.packet.Presence);
 	*** sendHostAndPort(org.jivesoftware.smack.packet.Presence);
 	*** sendInfoResponse(java.lang.String);
-	*** sendInvite(org.lantern.state.Friend,boolean,boolean);
 	*** sendOnDemandValuesToControllerIfNecessary(org.json.simple.JSONObject);
 	*** sendPacket(org.jivesoftware.smack.packet.Packet);
-	*** sendPresence(org.jivesoftware.smack.packet.Presence,java.lang.String);
 	*** sendToken(org.jivesoftware.smack.packet.Presence);
 	*** sendTypedPacket(java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
-	*** setPingTimeout(long);
-	*** start();
 	*** stop();
 	*** subscribe(java.lang.String);
 	*** subscribed(java.lang.String);
 	*** toStringServers(java.util.Collection);
-	*** unsubscribe(java.lang.String);
-	*** unsubscribed(java.lang.String);
 	*** updatePresence();
 	*** waitForClosedBetaStatus(java.lang.String);
-}
-
--keep class org.lantern.DefaultXmppHandler$$EnhancerByMockitoWithCGLIB$$a3ecb24f {
-	*** CGLIB$BOUND;
-	*** CGLIB$CALLBACK_0;
-	*** CGLIB$CALLBACK_1;
-	*** CGLIB$STATIC_CALLBACKS;
-	*** CGLIB$THREAD_CALLBACKS;
-	*** CGLIB$addOrRemovePeer$16$Method;
-	*** CGLIB$addOrRemovePeer$16$Proxy;
-	*** CGLIB$addToRoster$9$Method;
-	*** CGLIB$addToRoster$9$Proxy;
-	*** CGLIB$clone$32$Method;
-	*** CGLIB$clone$32$Proxy;
-	*** CGLIB$connect$2$Method;
-	*** CGLIB$connect$2$Proxy;
-	*** CGLIB$connect$3$Method;
-	*** CGLIB$connect$3$Proxy;
-	*** CGLIB$disconnect$4$Method;
-	*** CGLIB$disconnect$4$Proxy;
-	*** CGLIB$emptyArgs;
-	*** CGLIB$equals$29$Method;
-	*** CGLIB$equals$29$Proxy;
-	*** CGLIB$finalize$28$Method;
-	*** CGLIB$finalize$28$Proxy;
-	*** CGLIB$getJid$25$Method;
-	*** CGLIB$getJid$25$Proxy;
-	*** CGLIB$getMappedServer$12$Method;
-	*** CGLIB$getMappedServer$12$Proxy;
-	*** CGLIB$getP2PClient$15$Method;
-	*** CGLIB$getP2PClient$15$Proxy;
-	*** CGLIB$getPingTimeout$20$Method;
-	*** CGLIB$getPingTimeout$20$Proxy;
-	*** CGLIB$getProxyTracker$14$Method;
-	*** CGLIB$getProxyTracker$14$Proxy;
-	*** CGLIB$hashCode$31$Method;
-	*** CGLIB$hashCode$31$Proxy;
-	*** CGLIB$instanceOfflineOrUntrusted$24$Method;
-	*** CGLIB$instanceOfflineOrUntrusted$24$Proxy;
-	*** CGLIB$instanceOnlineAndTrusted$27$Method;
-	*** CGLIB$instanceOnlineAndTrusted$27$Proxy;
-	*** CGLIB$isLoggedIn$5$Method;
-	*** CGLIB$isLoggedIn$5$Proxy;
-	*** CGLIB$onAuthStatus$18$Method;
-	*** CGLIB$onAuthStatus$18$Proxy;
-	*** CGLIB$onClosedBetaEvent$26$Method;
-	*** CGLIB$onClosedBetaEvent$26$Proxy;
-	*** CGLIB$onConnectivityChanged$19$Method;
-	*** CGLIB$onConnectivityChanged$19$Proxy;
-	*** CGLIB$onReset$23$Method;
-	*** CGLIB$onReset$23$Proxy;
-	*** CGLIB$onUpdatePresenceEvent$22$Method;
-	*** CGLIB$onUpdatePresenceEvent$22$Proxy;
-	*** CGLIB$removeFromRoster$10$Method;
-	*** CGLIB$removeFromRoster$10$Proxy;
-	*** CGLIB$sendInvite$6$Method;
-	*** CGLIB$sendInvite$6$Proxy;
-	*** CGLIB$sendPacket$13$Method;
-	*** CGLIB$sendPacket$13$Proxy;
-	*** CGLIB$setPingTimeout$21$Method;
-	*** CGLIB$setPingTimeout$21$Proxy;
-	*** CGLIB$start$0$Method;
-	*** CGLIB$start$0$Proxy;
-	*** CGLIB$stop$1$Method;
-	*** CGLIB$stop$1$Proxy;
-	*** CGLIB$subscribe$17$Method;
-	*** CGLIB$subscribe$17$Proxy;
-	*** CGLIB$subscribed$11$Method;
-	*** CGLIB$subscribed$11$Proxy;
-	*** CGLIB$toString$30$Method;
-	*** CGLIB$toString$30$Proxy;
-	*** CGLIB$unsubscribe$7$Method;
-	*** CGLIB$unsubscribe$7$Proxy;
-	*** CGLIB$unsubscribed$8$Method;
-	*** CGLIB$unsubscribed$8$Proxy;
-	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
-	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK5();
 }
 
 -keep class org.lantern.DefaultXmppHandler$1 {
@@ -56278,27 +52125,15 @@
 }
 
 -keep class org.lantern.DefaultXmppHandler$4 {
-	*** this$0;
-}
-
--keep class org.lantern.DefaultXmppHandler$5 {
-	*** this$0;
-	*** val$conn;
-	*** val$pres;
-}
-
--keep class org.lantern.DefaultXmppHandler$DefaultP2PConnectionListener {
-	*** this$0;
-	org.lantern.DefaultXmppHandler$DefaultP2PConnectionListener(org.lantern.DefaultXmppHandler);
+	*** $SwitchMap$org$jivesoftware$smack$packet$Presence$Type;
+	*** $SwitchMap$org$lantern$GoogleTalkState;
 }
 
 -keep class org.lantern.DefaultXmppHandler$DefaultPacketListener {
-	*** $SWITCH_TABLE$org$jivesoftware$smack$packet$Presence$Type;
 	*** this$0;
 	org.lantern.DefaultXmppHandler$DefaultPacketListener(org.lantern.DefaultXmppHandler);
-	*** $SWITCH_TABLE$org$jivesoftware$smack$packet$Presence$Type();
-	*** access$0(org.lantern.DefaultXmppHandler$DefaultPacketListener,org.jivesoftware.smack.packet.Packet,org.jivesoftware.smack.packet.Presence,java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
-	*** access$1(org.lantern.DefaultXmppHandler$DefaultPacketListener,org.jivesoftware.smack.packet.Packet,org.jivesoftware.smack.packet.Presence,java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
+	*** access$500(org.lantern.DefaultXmppHandler$DefaultPacketListener,org.jivesoftware.smack.packet.Packet,org.jivesoftware.smack.packet.Presence,java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
+	*** access$600(org.lantern.DefaultXmppHandler$DefaultPacketListener,org.jivesoftware.smack.packet.Packet,org.jivesoftware.smack.packet.Presence,java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
 	*** handleHubMessage(org.jivesoftware.smack.packet.Packet,org.jivesoftware.smack.packet.Presence,java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
 	*** handlePeerMessage(org.jivesoftware.smack.packet.Packet,org.jivesoftware.smack.packet.Presence,java.lang.String,org.jivesoftware.smack.packet.Presence$Type);
 }
@@ -56308,23 +52143,22 @@
 	*** val$pack;
 }
 
--keep class org.lantern.DefaultXmppHandler$PingListener {
-	*** this$0;
-	org.lantern.DefaultXmppHandler$PingListener(org.lantern.DefaultXmppHandler);
-}
-
--keep class org.lantern.DefaultXmppHandler$Reconnector {
-	*** this$0;
-	org.lantern.DefaultXmppHandler$Reconnector(org.lantern.DefaultXmppHandler);
-}
-
 -keep class org.lantern.DefaultXmppHandlerTest {
 	*** LOG;
 	*** closedBetaEvent;
+	*** access$000();
+	*** access$100(org.lantern.DefaultXmppHandlerTest);
+}
+
+-keep class org.lantern.DefaultXmppHandlerTest$1 {
+	*** this$0;
+	*** val$censored;
+	*** val$model;
+	*** val$settings;
+	*** call();
 }
 
 -keep class org.lantern.Diagnostics {
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus;
 	*** PROXY_LOCK;
 	*** certsFile;
 	*** fallbackServerHost;
@@ -56332,7 +52166,7 @@
 	*** log;
 	*** output;
 	*** text;
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus();
+	*** access$000();
 	*** copyFallback();
 	*** output(java.lang.String);
 	*** output(java.lang.String,java.lang.Exception);
@@ -56351,71 +52185,46 @@
 	*** this$0;
 }
 
--keep class org.lantern.DisplayWrapper {
-	*** display;
-	*** getDisplay();
+-keep class org.lantern.Diagnostics$3 {
+	*** $SwitchMap$org$lantern$ConnectivityStatus;
 }
 
--keep class org.lantern.FallbackProxies {
-	*** proxies;
-	*** getProxies();
+-keep class org.lantern.EmailAddressUtils {
+	*** normalizedEmail(java.lang.String);
 }
 
--keep class org.lantern.FallbackProxy {
-	*** base64PublicKey;
-	*** ip;
-	*** port;
-	*** getIp();
-	*** getPort();
+-keep class org.lantern.FallbackChecker {
+	*** LOG;
+	*** fallbacks;
+	*** httpClientFactory;
+	*** proxyTracker;
+	*** canProxyThroughCurrentFallback();
+	*** populateFallbacks(java.lang.String);
+}
+
+-keep class org.lantern.FallbackChecker$1 {
+	*** this$0;
 }
 
 -keep class org.lantern.FallbackProxyTest {
+	*** GIVE_HOST;
+	*** GIVE_PORT;
 	*** LITTLEPROXY_TEST;
-	*** SERVER_PORT;
 	*** log;
 	*** originalFallbackKeystorePath;
-	*** access$0(org.lantern.FallbackProxyTest);
 	*** addTestCertToTrustStore(org.lantern.LanternTrustStore);
 	*** hitSite(org.apache.http.impl.client.DefaultHttpClient,java.lang.String);
+	*** startGetModeProxy();
 	*** startGiveModeProxy(org.lantern.LanternTrustStore,org.lantern.LanternKeyStoreManager);
 }
 
--keep class org.lantern.FallbackProxyTest$1 {
+-keep class org.lantern.GoogleOauth2CallbackServletTest$1 {
 	*** this$0;
-	*** val$clientFactory;
-}
-
--keep class org.lantern.FallbackTray {
-	*** linuxTray;
-	*** log;
-	*** model;
-	*** nonLinuxTray;
-	*** createTray();
-	*** fallback();
-}
-
--keep class org.lantern.FallbackTray$1 {
-	*** this$0;
-}
-
--keep class org.lantern.FallbackTray$2 {
-	*** this$0;
-}
-
--keep class org.lantern.GeoData {
-	*** countrycode;
-	*** latitude;
-	*** longitude;
-	*** getCountrycode();
-	*** getLatitude();
-	*** getLongitude();
-	*** setCountrycode(java.lang.String);
-	*** setLatitude(double);
-	*** setLongitude(double);
+	*** call();
 }
 
 -keep class org.lantern.GoogleTalkState {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** LOGIN_FAILED;
 	*** connected;
 	*** connecting;
@@ -56423,20 +52232,70 @@
 	*** values();
 }
 
+-keep class org.lantern.GoogleTalkTest$1 {
+	*** this$0;
+	*** call();
+}
+
+-keep class org.lantern.HostSpoofingTest {
+	*** readResponse(java.io.InputStream);
+	*** writeHttpRequest(java.io.OutputStream);
+}
+
 -keep class org.lantern.HttpClientFactoryTest {
 	*** log;
+	*** access$000(org.lantern.HttpClientFactoryTest);
+	*** access$100(org.lantern.HttpClientFactoryTest,org.apache.http.client.HttpClient);
+	*** access$200(org.lantern.HttpClientFactoryTest,org.apache.http.client.HttpClient);
 	*** testExceptional(org.apache.http.client.HttpClient);
-	*** testGoogleDocs(org.lantern.util.HttpClientFactory);
 	*** testStats(org.apache.http.client.HttpClient);
 }
 
 -keep class org.lantern.HttpClientFactoryTest$1 {
 	*** this$0;
-	*** answer(org.mockito.invocation.InvocationOnMock);
+	*** call();
+}
+
+-keep class org.lantern.HttpClientFactoryTest$2 {
+	*** this$0;
+	*** val$client;
+	*** call();
+}
+
+-keep class org.lantern.HttpURLClient {
+	*** proxy;
+	*** sslContextSource;
+	org.lantern.HttpURLClient(java.net.InetSocketAddress);
+	*** newConn(java.lang.String);
+}
+
+-keep class org.lantern.HttpURLClient$SSLContextSource {
+	*** getContext(java.lang.String);
+}
+
+-keep class org.lantern.JsonUtilTest$Child {
+	*** propertyA;
+	*** propertyB;
+}
+
+-keep class org.lantern.JsonUtilTest$Container {
+	*** child;
+	*** propertyA;
+	*** propertyB;
+	*** propertyC;
+	*** access$000(org.lantern.JsonUtilTest$Container);
+	*** access$100(org.lantern.JsonUtilTest$Container);
+	*** access$200(org.lantern.JsonUtilTest$Container);
+	*** setPropertyA(java.lang.String);
+	*** setPropertyB(java.lang.String);
+	*** setPropertyC(java.lang.String);
 }
 
 -keep class org.lantern.JsonUtils {
 	*** LOG;
+	*** OBJECT_MAPPER;
+	*** decode(java.io.InputStream,java.lang.Class);
+	*** decode(java.lang.String,java.lang.Class);
 	*** getValueFromJson(java.lang.String,java.lang.String);
 	*** jsonify(java.lang.Object);
 	*** jsonify(java.lang.Object,java.lang.Class);
@@ -56456,6 +52315,7 @@
 }
 
 -keep class org.lantern.LanternClientConstants {
+	*** BUILD_TIME;
 	*** CONFIG_DIR;
 	*** CONTROLLER_URL;
 	*** DATA_DIR;
@@ -56479,70 +52339,9 @@
 }
 
 -keep class org.lantern.LanternConstants {
+	*** LANTERN_LOCALHOST_ADDR;
 	*** ON_APP_ENGINE;
 	*** UTF8;
-}
-
--keep class org.lantern.LanternFeedback {
-	*** FORM_ORDER;
-	*** httpClientFactory;
-	*** log;
-	org.lantern.LanternFeedback(org.lantern.util.HttpClientFactory);
-	*** getHttpPost(java.lang.String);
-	*** postForm(java.lang.String,java.util.List);
-	*** submit(java.lang.String,java.lang.String);
-	*** submitFeedback(java.util.Map);
-	*** systemInfo();
-}
-
--keep class org.lantern.LanternFeedback$$EnhancerByMockitoWithCGLIB$$95b5b2d5 {
-	*** CGLIB$BOUND;
-	*** CGLIB$CALLBACK_0;
-	*** CGLIB$CALLBACK_1;
-	*** CGLIB$STATIC_CALLBACKS;
-	*** CGLIB$THREAD_CALLBACKS;
-	*** CGLIB$clone$7$Method;
-	*** CGLIB$clone$7$Proxy;
-	*** CGLIB$emptyArgs;
-	*** CGLIB$equals$4$Method;
-	*** CGLIB$equals$4$Proxy;
-	*** CGLIB$finalize$3$Method;
-	*** CGLIB$finalize$3$Proxy;
-	*** CGLIB$getHttpPost$1$Method;
-	*** CGLIB$getHttpPost$1$Proxy;
-	*** CGLIB$hashCode$6$Method;
-	*** CGLIB$hashCode$6$Proxy;
-	*** CGLIB$submit$2$Method;
-	*** CGLIB$submit$2$Proxy;
-	*** CGLIB$systemInfo$0$Method;
-	*** CGLIB$systemInfo$0$Proxy;
-	*** CGLIB$toString$5$Method;
-	*** CGLIB$toString$5$Proxy;
-	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
-	*** CGLIB$SET_STATIC_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK8();
-	*** CGLIB$clone$7();
-	*** CGLIB$equals$4(java.lang.Object);
-	*** CGLIB$finalize$3();
-	*** CGLIB$findMethodProxy(org.mockito.cglib.core.Signature);
-	*** CGLIB$getHttpPost$1(java.lang.String);
-	*** CGLIB$hashCode$6();
-	*** CGLIB$submit$2(java.lang.String,java.lang.String);
-	*** CGLIB$systemInfo$0();
-	*** CGLIB$toString$5();
-	*** equals(java.lang.Object);
-	*** getCallback(int);
-	*** getCallbacks();
-	*** getHttpPost(java.lang.String);
-	*** hashCode();
-	*** newInstance(java.lang.Class[],java.lang.Object[],org.mockito.cglib.proxy.Callback[]);
-	*** newInstance(org.mockito.cglib.proxy.Callback);
-	*** newInstance(org.mockito.cglib.proxy.Callback[]);
-	*** setCallback(int,org.mockito.cglib.proxy.Callback);
-	*** setCallbacks(org.mockito.cglib.proxy.Callback[]);
-	*** submit(java.lang.String,java.lang.String);
-	*** toString();
 }
 
 -keep class org.lantern.LanternKeyStoreManager {
@@ -56554,7 +52353,6 @@
 	*** localCert;
 	*** log;
 	*** started;
-	org.lantern.LanternKeyStoreManager();
 	org.lantern.LanternKeyStoreManager(java.io.File);
 	*** createKeyStore();
 	*** generateLocalCert(java.lang.String);
@@ -56581,6 +52379,7 @@
 	*** geoIpLookupService;
 	*** log;
 	*** natPmpService;
+	*** s_instance;
 	*** upnpService;
 	*** commandLine();
 	*** copyFireFoxExtension();
@@ -56605,13 +52404,15 @@
 
 -keep class org.lantern.LanternProxyingTest {
 	*** log;
-	*** launch(org.lantern.Launcher);
+	*** access$000(org.lantern.LanternProxyingTest);
+	*** access$100(org.lantern.LanternProxyingTest,java.lang.String,org.apache.http.client.HttpClient,int);
 	*** testWhitelistedSite(java.lang.String,org.apache.http.client.HttpClient,int);
 }
 
 -keep class org.lantern.LanternProxyingTest$1 {
 	*** this$0;
-	*** val$launcher;
+	*** val$censored;
+	*** call();
 }
 
 -keep class org.lantern.LanternRosterEntry {
@@ -56646,10 +52447,9 @@
 
 -keep class org.lantern.LanternSocketsUtil {
 	*** log;
-	*** stats;
 	*** threadPool;
 	*** trustStore;
-	*** access$0(org.lantern.LanternSocketsUtil);
+	*** access$000(org.lantern.LanternSocketsUtil);
 	*** newTlsServerSocketFactory();
 	*** newTlsServerSocketFactory(java.lang.String[]);
 	*** newTlsServerSocketFactoryJavaCipherSuites();
@@ -56693,18 +52493,21 @@
 }
 
 -keep class org.lantern.LanternTrustStore {
+	*** LOGGER;
 	*** ksm;
-	*** log;
 	*** sslContextRef;
 	*** tmf;
 	*** trustStore;
 	org.lantern.LanternTrustStore(org.lantern.LanternKeyStoreManager);
+	*** addCert(java.lang.String);
 	*** addCert(java.lang.String,java.lang.String);
 	*** addCert(java.net.URI,java.security.cert.Certificate);
 	*** addCert(java.security.KeyStore,java.security.cert.CertificateFactory,java.lang.String,java.lang.String);
 	*** blankTrustStore();
+	*** configureCipherSuites();
 	*** containsCertificate(java.security.cert.X509Certificate);
 	*** deleteCert(java.lang.String);
+	*** getCertAlias(java.security.cert.X509Certificate);
 	*** getSslContext();
 	*** initTrustManagerFactory();
 	*** listEntries();
@@ -56714,7 +52517,7 @@
 	*** provideSslContext();
 }
 
--keep class org.lantern.LanternTrustStore$$EnhancerByMockitoWithCGLIB$$63e1c9ee {
+-keep class org.lantern.LanternTrustStore$$EnhancerByMockitoWithCGLIB$$d2bad373 {
 	*** CGLIB$BOUND;
 	*** CGLIB$CALLBACK_0;
 	*** CGLIB$CALLBACK_1;
@@ -56724,35 +52527,41 @@
 	*** CGLIB$addCert$1$Proxy;
 	*** CGLIB$addCert$2$Method;
 	*** CGLIB$addCert$2$Proxy;
-	*** CGLIB$clone$11$Method;
-	*** CGLIB$clone$11$Proxy;
-	*** CGLIB$containsCertificate$5$Method;
-	*** CGLIB$containsCertificate$5$Proxy;
+	*** CGLIB$addCert$3$Method;
+	*** CGLIB$addCert$3$Proxy;
+	*** CGLIB$clone$12$Method;
+	*** CGLIB$clone$12$Proxy;
+	*** CGLIB$containsCertificate$6$Method;
+	*** CGLIB$containsCertificate$6$Proxy;
 	*** CGLIB$deleteCert$0$Method;
 	*** CGLIB$deleteCert$0$Proxy;
 	*** CGLIB$emptyArgs;
-	*** CGLIB$equals$8$Method;
-	*** CGLIB$equals$8$Proxy;
-	*** CGLIB$finalize$7$Method;
-	*** CGLIB$finalize$7$Proxy;
-	*** CGLIB$getSslContext$4$Method;
-	*** CGLIB$getSslContext$4$Proxy;
-	*** CGLIB$hashCode$10$Method;
-	*** CGLIB$hashCode$10$Proxy;
-	*** CGLIB$listEntries$6$Method;
-	*** CGLIB$listEntries$6$Proxy;
-	*** CGLIB$newSSLEngine$3$Method;
-	*** CGLIB$newSSLEngine$3$Proxy;
-	*** CGLIB$toString$9$Method;
-	*** CGLIB$toString$9$Proxy;
+	*** CGLIB$equals$9$Method;
+	*** CGLIB$equals$9$Proxy;
+	*** CGLIB$finalize$8$Method;
+	*** CGLIB$finalize$8$Proxy;
+	*** CGLIB$getSslContext$5$Method;
+	*** CGLIB$getSslContext$5$Proxy;
+	*** CGLIB$hashCode$11$Method;
+	*** CGLIB$hashCode$11$Proxy;
+	*** CGLIB$listEntries$7$Method;
+	*** CGLIB$listEntries$7$Proxy;
+	*** CGLIB$newSSLEngine$4$Method;
+	*** CGLIB$newSSLEngine$4$Proxy;
+	*** CGLIB$toString$10$Method;
+	*** CGLIB$toString$10$Proxy;
 	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
 	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK6();
+	*** CGLIB$STATICHOOK2();
 }
 
 -keep class org.lantern.LanternTrustStoreTest {
 	*** log;
 	*** trySite(org.apache.http.client.HttpClient,java.lang.String);
+}
+
+-keep class org.lantern.LanternTrustStoreTest$1 {
+	*** this$0;
 }
 
 -keep class org.lantern.LanternUtils {
@@ -56769,8 +52578,10 @@
 	*** certFromBase64(java.lang.String);
 	*** certFromBytes(byte[]);
 	*** checkTrueOrFalse(java.lang.String,java.lang.String,java.lang.String);
+	*** chmod(java.lang.String,int);
 	*** defaultPhotoUrl();
 	*** fileInJarToString(java.lang.String);
+	*** findFreePort();
 	*** findKeytoolPath();
 	*** fullDelete(java.io.File);
 	*** getAccessToken();
@@ -56780,7 +52591,7 @@
 	*** getScreenCenter(int,int);
 	*** getTargetForPath(java.lang.Object,java.lang.String);
 	*** hasNetworkConnection();
-	*** installPolicyFiles();
+	*** hostAndPortFrom(io.netty.handler.codec.http.HttpRequest);
 	*** isAnonymizedGoogleTalkAddress(java.lang.String);
 	*** isDevMode();
 	*** isFallbackProxy();
@@ -56791,10 +52602,8 @@
 	*** isTesting();
 	*** isTrue(java.lang.String);
 	*** isUnlimitedKeyStrength();
-	*** isa(java.lang.String,int);
 	*** loadJarLibrary(java.lang.Class,java.lang.String);
 	*** newURI(java.lang.String);
-	*** openOutgoingPeer(java.net.URI,org.lastbamboo.common.p2p.P2PClient,java.util.Map);
 	*** openOutgoingPeerSocket(java.net.URI,org.lastbamboo.common.p2p.P2PClient,java.util.Map,boolean);
 	*** persistCredentials();
 	*** photoUrl(java.lang.String);
@@ -56815,31 +52624,62 @@
 	*** waitForServer(int);
 	*** waitForServer(int,int);
 	*** waitForServer(java.lang.String,int,int);
+	*** waitForServer(java.net.InetSocketAddress,int);
 }
 
 -keep class org.lantern.LanternUtilsTest {
 	*** LOG;
-	*** access$0();
+	*** access$000();
 }
 
 -keep class org.lantern.LanternUtilsTest$1 {
 	*** this$0;
+	*** call();
+}
+
+-keep class org.lantern.LanternUtilsTest$2 {
+	*** this$0;
+	*** call();
+}
+
+-keep class org.lantern.LanternUtilsTest$2$1 {
+	*** this$1;
+}
+
+-keep class org.lantern.LanternUtilsTest$3 {
+	*** this$0;
+	*** call();
+}
+
+-keep class org.lantern.LanternVersion {
+	*** LOG;
+	*** infoUrl;
+	*** installerBaseUrl;
+	*** releaseDate;
+	org.lantern.LanternVersion();
+	*** getInfoUrl();
+	*** getInstallerBaseUrl();
+	*** getReleaseDate();
 }
 
 -keep class org.lantern.LanternXmppRetryStrategyFactory {
 	*** LOG;
-	*** access$0();
+	*** model;
+	*** access$000(org.lantern.LanternXmppRetryStrategyFactory);
+	*** access$100();
+	*** newStrategy();
+}
+
+-keep class org.lantern.LanternXmppRetryStrategyFactory$LanternXmppRetryStrategy {
+	*** this$0;
+	org.lantern.LanternXmppRetryStrategyFactory$LanternXmppRetryStrategy(org.lantern.LanternXmppRetryStrategyFactory);
 }
 
 -keep class org.lantern.LanternXmppUtil {
 	*** LOG;
 	*** proxySocketFactory;
-	*** socketsUtil;
-	*** access$0(org.lantern.LanternXmppUtil);
-	*** proxyInfo();
-	*** xmppConfig();
-	*** xmppConfig(org.jivesoftware.smack.proxy.ProxyInfo);
-	*** xmppProxyConfig();
+	*** access$100(org.lantern.LanternXmppUtil);
+	*** xmppConfig(boolean);
 }
 
 -keep class org.lantern.LanternXmppUtil$DirectSocketFactory {
@@ -56858,11 +52698,13 @@
 	*** LOG;
 	*** START_TIME;
 	*** browserService;
+	*** flashlightServerManager;
+	*** friendsHandler;
 	*** getModeProxy;
 	*** giveModeProxy;
 	*** httpClientFactory;
+	*** initLock;
 	*** injector;
-	*** internalState;
 	*** jettyLauncher;
 	*** keyStoreManager;
 	*** lanternModule;
@@ -56871,49 +52713,50 @@
 	*** model;
 	*** modelUtils;
 	*** proxyTracker;
+	*** publicIpAndTokenTracker;
+	*** publicIpInfoHandler;
+	*** s3ConfigFetcher;
+	*** s_instance;
 	*** set;
-	*** statsReporter;
-	*** statsUpdater;
+	*** statsManager;
 	*** syncService;
 	*** systemTray;
 	*** xmpp;
 	*** access$0(org.lantern.Launcher,java.lang.Throwable,boolean);
 	*** access$1(org.lantern.Launcher);
 	*** access$10(org.lantern.Launcher);
-	*** access$11(org.lantern.Launcher);
+	*** access$11();
 	*** access$12(org.lantern.Launcher);
-	*** access$13(org.lantern.Launcher);
-	*** access$14(org.lantern.Launcher);
-	*** access$15(org.lantern.Launcher);
-	*** access$16(org.lantern.Launcher);
-	*** access$17(org.lantern.Launcher);
-	*** access$18(org.lantern.Launcher);
 	*** access$2(org.lantern.Launcher,java.lang.Class);
-	*** access$3(org.lantern.Launcher,java.lang.Class);
+	*** access$3(org.lantern.Launcher);
 	*** access$4(org.lantern.Launcher);
-	*** access$5();
-	*** access$6(org.lantern.Launcher);
+	*** access$5(org.lantern.Launcher);
+	*** access$6(org.lantern.Launcher,java.lang.Class);
 	*** access$7(org.lantern.Launcher);
 	*** access$8(org.lantern.Launcher);
 	*** access$9(org.lantern.Launcher);
 	*** addShutdownHook(org.lantern.Shutdownable);
-	*** autoConnect();
-	*** configureCipherSuites();
 	*** configureDefaultLogger();
+	*** configureLoggly();
+	*** configurePapertrail();
 	*** configureProductionLogger();
 	*** getInjector();
+	*** getInstance();
+	*** getModel();
 	*** gnomeAutoStart();
 	*** handleError(java.lang.Throwable,boolean);
 	*** instance(java.lang.Class);
 	*** launch();
 	*** launchLantern(boolean);
-	*** log(java.lang.String);
+	*** lookup(java.lang.Class);
 	*** main(boolean,java.lang.String[]);
 	*** msg(java.lang.Throwable);
 	*** printLaunchTimes();
 	*** shouldShowDashboard(org.lantern.state.Model,boolean,boolean);
 	*** shutdownable(java.lang.Class);
-	*** startServices();
+	*** startNetworkServices();
+	*** startServices(boolean);
+	*** stopNetworkServices();
 	*** toSocketAddresses(java.util.Collection);
 }
 
@@ -56928,6 +52771,7 @@
 
 -keep class org.lantern.Launcher$3 {
 	*** this$0;
+	*** val$checkFallbacks;
 }
 
 -keep class org.lantern.Launcher$4 {
@@ -56942,21 +52786,12 @@
 
 -keep class org.lantern.Launcher$6 {
 	*** this$0;
+	*** val$asyncAppender;
 }
 
 -keep class org.lantern.Launcher$7 {
 	*** this$0;
-}
-
--keep class org.lantern.Launcher$8 {
-	*** client;
-	*** this$0;
-	*** ver;
-}
-
--keep class org.lantern.Launcher$9 {
-	*** this$0;
-	*** val$bugAppender;
+	*** val$asyncAppender;
 }
 
 -keep class org.lantern.LinuxBrowserLaunch {
@@ -56966,14 +52801,21 @@
 	*** seemsToHaveBrowser(java.lang.String);
 }
 
+-keep class org.lantern.LogglyHelper {
+	*** LOG;
+	*** loggly;
+	*** model;
+	*** submit(java.lang.String);
+}
+
 -keep class org.lantern.MessageKey {
+	*** $VALUES;
 	*** ADDED_FRIEND;
 	*** ALREADY_ADDED;
 	*** CHECKING_INVITE;
 	*** CONFIGURING_CONNECTION;
 	*** CONTACT_ERROR;
 	*** CONTACT_THANK_YOU;
-	*** ENUM$VALUES;
 	*** ERROR_ADDING_FRIEND;
 	*** ERROR_CONNECTING_TO;
 	*** ERROR_EMAILING_FRIEND;
@@ -56987,16 +52829,18 @@
 	*** LOAD_SETTINGS_ERROR;
 	*** LOGGED_IN;
 	*** MANUAL_PROXY;
+	*** NO_CONFIG;
 	*** NO_PROXIES;
 	*** REMOVED_FRIEND;
 	*** SETUP;
 	*** STUN_SERVER_LOOKUP;
+	*** TALK_SERVERS;
 	*** log;
 	*** values();
 }
 
 -keep class org.lantern.MessageService {
-	*** askQuestion(java.lang.String,java.lang.String,int);
+	*** askQuestion(java.lang.String,java.lang.String);
 	*** showMessage(java.lang.String,java.lang.String);
 }
 
@@ -57023,12 +52867,13 @@
 	*** attemptedLoad;
 	*** loadedNatPmp;
 	*** log;
+	*** model;
 	*** requests;
-	*** stats;
 	*** addMapping(org.lastbamboo.common.portmapping.PortMappingProtocol,int,org.lastbamboo.common.portmapping.PortMapListener);
 	*** addNatPmpMapping(org.lastbamboo.common.portmapping.PortMappingProtocol,int,int,org.lastbamboo.common.portmapping.PortMapListener);
 	*** loadNatPmp();
 	*** removeNatPmpMapping(int);
+	*** shutdown();
 }
 
 -keep class org.lantern.NatPmpImpl$1 {
@@ -57043,10 +52888,10 @@
 	*** internalPort;
 	*** lifeTimeSeconds;
 	*** protocol;
-	*** access$0(org.lantern.NatPmpImpl$MapRequest);
-	*** access$1(org.lantern.NatPmpImpl$MapRequest);
-	*** access$2(org.lantern.NatPmpImpl$MapRequest);
-	*** access$3(org.lantern.NatPmpImpl$MapRequest,int);
+	*** access$000(org.lantern.NatPmpImpl$MapRequest);
+	*** access$100(org.lantern.NatPmpImpl$MapRequest);
+	*** access$200(org.lantern.NatPmpImpl$MapRequest);
+	*** access$202(org.lantern.NatPmpImpl$MapRequest,int);
 }
 
 -keep class org.lantern.NatPmpTest {
@@ -57067,8 +52912,13 @@
 	*** openUri(java.lang.String);
 }
 
+-keep class org.lantern.NoSSLv2SocketFactory {
+	*** wrapped;
+	*** withLimitedProtocols(java.net.Socket);
+}
+
 -keep class org.lantern.OS {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** OSX;
 	*** UBUNTU32;
 	*** UBUNTU64;
@@ -57091,16 +52941,17 @@
 	*** onOutgoingConnection(java.net.URI,java.net.InetSocketAddress,org.lantern.state.Peer$Type);
 	*** peerForJid(java.net.URI);
 	*** peerForSession(javax.net.ssl.SSLSession);
+	*** updateGeoData(org.lantern.state.Peer,java.net.InetAddress);
 }
 
--keep class org.lantern.PeerFactory$$EnhancerByMockitoWithCGLIB$$2eb30b35 {
+-keep class org.lantern.PeerFactory$$EnhancerByMockitoWithCGLIB$$9d8c14ba {
 	*** CGLIB$BOUND;
 	*** CGLIB$CALLBACK_0;
 	*** CGLIB$CALLBACK_1;
 	*** CGLIB$STATIC_CALLBACKS;
 	*** CGLIB$THREAD_CALLBACKS;
-	*** CGLIB$addPeer$8$Method;
-	*** CGLIB$addPeer$8$Proxy;
+	*** CGLIB$addPeer$6$Method;
+	*** CGLIB$addPeer$6$Proxy;
 	*** CGLIB$clone$4$Method;
 	*** CGLIB$clone$4$Proxy;
 	*** CGLIB$emptyArgs;
@@ -57110,17 +52961,19 @@
 	*** CGLIB$finalize$0$Proxy;
 	*** CGLIB$hashCode$3$Method;
 	*** CGLIB$hashCode$3$Proxy;
-	*** CGLIB$onOutgoingConnection$7$Method;
-	*** CGLIB$onOutgoingConnection$7$Proxy;
-	*** CGLIB$peerForJid$5$Method;
-	*** CGLIB$peerForJid$5$Proxy;
-	*** CGLIB$peerForSession$6$Method;
-	*** CGLIB$peerForSession$6$Proxy;
+	*** CGLIB$onOutgoingConnection$5$Method;
+	*** CGLIB$onOutgoingConnection$5$Proxy;
+	*** CGLIB$peerForJid$7$Method;
+	*** CGLIB$peerForJid$7$Proxy;
+	*** CGLIB$peerForSession$8$Method;
+	*** CGLIB$peerForSession$8$Proxy;
 	*** CGLIB$toString$2$Method;
 	*** CGLIB$toString$2$Proxy;
+	*** CGLIB$updateGeoData$9$Method;
+	*** CGLIB$updateGeoData$9$Proxy;
 	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
 	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK7();
+	*** CGLIB$STATICHOOK3();
 }
 
 -keep class org.lantern.PeerSocketTest {
@@ -57128,8 +52981,6 @@
 }
 
 -keep class org.lantern.Proxifier {
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus;
-	*** $SWITCH_TABLE$org$lantern$state$Mode;
 	*** LANTERN_PROXYING_FILE;
 	*** LOG;
 	*** PROXY_ALL;
@@ -57143,8 +52994,6 @@
 	*** model;
 	*** modelUtils;
 	*** proxyTracker;
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus();
-	*** $SWITCH_TABLE$org$lantern$state$Mode();
 	*** configureOsxProxyViaScript(boolean,java.lang.String);
 	*** copyFromLocal(java.io.File);
 	*** getAndSetPacFileUrl(java.io.File);
@@ -57174,6 +53023,11 @@
 	*** unproxyWindows();
 }
 
+-keep class org.lantern.Proxifier$1 {
+	*** $SwitchMap$org$lantern$ConnectivityStatus;
+	*** $SwitchMap$org$lantern$state$Mode;
+}
+
 -keep class org.lantern.Proxifier$ProxyConfigurationCancelled {
 	*** this$0;
 }
@@ -57191,38 +53045,6 @@
 	*** this$0;
 }
 
--keep class org.lantern.ProxyHolder {
-	*** LOG;
-	*** failures;
-	*** fiveTuple;
-	*** jid;
-	*** lanternTrustStore;
-	*** peer;
-	*** peerFactory;
-	*** proxyTracker;
-	*** timeOfDeath;
-	*** type;
-	*** addFailure();
-	*** attemptNatTraversalIfConnectionFailed();
-	*** compareTo(org.lantern.ProxyHolder);
-	*** getFailures();
-	*** getFiveTuple();
-	*** getJid();
-	*** getPeer();
-	*** getProxyPassword();
-	*** getProxyUsername();
-	*** getRetryTime();
-	*** getTimeOfDeath();
-	*** getType();
-	*** incrementFailures();
-	*** isConnected();
-	*** isNatTraversed();
-	*** markConnected();
-	*** needsConnectionTest();
-	*** resetFailures();
-	*** setTimeOfDeath(long);
-}
-
 -keep class org.lantern.ProxyService {
 	*** proxyAllSites(boolean);
 	*** refresh();
@@ -57230,7 +53052,7 @@
 	*** stopProxying();
 }
 
--keep class org.lantern.ProxyService$$EnhancerByMockitoWithCGLIB$$fbfcf6a0 {
+-keep class org.lantern.ProxyService$$EnhancerByMockitoWithCGLIB$$6ad60025 {
 	*** CGLIB$BOUND;
 	*** CGLIB$CALLBACK_0;
 	*** CGLIB$CALLBACK_1;
@@ -57247,10 +53069,10 @@
 	*** CGLIB$hashCode$3$Proxy;
 	*** CGLIB$proxyAllSites$6$Method;
 	*** CGLIB$proxyAllSites$6$Proxy;
-	*** CGLIB$proxyGoogle$8$Method;
-	*** CGLIB$proxyGoogle$8$Proxy;
-	*** CGLIB$refresh$9$Method;
-	*** CGLIB$refresh$9$Proxy;
+	*** CGLIB$proxyGoogle$9$Method;
+	*** CGLIB$proxyGoogle$9$Proxy;
+	*** CGLIB$refresh$8$Method;
+	*** CGLIB$refresh$8$Proxy;
 	*** CGLIB$startProxying$5$Method;
 	*** CGLIB$startProxying$5$Proxy;
 	*** CGLIB$stopProxying$7$Method;
@@ -57259,13 +53081,14 @@
 	*** CGLIB$toString$2$Proxy;
 	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
 	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
-	*** CGLIB$STATICHOOK2();
+	*** CGLIB$STATICHOOK4();
 }
 
 -keep class org.lantern.ProxySocketFactory {
+	*** CONNECT_TIMEOUT;
+	*** LOGGER;
 	*** RESPONSE_PATTERN;
-	*** proxyTracker;
-	*** socketsUtil;
+	*** access$0();
 	*** createSocket(java.lang.String,int);
 	*** createSocket(java.lang.String,int,java.net.InetAddress,int);
 	*** createSocket(java.net.InetAddress,int);
@@ -57273,19 +53096,40 @@
 	*** httpConnectSocket(java.lang.String,int);
 }
 
--keep class org.lantern.ProxySocketFactoryTest {
-	*** log;
+-keep class org.lantern.ProxySocketFactory$1 {
+	*** this$0;
+	*** val$connected;
+	*** val$host;
+	*** val$ioe;
+	*** val$lock;
+	*** val$port;
+	*** val$socket;
+	*** val$timedOut;
 }
 
--keep class org.lantern.ProxyTracker {
-	*** addProxy(java.net.URI,java.net.InetSocketAddress);
-	*** addressForConfiguredFallbackProxy();
-	*** clearPeerProxySet();
-	*** firstConnectedTcpProxyBlocking();
-	*** getConnectedProxiesInOrderOfFallbackPreference();
-	*** hasProxy();
-	*** onCouldNotConnect(org.lantern.ProxyHolder);
-	*** removeNattedProxy(java.net.URI);
+-keep class org.lantern.ProxySocketFactoryTest {
+	*** log;
+	*** doTest();
+}
+
+-keep class org.lantern.ProxySocketFactoryTest$1 {
+	*** this$0;
+	*** call();
+}
+
+-keep class org.lantern.PublicIpInfoHandler {
+	*** censored;
+	*** geoIpLookupService;
+	*** log;
+	*** model;
+	*** recheck;
+	*** determinePublicIp();
+	*** handleCensored(java.net.InetAddress);
+	*** handleGeoIp(java.net.InetAddress);
+}
+
+-keep class org.lantern.PublicIpInfoHandler$1 {
+	*** $SwitchMap$org$lantern$ConnectivityStatus;
 }
 
 -keep class org.lantern.ResourceBundleTest {
@@ -57298,22 +53142,26 @@
 }
 
 -keep class org.lantern.Roster {
-	*** $SWITCH_TABLE$org$lantern$state$Mode;
 	*** censored;
 	*** friendsHandler;
 	*** kscopeRoutingTable;
 	*** log;
 	*** model;
 	*** rosterEntries;
+	*** rosterExecutor;
 	*** smackRoster;
 	*** xmppHandler;
-	*** $SWITCH_TABLE$org$lantern$state$Mode();
-	*** access$0(org.lantern.Roster);
-	*** access$1(org.lantern.Roster,org.jivesoftware.smack.RosterEntry);
-	*** access$2(org.lantern.Roster);
-	*** access$3(org.lantern.Roster);
-	*** access$4(org.lantern.Roster);
-	*** access$5(org.lantern.Roster);
+	*** access$000(org.lantern.Roster);
+	*** access$100(org.lantern.Roster,org.jivesoftware.smack.RosterEntry);
+	*** access$1000(org.lantern.Roster,org.jivesoftware.smack.packet.Presence,boolean,boolean);
+	*** access$200(org.lantern.Roster);
+	*** access$300(org.lantern.Roster);
+	*** access$400(org.lantern.Roster);
+	*** access$500(org.lantern.Roster);
+	*** access$600(org.lantern.Roster);
+	*** access$700(org.lantern.Roster);
+	*** access$800(org.lantern.Roster);
+	*** access$900(org.lantern.Roster,org.jivesoftware.smack.packet.Presence,boolean,boolean);
 	*** addEntry(org.lantern.LanternRosterEntry,boolean);
 	*** autoAcceptSubscription(java.lang.String);
 	*** entriesAdded(java.util.Collection);
@@ -57341,6 +53189,36 @@
 -keep class org.lantern.Roster$1 {
 	*** this$0;
 	*** val$ros;
+	*** call();
+}
+
+-keep class org.lantern.Roster$2 {
+	*** this$0;
+	*** val$entries;
+}
+
+-keep class org.lantern.Roster$3 {
+	*** this$0;
+	*** val$addresses;
+}
+
+-keep class org.lantern.Roster$4 {
+	*** this$0;
+	*** val$entries;
+}
+
+-keep class org.lantern.Roster$5 {
+	*** this$0;
+	*** val$entries;
+}
+
+-keep class org.lantern.Roster$6 {
+	*** this$0;
+	*** val$pres;
+}
+
+-keep class org.lantern.Roster$7 {
+	*** $SwitchMap$org$lantern$state$Mode;
 }
 
 -keep class org.lantern.RosterDeserializer {
@@ -57362,6 +53240,62 @@
 	*** response;
 }
 
+-keep class org.lantern.S3Config {
+	*** controller;
+	*** fallbacks;
+	*** masqueradeHost;
+	*** maxpoll;
+	*** minpoll;
+	*** signalingRetryTime;
+	*** statsGetInterval;
+	*** statsPostInterval;
+	*** equals(java.lang.Object);
+	*** flashlightProps(java.lang.String);
+	*** flashlightProxy(java.lang.String,int);
+	*** getController();
+	*** getFallbacks();
+	*** getMasqueradeHost();
+	*** getMaxpoll();
+	*** getMinpoll();
+	*** getSignalingRetryTime();
+	*** getStatsGetInterval();
+	*** getStatsPostInterval();
+	*** setFallbacks(java.util.Collection);
+}
+
+-keep class org.lantern.S3ConfigFetcher {
+	*** configCheckTimer;
+	*** log;
+	*** model;
+	*** random;
+	*** access$0(org.lantern.S3ConfigFetcher);
+	*** determineUrl();
+	*** downloadAndCompareConfig();
+	*** fetchRemoteConfig();
+	*** fetchRemoteConfig(org.apache.http.client.HttpClient);
+	*** init();
+	*** lerp(double,double,double);
+	*** recheck();
+	*** scheduleConfigRecheck(double);
+	*** start();
+	*** stop();
+	*** urlFromFile(java.io.File);
+	*** urlFromFolder(java.lang.String);
+}
+
+-keep class org.lantern.S3ConfigFetcher$1 {
+	*** this$0;
+}
+
+-keep class org.lantern.S3ConfigFetcherTest {
+	*** messageRef;
+}
+
+-keep class org.lantern.S3ConfigTest {
+	*** configObject(java.lang.String);
+	*** testFileToString(java.lang.String);
+}
+
 -keep class org.lantern.SecurityUtils {
 	*** constantTimeEquals(java.lang.String,java.lang.String);
 }
@@ -57370,143 +53304,29 @@
 	*** val$serverSocket;
 }
 
+-keep class org.lantern.SemanticVersion {
+	*** PATTERN;
+	*** major;
+	*** minor;
+	*** patch;
+	*** tag;
+	org.lantern.SemanticVersion();
+	*** compareTo(org.lantern.SemanticVersion);
+	*** equals(java.lang.Object);
+	*** getMajor();
+	*** getMinor();
+	*** getPatch();
+	*** getTag();
+	*** toComparableString();
+	*** toMap();
+	*** toString();
+}
+
 -keep class org.lantern.Shutdownable {
 	*** stop();
 }
 
--keep class org.lantern.SplashScreen {
-	*** bar;
-	*** closed;
-	*** display;
-	*** image;
-	*** label;
-	*** log;
-	*** progress;
-	*** splash;
-	*** access$0(org.lantern.SplashScreen);
-	*** access$1(org.lantern.SplashScreen);
-	*** access$2(org.lantern.SplashScreen);
-	*** access$3(org.lantern.SplashScreen);
-	*** access$4(org.lantern.SplashScreen);
-	*** access$5(org.lantern.SplashScreen,org.eclipse.swt.widgets.Shell);
-	*** access$6(org.lantern.SplashScreen,org.eclipse.swt.graphics.Image);
-	*** close();
-}
-
--keep class org.lantern.SplashScreen$1 {
-	*** this$0;
-}
-
--keep class org.lantern.SplashScreen$2 {
-	*** this$0;
-}
-
--keep class org.lantern.Stats {
-	*** getDownBytesPerSecond();
-	*** getDownBytesThisRun();
-	*** getUpBytesPerSecond();
-	*** getUpBytesThisRun();
-}
-
--keep class org.lantern.StatsTracker {
-	*** countries;
-	*** countryCode;
-	*** countryService;
-	*** directBytes;
-	*** directRequests;
-	*** distinctProxiedClientAddresses;
-	*** downBytesPerSecondForPeers;
-	*** downBytesPerSecondFromPeers;
-	*** downBytesPerSecondViaProxies;
-	*** log;
-	*** lookupService;
-	*** natpmp;
-	*** proxiedRequests;
-	*** totalBytesProxied;
-	*** upBytesPerSecondForPeers;
-	*** upBytesPerSecondToPeers;
-	*** upBytesPerSecondViaProxies;
-	*** upnp;
-	*** addBytesProxied(long,java.net.InetSocketAddress);
-	*** addDirectBytes(long);
-	*** addDownBytesForPeers(long);
-	*** addDownBytesFromPeers(long);
-	*** addDownBytesViaProxies(long);
-	*** addProxiedClientAddress(java.net.InetAddress);
-	*** addUpBytesForPeers(long);
-	*** addUpBytesToPeers(long);
-	*** addUpBytesViaProxies(long);
-	*** getBytesPerSecond(org.lantern.util.Counter);
-	*** getCountOfDistinctProxiedClientAddresses();
-	*** getCountryCode();
-	*** getDirectBytes();
-	*** getDirectRequests();
-	*** getDownBytesPerSecond();
-	*** getDownBytesPerSecondForPeers();
-	*** getDownBytesPerSecondFromPeers();
-	*** getDownBytesPerSecondViaProxies();
-	*** getDownBytesThisRun();
-	*** getDownBytesThisRunForPeers();
-	*** getDownBytesThisRunFromPeers();
-	*** getDownBytesThisRunViaProxies();
-	*** getPeerCount();
-	*** getPeerCountThisRun();
-	*** getTotalBytesProxied();
-	*** getTotalProxiedRequests();
-	*** getUpBytesPerSecond();
-	*** getUpBytesPerSecondForPeers();
-	*** getUpBytesPerSecondToPeers();
-	*** getUpBytesPerSecondViaProxies();
-	*** getUpBytesThisRun();
-	*** getUpBytesThisRunForPeers();
-	*** getUpBytesThisRunToPeers();
-	*** getUpBytesThisRunViaProxies();
-	*** getUptime();
-	*** getVersion();
-	*** incrementDirectRequests();
-	*** incrementProxiedRequests();
-	*** isNatpmp();
-	*** isUpnp();
-	*** onLocationChanged(org.lantern.state.LocationChangedEvent);
-	*** onReset(org.lantern.event.ResetEvent);
-	*** resetCumulativeStats();
-	*** resetUserStats();
-	*** setNatpmp(boolean);
-	*** setUpnp(boolean);
-	*** toCountryData(java.net.InetSocketAddress);
-}
-
--keep class org.lantern.StatsTracker$CountryData {
-	*** addresses;
-	*** bytes;
-	*** data;
-	*** lanternData;
-	*** this$0;
-	org.lantern.StatsTracker$CountryData(org.lantern.StatsTracker,org.lantern.Country);
-	*** access$0(org.lantern.StatsTracker$CountryData);
-	*** access$1(org.lantern.StatsTracker$CountryData,long);
-	*** access$3(org.lantern.StatsTracker$CountryData);
-}
-
--keep class org.lantern.StatsUpdater {
-	*** httpClientFactory;
-	*** log;
-	*** model;
-	*** run();
-	*** updateModel(java.lang.Object,java.util.Map);
-	*** updateStats();
-}
-
--keep class org.lantern.SystemTray {
-	*** addUpdate(java.util.Map);
-	*** createTray();
-	*** isActive();
-	*** isSupported();
-}
-
 -keep class org.lantern.SystemTrayImpl {
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus;
-	*** $SWITCH_TABLE$org$lantern$GoogleTalkState;
 	*** LABEL_CONNECTED;
 	*** LABEL_CONNECTING;
 	*** LABEL_DISCONNECTED;
@@ -57517,54 +53337,41 @@
 	*** log;
 	*** menu;
 	*** model;
-	*** shell;
-	*** trayItem;
-	*** trayItemImage;
+	*** tray;
+	*** trayIcon;
+	*** trayImage;
 	*** updateData;
 	*** updateItem;
-	*** $SWITCH_TABLE$org$lantern$ConnectivityStatus();
-	*** $SWITCH_TABLE$org$lantern$GoogleTalkState();
-	*** access$0(org.lantern.SystemTrayImpl);
-	*** access$1(org.lantern.SystemTrayImpl);
-	*** access$12(org.lantern.SystemTrayImpl,java.lang.String,int,int);
-	*** access$13(org.lantern.SystemTrayImpl,org.eclipse.swt.graphics.Image);
-	*** access$2(org.lantern.SystemTrayImpl);
-	*** access$3(org.lantern.SystemTrayImpl);
-	*** access$4(org.lantern.SystemTrayImpl,org.eclipse.swt.graphics.Image);
-	*** access$5(org.lantern.SystemTrayImpl);
-	*** access$6(org.lantern.SystemTrayImpl,java.lang.String);
-	*** access$7(org.lantern.SystemTrayImpl);
-	*** access$8(org.lantern.SystemTrayImpl,org.eclipse.swt.widgets.MenuItem);
-	*** access$9(org.lantern.SystemTrayImpl);
+	*** access$000(org.lantern.SystemTrayImpl);
+	*** access$100(org.lantern.SystemTrayImpl);
+	*** access$1000(org.lantern.SystemTrayImpl,java.awt.Image);
+	*** access$200(org.lantern.SystemTrayImpl);
+	*** access$300();
+	*** access$400(org.lantern.SystemTrayImpl);
+	*** access$502(org.lantern.SystemTrayImpl,java.awt.Image);
+	*** access$600(org.lantern.SystemTrayImpl);
+	*** access$702(org.lantern.SystemTrayImpl,java.lang.String);
+	*** access$800(org.lantern.SystemTrayImpl);
+	*** access$802(org.lantern.SystemTrayImpl,java.awt.MenuItem);
+	*** access$900(org.lantern.SystemTrayImpl);
 	*** addUpdate(java.util.Map);
 	*** changeIcon(java.lang.String);
 	*** changeStatusLabel(java.lang.String);
 	*** createTray();
-	*** createTrayInternal();
-	*** newImage(java.lang.String,int,int);
+	*** doCreateTray();
+	*** newImage(java.lang.String);
 	*** onConnectivityStatus(org.lantern.ConnectivityStatus);
-	*** setImage(org.eclipse.swt.graphics.Image);
+	*** setImage(java.awt.Image);
 	*** setStatusLabel(java.lang.String);
 }
 
 -keep class org.lantern.SystemTrayImpl$1 {
 	*** this$0;
-	*** val$display;
 }
 
 -keep class org.lantern.SystemTrayImpl$10 {
-	*** this$0;
-	*** val$data;
-	*** access$0(org.lantern.SystemTrayImpl$10);
-}
-
--keep class org.lantern.SystemTrayImpl$10$1 {
-	*** this$1;
-}
-
--keep class org.lantern.SystemTrayImpl$11 {
-	*** this$0;
-	*** val$fileName;
+	*** $SwitchMap$org$lantern$ConnectivityStatus;
+	*** $SwitchMap$org$lantern$GoogleTalkState;
 }
 
 -keep class org.lantern.SystemTrayImpl$2 {
@@ -57585,20 +53392,26 @@
 
 -keep class org.lantern.SystemTrayImpl$6 {
 	*** this$0;
+	*** val$image;
 }
 
 -keep class org.lantern.SystemTrayImpl$7 {
 	*** this$0;
+	*** val$status;
 }
 
 -keep class org.lantern.SystemTrayImpl$8 {
 	*** this$0;
-	*** val$image;
+	*** val$data;
+}
+
+-keep class org.lantern.SystemTrayImpl$8$1 {
+	*** this$1;
 }
 
 -keep class org.lantern.SystemTrayImpl$9 {
 	*** this$0;
-	*** val$status;
+	*** val$fileName;
 }
 
 -keep class org.lantern.TestHttpServer {
@@ -57634,14 +53447,12 @@
 	*** shutdownables;
 	*** socketsUtil;
 	*** started;
-	*** statsTracker;
 	*** trustStore;
 	*** xmppHandler;
 	*** addCloseHook(org.lantern.Shutdownable);
 	*** getAccessToken();
 	*** getCountryService();
 	*** getEncryptedFileService();
-	*** getGeoIpLookupService();
 	*** getGoogleOauthCreds();
 	*** getModel();
 	*** getModelIo();
@@ -57664,15 +53475,14 @@
 	*** write();
 }
 
--keep class org.lantern.TestUtils$TestTransfersIo {
-	*** file;
-	*** write();
-}
-
 -keep class org.lantern.TestingUtils {
+	*** EXPECTED_PROXY;
+	*** LOGGER;
 	*** privateProps;
 	*** privatePropsFile;
 	*** accessToken();
+	*** assertIsUsingGetModeProxy(org.apache.http.client.HttpClient);
+	*** doWithGetModeProxy(java.util.concurrent.Callable);
 	*** getAccessToken();
 	*** getRefreshToken();
 	*** newCommandLine();
@@ -57682,14 +53492,17 @@
 	*** newKeyStoreManager();
 	*** newModel();
 	*** newOauthUtils();
-	*** newProxyTracker();
 	*** newXmppHandler();
 	*** newXmppHandler(org.lantern.Censored,org.lantern.state.Model);
 }
 
--keep class org.lantern.TestingUtils$1 {
-	*** val$peerFactory;
+-keep class org.lantern.TestingUtils$3 {
+	*** val$fallback;
 	*** val$trustStore;
+}
+
+-keep class org.lantern.TestingUtils$3$1 {
+	*** this$0;
 }
 
 -keep class org.lantern.TokenResponseEvent {
@@ -57727,14 +53540,15 @@
 -keep class org.lantern.Upnp {
 	*** log;
 	*** mappings;
+	*** model;
 	*** publicIp;
-	*** stats;
 	*** addMapping(org.lastbamboo.common.portmapping.PortMappingProtocol,int,int,org.lastbamboo.common.portmapping.PortMapListener);
 	*** addUpnpMapping(org.lastbamboo.common.portmapping.PortMappingProtocol,int,int,org.lastbamboo.common.portmapping.PortMapListener);
 	*** getPublicIpAddress();
 	*** logIGDResponse(int,fr.free.miniupnp.UPNPUrls);
 	*** removeAllMappings();
 	*** removeUpnpMappings(java.util.Collection);
+	*** shutdown();
 	*** zeroTerminatedString(byte[]);
 }
 
@@ -57754,7 +53568,7 @@
 
 -keep class org.lantern.UpnpTest {
 	*** log;
-	*** access$0(org.lantern.UpnpTest);
+	*** access$000(org.lantern.UpnpTest);
 }
 
 -keep class org.lantern.UpnpTest$1 {
@@ -57771,21 +53585,6 @@
 	org.lantern.Utf8ResourceBundle$Utf8PropertyResourceBundle(java.util.PropertyResourceBundle);
 }
 
--keep class org.lantern.VersionNumber {
-	*** components;
-	*** compareTo(java.lang.Object);
-	*** getComponentOrZero(int);
-	*** toString();
-}
-
--keep class org.lantern.VersionNumberDeserializer {
-	*** deserialize(org.codehaus.jackson.JsonParser,org.codehaus.jackson.map.DeserializationContext);
-}
-
--keep class org.lantern.VersionNumberSerializer {
-	*** serialize(org.lantern.VersionNumber,org.codehaus.jackson.JsonGenerator,org.codehaus.jackson.map.SerializerProvider);
-}
-
 -keep class org.lantern.WebDriverException {
 	*** createMessage(java.lang.String);
 	*** getDriverInformation();
@@ -57795,12 +53594,13 @@
 }
 
 -keep class org.lantern.Whitelist {
-	*** SITES;
-	*** defaultWhitelist;
+	*** WHITELISTS;
+	*** appliedWhitelists;
 	*** log;
 	*** whitelist;
-	*** addDefaultEntry(java.lang.String);
 	*** addEntry(java.lang.String);
+	*** applyDefaultEntries();
+	*** applyWhitelist(java.lang.String);
 	*** getEntries();
 	*** getEntriesAsStrings();
 	*** isWhitelisted(java.lang.String);
@@ -57827,38 +53627,62 @@
 	*** testFile(java.lang.String);
 }
 
+-keep class org.lantern.XmppConnector {
+	*** internalState;
+	*** log;
+	*** model;
+	*** xmppHandler;
+	*** connect();
+}
+
 -keep class org.lantern.XmppHandler {
+	*** addToRoster(java.lang.String);
 	*** connect();
 	*** disconnect();
 	*** getJid();
 	*** getMappedServer();
 	*** getP2PClient();
 	*** isLoggedIn();
-	*** sendInvite(org.lantern.state.Friend,boolean,boolean);
-	*** sendPacket(org.jivesoftware.smack.packet.Packet);
-	*** start();
 	*** stop();
 	*** subscribe(java.lang.String);
 	*** subscribed(java.lang.String);
-	*** unsubscribe(java.lang.String);
-	*** unsubscribed(java.lang.String);
+}
+
+-keep class org.lantern.aws.SignedURL {
+	*** accessKeyId;
+	*** baseUrl;
+	*** expirationInSecondsSinceEpoch;
+	*** queryString;
+	*** resource;
+	*** secretAccessKey;
+	*** signed();
+	*** withQueryString(java.lang.String);
 }
 
 -keep class org.lantern.endpoints.FriendApi {
-	*** BASE;
 	*** log;
-	*** mapper;
+	*** model;
 	*** oauth;
+	*** baseUrl();
 	*** getFriend(long);
 	*** insertFriend(org.lantern.state.ClientFriend);
 	*** listFriends();
 	*** post(java.lang.String,org.lantern.state.Friend);
+	*** processResponse(java.lang.String,java.lang.Class);
 	*** removeFriend(long);
 	*** updateFriend(org.lantern.state.ClientFriend);
 }
 
 -keep class org.lantern.endpoints.FriendEndpointTest {
 	*** log;
+	*** access$000(org.lantern.state.ClientFriend[]);
+	*** access$100(org.lantern.endpoints.FriendEndpointTest);
+	*** realFriends(org.lantern.state.ClientFriend[]);
+}
+
+-keep class org.lantern.endpoints.FriendEndpointTest$1 {
+	*** this$0;
+	*** call();
 }
 
 -keep class org.lantern.event.ClosedBetaEvent {
@@ -57935,9 +53759,25 @@
 	*** getConnectivityStatus();
 }
 
+-keep class org.lantern.event.PublicIpAndTokenEvent {
+	*** refresh;
+}
+
+-keep class org.lantern.event.PublicIpAndTokenTracker {
+	*** hasPublicIp;
+	*** hasRefresh;
+	*** log;
+	*** refresh;
+	*** reset();
+}
+
 -keep class org.lantern.event.RefreshTokenEvent {
 	*** refreshToken;
 	*** getRefreshToken();
+}
+
+-keep class org.lantern.event.SubscribeEvent {
+	*** email;
 }
 
 -keep class org.lantern.event.SyncEvent {
@@ -57951,9 +53791,9 @@
 }
 
 -keep class org.lantern.event.SyncType {
+	*** $VALUES;
 	*** ADD;
 	*** DELETE;
-	*** ENUM$VALUES;
 	*** REPLACE;
 }
 
@@ -57973,119 +53813,58 @@
 	*** getPresence();
 }
 
--keep class org.lantern.exceptional4j.ExceptionalAppender {
-	*** addSanitizer(org.lantern.exceptional4j.Sanitizer);
+-keep class org.lantern.geoip.Country {
+	*** isoCode;
+	*** getIsoCode();
 }
 
--keep class org.lantern.geoip.GeoIpCompressor {
-	*** $assertionsDisabled;
-	*** LOG;
-	*** countryIdToCountry;
-	*** countryToCountryId;
-	*** ipRangeList;
-	*** locIdToPixelId;
-	*** pixelIdList;
-	*** pixelIdToCountry;
-	*** pixelIdToQuantizedLatLon;
-	*** quantizedLocationToPixelId;
-	*** rangeCounts;
-	*** compress(java.io.File,java.io.File);
-	*** compressInternal(java.io.File,java.io.File);
-	*** decompress(java.io.File,java.io.File);
-	*** decompressInternal(java.io.File,java.io.File);
-	*** getLatFromQuantized(int);
-	*** getLonFromQuantized(int);
-	*** normalizeCountry(java.lang.String);
-	*** quantizedLatLon(double,double);
-	*** readBlocks(java.io.File);
-	*** readCompressedBlocks(java.io.InputStream);
-	*** readCompressedData(java.io.InputStream);
-	*** readCompressedLocations(java.io.InputStream);
-	*** readLocations(java.io.File);
-	*** writeCompressedBlocks(org.apache.commons.io.output.CountingOutputStream);
-	*** writeCompressedLocations(org.apache.commons.io.output.CountingOutputStream);
-	*** writeDecompressedBlocks(java.io.File);
-	*** writeDecompressedLocations(java.io.File);
-}
-
--keep class org.lantern.geoip.GeoIpCompressorRunner {
-	*** parseArgs(java.lang.String[]);
-}
-
--keep class org.lantern.geoip.GeoIpCompressorRunner$Args {
-	*** compress;
-	*** compressed;
-	*** dir;
-	org.lantern.geoip.GeoIpCompressorRunner$Args();
-}
-
--keep class org.lantern.geoip.GeoIpCompressorTest {
-	*** readBlocksCSV(java.io.File);
-	*** readLocationCSV(java.io.File);
-}
-
--keep class org.lantern.geoip.GeoIpCompressorTest$Block {
-	*** endIp;
-	*** pixelId;
-	*** startIp;
-	org.lantern.geoip.GeoIpCompressorTest$Block();
-}
-
--keep class org.lantern.geoip.GeoIpCompressorTest$Location {
-	*** country;
-	*** latitude;
-	*** longitude;
-	org.lantern.geoip.GeoIpCompressorTest$Location();
+-keep class org.lantern.geoip.GeoData {
+	*** Country;
+	*** Location;
+	*** getCountry();
+	*** getLocation();
 }
 
 -keep class org.lantern.geoip.GeoIpLookupService {
 	*** LOG;
-	*** dataLoaded;
-	*** geoDataByIpRange;
-	*** lowerRanges;
-	*** upperRanges;
-	org.lantern.geoip.GeoIpLookupService(boolean);
-	*** access$0(org.lantern.geoip.GeoIpLookupService);
-	*** getGeoData(byte[]);
+	*** cache;
+	*** s_masqueradeHost;
+	*** access$0();
+	*** access$1(java.lang.String);
+	*** access$2();
 	*** getGeoData(java.lang.String);
 	*** getGeoData(java.net.InetAddress);
-	*** loadData();
-	*** loadDataInternal();
-	*** threadLoadData();
+	*** httpLookup(java.lang.String,org.lantern.util.HostSpoofedHTTPGet$ResponseHandler);
+	*** queryGeoServe(java.lang.String);
 }
 
--keep class org.lantern.geoip.GeoIpLookupService$1 {
+-keep class org.lantern.geoip.GeoIpLookupService$2 {
 	*** this$0;
+	*** onException(java.lang.Exception);
+	*** onResponse(org.apache.http.HttpResponse);
 }
 
--keep class org.lantern.geoip.Order1Model {
-	*** categoriesForItems;
-	*** frequency;
-	*** frequencyByCategory;
-	*** noOfSymbols;
-	*** previous;
-}
-
--keep class org.lantern.http.GeoIp {
-	*** connected;
-	*** geoIpLookupService;
-	*** model;
+-keep class org.lantern.geoip.Location {
+	*** latitude;
+	*** longitude;
+	*** getLatitude();
+	*** getLongitude();
 }
 
 -keep class org.lantern.http.GoogleOauth2CallbackServer {
+	*** connector;
 	*** httpClientFactory;
 	*** internalState;
 	*** log;
 	*** model;
 	*** modelIo;
 	*** modelUtils;
-	*** msgs;
-	*** port;
 	*** proxifier;
 	*** server;
 	*** xmppHandler;
-	*** access$0(org.lantern.http.GoogleOauth2CallbackServer);
-	*** access$1(org.lantern.http.GoogleOauth2CallbackServer);
+	*** access$000(org.lantern.http.GoogleOauth2CallbackServer);
+	*** access$100(org.lantern.http.GoogleOauth2CallbackServer);
+	*** getPort();
 	*** newContext(java.lang.String,java.lang.String);
 	*** start();
 	*** stop();
@@ -58098,27 +53877,16 @@
 -keep class org.lantern.http.GoogleOauth2CallbackServlet {
 	*** googleOauth2CallbackServer;
 	*** httpClientFactory;
-	*** internalState;
 	*** log;
 	*** model;
 	*** modelIo;
 	*** modelUtils;
-	*** msgs;
 	*** proxifier;
-	*** xmppHandler;
-	*** access$0(org.lantern.http.GoogleOauth2CallbackServlet);
-	*** access$1(org.lantern.http.GoogleOauth2CallbackServlet);
-	*** access$2(org.lantern.http.GoogleOauth2CallbackServlet);
-	*** access$3(org.lantern.http.GoogleOauth2CallbackServlet);
 	*** connectToGoogleTalk(java.util.Map);
 	*** fetchEmail(java.util.Map,org.apache.http.client.HttpClient);
-	*** loadAllToks(java.lang.String,org.apache.http.client.HttpClient);
+	*** loadAllToks(java.lang.String,int,org.apache.http.client.HttpClient);
 	*** processRequest(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 	*** redirectToDashboard(javax.servlet.http.HttpServletResponse);
-}
-
--keep class org.lantern.http.GoogleOauth2CallbackServlet$1 {
-	*** this$0;
 }
 
 -keep class org.lantern.http.GoogleOauth2RedirectServlet {
@@ -58130,15 +53898,15 @@
 	*** model;
 	*** modelIo;
 	*** modelUtils;
-	*** msgs;
 	*** proxifier;
-	*** newGtalkOauthUrl();
+	*** newGtalkOauthUrl(org.lantern.http.GoogleOauth2CallbackServer);
 	*** processRequest(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
 }
 
 -keep class org.lantern.http.HttpUtils {
 	*** LOG;
 	*** getRequestHeaders(javax.servlet.http.HttpServletRequest);
+	*** httpHeaders(org.apache.http.HttpMessage);
 	*** sendClientError(javax.servlet.http.HttpServletResponse,java.lang.String);
 	*** sendError(javax.servlet.http.HttpServletResponse,int,java.lang.String);
 	*** toHeaderMap(javax.servlet.http.HttpServletRequest);
@@ -58146,42 +53914,46 @@
 }
 
 -keep class org.lantern.http.InteractionServlet {
-	*** $SWITCH_TABLE$org$lantern$http$InteractionServlet$Interaction;
-	*** $SWITCH_TABLE$org$lantern$state$Modal;
 	*** censored;
 	*** friender;
 	*** internalState;
-	*** lanternFeedback;
 	*** log;
+	*** logglyHelper;
 	*** model;
 	*** modelIo;
 	*** modelService;
 	*** msgs;
+	*** refreshToken;
 	*** switchModals;
-	*** $SWITCH_TABLE$org$lantern$http$InteractionServlet$Interaction();
-	*** $SWITCH_TABLE$org$lantern$state$Modal();
 	*** applyJson(java.lang.String);
 	*** backupSettings();
 	*** email(java.lang.String);
 	*** handleClose(java.lang.String);
 	*** handleException(java.lang.String);
-	*** handleExceptionalInteractions(org.lantern.state.Modal,org.lantern.http.InteractionServlet$Interaction,java.lang.String);
+	*** handleExceptionInteractions(org.lantern.state.Modal,org.lantern.http.InteractionServlet$Interaction,java.lang.String);
 	*** handleReset();
 	*** handleSetModeWelcome(org.lantern.state.Mode);
-	*** jsonToMap(java.lang.String);
-	*** onConnectivityChanged(org.lantern.ConnectivityChangedEvent);
+	*** maybeSubmitToLoggly(java.lang.String);
+	*** maybeSubmitToLoggly(java.lang.String,boolean);
 	*** onLocationChanged(org.lantern.state.LocationChangedEvent);
 	*** processRequest(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse);
+	*** resetOauth();
+}
+
+-keep class org.lantern.http.InteractionServlet$1 {
+	*** $SwitchMap$org$lantern$http$InteractionServlet$Interaction;
+	*** $SwitchMap$org$lantern$state$Modal;
 }
 
 -keep class org.lantern.http.InteractionServlet$Interaction {
+	*** $VALUES;
 	*** ABOUT;
 	*** ACCEPT;
 	*** CANCEL;
+	*** CHANGELANG;
 	*** CLOSE;
 	*** CONTACT;
 	*** CONTINUE;
-	*** ENUM$VALUES;
 	*** EXCEPTION;
 	*** FRIEND;
 	*** GET;
@@ -58197,6 +53969,7 @@
 	*** SPONSOR;
 	*** UNEXPECTEDSTATEREFRESH;
 	*** UNEXPECTEDSTATERESET;
+	*** UPDATEAVAILABLE;
 	*** URL;
 	*** valueOf(java.lang.String);
 	*** values();
@@ -58210,11 +53983,11 @@
 	*** redirectServlet;
 	*** server;
 	*** syncer;
-	*** access$0(org.lantern.http.JettyLauncher);
-	*** access$1(org.lantern.http.JettyLauncher,javax.servlet.http.HttpServletResponse,java.io.File);
-	*** access$2(org.lantern.http.JettyLauncher);
-	*** access$3(org.lantern.http.JettyLauncher);
-	*** access$4(org.lantern.http.JettyLauncher,int,java.lang.String);
+	*** access$000(org.lantern.http.JettyLauncher);
+	*** access$100(org.lantern.http.JettyLauncher,javax.servlet.http.HttpServletResponse,java.io.File);
+	*** access$200(org.lantern.http.JettyLauncher);
+	*** access$300(org.lantern.http.JettyLauncher);
+	*** access$400(org.lantern.http.JettyLauncher,int,java.lang.String);
 	*** apiPath();
 	*** newContext(java.lang.String,java.lang.String);
 	*** recordApiLocation(int,java.lang.String);
@@ -58253,8 +54026,6 @@
 	*** proxyTracker;
 	*** routingTable;
 	*** trustStore;
-	*** xmppHandler;
-	*** addProxy(org.lantern.network.InstanceInfo);
 	*** handleAd(java.lang.String,org.lantern.kscope.LanternKscopeAdvertisement);
 	*** instanceOfflineOrUntrusted(org.lantern.network.InstanceInfo);
 	*** instanceOnlineAndTrusted(org.lantern.network.InstanceInfo);
@@ -58268,12 +54039,8 @@
 }
 
 -keep class org.lantern.kscope.LanternKscopeAdvertisement {
-	*** address;
-	*** jid;
 	*** lanternVersion;
-	*** localAddress;
-	*** localPort;
-	*** port;
+	*** proxyInfo;
 	*** ttl;
 	*** version;
 	org.lantern.kscope.LanternKscopeAdvertisement(java.lang.String,java.lang.String,int,java.lang.String,int,boolean);
@@ -58283,14 +54050,19 @@
 	*** getLocalAddress();
 	*** getLocalPort();
 	*** getPort();
+	*** getProxyInfo();
 	*** getTtl();
 	*** hasMappedEndpoint();
 	*** makeRelayAd(org.lantern.kscope.LanternKscopeAdvertisement);
+	*** setAddress(java.lang.String);
+	*** setJid(java.lang.String);
+	*** setLocalAddress(java.lang.String);
+	*** setLocalPort(int);
+	*** setPort(int);
 	*** setTtl(int);
 }
 
 -keep class org.lantern.kscope.LanternTrustGraphNode {
-	*** handler;
 	*** log;
 }
 
@@ -58314,7 +54086,7 @@
 }
 
 -keep class org.lantern.linux.AppIndicator$AppIndicatorClassStruct$ByReference {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.AppIndicator$AppIndicatorInstanceStruct {
@@ -58330,11 +54102,11 @@
 }
 
 -keep class org.lantern.linux.Gobject$GObjectClassStruct$ByReference {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GObjectClassStruct$ByValue {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GObjectStruct {
@@ -58343,11 +54115,11 @@
 }
 
 -keep class org.lantern.linux.Gobject$GObjectStruct$ByReference {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GObjectStruct$ByValue {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GTypeClassStruct {
@@ -58355,11 +54127,11 @@
 }
 
 -keep class org.lantern.linux.Gobject$GTypeClassStruct$ByReference {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GTypeClassStruct$ByValue {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GTypeInstanceStruct {
@@ -58368,14 +54140,16 @@
 }
 
 -keep class org.lantern.linux.Gobject$GTypeInstanceStruct$ByReference {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gobject$GTypeInstanceStruct$ByValue {
-	*** this$1;
+	*** this$0;
 }
 
 -keep class org.lantern.linux.Gtk {
+	*** gtk_init(int,java.lang.String[]);
+	*** gtk_main();
 	*** gtk_menu_item_new_with_label(java.lang.String);
 	*** gtk_menu_item_set_label(com.sun.jna.Pointer,java.lang.String);
 	*** gtk_menu_new();
@@ -58384,62 +54158,210 @@
 	*** gtk_widget_show_all(com.sun.jna.Pointer);
 }
 
--keep class org.lantern.monitoring.StatsReporter {
+-keep class org.lantern.loggly.Loggly {
+	*** URL;
+	*** inTestMode;
+	*** messageCounts;
+	org.lantern.loggly.Loggly(boolean,java.net.InetSocketAddress);
+	*** log(org.lantern.loggly.LogglyMessage);
+	*** reportToLoggly(org.lantern.loggly.LogglyMessage);
+}
+
+-keep class org.lantern.loggly.LogglyAppender {
+	*** loggly;
+	*** model;
+}
+
+-keep class org.lantern.loggly.LogglyMessage {
+	*** SANITIZERS;
+	*** extra;
+	*** fullMessage;
+	*** locationInfo;
+	*** message;
+	*** nSimilarSuppressed;
+	*** occurredAt;
+	*** reporterId;
+	*** stackTrace;
+	*** throwable;
+	*** throwableOrigin;
+	*** getExtra();
+	*** getKey();
+	*** getMessage();
+	*** getStackTrace();
+	*** getnSimilarSuppressed();
+	*** incrementNsimilarSuppressed();
+	*** sanitize(java.lang.String);
+	*** sanitized();
+	*** sanitized(boolean);
+	*** setExtra(java.lang.Object);
+	*** setExtraFromJson(java.lang.String);
+	*** setLocationInfo(java.lang.String);
+	*** setThrowable(java.lang.Throwable);
+	*** setnSimilarSuppressed(int);
+}
+
+-keep class org.lantern.loggly.LogglyMessage$RegexSanitizer {
+	*** pattern;
+	*** replacement;
+	org.lantern.loggly.LogglyMessage$RegexSanitizer(java.lang.String,java.lang.String);
+}
+
+-keep class org.lantern.loggly.LogglyMessage$Sanitizer {
+	*** sanitize(java.lang.String);
+}
+
+-keep class org.lantern.loggly.LogglyMessageTest {
+	*** catchException();
+	*** newMessage(java.lang.String);
+	*** throwException();
+}
+
+-keep class org.lantern.loggly.LogglyTest {
+	*** loggly;
+}
+
+-keep class org.lantern.messages.FriendResponse {
+	*** payload;
+	*** payloadJson;
+	*** remainingFriendingQuota;
+	*** success;
+	*** fromJson(java.lang.String,java.lang.Class);
+	*** getRemainingFriendingQuota();
+	*** isSuccess();
+	*** payload();
+}
+
+-keep class org.lantern.monitoring.Counter {
+	*** ALL_COUNTERS;
 	*** LOG;
+	*** lastCapturedTotal;
+	*** latestSnapshot;
+	*** movingAverageWindowInMillis;
+	*** rate;
+	*** total;
+	org.lantern.monitoring.Counter(long);
+	*** access$200();
+	*** access$300(org.lantern.monitoring.Counter);
+	*** access$400();
+	*** add(long);
+	*** averageOverOneSecond();
+	*** calculateRate();
+	*** captureDelta();
+	*** getRate();
+	*** getTotal();
+}
+
+-keep class org.lantern.monitoring.Counter$Snapshot {
+	*** prior;
+	*** timestamp;
+	*** total;
+	org.lantern.monitoring.Counter$Snapshot();
+	org.lantern.monitoring.Counter$Snapshot(org.lantern.monitoring.Counter$Snapshot,long);
+}
+
+-keep class org.lantern.monitoring.Stats {
+	*** counters;
+	*** gauges;
+	*** gaugesCurrent;
+	*** increments;
+	*** members;
+	*** getCounter(org.lantern.monitoring.Stats$Counters);
+	*** getCounters();
+	*** getGauge(org.lantern.monitoring.Stats$Gauges);
+	*** getGauges();
+	*** getIncrements();
+	*** getMembers();
+	*** setGauge(org.lantern.monitoring.Stats$Gauges,long);
+	*** setIncrement(org.lantern.monitoring.Stats$Counters,java.lang.String,long);
+	*** setIncrement(org.lantern.monitoring.Stats$Counters,long);
+	*** setMember(org.lantern.monitoring.Stats$Members,java.lang.String);
+}
+
+-keep class org.lantern.monitoring.Stats$Counters {
+	*** $VALUES;
+	*** bytesGiven;
+	*** bytesGivenByFallback;
+	*** bytesGivenByPeer;
+	*** bytesGotten;
+	*** directBytes;
+	*** requestsGiven;
+	*** requestsGivenByFallback;
+	*** requestsGivenByPeer;
+	*** requestsGotten;
+	*** requestsToHost;
+	*** usersInvited;
+}
+
+-keep class org.lantern.monitoring.Stats$Gauges {
+	*** $VALUES;
+	*** bpsGiven;
+	*** bpsGivenByFallback;
+	*** bpsGivenByPeer;
+	*** bpsGotten;
+	*** distinctPeers;
+	*** memoryUsage;
+	*** openFileDescriptors;
+	*** processCPUUsage;
+	*** systemCPUUsage;
+	*** systemLoadAverage;
+	*** userOnline;
+	*** userOnlineGetting;
+	*** userOnlineGiving;
+	*** usingNATPMP;
+	*** usingUPnP;
+}
+
+-keep class org.lantern.monitoring.Stats$Members {
+	*** $VALUES;
+	*** userOnlineEver;
+}
+
+-keep class org.lantern.monitoring.StatsManager {
+	*** LOGGER;
+	*** getScheduler;
+	*** getStats;
 	*** memoryMXBean;
-	*** metrics;
 	*** model;
 	*** osStats;
-	*** stats;
-	*** access$0(org.lantern.monitoring.StatsReporter,java.lang.String);
-	*** access$1(org.lantern.monitoring.StatsReporter);
-	*** access$2(org.lantern.monitoring.StatsReporter);
-	*** access$3(org.lantern.monitoring.StatsReporter);
-	*** access$4();
+	*** postScheduler;
+	*** postStats;
+	*** statshub;
+	*** access$000(org.lantern.monitoring.StatsManager);
+	*** access$100(org.lantern.monitoring.StatsManager);
+	*** access$200();
+	*** addSystemStats(org.lantern.monitoring.Stats);
+	*** getOpenFileDescriptors();
 	*** getSystemStat(java.lang.String);
-	*** initializeLanternMetrics();
-	*** initializeSystemMetrics();
 	*** isOnUnix();
+	*** onPublicIp(org.lantern.event.PublicIpEvent);
+	*** scalePercent(java.lang.Number);
+	*** shutdown(java.util.concurrent.ExecutorService[]);
 	*** start();
-	*** startReportingMetricsToLibrato();
 	*** stop();
 }
 
--keep class org.lantern.monitoring.StatsReporter$1 {
+-keep class org.lantern.monitoring.StatsManager$1 {
 	*** this$0;
-	*** getValue();
 }
 
--keep class org.lantern.monitoring.StatsReporter$2 {
+-keep class org.lantern.monitoring.StatsManager$2 {
 	*** this$0;
-	*** getValue();
 }
 
--keep class org.lantern.monitoring.StatsReporter$3 {
-	*** this$0;
-	*** getValue();
+-keep class org.lantern.monitoring.StatsResponse {
+	*** dims;
+	*** error;
+	*** succeeded;
+	*** getDims();
 }
 
--keep class org.lantern.monitoring.StatsReporter$4 {
-	*** this$0;
-	*** getValue();
-}
-
--keep class org.lantern.monitoring.StatsReporter$5 {
-	*** this$0;
-	*** getValue();
-}
-
--keep class org.lantern.monitoring.StatsReporter$6 {
-	*** this$0;
-	*** getValue();
-}
-
--keep class org.lantern.monitoring.StatsReporter$7 {
-	*** this$0;
-	*** val$getter;
-	*** val$name;
-	*** getValue();
+-keep class org.lantern.monitoring.StatshubAPI {
+	org.lantern.monitoring.StatshubAPI(java.net.InetSocketAddress);
+	*** getStats(java.lang.String);
+	*** postInstanceStats(java.lang.String,java.lang.String,java.lang.String,boolean,org.lantern.monitoring.Stats);
+	*** postStats(java.lang.String,java.lang.String,java.lang.String,boolean,org.lantern.monitoring.Stats,java.util.Map);
+	*** postUserStats(java.lang.String,java.lang.String,org.lantern.monitoring.Stats);
+	*** urlFor(java.lang.String);
 }
 
 -keep class org.lantern.network.InstanceInfo {
@@ -58448,8 +54370,6 @@
 	*** data;
 	*** id;
 	org.lantern.network.InstanceInfo(java.lang.Object,java.net.InetSocketAddress,java.net.InetSocketAddress,java.lang.Object);
-	*** getAddressOnInternet();
-	*** getAddressOnLan();
 	*** getData();
 	*** getId();
 	*** hasMappedEndpoint();
@@ -58514,18 +54434,17 @@
 	*** lastResponse;
 	*** model;
 	*** modelIo;
-	*** nextExpiryTime;
 	*** refreshToken;
 	*** secrets;
-	org.lantern.oauth.OauthUtils(org.lantern.util.HttpClientFactory,org.lantern.state.Model,org.lantern.oauth.RefreshToken);
 	org.lantern.oauth.OauthUtils(org.lantern.util.HttpClientFactory,org.lantern.state.Model,org.lantern.oauth.RefreshToken,org.lantern.state.ModelIo);
-	*** access$0();
-	*** access$1(org.lantern.oauth.OauthUtils);
-	*** access$2(org.lantern.oauth.OauthUtils);
-	*** access$3(org.lantern.oauth.OauthUtils,org.apache.http.client.HttpClient,org.apache.http.client.methods.HttpRequestBase);
+	*** access$100();
+	*** access$200(org.lantern.oauth.OauthUtils);
+	*** access$300(org.lantern.oauth.OauthUtils);
+	*** access$400(org.lantern.oauth.OauthUtils,org.apache.http.client.HttpClient,org.apache.http.client.methods.HttpRequestBase);
 	*** accessToken(org.apache.http.client.HttpClient);
 	*** configureOauth(org.apache.http.client.HttpClient,org.apache.http.client.methods.HttpRequestBase);
 	*** deleteRequest(java.lang.String);
+	*** getRedirectUrl(int);
 	*** getRequest(java.lang.String);
 	*** googleOauth(java.lang.String,java.lang.String,java.lang.String);
 	*** httpRequest(org.apache.http.client.HttpClient,org.apache.http.client.methods.HttpRequestBase);
@@ -58550,7 +54469,7 @@
 -keep class org.lantern.oauth.OauthUtils$HttpFallbackFunc {
 	*** this$0;
 	org.lantern.oauth.OauthUtils$HttpFallbackFunc(org.lantern.oauth.OauthUtils);
-	org.lantern.oauth.OauthUtils$HttpFallbackFunc(org.lantern.oauth.OauthUtils,org.lantern.oauth.OauthUtils$HttpFallbackFunc);
+	org.lantern.oauth.OauthUtils$HttpFallbackFunc(org.lantern.oauth.OauthUtils,org.lantern.oauth.OauthUtils$1);
 	*** call(org.apache.http.client.HttpClient,java.lang.String);
 	*** execute();
 }
@@ -58561,6 +54480,31 @@
 	*** tok;
 	*** onRefreshToken(org.lantern.event.RefreshTokenEvent);
 	*** refreshToken();
+	*** reset();
+}
+
+-keep class org.lantern.papertrail.Papertrail {
+	*** host;
+	*** port;
+	*** socket;
+	*** writer;
+	org.lantern.papertrail.Papertrail(java.lang.String,int);
+	*** getWriter();
+	*** log(java.lang.String);
+	*** newPlainTextSocket();
+	*** truncate(java.lang.String);
+	*** tryToLog(java.lang.String);
+}
+
+-keep class org.lantern.papertrail.PapertrailAppender {
+	*** model;
+	*** papertrail;
+}
+
+-keep class org.lantern.papertrail.PapertrailAppender$1 {
+	*** this$0;
+	*** val$censored;
+	*** val$proxied;
 }
 
 -keep class org.lantern.pginstrument.PGInstrumenter {
@@ -58577,14 +54521,9 @@
 	*** secureRandom;
 	org.lantern.privacy.AbstractAESLocalCipherProvider();
 	org.lantern.privacy.AbstractAESLocalCipherProvider(java.io.File,java.io.File);
-	*** feedUserInput(char[],boolean);
 	*** getAlgorithm();
 	*** getKeyLength();
-	*** isInitialized();
 	*** loadKeyData();
-	*** newLocalCipher(int);
-	*** requiresAdditionalUserInput();
-	*** reset();
 	*** storeKeyData(byte[]);
 }
 
@@ -58648,7 +54587,7 @@
 	*** requiresAdditionalUserInput();
 }
 
--keep class org.lantern.privacy.LocalCipherProvider$$EnhancerByMockitoWithCGLIB$$f65d86a6 {
+-keep class org.lantern.privacy.LocalCipherProvider$$EnhancerByMockitoWithCGLIB$$6536902b {
 	*** CGLIB$BOUND;
 	*** CGLIB$CALLBACK_0;
 	*** CGLIB$CALLBACK_1;
@@ -58711,11 +54650,19 @@
 
 -keep class org.lantern.proxy.AbstractHttpProxyServerAdapter {
 	*** bootstrap;
+	*** running;
 	*** server;
-	org.lantern.proxy.AbstractHttpProxyServerAdapter(org.littleshoot.proxy.HttpProxyServerBootstrap);
+	org.lantern.proxy.AbstractHttpProxyServerAdapter();
 	*** getServer();
+	*** setBootstrap(org.littleshoot.proxy.HttpProxyServerBootstrap);
 	*** start();
 	*** stop();
+}
+
+-keep class org.lantern.proxy.BaseChainedProxy {
+	*** RANDOM_LENGTH_STRING;
+	*** lanternAuthToken;
+	org.lantern.proxy.BaseChainedProxy(java.lang.String);
 }
 
 -keep class org.lantern.proxy.CertTrackingSslEngineSource {
@@ -58723,7 +54670,7 @@
 	*** keyStoreManager;
 	*** serverContext;
 	*** trustStore;
-	*** access$0(org.lantern.proxy.CertTrackingSslEngineSource);
+	*** access$100(org.lantern.proxy.CertTrackingSslEngineSource);
 	*** buildFallbackServerContext(org.lantern.proxy.CertTrackingSslEngineSource$CertTrackingTrustManager);
 	*** configureCipherSuites(javax.net.ssl.SSLEngine);
 	*** fallbackSslEngine(org.lantern.proxy.CertTrackingSslEngineSource$CertTrackingTrustManager);
@@ -58737,32 +54684,230 @@
 	org.lantern.proxy.CertTrackingSslEngineSource$CertTrackingTrustManager(org.lantern.proxy.CertTrackingSslEngineSource);
 }
 
+-keep class org.lantern.proxy.DefaultProxyTracker {
+	*** LOG;
+	*** PROXY_PRIORITIZER;
+	*** configuredProxies;
+	*** geoIpLookupService;
+	*** lanternTrustStore;
+	*** model;
+	*** peerFactory;
+	*** proxies;
+	*** proxyConnect;
+	*** proxyRetryService;
+	*** access$0(org.lantern.proxy.DefaultProxyTracker);
+	*** access$1(org.lantern.proxy.DefaultProxyTracker);
+	*** access$2(org.lantern.proxy.DefaultProxyTracker,org.lantern.proxy.ProxyHolder);
+	*** access$3();
+	*** addFallbackProxies(org.lantern.S3Config);
+	*** addProxy(org.lantern.proxy.ProxyInfo);
+	*** addSingleFallbackProxy(org.lantern.proxy.FallbackProxy);
+	*** checkConnectivityToProxy(org.lantern.proxy.ProxyHolder);
+	*** checkConnectivityToTcpProxy(org.lantern.proxy.ProxyHolder);
+	*** clear();
+	*** clearPeerProxySet();
+	*** doAddProxy(org.lantern.proxy.ProxyHolder);
+	*** firstConnectedTcpProxy();
+	*** getConnectedProxiesInOrderOfFallbackPreference();
+	*** hasProxy();
+	*** init();
+	*** instanceOfflineOrUntrusted(org.lantern.network.InstanceInfo);
+	*** instanceOnlineAndTrusted(org.lantern.network.InstanceInfo);
+	*** notifyProxiesSize();
+	*** onCouldNotConnect(org.lantern.proxy.ProxyHolder);
+	*** onError(java.net.URI);
+	*** onModeChanged(org.lantern.event.ModeChangedEvent);
+	*** onNewS3Config(org.lantern.S3Config);
+	*** onReset(org.lantern.event.ResetEvent);
+	*** removeNattedProxy(java.net.URI);
+	*** restoreDeceasedProxies();
+	*** restoreTimedInProxies();
+	*** start();
+	*** stop();
+	*** successfullyConnectedToProxy(org.lantern.proxy.ProxyHolder);
+}
+
+-keep class org.lantern.proxy.DefaultProxyTracker$1 {
+	*** this$0;
+}
+
+-keep class org.lantern.proxy.DefaultProxyTracker$2 {
+	*** this$0;
+	*** val$proxy;
+}
+
+-keep class org.lantern.proxy.DefaultProxyTracker$ProxyPrioritizer {
+	*** this$0;
+	org.lantern.proxy.DefaultProxyTracker$ProxyPrioritizer(org.lantern.proxy.DefaultProxyTracker);
+	*** compare(org.lantern.proxy.ProxyHolder,org.lantern.proxy.ProxyHolder);
+}
+
 -keep class org.lantern.proxy.DispatchingChainedProxyManager {
+	*** HOSTS_ALLOWING_DIRECT_CONNECTION;
 	*** LOG;
 	*** proxyTracker;
 	*** logFallbackOrder(java.util.Collection);
 	*** lookupChainedProxies(io.netty.handler.codec.http.HttpRequest,java.util.Queue);
 }
 
+-keep class org.lantern.proxy.FallbackProxy {
+	*** setIp(java.lang.String);
+	*** setPort(int);
+}
+
 -keep class org.lantern.proxy.GetModeProxy$1 {
+	*** this$0;
 	*** val$stats;
 	*** proxyFor(org.littleshoot.proxy.FullFlowContext);
 }
 
+-keep class org.lantern.proxy.GiveModeActivityTracker {
+	*** lookupService;
+	*** peerFactory;
+	*** stats;
+	org.lantern.proxy.GiveModeActivityTracker(org.lantern.state.InstanceStats,org.lantern.geoip.GeoIpLookupService,org.lantern.PeerFactory);
+	*** peerFor(javax.net.ssl.SSLSession);
+	*** peerFor(org.littleshoot.proxy.FlowContext);
+}
+
 -keep class org.lantern.proxy.GiveModeHttpFilters {
+	*** ALLOWED_METHODS;
+	*** BAD_URIS;
+	*** ETAG;
+	*** FORBIDDEN_BODY;
+	*** INTERNAL_SERVER_ERROR_BODY;
+	*** KNOWN_METHODS;
+	*** KNOWN_URIS;
+	*** LAST_MODIFIED;
 	*** LOG;
+	*** METHOD_NOT_ALLOWED_BODY;
+	*** NOT_FOUND_BODY;
+	*** NOT_IMPLEMENTED_BODY;
+	*** OK_BODY;
+	*** RANDOM_LENGTH_STRING;
+	*** expectedAuthToken;
+	*** host;
+	*** port;
+	*** shouldMimicApache;
+	*** checkAuthToken(io.netty.handler.codec.http.HttpObject);
 	*** forbidden();
+	*** forbidden(io.netty.handler.codec.http.HttpRequest,int);
+	*** getApacheLikeURI(io.netty.handler.codec.http.HttpRequest);
+	*** internalServerError(io.netty.handler.codec.http.HttpRequest,int);
+	*** methodNotAllowed(io.netty.handler.codec.http.HttpRequest,int);
+	*** methodNotImplemented(io.netty.handler.codec.http.HttpRequest,int);
+	*** mimicApache(io.netty.handler.codec.http.HttpRequest,int);
+	*** notFound(io.netty.handler.codec.http.HttpRequest,int);
+	*** ok(io.netty.handler.codec.http.HttpRequest,int);
+	*** optionsResponse(io.netty.handler.codec.http.HttpRequest,int);
+	*** removeRandomLengthHeader(io.netty.handler.codec.http.HttpObject);
+	*** responseFor(io.netty.handler.codec.http.HttpResponseStatus);
+	*** responseFor(io.netty.handler.codec.http.HttpResponseStatus,java.lang.String);
 }
 
 -keep class org.lantern.proxy.GiveModeProxy {
 	*** log;
+	*** model;
+	*** pluggableTransport;
+	*** running;
+	*** modeChanged(org.lantern.event.ModeChangedEvent);
+	*** start();
+	*** stop();
 }
 
--keep class org.lantern.proxy.GiveModeProxy$2 {
-	*** val$peerFactory;
-	*** val$stats;
-	*** peerFor(javax.net.ssl.SSLSession);
-	*** peerFor(org.littleshoot.proxy.FlowContext);
+-keep class org.lantern.proxy.GiveModeProxy$1 {
+	*** this$0;
+	*** val$model;
+	*** val$settings;
+}
+
+-keep class org.lantern.proxy.ProxyHolder {
+	*** LOG;
+	*** fiveTuple;
+	*** info;
+	*** lanternTrustStore;
+	*** peer;
+	*** peerFactory;
+	*** proxyTracker;
+	*** pt;
+	*** ptClientAddress;
+	*** timeOfNewestConsecFailure;
+	*** timeOfOldestConsecFailure;
+	*** attemptNatTraversalIfConnectionFailed();
+	*** compareTo(org.lantern.proxy.ProxyHolder);
+	*** failedToConnect();
+	*** failuresContinued();
+	*** failuresStarted();
+	*** getFiveTuple();
+	*** getJid();
+	*** getPeer();
+	*** getPriority();
+	*** getRetryTime();
+	*** getType();
+	*** isConnected();
+	*** isNatTraversed();
+	*** markConnected();
+	*** needsConnectionTest();
+	*** resetRetryInterval();
+	*** startPt();
+	*** startPtIfNecessary();
+	*** stopPt();
+	*** stopPtIfNecessary();
+}
+
+-keep class org.lantern.proxy.ProxyInfo {
+	*** authToken;
+	*** boundFrom;
+	*** cert;
+	*** jid;
+	*** lanHost;
+	*** lanPort;
+	*** priority;
+	*** protocol;
+	*** pt;
+	*** type;
+	*** useLanAddress;
+	*** wanHost;
+	*** wanPort;
+	org.lantern.proxy.ProxyInfo();
+	org.lantern.proxy.ProxyInfo(java.net.URI);
+	*** fiveTuple();
+	*** getAuthToken();
+	*** getBoundFrom();
+	*** getCert();
+	*** getJid();
+	*** getLanHost();
+	*** getLanPort();
+	*** getPriority();
+	*** getProtocol();
+	*** getPt();
+	*** getPtType();
+	*** getType();
+	*** getWanHost();
+	*** getWanPort();
+	*** isNatTraversed();
+	*** lanAddress();
+	*** onLan();
+	*** setJid(java.net.URI);
+	*** setLanHost(java.lang.String);
+	*** setLanPort(int);
+	*** setPriority(int);
+	*** setProtocol(org.littleshoot.util.FiveTuple$Protocol);
+	*** setPt(java.util.Properties);
+	*** setWanHost(java.lang.String);
+	*** setWanPort(int);
+	*** wanAddress();
+}
+
+-keep class org.lantern.proxy.ProxyTracker {
+	*** addSingleFallbackProxy(org.lantern.proxy.FallbackProxy);
+	*** clear();
+	*** clearPeerProxySet();
+	*** getConnectedProxiesInOrderOfFallbackPreference();
+	*** hasProxy();
+	*** init();
+	*** onCouldNotConnect(org.lantern.proxy.ProxyHolder);
+	*** start();
 }
 
 -keep class org.lantern.proxy.UdtServerFiveTupleListener {
@@ -58775,8 +54920,294 @@
 	*** onUdpSocket(org.littleshoot.util.FiveTuple);
 }
 
+-keep class org.lantern.proxy.pt.BasePluggableTransport {
+	*** ALREADY_COPIED_TRANSPORTS;
+	*** LOGGER;
+	*** cmd;
+	*** cmdExec;
+	*** executableNames;
+	*** ptBasePath;
+	*** ptPath;
+	*** ptRelativePath;
+	org.lantern.proxy.pt.BasePluggableTransport(boolean,java.lang.String,java.lang.String[]);
+	*** addClientArgs(org.apache.commons.exec.CommandLine,java.net.InetSocketAddress,java.net.InetSocketAddress,java.net.InetSocketAddress);
+	*** addServerArgs(org.apache.commons.exec.CommandLine,java.lang.String,int,java.net.InetSocketAddress);
+	*** copyToConfigFolder();
+	*** exec();
+	*** findBasePath();
+	*** getLogName();
+	*** initPtPath();
+	*** startClient(java.net.InetSocketAddress,java.net.InetSocketAddress);
+	*** startServer(int,java.net.InetSocketAddress);
+	*** stopServer();
+	*** stringify(java.lang.Object);
+}
+
+-keep class org.lantern.proxy.pt.ChainedMain {
+	*** LOCALHOST;
+	org.lantern.proxy.pt.ChainedMain();
+	*** getUpstreamPort();
+	*** requiresEncryption();
+	*** run();
+}
+
+-keep class org.lantern.proxy.pt.ChainedMain$1 {
+	*** this$0;
+	*** val$sslSource;
+}
+
+-keep class org.lantern.proxy.pt.ChainedMain$1$1 {
+	*** this$1;
+}
+
+-keep class org.lantern.proxy.pt.FTE {
+	*** LOGGER;
+	*** props;
+	*** useCustomFormat;
+	*** addCommonArgs(org.apache.commons.exec.CommandLine);
+	*** buildDef(java.lang.String,java.lang.String);
+	*** updateCustomFormatsIfNecessary();
+}
+
+-keep class org.lantern.proxy.pt.FTEMain {
+	*** clientAddress;
+	*** run();
+}
+
+-keep class org.lantern.proxy.pt.Flashlight {
+	*** CA_CERT_FILE;
+	*** props;
+	*** addParentPIDIfAvailable(org.apache.commons.exec.CommandLine);
+}
+
+-keep class org.lantern.proxy.pt.FlashlightMain {
+	*** clientAddress;
+	*** run();
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager {
+	*** log;
+	*** model;
+	*** natPmpService;
+	*** state;
+	*** upnpService;
+	*** access$0(org.lantern.proxy.pt.FlashlightServerManager);
+	*** access$1(org.lantern.proxy.pt.FlashlightServerManager);
+	*** access$2(org.lantern.proxy.pt.FlashlightServerManager);
+	*** access$3(org.lantern.proxy.pt.FlashlightServerManager);
+	*** access$4(org.lantern.proxy.pt.FlashlightServerManager);
+	*** getDisconnectedState();
+	*** onConnectivityChanged(org.lantern.ConnectivityChangedEvent);
+	*** onModeChanged(org.lantern.event.ModeChangedEvent);
+	*** onPublicIp(org.lantern.event.PublicIpEvent);
+	*** refreshConnectionState();
+	*** stop();
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$ConnectedInNonGiveModeState {
+	*** ip;
+	*** this$0;
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$DisconnectedInGiveModeState {
+	*** this$0;
+	org.lantern.proxy.pt.FlashlightServerManager$DisconnectedInGiveModeState(org.lantern.proxy.pt.FlashlightServerManager);
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$DisconnectedInNonGiveModeState {
+	*** this$0;
+	org.lantern.proxy.pt.FlashlightServerManager$DisconnectedInNonGiveModeState(org.lantern.proxy.pt.FlashlightServerManager);
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$PortMappedState {
+	*** externalPort;
+	*** flashlight;
+	*** instanceId;
+	*** ip;
+	*** localPort;
+	*** this$0;
+	*** timer;
+	*** access$0(org.lantern.proxy.pt.FlashlightServerManager$PortMappedState);
+	*** registerPeer();
+	*** startHeartbeatTimer();
+	*** stopHeartbeatTimer();
+	*** unregisterPeer();
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$PortMappedState$1 {
+	*** this$1;
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$PortMappingState {
+	*** current;
+	*** ip;
+	*** localPort;
+	*** this$0;
+}
+
+-keep class org.lantern.proxy.pt.FlashlightServerManager$State {
+	*** this$0;
+	org.lantern.proxy.pt.FlashlightServerManager$State(org.lantern.proxy.pt.FlashlightServerManager);
+	org.lantern.proxy.pt.FlashlightServerManager$State(org.lantern.proxy.pt.FlashlightServerManager,org.lantern.proxy.pt.FlashlightServerManager$State);
+	*** exitTo(org.lantern.proxy.pt.FlashlightServerManager$State);
+	*** myName();
+	*** onDisconnect();
+	*** onEnter();
+	*** onEnterGiveMode();
+	*** onExit();
+	*** onExitGiveMode();
+	*** onPublicIp(java.lang.String);
+}
+
+-keep class org.lantern.proxy.pt.LoggingStreamHandler {
+	*** caught;
+	*** errorThread;
+	*** input;
+	*** inputStreamPumper;
+	*** inputThread;
+	*** log;
+	*** outputThread;
+	*** stopTimeout;
+	*** access$0(org.lantern.proxy.pt.LoggingStreamHandler);
+	*** createLoggingThread(java.io.InputStream,boolean);
+	*** createPump(java.io.InputStream,java.io.OutputStream,boolean);
+	*** createSystemInPump(java.io.InputStream,java.io.OutputStream);
+	*** stopThread(java.lang.Thread,long);
+}
+
+-keep class org.lantern.proxy.pt.LoggingStreamHandler$1 {
+	*** this$0;
+	*** val$logToError;
+	*** val$reader;
+}
+
+-keep class org.lantern.proxy.pt.PluggableTransport {
+	*** startClient(java.net.InetSocketAddress,java.net.InetSocketAddress);
+	*** startServer(int,java.net.InetSocketAddress);
+	*** stopServer();
+	*** suppliesEncryption();
+}
+
+-keep class org.lantern.proxy.pt.PluggableTransports {
+	*** TYPES;
+	*** newTransport(org.lantern.proxy.pt.PtType,java.util.Properties);
+}
+
+-keep class org.lantern.proxy.pt.PtType {
+	*** ENUM$VALUES;
+	*** FLASHLIGHT;
+	*** FTE;
+	*** valueOf(java.lang.String);
+}
+
+-keep class org.lantern.simple.CliProgram {
+	*** cmd;
+	*** options;
+	org.lantern.simple.CliProgram(java.lang.String[]);
+	*** addOption(org.apache.commons.cli.Option,boolean);
+	*** initializeCliOptions();
+	*** showUsageAndExit(java.lang.String);
+}
+
+-keep class org.lantern.simple.FallbackActivityTracker {
+	*** hostRequestsByCountry;
+	*** pollHostRequestsByCountry();
+}
+
+-keep class org.lantern.simple.Get {
+	*** authToken;
+	*** giveAddress;
+	*** localPort;
+	*** server;
+	*** sslEngineSource;
+	*** transportProtocol;
+	org.lantern.simple.Get(java.lang.String[]);
+	*** access$000(org.lantern.simple.Get);
+	*** access$100(org.lantern.simple.Get);
+	*** access$200(org.lantern.simple.Get);
+	*** access$300(org.lantern.simple.Get);
+	*** start();
+	*** stop();
+}
+
+-keep class org.lantern.simple.Get$1 {
+	*** this$0;
+}
+
+-keep class org.lantern.simple.Get$1$1 {
+	*** this$1;
+}
+
+-keep class org.lantern.simple.Give {
+	*** LOGGER;
+	*** activityTracker;
+	*** expectedAuthToken;
+	*** host;
+	*** httpPort;
+	*** httpsPort;
+	*** instanceId;
+	*** keyStorePath;
+	*** lookupService;
+	*** postSiteStats;
+	*** postStats;
+	*** pt;
+	*** server;
+	*** stats;
+	*** statsScheduler;
+	*** statshub;
+	*** udtPort;
+	*** access$0(org.lantern.simple.Give);
+	*** access$1(org.lantern.simple.Give);
+	*** access$2(org.lantern.simple.Give);
+	*** access$3();
+	*** access$4(org.lantern.simple.Give);
+	*** access$5(org.lantern.simple.Give);
+	*** access$6(org.lantern.simple.Give);
+	*** access$7(org.lantern.simple.Give);
+	*** access$8(org.lantern.simple.Give);
+	*** access$9(org.lantern.simple.Give);
+	*** initPluggableTransport(java.util.Properties);
+	*** start();
+	*** startStats();
+	*** startTcp();
+	*** startUdt();
+}
+
+-keep class org.lantern.simple.Give$1 {
+	*** this$0;
+}
+
+-keep class org.lantern.simple.Give$2 {
+	*** this$0;
+}
+
+-keep class org.lantern.simple.Give$3 {
+	*** this$0;
+}
+
+-keep class org.lantern.simple.Give$4 {
+	*** this$0;
+}
+
+-keep class org.lantern.simple.Give$5 {
+	*** this$0;
+}
+
+-keep class org.lantern.simple.SimpleSslEngineSource {
+	*** LOG;
+	*** keyStoreFile;
+	*** sslContext;
+	org.lantern.simple.SimpleSslEngineSource(java.lang.String);
+	*** initializeSSLContext();
+}
+
+-keep class org.lantern.simple.SimpleSslEngineSource$1 {
+	*** this$0;
+}
+
 -keep class org.lantern.state.ClientFriend {
 	*** email;
+	*** freeToFriend;
 	*** id;
 	*** lastUpdated;
 	*** loggedIn;
@@ -58784,32 +55215,28 @@
 	*** name;
 	*** nextQuery;
 	*** pendingSubscriptionRequest;
+	*** reason;
 	*** status;
 	*** userEmail;
 	*** getEmail();
 	*** getId();
 	*** getName();
 	*** getStatus();
+	*** isFreeToFriend();
 	*** setEmail(java.lang.String);
 	*** setLoggedIn(boolean);
 	*** setMode(org.jivesoftware.smack.packet.Presence$Mode);
 	*** setName(java.lang.String);
 	*** setNextQuery(long);
 	*** setPendingSubscriptionRequest(boolean);
+	*** setReason(org.lantern.state.Friend$SuggestionReason);
 	*** setStatus(org.lantern.state.Friend$Status);
-	*** shouldNotifyAgain();
-}
-
--keep class org.lantern.state.ClientFriends {
-	*** items;
-	*** url;
-	*** getItems();
 }
 
 -keep class org.lantern.state.CometDSyncStrategy {
 	*** exec;
 	*** log;
-	*** access$0(org.lantern.state.CometDSyncStrategy);
+	*** access$000(org.lantern.state.CometDSyncStrategy);
 	*** sync(org.cometd.bayeux.server.ServerSession,org.lantern.event.SyncType,java.lang.String,java.lang.Object);
 }
 
@@ -58859,12 +55286,7 @@
 	*** setPacUrl(java.lang.String);
 }
 
--keep class org.lantern.state.DateSerializer {
-	*** serialize(java.util.Date,org.codehaus.jackson.JsonGenerator,org.codehaus.jackson.map.SerializerProvider);
-}
-
 -keep class org.lantern.state.DefaultFriendsHandler {
-	*** $SWITCH_TABLE$org$lantern$state$Friend$Status;
 	*** api;
 	*** friendsLoaded;
 	*** friendsLoading;
@@ -58874,41 +55296,33 @@
 	*** msgs;
 	*** networkTracker;
 	*** notificationManager;
-	*** refreshToken;
 	*** service;
 	*** xmppHandler;
-	*** $SWITCH_TABLE$org$lantern$state$Friend$Status();
-	*** access$0(org.lantern.state.DefaultFriendsHandler);
-	*** access$1(org.lantern.state.DefaultFriendsHandler);
-	*** access$2(org.lantern.state.DefaultFriendsHandler);
-	*** access$3(org.lantern.state.DefaultFriendsHandler);
-	*** access$4(org.lantern.state.DefaultFriendsHandler,java.util.Map);
-	*** access$5(org.lantern.state.DefaultFriendsHandler,org.lantern.state.ClientFriend);
-	*** access$6(org.lantern.state.DefaultFriendsHandler);
-	*** access$8(org.lantern.state.DefaultFriendsHandler,java.lang.String,org.jivesoftware.smack.packet.Presence);
-	*** access$9(org.lantern.state.DefaultFriendsHandler);
+	*** access$000(org.lantern.state.DefaultFriendsHandler);
+	*** access$100(org.lantern.state.DefaultFriendsHandler);
+	*** access$200(org.lantern.state.DefaultFriendsHandler,java.util.Map);
+	*** access$300(org.lantern.state.DefaultFriendsHandler,org.lantern.state.ClientFriend);
+	*** access$400(org.lantern.state.DefaultFriendsHandler);
+	*** access$500(org.lantern.state.DefaultFriendsHandler);
+	*** access$600(org.lantern.state.DefaultFriendsHandler);
+	*** access$700(org.lantern.state.DefaultFriendsHandler,java.lang.String,org.jivesoftware.smack.packet.Presence);
 	*** addFriend(java.lang.String);
 	*** addIncomingSubscriptionRequest(java.lang.String);
-	*** checkForBulkInvites();
-	*** clear();
 	*** friendNotification(org.lantern.state.ClientFriend);
 	*** friends();
 	*** fullRemove(org.lantern.state.ClientFriend);
 	*** getFriend(java.lang.String);
 	*** getFriends();
 	*** getOrCreateFriend(java.lang.String);
-	*** handleBulkInvites();
 	*** handlePeer(java.lang.String,org.jivesoftware.smack.packet.Presence);
 	*** insert(org.lantern.state.ClientFriend);
-	*** invite(org.lantern.state.Friend,boolean);
 	*** isFriend(java.lang.String);
 	*** isFriend(org.lantern.state.Friend);
 	*** isOnServer(org.lantern.state.ClientFriend);
 	*** isRejected(java.lang.String);
 	*** isRejected(org.lantern.state.ClientFriend);
 	*** loadFriends();
-	*** onProxyConnection(org.lantern.event.ProxyConnectionEvent);
-	*** onRefreshToken(org.lantern.event.RefreshTokenEvent);
+	*** onPublicIpAndToken(org.lantern.event.PublicIpAndTokenEvent);
 	*** onReset(org.lantern.event.ResetEvent);
 	*** peerRunningLantern(java.lang.String,org.jivesoftware.smack.packet.Presence);
 	*** presenceForNewPeer(java.lang.String,org.jivesoftware.smack.packet.Presence);
@@ -58917,6 +55331,7 @@
 	*** remove(java.lang.String);
 	*** removeFriend(java.lang.String);
 	*** setStatus(org.lantern.state.ClientFriend,org.lantern.state.Friend$Status);
+	*** stop();
 	*** subscribe(java.lang.String);
 	*** sync(org.lantern.state.ClientFriend);
 	*** syncFriends();
@@ -58938,7 +55353,7 @@
 }
 
 -keep class org.lantern.state.DefaultFriendsHandler$3 {
-	*** this$0;
+	*** $SwitchMap$org$lantern$state$Friend$Status;
 }
 
 -keep class org.lantern.state.DefaultModelService {
@@ -58984,11 +55399,17 @@
 }
 
 -keep class org.lantern.state.Friend$Status {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** friend;
 	*** pending;
 	*** rejected;
 	*** values();
+}
+
+-keep class org.lantern.state.Friend$SuggestionReason {
+	*** $VALUES;
+	*** friendedYou;
+	*** runningLantern;
 }
 
 -keep class org.lantern.state.Friends {
@@ -59011,11 +55432,28 @@
 	*** updateName(java.lang.String,java.lang.String);
 }
 
--keep class org.lantern.state.Global {
-	*** bps;
-	*** bytesEver;
-	*** npeers;
-	*** nusers;
+-keep class org.lantern.state.InstanceStats {
+	*** allBytes;
+	*** bytesGiven;
+	*** bytesGivenPerCountry;
+	*** bytesGotten;
+	*** directBytes;
+	*** distinctProxiedClientAddresses;
+	*** requestsGiven;
+	*** requestsGotten;
+	*** usingNATPMP;
+	*** usingUPnP;
+	*** addAllBytes(long);
+	*** addBytesGivenForLocation(org.lantern.geoip.GeoData,long);
+	*** addBytesGotten(long);
+	*** addDirectBytes(long);
+	*** addProxiedClientAddress(java.net.InetAddress);
+	*** getDistinctPeers();
+	*** incrementRequestGotten();
+	*** setUsingNATPMP(boolean);
+	*** setUsingUPnP(boolean);
+	*** toInstanceStats();
+	*** toUserStats(java.lang.String,boolean,boolean);
 }
 
 -keep class org.lantern.state.InternalState {
@@ -59047,12 +55485,12 @@
 	*** country;
 	*** lat;
 	*** lon;
+	*** resolved;
 	*** getCountry();
-	*** getLat();
-	*** getLon();
 	*** setCountry(java.lang.String);
 	*** setLat(double);
 	*** setLon(double);
+	*** setResolved(boolean);
 }
 
 -keep class org.lantern.state.LocationChangedEvent {
@@ -59064,7 +55502,7 @@
 }
 
 -keep class org.lantern.state.Modal {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** about;
 	*** authorize;
 	*** authorizeLater;
@@ -59093,7 +55531,7 @@
 }
 
 -keep class org.lantern.state.Mode {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** get;
 	*** give;
 	*** unknown;
@@ -59104,12 +55542,12 @@
 	*** connectivity;
 	*** countryService;
 	*** friends;
-	*** global;
+	*** globalStats;
 	*** instanceId;
+	*** instanceStats;
 	*** isEverGetMode;
 	*** launchd;
 	*** location;
-	*** log;
 	*** maxNotificationId;
 	*** modal;
 	*** nodeId;
@@ -59117,13 +55555,15 @@
 	*** nproxiedSitesMax;
 	*** peerCollector;
 	*** profile;
+	*** remainingFriendingQuota;
 	*** reportIp;
 	*** roster;
+	*** s3Config;
 	*** settings;
 	*** setupComplete;
 	*** showVis;
 	*** system;
-	*** transfers;
+	*** userGuid;
 	*** version;
 	*** welcomeMessageShown;
 	*** xsrfToken;
@@ -59135,8 +55575,9 @@
 	*** getConnectivity();
 	*** getCountries();
 	*** getCountryService();
-	*** getGlobal();
+	*** getGlobalStats();
 	*** getInstanceId();
+	*** getInstanceStats();
 	*** getLocation();
 	*** getModal();
 	*** getNodeId();
@@ -59147,8 +55588,10 @@
 	*** getProfile();
 	*** getReportIp();
 	*** getRoster();
+	*** getS3Config();
 	*** getSettings();
 	*** getSystem();
+	*** getUserGuid();
 	*** getVersion();
 	*** getXsrfToken();
 	*** isEverGetMode();
@@ -59160,18 +55603,21 @@
 	*** setCountryService(org.lantern.CountryService);
 	*** setEverGetMode(boolean);
 	*** setFriends(java.util.Collection);
+	*** setGlobalStats(org.lantern.monitoring.Stats);
 	*** setInstanceId(java.lang.String);
 	*** setLaunchd(boolean);
 	*** setModal(org.lantern.state.Modal);
 	*** setNodeId(java.lang.String);
 	*** setNproxiedSitesMax(int);
 	*** setProfile(org.lantern.state.Profile);
+	*** setRemainingFriendingQuota(int);
 	*** setReportIp(java.lang.String);
 	*** setRoster(org.lantern.Roster);
+	*** setS3Config(org.lantern.S3Config);
 	*** setSettings(org.lantern.state.Settings);
 	*** setSetupComplete(boolean);
 	*** setShowVis(boolean);
-	*** setTransfers(org.lantern.state.Transfers);
+	*** setUserGuid(java.lang.String);
 	*** setWelcomeMessageShown(boolean);
 }
 
@@ -59180,11 +55626,14 @@
 	*** countryService;
 	*** localCipherProvider;
 	*** log;
-	org.lantern.state.ModelIo(java.io.File,org.lantern.privacy.EncryptedFileService,org.lantern.state.Transfers,org.lantern.CountryService,org.apache.commons.cli.CommandLine,org.lantern.privacy.LocalCipherProvider);
+	org.lantern.state.ModelIo(java.io.File,org.lantern.privacy.EncryptedFileService,org.lantern.CountryService,org.apache.commons.cli.CommandLine,org.lantern.privacy.LocalCipherProvider);
 	*** blank();
+	*** hasCommandLineOption(java.lang.String);
 	*** loadLocalPasswordFile(java.lang.String);
 	*** loadOAuth2ClientSecretsFile(java.lang.String,org.lantern.state.Settings);
 	*** loadOAuth2UserCredentialsFile(java.lang.String,org.lantern.state.Settings);
+	*** loadServerAuthTokenFile(java.lang.String,org.lantern.state.Settings);
+	*** onS3ConfigChange(org.lantern.S3Config);
 	*** parseOptionDefaultTrue(org.apache.commons.cli.CommandLine,java.lang.String);
 	*** processCommandLine(org.apache.commons.cli.CommandLine,org.lantern.state.Model);
 	*** read();
@@ -59240,7 +55689,7 @@
 }
 
 -keep class org.lantern.state.Notification$MessageType {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** error;
 	*** important;
 	*** info;
@@ -59296,7 +55745,7 @@
 }
 
 -keep class org.lantern.state.Peer$Type {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** cloud;
 	*** laeproxy;
 	*** pc;
@@ -59347,15 +55796,16 @@
 	*** picture;
 	*** verified_email;
 	*** getEmail();
-	*** getName();
 }
 
 -keep class org.lantern.state.Settings {
 	*** accessToken;
 	*** autoReport;
 	*** bindToLocalhost;
+	*** chrome;
 	*** clientID;
 	*** clientSecret;
+	*** configUrl;
 	*** expiryTime;
 	*** inClosedBeta;
 	*** keychainEnabled;
@@ -59363,7 +55813,11 @@
 	*** log;
 	*** mode;
 	*** proxyAllSites;
+	*** proxyAuthToken;
 	*** proxyPort;
+	*** proxyProtocol;
+	*** proxyPtProps;
+	*** proxyPtType;
 	*** refreshToken;
 	*** runAtSystemStart;
 	*** serverPort;
@@ -59384,12 +55838,17 @@
 	*** getAccessToken();
 	*** getClientID();
 	*** getClientSecret();
+	*** getConfigUrl();
 	*** getExpiryTime();
 	*** getInClosedBeta();
 	*** getLang();
 	*** getMode();
 	*** getProxiedSites();
+	*** getProxyAuthToken();
 	*** getProxyPort();
+	*** getProxyProtocol();
+	*** getProxyPtProps();
+	*** getProxyPtType();
 	*** getRefreshToken();
 	*** getServerPort();
 	*** getStunServers();
@@ -59397,6 +55856,7 @@
 	*** getWhitelist();
 	*** isAutoReport();
 	*** isBindToLocalhost();
+	*** isChrome();
 	*** isKeychainEnabled();
 	*** isProxyAllSites();
 	*** isRunAtSystemStart();
@@ -59414,8 +55874,10 @@
 	*** setAccessToken(java.lang.String);
 	*** setAutoReport(boolean);
 	*** setBindToLocalhost(boolean);
+	*** setChrome(boolean);
 	*** setClientID(java.lang.String);
 	*** setClientSecret(java.lang.String);
+	*** setConfigUrl(java.lang.String);
 	*** setExpiryTime(long);
 	*** setInClosedBeta(java.util.Set);
 	*** setKeychainEnabled(boolean);
@@ -59423,7 +55885,11 @@
 	*** setMode(org.lantern.state.Mode);
 	*** setProxiedSites(java.lang.String[]);
 	*** setProxyAllSites(boolean);
+	*** setProxyAuthToken(java.lang.String);
 	*** setProxyPort(int);
+	*** setProxyProtocol(org.littleshoot.proxy.TransportProtocol);
+	*** setProxyPtProps(java.util.Properties);
+	*** setProxyPtType(org.lantern.proxy.pt.PtType);
 	*** setRefreshToken(java.lang.String);
 	*** setRunAtSystemStart(boolean);
 	*** setServerPort(int);
@@ -59473,6 +55939,7 @@
 }
 
 -keep class org.lantern.state.SyncPath {
+	*** $VALUES;
 	*** ALL;
 	*** AUTO_CONNECT;
 	*** AUTO_REPORT;
@@ -59483,9 +55950,10 @@
 	*** CONNECTIVITY_LANTERN_CONTROLLER;
 	*** CONNECTIVITY_NPROXIES;
 	*** COUNTRIES;
-	*** ENUM$VALUES;
+	*** FRIENDING_QUOTA;
 	*** FRIENDS;
-	*** GLOBAL;
+	*** GLOBAL_STATS;
+	*** INSTANCE_STATS;
 	*** INVITED;
 	*** LOCATION;
 	*** MODAL;
@@ -59501,8 +55969,9 @@
 	*** SHOW_FRIEND_PROMPTS;
 	*** START_AT_LOGIN;
 	*** SYSTEMPROXY;
-	*** TRANSFERS;
 	*** VERSION;
+	*** VERSION_LATEST;
+	*** VERSION_UPDATE_AVAILABLE;
 	*** path;
 	*** getPath();
 }
@@ -59513,12 +55982,10 @@
 	*** session;
 	*** strategy;
 	*** timer;
-	*** transfers;
-	*** access$0(org.lantern.state.SyncService);
-	*** access$1(org.lantern.state.SyncService,org.lantern.event.SyncType,org.lantern.state.SyncPath,java.lang.Object);
-	*** access$2(org.lantern.state.SyncService);
-	*** access$3(org.lantern.state.SyncService);
-	*** access$4(org.lantern.state.SyncService,org.lantern.state.SyncPath,java.lang.Object);
+	*** access$000(org.lantern.state.SyncService);
+	*** access$100(org.lantern.state.SyncService,org.lantern.event.SyncType,org.lantern.state.SyncPath,java.lang.Object);
+	*** access$200(org.lantern.state.SyncService);
+	*** access$300(org.lantern.state.SyncService,org.lantern.state.SyncPath,java.lang.Object);
 	*** closedBeta(org.lantern.event.ClosedBetaEvent);
 	*** delegateSync(org.lantern.event.SyncType,java.lang.String,java.lang.Object);
 	*** delegateSync(org.lantern.event.SyncType,org.lantern.state.SyncPath,java.lang.Object);
@@ -59546,38 +56013,13 @@
 	*** memory;
 	*** os;
 	*** screenSize;
+	*** getArch();
 	*** getLang();
-}
-
--keep class org.lantern.state.Transfers {
-	*** historicalDownBytes;
-	*** historicalUpBytes;
-	*** statsTracker;
-	*** getBpsDn();
-	*** getBpsUp();
-	*** getBytesDn();
-	*** getBytesUp();
-	*** getDownTotalThisRun();
-	*** getStatsTracker();
-	*** getUpTotalThisRun();
-	*** setStatsTracker(org.lantern.Stats);
-}
-
--keep class org.lantern.state.TransfersIo {
-	*** log;
-	*** tracker;
-	org.lantern.state.TransfersIo(java.io.File,org.lantern.ClientStats,org.lantern.privacy.EncryptedFileService,java.util.Timer);
-	*** blank();
-	*** initSaveThread(java.util.Timer);
-	*** read();
-}
-
--keep class org.lantern.state.TransfersIo$1 {
-	*** this$0;
+	*** getOs();
 }
 
 -keep class org.lantern.state.UDPProxyPriority {
-	*** ENUM$VALUES;
+	*** $VALUES;
 	*** HIGHER;
 	*** LOWER;
 	*** SAME;
@@ -59587,42 +56029,23 @@
 }
 
 -keep class org.lantern.state.Version {
+	*** LOG;
 	*** installed;
 	*** latest;
 	*** updateAvailable;
+	*** access$000();
 	*** getInstalled();
 }
 
 -keep class org.lantern.state.Version$Installed {
-	*** api;
 	*** git;
 	*** gitFull;
-	*** installerSHA1;
-	*** installerUrl;
-	*** major;
-	*** minor;
-	*** modelSchema;
-	*** patch;
-	*** releaseDate;
-	*** tag;
 	*** this$0;
 	*** getGit();
 }
 
--keep class org.lantern.state.Version$SemanticVersion {
-	*** major;
-	*** minor;
-	*** mock;
-	*** patch;
-	*** this$0;
-}
-
 -keep class org.lantern.stubs.PeerFactoryStub {
 	*** peersByJid;
-}
-
--keep class org.lantern.stubs.ProxyTrackerStub {
-	org.lantern.stubs.ProxyTrackerStub();
 }
 
 -keep class org.lantern.ui.FriendNotificationDialog {
@@ -59631,9 +56054,9 @@
 	*** friendsHandler;
 	*** log;
 	*** name;
-	*** access$0(org.lantern.ui.FriendNotificationDialog);
-	*** access$1(org.lantern.ui.FriendNotificationDialog);
-	*** access$2(org.lantern.ui.FriendNotificationDialog);
+	*** access$000(org.lantern.ui.FriendNotificationDialog);
+	*** access$100(org.lantern.ui.FriendNotificationDialog);
+	*** access$200(org.lantern.ui.FriendNotificationDialog);
 	*** doSetup();
 	*** later();
 	*** loadText();
@@ -59671,8 +56094,8 @@
 	*** log;
 	*** notifications;
 	*** settings;
-	*** access$0(org.lantern.ui.NotificationManager);
-	*** access$1(org.lantern.ui.NotificationManager);
+	*** access$000(org.lantern.ui.NotificationManager);
+	*** access$100(org.lantern.ui.NotificationManager);
 	*** addNotification(org.lantern.ui.NotificationDialog);
 	*** clear();
 	*** doNotify(org.lantern.ui.NotificationDialog);
@@ -59685,6 +56108,29 @@
 -keep class org.lantern.ui.NotificationManager$1 {
 	*** this$0;
 	*** val$notification;
+}
+
+-keep class org.lantern.ui.SwingMessageService {
+	*** access$000(org.lantern.ui.SwingMessageService,java.lang.String,java.lang.String);
+	*** access$100(org.lantern.ui.SwingMessageService,java.lang.String,java.lang.String);
+	*** askQuestion(java.lang.String,java.lang.String);
+	*** doAskQuestion(java.lang.String,java.lang.String);
+	*** doShowMessage(java.lang.String,java.lang.String);
+	*** onMessageEvent(org.lantern.event.MessageEvent);
+	*** showMessage(java.lang.String,java.lang.String);
+}
+
+-keep class org.lantern.ui.SwingMessageService$1 {
+	*** this$0;
+	*** val$message;
+	*** val$title;
+}
+
+-keep class org.lantern.ui.SwingMessageService$2 {
+	*** this$0;
+	*** val$message;
+	*** val$result;
+	*** val$title;
 }
 
 -keep class org.lantern.util.BitInputStream {
@@ -59705,29 +56151,11 @@
 	*** writeBit(int);
 }
 
--keep class org.lantern.util.Counter {
-	*** ALL_COUNTERS;
-	*** LOG;
-	*** latestSnapshot;
-	*** movingAverageWindowInMillis;
-	*** rate;
-	*** total;
-	*** access$0();
-	*** access$1(org.lantern.util.Counter);
-	*** access$2();
-	*** add(long);
-	*** averageOverOneSecond();
-	*** calculateRate();
-	*** getRate();
-	*** getTotal();
-}
-
--keep class org.lantern.util.Counter$Snapshot {
-	*** prior;
-	*** timestamp;
-	*** total;
-	org.lantern.util.Counter$Snapshot();
-	org.lantern.util.Counter$Snapshot(org.lantern.util.Counter$Snapshot,long);
+-keep class org.lantern.util.DefaultHttpClientFactory {
+	*** censored;
+	*** newClient();
+	*** newDirectClient();
+	*** newProxiedClient();
 }
 
 -keep class org.lantern.util.DefaultStopwatch {
@@ -59756,26 +56184,64 @@
 	*** getDesktopPath();
 }
 
+-keep class org.lantern.util.HostExtractor {
+	*** URL_PATTERN;
+	*** extractHost(java.lang.String);
+}
+
+-keep class org.lantern.util.HostExtractorTest {
+	*** HOST_URLS;
+	*** IP_URLS;
+}
+
+-keep class org.lantern.util.HostSpoofedHTTPGet {
+	*** client;
+	*** masqueradeHost;
+	*** realHost;
+	*** get(java.lang.String,org.lantern.util.HostSpoofedHTTPGet$ResponseHandler);
+}
+
+-keep class org.lantern.util.HostSpoofedHTTPGet$ResponseHandler {
+	*** onException(java.lang.Exception);
+	*** onResponse(org.apache.http.HttpResponse);
+}
+
 -keep class org.lantern.util.HttpClientFactory {
-	*** censored;
-	*** log;
-	*** proxyTracker;
-	*** socketsUtil;
-	*** configureDefaults(org.apache.http.HttpHost,org.apache.http.impl.client.DefaultHttpClient);
 	*** newClient();
-	*** newClient(org.apache.http.HttpHost,boolean);
 	*** newDirectClient();
-	*** newProxyBlocking();
+	*** newProxiedClient();
 }
 
--keep class org.lantern.util.HttpClientFactory$1 {
-	*** this$0;
-	*** val$sf;
+-keep class org.lantern.util.HttpClientFactory$$EnhancerByMockitoWithCGLIB$$c6a91709 {
+	*** CGLIB$BOUND;
+	*** CGLIB$CALLBACK_0;
+	*** CGLIB$CALLBACK_1;
+	*** CGLIB$STATIC_CALLBACKS;
+	*** CGLIB$THREAD_CALLBACKS;
+	*** CGLIB$clone$4$Method;
+	*** CGLIB$clone$4$Proxy;
+	*** CGLIB$emptyArgs;
+	*** CGLIB$equals$1$Method;
+	*** CGLIB$equals$1$Proxy;
+	*** CGLIB$finalize$0$Method;
+	*** CGLIB$finalize$0$Proxy;
+	*** CGLIB$hashCode$3$Method;
+	*** CGLIB$hashCode$3$Proxy;
+	*** CGLIB$newClient$7$Method;
+	*** CGLIB$newClient$7$Proxy;
+	*** CGLIB$newDirectClient$5$Method;
+	*** CGLIB$newDirectClient$5$Proxy;
+	*** CGLIB$newProxiedClient$6$Method;
+	*** CGLIB$newProxiedClient$6$Proxy;
+	*** CGLIB$toString$2$Method;
+	*** CGLIB$toString$2$Proxy;
+	*** CGLIB$BIND_CALLBACKS(java.lang.Object);
+	*** CGLIB$SET_THREAD_CALLBACKS(org.mockito.cglib.proxy.Callback[]);
+	*** CGLIB$STATICHOOK5();
 }
 
--keep class org.lantern.util.LanternHostNameVerifier {
-	*** log;
-	*** proxy;
+-keep class org.lantern.util.ProcessUtil {
+	*** getMyPID();
 }
 
 -keep class org.lantern.util.PublicIpAddress {
@@ -59783,25 +56249,39 @@
 	*** cacheTime;
 	*** lastLookupTime;
 	*** publicIp;
-	*** threadPool;
-	*** access$0(java.net.InetAddress);
-	*** access$1(long);
-	*** access$2();
+	*** unsafePublicIpAddress;
+	org.lantern.util.PublicIpAddress(long);
+	*** access$0();
 	*** getPublicIpAddress();
 	*** getPublicIpAddress(boolean);
-	*** ifConfigLookup();
-	*** stunLookup();
-	*** wikiMediaLookup();
+	*** lookupSafe();
 }
 
 -keep class org.lantern.util.PublicIpAddress$1 {
-	*** count;
+	*** this$0;
+	*** onException(java.lang.Exception);
+	*** onResponse(org.apache.http.HttpResponse);
 }
 
--keep class org.lantern.util.PublicIpAddress$2 {
+-keep class org.lantern.util.RandomLengthString {
+	*** maxLength;
+	*** preGeneratedStrings;
+	*** random;
+	*** next();
+}
+
+-keep class org.lantern.util.RandomLengthString$1 {
 	*** this$0;
-	*** val$sock;
-	*** call();
+	*** initialValue();
+}
+
+-keep class org.lantern.util.StaticHttpClientFactory {
+	*** log;
+	*** access$000();
+	*** newClient(org.apache.http.HttpHost);
+	*** newDirectClient();
+	*** newProxiedClient();
+	*** randomLengthVal();
 }
 
 -keep class org.lantern.util.Stopwatch {
@@ -59824,6 +56304,8 @@
 -keep class org.lantern.util.Threads {
 	*** newCachedThreadPool(java.lang.String);
 	*** newDaemonThreadFactory(java.lang.String);
+	*** newScheduledThreadPool(java.lang.String);
+	*** newSingleThreadExecutor(java.lang.String);
 	*** newSingleThreadScheduledExecutor(java.lang.String);
 }
 
@@ -59842,11 +56324,36 @@
 	*** val$name;
 }
 
+-keep class org.lantern.util.UnsafePublicIpAddress {
+	*** LOG;
+	*** cacheTime;
+	*** lastLookupTime;
+	*** publicIp;
+	*** threadPool;
+	*** access$000();
+	*** access$002(java.net.InetAddress);
+	*** access$102(long);
+	*** getPublicIpAddress();
+	*** getPublicIpAddress(boolean);
+	*** ifConfigLookup();
+	*** stunLookup();
+	*** wikiMediaLookup();
+}
+
+-keep class org.lantern.util.UnsafePublicIpAddress$1 {
+	*** count;
+}
+
+-keep class org.lantern.util.UnsafePublicIpAddress$2 {
+	*** this$0;
+	*** val$sock;
+	*** call();
+}
+
 -keep class org.lantern.win.Registry {
 	*** LOG;
 	*** read(java.lang.String,java.lang.String);
 	*** readWithCommandReg(java.lang.String,java.lang.String);
-	*** write(java.lang.String,java.lang.String,java.lang.Integer);
 	*** write(java.lang.String,java.lang.String,java.lang.String);
 	*** writeWithCommandReg(java.lang.String,java.lang.String,java.lang.Integer);
 	*** writeWithCommandReg(java.lang.String,java.lang.String,java.lang.String);
@@ -59869,7 +56376,7 @@
 
 -keep class org.lantern.win.WindowsRegCommand {
 	*** LOG;
-	*** access$0();
+	*** access$000();
 	*** read(java.lang.String,java.lang.String);
 	*** write(java.lang.String,java.lang.String,java.lang.String,java.lang.String);
 	*** writeREG_DWORD(java.lang.String,java.lang.String,int);
@@ -60002,8 +56509,6 @@
 	*** tcp;
 	*** udp;
 	*** getCipherSuites();
-	*** isTcp();
-	*** isUdp();
 	*** setCipherSuites(java.lang.String[]);
 	*** setDisableUdpOnLocalNetwork(boolean);
 	*** setTcp(boolean);
@@ -60011,14 +56516,6 @@
 }
 
 -keep class org.lastbamboo.common.offer.answer.IceMediaStreamDesc {
-	*** m_mimeContentSubtype;
-	*** m_mimeContentType;
-	*** m_numComponents;
-	*** m_tcp;
-	*** m_udp;
-	*** m_useRelay;
-	*** reliable;
-	org.lastbamboo.common.offer.answer.IceMediaStreamDesc(boolean,boolean,java.lang.String,java.lang.String,int,boolean,boolean);
 	*** getMimeContentSubtype();
 	*** getMimeContentType();
 	*** isTcp();
@@ -60060,18 +56557,7 @@
 }
 
 -keep class org.lastbamboo.common.p2p.P2PClient {
-	*** addConnectionListener(org.lastbamboo.common.p2p.P2PConnectionListener);
 	*** logout();
-}
-
--keep class org.lastbamboo.common.p2p.P2PConnectionEvent {
-	*** connected;
-	*** incoming;
-	*** jid;
-	*** mapping;
-	*** remoteSocketAddress;
-	*** sock;
-	*** socketType;
 }
 
 -keep class org.lastbamboo.common.p2p.P2PConstants {
@@ -60093,7 +56579,6 @@
 
 -keep class org.lastbamboo.common.portmapping.NatPmpService {
 	*** addNatPmpMapping(org.lastbamboo.common.portmapping.PortMappingProtocol,int,int,org.lastbamboo.common.portmapping.PortMapListener);
-	*** shutdown();
 }
 
 -keep class org.lastbamboo.common.portmapping.PortMapListener {
@@ -60109,7 +56594,6 @@
 
 -keep class org.lastbamboo.common.portmapping.UpnpService {
 	*** addUpnpMapping(org.lastbamboo.common.portmapping.PortMappingProtocol,int,int,org.lastbamboo.common.portmapping.PortMapListener);
-	*** shutdown();
 }
 
 -keep class org.lastbamboo.common.stun.client.PublicIpAddress {
@@ -60371,7 +56855,6 @@
 	*** getGlobalProxyConfig();
 	*** getHost(java.lang.String);
 	*** getOtr(org.jivesoftware.smack.XMPPConnection);
-	*** getProxyConfig(org.jivesoftware.smack.ConnectionConfiguration,java.lang.Throwable);
 	*** getSharedStatus(org.jivesoftware.smack.XMPPConnection);
 	*** getVCard(org.jivesoftware.smack.XMPPConnection,java.lang.String);
 	*** goOffTheRecord(java.lang.String,org.jivesoftware.smack.XMPPConnection);
@@ -60390,7 +56873,7 @@
 	*** setGlobalProxyConfig(org.jivesoftware.smack.ConnectionConfiguration);
 	*** simpleGoogleTalkConnection(org.littleshoot.commom.xmpp.XmppCredentials);
 	*** singleXmppConnection(org.littleshoot.commom.xmpp.XmppCredentials,java.lang.String,int,java.lang.String,org.littleshoot.commom.xmpp.XmppP2PClient);
-	*** singleXmppConnection(org.littleshoot.commom.xmpp.XmppCredentials,java.lang.String,int,java.lang.String,org.littleshoot.commom.xmpp.XmppP2PClient,org.jivesoftware.smack.ConnectionConfiguration);
+	*** singleXmppConnection(org.littleshoot.commom.xmpp.XmppCredentials,org.littleshoot.commom.xmpp.XmppP2PClient,org.jivesoftware.smack.ConnectionConfiguration);
 	*** toString(org.jivesoftware.smack.packet.Packet);
 }
 
@@ -61562,12 +58045,14 @@
 
 -keep class org.littleshoot.proxy.ActivityTrackerAdapter {
 	org.littleshoot.proxy.ActivityTrackerAdapter();
+	*** requestReceivedFromClient(org.littleshoot.proxy.FlowContext,io.netty.handler.codec.http.HttpRequest);
 }
 
 -keep class org.littleshoot.proxy.ChainedProxy {
 	*** connectionFailed(java.lang.Throwable);
 	*** connectionSucceeded();
 	*** disconnected();
+	*** filterRequest(io.netty.handler.codec.http.HttpObject);
 	*** getChainedProxyAddress();
 	*** getLocalAddress();
 	*** getTransportProtocol();
@@ -61576,6 +58061,7 @@
 
 -keep class org.littleshoot.proxy.ChainedProxyAdapter {
 	*** FALLBACK_TO_DIRECT_CONNECTION;
+	org.littleshoot.proxy.ChainedProxyAdapter();
 }
 
 -keep class org.littleshoot.proxy.ChainedProxyManager {
@@ -61604,22 +58090,27 @@
 }
 
 -keep class org.littleshoot.proxy.HttpFiltersAdapter {
+	*** ctx;
 	*** originalRequest;
-	org.littleshoot.proxy.HttpFiltersAdapter(io.netty.handler.codec.http.HttpRequest);
+	org.littleshoot.proxy.HttpFiltersAdapter(io.netty.handler.codec.http.HttpRequest,io.netty.channel.ChannelHandlerContext);
+	*** requestPre(io.netty.handler.codec.http.HttpObject);
+	*** responsePost(io.netty.handler.codec.http.HttpObject);
 }
 
 -keep class org.littleshoot.proxy.HttpFiltersSource {
-	*** filterRequest(io.netty.handler.codec.http.HttpRequest);
+	*** filterRequest(io.netty.handler.codec.http.HttpRequest,io.netty.channel.ChannelHandlerContext);
 	*** getMaximumRequestBufferSizeInBytes();
 	*** getMaximumResponseBufferSizeInBytes();
 }
 
 -keep class org.littleshoot.proxy.HttpFiltersSourceAdapter {
 	org.littleshoot.proxy.HttpFiltersSourceAdapter();
+	*** filterRequest(io.netty.handler.codec.http.HttpRequest);
 }
 
 -keep class org.littleshoot.proxy.HttpProxyServer {
 	*** clone();
+	*** getListenAddress();
 	*** stop();
 }
 
@@ -61655,6 +58146,7 @@
 	*** $VALUES;
 	*** TCP;
 	*** UDT;
+	*** valueOf(java.lang.String);
 	*** values();
 }
 
@@ -61687,6 +58179,7 @@
 	*** doReadHTTPInitial(io.netty.handler.codec.http.HttpRequest);
 	*** fixHttpVersionHeaderIfNecessary(io.netty.handler.codec.http.HttpResponse);
 	*** flowContext();
+	*** forceDisconnect(org.littleshoot.proxy.impl.ProxyToServerConnection);
 	*** getClientAddress();
 	*** getSslEngine();
 	*** identifyHostAndPort(io.netty.handler.codec.http.HttpRequest);
@@ -61816,6 +58309,7 @@
 	*** address;
 	*** authenticateSslClients;
 	*** chainProxyManager;
+	*** connectTimeout;
 	*** filtersSource;
 	*** idleConnectionTimeout;
 	*** mitmManager;
@@ -61825,8 +58319,8 @@
 	*** transparent;
 	*** transportProtocol;
 	*** useDnsSec;
-	org.littleshoot.proxy.impl.DefaultHttpProxyServer(java.lang.String,org.littleshoot.proxy.TransportProtocol,java.net.InetSocketAddress,org.littleshoot.proxy.SslEngineSource,boolean,org.littleshoot.proxy.ProxyAuthenticator,org.littleshoot.proxy.ChainedProxyManager,org.littleshoot.proxy.MitmManager,org.littleshoot.proxy.HttpFiltersSource,boolean,boolean,int,java.util.Collection);
-	org.littleshoot.proxy.impl.DefaultHttpProxyServer(org.littleshoot.proxy.impl.DefaultHttpProxyServer$ServerGroup,org.littleshoot.proxy.TransportProtocol,java.net.InetSocketAddress,org.littleshoot.proxy.SslEngineSource,boolean,org.littleshoot.proxy.ProxyAuthenticator,org.littleshoot.proxy.ChainedProxyManager,org.littleshoot.proxy.MitmManager,org.littleshoot.proxy.HttpFiltersSource,boolean,boolean,int,java.util.Collection);
+	org.littleshoot.proxy.impl.DefaultHttpProxyServer(java.lang.String,org.littleshoot.proxy.TransportProtocol,java.net.InetSocketAddress,org.littleshoot.proxy.SslEngineSource,boolean,org.littleshoot.proxy.ProxyAuthenticator,org.littleshoot.proxy.ChainedProxyManager,org.littleshoot.proxy.MitmManager,org.littleshoot.proxy.HttpFiltersSource,boolean,boolean,int,java.util.Collection,int);
+	org.littleshoot.proxy.impl.DefaultHttpProxyServer(org.littleshoot.proxy.impl.DefaultHttpProxyServer$ServerGroup,org.littleshoot.proxy.TransportProtocol,java.net.InetSocketAddress,org.littleshoot.proxy.SslEngineSource,boolean,org.littleshoot.proxy.ProxyAuthenticator,org.littleshoot.proxy.ChainedProxyManager,org.littleshoot.proxy.MitmManager,org.littleshoot.proxy.HttpFiltersSource,boolean,boolean,int,java.util.Collection,int);
 	*** access$1200();
 	*** access$1400(org.littleshoot.proxy.impl.DefaultHttpProxyServer);
 	*** access$1500(org.littleshoot.proxy.impl.DefaultHttpProxyServer);
@@ -61837,6 +58331,7 @@
 	*** doStart();
 	*** getActivityTrackers();
 	*** getChainProxyManager();
+	*** getConnectTimeout();
 	*** getFiltersSource();
 	*** getIdleConnectionTimeout();
 	*** getMitmManager();
@@ -61872,6 +58367,7 @@
 	*** allowLocalOnly;
 	*** authenticateSslClients;
 	*** chainProxyManager;
+	*** connectTimeout;
 	*** filtersSource;
 	*** idleConnectionTimeout;
 	*** listenOnAllAddresses;
@@ -61886,7 +58382,7 @@
 	*** useDnsSec;
 	org.littleshoot.proxy.impl.DefaultHttpProxyServer$DefaultHttpProxyServerBootstrap();
 	org.littleshoot.proxy.impl.DefaultHttpProxyServer$DefaultHttpProxyServerBootstrap(java.util.Properties);
-	org.littleshoot.proxy.impl.DefaultHttpProxyServer$DefaultHttpProxyServerBootstrap(org.littleshoot.proxy.impl.DefaultHttpProxyServer,org.littleshoot.proxy.TransportProtocol,java.net.InetSocketAddress,org.littleshoot.proxy.SslEngineSource,boolean,org.littleshoot.proxy.ProxyAuthenticator,org.littleshoot.proxy.ChainedProxyManager,org.littleshoot.proxy.MitmManager,org.littleshoot.proxy.HttpFiltersSource,boolean,boolean,int,java.util.Collection);
+	org.littleshoot.proxy.impl.DefaultHttpProxyServer$DefaultHttpProxyServerBootstrap(org.littleshoot.proxy.impl.DefaultHttpProxyServer,org.littleshoot.proxy.TransportProtocol,java.net.InetSocketAddress,org.littleshoot.proxy.SslEngineSource,boolean,org.littleshoot.proxy.ProxyAuthenticator,org.littleshoot.proxy.ChainedProxyManager,org.littleshoot.proxy.MitmManager,org.littleshoot.proxy.HttpFiltersSource,boolean,boolean,int,java.util.Collection,int);
 	*** build();
 	*** determineListenAddress();
 }
@@ -61906,6 +58402,7 @@
 	*** access$500(org.littleshoot.proxy.impl.DefaultHttpProxyServer$ServerGroup);
 	*** access$600(org.littleshoot.proxy.impl.DefaultHttpProxyServer$ServerGroup);
 	*** access$700(org.littleshoot.proxy.impl.DefaultHttpProxyServer$ServerGroup);
+	*** initializeTransport(org.littleshoot.proxy.TransportProtocol);
 	*** stop();
 }
 
@@ -62086,6 +58583,7 @@
 	*** access$500(org.littleshoot.proxy.impl.ProxyToServerConnection);
 	*** access$600(org.littleshoot.proxy.impl.ProxyToServerConnection);
 	*** access$700(org.littleshoot.proxy.impl.ProxyToServerConnection);
+	*** access$800(org.littleshoot.proxy.impl.ProxyToServerConnection);
 	*** addressFor(java.lang.String,org.littleshoot.proxy.impl.DefaultHttpProxyServer);
 	*** connectAndWrite(io.netty.handler.codec.http.HttpRequest);
 	*** connectionFailed(java.lang.Throwable);
@@ -62096,7 +58594,7 @@
 	*** getInitialRequest();
 	*** getRemoteAddress();
 	*** getServerHostAndPort();
-	*** hasDownstreamChainedProxy();
+	*** hasUpstreamChainedProxy();
 	*** identifyCurrentRequest();
 	*** initChannelPipeline(io.netty.channel.ChannelPipeline,io.netty.handler.codec.http.HttpRequest);
 	*** initializeConnectionFlow();
@@ -62162,6 +58660,7 @@
 	*** copyMutableResponseFields(io.netty.handler.codec.http.HttpResponse);
 	*** extractBooleanDefaultFalse(java.util.Properties,java.lang.String);
 	*** extractInt(java.util.Properties,java.lang.String);
+	*** extractInt(java.util.Properties,java.lang.String,int);
 	*** formatDate(java.util.Date);
 	*** formatDate(java.util.Date,java.lang.String);
 	*** httpDate();
@@ -62315,21 +58814,10 @@
 }
 
 -keep class org.littleshoot.stun.stack.message.attributes.AbstractStunAddressAttribute {
-	*** m_addressFamily;
-	*** m_inetSocketAddress;
-	org.littleshoot.stun.stack.message.attributes.AbstractStunAddressAttribute(org.littleshoot.stun.stack.message.attributes.StunAttributeType,java.net.InetSocketAddress);
-	*** getBodyLength(java.net.InetSocketAddress);
 	*** getInetSocketAddress();
 }
 
--keep class org.littleshoot.stun.stack.message.attributes.AbstractStunAttribute {
-	*** m_attributeType;
-	*** m_bodyLength;
-	org.littleshoot.stun.stack.message.attributes.AbstractStunAttribute(org.littleshoot.stun.stack.message.attributes.StunAttributeType,int);
-}
-
 -keep class org.littleshoot.stun.stack.message.attributes.AddressAttributeReader {
-	*** LOG;
 	*** readAddress(org.littleshoot.mina.common.ByteBuffer);
 }
 
@@ -62379,10 +58867,6 @@
 	*** toInt();
 	*** toType(int);
 	*** values();
-}
-
--keep class org.littleshoot.stun.stack.message.attributes.StunAttributeVisitor {
-	*** visitMappedAddress(org.littleshoot.stun.stack.message.attributes.MappedAddressAttribute);
 }
 
 -keep class org.littleshoot.stun.stack.message.attributes.StunAttributesFactory {
@@ -62479,11 +58963,8 @@
 	*** trackTransaction(org.littleshoot.stun.stack.transaction.StunClientTransaction);
 }
 
--keep class org.littleshoot.util.BitUtils {
-	*** byteArrayToInteger(byte[]);
-	*** byteArrayToInteger(byte[],int);
-	*** byteArrayToLong(byte[],int);
-	*** toByteArray(int);
+-keep class org.littleshoot.util.Base64 {
+	*** encodeBytes(byte[]);
 }
 
 -keep class org.littleshoot.util.CandidateProvider {
@@ -62532,6 +59013,7 @@
 	*** $VALUES;
 	*** TCP;
 	*** UDP;
+	*** valueOf(java.lang.String);
 }
 
 -keep class org.littleshoot.util.NetworkUtils {
@@ -62647,9 +59129,8 @@
 -keep class org.mockito.Matchers {
 	*** mockingProgress;
 	org.mockito.Matchers();
-	*** any();
+	*** any(java.lang.Class);
 	*** anyObject();
-	*** anyString();
 	*** notNull();
 	*** notNull(java.lang.Class);
 	*** reportMatcher(org.hamcrest.Matcher);
@@ -62668,11 +59149,9 @@
 	*** RETURNS_DEFAULTS;
 	*** RETURNS_MOCKS;
 	*** RETURNS_SMART_NULLS;
-	*** doNothing();
 	*** mock(java.lang.Class);
 	*** mock(java.lang.Class,org.mockito.MockSettings);
 	*** mock(java.lang.Class,org.mockito.stubbing.Answer);
-	*** spy(java.lang.Object);
 	*** times(int);
 	*** when(java.lang.Object);
 	*** withSettings();
@@ -63120,9 +59599,6 @@
 }
 
 -keep class org.mockito.cglib.core.Block {
-	*** e;
-	*** end;
-	*** start;
 	*** end();
 	*** getCodeEmitter();
 	*** getEnd();
@@ -63137,7 +59613,6 @@
 	*** staticHook;
 	*** staticHookSig;
 	*** staticInit;
-	org.mockito.cglib.core.ClassEmitter(org.mockito.asm.ClassVisitor);
 	*** begin_class(int,int,java.lang.String,org.mockito.asm.Type,org.mockito.asm.Type[],java.lang.String);
 	*** begin_method(int,org.mockito.cglib.core.Signature,org.mockito.asm.Type[]);
 	*** begin_static();
@@ -63423,7 +59898,6 @@
 	*** access$200(org.mockito.cglib.core.CodeEmitter,org.mockito.asm.Type,org.mockito.asm.Label,org.mockito.cglib.core.Customizer,org.mockito.cglib.core.ProcessArrayCallback);
 	*** access$300(org.mockito.cglib.core.CodeEmitter,org.mockito.asm.Type,org.mockito.cglib.core.EmitUtils$ArrayDelimiters,org.mockito.cglib.core.Customizer,org.mockito.cglib.core.ProcessArrayCallback);
 	*** access$500();
-	*** access$800(org.mockito.cglib.core.CodeEmitter,java.util.List,org.mockito.cglib.core.ObjectSwitchCallback,org.mockito.cglib.core.EmitUtils$ParameterTyper,org.mockito.asm.Label,org.mockito.asm.Label);
 	*** access$900(org.mockito.cglib.core.CodeEmitter,java.util.List,org.mockito.cglib.core.ObjectSwitchCallback,org.mockito.cglib.core.EmitUtils$ParameterTyper,org.mockito.asm.Label,org.mockito.asm.Label,java.util.BitSet);
 	*** add_property(org.mockito.cglib.core.ClassEmitter,java.lang.String,org.mockito.asm.Type,java.lang.String);
 	*** append_string(org.mockito.cglib.core.CodeEmitter,org.mockito.asm.Type,org.mockito.cglib.core.EmitUtils$ArrayDelimiters,org.mockito.cglib.core.Customizer);
@@ -63445,7 +59919,6 @@
 	*** member_helper_size(org.mockito.cglib.core.CodeEmitter,java.util.List,org.mockito.cglib.core.ObjectSwitchCallback,org.mockito.cglib.core.EmitUtils$ParameterTyper,org.mockito.asm.Label,org.mockito.asm.Label);
 	*** member_helper_type(org.mockito.cglib.core.CodeEmitter,java.util.List,org.mockito.cglib.core.ObjectSwitchCallback,org.mockito.cglib.core.EmitUtils$ParameterTyper,org.mockito.asm.Label,org.mockito.asm.Label,java.util.BitSet);
 	*** member_switch_helper(org.mockito.cglib.core.CodeEmitter,java.util.List,org.mockito.cglib.core.ObjectSwitchCallback,boolean);
-	*** method_switch(org.mockito.cglib.core.CodeEmitter,java.util.List,org.mockito.cglib.core.ObjectSwitchCallback);
 	*** not_equals(org.mockito.cglib.core.CodeEmitter,org.mockito.asm.Type,org.mockito.asm.Label,org.mockito.cglib.core.Customizer);
 	*** not_equals_helper(org.mockito.cglib.core.CodeEmitter,org.mockito.asm.Type,org.mockito.asm.Label,org.mockito.cglib.core.Customizer,org.mockito.cglib.core.ProcessArrayCallback);
 	*** null_constructor(org.mockito.cglib.core.ClassEmitter);
@@ -63460,21 +59933,11 @@
 	*** string_switch(org.mockito.cglib.core.CodeEmitter,java.lang.String[],int,org.mockito.cglib.core.ObjectSwitchCallback);
 	*** string_switch_hash(org.mockito.cglib.core.CodeEmitter,java.lang.String[],org.mockito.cglib.core.ObjectSwitchCallback,boolean);
 	*** string_switch_trie(org.mockito.cglib.core.CodeEmitter,java.lang.String[],org.mockito.cglib.core.ObjectSwitchCallback);
-	*** wrap_throwable(org.mockito.cglib.core.Block,org.mockito.asm.Type);
 	*** wrap_undeclared_throwable(org.mockito.cglib.core.CodeEmitter,org.mockito.cglib.core.Block,org.mockito.asm.Type[],org.mockito.asm.Type);
 }
 
 -keep class org.mockito.cglib.core.EmitUtils$10 {
 	*** val$cache;
-}
-
--keep class org.mockito.cglib.core.EmitUtils$12 {
-	*** val$buckets;
-	*** val$cached;
-	*** val$callback;
-	*** val$def;
-	*** val$e;
-	*** val$end;
 }
 
 -keep class org.mockito.cglib.core.EmitUtils$13 {
@@ -63487,21 +59950,6 @@
 	*** val$def;
 	*** val$e;
 	*** val$end;
-	*** val$typer;
-}
-
--keep class org.mockito.cglib.core.EmitUtils$15 {
-	*** val$j;
-	*** val$typer;
-}
-
--keep class org.mockito.cglib.core.EmitUtils$16 {
-	*** val$callback;
-	*** val$checked;
-	*** val$def;
-	*** val$e;
-	*** val$end;
-	*** val$fbuckets;
 	*** val$typer;
 }
 
@@ -63751,7 +60199,6 @@
 	*** getTypes(java.lang.Class[]);
 	*** isAbstract(int);
 	*** isArray(org.mockito.asm.Type);
-	*** isConstructor(org.mockito.cglib.core.MethodInfo);
 	*** isFinal(int);
 	*** isInterface(int);
 	*** isPrimitive(org.mockito.asm.Type);
@@ -64026,67 +60473,13 @@
 }
 
 -keep class org.mockito.cglib.reflect.FastClass {
-	*** type;
-	org.mockito.cglib.reflect.FastClass(java.lang.Class);
-	*** create(java.lang.ClassLoader,java.lang.Class);
-	*** getConstructor(java.lang.reflect.Constructor);
-	*** getIndex(java.lang.Class[]);
-	*** getIndex(java.lang.String,java.lang.Class[]);
 	*** getIndex(org.mockito.cglib.core.Signature);
-	*** getMethod(java.lang.reflect.Method);
 	*** invoke(int,java.lang.Object,java.lang.Object[]);
-	*** newInstance(int,java.lang.Object[]);
 }
 
 -keep class org.mockito.cglib.reflect.FastClass$Generator {
-	*** SOURCE;
-	*** type;
 	*** create();
 	*** setType(java.lang.Class);
-}
-
--keep class org.mockito.cglib.reflect.FastClassEmitter {
-	*** CONSTRUCTOR_GET_INDEX;
-	*** CSTRUCT_CLASS;
-	*** FAST_CLASS;
-	*** GET_MAX_INDEX;
-	*** GET_SIGNATURE_WITHOUT_RETURN_TYPE;
-	*** ILLEGAL_ARGUMENT_EXCEPTION;
-	*** INVOCATION_TARGET_EXCEPTION;
-	*** INVOCATION_TARGET_EXCEPTION_ARRAY;
-	*** INVOKE;
-	*** METHOD_GET_INDEX;
-	*** NEW_INSTANCE;
-	*** SIGNATURE_GET_INDEX;
-	*** TO_STRING;
-	*** emitIndexByClassArray(java.util.List);
-	*** emitIndexBySignature(java.util.List);
-	*** getIntRange(int);
-	*** invokeSwitchHelper(org.mockito.cglib.core.CodeEmitter,java.util.List,int,org.mockito.asm.Type);
-	*** signatureSwitchHelper(org.mockito.cglib.core.CodeEmitter,java.util.List);
-}
-
--keep class org.mockito.cglib.reflect.FastClassEmitter$1 {
-	*** this$0;
-}
-
--keep class org.mockito.cglib.reflect.FastClassEmitter$3 {
-	*** this$0;
-	*** val$e;
-	*** val$signatures;
-}
-
--keep class org.mockito.cglib.reflect.FastClassEmitter$4 {
-	*** val$arg;
-	*** val$base;
-	*** val$e;
-	*** val$illegalArg;
-	*** val$info;
-}
-
--keep class org.mockito.cglib.reflect.FastClassEmitter$GetIndexCallback {
-	*** e;
-	*** indexes;
 }
 
 -keep class org.mockito.configuration.IMockitoConfiguration {
@@ -64127,11 +60520,9 @@
 	*** mocksHaveToBePassedWhenCreatingInOrder();
 	*** notAMockPassedToVerify(java.lang.Class);
 	*** notAMockPassedToVerifyNoMoreInteractions();
-	*** notAMockPassedToWhenMethod();
 	*** notAMockPassedWhenCreatingInOrder();
 	*** nullPassedToVerify();
 	*** nullPassedToVerifyNoMoreInteractions();
-	*** nullPassedToWhenMethod();
 	*** nullPassedWhenCreatingInOrder();
 	*** onlyVoidMethodsCanBeSetToDoNothing();
 	*** possibleArgumentTypesOf(org.mockito.invocation.InvocationOnMock);
@@ -64324,6 +60715,8 @@
 }
 
 -keep class org.mockito.internal.exceptions.stacktrace.ConditionalStackTraceFilter {
+	*** config;
+	*** filter;
 	*** filter(java.lang.Throwable);
 }
 
@@ -64361,7 +60754,6 @@
 -keep class org.mockito.internal.invocation.ArgumentsComparator {
 	*** argumentsMatch(org.mockito.internal.invocation.InvocationMatcher,java.lang.Object[]);
 	*** argumentsMatch(org.mockito.internal.invocation.InvocationMatcher,org.mockito.invocation.Invocation);
-	*** varArgsMatch(org.mockito.internal.invocation.InvocationMatcher,org.mockito.invocation.Invocation);
 }
 
 -keep class org.mockito.internal.invocation.ArgumentsProcessor {
@@ -64410,10 +60802,6 @@
 	*** getParameterTypes();
 	*** getReturnType();
 	*** isVarArgs();
-}
-
--keep class org.mockito.internal.invocation.StubInfoImpl {
-	*** stubbedAt;
 }
 
 -keep class org.mockito.internal.invocation.finder.VerifiableInvocationsFinder {
@@ -64481,10 +60869,6 @@
 	*** actualMatcher;
 	*** location;
 	*** getLocation();
-}
-
--keep class org.mockito.internal.matchers.MatcherDecorator {
-	*** getActualMatcher();
 }
 
 -keep class org.mockito.internal.matchers.NotNull {
@@ -64628,8 +61012,6 @@
 }
 
 -keep class org.mockito.internal.stubbing.StubberImpl {
-	*** answers;
-	*** reporter;
 	*** doAnswer(org.mockito.stubbing.Answer);
 }
 
@@ -64769,22 +61151,8 @@
 	*** newSet(java.lang.Object[]);
 }
 
--keep class org.mockito.internal.util.reflection.AccessibilityChanger {
-	*** $assertionsDisabled;
-	*** wasAccessible;
-	*** enableAccess(java.lang.reflect.AccessibleObject);
-	*** safelyDisableAccess(java.lang.reflect.AccessibleObject);
-}
-
--keep class org.mockito.internal.util.reflection.FieldCopier {
-	*** copyValue(java.lang.Object,java.lang.Object,java.lang.reflect.Field);
-}
-
 -keep class org.mockito.internal.util.reflection.LenientCopyTool {
-	*** fieldCopier;
-	*** copy(java.lang.Object,java.lang.Object,java.lang.Class,java.lang.Class);
 	*** copyToMock(java.lang.Object,java.lang.Object);
-	*** copyValues(java.lang.Object,java.lang.Object,java.lang.Class);
 }
 
 -keep class org.mockito.internal.verification.MockAwareVerificationMode {
@@ -64820,7 +61188,6 @@
 
 -keep class org.mockito.invocation.Invocation {
 	*** getLocation();
-	*** getRawArguments();
 	*** ignoreForVerification();
 	*** isVerified();
 	*** markStubbed(org.mockito.invocation.StubInfo);
@@ -64879,10 +61246,6 @@
 	*** thenReturn(java.lang.Object);
 	*** thenThrow(java.lang.Class[]);
 	*** thenThrow(java.lang.Throwable[]);
-}
-
--keep class org.mockito.stubbing.Stubber {
-	*** when(java.lang.Object);
 }
 
 -keep class org.mockito.verification.VerificationMode {
@@ -66094,7 +62457,6 @@
 	*** curveTo(float,float,float,float,float,float);
 	*** lineTo(float,float);
 	*** moveTo(float,float);
-	*** pathDone();
 	*** quadTo(float,float,float,float);
 }
 
@@ -66236,6 +62598,69 @@
 	*** rangeCheckForAdd(int);
 	*** remove(java.lang.Object);
 	*** size();
+}
+
+-keep class sun.dc.DuctusRenderingEngine {
+	*** RasterizerCaps;
+	*** RasterizerCorners;
+	*** theRasterizer;
+	*** dropRasterizer(sun.dc.pr.Rasterizer);
+	*** feedConsumer(java.awt.geom.PathIterator,sun.dc.path.PathConsumer,boolean,float);
+	*** feedConsumer(sun.dc.path.PathConsumer,java.awt.geom.PathIterator);
+	*** getRasterizer();
+	*** getTransformMatrix(java.awt.geom.AffineTransform);
+}
+
+-keep class sun.dc.DuctusRenderingEngine$FillAdapter {
+	*** getShape();
+}
+
+-keep class sun.dc.path.PathConsumer {
+	*** appendCubic(float,float,float,float,float,float);
+	*** appendLine(float,float);
+	*** appendQuadratic(float,float,float,float);
+	*** beginPath();
+	*** beginSubpath(float,float);
+	*** closedSubpath();
+	*** dispose();
+	*** endPath();
+	*** getConsumer();
+}
+
+-keep class sun.dc.pr.PathDasher {
+	*** dispose();
+	*** setDash(float[],float);
+	*** setDashT4(float[]);
+}
+
+-keep class sun.dc.pr.PathStroker {
+	*** dispose();
+	*** setCaps(int);
+	*** setCorners(int,float);
+	*** setPenDiameter(float);
+	*** setPenFitting(float,int);
+	*** setPenT4(float[]);
+}
+
+-keep class sun.dc.pr.Rasterizer {
+	*** appendCubic(float,float,float,float,float,float);
+	*** appendLine(float,float);
+	*** appendQuadratic(float,float,float,float);
+	*** beginPath();
+	*** beginSubpath(float,float);
+	*** closedSubpath();
+	*** endPath();
+	*** getAlphaBox(int[]);
+	*** reset();
+	*** setCaps(int);
+	*** setCorners(int,float);
+	*** setDash(float[],float);
+	*** setDashT4(float[]);
+	*** setOutputArea(float,float,int,int);
+	*** setPenDiameter(float);
+	*** setPenFitting(float,int);
+	*** setPenT4(float[]);
+	*** setUsage(int);
 }
 
 -keep class sun.font.AttributeMap {
@@ -66835,10 +63260,6 @@
 	*** activateProfiles();
 	*** registerDeferral(sun.java2d.cmm.ProfileActivator);
 	*** unregisterDeferral(sun.java2d.cmm.ProfileActivator);
-}
-
--keep class sun.java2d.jules.JulesPathBuf {
-	*** isCairoAvailable();
 }
 
 -keep class sun.java2d.loops.Blit {
@@ -67742,7 +64163,6 @@
 	*** getBoundsIntersectionXYWH(int,int,int,int);
 	*** getBoundsIntersectionXYXY(int,int,int,int);
 	*** getDifference(sun.java2d.pipe.Region);
-	*** getHeight();
 	*** getHiX();
 	*** getHiY();
 	*** getInstance(int[]);
@@ -67763,7 +64183,6 @@
 	*** getSpanIterator(int[]);
 	*** getTranslatedRegion(int,int);
 	*** getUnion(sun.java2d.pipe.Region);
-	*** getWidth();
 	*** initIDs();
 	*** intersectsQuickCheck(sun.java2d.pipe.Region);
 	*** intersectsQuickCheckXYXY(int,int,int,int);
@@ -67831,7 +64250,6 @@
 	*** reImpl;
 	sun.java2d.pipe.RenderingEngine();
 	*** createStrokedShape(java.awt.Shape,float,int,int,float,float[],float);
-	*** feedConsumer(java.awt.geom.PathIterator,sun.awt.geom.PathConsumer2D);
 	*** getAATileGenerator(double,double,double,double,double,double,double,double,sun.java2d.pipe.Region,int[]);
 	*** getAATileGenerator(java.awt.Shape,java.awt.geom.AffineTransform,sun.java2d.pipe.Region,java.awt.BasicStroke,boolean,boolean,int[]);
 	*** getInstance();
@@ -67931,41 +64349,6 @@
 	sun.java2d.pipe.hw.ContextCapabilities(int,java.lang.String);
 	*** getCaps();
 	*** toString();
-}
-
--keep class sun.java2d.pisces.PiscesRenderingEngine {
-	sun.java2d.pisces.PiscesRenderingEngine();
-	*** getAATileGenerator(java.awt.Shape,java.awt.geom.AffineTransform,sun.java2d.pipe.Region,java.awt.BasicStroke,boolean,boolean,int[]);
-	*** nearZero(double,int);
-	*** pathTo(java.awt.geom.PathIterator,sun.awt.geom.PathConsumer2D);
-	*** strokeTo(java.awt.Shape,java.awt.geom.AffineTransform,float,sun.java2d.pisces.PiscesRenderingEngine$NormMode,int,int,float,float[],float,sun.awt.geom.PathConsumer2D);
-	*** strokeTo(java.awt.Shape,java.awt.geom.AffineTransform,java.awt.BasicStroke,boolean,sun.java2d.pisces.PiscesRenderingEngine$NormMode,boolean,sun.awt.geom.PathConsumer2D);
-	*** userSpaceLineWidth(java.awt.geom.AffineTransform,float);
-}
-
--keep class sun.java2d.pisces.PiscesRenderingEngine$NormMode {
-	*** OFF;
-	*** ON_NO_AA;
-	*** ON_WITH_AA;
-}
-
--keep class sun.java2d.pisces.PiscesTileGenerator {
-	*** getBbox(int[]);
-}
-
--keep class sun.java2d.pisces.Renderer {
-	*** MAX_AA_ALPHA;
-	*** closePath();
-	*** endRendering();
-	*** lineTo(float,float);
-	*** moveTo(float,float);
-	*** pathDone();
-}
-
--keep class sun.java2d.pisces.TransformingPathConsumer2D {
-	*** deltaTransformConsumer(sun.awt.geom.PathConsumer2D,java.awt.geom.AffineTransform);
-	*** inverseDeltaTransformConsumer(sun.awt.geom.PathConsumer2D,java.awt.geom.AffineTransform);
-	*** transformConsumer(sun.awt.geom.PathConsumer2D,java.awt.geom.AffineTransform);
 }
 
 -keep class sun.launcher.LauncherHelper {
@@ -68198,19 +64581,40 @@
 	sun.management.OperatingSystemImpl(sun.management.VMManagement);
 }
 
+-keep class sun.management.RuntimeImpl {
+	*** jvm;
+	*** vmStartupTime;
+	*** isBootClassPathSupported();
+}
+
 -keep class sun.management.Util {
 	*** checkControlAccess();
+	*** checkMonitorAccess();
 	*** newException(java.lang.Exception);
 	*** newObjectName(java.lang.String);
 }
 
 -keep class sun.management.VMManagement {
 	*** getAvailableProcessors();
+	*** getBootClassPath();
+	*** getClassPath();
 	*** getCompilerName();
+	*** getLibraryPath();
+	*** getManagementVersion();
 	*** getOsArch();
 	*** getOsName();
 	*** getOsVersion();
+	*** getStartupTime();
 	*** getVerboseGC();
+	*** getVmArguments();
+	*** getVmId();
+	*** getVmName();
+	*** getVmSpecName();
+	*** getVmSpecVendor();
+	*** getVmSpecVersion();
+	*** getVmVendor();
+	*** getVmVersion();
+	*** isBootClassPathSupported();
 }
 
 -keep class sun.management.VMManagementImpl {
@@ -68236,8 +64640,52 @@
 	*** initOptionalSupportFields();
 }
 
+-keep class sun.management.counter.Counter {
+	*** getName();
+}
+
+-keep class sun.management.counter.Units {
+	*** STRING;
+}
+
+-keep class sun.management.counter.perf.PerfDataEntry {
+	*** byteData();
+	*** flags();
+	*** longData();
+	*** name();
+	*** size();
+	*** type();
+	*** units();
+	*** variability();
+	*** vectorLength();
+}
+
+-keep class sun.management.counter.perf.PerfDataType {
+	*** BYTE;
+	*** LONG;
+}
+
 -keep class sun.management.counter.perf.PerfInstrumentation {
+	*** $assertionsDisabled;
+	*** buffer;
+	*** map;
+	*** nextEntry;
+	*** prologue;
 	*** findByPattern(java.lang.String);
+	*** getMajorVersion();
+	*** getMinorVersion();
+	*** getNextCounter();
+	*** hasNext();
+	*** rewind();
+}
+
+-keep class sun.management.counter.perf.Prologue {
+	*** getByteOrder();
+	*** getEntryOffset();
+	*** getMajorVersion();
+	*** getMinorVersion();
+	*** getModificationTimeStamp();
+	*** getUsed();
 }
 
 -keep class sun.misc.ASCIICaseInsensitiveComparator {
@@ -68246,10 +64694,6 @@
 }
 
 -keep class sun.misc.BASE64Decoder {
-	*;
-}
-
--keep class sun.misc.CEStreamExhausted {
 	*;
 }
 
@@ -68273,18 +64717,6 @@
 	*;
 }
 
--keep class sun.misc.FDBigInt {
-	*;
-}
-
--keep class sun.misc.FloatingDecimal {
-	*;
-}
-
--keep class sun.misc.FloatingDecimal$1 {
-	*;
-}
-
 -keep class sun.misc.FormattedFloatingDecimal {
 	*** getChars(char[]);
 	*** getExponent();
@@ -68298,29 +64730,12 @@
 }
 
 -keep class sun.misc.FpUtils {
-	*** copySign(double,double);
-	*** copySign(float,float);
 	*** getExponent(double);
-	*** getExponent(float);
 	*** isFinite(double);
-	*** nextAfter(double,double);
-	*** nextAfter(float,double);
-	*** nextUp(double);
-	*** nextUp(float);
-	*** rawCopySign(double,double);
 	*** scalb(double,int);
-	*** scalb(float,int);
-	*** signum(double);
-	*** signum(float);
-	*** ulp(double);
-	*** ulp(float);
 }
 
 -keep class sun.misc.Hashing {
-	*;
-}
-
--keep class sun.misc.HexDumpEncoder {
 	*;
 }
 
@@ -68367,6 +64782,11 @@
 	*;
 }
 
+-keep class sun.misc.JavaNetHttpCookieAccess {
+	*** header(java.net.HttpCookie);
+	*** parse(java.lang.String);
+}
+
 -keep class sun.misc.JavaNioAccess {
 	*** getDirectBufferPool();
 }
@@ -68376,12 +64796,7 @@
 }
 
 -keep class sun.misc.JavaSecurityProtectionDomainAccess {
-	*** getProtectionDomainCache();
-}
-
--keep class sun.misc.JavaSecurityProtectionDomainAccess$ProtectionDomainCache {
-	*** get(java.security.ProtectionDomain);
-	*** put(java.security.ProtectionDomain,java.security.PermissionCollection);
+	*;
 }
 
 -keep class sun.misc.Launcher {
@@ -68434,11 +64849,11 @@
 	*;
 }
 
--keep class sun.misc.ProxyGenerator {
+-keep class sun.misc.PostVMInitHook {
 	*;
 }
 
--keep class sun.misc.ProxyGenerator$1 {
+-keep class sun.misc.ProxyGenerator {
 	*;
 }
 
@@ -68491,9 +64906,9 @@
 	*** getJavaAWTAccess();
 	*** getJavaIOFileDescriptorAccess();
 	*** getJavaLangAccess();
+	*** getJavaNetHttpCookieAccess();
 	*** getJavaNioAccess();
 	*** getJavaSecurityAccess();
-	*** getJavaSecurityProtectionDomainAccess();
 	*** setJavaAWTAccess(sun.misc.JavaAWTAccess);
 }
 
@@ -68570,7 +64985,6 @@
 	*** putChar(long,char);
 	*** putDouble(long,double);
 	*** putFloat(long,float);
-	*** putInt(java.lang.Object,long,int);
 	*** putInt(long,int);
 	*** putIntVolatile(java.lang.Object,long,int);
 	*** putLong(long,long);
@@ -68649,8 +65063,45 @@
 	*** run();
 }
 
--keep class sun.net.RegisteredDomain {
-	*** getRegisteredDomain(java.lang.String);
+-keep class sun.net.NetworkClient {
+	*** connectTimeout;
+	*** defaultConnectTimeout;
+	*** defaultSoTimeout;
+	*** encoding;
+	*** proxy;
+	*** readTimeout;
+	*** serverInput;
+	*** serverOutput;
+	*** serverSocket;
+	sun.net.NetworkClient();
+	*** closeServer();
+	*** createSocket();
+	*** doConnect(java.lang.String,int);
+	*** getReadTimeout();
+	*** isASCIISuperset(java.lang.String);
+	*** openServer(java.lang.String,int);
+	*** serverIsOpen();
+	*** setConnectTimeout(int);
+	*** setReadTimeout(int);
+}
+
+-keep class sun.net.NetworkClient$1 {
+	*** val$encs;
+	*** val$vals;
+	*** run();
+}
+
+-keep class sun.net.ProgressMonitor {
+	*** getDefault();
+	*** shouldMeterInput(java.net.URL,java.lang.String);
+}
+
+-keep class sun.net.ProgressSource {
+	*** beginTracking();
+	*** close();
+	*** finishTracking();
+	*** setContentType(java.lang.String);
+	*** updateProgress(long,long);
 }
 
 -keep class sun.net.ResourceManager {
@@ -68735,6 +65186,56 @@
 	*** textToNumericFormatV6(java.lang.String);
 }
 
+-keep class sun.net.www.HeaderParser {
+	*** asize;
+	*** nkeys;
+	*** raw;
+	*** tab;
+	*** findInt(java.lang.String,int);
+	*** findValue(int);
+	*** findValue(java.lang.String);
+	*** findValue(java.lang.String,java.lang.String);
+	*** keys();
+	*** parse();
+}
+
+-keep class sun.net.www.MessageHeader {
+	*** add(java.lang.String,java.lang.String);
+	*** filterAndAddHeaders(java.lang.String[],java.util.Map);
+	*** filterNTLMResponses(java.lang.String);
+	*** findValue(java.lang.String);
+	*** getHeaders();
+	*** getHeaders(java.lang.String[]);
+	*** getKey(int);
+	*** getKey(java.lang.String);
+	*** getValue(int);
+	*** multiValueIterator(java.lang.String);
+	*** parseHeader(java.io.InputStream);
+	*** prepend(java.lang.String,java.lang.String);
+	*** print(java.io.PrintStream);
+	*** remove(java.lang.String);
+	*** reset();
+	*** set(int,java.lang.String,java.lang.String);
+	*** set(java.lang.String,java.lang.String);
+	*** setIfNotSet(java.lang.String,java.lang.String);
+	*** toString();
+}
+
+-keep class sun.net.www.MeteredStream {
+	*** closed;
+	*** count;
+	*** expected;
+	*** markLimit;
+	*** markedCount;
+	*** pi;
+	sun.net.www.MeteredStream(java.io.InputStream,sun.net.ProgressSource,long);
+	*** available();
+	*** close();
+	*** isMarked();
+	*** justRead(long);
+	*** skip(long);
+}
+
 -keep class sun.net.www.MimeEntry {
 	*** action;
 	*** actionKeywords;
@@ -68801,23 +65302,521 @@
 }
 
 -keep class sun.net.www.ParseUtil {
-	*** decode(java.lang.String);
 	*** encodePath(java.lang.String);
 	*** fileToEncodedURL(java.io.File);
+	*** toURI(java.net.URL);
 }
 
 -keep class sun.net.www.URLConnection {
-	*** isProxiedHost(java.lang.String);
+	*** setProxiedHost(java.lang.String);
+}
+
+-keep class sun.net.www.http.ChunkedInputStream {
+	*** chunkCount;
+	*** chunkData;
+	*** chunkPos;
+	*** chunkRead;
+	*** chunkSize;
+	*** closed;
+	*** error;
+	*** hc;
+	*** in;
+	*** rawCount;
+	*** rawData;
+	*** rawPos;
+	*** responses;
+	*** state;
+	*** closeUnderlying();
+	*** ensureOpen();
+	*** ensureRawAvailable(int);
+	*** fastRead(byte[],int,int);
+	*** hurry();
+	*** processRaw();
+	*** readAhead(boolean);
+	*** readAheadBlocking();
+	*** readAheadNonBlocking();
+}
+
+-keep class sun.net.www.http.ClientVector {
+	*** nap;
+	*** get();
+	*** put(sun.net.www.http.HttpClient);
+}
+
+-keep class sun.net.www.http.HttpCapture {
+	*** getCapture(java.net.URL);
+}
+
+-keep class sun.net.www.http.HttpClient {
+	*** $assertionsDisabled;
+	*** cacheRequest;
+	*** cachedHttpClient;
+	*** capture;
+	*** failedOnce;
+	*** host;
+	*** ignoreContinue;
+	*** inCache;
+	*** kac;
+	*** keepAliveConnections;
+	*** keepAliveProp;
+	*** keepAliveTimeout;
+	*** keepingAlive;
+	*** logger;
+	*** port;
+	*** poster;
+	*** proxyDisabled;
+	*** requests;
+	*** retryPostProp;
+	*** reuse;
+	*** streaming;
+	*** url;
+	*** usingProxy;
+	sun.net.www.http.HttpClient();
+	sun.net.www.http.HttpClient(java.net.URL,java.lang.String,int,boolean);
+	sun.net.www.http.HttpClient(java.net.URL,java.net.Proxy,int);
+	*** New(java.net.URL,java.lang.String,int,boolean,int,sun.net.www.protocol.http.HttpURLConnection);
+	*** New(java.net.URL,java.net.Proxy,int,boolean,sun.net.www.protocol.http.HttpURLConnection);
+	*** New(java.net.URL,java.net.Proxy,int,sun.net.www.protocol.http.HttpURLConnection);
+	*** afterConnect();
+	*** available();
+	*** closeIdleConnection();
+	*** closeServer();
+	*** finished();
+	*** getDefaultPort();
+	*** getDefaultPort(java.lang.String);
+	*** getHttpKeepAliveSet();
+	*** getInputStream();
+	*** getKeepAliveTimeout();
+	*** getOutputStream();
+	*** getProxyHostUsed();
+	*** getProxyPortUsed();
+	*** getRequestMethod();
+	*** getURLFile();
+	*** isCachedConnection();
+	*** isInKeepAliveCache();
+	*** isKeepingAlive();
+	*** logFinest(java.lang.String);
+	*** needsTunneling();
+	*** newHttpProxy(java.lang.String,int,java.lang.String);
+	*** openServer();
+	*** openServer(java.lang.String,int);
+	*** parseHTTP(sun.net.www.MessageHeader,sun.net.ProgressSource,sun.net.www.protocol.http.HttpURLConnection);
+	*** parseHTTPHeader(sun.net.www.MessageHeader,sun.net.ProgressSource,sun.net.www.protocol.http.HttpURLConnection);
+	*** privilegedOpenServer(java.net.InetSocketAddress);
+	*** putInKeepAliveCache();
+	*** setCacheRequest(java.net.CacheRequest);
+	*** setDoNotRetry(boolean);
+	*** setIgnoreContinue(boolean);
+	*** writeRequests(sun.net.www.MessageHeader,sun.net.www.http.PosterOutputStream);
+	*** writeRequests(sun.net.www.MessageHeader,sun.net.www.http.PosterOutputStream,boolean);
+}
+
+-keep class sun.net.www.http.KeepAliveCache {
+	*** keepAliveTimer;
+	*** result;
+	*** access$000(sun.net.www.http.KeepAliveCache);
+	*** access$002(sun.net.www.http.KeepAliveCache,java.lang.Thread);
+	*** get(java.net.URL,java.lang.Object);
+	*** getMaxConnections();
+	*** put(java.net.URL,java.lang.Object,sun.net.www.http.HttpClient);
+	*** removeVector(sun.net.www.http.KeepAliveKey);
+}
+
+-keep class sun.net.www.http.KeepAliveCache$1 {
+	*** this$0;
+	*** val$cache;
+	*** run();
+}
+
+-keep class sun.net.www.http.KeepAliveCleanerEntry {
+	*** getHttpClient();
+	*** getKeepAliveStream();
+	*** getQueuedForCleanup();
+	*** setQueuedForCleanup();
+}
+
+-keep class sun.net.www.http.KeepAliveEntry {
+	*** hc;
+	*** idleStartTime;
+}
+
+-keep class sun.net.www.http.KeepAliveKey {
+	*** host;
+	*** obj;
+	*** port;
+	*** protocol;
+}
+
+-keep class sun.net.www.http.KeepAliveStream {
+	*** cleanerThread;
+	*** hc;
+	*** hurried;
+	*** queue;
+	*** queuedForCleanup;
+	*** queueForCleanup(sun.net.www.http.KeepAliveCleanerEntry);
+	*** remainingToRead();
+	*** setClosed();
+}
+
+-keep class sun.net.www.http.KeepAliveStreamCleaner {
+	*** MAX_CAPACITY;
+	*** MAX_DATA_REMAINING;
+	*** offer(sun.net.www.http.KeepAliveCleanerEntry);
+}
+
+-keep class sun.net.www.http.KeepAliveStreamCleaner$1 {
+	*** run();
+}
+
+-keep class sun.net.www.http.KeepAliveStreamCleaner$2 {
+	*** run();
+}
+
+-keep class sun.net.www.http.PosterOutputStream {
+	*** closed;
+	*** close();
 }
 
 -keep class sun.net.www.protocol.file.Handler {
 	*;
 }
 
+-keep class sun.net.www.protocol.http.AuthCache {
+	*** get(java.lang.String,java.lang.String);
+	*** put(java.lang.String,sun.net.www.protocol.http.AuthCacheValue);
+	*** remove(java.lang.String,sun.net.www.protocol.http.AuthCacheValue);
+}
+
+-keep class sun.net.www.protocol.http.AuthCacheImpl {
+	*** hashtable;
+}
+
+-keep class sun.net.www.protocol.http.AuthCacheValue {
+	*** cache;
+	sun.net.www.protocol.http.AuthCacheValue();
+	*** getPath();
+}
+
+-keep class sun.net.www.protocol.http.AuthCacheValue$Type {
+	*** Proxy;
+	*** Server;
+}
+
+-keep class sun.net.www.protocol.http.AuthScheme {
+	*** BASIC;
+	*** DIGEST;
+	*** KERBEROS;
+	*** NEGOTIATE;
+	*** NTLM;
+	*** UNKNOWN;
+}
+
+-keep class sun.net.www.protocol.http.AuthenticationHeader {
+	*** getHttpCallerInfo();
+	*** headerParser();
+	*** isPresent();
+	*** raw();
+	*** scheme();
+	*** toString();
+}
+
+-keep class sun.net.www.protocol.http.AuthenticationInfo {
+	*** $assertionsDisabled;
+	*** authScheme;
+	*** host;
+	*** path;
+	*** port;
+	*** protocol;
+	*** pw;
+	*** realm;
+	*** requests;
+	*** s1;
+	*** s2;
+	*** serializeAuth;
+	*** type;
+	*** addToCache();
+	*** cacheKey(boolean);
+	*** clone();
+	*** endAuthRequest(java.lang.String);
+	*** getAuth(java.lang.String,java.net.URL);
+	*** getAuthScheme();
+	*** getHeaderName();
+	*** getHeaderValue(java.net.URL,java.lang.String);
+	*** getProxyAuth(java.lang.String);
+	*** getProxyAuth(java.lang.String,int);
+	*** getProxyAuthKey(java.lang.String,int,java.lang.String,sun.net.www.protocol.http.AuthScheme);
+	*** getServerAuth(java.lang.String);
+	*** getServerAuth(java.net.URL);
+	*** getServerAuthKey(java.net.URL,java.lang.String,sun.net.www.protocol.http.AuthScheme);
+	*** isAuthorizationStale(java.lang.String);
+	*** reducePath(java.lang.String);
+	*** removeFromCache();
+	*** requestCompleted(java.lang.String);
+	*** requestIsInProgress(java.lang.String);
+	*** setHeaders(sun.net.www.protocol.http.HttpURLConnection,sun.net.www.HeaderParser,java.lang.String);
+	*** supportsPreemptiveAuthorization();
+}
+
+-keep class sun.net.www.protocol.http.BasicAuthentication {
+	*** getRootPath(java.lang.String,java.lang.String);
+}
+
+-keep class sun.net.www.protocol.http.DigestAuthentication {
+	*** params;
+	*** checkResponse(java.lang.String,java.lang.String,java.lang.String);
+	*** checkResponse(java.lang.String,java.lang.String,java.net.URL);
+	*** getHeaderValue(java.lang.String,java.lang.String);
+}
+
 -keep class sun.net.www.protocol.http.Handler {
 	*** proxy;
 	*** proxyPort;
+	sun.net.www.protocol.http.Handler();
 	*** openConnection(java.net.URL,java.net.Proxy);
+}
+
+-keep class sun.net.www.protocol.http.HttpAuthenticator {
+	*** authString(java.net.URL,java.lang.String,java.lang.String);
+	*** schemeSupported(java.lang.String);
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection {
+	*** EXCLUDE_HEADERS;
+	*** EXCLUDE_HEADERS2;
+	*** HTTP_CONNECT;
+	*** allowRestrictedHeaders;
+	*** authObj;
+	*** bufSize4ES;
+	*** cacheHandler;
+	*** cachedHeaders;
+	*** cachedInputStream;
+	*** cachedResponse;
+	*** cdata;
+	*** connectTimeout;
+	*** cookieHandler;
+	*** currentProxyCredentials;
+	*** currentServerCredentials;
+	*** defaultAuth;
+	*** digestparams;
+	*** doingNTLM2ndStage;
+	*** doingNTLMp2ndStage;
+	*** domain;
+	*** enableESBuffer;
+	*** errorStream;
+	*** failedOnce;
+	*** filteredHeaders;
+	*** handler;
+	*** http;
+	*** inputStream;
+	*** instProxy;
+	*** isUserProxyAuth;
+	*** isUserServerAuth;
+	*** logger;
+	*** maxRedirects;
+	*** needToCheck;
+	*** pi;
+	*** poster;
+	*** proxyAuthKey;
+	*** ps;
+	*** readTimeout;
+	*** rememberedException;
+	*** requestURI;
+	*** requests;
+	*** responses;
+	*** restrictedHeaderSet;
+	*** restrictedHeaders;
+	*** reuseClient;
+	*** serverAuthKey;
+	*** setRequests;
+	*** setUserCookies;
+	*** strOutputStream;
+	*** timeout4ESBuffer;
+	*** tryTransparentNTLMProxy;
+	*** tryTransparentNTLMServer;
+	*** tunnelState;
+	*** userAgent;
+	*** userCookies;
+	*** userCookies2;
+	*** validateProxy;
+	*** validateServer;
+	*** version;
+	sun.net.www.protocol.http.HttpURLConnection(java.net.URL,java.net.Proxy);
+	sun.net.www.protocol.http.HttpURLConnection(java.net.URL,java.net.Proxy,sun.net.www.protocol.http.Handler);
+	*** access$100(sun.net.www.protocol.http.HttpURLConnection,boolean);
+	*** addRequestProperty(java.lang.String,java.lang.String);
+	*** checkMessageHeader(java.lang.String,java.lang.String);
+	*** checkResponseCredentials(boolean);
+	*** checkReuseConnection();
+	*** connect();
+	*** connectRequestURI(java.net.URL);
+	*** disconnect();
+	*** disconnectInternal();
+	*** disconnectWeb();
+	*** doTunneling();
+	*** expect100Continue();
+	*** filterHeaderField(java.lang.String,java.lang.String);
+	*** followRedirect();
+	*** getChainedException(java.io.IOException);
+	*** getConnectTimeout();
+	*** getCookieHandler();
+	*** getErrorStream();
+	*** getFilteredHeaderFields();
+	*** getHeaderField(int);
+	*** getHeaderField(java.lang.String);
+	*** getHeaderFieldKey(int);
+	*** getHeaderFields();
+	*** getHttpLogger();
+	*** getHttpProxyAuthentication(sun.net.www.protocol.http.AuthenticationHeader);
+	*** getInputStream();
+	*** getNewHttpClient(java.net.URL,java.net.Proxy,int);
+	*** getNewHttpClient(java.net.URL,java.net.Proxy,int,boolean);
+	*** getOutputStream();
+	*** getReadTimeout();
+	*** getRequestProperties();
+	*** getRequestProperty(java.lang.String);
+	*** getRequestURI();
+	*** getServerAuthentication(sun.net.www.protocol.http.AuthenticationHeader);
+	*** hostsEqual(java.net.URL,java.net.URL);
+	*** isExternalMessageHeaderAllowed(java.lang.String,java.lang.String);
+	*** isRestrictedHeader(java.lang.String,java.lang.String);
+	*** mapToMessageHeader(java.util.Map);
+	*** plainConnect();
+	*** privilegedRequestPasswordAuthentication(java.lang.String,java.net.InetAddress,int,java.lang.String,java.lang.String,java.lang.String,java.net.URL,java.net.Authenticator$RequestorType);
+	*** proxiedConnect(java.net.URL,java.lang.String,int,boolean);
+	*** reset();
+	*** resetProxyAuthentication(sun.net.www.protocol.http.AuthenticationInfo,sun.net.www.protocol.http.AuthenticationHeader);
+	*** sendCONNECTRequest();
+	*** setConnectTimeout(int);
+	*** setCookieHeader();
+	*** setNewClient(java.net.URL);
+	*** setNewClient(java.net.URL,boolean);
+	*** setPreemptiveProxyAuthentication(sun.net.www.MessageHeader);
+	*** setProxiedClient(java.net.URL,java.lang.String,int);
+	*** setProxiedClient(java.net.URL,java.lang.String,int,boolean);
+	*** setReadTimeout(int);
+	*** setRequestProperty(java.lang.String,java.lang.String);
+	*** setTunnelState(sun.net.www.protocol.http.HttpURLConnection$TunnelState);
+	*** streaming();
+	*** tunnelState();
+	*** usingProxy();
+	*** writeRequests();
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$2 {
+	*** this$0;
+	*** run();
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$3 {
+	*** this$0;
+	*** run();
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$8 {
+	*** $SwitchMap$sun$net$www$protocol$http$AuthScheme;
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$ErrorStream {
+	*** getErrorStream(java.io.InputStream,long,sun.net.www.http.HttpClient);
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$HttpInputStream {
+	*** cacheRequest;
+	*** inCache;
+	*** markCount;
+	*** marked;
+	*** outputStream;
+	*** skipBuffer;
+	*** this$0;
+	*** read();
+	*** read(byte[]);
+	*** read(byte[],int,int);
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$StreamingOutputStream {
+	*** close();
+	*** writtenOK();
+}
+
+-keep class sun.net.www.protocol.http.HttpURLConnection$TunnelState {
+	*** $VALUES;
+	*** NONE;
+	*** SETUP;
+	*** TUNNELING;
+}
+
+-keep class sun.net.www.protocol.http.NTLMAuthenticationProxy {
+	*** proxy;
+	*** supported;
+	*** supportsTransparentAuth;
+	*** create(boolean,java.lang.String,int,java.net.PasswordAuthentication);
+	*** create(boolean,java.net.URL,java.net.PasswordAuthentication);
+	*** isTrustedSite(java.net.URL);
+}
+
+-keep class sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection {
+	sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection(java.net.URL,java.net.Proxy,sun.net.www.protocol.http.Handler);
+	*** connect();
+	*** getCipherSuite();
+	*** getHostnameVerifier();
+	*** getLocalCertificates();
+	*** getLocalPrincipal();
+	*** getPeerPrincipal();
+	*** getSSLSocketFactory();
+	*** getServerCertificateChain();
+	*** getServerCertificates();
+	*** isConnected();
+	*** proxiedConnect(java.net.URL,java.lang.String,int,boolean);
+	*** setConnected(boolean);
+	*** setNewClient(java.net.URL,boolean);
+	*** setProxiedClient(java.net.URL,java.lang.String,int);
+	*** setProxiedClient(java.net.URL,java.lang.String,int,boolean);
+}
+
+-keep class sun.net.www.protocol.https.DelegateHttpsURLConnection {
+	*** httpsURLConnection;
+	sun.net.www.protocol.https.DelegateHttpsURLConnection(java.net.URL,java.net.Proxy,sun.net.www.protocol.http.Handler,javax.net.ssl.HttpsURLConnection);
+	*** dispose();
+}
+
+-keep class sun.net.www.protocol.https.Handler {
+	*** proxy;
+	*** proxyPort;
+	*** openConnection(java.net.URL,java.net.Proxy);
+}
+
+-keep class sun.net.www.protocol.https.HttpsClient {
+	*** $assertionsDisabled;
+	*** hv;
+	*** session;
+	*** sslSocketFactory;
+	sun.net.www.protocol.https.HttpsClient(javax.net.ssl.SSLSocketFactory,java.net.URL,java.lang.String,int);
+	sun.net.www.protocol.https.HttpsClient(javax.net.ssl.SSLSocketFactory,java.net.URL,java.lang.String,int,int);
+	sun.net.www.protocol.https.HttpsClient(javax.net.ssl.SSLSocketFactory,java.net.URL,java.net.Proxy,int);
+	*** New(javax.net.ssl.SSLSocketFactory,java.net.URL,javax.net.ssl.HostnameVerifier,boolean,sun.net.www.protocol.http.HttpURLConnection);
+	*** New(javax.net.ssl.SSLSocketFactory,java.net.URL,javax.net.ssl.HostnameVerifier,java.lang.String,int,boolean,int,sun.net.www.protocol.http.HttpURLConnection);
+	*** New(javax.net.ssl.SSLSocketFactory,java.net.URL,javax.net.ssl.HostnameVerifier,java.lang.String,int,boolean,sun.net.www.protocol.http.HttpURLConnection);
+	*** New(javax.net.ssl.SSLSocketFactory,java.net.URL,javax.net.ssl.HostnameVerifier,java.net.Proxy,boolean,int,sun.net.www.protocol.http.HttpURLConnection);
+	*** afterConnect();
+	*** checkURLSpoofing(javax.net.ssl.HostnameVerifier);
+	*** getCipherSuite();
+	*** getCipherSuites();
+	*** getDefaultPort();
+	*** getLocalCertificates();
+	*** getLocalPrincipal();
+	*** getPeerPrincipal();
+	*** getProtocols();
+	*** getServerCertificateChain();
+	*** getServerCertificates();
+	*** needsTunneling();
+	*** newHttpProxy(java.lang.String,int);
+	*** setHostnameVerifier(javax.net.ssl.HostnameVerifier);
+	*** setSSLSocketFactory(javax.net.ssl.SSLSocketFactory);
+}
+
+-keep class sun.net.www.protocol.https.HttpsURLConnectionImpl {
+	*** delegate;
+	sun.net.www.protocol.https.HttpsURLConnectionImpl(java.net.URL,java.net.Proxy,sun.net.www.protocol.https.Handler);
 }
 
 -keep class sun.net.www.protocol.jar.Handler {
@@ -69363,7 +66362,6 @@
 
 -keep class sun.nio.ch.ServerSocketChannelImpl$DefaultOptionsHolder {
 	*** defaultOptions;
-	*** defaultOptions();
 }
 
 -keep class sun.nio.ch.SocketAdaptor {
@@ -69532,15 +66530,6 @@
 	*** decodeBufferLoop(java.nio.ByteBuffer,java.nio.CharBuffer);
 }
 
--keep class sun.nio.cs.ISO_8859_1$Encoder {
-	*** $assertionsDisabled;
-	*** repl;
-	*** sgp;
-	sun.nio.cs.ISO_8859_1$Encoder(java.nio.charset.Charset);
-	*** encodeArrayLoop(java.nio.CharBuffer,java.nio.ByteBuffer);
-	*** encodeBufferLoop(java.nio.CharBuffer,java.nio.ByteBuffer);
-}
-
 -keep class sun.nio.cs.StandardCharsets {
 	*;
 }
@@ -69603,14 +66592,6 @@
 	*** forName(java.lang.Object);
 	*** hasName(java.lang.Object,java.lang.Object);
 	*** moveToFront(java.lang.Object[],int);
-}
-
--keep class sun.nio.cs.US_ASCII$Decoder {
-	*** $assertionsDisabled;
-	*** repl;
-	sun.nio.cs.US_ASCII$Decoder(java.nio.charset.Charset);
-	*** decodeArrayLoop(java.nio.ByteBuffer,java.nio.CharBuffer);
-	*** decodeBufferLoop(java.nio.ByteBuffer,java.nio.CharBuffer);
 }
 
 -keep class sun.nio.cs.US_ASCII$Encoder {
@@ -70083,10 +67064,6 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedConstructorAccessor2 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedConstructorAccessor20 {
 	*;
 }
@@ -70243,43 +67220,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedConstructorAccessor56 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor57 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor58 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor59 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedConstructorAccessor6 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor60 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor61 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor62 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor63 {
-	*;
-}
-
--keep class sun.reflect.GeneratedConstructorAccessor64 {
 	*;
 }
 
@@ -70303,87 +67244,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor100 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor101 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor102 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor103 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor104 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor105 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor106 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor107 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor108 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor109 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor11 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor110 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor111 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor112 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor113 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor114 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor115 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor116 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor117 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor118 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor119 {
 	*;
 }
 
@@ -70391,87 +67252,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor120 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor121 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor122 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor123 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor124 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor125 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor126 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor127 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor128 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor129 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor13 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor130 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor131 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor132 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor133 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor134 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor135 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor136 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor137 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor138 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor139 {
 	*;
 }
 
@@ -70479,87 +67260,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor140 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor141 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor142 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor143 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor144 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor145 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor146 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor147 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor148 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor149 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor15 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor150 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor151 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor152 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor153 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor154 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor155 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor156 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor157 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor158 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor159 {
 	*;
 }
 
@@ -70567,87 +67268,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor160 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor161 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor162 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor163 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor164 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor165 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor166 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor167 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor168 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor169 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor17 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor170 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor171 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor172 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor173 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor174 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor175 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor176 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor177 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor178 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor179 {
 	*;
 }
 
@@ -70655,87 +67276,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor180 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor181 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor182 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor183 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor184 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor185 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor186 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor187 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor188 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor189 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor19 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor190 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor191 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor192 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor193 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor194 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor195 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor196 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor197 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor198 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor199 {
 	*;
 }
 
@@ -70744,22 +67285,6 @@
 }
 
 -keep class sun.reflect.GeneratedMethodAccessor20 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor200 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor201 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor202 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor203 {
 	*;
 }
 
@@ -70903,75 +67428,7 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor53 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor54 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor55 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor56 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor57 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor58 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor59 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor6 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor60 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor61 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor62 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor63 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor64 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor65 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor66 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor67 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor68 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor69 {
 	*;
 }
 
@@ -70979,131 +67436,11 @@
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor70 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor71 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor72 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor73 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor74 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor75 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor76 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor77 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor78 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor79 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor8 {
 	*;
 }
 
--keep class sun.reflect.GeneratedMethodAccessor80 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor81 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor82 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor83 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor84 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor85 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor86 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor87 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor88 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor89 {
-	*;
-}
-
 -keep class sun.reflect.GeneratedMethodAccessor9 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor90 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor91 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor92 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor93 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor94 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor95 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor96 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor97 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor98 {
-	*;
-}
-
--keep class sun.reflect.GeneratedMethodAccessor99 {
 	*;
 }
 
@@ -71128,18 +67465,6 @@
 }
 
 -keep class sun.reflect.GeneratedSerializationConstructorAccessor6 {
-	*;
-}
-
--keep class sun.reflect.GeneratedSerializationConstructorAccessor7 {
-	*;
-}
-
--keep class sun.reflect.GeneratedSerializationConstructorAccessor8 {
-	*;
-}
-
--keep class sun.reflect.GeneratedSerializationConstructorAccessor9 {
 	*;
 }
 
@@ -71217,19 +67542,11 @@
 	*;
 }
 
--keep class sun.reflect.UnsafeIntegerFieldAccessorImpl {
-	*;
-}
-
 -keep class sun.reflect.UnsafeLongFieldAccessorImpl {
 	*;
 }
 
 -keep class sun.reflect.UnsafeObjectFieldAccessorImpl {
-	*;
-}
-
--keep class sun.reflect.UnsafeQualifiedBooleanFieldAccessorImpl {
 	*;
 }
 
@@ -71702,7 +68019,6 @@
 }
 
 -keep class sun.security.jca.GetInstance {
-	*** checkSuperClass(java.security.Provider$Service,java.lang.Class,java.lang.Class);
 	*** getInstance(java.lang.String,java.lang.Class,java.lang.String);
 	*** getInstance(java.lang.String,java.lang.Class,java.lang.String,java.lang.Object);
 	*** getInstance(java.lang.String,java.lang.Class,java.lang.String,java.lang.Object,java.lang.String);
@@ -71710,7 +68026,6 @@
 	*** getInstance(java.lang.String,java.lang.Class,java.lang.String,java.lang.String);
 	*** getInstance(java.lang.String,java.lang.Class,java.lang.String,java.security.Provider);
 	*** getInstance(java.security.Provider$Service,java.lang.Class);
-	*** getInstance(java.security.Provider$Service,java.lang.Class,java.lang.Object);
 	*** getService(java.lang.String,java.lang.String,java.lang.String);
 	*** getService(java.lang.String,java.lang.String,java.security.Provider);
 	*** getServices(java.lang.String,java.lang.String);
@@ -71720,130 +68035,27 @@
 -keep class sun.security.jca.GetInstance$Instance {
 	*** impl;
 	*** provider;
-	sun.security.jca.GetInstance$Instance(java.security.Provider,java.lang.Object);
-	*** toArray();
 }
 
 -keep class sun.security.jca.JCAUtil {
 	*** LOCK;
 	*** secureRandom;
 	*** getSecureRandom();
-	*** getTempArraySize(int);
-}
-
--keep class sun.security.jca.ProviderConfig {
-	*** CL_STRING;
-	*** argument;
-	*** className;
-	*** debug;
-	*** isLoading;
-	*** provider;
-	*** tries;
-	sun.security.jca.ProviderConfig(java.lang.String,java.lang.String);
-	*** access$000();
-	*** access$100(sun.security.jca.ProviderConfig);
-	*** access$200(sun.security.jca.ProviderConfig);
-	*** access$300();
-	*** access$400(sun.security.jca.ProviderConfig);
-	*** access$500(sun.security.jca.ProviderConfig);
-	*** checkSunPKCS11Solaris();
-	*** disableLoad();
-	*** doLoadProvider();
-	*** equals(java.lang.Object);
-	*** expand(java.lang.String);
-	*** getProvider();
-	*** hasArgument();
-	*** isLoaded();
-	*** shouldLoad();
-}
-
--keep class sun.security.jca.ProviderConfig$2 {
-	*** this$0;
-	*** run();
 }
 
 -keep class sun.security.jca.ProviderList {
-	*** EMPTY;
-	*** EMPTY_PROVIDER;
-	*** P0;
-	*** PC0;
-	*** allLoaded;
-	*** configs;
-	*** debug;
-	*** userList;
-	sun.security.jca.ProviderList();
-	*** access$100(sun.security.jca.ProviderList);
-	*** fromSecurityProperties();
-	*** getIndex(java.lang.String);
-	*** getJarList(java.lang.String[]);
-	*** getProvider(int);
-	*** getProvider(java.lang.String);
-	*** getProviderConfig(java.lang.String);
 	*** getService(java.lang.String,java.lang.String);
-	*** getServices(java.lang.String,java.lang.String);
-	*** getServices(java.lang.String,java.util.List);
-	*** getServices(java.util.List);
-	*** insertAt(sun.security.jca.ProviderList,java.security.Provider,int);
-	*** loadAll();
 	*** newList(java.security.Provider[]);
 	*** providers();
-	*** remove(sun.security.jca.ProviderList,java.lang.String);
-	*** removeInvalid();
-	*** size();
-	*** toArray();
-}
-
--keep class sun.security.jca.ProviderList$2 {
-	*** run();
-}
-
--keep class sun.security.jca.ProviderList$3 {
-	*** this$0;
-	*** get(int);
-}
-
--keep class sun.security.jca.ProviderList$ServiceList {
-	*** algorithm;
-	*** firstService;
-	*** ids;
-	*** providerIndex;
-	*** services;
-	*** this$0;
-	*** type;
-	*** access$200(sun.security.jca.ProviderList$ServiceList,int);
-	*** addService(java.security.Provider$Service);
-	*** get(int);
-	*** tryGet(int);
-}
-
--keep class sun.security.jca.ProviderList$ServiceList$1 {
-	*** index;
-	*** this$1;
-	*** next();
 }
 
 -keep class sun.security.jca.Providers {
-	*** jarVerificationProviders;
-	*** providerList;
-	*** threadLists;
-	*** threadListsUsed;
 	*** beginThreadProviderList(sun.security.jca.ProviderList);
-	*** changeThreadProviderList(sun.security.jca.ProviderList);
 	*** endThreadProviderList(sun.security.jca.ProviderList);
-	*** getFullProviderList();
 	*** getProviderList();
 	*** getSunProvider();
-	*** getSystemProviderList();
-	*** getThreadProviderList();
-	*** setProviderList(sun.security.jca.ProviderList);
-	*** setSystemProviderList(sun.security.jca.ProviderList);
 	*** startJarVerification();
 	*** stopJarVerification(java.lang.Object);
-}
-
--keep class sun.security.jca.ServiceId {
-	*** algorithm;
-	*** type;
 }
 
 -keep class sun.security.jgss.SunProvider {
@@ -71897,34 +68109,6 @@
 }
 
 -keep class sun.security.pkcs.ContentInfo {
-	*** DATA_OID;
-	*** DIGESTED_DATA_OID;
-	*** ENCRYPTED_DATA_OID;
-	*** ENVELOPED_DATA_OID;
-	*** NETSCAPE_CERT_SEQUENCE_OID;
-	*** OLD_DATA;
-	*** OLD_DATA_OID;
-	*** OLD_SDATA;
-	*** OLD_SIGNED_DATA_OID;
-	*** PKCS7_OID;
-	*** SIGNED_AND_ENVELOPED_DATA_OID;
-	*** SIGNED_DATA_OID;
-	*** TIMESTAMP_TOKEN_INFO_OID;
-	*** content;
-	*** contentType;
-	*** crdata;
-	*** data;
-	*** ddata;
-	*** edata;
-	*** nsdata;
-	*** pkcs7;
-	*** sdata;
-	*** sedata;
-	*** tstInfo;
-	sun.security.pkcs.ContentInfo(sun.security.util.DerInputStream,boolean);
-	*** encode(sun.security.util.DerOutputStream);
-	*** getContent();
-	*** getContentBytes();
 	*** getData();
 }
 
@@ -71938,129 +68122,40 @@
 }
 
 -keep class sun.security.pkcs.PKCS7 {
-	*** certIssuerNames;
-	*** certificates;
-	*** contentInfo;
-	*** contentType;
-	*** crls;
-	*** digestAlgorithmIds;
-	*** oldStyle;
-	*** signerInfos;
-	*** version;
-	sun.security.pkcs.PKCS7(sun.security.x509.AlgorithmId[],sun.security.pkcs.ContentInfo,java.security.cert.X509Certificate[],java.security.cert.X509CRL[],sun.security.pkcs.SignerInfo[]);
-	*** encodeSignedData(sun.security.util.DerOutputStream);
-	*** getCRLs();
-	*** getCertificate(java.math.BigInteger,sun.security.x509.X500Name);
-	*** getCertificates();
 	*** getContentInfo();
 	*** isOldStyle();
-	*** parse(sun.security.util.DerInputStream);
-	*** parse(sun.security.util.DerInputStream,boolean);
-	*** parseNetscapeCertChain(sun.security.util.DerValue);
-	*** parseOldSignedData(sun.security.util.DerValue);
-	*** parseSignedData(sun.security.util.DerValue);
-	*** populateCertIssuerNames();
 	*** verify(byte[]);
-	*** verify(sun.security.pkcs.SignerInfo,byte[]);
 }
 
 -keep class sun.security.pkcs.PKCS8Key {
 	*** algid;
-	*** encodedKey;
 	*** key;
-	*** version;
 	sun.security.pkcs.PKCS8Key();
-	*** buildPKCS8Key(sun.security.x509.AlgorithmId,byte[]);
 	*** decode(byte[]);
-	*** decode(java.io.InputStream);
-	*** encode();
-	*** encode(sun.security.util.DerOutputStream);
-	*** encode(sun.security.util.DerOutputStream,sun.security.x509.AlgorithmId,byte[]);
-	*** getAlgorithm();
-	*** getEncoded();
-	*** getFormat();
 	*** parseKey(sun.security.util.DerValue);
-	*** parseKeyBits();
 }
 
 -keep class sun.security.pkcs.PKCS9Attribute {
-	*** BYTE_ARRAY_CLASS;
-	*** CHALLENGE_PASSWORD_OID;
-	*** CONTENT_TYPE_OID;
-	*** COUNTERSIGNATURE_OID;
-	*** EMAIL_ADDRESS_OID;
-	*** EXTENDED_CERTIFICATE_ATTRIBUTES_OID;
-	*** EXTENSION_REQUEST_OID;
-	*** ISSUER_SERIALNUMBER_OID;
-	*** MESSAGE_DIGEST_OID;
-	*** NAME_OID_TABLE;
-	*** OID_NAME_TABLE;
-	*** PKCS9_OIDS;
-	*** PKCS9_VALUE_TAGS;
-	*** SIGNATURE_TIMESTAMP_TOKEN_OID;
-	*** SIGNING_CERTIFICATE_OID;
-	*** SIGNING_TIME_OID;
-	*** SINGLE_VALUED;
-	*** SMIME_CAPABILITY_OID;
-	*** UNSTRUCTURED_ADDRESS_OID;
-	*** UNSTRUCTURED_NAME_OID;
-	*** VALUE_CLASSES;
-	*** debug;
-	*** index;
-	*** oid;
-	*** value;
-	*** getName();
-	*** getOID(java.lang.String);
 	*** getValue();
-	*** indexOf(java.lang.Object,java.lang.Object[],int);
-	*** init(sun.security.util.ObjectIdentifier,java.lang.Object);
-	*** throwSingleValuedException();
-	*** throwTagException(java.lang.Byte);
 }
 
 -keep class sun.security.pkcs.PKCS9Attributes {
-	*** encode(byte,java.io.OutputStream);
 	*** getAttribute(java.lang.String);
-	*** getAttributeValue(sun.security.util.ObjectIdentifier);
-	*** getDerEncoding();
 }
 
 -keep class sun.security.pkcs.SignerInfo {
-	*** authenticatedAttributes;
-	*** certificateSerialNumber;
-	*** digestAlgorithmId;
-	*** digestEncryptionAlgorithmId;
-	*** encryptedDigest;
-	*** issuerName;
-	*** unauthenticatedAttributes;
-	*** version;
-	sun.security.pkcs.SignerInfo(sun.security.util.DerInputStream,boolean);
-	*** convertToStandardName(java.lang.String);
-	*** derEncode(java.io.OutputStream);
-	*** getCertificate(sun.security.pkcs.PKCS7);
 	*** getCertificateChain(sun.security.pkcs.PKCS7);
-	*** getDigestAlgorithmId();
-	*** getDigestEncryptionAlgorithmId();
 	*** getEncryptedDigest();
 	*** getUnauthenticatedAttributes();
-	*** verify(sun.security.pkcs.PKCS7,byte[]);
 }
 
 -keep class sun.security.provider.ByteArrayAccess {
-	*** bigEndian;
-	*** byteArrayOfs;
-	*** littleEndianUnaligned;
-	*** unsafe;
-	*** b2iBig(byte[],int,int[],int,int);
 	*** b2iBig64(byte[],int,int[]);
-	*** b2iLittle(byte[],int,int[],int,int);
 	*** b2iLittle64(byte[],int,int[]);
-	*** b2lBig(byte[],int,long[],int,int);
 	*** i2bBig(int[],int,byte[],int,int);
 	*** i2bBig4(int,byte[],int);
 	*** i2bLittle(int[],int,byte[],int,int);
 	*** i2bLittle4(int,byte[],int);
-	*** unaligned();
 }
 
 -keep class sun.security.provider.DSA {
@@ -72097,44 +68192,13 @@
 	*** dataSHA;
 }
 
--keep class sun.security.provider.DSAKeyFactory {
-	*** SERIAL_INTEROP;
-	*** engineGeneratePrivate(java.security.spec.KeySpec);
-	*** engineGeneratePublic(java.security.spec.KeySpec);
-	*** engineGetKeySpec(java.security.Key,java.lang.Class);
-}
-
--keep class sun.security.provider.DSAParameters {
-	*** g;
-	*** p;
-	*** q;
-	*** engineGetEncoded();
-	*** engineInit(byte[]);
-}
-
--keep class sun.security.provider.DSAPublicKey {
-	*** y;
-	sun.security.provider.DSAPublicKey(byte[]);
-	sun.security.provider.DSAPublicKey(java.math.BigInteger,java.math.BigInteger,java.math.BigInteger,java.math.BigInteger);
-}
-
 -keep class sun.security.provider.DigestBase {
-	*** algorithm;
-	*** blockSize;
-	*** bufOfs;
 	*** buffer;
 	*** bytesProcessed;
-	*** digestLength;
-	*** oneByte;
 	*** padding;
 	sun.security.provider.DigestBase(java.lang.String,int,int);
 	sun.security.provider.DigestBase(sun.security.provider.DigestBase);
-	*** engineDigest(byte[],int,int);
-	*** engineReset();
 	*** engineUpdate(byte[],int,int);
-	*** implCompress(byte[],int);
-	*** implDigest(byte[],int);
-	*** implReset();
 }
 
 -keep class sun.security.provider.JavaKeyStore {
@@ -72191,199 +68255,6 @@
 	*** implReset();
 }
 
--keep class sun.security.provider.NativePRNG {
-	*** INSTANCE;
-	*** initIO();
-	*** isAvailable();
-}
-
--keep class sun.security.provider.NativePRNG$1 {
-	*** run();
-}
-
--keep class sun.security.provider.NativePRNG$RandomIO {
-	*** LOCK_GET_BYTES;
-	*** LOCK_GET_SEED;
-	*** LOCK_SET_SEED;
-	*** buffered;
-	*** lastRead;
-	*** mixRandom;
-	*** randomIn;
-	*** randomOut;
-	*** randomOutInitialized;
-	*** urandomBuffer;
-	*** urandomIn;
-	sun.security.provider.NativePRNG$RandomIO(java.io.File,java.io.File);
-	*** access$100(sun.security.provider.NativePRNG$RandomIO,byte[]);
-	*** access$200(sun.security.provider.NativePRNG$RandomIO,byte[]);
-	*** access$300(sun.security.provider.NativePRNG$RandomIO,int);
-	*** ensureBufferValid();
-	*** getMixRandom();
-	*** implGenerateSeed(int);
-	*** implNextBytes(byte[]);
-	*** implSetSeed(byte[]);
-	*** readFully(java.io.InputStream,byte[]);
-}
-
--keep class sun.security.provider.PolicyFile {
-	*** PARAMS0;
-	*** PARAMS1;
-	*** PARAMS2;
-	*** allowSystemProperties;
-	*** constructed;
-	*** debug;
-	*** expandProperties;
-	*** ignoreIdentityScope;
-	*** notUtf8;
-	*** policyInfo;
-	*** url;
-	*** access$002(sun.security.provider.PolicyFile,boolean);
-	*** access$102(sun.security.provider.PolicyFile,boolean);
-	*** access$200(sun.security.provider.PolicyFile);
-	*** access$202(sun.security.provider.PolicyFile,boolean);
-	*** access$302(sun.security.provider.PolicyFile,boolean);
-	*** access$400(sun.security.provider.PolicyFile,java.net.URL,sun.security.provider.PolicyFile$PolicyInfo);
-	*** access$600();
-	*** addGrantEntry(sun.security.provider.PolicyParser$GrantEntry,java.security.KeyStore,sun.security.provider.PolicyFile$PolicyInfo);
-	*** addPermissions(java.security.Permissions,java.security.CodeSource,java.security.Principal[],sun.security.provider.PolicyFile$PolicyEntry);
-	*** addPerms(java.security.Permissions,java.security.Principal[],sun.security.provider.PolicyFile$PolicyEntry);
-	*** canonPath(java.lang.String);
-	*** canonicalizeCodebase(java.security.CodeSource,boolean);
-	*** checkEntryPs(java.security.Principal[],sun.security.provider.PolicyParser$PrincipalEntry);
-	*** checkForTrustedIdentity(java.security.cert.Certificate,sun.security.provider.PolicyFile$PolicyInfo);
-	*** expandPermissionName(sun.security.provider.PolicyParser$PermissionEntry,java.security.KeyStore);
-	*** expandSelf(sun.security.provider.PolicyFile$SelfPermission,java.util.List,java.security.Principal[],java.security.Permissions);
-	*** getCertificates(java.security.KeyStore,java.lang.String,sun.security.provider.PolicyFile$PolicyInfo);
-	*** getCodeSource(sun.security.provider.PolicyParser$GrantEntry,java.security.KeyStore,sun.security.provider.PolicyFile$PolicyInfo);
-	*** getDN(java.lang.String,java.security.KeyStore);
-	*** getInstance(java.lang.String,java.lang.String,java.lang.String);
-	*** getKnownInstance(java.lang.Class,java.lang.String,java.lang.String);
-	*** getPermissions(java.security.Permissions,java.security.CodeSource);
-	*** getPermissions(java.security.Permissions,java.security.CodeSource,java.security.Principal[]);
-	*** getPermissions(java.security.Permissions,java.security.ProtectionDomain);
-	*** getPermissions(java.security.ProtectionDomain);
-	*** getPrincipalInfo(sun.security.provider.PolicyParser$PrincipalEntry,java.security.Principal[]);
-	*** getSignerCertificates(java.security.CodeSource);
-	*** init(java.net.URL);
-	*** init(java.net.URL,sun.security.provider.PolicyFile$PolicyInfo);
-	*** initPolicyFile(java.lang.String,java.lang.String,sun.security.provider.PolicyFile$PolicyInfo);
-	*** initPolicyFile(sun.security.provider.PolicyFile$PolicyInfo,java.net.URL);
-	*** initStaticPolicy(sun.security.provider.PolicyFile$PolicyInfo);
-	*** printPD(java.security.ProtectionDomain);
-	*** replacePrincipals(java.util.List,java.security.KeyStore);
-}
-
--keep class sun.security.provider.PolicyFile$1 {
-	*** this$0;
-	*** run();
-}
-
--keep class sun.security.provider.PolicyFile$3 {
-	*** this$0;
-	*** val$newInfo;
-	*** val$propname;
-	*** val$urlname;
-	*** run();
-}
-
--keep class sun.security.provider.PolicyFile$PolicyEntry {
-	*** codesource;
-	*** permissions;
-	*** principals;
-	sun.security.provider.PolicyFile$PolicyEntry(java.security.CodeSource,java.util.List);
-	*** add(java.security.Permission);
-	*** getCodeSource();
-	*** getPrincipals();
-}
-
--keep class sun.security.provider.PolicyFile$PolicyInfo {
-	*** aliasMapping;
-	*** identityPolicyEntries;
-	*** pdMapping;
-	*** policyEntries;
-	*** random;
-	*** getPdMapping();
-}
-
--keep class sun.security.provider.PolicyFile$SelfPermission {
-	*** getCerts();
-	*** getSelfActions();
-	*** getSelfName();
-	*** getSelfType();
-}
-
--keep class sun.security.provider.PolicyParser {
-	*** debug;
-	*** expandProp;
-	*** grantEntries;
-	*** keyStoreProvider;
-	*** keyStoreType;
-	*** keyStoreUrlString;
-	*** lookahead;
-	*** st;
-	*** storePassURL;
-	sun.security.provider.PolicyParser();
-	*** add(sun.security.provider.PolicyParser$GrantEntry);
-	*** expand(java.lang.String);
-	*** expand(java.lang.String,boolean);
-	*** getKeyStoreProvider();
-	*** getKeyStoreType();
-	*** getKeyStoreUrl();
-	*** getStorePassURL();
-	*** grantElements();
-	*** match(java.lang.String);
-	*** parseExtDirs(java.lang.String,int);
-	*** parseGrantEntry();
-	*** parseKeyStoreEntry();
-	*** parsePermissionEntry();
-	*** parseStorePassURL();
-	*** peek(java.lang.String);
-	*** peekAndMatch(java.lang.String);
-	*** read(java.io.Reader);
-	*** skipEntry();
-	*** write(java.io.Writer);
-	*** writeKeyStoreEntry(java.io.PrintWriter);
-	*** writeStorePassURL(java.io.PrintWriter);
-}
-
--keep class sun.security.provider.PolicyParser$GrantEntry {
-	*** codeBase;
-	*** permissionEntries;
-	*** principals;
-	*** signedBy;
-	*** add(sun.security.provider.PolicyParser$PermissionEntry);
-	*** clone();
-	*** permissionElements();
-	*** write(java.io.PrintWriter);
-}
-
--keep class sun.security.provider.PolicyParser$ParsingException {
-	*** i18nMessage;
-	*** getLocalizedMessage();
-}
-
--keep class sun.security.provider.PolicyParser$PermissionEntry {
-	*** action;
-	*** name;
-	*** permission;
-	*** signedBy;
-	*** write(java.io.PrintWriter);
-}
-
--keep class sun.security.provider.PolicyParser$PrincipalEntry {
-	*** principalClass;
-	*** principalName;
-	*** toString();
-	*** write(java.io.PrintWriter);
-}
-
--keep class sun.security.provider.SHA {
-	*** W;
-	*** state;
-	*** implCompress(byte[],int);
-	*** implReset();
-}
-
 -keep class sun.security.provider.SHA2 {
 	*** ROUND_CONSTS;
 	*** W;
@@ -72418,29 +68289,6 @@
 
 -keep class sun.security.provider.SeedGenerator {
 	*** generateSeed(byte[]);
-}
-
--keep class sun.security.provider.SunEntries {
-	*** seedSource;
-	*** putEntries(java.util.Map);
-}
-
--keep class sun.security.provider.SunEntries$1 {
-	*** run();
-}
-
--keep class sun.security.provider.X509Factory {
-	*** certCache;
-	*** crlCache;
-	*** addToCache(sun.security.util.Cache,byte[],java.lang.Object);
-	*** checkHeaderFooter(java.lang.String,java.lang.String);
-	*** getFromCache(sun.security.util.Cache,byte[]);
-	*** intern(java.security.cert.X509Certificate);
-	*** parseX509orPKCS7CRL(java.io.InputStream);
-	*** parseX509orPKCS7Cert(java.io.InputStream);
-	*** readBERInternal(java.io.InputStream,java.io.ByteArrayOutputStream,int);
-	*** readFully(java.io.InputStream,java.io.ByteArrayOutputStream,int);
-	*** readOneBlock(java.io.InputStream);
 }
 
 -keep class sun.security.provider.certpath.AdaptableX509CertSelector {
@@ -72835,35 +68683,11 @@
 	*** toString();
 }
 
--keep class sun.security.provider.certpath.X509CertPath {
-	*** certs;
-	*** encodingList;
-	sun.security.provider.certpath.X509CertPath(java.io.InputStream,java.lang.String);
-	*** encodePKCS7();
-	*** encodePKIPATH();
-	*** getEncodingsStatic();
-	*** parsePKCS7(java.io.InputStream);
-	*** parsePKIPATH(java.io.InputStream);
-	*** readAllBytes(java.io.InputStream);
-}
-
--keep class sun.security.provider.certpath.X509CertificatePair {
-	*** clearCache();
-}
-
 -keep class sun.security.rsa.RSACore {
-	*** $assertionsDisabled;
-	*** blindingCache;
 	*** convert(byte[],int,int);
-	*** crtCrypt(byte[],java.security.interfaces.RSAPrivateCrtKey);
-	*** crypt(byte[],java.math.BigInteger,java.math.BigInteger);
-	*** getBlindingParameters(java.security.interfaces.RSAPrivateCrtKey);
 	*** getByteLength(java.math.BigInteger);
-	*** getByteLength(java.security.interfaces.RSAKey);
-	*** parseMsg(byte[],java.math.BigInteger);
 	*** rsa(byte[],java.security.interfaces.RSAPrivateKey);
 	*** rsa(byte[],java.security.interfaces.RSAPublicKey);
-	*** toByteArray(java.math.BigInteger,int);
 }
 
 -keep class sun.security.rsa.RSACore$BlindingParameters {
@@ -72871,97 +68695,22 @@
 	*** rInv;
 	*** re;
 	*** remainingUses;
-	*** valid(java.math.BigInteger);
 }
 
 -keep class sun.security.rsa.RSAKeyFactory {
-	*** INSTANCE;
-	*** pkcs8KeySpecClass;
-	*** restrictExpLen;
-	*** rsaPrivateCrtKeySpecClass;
-	*** rsaPrivateKeySpecClass;
-	*** rsaPublicKeySpecClass;
-	*** x509KeySpecClass;
-	*** checkKeyLengths(int,java.math.BigInteger,int,int);
-	*** checkRSAProviderKeyLengths(int,java.math.BigInteger);
-	*** engineTranslateKey(java.security.Key);
-	*** generatePrivate(java.security.spec.KeySpec);
-	*** generatePublic(java.security.spec.KeySpec);
 	*** toRSAKey(java.security.Key);
-	*** translatePrivateKey(java.security.PrivateKey);
-	*** translatePublicKey(java.security.PublicKey);
 }
 
 -keep class sun.security.rsa.RSAPadding {
-	*** emptyHashes;
-	*** lHash;
-	*** maxDataSize;
-	*** md;
-	*** mgfMd;
-	*** paddedSize;
-	*** random;
-	*** type;
-	*** getInitialHash(java.security.MessageDigest,byte[]);
 	*** getInstance(int,int,java.security.SecureRandom);
 	*** getInstance(int,int,java.security.SecureRandom,javax.crypto.spec.OAEPParameterSpec);
 	*** getMaxDataSize();
-	*** mgf1(byte[],int,int,byte[],int,int);
-	*** pad(byte[]);
 	*** pad(byte[],int,int);
-	*** padOAEP(byte[]);
-	*** padV15(byte[]);
 	*** unpad(byte[]);
-	*** unpadOAEP(byte[]);
-	*** unpadV15(byte[]);
-}
-
--keep class sun.security.rsa.RSAPrivateCrtKeyImpl {
-	*** coeff;
-	*** d;
-	*** e;
-	*** n;
-	*** p;
-	*** pe;
-	*** q;
-	*** qe;
-	*** rsaId;
-	*** getBigInteger(sun.security.util.DerInputStream);
-	*** getModulus();
-	*** getPrivateExponent();
-	*** getPublicExponent();
-	*** newKey(byte[]);
-}
-
--keep class sun.security.rsa.RSAPrivateKeyImpl {
-	*** d;
-	*** n;
-}
-
--keep class sun.security.rsa.RSAPublicKeyImpl {
-	*** e;
-	*** n;
-	*** getAlgorithm();
 }
 
 -keep class sun.security.rsa.RSASignature {
-	*** digestOID;
-	*** digestReset;
-	*** encodedLength;
-	*** md;
-	*** padding;
-	*** privateKey;
-	*** publicKey;
 	sun.security.rsa.RSASignature(java.lang.String,sun.security.util.ObjectIdentifier,int);
-	*** decodeSignature(sun.security.util.ObjectIdentifier,byte[]);
-	*** encodeSignature(sun.security.util.ObjectIdentifier,byte[]);
-	*** engineInitSign(java.security.PrivateKey,java.security.SecureRandom);
-	*** getDigestValue();
-	*** initCommon(java.security.interfaces.RSAKey,java.security.SecureRandom);
-	*** resetDigest();
-}
-
--keep class sun.security.rsa.SunRsaSignEntries {
-	*** putEntries(java.util.Map);
 }
 
 -keep class sun.security.smartcardio.SunPCSC$1 {
@@ -73780,6 +69529,7 @@
 }
 
 -keep class sun.security.ssl.Krb5Helper {
+	*** getPrincipalHostName(java.security.Principal);
 	*** getServerPrincipalName(javax.crypto.SecretKey);
 	*** getServicePermission(java.lang.String,java.lang.String);
 }
@@ -74240,6 +69990,7 @@
 	*** sendAlert(byte,byte);
 	*** setConnectionState(int);
 	*** setHandshakeSession(sun.security.ssl.SSLSessionImpl);
+	*** setHost(java.lang.String);
 	*** setVersion(sun.security.ssl.ProtocolVersion);
 	*** startHandshake();
 	*** startHandshake(boolean);
@@ -74493,48 +70244,18 @@
 }
 
 -keep class sun.security.util.BitArray {
-	*** NYBBLE;
-	*** length;
-	*** repn;
-	*** clone();
-	*** get(int);
-	*** length();
-	*** position(int);
-	*** set(int,boolean);
-	*** subscript(int);
 	*** toBooleanArray();
 	*** toByteArray();
-	*** truncate();
-}
-
--keep class sun.security.util.ByteArrayLexOrder {
-	*** compare(byte[],byte[]);
-}
-
--keep class sun.security.util.ByteArrayTagOrder {
-	*** compare(byte[],byte[]);
 }
 
 -keep class sun.security.util.Cache {
-	sun.security.util.Cache();
 	*** accept(sun.security.util.Cache$CacheVisitor);
-	*** clear();
 	*** get(java.lang.Object);
-	*** newSoftMemoryCache(int);
 	*** newSoftMemoryCache(int,int);
 	*** put(java.lang.Object,java.lang.Object);
 	*** remove(java.lang.Object);
 	*** setCapacity(int);
 	*** setTimeout(int);
-}
-
--keep class sun.security.util.Cache$CacheVisitor {
-	*** visit(java.util.Map);
-}
-
--keep class sun.security.util.Cache$EqualByteArray {
-	*** b;
-	*** hash;
 }
 
 -keep class sun.security.util.Debug {
@@ -74547,149 +70268,49 @@
 	*** toString(byte[]);
 }
 
--keep class sun.security.util.DerEncoder {
-	*** derEncode(java.io.OutputStream);
-}
-
--keep class sun.security.util.DerIndefLenConverter {
-	*** data;
-	*** dataPos;
-	*** dataSize;
-	*** index;
-	*** ndefsList;
-	*** newData;
-	*** newDataPos;
-	*** numOfTotalLenBytes;
-	*** unresolved;
-	*** convert(byte[]);
-	*** getLengthBytes(int);
-	*** isEOC(int);
-	*** isIndefinite(int);
-	*** isLongForm(int);
-	*** parseLength();
-	*** parseTag();
-	*** parseValue(int);
-	*** writeLength(int);
-	*** writeLengthAndValue();
-	*** writeTag();
-	*** writeValue(int);
-}
-
--keep class sun.security.util.DerInputBuffer {
-	*** dup();
-	*** equals(sun.security.util.DerInputBuffer);
-	*** getBigInteger(int,boolean);
-	*** getBitString();
-	*** getBitString(int);
-	*** getGeneralizedTime(int);
-	*** getInteger(int);
-	*** getTime(int,boolean);
-	*** getUTCTime(int);
-	*** getUnalignedBitString();
-	*** peek();
-	*** toByteArray();
-	*** truncate(int);
-}
-
 -keep class sun.security.util.DerInputStream {
-	*** buffer;
-	*** tag;
 	*** available();
 	*** getBigInteger();
-	*** getByte();
-	*** getBytes(byte[]);
 	*** getDerValue();
 	*** getGeneralizedTime();
 	*** getInteger();
-	*** getLength();
-	*** getLength(int,java.io.InputStream);
-	*** getLength(java.io.InputStream);
 	*** getOID();
 	*** getOctetString();
 	*** getSequence(int);
-	*** getSet(int);
-	*** getSet(int,boolean);
-	*** getUTCTime();
-	*** getUnalignedBitString();
-	*** init(byte[],int,int);
-	*** mark(int);
 	*** peekByte();
-	*** readString(byte,java.lang.String,java.lang.String);
-	*** readVector(int);
-	*** reset();
-	*** subStream(int,boolean);
 	*** toByteArray();
 }
 
 -keep class sun.security.util.DerOutputStream {
-	*** lexOrder;
-	*** tagOrder;
-	*** putBitString(byte[]);
-	*** putBoolean(boolean);
-	*** putDerValue(sun.security.util.DerValue);
 	*** putGeneralizedTime(java.util.Date);
 	*** putIA5String(java.lang.String);
 	*** putInteger(int);
 	*** putInteger(java.math.BigInteger);
-	*** putIntegerContents(int);
-	*** putLength(int);
-	*** putNull();
 	*** putOID(sun.security.util.ObjectIdentifier);
 	*** putOctetString(byte[]);
-	*** putOrderedSet(byte,sun.security.util.DerEncoder[],java.util.Comparator);
-	*** putOrderedSetOf(byte,sun.security.util.DerEncoder[]);
-	*** putPrintableString(java.lang.String);
 	*** putSequence(sun.security.util.DerValue[]);
-	*** putTime(java.util.Date,byte);
 	*** putTruncatedUnalignedBitString(sun.security.util.BitArray);
-	*** putUTCTime(java.util.Date);
-	*** putUnalignedBitString(sun.security.util.BitArray);
-	*** write(byte,byte[]);
 	*** write(byte,sun.security.util.DerOutputStream);
 	*** writeImplicit(byte,sun.security.util.DerOutputStream);
-	*** writeString(java.lang.String,byte,java.lang.String);
 }
 
 -keep class sun.security.util.DerValue {
-	*** buffer;
 	*** data;
-	*** length;
 	*** tag;
-	*** append(byte[],byte[]);
 	*** createTag(byte,boolean,byte);
-	*** doEquals(sun.security.util.DerValue,sun.security.util.DerValue);
-	*** encode(sun.security.util.DerOutputStream);
-	*** equals(sun.security.util.DerValue);
 	*** getAsString();
-	*** getBMPString();
 	*** getBigInteger();
-	*** getBitString();
-	*** getBoolean();
 	*** getData();
-	*** getDataBytes();
-	*** getGeneralString();
 	*** getIA5String();
-	*** getInteger();
 	*** getOID();
 	*** getOctetString();
 	*** getPositiveBigInteger();
-	*** getPrintableString();
-	*** getT61String();
 	*** getTag();
-	*** getUTF8String();
 	*** getUnalignedBitString();
-	*** init(boolean,java.io.InputStream);
-	*** init(byte,java.lang.String);
 	*** isConstructed();
-	*** isConstructed(byte);
-	*** isContextSpecific();
 	*** isContextSpecific(byte);
-	*** isPrintableStringChar(char);
-	*** length();
 	*** resetTag(byte);
 	*** toByteArray();
-	*** toDerInputStream();
-	*** toString();
 }
 
 -keep class sun.security.util.DisabledAlgorithmConstraints {
@@ -74740,8 +70361,21 @@
 }
 
 -keep class sun.security.util.HostnameChecker {
+	*** INSTANCE_LDAP;
+	*** INSTANCE_TLS;
+	*** checkType;
 	*** getInstance(byte);
+	*** getServerName(java.security.Principal);
+	*** getSubjectX500Name(java.security.cert.X509Certificate);
+	*** isIpAddress(java.lang.String);
+	*** isMatched(java.lang.String,java.lang.String);
+	*** match(java.lang.String,java.security.Principal);
 	*** match(java.lang.String,java.security.cert.X509Certificate);
+	*** matchAllWildcards(java.lang.String,java.lang.String);
+	*** matchDNS(java.lang.String,java.security.cert.X509Certificate);
+	*** matchIP(java.lang.String,java.security.cert.X509Certificate);
+	*** matchLeftmostWildcard(java.lang.String,java.lang.String);
+	*** matchWildCards(java.lang.String,java.lang.String);
 }
 
 -keep class sun.security.util.KeyUtil {
@@ -74756,29 +70390,13 @@
 }
 
 -keep class sun.security.util.ManifestDigester {
-	*** entries;
-	*** rawBytes;
-	*** findSection(int,sun.security.util.ManifestDigester$Position);
 	*** get(java.lang.String,boolean);
-	*** isNameAttr(byte[],int);
 	*** manifestDigest(java.security.MessageDigest);
 }
 
 -keep class sun.security.util.ManifestDigester$Entry {
-	*** length;
-	*** lengthWithBlankLine;
-	*** offset;
-	*** oldStyle;
-	*** rawBytes;
 	*** digest(java.security.MessageDigest);
 	*** digestWorkaround(java.security.MessageDigest);
-	*** doOldStyle(java.security.MessageDigest,byte[],int,int);
-}
-
--keep class sun.security.util.ManifestDigester$Position {
-	*** endOfFirstLine;
-	*** endOfSection;
-	*** startOfNext;
 }
 
 -keep class sun.security.util.ManifestEntryVerifier {
@@ -74802,111 +70420,24 @@
 }
 
 -keep class sun.security.util.ManifestEntryVerifier$SunProviderHolder {
-	*** instance;
 	*** access$000();
 }
 
--keep class sun.security.util.MemoryCache {
-	*** cacheMap;
-	*** lifetime;
-	*** maxSize;
-	*** queue;
-	sun.security.util.MemoryCache(boolean,int,int);
-	*** emptyQueue();
-	*** expungeExpiredEntries();
-	*** getCachedEntries();
-	*** newEntry(java.lang.Object,java.lang.Object,long,java.lang.ref.ReferenceQueue);
-}
-
--keep class sun.security.util.MemoryCache$CacheEntry {
-	*** getKey();
-	*** getValue();
-	*** invalidate();
-	*** isValid(long);
-}
-
--keep class sun.security.util.MemoryCache$SoftCacheEntry {
-	*** expirationTime;
-	*** key;
-	*** invalidate();
-}
-
--keep class sun.security.util.NullCache {
-	*** INSTANCE;
-}
-
 -keep class sun.security.util.ObjectIdentifier {
-	*** $assertionsDisabled;
-	*** componentLen;
-	*** components;
-	*** componentsCalculated;
-	*** encoding;
-	*** stringForm;
-	*** check(byte[]);
-	*** checkCount(int);
-	*** checkFirstComponent(int);
-	*** checkFirstComponent(java.math.BigInteger);
-	*** checkOtherComponent(int,int);
-	*** checkOtherComponent(int,java.math.BigInteger);
-	*** checkSecondComponent(int,int);
-	*** checkSecondComponent(int,java.math.BigInteger);
-	*** encode(sun.security.util.DerOutputStream);
 	*** equals(java.lang.Object);
 	*** equals(sun.security.util.ObjectIdentifier);
 	*** hashCode();
-	*** init(int[],int);
 	*** newInternal(int[]);
-	*** pack(byte[],int,int,int,int);
-	*** pack7Oid(byte[],int,int,byte[],int);
-	*** pack7Oid(int,byte[],int);
-	*** pack7Oid(java.math.BigInteger,byte[],int);
-	*** toIntArray();
 	*** toString();
 }
 
--keep class sun.security.util.ObjectIdentifier$HugeOidNotSupportedByOldJDK {
-	*** theOne;
-}
-
--keep class sun.security.util.Password {
-	*** readPassword(java.io.InputStream);
-}
-
--keep class sun.security.util.PolicyUtil {
-	*** getInputStream(java.net.URL);
-	*** getKeyStore(java.net.URL,java.lang.String,java.lang.String,java.lang.String,java.lang.String,sun.security.util.Debug);
-}
-
--keep class sun.security.util.PropertyExpander {
-	*** expand(java.lang.String);
-	*** expand(java.lang.String,boolean);
-}
-
--keep class sun.security.util.ResourcesMgr {
-	*** getString(java.lang.String);
-}
-
 -keep class sun.security.util.SecurityConstants {
-	*** ALL_PERMISSION;
-	*** CHECK_MEMBER_ACCESS_PERMISSION;
-	*** CREATE_ACC_PERMISSION;
-	*** CREATE_CLASSLOADER_PERMISSION;
-	*** GET_CLASSLOADER_PERMISSION;
-	*** GET_COMBINER_PERMISSION;
 	*** GET_COOKIEHANDLER_PERMISSION;
-	*** GET_PD_PERMISSION;
-	*** GET_POLICY_PERMISSION;
 	*** GET_PROXYSELECTOR_PERMISSION;
 	*** GET_RESPONSECACHE_PERMISSION;
-	*** GET_STACK_TRACE_PERMISSION;
-	*** LOCAL_LISTEN_PERMISSION;
-	*** MODIFY_THREADGROUP_PERMISSION;
-	*** MODIFY_THREAD_PERMISSION;
 	*** SET_COOKIEHANDLER_PERMISSION;
 	*** SET_PROXYSELECTOR_PERMISSION;
 	*** SET_RESPONSECACHE_PERMISSION;
-	*** SPECIFY_HANDLER_PERMISSION;
-	*** STOP_THREAD_PERMISSION;
 }
 
 -keep class sun.security.util.SecurityConstants$AWT {
@@ -75014,6 +70545,7 @@
 	*** getInstance(java.lang.String,java.lang.String,java.security.cert.PKIXBuilderParameters);
 	*** getInstance(java.lang.String,java.lang.String,java.util.Collection);
 	*** getTrustedCertificates();
+	*** validate(java.security.cert.X509Certificate[]);
 	*** validate(java.security.cert.X509Certificate[],java.util.Collection,java.lang.Object);
 	*** validate(java.security.cert.X509Certificate[],java.util.Collection,java.security.AlgorithmConstraints,java.lang.Object);
 }
@@ -75033,51 +70565,6 @@
 	sun.security.validator.ValidatorException(java.lang.String,java.lang.Object,java.security.cert.X509Certificate);
 }
 
--keep class sun.security.x509.AVA {
-	*** PRESERVE_OLD_DC_ENCODING;
-	*** debug;
-	*** oid;
-	*** value;
-	sun.security.x509.AVA(java.io.Reader,int);
-	sun.security.x509.AVA(java.io.Reader,int,java.util.Map);
-	sun.security.x509.AVA(sun.security.util.DerValue);
-	*** derEncode(java.io.OutputStream);
-	*** getEmbeddedHexPair(int,java.io.Reader);
-	*** getEmbeddedHexString(java.util.List);
-	*** getObjectIdentifier();
-	*** getValueString();
-	*** isDerString(sun.security.util.DerValue,boolean);
-	*** isTerminator(int,int);
-	*** parseHexString(java.io.Reader,int);
-	*** parseQuotedString(java.io.Reader,java.lang.StringBuilder);
-	*** parseString(java.io.Reader,int,int,java.lang.StringBuilder);
-	*** readChar(java.io.Reader,java.lang.String);
-	*** toKeyword(int,java.util.Map);
-	*** toKeywordValueString(java.lang.String);
-	*** toRFC1779String(java.util.Map);
-	*** toRFC2253CanonicalString();
-	*** toRFC2253String(java.util.Map);
-	*** toString();
-	*** trailingSpace(java.io.Reader);
-}
-
--keep class sun.security.x509.AVAComparator {
-	*** getInstance();
-}
-
--keep class sun.security.x509.AVAKeyword {
-	*** keyword;
-	*** keywordMap;
-	*** oid;
-	*** oidMap;
-	*** rfc1779Compliant;
-	*** rfc2253Compliant;
-	*** getKeyword(sun.security.util.ObjectIdentifier,int,java.util.Map);
-	*** getOID(java.lang.String,int,java.util.Map);
-	*** hasKeyword(sun.security.util.ObjectIdentifier,int);
-	*** isCompliant(int);
-}
-
 -keep class sun.security.x509.AccessDescription {
 	*** Ad_CAISSUERS_Id;
 	*** Ad_CAREPOSITORY_Id;
@@ -75092,81 +70579,14 @@
 }
 
 -keep class sun.security.x509.AlgorithmId {
-	*** DH_PKIX_data;
-	*** DH_PKIX_oid;
-	*** DH_data;
-	*** DH_oid;
-	*** DSA_OIW_data;
-	*** DSA_OIW_oid;
-	*** DSA_PKIX_data;
-	*** DSA_oid;
 	*** EC_oid;
-	*** MD2_oid;
 	*** MD5_oid;
-	*** RSAEncryption_data;
-	*** RSAEncryption_oid;
-	*** RSA_data;
-	*** RSA_oid;
 	*** SHA256_oid;
-	*** SHA384_oid;
-	*** SHA512_oid;
-	*** SHA_oid;
-	*** algParams;
-	*** algid;
-	*** constructedFromDer;
-	*** dsaWithSHA1_PKIX_data;
-	*** initOidTable;
-	*** md2WithRSAEncryption_data;
-	*** md2WithRSAEncryption_oid;
-	*** md5WithRSAEncryption_data;
-	*** md5WithRSAEncryption_oid;
-	*** nameTable;
-	*** oidTable;
-	*** params;
-	*** pbeWithMD5AndDES_oid;
-	*** pbeWithMD5AndRC2_oid;
-	*** pbeWithSHA1AndDES_oid;
-	*** pbeWithSHA1AndDESede_oid;
-	*** pbeWithSHA1AndRC2_40_oid;
-	*** pbeWithSHA1AndRC2_oid;
-	*** sha1WithDSA_OIW_data;
-	*** sha1WithDSA_OIW_oid;
-	*** sha1WithDSA_oid;
-	*** sha1WithECDSA_oid;
-	*** sha1WithRSAEncryption_OIW_data;
-	*** sha1WithRSAEncryption_OIW_oid;
-	*** sha1WithRSAEncryption_data;
-	*** sha1WithRSAEncryption_oid;
-	*** sha224WithECDSA_oid;
-	*** sha256WithECDSA_oid;
-	*** sha256WithRSAEncryption_data;
-	*** sha256WithRSAEncryption_oid;
-	*** sha384WithECDSA_oid;
-	*** sha384WithRSAEncryption_data;
-	*** sha384WithRSAEncryption_oid;
-	*** sha512WithECDSA_oid;
-	*** sha512WithRSAEncryption_data;
-	*** sha512WithRSAEncryption_oid;
-	*** shaWithDSA_OIW_data;
-	*** shaWithDSA_OIW_oid;
-	*** specifiedWithECDSA_oid;
-	*** algOID(java.lang.String);
-	*** decodeParams();
-	*** derEncode(java.io.OutputStream);
 	*** encode(sun.security.util.DerOutputStream);
-	*** equals(sun.security.util.ObjectIdentifier);
-	*** equals(sun.security.x509.AlgorithmId);
-	*** get(java.lang.String);
-	*** getEncAlgFromSigAlg(java.lang.String);
-	*** getEncodedParams();
 	*** getName();
 	*** getOID();
 	*** getParameters();
-	*** makeSigAlg(java.lang.String,java.lang.String);
-	*** oid(int[]);
-	*** paramsToString();
 	*** parse(sun.security.util.DerValue);
-	*** toString();
 }
 
 -keep class sun.security.x509.AuthorityInfoAccessExtension {
@@ -75176,18 +70596,6 @@
 }
 
 -keep class sun.security.x509.AuthorityKeyIdentifierExtension {
-	*** id;
-	*** names;
-	*** serialNum;
-	*** encodeThis();
-	*** get(java.lang.String);
-}
-
--keep class sun.security.x509.BasicConstraintsExtension {
-	*** ca;
-	*** pathLen;
-	sun.security.x509.BasicConstraintsExtension(java.lang.Boolean,boolean,int);
-	*** encodeThis();
 	*** get(java.lang.String);
 }
 
@@ -75200,57 +70608,6 @@
 	*** encode(java.io.OutputStream,sun.security.util.ObjectIdentifier,boolean);
 	*** encodeThis();
 	*** get(java.lang.String);
-}
-
--keep class sun.security.x509.CertAttrSet {
-	*** encode(java.io.OutputStream);
-	*** getName();
-}
-
--keep class sun.security.x509.CertificateAlgorithmId {
-	*** algId;
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateExtensions {
-	*** PARAMS;
-	*** debug;
-	*** map;
-	*** unparseableExtensions;
-	*** unsupportedCritExt;
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** encode(java.io.OutputStream,boolean);
-	*** get(java.lang.String);
-	*** getAllExtensions();
-	*** getExtension(java.lang.String);
-	*** getUnparseableExtensions();
-	*** hasUnsupportedCriticalExtension();
-	*** init(sun.security.util.DerInputStream);
-	*** parseExtension(sun.security.x509.Extension);
-	*** set(java.lang.String,java.lang.Object);
-}
-
--keep class sun.security.x509.CertificateIssuerName {
-	*** dnName;
-	*** dnPrincipal;
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateIssuerUniqueIdentity {
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
 }
 
 -keep class sun.security.x509.CertificatePoliciesExtension {
@@ -75270,77 +70627,12 @@
 }
 
 -keep class sun.security.x509.CertificatePolicyMap {
-	*** issuerDomain;
-	*** subjectDomain;
-	*** encode(sun.security.util.DerOutputStream);
 	*** getIssuerIdentifier();
 	*** getSubjectIdentifier();
 }
 
 -keep class sun.security.x509.CertificatePolicySet {
 	*** getCertPolicyIds();
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateSerialNumber {
-	*** serial;
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateSubjectName {
-	*** dnName;
-	*** dnPrincipal;
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateSubjectUniqueIdentity {
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateValidity {
-	*** notAfter;
-	*** notBefore;
-	*** construct(sun.security.util.DerValue);
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** getNotAfter();
-	*** getNotBefore();
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-	*** valid(java.util.Date);
-}
-
--keep class sun.security.x509.CertificateVersion {
-	*** version;
-	*** compare(int);
-	*** construct(sun.security.util.DerValue);
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** getVersion();
-	*** set(java.lang.String,java.lang.Object);
-	*** toString();
-}
-
--keep class sun.security.x509.CertificateX509Key {
-	*** key;
-	*** delete(java.lang.String);
-	*** encode(java.io.OutputStream);
-	*** get(java.lang.String);
-	*** set(java.lang.String,java.lang.Object);
 	*** toString();
 }
 
@@ -75379,7 +70671,6 @@
 	sun.security.x509.ExtendedKeyUsageExtension(java.lang.Boolean,java.util.Vector);
 	*** encodeThis();
 	*** get(java.lang.String);
-	*** getExtendedKeyUsage();
 }
 
 -keep class sun.security.x509.Extension {
@@ -75388,16 +70679,11 @@
 	*** extensionValue;
 	sun.security.x509.Extension();
 	*** encode(sun.security.util.DerOutputStream);
-	*** equals(java.lang.Object);
-	*** getExtensionId();
-	*** getExtensionValue();
 	*** isCritical();
 	*** toString();
 }
 
 -keep class sun.security.x509.GeneralName {
-	*** name;
-	sun.security.x509.GeneralName(sun.security.util.DerValue,boolean);
 	*** encode(sun.security.util.DerOutputStream);
 	*** equals(java.lang.Object);
 	*** getName();
@@ -75408,14 +70694,11 @@
 
 -keep class sun.security.x509.GeneralNameInterface {
 	*** constrains(sun.security.x509.GeneralNameInterface);
-	*** encode(sun.security.util.DerOutputStream);
 	*** getType();
 	*** subtreeDepth();
 }
 
 -keep class sun.security.x509.GeneralNames {
-	*** names;
-	sun.security.x509.GeneralNames();
 	*** add(sun.security.x509.GeneralName);
 	*** encode(sun.security.util.DerOutputStream);
 	*** get(int);
@@ -75424,43 +70707,17 @@
 	*** iterator();
 	*** names();
 	*** size();
-	*** toString();
 }
 
 -keep class sun.security.x509.GeneralSubtree {
-	*** maximum;
-	*** minimum;
-	*** myhash;
-	*** name;
-	*** encode(sun.security.util.DerOutputStream);
-	*** getMaximum();
-	*** getMinimum();
 	*** getName();
 }
 
 -keep class sun.security.x509.GeneralSubtrees {
-	*** trees;
-	sun.security.x509.GeneralSubtrees();
-	*** add(sun.security.x509.GeneralSubtree);
-	*** clone();
-	*** contains(sun.security.x509.GeneralSubtree);
-	*** createWidestSubtree(sun.security.x509.GeneralNameInterface);
-	*** encode(sun.security.util.DerOutputStream);
 	*** get(int);
-	*** getGeneralNameInterface(int);
-	*** getGeneralNameInterface(sun.security.x509.GeneralSubtree);
-	*** intersect(sun.security.x509.GeneralSubtrees);
 	*** iterator();
-	*** minimize();
 	*** reduce(sun.security.x509.GeneralSubtrees);
-	*** remove(int);
 	*** size();
-	*** toString();
-	*** union(sun.security.x509.GeneralSubtrees);
-}
-
--keep class sun.security.x509.IPAddressName {
-	*** getName();
 }
 
 -keep class sun.security.x509.InhibitAnyPolicyExtension {
@@ -75470,139 +70727,43 @@
 -keep class sun.security.x509.IssuerAlternativeNameExtension {
 	*** names;
 	*** encodeThis();
-	*** get(java.lang.String);
 }
 
 -keep class sun.security.x509.KeyIdentifier {
-	*** octetString;
-	*** encode(sun.security.util.DerOutputStream);
 	*** getIdentifier();
 	*** toString();
 }
 
--keep class sun.security.x509.KeyUsageExtension {
-	*** bitString;
-	*** encodeThis();
-	*** get(java.lang.String);
-	*** getBits();
-	*** isSet(int);
-	*** set(int,boolean);
-	*** set(java.lang.String,java.lang.Object);
-}
-
 -keep class sun.security.x509.NameConstraintsExtension {
-	*** excluded;
-	*** hasMax;
-	*** hasMin;
-	*** minMaxValid;
-	*** permitted;
-	*** calcMinMax();
 	*** clone();
-	*** encodeThis();
 	*** get(java.lang.String);
 	*** merge(sun.security.x509.NameConstraintsExtension);
 	*** toString();
 	*** verify(java.security.cert.X509Certificate);
 	*** verify(sun.security.x509.GeneralNameInterface);
-	*** verifyRFC822SpecialCase(sun.security.x509.X500Name);
 }
 
 -keep class sun.security.x509.NetscapeCertTypeExtension {
-	*** CertType_data;
 	*** NetscapeCertType_Id;
-	*** bitString;
-	*** mAttributeNames;
-	*** mMapData;
-	*** encodeThis();
 	*** get(java.lang.String);
-	*** getPosition(java.lang.String);
-	*** isSet(int);
-	*** set(int,boolean);
-}
-
--keep class sun.security.x509.NetscapeCertTypeExtension$MapEntry {
-	*** mName;
-	*** mPosition;
-}
-
--keep class sun.security.x509.OIDMap {
-	*** NetscapeCertType_data;
-	*** nameMap;
-	*** oidMap;
-	*** addInternal(java.lang.String,sun.security.util.ObjectIdentifier,java.lang.String);
-	*** getClass(sun.security.util.ObjectIdentifier);
-	*** getName(sun.security.util.ObjectIdentifier);
-}
-
--keep class sun.security.x509.OIDMap$OIDInfo {
-	*** className;
-	*** clazz;
-	*** name;
-	*** oid;
-	*** getClazz();
-}
-
--keep class sun.security.x509.OIDName {
-	*** getOID();
-}
-
--keep class sun.security.x509.OtherName {
-	*** getOID();
 }
 
 -keep class sun.security.x509.PKIXExtensions {
 	*** AuthInfoAccess_Id;
-	*** AuthInfoAccess_data;
-	*** AuthorityKey_Id;
-	*** AuthorityKey_data;
 	*** BasicConstraints_Id;
-	*** BasicConstraints_data;
 	*** CRLDistributionPoints_Id;
-	*** CRLDistributionPoints_data;
-	*** CRLNumber_Id;
-	*** CRLNumber_data;
 	*** CertificateIssuer_Id;
-	*** CertificateIssuer_data;
 	*** CertificatePolicies_Id;
-	*** CertificatePolicies_data;
-	*** DeltaCRLIndicator_Id;
-	*** DeltaCRLIndicator_data;
 	*** ExtendedKeyUsage_Id;
-	*** ExtendedKeyUsage_data;
-	*** FreshestCRL_Id;
-	*** FreshestCRL_data;
-	*** HoldInstructionCode_Id;
-	*** HoldInstructionCode_data;
 	*** InhibitAnyPolicy_Id;
-	*** InhibitAnyPolicy_data;
-	*** InvalidityDate_Id;
-	*** InvalidityDate_data;
 	*** IssuerAlternativeName_Id;
-	*** IssuerAlternativeName_data;
-	*** IssuingDistributionPoint_Id;
-	*** IssuingDistributionPoint_data;
 	*** KeyUsage_Id;
-	*** KeyUsage_data;
 	*** NameConstraints_Id;
-	*** NameConstraints_data;
-	*** OCSPNoCheck_Id;
-	*** OCSPNoCheck_data;
 	*** PolicyConstraints_Id;
-	*** PolicyConstraints_data;
 	*** PolicyMappings_Id;
-	*** PolicyMappings_data;
 	*** PrivateKeyUsage_Id;
-	*** PrivateKeyUsage_data;
 	*** ReasonCode_Id;
-	*** ReasonCode_data;
 	*** SubjectAlternativeName_Id;
-	*** SubjectAlternativeName_data;
-	*** SubjectDirectoryAttributes_Id;
-	*** SubjectDirectoryAttributes_data;
-	*** SubjectInfoAccess_Id;
-	*** SubjectInfoAccess_data;
-	*** SubjectKey_Id;
-	*** SubjectKey_data;
 }
 
 -keep class sun.security.x509.PolicyConstraintsExtension {
@@ -75619,8 +70780,6 @@
 }
 
 -keep class sun.security.x509.PolicyMappingsExtension {
-	*** maps;
-	*** encodeThis();
 	*** get(java.lang.String);
 }
 
@@ -75633,47 +70792,19 @@
 }
 
 -keep class sun.security.x509.RDN {
-	*** assertion;
-	*** avaList;
-	*** canonicalString;
-	sun.security.x509.RDN(java.lang.String,java.lang.String,java.util.Map);
-	sun.security.x509.RDN(java.lang.String,java.util.Map);
-	*** avas();
 	*** encode(sun.security.util.DerOutputStream);
-	*** equals(java.lang.Object);
-	*** findAttribute(sun.security.util.ObjectIdentifier);
 	*** hashCode();
-	*** toRFC1779String(java.util.Map);
-	*** toRFC2253String(boolean);
-	*** toRFC2253String(java.util.Map);
-	*** toRFC2253StringInternal(boolean,java.util.Map);
-	*** toString();
-}
-
--keep class sun.security.x509.RFC822Name {
-	*** name;
-	*** getName();
-	*** parseName(java.lang.String);
 }
 
 -keep class sun.security.x509.SerialNumber {
-	*** serialNum;
-	*** construct(sun.security.util.DerValue);
-	*** encode(sun.security.util.DerOutputStream);
 	*** getNumber();
-	*** toString();
 }
 
 -keep class sun.security.x509.SubjectAlternativeNameExtension {
-	*** names;
-	sun.security.x509.SubjectAlternativeNameExtension(java.lang.Boolean,sun.security.x509.GeneralNames);
-	*** encodeThis();
 	*** get(java.lang.String);
 }
 
 -keep class sun.security.x509.SubjectKeyIdentifierExtension {
-	*** id;
-	*** encodeThis();
 	*** get(java.lang.String);
 }
 
@@ -75685,104 +70816,18 @@
 	sun.security.x509.URIName(java.lang.String);
 	*** getHost();
 	*** getHostObject();
-	*** getName();
 	*** getURI();
-	*** nameConstraint(sun.security.util.DerValue);
-}
-
--keep class sun.security.x509.UniqueIdentity {
-	*** getId();
 }
 
 -keep class sun.security.x509.X500Name {
-	*** DNQUALIFIER_DATA;
-	*** DNQUALIFIER_OID;
-	*** DOMAIN_COMPONENT_DATA;
-	*** DOMAIN_COMPONENT_OID;
-	*** GENERATIONQUALIFIER_DATA;
-	*** GENERATIONQUALIFIER_OID;
-	*** GIVENNAME_DATA;
-	*** GIVENNAME_OID;
-	*** INITIALS_DATA;
-	*** INITIALS_OID;
-	*** SERIALNUMBER_DATA;
-	*** SERIALNUMBER_OID;
-	*** SURNAME_DATA;
-	*** SURNAME_OID;
-	*** allAvaList;
-	*** canonicalDn;
-	*** commonName_data;
 	*** commonName_oid;
-	*** countryName_data;
-	*** countryName_oid;
-	*** dn;
-	*** encoded;
-	*** internedOIDs;
-	*** ipAddress_data;
-	*** ipAddress_oid;
-	*** localityName_data;
-	*** localityName_oid;
-	*** names;
-	*** orgName_data;
-	*** orgName_oid;
-	*** orgUnitName_data;
-	*** orgUnitName_oid;
-	*** principalConstructor;
-	*** principalField;
-	*** rdnList;
-	*** rfc1779Dn;
-	*** rfc2253Dn;
-	*** stateName_data;
-	*** stateName_oid;
-	*** streetAddress_data;
-	*** streetAddress_oid;
-	*** title_data;
-	*** title_oid;
-	*** userid_data;
-	*** userid_oid;
-	*** x500Principal;
-	sun.security.x509.X500Name(java.lang.String,java.util.Map);
-	sun.security.x509.X500Name(sun.security.util.DerInputStream);
-	*** allAvas();
 	*** asX500Name(javax.security.auth.x500.X500Principal);
 	*** asX500Principal();
 	*** commonAncestor(sun.security.x509.X500Name);
-	*** countQuotes(java.lang.String,int,int);
-	*** encode(sun.security.util.DerOutputStream);
 	*** equals(java.lang.Object);
-	*** escaped(int,int,java.lang.String);
-	*** findAttribute(sun.security.util.ObjectIdentifier);
-	*** generateDN();
-	*** generateRFC1779DN(java.util.Map);
-	*** generateRFC2253DN(java.util.Map);
-	*** getEncoded();
-	*** getEncodedInternal();
-	*** getRFC1779Name();
-	*** getRFC1779Name(java.util.Map);
-	*** getRFC2253CanonicalName();
-	*** getRFC2253Name();
-	*** getRFC2253Name(java.util.Map);
-	*** getString(sun.security.util.DerValue);
-	*** hashCode();
-	*** intern(sun.security.util.ObjectIdentifier);
+	*** findMostSpecificAttribute(sun.security.util.ObjectIdentifier);
 	*** isEmpty();
-	*** isWithinSubtree(sun.security.x509.X500Name);
-	*** parseDER(sun.security.util.DerInputStream);
-	*** parseDN(java.lang.String,java.util.Map);
-	*** parseRFC2253DN(java.lang.String);
 	*** subtreeDepth();
-	*** toString();
-}
-
--keep class sun.security.x509.X500Name$1 {
-	*** run();
-}
-
--keep class sun.security.x509.X509AttributeName {
-	*** prefix;
-	*** suffix;
-	*** getPrefix();
-	*** getSuffix();
 }
 
 -keep class sun.security.x509.X509CRLEntryImpl {
@@ -75795,42 +70840,23 @@
 }
 
 -keep class sun.security.x509.X509CRLImpl {
-	*** getEncodedInternal();
 	*** getSigAlgId();
 	*** toImpl(java.security.cert.X509CRL);
 }
 
 -keep class sun.security.x509.X509CertImpl {
-	*** algId;
-	*** extKeyUsage;
-	*** info;
-	*** issuerAlternativeNames;
-	*** readOnly;
-	*** signature;
-	*** signedCert;
-	*** subjectAlternativeNames;
-	*** verificationResult;
-	*** verifiedProvider;
-	*** verifiedPublicKey;
-	*** checkValidity(java.util.Date);
-	*** cloneAltNames(java.util.Collection);
 	*** get(java.lang.String);
 	*** getAuthorityInfoAccessExtension();
 	*** getAuthorityKeyIdentifierExtension();
 	*** getBasicConstraints();
 	*** getCRLDistributionPointsExtension();
 	*** getCertificatePoliciesExtension();
-	*** getEncodedInternal();
-	*** getExtendedKeyUsage(java.security.cert.X509Certificate);
 	*** getExtendedKeyUsageExtension();
 	*** getExtension(sun.security.util.ObjectIdentifier);
-	*** getIssuerAlternativeNameExtension();
-	*** getIssuerAlternativeNames(java.security.cert.X509Certificate);
 	*** getIssuerDN();
 	*** getIssuerKeyIdentifier();
 	*** getIssuerUniqueID();
 	*** getIssuerX500Principal();
-	*** getIssuerX500Principal(java.security.cert.X509Certificate);
 	*** getKeyUsage();
 	*** getNameConstraintsExtension();
 	*** getNotAfter();
@@ -75843,80 +70869,24 @@
 	*** getSerialNumberObject();
 	*** getSigAlgName();
 	*** getSubjectAlternativeNameExtension();
-	*** getSubjectAlternativeNames(java.security.cert.X509Certificate);
 	*** getSubjectKeyIdentifier();
 	*** getSubjectKeyIdentifierExtension();
 	*** getSubjectUniqueID();
 	*** getSubjectX500Principal();
-	*** getSubjectX500Principal(java.security.cert.X509Certificate);
-	*** getX500Principal(java.security.cert.X509Certificate,boolean);
 	*** isSelfIssued(java.security.cert.X509Certificate);
 	*** isSelfSigned(java.security.cert.X509Certificate,java.lang.String);
-	*** makeAltNames(sun.security.x509.GeneralNames);
-	*** parse(sun.security.util.DerValue);
-	*** readRFC1421Cert(java.io.InputStream);
-	*** sign(java.security.PrivateKey,java.lang.String,java.lang.String);
 	*** toImpl(java.security.cert.X509Certificate);
 	*** verify(java.security.PublicKey,java.lang.String);
 }
 
--keep class sun.security.x509.X509CertInfo {
-	*** algId;
-	*** extensions;
-	*** interval;
-	*** issuer;
-	*** issuerUniqueId;
-	*** map;
-	*** pubKey;
-	*** rawCertInfo;
-	*** serialNum;
-	*** subject;
-	*** subjectUniqueId;
-	*** version;
-	*** attributeMap(java.lang.String);
-	*** delete(java.lang.String);
-	*** emit(sun.security.util.DerOutputStream);
-	*** encode(java.io.OutputStream);
-	*** equals(sun.security.x509.X509CertInfo);
-	*** get(java.lang.String);
-	*** getEncodedInfo();
-	*** parse(sun.security.util.DerValue);
-	*** set(java.lang.String,java.lang.Object);
-	*** setAlgorithmId(java.lang.Object);
-	*** setExtensions(java.lang.Object);
-	*** setIssuer(java.lang.Object);
-	*** setIssuerUniqueId(java.lang.Object);
-	*** setKey(java.lang.Object);
-	*** setSerialNumber(java.lang.Object);
-	*** setSubject(java.lang.Object);
-	*** setSubjectUniqueId(java.lang.Object);
-	*** setValidity(java.lang.Object);
-	*** setVersion(java.lang.Object);
-	*** toString();
-	*** verifyCert(sun.security.x509.CertificateSubjectName,sun.security.x509.CertificateExtensions);
-}
-
 -keep class sun.security.x509.X509Key {
 	*** algid;
-	*** bitStringKey;
-	*** encodedKey;
 	*** key;
-	*** unusedBits;
 	sun.security.x509.X509Key();
-	*** buildX509Key(sun.security.x509.AlgorithmId,sun.security.util.BitArray);
 	*** decode(byte[]);
-	*** decode(java.io.InputStream);
-	*** encode();
-	*** encode(sun.security.util.DerOutputStream);
-	*** encode(sun.security.util.DerOutputStream,sun.security.x509.AlgorithmId,sun.security.util.BitArray);
-	*** getAlgorithm();
 	*** getEncoded();
-	*** getEncodedInternal();
 	*** getFormat();
-	*** getKey();
 	*** parse(sun.security.util.DerValue);
-	*** parseKeyBits();
-	*** setKey(sun.security.util.BitArray);
 }
 
 -keep class sun.swing.DefaultLayoutStyle {
@@ -76058,136 +71028,6 @@
 
 -keep class sun.swing.text.TextComponentPrintable {
 	*** getPrintable(javax.swing.text.JTextComponent,java.text.MessageFormat,java.text.MessageFormat);
-}
-
--keep class sun.text.normalizer.NormalizerBase {
-	*** MAYBE;
-	*** NFC;
-	*** NFD;
-	*** NFKC;
-	*** NFKD;
-	*** NO;
-	*** NONE;
-	*** YES;
-	*** buffer;
-	*** bufferLimit;
-	*** bufferPos;
-	*** bufferStart;
-	*** currentIndex;
-	*** mode;
-	*** nextIndex;
-	*** options;
-	*** text;
-	sun.text.normalizer.NormalizerBase(java.lang.String,sun.text.normalizer.NormalizerBase$Mode,int);
-	sun.text.normalizer.NormalizerBase(java.text.CharacterIterator,sun.text.normalizer.NormalizerBase$Mode,int);
-	*** clearBuffer();
-	*** compose(java.lang.String,boolean,int);
-	*** current();
-	*** decompose(java.lang.String,boolean,int);
-	*** endIndex();
-	*** findNextIterationBoundary(sun.text.normalizer.UCharacterIterator,sun.text.normalizer.NormalizerBase$IsNextBoundary,int,int,char[]);
-	*** findPreviousIterationBoundary(sun.text.normalizer.UCharacterIterator,sun.text.normalizer.NormalizerBase$IsPrevBoundary,int,int,char[],int[]);
-	*** getCodePointAt(int);
-	*** getNextNorm32(sun.text.normalizer.UCharacterIterator,int,int,int[]);
-	*** getPrevNorm32(sun.text.normalizer.UCharacterIterator,int,int,char[]);
-	*** isNormalized(java.lang.String,java.text.Normalizer$Form);
-	*** isNormalized(java.lang.String,java.text.Normalizer$Form,int);
-	*** next(sun.text.normalizer.UCharacterIterator,char[],int,int,sun.text.normalizer.NormalizerBase$Mode,boolean,boolean[],int);
-	*** nextNormalize();
-	*** normalize(char[],int,int,char[],int,int,sun.text.normalizer.NormalizerBase$Mode,int);
-	*** normalize(java.lang.String,java.text.Normalizer$Form);
-	*** normalize(java.lang.String,java.text.Normalizer$Form,int);
-	*** previous(sun.text.normalizer.UCharacterIterator,char[],int,int,sun.text.normalizer.NormalizerBase$Mode,boolean,boolean[],int);
-	*** previousNormalize();
-	*** reset();
-	*** setIndexOnly(int);
-}
-
--keep class sun.text.normalizer.NormalizerBase$1 {
-	*** $SwitchMap$java$text$Normalizer$Form;
-}
-
--keep class sun.text.normalizer.NormalizerBase$IsNextBoundary {
-	*** isNextBoundary(sun.text.normalizer.UCharacterIterator,int,int,int[]);
-}
-
--keep class sun.text.normalizer.NormalizerBase$IsPrevBoundary {
-	*** isPrevBoundary(sun.text.normalizer.UCharacterIterator,int,int,char[]);
-}
-
--keep class sun.text.normalizer.NormalizerBase$Mode {
-	*** modeValue;
-	sun.text.normalizer.NormalizerBase$Mode(int);
-	sun.text.normalizer.NormalizerBase$Mode(int,sun.text.normalizer.NormalizerBase$1);
-	*** getMask();
-	*** getMinC();
-	*** getNextBoundary();
-	*** getPrevBoundary();
-	*** isNFSkippable(int);
-	*** normalize(char[],int,int,char[],int,int,int);
-	*** normalize(char[],int,int,char[],int,int,sun.text.normalizer.UnicodeSet);
-	*** normalize(java.lang.String,int);
-	*** quickCheck(char[],int,int,boolean,sun.text.normalizer.UnicodeSet);
-}
-
--keep class sun.text.normalizer.NormalizerBase$NFCMode {
-	sun.text.normalizer.NormalizerBase$NFCMode(int);
-}
-
--keep class sun.text.normalizer.NormalizerBase$NFDMode {
-	sun.text.normalizer.NormalizerBase$NFDMode(int);
-}
-
--keep class sun.text.normalizer.NormalizerBase$NFKCMode {
-	sun.text.normalizer.NormalizerBase$NFKCMode(int);
-}
-
--keep class sun.text.normalizer.NormalizerBase$NFKDMode {
-	sun.text.normalizer.NormalizerBase$NFKDMode(int);
-}
-
--keep class sun.text.normalizer.NormalizerBase$QuickCheckResult {
-	*** resultValue;
-	sun.text.normalizer.NormalizerBase$QuickCheckResult(int);
-}
-
--keep class sun.text.normalizer.NormalizerImpl {
-	*** compose(char[],int,int,char[],int,int,int,sun.text.normalizer.UnicodeSet);
-	*** convert(java.lang.String);
-	*** decompose(char[],int,int,char[],int,int,boolean,int[],sun.text.normalizer.UnicodeSet);
-	*** getFromIndexesArr(int);
-	*** getNX(int);
-	*** getNorm32(char);
-	*** getNorm32FromSurrogatePair(long,char);
-	*** isNFSkippable(int,sun.text.normalizer.NormalizerBase$Mode,long);
-	*** quickCheck(char[],int,int,int,int,int,boolean,sun.text.normalizer.UnicodeSet);
-}
-
--keep class sun.text.normalizer.UCharacterIterator {
-	*** clone();
-	*** current();
-	*** getIndex();
-	*** getInstance(java.lang.String);
-	*** getInstance(java.text.CharacterIterator);
-	*** getLength();
-	*** moveIndex(int);
-	*** next();
-	*** previous();
-	*** setIndex(int);
-}
-
--keep class sun.text.normalizer.UCharacterProperty {
-	*** getRawSupplementary(char,char);
-}
-
--keep class sun.text.normalizer.UTF16 {
-	*** isLeadSurrogate(char);
-	*** isSurrogate(char);
-	*** isTrailSurrogate(char);
-}
-
--keep class sun.text.normalizer.Utility {
-	*** arrayRegionMatches(char[],int,char[],int,int);
 }
 
 -keep class sun.util.CoreResourceBundleControl {
@@ -76638,7 +71478,6 @@
 	*** getLevelName(java.lang.Object);
 	*** getLevelValue(java.lang.Object);
 	*** getLogger(java.lang.String);
-	*** getSimpleFormat();
 	*** getSimpleFormat(boolean);
 	*** isAvailable();
 	*** isLoggable(java.lang.Object,java.lang.Object);

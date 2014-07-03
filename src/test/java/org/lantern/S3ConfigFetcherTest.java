@@ -1,9 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,16 +47,6 @@ public class S3ConfigFetcherTest {
     }
     
     @Test
-    public void testDefault() throws Exception {
-        final Model model = new Model();
-        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
-        
-        assertTrue(model.getS3Config().getFallbacks().isEmpty());
-        fetcher.init();
-        assertFalse(model.getS3Config().getFallbacks().isEmpty());
-    }
-    
-    @Test
     public void testWithExceptions() throws Exception {
         Events.register(this);
         final Model model = new Model();
@@ -71,14 +58,14 @@ public class S3ConfigFetcherTest {
         when(clientFactory.newProxiedClient()).thenReturn(client);
         final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
         
-        assertTrue(model.getS3Config().getFallbacks().isEmpty());
+        assertEquals(1, model.getS3Config().getFallbacks().size());
         
         model.getS3Config().setFallbacks(Arrays.asList(new FallbackProxy()));
         
         assertNull(messageRef.get());
         fetcher.init();
         
-        assertFalse(model.getS3Config().getFallbacks().isEmpty());
+        assertEquals(2, model.getS3Config().getFallbacks().size());
         
         Thread.sleep(200);
         

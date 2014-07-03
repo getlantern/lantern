@@ -11,18 +11,19 @@ import org.junit.Test;
 public class S3ConfigTest {
 
     @Test public void testConfig() throws Exception {
-        final String config1 = testFileToString("s3config1.txt");
-        final String config2 = testFileToString("s3config2.txt");
+        final String inputString = testFileToString("s3config.input.json");
+        final String expectedString = testFileToString("s3config.expected.json");
         
         // This is the key. The above raw string represent the file coming in
         // over the network. We need to generate an object, serialize it, and
         // regenerate the object to simulate storing to disk and restarting.
-        final S3Config temp = configObject(config1);
+        final S3Config temp = configObject(inputString);
         final String json = JsonUtils.jsonify(temp);
-        final S3Config conf1 = configObject(json);
-        final S3Config conf2 = configObject(config2);
+        final S3Config roundTripped = configObject(json);
+        final S3Config expected = configObject(expectedString);
         
-        assertEquals("Different confs\n:"+conf1+"\n"+conf2+"\n\n\n\n", conf1, conf2);
+        System.out.println(json);
+        assertEquals("Different confs\n:"+expected+"\n"+roundTripped+"\n\n\n\n", expected, roundTripped);
     }
     
     private S3Config configObject(String cfgStr) {

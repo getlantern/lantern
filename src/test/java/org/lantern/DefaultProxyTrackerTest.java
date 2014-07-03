@@ -1,9 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,16 +13,16 @@ import java.net.URI;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.ProxyHolder;
 import org.lantern.proxy.ProxyInfo;
-import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Model;
+import org.lantern.state.Peer.Type;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
-
 
 import com.google.common.eventbus.Subscribe;
 
@@ -59,7 +57,8 @@ public class DefaultProxyTrackerTest {
 
         //proxy queue initially empty
         ProxyHolder proxy = tracker.firstConnectedTcpProxy();
-        assertNull(proxy);
+        assertNotNull(proxy);
+        assertTrue("There should always be a flashlight proxy available", proxy.getJid().toString().contains("flashlight"));
 
         final int port1 = 55077;
         final int port2 = 55078;
@@ -80,6 +79,8 @@ public class DefaultProxyTrackerTest {
         
         tracker.addProxy(info);
         
+        // Leave time for proxy connectivity check to happen
+        Thread.sleep(1000);
         proxy = waitForProxy(tracker);
         
         assertNotNull(proxy);
@@ -98,7 +99,8 @@ public class DefaultProxyTrackerTest {
         Thread.sleep(10);
 
         proxy = tracker.firstConnectedTcpProxy();
-        assertNull(proxy);
+        assertNotNull(proxy);
+        assertTrue("The remaining proxy should be a flashlight", proxy.getJid().toString().contains("flashlight"));
 
         // now bring miniproxy1 back up
         // miniproxy1.unpause();
