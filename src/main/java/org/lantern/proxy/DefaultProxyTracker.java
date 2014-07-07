@@ -1,6 +1,6 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.Peer.Type.pc;
+import static org.lantern.state.PeerType.pc;
 import static org.littleshoot.util.FiveTuple.Protocol.TCP;
 
 import java.io.IOException;
@@ -37,13 +37,12 @@ import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
 import org.lantern.state.SyncPath;
+import org.lantern.state.PeerType;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.geoip.GeoData;
 
@@ -139,7 +138,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
         synchronized (proxies) {
             for (ProxyHolder p : proxies) {
-                if (p.getType() == Type.cloud) {
+                if (p.getType() == PeerType.cloud) {
                     LOG.debug("Removing fallback (I may readd it shortly): ",
                             p.getJid());
                     fallbacks.add(p);
@@ -155,7 +154,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             Iterator<ProxyInfo> it = configuredProxies.iterator();
             while (it.hasNext()) {
                 ProxyInfo info = it.next();
-                if (info.getType() == Type.cloud) {
+                if (info.getType() == PeerType.cloud) {
                     it.remove();
                 }
             }
@@ -330,7 +329,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         synchronized (proxies) {
             LOG.info("Proxies is now {}", proxies);
         }
-        if (proxy.getType() == Peer.Type.cloud) {
+        if (proxy.getType() == PeerType.cloud) {
             // Assume cloud proxies to be connected
             successfullyConnectedToProxy(proxy);
         } else {
@@ -344,7 +343,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             // NAT traversed UDP proxies are currently disabled
             // checkConnectivityToNattedProxy(proxy);
         } else {
-            if (proxy.getType() == Peer.Type.cloud) {
+            if (proxy.getType() == PeerType.cloud) {
                 // Assume cloud proxies to be connected
                 
                 // Make sure our bookkeeping is in order, particularly our
@@ -492,7 +491,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         } else {
             LOG.warn("Fallback with no cert? {}", fallbackProxy);
         }
-        final Peer cloud = this.peerFactory.addPeer(fallbackProxy.getJid(), Type.cloud);
+        final Peer cloud = this.peerFactory.addPeer(fallbackProxy.getJid(), PeerType.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
 
         LOG.debug("Adding fallback: {}", fallbackProxy.getWanHost());
@@ -514,8 +513,8 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         @Override
         public int compare(ProxyHolder a, ProxyHolder b) {
          // Prioritize other Lanterns over fallback proxies
-            Type typeA = a.getType();
-            Type typeB = b.getType();
+            PeerType typeA = a.getType();
+            PeerType typeB = b.getType();
             if (typeA == pc && typeB != pc) {
                 return -1;
             } else if (typeB == pc && typeA != pc) {

@@ -14,7 +14,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
+import org.lantern.oauth.OauthUtils;
+import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.FallbackProxy;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
@@ -28,15 +31,19 @@ public class S3ConfigFetcherTest {
     
     @Test
     public void testStopAndStart() throws Exception {
-        final Model model = new Model();
-        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
+        final HttpClientFactory httpClientFactory = 
+                TestingUtils.newHttClientFactory();
+        final Model model = TestingUtils.newModel();
+        model.getSettings().setMode(Mode.give);
+        final OauthUtils oauth = new OauthUtils(httpClientFactory, model, new RefreshToken(model));
+        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, oauth);
         
         model.setS3Config(null);
         fetcher.init();
         fetcher.start();
         assertNotNull(model.getS3Config());
         
-        
+
         model.setS3Config(null);
         fetcher.stop();
         assertNull(model.getS3Config());
@@ -50,13 +57,10 @@ public class S3ConfigFetcherTest {
     public void testWithExceptions() throws Exception {
         Events.register(this);
         final Model model = new Model();
-        final HttpClientFactory clientFactory = mock(HttpClientFactory.class);
-        final HttpClient client = mock(HttpClient.class);
-        when(client.execute(any(HttpGet.class))).thenThrow(new IOException());
+        final OauthUtils oauth = mock(OauthUtils.class);
+        when(oauth.getRequest(any(String.class))).thenThrow(new IOException());
         
-        when(clientFactory.newDirectClient()).thenReturn(client);
-        when(clientFactory.newProxiedClient()).thenReturn(client);
-        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model);
+        final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, oauth);
         
         assertEquals(1, model.getS3Config().getFallbacks().size());
         

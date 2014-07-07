@@ -20,7 +20,6 @@ import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.ProxyHolder;
 import org.lantern.proxy.ProxyInfo;
 import org.lantern.state.Model;
-import org.lantern.state.Peer.Type;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
 

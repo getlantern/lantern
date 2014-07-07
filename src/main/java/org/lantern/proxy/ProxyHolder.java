@@ -17,7 +17,7 @@ import org.lantern.proxy.pt.PluggableTransport;
 import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.proxy.pt.PtType;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
+import org.lantern.state.PeerType;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -210,7 +210,7 @@ public final class ProxyHolder extends BaseChainedProxy
         return info.getJid();
     }
 
-    public Type getType() {
+    public PeerType getType() {
         return info.getType();
     }
     
