@@ -271,7 +271,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void connectViaOAuth2() throws IOException,
             CredentialException, NotInClosedBetaException {
         final XmppCredentials credentials =
-            this.modelUtils.newGoogleOauthCreds(getResource());
+            this.modelUtils.newGoogleOauthCreds(LanternConstants.UNCENSORED_ID);
 
         LOG.debug("Logging in with credentials: {}", credentials);
         connect(credentials);
@@ -281,10 +281,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public void connect(final String email, final String pass)
         throws IOException, CredentialException, NotInClosedBetaException {
         //connect(new PasswordCredentials(email, pass, getResource()));
-    }
-
-    private String getResource() {
-        return LanternConstants.UNCENSORED_ID;
     }
 
     /**
@@ -302,13 +298,6 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             LOG.debug("Using existing client for xmpp handler: "+hashCode());
         }
-
-        // This is a global, backup listener added to the client. We might
-        // get notifications of messages twice in some cases, but that's
-        // better than the alternative of sometimes not being notified
-        // at all.
-        LOG.debug("Adding message listener...");
-        this.client.get().addMessageListener(typedListener);
 
         Events.eventBus().post(
             new GoogleTalkStateEvent("", GoogleTalkState.connecting));
@@ -356,8 +345,16 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         };
 
-        client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
+        this.client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
                 sessionListener));
+        
+        // This is a global, backup listener added to the client. We might
+        // get notifications of messages twice in some cases, but that's
+        // better than the alternative of sometimes not being notified
+        // at all.
+        LOG.debug("Adding message listener...");
+        this.client.get().addMessageListener(typedListener);
+        
         LOG.debug("Set client for xmpp handler: "+hashCode());
     }
 
