@@ -831,7 +831,7 @@ public class DefaultXmppHandler implements XmppHandler {
                         (String) msg.getProperty(
                                 LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
                 if (StringUtils.isNotBlank(payload)) {
-                    processKscopePayload(from, payload);
+                    processKscopePayload(payload);
                 } else {
                     LOG.error("kscope ad with no payload? "+msg.toXML());
                 }
@@ -842,18 +842,18 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
 
-    private void processKscopePayload(final String from, final String payload) {
+    private void processKscopePayload(final String payload) {
         LOG.debug("Processing payload: {}", payload);
         try {
             final LanternKscopeAdvertisement ad =
                 JsonUtils.OBJECT_MAPPER.readValue(payload, LanternKscopeAdvertisement.class);
 
             final String jid = ad.getJid();
-            if (this.kscopeAdHandler.handleAd(jid, ad)) {
-                sendAndRequestCert(jid);
-            } else {
-                LOG.debug("Not requesting cert -- duplicate kscope ad?");
-            }
+            // This could easily be a duplicate kscope ad here, however the
+            // remote peer may have restarted and therefore generated a new 
+            // certificate, so we request it every time in case.
+            this.kscopeAdHandler.handleAd(jid, ad);
+            sendAndRequestCert(jid);
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
         } catch (final JsonMappingException e) {
