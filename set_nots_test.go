@@ -2,6 +2,7 @@ package set
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -201,12 +202,17 @@ func TestSetNonTS_IsSuperset(t *testing.T) {
 func TestSetNonTS_String(t *testing.T) {
 	s := newNonTS()
 	if s.String() != "[]" {
-		t.Error("String: output is not what is excepted", s.String())
+		t.Errorf("String: output is not what is excepted '%s'", s.String())
 	}
 
 	s.Add("1", "2", "3", "4")
-	if s.String() != "[1, 2, 3, 4]" {
-		t.Error("String: output is not what is excepted")
+
+	if !strings.HasPrefix(s.String(), "[") {
+		t.Error("String: output should begin with a square bracket")
+	}
+
+	if !strings.HasSuffix(s.String(), "]") {
+		t.Error("String: output should end with a square bracket")
 	}
 }
 
