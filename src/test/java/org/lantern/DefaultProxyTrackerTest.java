@@ -1,7 +1,9 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,7 +22,6 @@ import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.ProxyHolder;
 import org.lantern.proxy.ProxyInfo;
 import org.lantern.state.Model;
-import org.lantern.state.Peer.Type;
 import org.lantern.stubs.PeerFactoryStub;
 import org.littleshoot.util.FiveTuple;
 
@@ -49,7 +50,7 @@ public class DefaultProxyTrackerTest {
         final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
         PeerFactory peerFactory = new PeerFactoryStub();
         LanternTrustStore lanternTrustStore = mock(LanternTrustStore.class);
-        DefaultProxyTracker tracker = new DefaultProxyTracker(geoIpLookupService, model,
+        DefaultProxyTracker tracker = new DefaultProxyTracker(model,
                 peerFactory, lanternTrustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         
         tracker.init();
