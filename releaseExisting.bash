@@ -2,6 +2,8 @@
 
 # This script moves existing installers to be the "newest" release installers
 # users will actually install using the installer wrappers.
+
+# Amazon credentials are defined in ~/.boto
 function die() {
   echo $*
   exit 1
@@ -15,6 +17,7 @@ fi
 baseName=$1
 bucket="lantern"
 names=($baseName.exe $baseName.dmg $baseName-32-bit.deb $baseName-64-bit.deb)
+tag=${baseName:0:${#baseName}-8}
 #names=($baseName-32-bit.deb $baseName-64-bit.deb)
 
 for name in "${names[@]}"
@@ -37,6 +40,12 @@ do
 
   echo "Copying on S3 to newest file"
   ./copys3file.py $name || die "Could not copy s3 file to newest!"
+
+  echo "Uploading binary $name to tag 'latest'"
+  #./uploadghasset.rb latest $name
+
+  echo "Uploading binary $name to tag '$tag'"
+  #./uploadghasset.rb $tag $name
 
   shasum $name | cut -d " " -f 1 > $newestName.sha1
   echo "Uploading SHA-1 `cat $newestName.sha1`"
