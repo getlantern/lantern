@@ -16,7 +16,7 @@ import org.littleshoot.util.FiveTuple.Protocol;
 public class S3Config {
 
     public static final String DEFAULT_CONTROLLER_ID = "lanternctrl1-2";
-    public static final String DEFAULT_MASQUERADE_HOST = "cdnjs.com";
+    public static final String DEFAULT_MASQUERADE_HOST = "elance.com";
 
     private String controller = DEFAULT_CONTROLLER_ID;
     private int minpoll = 5;

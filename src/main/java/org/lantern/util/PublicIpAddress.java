@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * It is a heavily modified version of original implementation from LittleShoot.
  * 
  * This version makes a host-spoofed call to geo.getiantem.org (pretending to be
- * cdnjs.com) in order to look up the public ip.
+ * some other host) in order to look up the public ip.
  */
 public class PublicIpAddress implements PublicIp {
 
