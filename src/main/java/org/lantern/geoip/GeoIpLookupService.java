@@ -33,15 +33,15 @@ public class GeoIpLookupService {
             new ConcurrentHashMap<String, GeoData>();
 
     private static final String REAL_GEO_HOST = "geo.getiantem.org";
-    private static volatile String s_masqueradeHost = S3Config.DEFAULT_MASQUERADE_HOST;
+    private static volatile String[] s_masqueradeHosts = S3Config.DEFAULT_MASQUERADE_HOSTS;
 
     static {
         // Subscribe to updates for s_masqueradeHost
         Events.register(new Object() {
             @Subscribe
             public void onNewS3Config(final S3Config config) {
-                synchronized (s_masqueradeHost) {
-                    s_masqueradeHost = config.getMasqueradeHost();
+                synchronized (s_masqueradeHosts) {
+                    s_masqueradeHosts = config.getMasqueradeHosts();
                 }
             }
         });
@@ -68,7 +68,7 @@ public class GeoIpLookupService {
         return new HostSpoofedHTTPGet(
                 StaticHttpClientFactory.newDirectClient(),
                 REAL_GEO_HOST,
-                s_masqueradeHost).get(url, handler);
+                s_masqueradeHosts).get(url, handler);
     }
 
     private GeoData queryGeoServe(final String ipAddress) {
