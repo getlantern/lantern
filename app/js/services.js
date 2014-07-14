@@ -178,19 +178,26 @@ angular.module('app.services', [])
       }
       try {
         $rootScope.$apply(function() {
+          var shouldUpdateInstanceStats = false;
           if (patch[0].path === '') {
             // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
             angular.copy(patch[0].value, model);
           } else {
             try {
               applyPatch(model, patch);
+              for (var i=0; i<patch.length; i++) {
+                if (patch[i].path == "/instanceStats") {
+                  shouldUpdateInstanceStats = true;
+                  break;
+                }
+              }
             } catch (e) {
               if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
               log.error('Error applying patch', patch);
               apiSrvc.exception({exception: e, patch: patch});
             }
           }
-          flashlightStats.updateModel(model);
+          flashlightStats.updateModel(model, shouldUpdateInstanceStats);
         });
       } catch (e) {
         // XXX https://github.com/angular/angular.js/issues/2602
@@ -297,7 +304,7 @@ angular.module('app.services', [])
     // updateModel updates a model that doesn't include flashlight peers with
     // information about the flashlight peers, including updating aggregated
     // figure slike total bps.
-    function updateModel(model) {
+    function updateModel(model, shouldUpdateInstanceStats) {
       for (var peerid in flashlightPeers) {
         var peer = flashlightPeers[peerid];
         
@@ -305,16 +312,15 @@ angular.module('app.services', [])
         // lastConnected
         var lastConnected = Date.parse(peer.lastConnected);
         var delta = new Date().getTime() - Date.parse(peer.lastConnected);
-        peer.connected = delta < 15000;
+        peer.connected = delta < 30000;
         
         // Add peer to model
         model.peers.push(peer);
         
-        // Update total bytes up/dn
-        if (!model.instanceStats) {
-          model.instanceStats = {allBytes: {rate: 0}};
+        if (shouldUpdateInstanceStats) {
+          // Update total bytes up/dn
+          model.instanceStats.allBytes.rate += peer.bpsUpDn;
         }
-        model.instanceStats.allBytes.rate += peer.bpsUpDn;
       }
     }
     
