@@ -7,7 +7,7 @@ import java.net.URI;
 import javax.net.ssl.SSLSession;
 
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
+import org.lantern.state.PeerType;
 
 public interface PeerFactory {
     /**
@@ -21,9 +21,9 @@ public interface PeerFactory {
      * @param type
      *            The type of the peer.
      */
-    void onOutgoingConnection(URI fullJid, InetSocketAddress isa, Type type);
+    void onOutgoingConnection(URI fullJid, InetSocketAddress isa, PeerType type);
 
-    Peer addPeer(URI fullJid, Type type);
+    Peer addPeer(URI fullJid, PeerType type);
 
     /**
      * Get the peer corresponding to the given jid.

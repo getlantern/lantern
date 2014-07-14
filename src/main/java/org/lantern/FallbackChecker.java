@@ -57,7 +57,7 @@ public class FallbackChecker implements Runnable {
         final HttpClient client = this.httpClientFactory.newDirectClient();
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
         client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 10000);
-        final HttpGet get = new HttpGet(S3ConfigFetcher.urlFromFolder(folder));
+        final HttpGet get = new HttpGet(urlFromFolder(folder));
         
         final String proxies;
         InputStream is = null;
@@ -141,5 +141,15 @@ public class FallbackChecker implements Runnable {
             IOUtils.closeQuietly(is);
             get.reset();
         }
+    }
+    
+    public static String urlFromFolder(final String folder) {
+        String awsRegion = "ap-southeast-1";
+        String s3Endpoint = "s3-" + awsRegion + ".amazonaws.com";
+        String s3ConfigBaseUrl = "https://" + s3Endpoint + "/lantern-config/";
+
+        return s3ConfigBaseUrl
+                + folder.trim()
+                + "/config.json";
     }
 }
