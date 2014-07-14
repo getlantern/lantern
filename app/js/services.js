@@ -305,16 +305,11 @@ angular.module('app.services', [])
         // lastConnected
         var lastConnected = Date.parse(peer.lastConnected);
         var delta = new Date().getTime() - Date.parse(peer.lastConnected);
-        peer.connected = delta < 30000;
+        peer.connected = delta < 15000;
         
         // Add peer to model
         model.peers.push(peer);
         
-        // Update countries
-        var country = model.countries[peer.country];
-        if (country) {
-          country.bps += peer.bpsUpDn;
-        }
         // Update total bytes up/dn
         if (!model.instanceStats) {
           model.instanceStats = {allBytes: {rate: 0}};
