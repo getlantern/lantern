@@ -163,6 +163,7 @@ func TestSet_IsEmpty(t *testing.T) {
 }
 
 func TestSet_IsEqual(t *testing.T) {
+	// same size, same content
 	s := newTS()
 	s.Add("1", "2", "3")
 	u := newTS()
@@ -171,6 +172,28 @@ func TestSet_IsEqual(t *testing.T) {
 	ok := s.IsEqual(u)
 	if !ok {
 		t.Error("IsEqual: set s and t are equal. However it returns false")
+	}
+
+	// same size, different content
+	a := newTS()
+	a.Add("1", "2", "3")
+	b := newTS()
+	b.Add("4", "5", "6")
+
+	ok = a.IsEqual(b)
+	if ok {
+		t.Error("IsEqual: set a and b are now equal (1). However it returns true")
+	}
+
+	// different size, similar content
+	a = newTS()
+	a.Add("1", "2", "3")
+	b = newTS()
+	b.Add("1", "2", "3", "4")
+
+	ok = a.IsEqual(b)
+	if ok {
+		t.Error("IsEqual: set s and t are now equal (2). However it returns true")
 	}
 }
 

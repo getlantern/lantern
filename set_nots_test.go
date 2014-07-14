@@ -161,6 +161,28 @@ func TestSetNonTS_IsEqual(t *testing.T) {
 	if !ok {
 		t.Error("IsEqual: set s and t are equal. However it returns false")
 	}
+
+	// same size, different content
+	a := newNonTS()
+	a.Add("1", "2", "3")
+	b := newNonTS()
+	b.Add("4", "5", "6")
+
+	ok = a.IsEqual(b)
+	if ok {
+		t.Error("IsEqual: set a and b are now equal (1). However it returns true")
+	}
+
+	// different size, similar content
+	a = newNonTS()
+	a.Add("1", "2", "3")
+	b = newNonTS()
+	b.Add("1", "2", "3", "4")
+
+	ok = a.IsEqual(b)
+	if ok {
+		t.Error("IsEqual: set s and t are now equal (2). However it returns true")
+	}
 }
 
 func TestSetNonTS_IsSubset(t *testing.T) {
