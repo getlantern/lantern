@@ -32,6 +32,8 @@ public class Flashlight extends BasePluggableTransport {
     public static final String SERVER_KEY = "server";
     public static final String MASQUERADE_KEY = "masquerade";
     public static final String ROOT_CA_KEY = "rootca";
+    
+    public static final String STATS_ADDR = "127.0.0.1:15670";
 
     private final Properties props;
 
@@ -74,7 +76,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-addr");
         cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
                 listenAddress.getPort()));
-
+        
         addParentPIDIfAvailable(cmd);
     }
 
@@ -106,6 +108,9 @@ public class Flashlight extends BasePluggableTransport {
         GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
         cmd.addArgument("-country");
         cmd.addArgument(geoData.getCountry().getIsoCode());
+
+        cmd.addArgument("-statsaddr");
+        cmd.addArgument(STATS_ADDR);
 
         addParentPIDIfAvailable(cmd);
     }
