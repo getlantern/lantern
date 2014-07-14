@@ -301,11 +301,11 @@ angular.module('app.services', [])
       for (var peerid in flashlightPeers) {
         var peer = flashlightPeers[peerid];
         
-        // Consider peer connected if it's been less than 10 seconds
+        // Consider peer connected if it's been less than x seconds since
         // lastConnected
         var lastConnected = Date.parse(peer.lastConnected);
         var delta = new Date().getTime() - Date.parse(peer.lastConnected);
-        peer.connected = delta < 10000;
+        peer.connected = delta < 30000;
         
         // Add peer to model
         model.peers.push(peer);
