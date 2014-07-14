@@ -1,7 +1,7 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.PeerType.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.lantern.state.PeerType.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,14 +37,12 @@ import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
-import org.lantern.state.SyncPath;
 import org.lantern.state.PeerType;
+import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.geoip.GeoData;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -73,9 +71,6 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     private final PeerFactory peerFactory;
 
-    private final GeoIpLookupService geoIpLookupService;
-
-
     private ScheduledExecutorService proxyRetryService;
 
     private final LanternTrustStore lanternTrustStore;
@@ -89,13 +84,11 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     @Inject
     public DefaultProxyTracker(
-            final GeoIpLookupService geoIpLookupService,
             final Model model,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
-        this.geoIpLookupService = geoIpLookupService;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         networkTracker.addListener(this);
@@ -325,8 +318,15 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     private void doAddProxy(final ProxyHolder proxy) {
         LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
-        proxies.add(proxy);
+        
         synchronized (proxies) {
+            // We need to remove the old proxy that may match the base JID and
+            // IP/port pair of this new proxy and replace it with all the new
+            // info. This will overwrite any connection retry data, for example,
+            // and will ensure that we don't have duplicate entries for the
+            // same remote peer on the same machine.
+            proxies.remove(proxy);
+            proxies.add(proxy);
             LOG.info("Proxies is now {}", proxies);
         }
         if (proxy.getType() == PeerType.cloud) {

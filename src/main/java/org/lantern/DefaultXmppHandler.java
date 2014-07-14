@@ -271,7 +271,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void connectViaOAuth2() throws IOException,
             CredentialException, NotInClosedBetaException {
         final XmppCredentials credentials =
-            this.modelUtils.newGoogleOauthCreds(getResource());
+            this.modelUtils.newGoogleOauthCreds(LanternConstants.UNCENSORED_ID);
 
         LOG.debug("Logging in with credentials: {}", credentials);
         connect(credentials);
@@ -281,10 +281,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public void connect(final String email, final String pass)
         throws IOException, CredentialException, NotInClosedBetaException {
         //connect(new PasswordCredentials(email, pass, getResource()));
-    }
-
-    private String getResource() {
-        return LanternConstants.UNCENSORED_ID;
     }
 
     /**
@@ -302,13 +298,6 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             LOG.debug("Using existing client for xmpp handler: "+hashCode());
         }
-
-        // This is a global, backup listener added to the client. We might
-        // get notifications of messages twice in some cases, but that's
-        // better than the alternative of sometimes not being notified
-        // at all.
-        LOG.debug("Adding message listener...");
-        this.client.get().addMessageListener(typedListener);
 
         Events.eventBus().post(
             new GoogleTalkStateEvent("", GoogleTalkState.connecting));
@@ -356,8 +345,16 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         };
 
-        client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
+        this.client.set(makeXmppP2PHttpClient(plainTextProxyRelayAddress,
                 sessionListener));
+        
+        // This is a global, backup listener added to the client. We might
+        // get notifications of messages twice in some cases, but that's
+        // better than the alternative of sometimes not being notified
+        // at all.
+        LOG.debug("Adding message listener...");
+        this.client.get().addMessageListener(typedListener);
+        
         LOG.debug("Set client for xmpp handler: "+hashCode());
     }
 
@@ -831,7 +828,7 @@ public class DefaultXmppHandler implements XmppHandler {
                         (String) msg.getProperty(
                                 LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
                 if (StringUtils.isNotBlank(payload)) {
-                    processKscopePayload(from, payload);
+                    processKscopePayload(payload);
                 } else {
                     LOG.error("kscope ad with no payload? "+msg.toXML());
                 }
@@ -842,18 +839,18 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
 
-    private void processKscopePayload(final String from, final String payload) {
+    private void processKscopePayload(final String payload) {
         LOG.debug("Processing payload: {}", payload);
         try {
             final LanternKscopeAdvertisement ad =
                 JsonUtils.OBJECT_MAPPER.readValue(payload, LanternKscopeAdvertisement.class);
 
             final String jid = ad.getJid();
-            if (this.kscopeAdHandler.handleAd(jid, ad)) {
-                sendAndRequestCert(jid);
-            } else {
-                LOG.debug("Not requesting cert -- duplicate kscope ad?");
-            }
+            // This could easily be a duplicate kscope ad here, however the
+            // remote peer may have restarted and therefore generated a new 
+            // certificate, so we request it every time in case.
+            this.kscopeAdHandler.handleAd(jid, ad);
+            sendAndRequestCert(jid);
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
         } catch (final JsonMappingException e) {

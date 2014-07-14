@@ -7,24 +7,54 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.params.CoreConnectionPNames;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements an HTTP Get using host spoofing.
  */
 public class HostSpoofedHTTPGet {
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(HostSpoofedHTTPGet.class);
+
     private final HttpClient client;
     private final String realHost;
-    private final HttpHost masqueradeHost;
+    private final HttpHost[] masqueradeHosts;
 
     public HostSpoofedHTTPGet(HttpClient client,
             String realHost,
-            String masqueradeHost) {
+            String[] masqueradeHosts) {
         this.client = client;
         this.realHost = realHost;
-        this.masqueradeHost = new HttpHost(masqueradeHost, 443, "https");
+        this.masqueradeHosts = new HttpHost[masqueradeHosts.length];
+        for (int i = 0; i < masqueradeHosts.length; i++) {
+            this.masqueradeHosts[i] =
+                    new HttpHost(masqueradeHosts[i], 443, "https");
+        }
     }
 
     public <T> T get(String path, ResponseHandler<T> handler) {
+        Exception finalException = null;
+        // Try the request with all available masquerade hosts until one
+        // succeeds.
+        for (HttpHost masqueradeHost : masqueradeHosts) {
+            try {
+                return doGet(masqueradeHost, path, handler);
+            } catch (Exception e) {
+                LOGGER.warn(
+                        "Caught exception using masqueradeHost {}, could mean that it's blocked: {}",
+                        masqueradeHost, e.getMessage(), e);
+                finalException = e;
+            }
+        }
+
+        // None of the requests worked, handle the exception
+        return handler.onException(finalException);
+    }
+
+    private <T> T doGet(HttpHost masqueradeHost, String path,
+            ResponseHandler<T> handler)
+            throws Exception {
         HttpGet request = new HttpGet(path);
         request.setHeader("Host", realHost);
         try {
@@ -42,8 +72,6 @@ public class HostSpoofedHTTPGet {
             // CoreConnectionPNames.SO_TIMEOUT, 60000);
             return handler.onResponse(client
                     .execute(masqueradeHost, request));
-        } catch (Exception e) {
-            return handler.onException(e);
         } finally {
             request.releaseConnection();
         }

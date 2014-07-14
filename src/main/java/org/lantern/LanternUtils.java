@@ -59,6 +59,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
@@ -970,6 +971,7 @@ public class LanternUtils {
         for (String path : paths) {
             policies.add(path + ":" + StaticSettings.getApiPort());
         }
+        policies.add("http://" + Flashlight.STATS_ADDR);
         String localhost = StringUtils.join(policies, " ");
         resp.addHeader("Content-Security-Policy",
             "default-src " + localhost + " 'unsafe-inline' 'unsafe-eval'; " +
