@@ -35,7 +35,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ResetEvent;
@@ -124,10 +123,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private final NatPmpService natPmpService;
 
     private final UpnpService upnpService;
-
-    private ClosedBetaEvent closedBetaEvent;
-
-    private final Object closedBetaLock = new Object();
 
     private MappedServerSocket mappedServer;
 
@@ -240,8 +235,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public synchronized void connect() throws IOException, CredentialException,
-        NotInClosedBetaException {
+    public synchronized void connect() throws IOException, CredentialException {
         if (!this.modelUtils.isConfigured()) {
             if (this.model.getSettings().isUiEnabled()) {
                 LOG.debug("Not connecting when not configured and UI enabled");
@@ -269,7 +263,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void connectViaOAuth2() throws IOException,
-            CredentialException, NotInClosedBetaException {
+            CredentialException {
         final XmppCredentials credentials =
             this.modelUtils.newGoogleOauthCreds(LanternConstants.UNCENSORED_ID);
 
@@ -279,7 +273,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public void connect(final String email, final String pass)
-        throws IOException, CredentialException, NotInClosedBetaException {
+        throws IOException, CredentialException {
         //connect(new PasswordCredentials(email, pass, getResource()));
     }
 
@@ -287,9 +281,8 @@ public class DefaultXmppHandler implements XmppHandler {
      * Connect to Google Talk's XMPP servers using the supplied XmppCredentials
      */
     private void connect(final XmppCredentials credentials)
-        throws IOException, CredentialException, NotInClosedBetaException {
+        throws IOException, CredentialException {
         LOG.debug("Connecting to XMPP servers with credentials...");
-        this.closedBetaEvent = null;
         // This address doesn't appear to be used anywhere, setting to null
         final InetSocketAddress plainTextProxyRelayAddress = null;
 
@@ -324,7 +317,6 @@ public class DefaultXmppHandler implements XmppHandler {
         gTalkSharedStatus();
         updatePresence();
 
-        waitForClosedBetaStatus(credentials.getUsername());
         modelUtils.syncConnectingStatus(Tr.tr(MessageKey.INVITED));
     }
 
@@ -408,41 +400,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private void handleConnectionFailure() {
         Events.eventBus().post(
             new GoogleTalkStateEvent("", GoogleTalkState.LOGIN_FAILED));
-    }
-
-    private void waitForClosedBetaStatus(final String email)
-        throws NotInClosedBetaException {
-        if (this.modelUtils.isInClosedBeta(email)) {
-            LOG.debug("Already in closed beta...");
-            return;
-        }
-
-        // The following is necessary because the call to login needs to either
-        // succeed or fail for the UI to work properly, but we don't know if
-        // a user is able to log in until we get an asynchronous XMPP message
-        // back from the server.
-        synchronized (this.closedBetaLock) {
-            if (this.closedBetaEvent == null) {
-                try {
-                    this.closedBetaLock.wait(80 * 1000);
-                } catch (final InterruptedException e) {
-                    LOG.info("Interrupted? Maybe on shutdown?", e);
-                }
-            }
-        }
-        if (this.closedBetaEvent != null) {
-            if(!this.closedBetaEvent.isInClosedBeta()) {
-                LOG.debug("Not in closed beta...");
-                notInClosedBeta("Not in closed beta");
-            } else {
-                LOG.debug("Server notified us we're in the closed beta!");
-                Events.sync(SyncPath.SETTINGS, this.model.getSettings());
-                return;
-            }
-        } else {
-            LOG.warn("No closed beta event -- timed out!!");
-            notInClosedBeta("No closed beta event!!");
-        }
     }
 
     private class DefaultPacketListener implements PacketListener, PacketFilter {
@@ -546,13 +503,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     };
 
-    private void notInClosedBeta(final String msg)
-        throws NotInClosedBetaException {
-        LOG.debug("Not in closed beta!");
-        disconnect();
-        throw new NotInClosedBetaException(msg);
-    }
-
     private Set<String> toStringServers(
         final Collection<InetSocketAddress> googleStunServers) {
         final Set<String> strings = new HashSet<String>();
@@ -588,7 +538,6 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
 
         this.proxyTracker.clearPeerProxySet();
-        this.closedBetaEvent = null;
 
         // This is mostly logged for debugging thorny shutdown issues...
         LOG.debug("Finished disconnecting XMPP...");
@@ -601,29 +550,15 @@ public class DefaultXmppHandler implements XmppHandler {
             Events.sync(SyncPath.CONNECTIVITY_LANTERN_CONTROLLER, true);
         }
         LOG.debug("Lantern controlling agent response");
-        final String to = XmppUtils.jidToUser(msg.getTo());
         LOG.debug("Set hub address to: {}", LanternClientConstants.LANTERN_JID);
         final String body = msg.getBody();
         LOG.debug("Hub message body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
         
-        boolean handled = false;
-        handled |= handleSetDelay(json);
-        handled |= handleVersionUpdate(json);
+        handleSetDelay(json);
+        handleVersionUpdate(json);
 
-        final Boolean inClosedBeta =
-            (Boolean) json.get(LanternConstants.INVITED);
-
-        if (inClosedBeta != null) {
-            Events.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
-        } else {
-            if (!handled) {
-                // assume closed beta, because server replied with unhandled
-                // message
-                Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
-            }
-        }
         model.setUserGuid((String) json.get(LanternConstants.USER_GUID));
         sendOnDemandValuesToControllerIfNecessary(json);
     }
@@ -665,31 +600,6 @@ public class DefaultXmppHandler implements XmppHandler {
                     + "scheduled request {} milliseconds ago.", elapsed);
         }
         return true;
-    }
-
-    @Subscribe
-    public void onClosedBetaEvent(final ClosedBetaEvent cbe) {
-        LOG.debug("Got closed beta event!!");
-        this.closedBetaEvent = cbe;
-        if (this.closedBetaEvent.isInClosedBeta()) {
-            this.modelUtils.addToClosedBeta(cbe.getTo());
-        }
-        synchronized (this.closedBetaLock) {
-            // We have to make sure that this event is actually intended for
-            // the user we're currently logged in as!
-            final String to = this.closedBetaEvent.getTo();
-            LOG.debug("Analyzing closed beta event for: {}", to);
-            if (isLoggedIn()) {
-                final String user = LanternUtils.toEmail(
-                    this.client.get().getXmppConnection());
-                if (user.equals(to)) {
-                    LOG.debug("Users match!");
-                    this.closedBetaLock.notifyAll();
-                } else {
-                    LOG.debug("Users don't match {}, {}", user, to);
-                }
-            }
-        }
     }
 
     private void gTalkSharedStatus() {

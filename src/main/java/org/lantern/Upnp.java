@@ -143,8 +143,14 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService,
         final UPNPUrls urls = new UPNPUrls();
         final IGDdatas data = new IGDdatas();
 
-        UPNPDev devlist = MiniupnpcLibrary.INSTANCE.upnpDiscover(UPNP_DELAY, (String) null,
+        final UPNPDev devlist;
+        try {
+            devlist = MiniupnpcLibrary.INSTANCE.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
+        } catch (final UnsatisfiedLinkError error) {
+            log.error("Unsatisfied link?", error);
+            throw error;
+        }
         if (devlist == null) {
             MiniupnpcLibrary.INSTANCE.FreeUPNPUrls(urls);
             portMapListener.onPortMapError();

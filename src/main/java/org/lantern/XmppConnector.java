@@ -85,10 +85,6 @@ public class XmppConnector {
         } catch (final CredentialException e) {
             log.error("Could not log in with OAUTH?", e);
             Events.syncModal(model, Modal.authorize);
-        } catch (final NotInClosedBetaException e) {
-            log.info("This user is not invited");
-            internalState.setNotInvited(true);
-            Events.syncModal(model, Modal.notInvited);
         } catch (final IOException e) {
             log.info("We can't connect (internet connection died?). " +
                 "The XMPP layer should automatically retry.", e);

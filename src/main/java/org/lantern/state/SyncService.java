@@ -14,7 +14,6 @@ import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternService;
 import org.lantern.annotation.Keep;
-import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.event.SyncType;
@@ -117,25 +116,6 @@ public class SyncService implements LanternService {
         //sync(true, syncEvent.getChannel());
         delegateSync(syncEvent.getOp(), syncEvent.getPath(), syncEvent.getValue());
     }
-
-    @Subscribe
-    public void closedBeta(final ClosedBetaEvent betaEvent) {
-        final boolean alreadyInvited = this.model.getConnectivity().isInvited();
-
-        final boolean invited = betaEvent.isInClosedBeta();
-        if (alreadyInvited == invited) {
-            log.debug("No change in invited state");
-            return;
-        }
-        // Note this is the only place setInvited should be called. We do all
-        // checks here to know whether or not to sync with the frontend and
-        // because of the use of ClosedBetaEvent for thread syncing in
-        // the xmpp handler.
-        this.model.getConnectivity().setInvited(invited);
-
-        delegateSync(SyncPath.INVITED, invited);
-    }
-
 
     private void delegateSync(final SyncType type, final SyncPath path,
             final Object value) {
