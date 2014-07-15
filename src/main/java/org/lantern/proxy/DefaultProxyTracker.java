@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.log.Log;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
@@ -59,6 +60,8 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
+    // Tracks proxies in the current configuration, used to identify when the
+    // configuration has changed.
     private final Set<ProxyInfo> configuredProxies = new HashSet<ProxyInfo>();
     
     /**
@@ -127,32 +130,38 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     @Subscribe
     public void onNewS3Config(final S3Config config) {
-        LOG.debug("Refreshing fallbacks");
-        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
-        synchronized (proxies) {
-            for (ProxyHolder p : proxies) {
-                if (p.getType() == PeerType.cloud) {
-                    LOG.debug("Removing fallback (I may readd it shortly): ",
-                            p.getJid());
-                    fallbacks.add(p);
-                    p.stopPtIfNecessary();
-                }
-            }
-            
-            // This method can also iterate, so keep it in the synchronized
-            // block.
-            proxies.removeAll(fallbacks);
-        }
+        Set<ProxyInfo> newFallbacks = new HashSet<ProxyInfo>(config.getFallbacks());
+        Set<ProxyInfo> removed = new HashSet<ProxyInfo>();
+        
+        LOG.info("Processing new S3Config with {} fallbacks", newFallbacks.size());
         synchronized (configuredProxies) {
+            // Remove proxies from configuration that are no longer in the S3 config
             Iterator<ProxyInfo> it = configuredProxies.iterator();
             while (it.hasNext()) {
                 ProxyInfo info = it.next();
-                if (info.getType() == PeerType.cloud) {
+                if (info.getType() == PeerType.cloud
+                        && !newFallbacks.contains(info)) {
+                    LOG.info("Removing proxy from configuration: {}", info);
                     it.remove();
+                    removed.add(info);
+                }
+            }
+        }
+        synchronized (proxies) {
+            // Remove proxies that are no longer configured
+            Iterator<ProxyHolder> it = proxies.iterator();
+            while (it.hasNext()) {
+                ProxyHolder proxy = it.next();
+                if (removed.contains(proxy.getInfo())) {
+                    LOG.info("Removing proxy from rotation: {}", proxy);
+                    it.remove();
+                    proxy.stopPtIfNecessary();
                 }
             }
         }
         addFallbackProxies(config);
+        
+        LOG.info("Done processing new S3Config with {} fallbacks", newFallbacks.size());
     }
     
     @Override
