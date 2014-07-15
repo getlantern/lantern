@@ -25,7 +25,7 @@ public interface XmppHandler extends Shutdownable {
      * @throws NotInClosedBetaException Exception for when the user is not
      * in the closed beta.
      */
-    void connect() throws IOException, CredentialException, NotInClosedBetaException;
+    void connect() throws IOException, CredentialException;
 
     XmppP2PClient<FiveTuple> getP2PClient();
 
@@ -42,7 +42,7 @@ public interface XmppHandler extends Shutdownable {
      * in the closed beta.
      */
     void connect(String email, String pwd) throws IOException,
-        CredentialException, NotInClosedBetaException;
+        CredentialException;
 
     /**
      * Adds or removes a peer depending on the peer's availability
