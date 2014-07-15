@@ -27,12 +27,7 @@ public class Peer {
 
     private String country = "";
     
-    @Keep
-    public enum Type {
-        pc,
-        cloud,
-        laeproxy
-    }
+    
     
     //private final Collection<PeerSocketWrapper> sockets = 
     //    new HashSet<PeerSocketWrapper>();
@@ -81,7 +76,7 @@ public class Peer {
     
     public Peer(final URI peerId,final String countryCode,
         final boolean mapped, final double latitude,
-        final double longitude, final Type type,
+        final double longitude, final PeerType type,
         final String ip, final int port, final Mode mode, final boolean incoming,
         final LanternRosterEntry rosterEntry) {
         this.mapped = mapped;

@@ -12,6 +12,7 @@ import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.lantern.Censored;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.ProxySocketFactory;
 import org.lantern.state.Model;
@@ -56,10 +57,11 @@ public class PapertrailAppender extends AppenderSkeleton {
         StringWriter message = new StringWriter();
         // Start the message off with a prefix that gives some metadata
         message.append(String.format(
-                "Lantern Client (%1$s / %2$s / %3$s) - %4$s",
+                "Lantern Client (%1$s / %2$s / %3$s / %4$s) - %5$s",
                 model.getInstanceId(),
                 model.getLocation().getCountry(),
                 SystemUtils.OS_NAME,
+                LanternClientConstants.VERSION,
                 message));
         message.append(this.getLayout().format(event));
         if (event.getThrowableInformation() != null) {

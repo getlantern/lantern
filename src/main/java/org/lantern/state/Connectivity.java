@@ -11,7 +11,6 @@ import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.lantern.state.Peer.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,7 @@ public class Connectivity {
 
     private String connectingStatus;
 
-    private Type type = LanternConstants.ON_APP_ENGINE ? Type.cloud : Type.pc;
+    private PeerType type = LanternConstants.ON_APP_ENGINE ? PeerType.cloud : PeerType.pc;
 
     private long lastConnectedLong;
 
@@ -143,11 +142,11 @@ public class Connectivity {
         this.connectingStatus = connectingStatus;
     }
 
-    public Type getType() {
+    public PeerType getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(PeerType type) {
         this.type = type;
     }
 

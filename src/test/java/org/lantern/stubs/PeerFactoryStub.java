@@ -10,18 +10,18 @@ import javax.net.ssl.SSLSession;
 
 import org.lantern.PeerFactory;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
+import org.lantern.state.PeerType;
 
 public class PeerFactoryStub implements PeerFactory {
     private Map<URI, Peer> peersByJid = new HashMap<URI, Peer>();
 
     @Override
     public void onOutgoingConnection(URI fullJid, InetSocketAddress isa,
-            Type type) {
+            PeerType type) {
     }
 
     @Override
-    public Peer addPeer(URI fullJid, Type type) {
+    public Peer addPeer(URI fullJid, PeerType type) {
         return new Peer();
     }
 
