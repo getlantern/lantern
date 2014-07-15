@@ -56,7 +56,12 @@ public class NatPmpImpl implements NatPmpService, Shutdownable {
             return loadedNatPmp;
         }
         if (loadedNatPmp == null) {
-            loadedNatPmp = new NatPmp();
+            try {
+                loadedNatPmp = new NatPmp();
+            } catch (final UnsatisfiedLinkError error) {
+                log.error("Unsatisfied link?", error);
+                throw error;
+            }
         }
         log.debug("NAT-PMP device = {}", loadedNatPmp);
         attemptedLoad = true;
