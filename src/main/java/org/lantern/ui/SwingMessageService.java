@@ -1,22 +1,37 @@
 package org.lantern.ui;
 
-import static javax.swing.JOptionPane.*;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.QUESTION_MESSAGE;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.JOptionPane.showOptionDialog;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.JCheckBox;
 import javax.swing.SwingUtilities;
 
+import org.lantern.MessageKey;
 import org.lantern.MessageService;
+import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
+import org.lantern.state.Model;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class SwingMessageService implements MessageService {
 
-    public SwingMessageService() {
+    private final Model model;
+
+    @Inject
+    public SwingMessageService(final Model model) {
+        this.model = model;
         Events.register(this);
     }
 
@@ -80,15 +95,34 @@ public class SwingMessageService implements MessageService {
         }
     }
 
-    private boolean doAskQuestion(String title, String message) {
-        return showOptionDialog(null,
-                message,
-                title,
-                YES_NO_OPTION,
-                INFORMATION_MESSAGE,
-                null,
-                null,
-                null) == YES_OPTION;
+    private boolean doAskQuestion(final String title, final String message) {
+        final String key = title + message;
+        if (!this.model.shouldShowDialog(key)) {
+            return false;
+        }
+        
+        final JCheckBox cb = new JCheckBox(Tr.tr(MessageKey.DO_NOT_SHOW));
+        final Object[] params = {message, cb};
+        final int response =
+                showOptionDialog(null,
+                        message,
+                        title,
+                        YES_NO_OPTION,
+                        QUESTION_MESSAGE,
+                        null,
+                        params,
+                        null);
+        final boolean dontShow = cb.isSelected();
+        
+        if (dontShow) {
+            this.model.doNotShowDialog(key);
+        }
+        return response == YES_OPTION;
+    }
+    
+    public static void main (String[] args) {
+        final SwingMessageService service = new SwingMessageService(new Model());
+        service.doAskQuestion("test", "test");
     }
 
     @Override
