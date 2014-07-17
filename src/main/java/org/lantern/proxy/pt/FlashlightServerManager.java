@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Form;
@@ -40,6 +41,8 @@ public class FlashlightServerManager implements Shutdownable {
     private Model model;
     private NatPmpService natPmpService;
     private UpnpService upnpService;
+    
+    private static final int FLASHLIGHT_PORT = 4437;
 
     private class State {
 
@@ -122,11 +125,11 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class PortMappingState extends State implements PortMapListener {
-
-        private static final int FLASHLIGHT_PORT = 4439;
         private String ip;
         private int localPort;
-        boolean current;
+        private boolean current;
+        
+        private AtomicInteger errorCount = new AtomicInteger(0);
 
         public PortMappingState(String ip) {
             this.ip = ip;
@@ -172,10 +175,8 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMapError() {
-            if (current) {
-                log.debug("Got port map error.");
-                handlePortMapError();
-            }
+            log.debug("Got port map error.");
+            handlePortMapError();
         }
 
         @Override
@@ -184,7 +185,9 @@ public class FlashlightServerManager implements Shutdownable {
         }
         
         private void handlePortMapError() {
-            if (!LanternUtils.isGet() && messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
+            errorCount.incrementAndGet();
+            if (errorCount.get() > 1 &&
+                    !LanternUtils.isGet() && messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
                     Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT))) {
                 GatewayUtil.openGateway();
             }

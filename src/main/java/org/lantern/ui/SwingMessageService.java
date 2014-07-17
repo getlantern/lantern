@@ -2,15 +2,13 @@ package org.lantern.ui;
 
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.OK_OPTION;
-import static javax.swing.JOptionPane.QUESTION_MESSAGE;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static javax.swing.JOptionPane.YES_OPTION;
 import static javax.swing.JOptionPane.showMessageDialog;
-import static javax.swing.JOptionPane.showOptionDialog;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.lantern.MessageKey;
@@ -102,27 +100,16 @@ public class SwingMessageService implements MessageService {
         }
         
         final JCheckBox cb = new JCheckBox(Tr.tr(MessageKey.DO_NOT_SHOW));
-        final Object[] params = {message, cb};
-        final int response =
-                showOptionDialog(null,
-                        message,
-                        title,
-                        YES_NO_OPTION,
-                        QUESTION_MESSAGE,
-                        null,
-                        params,
-                        null);
-        final boolean dontShow = cb.isSelected();
-        
+        final String html = "<html><body><p style='width: 200px;'>"+message+"</body></html>";
+        final Object[] params = {html, cb};
+        final int response = 
+                JOptionPane.showConfirmDialog(null, params, title, 
+                        JOptionPane.YES_NO_OPTION);
+        boolean dontShow = cb.isSelected();
         if (dontShow) {
             this.model.doNotShowDialog(key);
         }
         return response == YES_OPTION;
-    }
-    
-    public static void main (String[] args) {
-        final SwingMessageService service = new SwingMessageService(new Model());
-        service.doAskQuestion("test", "test");
     }
 
     @Override
