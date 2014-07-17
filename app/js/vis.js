@@ -299,7 +299,7 @@ angular.module('app.vis', [])
             var childScope = scope.$new();
             childScope.peer = peer;
             // Format the ip for display
-            if (model.dev) {
+            if (model.dev && peer.ip) {
               peer.formattedIp = " (" + peer.ip + ")";
             }
             $compile(this)(childScope);

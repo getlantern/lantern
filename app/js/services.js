@@ -162,7 +162,7 @@ angular.module('app.services', [])
       disconnect: disconnect
     };
   })
-  .service('modelSrvc', function($rootScope, apiSrvc, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {
+  .service('modelSrvc', function($rootScope, apiSrvc, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory, flashlightStats) {
     var log = logFactory('modelSrvc'),
         model = {},
         syncSubscriptionKey;
@@ -178,18 +178,26 @@ angular.module('app.services', [])
       }
       try {
         $rootScope.$apply(function() {
+          var shouldUpdateInstanceStats = false;
           if (patch[0].path === '') {
             // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
             angular.copy(patch[0].value, model);
           } else {
             try {
               applyPatch(model, patch);
+              for (var i=0; i<patch.length; i++) {
+                if (patch[i].path == "/instanceStats") {
+                  shouldUpdateInstanceStats = true;
+                  break;
+                }
+              }
             } catch (e) {
               if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
               log.error('Error applying patch', patch);
               apiSrvc.exception({exception: e, patch: patch});
             }
           }
+          flashlightStats.updateModel(model, shouldUpdateInstanceStats);
         });
       } catch (e) {
         // XXX https://github.com/angular/angular.js/issues/2602
@@ -264,5 +272,60 @@ angular.module('app.services', [])
         var url = API_URL_PREFIX+'/interaction/'+interactionid;
         return $http.post(url, data);
       }
+    };
+  })
+  .service('flashlightStats', function ($window, $log) {
+    // This service grabs stats from flashlight and adds them to the standard
+    // model.
+    var flashlightPeers = {};
+
+    // connect() starts listening for peer updates
+    function connect() {
+      var source = new EventSource('http://127.0.0.1:15670/');
+      source.addEventListener('message', function(e) {
+        var data = JSON.parse(e.data);
+        if (data.type == "peer") {
+          var peer = data.data;
+          flashlightPeers[peer.peerid] = peer;
+        }
+      }, false);
+  
+      source.addEventListener('open', function(e) {
+        $log.debug("flashlight connection opened");
+      }, false);
+  
+      source.addEventListener('error', function(e) {
+        if (e.readyState == EventSource.CLOSED) {
+          $log.debug("flashlight connection closed");
+        }
+      }, false);
+    }
+    
+    // updateModel updates a model that doesn't include flashlight peers with
+    // information about the flashlight peers, including updating aggregated
+    // figure slike total bps.
+    function updateModel(model, shouldUpdateInstanceStats) {
+      for (var peerid in flashlightPeers) {
+        var peer = flashlightPeers[peerid];
+        
+        // Consider peer connected if it's been less than x seconds since
+        // lastConnected
+        var lastConnected = Date.parse(peer.lastConnected);
+        var delta = new Date().getTime() - Date.parse(peer.lastConnected);
+        peer.connected = delta < 30000;
+        
+        // Add peer to model
+        model.peers.push(peer);
+        
+        if (shouldUpdateInstanceStats) {
+          // Update total bytes up/dn
+          model.instanceStats.allBytes.rate += peer.bpsUpDn;
+        }
+      }
+    }
+    
+    return {
+      connect: connect,
+      updateModel: updateModel,
     };
   });
