@@ -58,9 +58,9 @@ public class NatPmpImpl implements NatPmpService, Shutdownable {
         if (loadedNatPmp == null) {
             try {
                 loadedNatPmp = new NatPmp();
-            } catch (final UnsatisfiedLinkError error) {
-                log.error("Unsatisfied link?", error);
-                throw error;
+            } catch (final Throwable t) {
+                log.error("Unsatisfied link?", t);
+                return null;
             }
         }
         log.debug("NAT-PMP device = {}", loadedNatPmp);
@@ -144,7 +144,14 @@ public class NatPmpImpl implements NatPmpService, Shutdownable {
             public void run() {
                 // Note we don't pass the requested external port -- with
                 // NAT-PMP we just use whatever the router gives us.
-                addMapping(prot, localPort, portMapListener);
+                try {
+                    addMapping(prot, localPort, portMapListener);
+                } catch (final Throwable t) {
+                    // Can get a NoClassDefFoundError here if there was some
+                    // error loading the native libs.
+                    log.error("Error loading native libraries?", t);
+                    portMapListener.onPortMapError();
+                }
             }
         };
         final Thread mapper = new Thread(natPmpRunner, "NAT-PMP-Mapping-Thread");

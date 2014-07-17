@@ -104,8 +104,14 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService,
         final Runnable upnpRunner = new Runnable() {
             @Override
             public void run() {
-                addMapping(prot, externalPortRequested, localPort,
+                try {
+                    addMapping(prot, externalPortRequested, localPort,
                         portMapListener);
+                } catch (final Throwable t) {
+                    log.error("Unsatisfied link?", t);
+                    portMapListener.onPortMapError();
+                    return;
+                }
             }
         };
         final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
@@ -147,9 +153,10 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService,
         try {
             devlist = MiniupnpcLibrary.INSTANCE.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
-        } catch (final UnsatisfiedLinkError error) {
-            log.error("Unsatisfied link?", error);
-            throw error;
+        } catch (final Throwable t) {
+            log.error("Unsatisfied link?", t);
+            portMapListener.onPortMapError();
+            return;
         }
         if (devlist == null) {
             MiniupnpcLibrary.INSTANCE.FreeUPNPUrls(urls);
