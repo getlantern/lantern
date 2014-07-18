@@ -255,6 +255,7 @@
   "BACKEND_DO_NOT_SHOW":"Do not show this message again.",
   "BACKEND_NETWORK_CONFIG":"Network Configuration",
   "BACKEND_MANUAL_NETWORK_PROMPT":"Lantern was unable to automatically configure your network. Would you like to try manually forwarding a port on your router? Lantern can automatically open the configuration page, and you will need you user name and password. Please forward external port 4437 to internal port 4437.",
+  "BACKEND_BROWSER_ERROR":"There was an unknown error opening your browser."
   "P": "petabyte",
   "T": "terabyte",
   "G": "gigabyte",
