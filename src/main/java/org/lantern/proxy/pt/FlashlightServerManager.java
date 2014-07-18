@@ -160,6 +160,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMap(final int externalPort) {
+            log.debug("Got port mapped: {}", externalPort);
             if (externalPort <= 0 || externalPort > 65535) {
                 log.warn("Got port map, but it was for an invalid port: {}", externalPort);
                 handlePortMapError();
@@ -175,7 +176,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMapError() {
-            log.debug("Got port map error.");
+            log.debug("Got port map error");
             handlePortMapError();
         }
 
@@ -189,10 +190,11 @@ public class FlashlightServerManager implements Shutdownable {
             if (errorCount.get() > 1 &&
                     !LanternUtils.isGet() && 
                     messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
-                    Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT))) {
+                            Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT))) {
                 try {
                     GatewayUtil.openGateway();
                 } catch (final Exception e) {
+                    log.error("Could not not open gateway", e);
                     messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
                             Tr.tr(MessageKey.BROWSER_ERROR));
                 }

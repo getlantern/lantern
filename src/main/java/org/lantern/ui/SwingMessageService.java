@@ -17,6 +17,8 @@ import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.state.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -25,6 +27,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class SwingMessageService implements MessageService {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private final Model model;
 
     @Inject
@@ -100,6 +104,7 @@ public class SwingMessageService implements MessageService {
         }
         
         final JCheckBox cb = new JCheckBox(Tr.tr(MessageKey.DO_NOT_SHOW));
+        cb.setSelected(false);
         final String html = 
                 "<html><body><p style='width: 200px;'>"+message+"</body></html>";
         final Object[] params = {html, cb};
@@ -110,7 +115,9 @@ public class SwingMessageService implements MessageService {
         if (dontShow) {
             this.model.doNotShowDialog(key);
         }
-        return response == YES_OPTION;
+        final boolean yes = response == YES_OPTION;
+        log.debug("User answered yes: {}", yes);
+        return yes;
     }
 
     @Override

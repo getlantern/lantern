@@ -149,27 +149,27 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService,
         final UPNPUrls urls = new UPNPUrls();
         final IGDdatas data = new IGDdatas();
 
-        final UPNPDev devlist;
+        final UPNPDev deviceList;
         try {
-            devlist = MiniupnpcLibrary.INSTANCE.upnpDiscover(UPNP_DELAY, (String) null,
+            deviceList = MiniupnpcLibrary.INSTANCE.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
         } catch (final Throwable t) {
             log.error("Unsatisfied link?", t);
             portMapListener.onPortMapError();
             return;
         }
-        if (devlist == null) {
+        if (deviceList == null) {
             MiniupnpcLibrary.INSTANCE.FreeUPNPUrls(urls);
             portMapListener.onPortMapError();
             return;
         }
-        ret = MiniupnpcLibrary.INSTANCE.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
+        ret = MiniupnpcLibrary.INSTANCE.UPNP_GetValidIGD(deviceList, urls, data, lanaddr, 16);
         if (ret == 0) {
             log.debug("No valid UPNP Internet Gateway Device found.");
             portMapListener.onPortMapError();
             MiniupnpcLibrary.INSTANCE.FreeUPNPUrls(urls);
-            devlist.setAutoRead(false);
-            MiniupnpcLibrary.INSTANCE.freeUPNPDevlist(devlist);
+            deviceList.setAutoRead(false);
+            MiniupnpcLibrary.INSTANCE.freeUPNPDevlist(deviceList);
             return;
         }
         try {
@@ -196,6 +196,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService,
                     "0"); // leaseDuration
 
             if (ret != MiniupnpcLibrary.UPNPCOMMAND_SUCCESS) {
+                log.debug("Command failed...return value: "+ret);
                 portMapListener.onPortMapError();
                 return;
             }
@@ -222,8 +223,8 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService,
             log.debug("Added mapping. Mappings now: {}", mappings);
         } finally {
             MiniupnpcLibrary.INSTANCE.FreeUPNPUrls(urls);
-            devlist.setAutoRead(false);
-            MiniupnpcLibrary.INSTANCE.freeUPNPDevlist(devlist);
+            deviceList.setAutoRead(false);
+            MiniupnpcLibrary.INSTANCE.freeUPNPDevlist(deviceList);
         }
         portMapListener.onPortMap(externalPortRequested);
     }

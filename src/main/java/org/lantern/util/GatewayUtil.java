@@ -30,9 +30,11 @@ public class GatewayUtil {
      * the native calls.
      */
     public static void openGateway() throws IOException, InterruptedException {
-        NativeUtils.openUri(defaultGateway());
+        final String gateway = defaultGateway();
+        LOG.debug("Found gateway: {}", gateway);
+        NativeUtils.openUri("http://"+gateway);
     }
-    
+
     /**
      * Utility method for determining the IP address of the default gateway.
      * 
