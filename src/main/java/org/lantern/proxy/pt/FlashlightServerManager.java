@@ -187,9 +187,15 @@ public class FlashlightServerManager implements Shutdownable {
         private void handlePortMapError() {
             errorCount.incrementAndGet();
             if (errorCount.get() > 1 &&
-                    !LanternUtils.isGet() && messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
+                    !LanternUtils.isGet() && 
+                    messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
                     Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT))) {
-                GatewayUtil.openGateway();
+                try {
+                    GatewayUtil.openGateway();
+                } catch (final Exception e) {
+                    messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
+                            Tr.tr(MessageKey.BROWSER_ERROR));
+                }
             }
         }
     }

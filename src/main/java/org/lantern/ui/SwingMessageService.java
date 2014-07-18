@@ -100,12 +100,13 @@ public class SwingMessageService implements MessageService {
         }
         
         final JCheckBox cb = new JCheckBox(Tr.tr(MessageKey.DO_NOT_SHOW));
-        final String html = "<html><body><p style='width: 200px;'>"+message+"</body></html>";
+        final String html = 
+                "<html><body><p style='width: 200px;'>"+message+"</body></html>";
         final Object[] params = {html, cb};
         final int response = 
                 JOptionPane.showConfirmDialog(null, params, title, 
                         JOptionPane.YES_NO_OPTION);
-        boolean dontShow = cb.isSelected();
+        final boolean dontShow = cb.isSelected();
         if (dontShow) {
             this.model.doNotShowDialog(key);
         }

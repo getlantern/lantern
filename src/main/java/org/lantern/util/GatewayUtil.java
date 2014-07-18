@@ -1,37 +1,152 @@
 package org.lantern.util;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Scanner;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.NativeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * A utility class for identifying the user's default network gateway and
+ * opening it in the default browser.
+ */
 public class GatewayUtil {
 
-    public static void openGateway() {
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            try {
-                Runtime.getRuntime().exec("open \"http://``\"");
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
-        }
+    private static final Logger LOG = 
+            LoggerFactory.getLogger(GatewayUtil.class);
+    
+    /**
+     * Open the gateway configuration page in the default browser. This
+     * attempts to automatically identify the gateway before opening it.
+     * 
+     * @throws IOException If there's an IO error in the native calls to get
+     * gateway information.
+     * @throws InterruptedException If the program is interrupted waiting for
+     * the native calls.
+     */
+    public static void openGateway() throws IOException, InterruptedException {
+        NativeUtils.openUri(defaultGateway());
     }
     
+    /**
+     * Utility method for determining the IP address of the default gateway.
+     * 
+     * @return The IP address of the default network gateway.
+     * @throws IOException If there's an IO error running native commands.
+     * @throws InterruptedException If a native command is interrupted.
+     */
     public static String defaultGateway() throws IOException, InterruptedException {
-        final Process gateway = Runtime.getRuntime().exec("netstat -nr | grep '^default' | awk '{ print $2 }'");
-        System.err.println(gateway.waitFor());
-        return IOUtils.toString(gateway.getInputStream());
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return findDefaultGatewayWindows();
+        } else {
+            return findDefaultGatewayNetstat();
+        }
     }
 
-    public static void main(final String[] args) {
-        try {
-            System.out.println(defaultGateway());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+    /**
+     * Utility method for determining the IP address of the default gateway on
+     * any system with netstat.
+     * 
+     * @return The IP address of the default network gateway.
+     * @throws IOException If there's an IO error running native commands.
+     * @throws InterruptedException If a native command is interrupted.
+     */
+    public static String findDefaultGatewayNetstat() throws IOException, 
+        InterruptedException {
+        return findDefaultGatewayNetstat(defaultGatewayStream("netstat -nr"));
+    }
+
+    /**
+     * Utility method for determining the IP address of the default gateway on
+     * Windows.
+     * 
+     * @return The IP address of the default network gateway.
+     * @throws IOException If there's an IO error running native commands.
+     * @throws InterruptedException If a native command is interrupted.
+     */
+    public static String findDefaultGatewayWindows() throws IOException, 
+        InterruptedException {
+        return findDefaultGatewayWindows(defaultGatewayStream("ipconfig.exe"));
+    }
+
+    /**
+     * Utility method for determining the IP address of the default gateway
+     * from a netstat data stream. Can be on a live system or using test output.
+     * 
+     * @return The IP address of the default network gateway.
+     * @throws IOException If there's an IO error running native commands.
+     * @throws InterruptedException If a native command is interrupted.
+     */
+    public static String findDefaultGatewayNetstat(final InputStream is) {
+        final Scanner scanner = new Scanner(is);
+        scanner.useDelimiter("\n");
+        while (scanner.hasNext()) {
+            final String cur = scanner.next().toLowerCase().trim();
+            if (cur.startsWith("default")) {
+                final String[] strs = cur.split("\\s+");
+                final String ip = strs[1];
+                LOG.debug("IP of gateway is {}", ip);
+                return ip;
+            }
         }
-        System.err.println("DONE");
+        return "";
+    }
+    
+    /**
+     * Utility method for determining the IP address of the default gateway on
+     * Windows given the relevant ipconfig.exe data or a test stream.
+     * 
+     * @return The IP address of the default network gateway.
+     * @throws IOException If there's an IO error running native commands.
+     * @throws InterruptedException If a native command is interrupted.
+     */
+    public static String findDefaultGatewayWindows(final InputStream is) {
+        final Scanner scanner = new Scanner(is);
+        scanner.useDelimiter("\n");
+        while (scanner.hasNext()) {
+            final String cur = scanner.next().toLowerCase().trim();
+            if (cur.startsWith("default gateway")) {
+                final String[] strs = cur.split(":");
+                for (final String str : strs) {
+                    try {
+                        final InetAddress ia = InetAddress.getByName(str.trim());
+                        if (ia.isSiteLocalAddress()) {
+                            final String ip = ia.getHostAddress();
+                            LOG.debug("IP of gateway is {}", ip);
+                            return ip;
+                        }
+                    } catch (final UnknownHostException e) {
+                        continue;
+                    }
+                }
+            }
+        }
+        return "";
+    }
+    
+    /**
+     * Utility method for returning the default gateway data depending on the
+     * operating system, for example netstat data for Unix systems and
+     * ipconfig.exe data for Windows.
+     * 
+     * @param command The command to run.
+     * @return The output.
+     * @throws IOException If there's an IO error running the native command.
+     * @throws InterruptedException If the native command is interrupted.
+     */
+    private static InputStream defaultGatewayStream(final String command) 
+            throws IOException, InterruptedException {
+        final Process gateway = Runtime.getRuntime().exec(command);
+        
+        final int result = gateway.waitFor();
+        if (result == 0) {
+            return gateway.getInputStream();
+        }
+        throw new IOException("The process returned the following error code: "+result);
     }
 }
