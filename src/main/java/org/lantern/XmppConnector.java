@@ -62,26 +62,26 @@ public class XmppConnector {
         // This can happen either on startup when we've got cached oauth 
         // tokens or after we've just logged in to Google and received a 
         // token that way.
+        log.debug("Setting gtalk authorized");
+
+        if (!model.isSetupComplete()) {
+            log.debug("Still setting up...");
+            // Handle states associated with the Google login screen
+            // during the setup sequence.
+            model.getConnectivity().setGtalkAuthorized(true);
+            internalState.setNotInvited(false);
+            internalState.setModalCompleted(Modal.authorize);
+            internalState.advanceModal(null);
+        }
+        // Every once in awhile we've seen the client get stuck in the
+        // connecting state when restarted, and we want to make sure to
+        // advance from it when we're auto-connecting again on startup.
+        else if (model.getModal() == Modal.connecting) {
+            internalState.setNotInvited(false);
+            internalState.advanceModal(null);
+        }
         try {
             this.xmppHandler.connect();
-            log.debug("Setting gtalk authorized");
-
-            if (!model.isSetupComplete()) {
-                log.debug("Still setting up...");
-                // Handle states associated with the Google login screen
-                // during the setup sequence.
-                model.getConnectivity().setGtalkAuthorized(true);
-                internalState.setNotInvited(false);
-                internalState.setModalCompleted(Modal.authorize);
-                internalState.advanceModal(null);
-            }
-            // Every once in awhile we've seen the client get stuck in the
-            // connecting state when restarted, and we want to make sure to
-            // advance from it when we're auto-connecting again on startup.
-            else if (model.getModal() == Modal.connecting) {
-                internalState.setNotInvited(false);
-                internalState.advanceModal(null);
-            } 
         } catch (final CredentialException e) {
             log.error("Could not log in with OAUTH?", e);
             Events.syncModal(model, Modal.authorize);
