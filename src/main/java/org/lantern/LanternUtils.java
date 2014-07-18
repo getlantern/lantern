@@ -1102,6 +1102,24 @@ public class LanternUtils {
     }
     
     /**
+     * Finds a free port, returning the specified port if it's available.
+     * 
+     * @param suggestedPort The preferred port to use.
+     * @return A free port, which may or may not be the preferred port.
+     */
+    public static int findFreePort(final int suggestedPort) {
+        ServerSocket socket = null;
+        try {
+            socket = new ServerSocket(suggestedPort);
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            return findFreePort();
+        } finally {
+            IOUtils.closeQuietly(socket);
+        }
+    }
+    
+    /**
      * Based on this article:
      * http://stackoverflow.com/questions/664432/how-do-i-
      * programmatically-change-file-permissions
