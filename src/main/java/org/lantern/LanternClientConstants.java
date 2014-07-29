@@ -139,9 +139,6 @@ public class LanternClientConstants {
     // Not final because it may be set from the command line for debugging.
     public static String LANTERN_JID;
 
-    // Not final because it may be set from the command line for debugging.
-    public static String STATS_URL;
-    
     public static String CONTROLLER_URL;
 
     public static void setControllerId(final String id) {
@@ -151,7 +148,6 @@ public class LanternClientConstants {
         }
         LANTERN_JID = id + "@appspot.com";
         CONTROLLER_URL = "https://" + id + ".appspot.com";
-        STATS_URL = CONTROLLER_URL +"/stats";
     }
 
     static {
