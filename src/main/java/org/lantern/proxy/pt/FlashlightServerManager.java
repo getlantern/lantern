@@ -42,7 +42,7 @@ public class FlashlightServerManager implements Shutdownable {
     private NatPmpService natPmpService;
     private UpnpService upnpService;
     
-    private static final int FLASHLIGHT_PORT = 4437;
+    private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
 
     private class State {
 
@@ -139,16 +139,16 @@ public class FlashlightServerManager implements Shutdownable {
         public void onEnter() {
             super.onEnter();
             current = true;
-            localPort = LanternUtils.findFreePort(FLASHLIGHT_PORT);
+            localPort = LanternUtils.findFreePort();
             upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
-                    -1, // accept whatever port we're given
+                    FLASHLIGHT_EXTERNAL_PORT,
                     PortMappingState.this);
             natPmpService.addNatPmpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
-                    -1, // accept whatever port we're given
+                    FLASHLIGHT_EXTERNAL_PORT,
                     PortMappingState.this);
         }
 
@@ -240,7 +240,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void registerPeer() {
             try {
-                Request.Post("https://peerdnsreg.herokuapp.com/register")
+                Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
                        .bodyForm(Form.form().add("name", instanceId)
                                             .add("ip", ip)
                                             .add("port", "" + externalPort).build())
