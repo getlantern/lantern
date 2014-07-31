@@ -252,7 +252,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void unregisterPeer() {
             try {
-                Request.Post("https://peerdnsreg.herokuapp.com/unregister")
+                Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/unregister")
                        .bodyForm(Form.form().add("name", instanceId).build())
                        .execute().returnContent();
             } catch (IOException e) {
