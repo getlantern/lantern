@@ -3,7 +3,9 @@ package org.lantern.state;
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -80,6 +82,8 @@ public class Model {
     private String xsrfToken;
 
     private CountryService countryService;
+    
+    private Set<String> dialogsToIgnore = new HashSet<String>();
 
     public Model() {
         //used for JSON loading
@@ -417,5 +421,22 @@ public class Model {
 
     public void setS3Config(final S3Config s3Config) {
         this.s3Config = s3Config;
+    }
+
+    public boolean shouldShowDialog(final String key) {
+        return !dialogsToIgnore.contains(key);
+    }
+
+    public void doNotShowDialog(final String key) {
+        this.dialogsToIgnore.add(key);
+    }
+
+    @JsonView({Persistent.class})
+    public Set<String> getDialogsToIgnore() {
+        return dialogsToIgnore;
+    }
+
+    public void setDialogsToIgnore(final Set<String> dialogsToIgnore) {
+        this.dialogsToIgnore = dialogsToIgnore;
     }
 }

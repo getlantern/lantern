@@ -4,19 +4,23 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.fluent.Form;
+import org.apache.http.client.fluent.Request;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
+import org.lantern.MessageKey;
+import org.lantern.MessageService;
 import org.lantern.Shutdownable;
+import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.PublicIpEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.fluent.Form;
-import org.apache.http.client.fluent.Request;
+import org.lantern.util.GatewayUtil;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -37,6 +41,8 @@ public class FlashlightServerManager implements Shutdownable {
     private Model model;
     private NatPmpService natPmpService;
     private UpnpService upnpService;
+    
+    private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
 
     private class State {
 
@@ -119,10 +125,11 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private class PortMappingState extends State implements PortMapListener {
-
         private String ip;
         private int localPort;
-        boolean current;
+        private boolean current;
+        
+        private AtomicInteger errorCount = new AtomicInteger(0);
 
         public PortMappingState(String ip) {
             this.ip = ip;
@@ -136,12 +143,12 @@ public class FlashlightServerManager implements Shutdownable {
             upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
-                    -1, // accept whatever port we're given
+                    FLASHLIGHT_EXTERNAL_PORT,
                     PortMappingState.this);
             natPmpService.addNatPmpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
-                    -1, // accept whatever port we're given
+                    FLASHLIGHT_EXTERNAL_PORT,
                     PortMappingState.this);
         }
 
@@ -153,8 +160,10 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMap(final int externalPort) {
+            log.debug("Got port mapped: {}", externalPort);
             if (externalPort <= 0 || externalPort > 65535) {
                 log.warn("Got port map, but it was for an invalid port: {}", externalPort);
+                handlePortMapError();
                 return;
             }
             if (current) {
@@ -167,16 +176,32 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMapError() {
-            if (current) {
-                log.debug("Got port map error.");
-            }
+            log.debug("Got port map error");
+            handlePortMapError();
         }
 
         @Override
         public void onExitGiveMode() {
             exitTo(new ConnectedInNonGiveModeState(ip));
         }
+        
+        private void handlePortMapError() {
+            errorCount.incrementAndGet();
+            if (errorCount.get() > 1 &&
+                    !LanternUtils.isGet() && 
+                    messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
+                            Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT))) {
+                try {
+                    GatewayUtil.openGateway();
+                } catch (final Exception e) {
+                    log.error("Could not not open gateway", e);
+                    messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
+                            Tr.tr(MessageKey.BROWSER_ERROR));
+                }
+            }
+        }
     }
+
 
     private class PortMappedState extends State {
 
@@ -215,7 +240,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void registerPeer() {
             try {
-                Request.Post("https://peerdnsreg.herokuapp.com/register")
+                Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
                        .bodyForm(Form.form().add("name", instanceId)
                                             .add("ip", ip)
                                             .add("port", "" + externalPort).build())
@@ -265,18 +290,22 @@ public class FlashlightServerManager implements Shutdownable {
         }
     }
 
-    State state;
+    private State state;
+
+    private MessageService messageService;
 
     @Inject
     public FlashlightServerManager(
             Model model,
             NatPmpService natPmpService,
-            UpnpService upnpService) {
-        log.warn("Flashlight port mapper starting up...");
+            UpnpService upnpService,
+            MessageService messageService) {
+        log.info("Flashlight port mapper starting up...");
         this.model = model;
         state = getDisconnectedState();
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
+        this.messageService = messageService;
         Events.register(this);
         state.onEnter();
     }

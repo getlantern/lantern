@@ -1,0 +1,23 @@
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet:
+
+   Connection-specific DNS Suffix  . : localdomain
+   Link-local IPv6 Address . . . . . : fe80::28b8:62b4:150:c8ab%3
+   IPv4 Address. . . . . . . . . . . : 192.168.112.155
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.112.2
+
+Tunnel adapter isatap.localdomain:
+
+   Media State . . . . . . . . . . . : Media disconnected
+   Connection-specific DNS Suffix  . : localdomain
+
+Tunnel adapter Teredo Tunneling Pseudo-Interface:
+
+   Connection-specific DNS Suffix  . : 
+   IPv6 Address. . . . . . . . . . . : 2001:0:9d38:6abd:3038:1851:3f57:8f64
+   Link-local IPv6 Address . . . . . : fe80::3038:1851:3f57:8f64%7
+   Default Gateway . . . . . . . . . : ::

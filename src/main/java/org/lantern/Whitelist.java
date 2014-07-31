@@ -49,7 +49,8 @@ public class Whitelist {
     private static final String[] WHITELISTS = new String[] {
             "1.0.1.txt",
             "1.2.0.txt",
-            "1.3.1.txt"
+            "1.3.1.txt",
+            "1.4.4.txt"
     };
     
     private static final String ORIGINAL_WHITELIST = "original.txt";

@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.login.CredentialException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.EmailAddressUtils;
@@ -633,6 +634,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     @Override
     public void updateName(final String address, final String name) {
+        if (StringUtils.isBlank(name)) {
+            log.warn("No name?");
+            return;
+        }
         final ClientFriend friend = getFriend(address);
         if (friend != null && !name.equals(friend.getName())) {
             if (!isOnServer(friend)) {

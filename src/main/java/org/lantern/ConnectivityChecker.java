@@ -25,7 +25,13 @@ public class ConnectivityChecker extends TimerTask {
             "blogfa.com",
             "www.baidu.com"
     );
-    private static final int TEST_SOCKET_TIMEOUT_MILLIS = 30000;
+    
+    /**
+     * The number of milliseconds to wait before timing out our test TCP
+     * connections. This is quite high to take into account lower bandwidth
+     * scenarios in countries like Iran.
+     */
+    private static final int SOCKET_CONNECT_TIMEOUT_MILLIS = 60000;
 
     private final Model model;
 
@@ -96,7 +102,7 @@ public class ConnectivityChecker extends TimerTask {
             socket = new Socket();
             LOG.debug("Testing site: {}", site);
             socket.connect(new InetSocketAddress(site, 80),
-                    TEST_SOCKET_TIMEOUT_MILLIS);
+                    SOCKET_CONNECT_TIMEOUT_MILLIS);
             return true;
         } catch (Exception e) {
             LOG.debug("Could not connect to "+site, e);
