@@ -1,7 +1,7 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.PeerType.*;
-import static org.littleshoot.util.FiveTuple.Protocol.*;
+import static org.lantern.state.PeerType.pc;
+import static org.littleshoot.util.FiveTuple.Protocol.TCP;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.util.log.Log;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
