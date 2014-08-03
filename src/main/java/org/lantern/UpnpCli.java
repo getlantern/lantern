@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.lantern.util.Threads;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
@@ -27,9 +31,38 @@ public class UpnpCli implements UpnpService, Shutdownable {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final File exe;
-
+    
+    private final Collection<Integer> mappedPorts = new ArrayList<Integer>();
+    
     public UpnpCli() {
         this.exe = locateExecutable();
+    }
+
+    /**
+     * Parallelizes the deletion of all port mappings we've created. Note that
+     * this is a blocking operation that will halt after a fixed amount of time.
+     */
+    private void deleteAllPortMappings() {
+        final ExecutorService threadPool = 
+                Threads.newCachedThreadPool("UPnP-Shutdown-Thread");
+        final Collection<Callable<Integer>> tasks = 
+                new ArrayList<Callable<Integer>>(mappedPorts.size());
+        for (final Integer port : mappedPorts) {
+            final Callable<Integer> task = new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    deletePortMapping(port);
+                    return port;
+                }
+            };
+            tasks.add(task);
+        }
+        // Parallelize unmapping all ports.
+        try {
+            threadPool.invokeAll(tasks, 6, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.warn("Interrupted while unmapping ports", e);
+        }
     }
 
     private File locateExecutable() {
@@ -44,30 +77,53 @@ public class UpnpCli implements UpnpService, Shutdownable {
             final int externalPortRequested, 
             final PortMapListener portMapListener) {
         
-        final String prot = protocol.name().toUpperCase();
-        final String local = String.valueOf(localPort);
-        final String external = String.valueOf(externalPortRequested);
-        final Collection<String> delete = runCommand(this.exe, "-d", 
-            external, prot);
+        final Runnable upnpRunner = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    
+                    final String prot = protocol.name().toUpperCase();
+                    final String local = String.valueOf(localPort);
+                    final String external = String.valueOf(externalPortRequested);
+                    
+                    // We don't really care about the outcome of the delete command --
+                    // we just want to delete the port in case it's already mapped, as we've
+                    // seen UPnP devices ignore subsequent mappings in those cases without
+                    // an explicit delete.
+                    deletePortMapping(externalPortRequested);
         
-        System.err.println(delete);
-        System.err.println();
-        try {
-            final ArrayList<String> output = runCommand(this.exe, "-a", 
-                    NetworkUtils.getLocalHost().getHostAddress(), local, external, prot);
-            final String last = output.get(output.size()-1);
-            System.out.println("LAST: "+last);
-            if (last.toLowerCase().contains("failed")) {
-                portMapListener.onPortMapError();
-            } else {
-                portMapListener.onPortMap(externalPortRequested);
+                    final ArrayList<String> output = runCommand(exe, "-a", 
+                            NetworkUtils.getLocalHost().getHostAddress(), local, external, prot);
+                    final String last = output.get(output.size()-1);
+                    if (last.toLowerCase().contains("failed")) {
+                        portMapListener.onPortMapError();
+                    } else {
+                        mappedPorts.add(externalPortRequested);
+                        portMapListener.onPortMap(externalPortRequested);
+                    }
+                } catch (final Throwable e) {
+                    log.error("Unexpected error?", e);
+                    portMapListener.onPortMapError();
+                }
             }
-            System.err.println(output);
-        } catch (final Throwable e) {
-            log.error("Unexpected error?", e);
-            portMapListener.onPortMapError();
-        }
-        return 0;
+        };
+        final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
+        mapper.setDaemon(true);
+        mapper.start();
+        
+        return 1;
+    }
+
+    private void deletePortMapping(final int port) {
+        final Runnable upnpRunner = new Runnable() {
+            @Override
+            public void run() {
+                runCommand(exe, "-d", String.valueOf(port), "TCP");
+            }
+        };
+        final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
+        mapper.setDaemon(true);
+        mapper.start();
     }
 
     private ArrayList<String> runCommand(final File executable, final String... commands) {
@@ -103,14 +159,12 @@ public class UpnpCli implements UpnpService, Shutdownable {
 
     @Override
     public void removeUpnpMapping(int mappingIndex) {
-        // TODO Auto-generated method stub
         
     }
 
     @Override
     public void shutdown() {
-        // TODO Auto-generated method stub
-        
+        deleteAllPortMappings();
     }
 
     @Override

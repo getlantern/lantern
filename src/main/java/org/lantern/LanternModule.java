@@ -163,12 +163,12 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public UpnpService provideUpnpService(final Model model) {
+    public UpnpService provideUpnpService() {
         // Testing.
         if (this.upnpService != null) {
             return this.upnpService;
         }
-        return new Upnp(model);
+        return new UpnpCli();
     }
 
     @Provides @Singleton
