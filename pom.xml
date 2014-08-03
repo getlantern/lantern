@@ -272,11 +272,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>${miniupnp.groupId}</groupId>
-			<artifactId>${arch.artifactId}</artifactId>
-			<version>1.7</version>
-		</dependency>
-		<dependency>
 			<groupId>${natpmp.groupId}</groupId>
 			<artifactId>${arch.artifactId}</artifactId>
 			<version>1.7</version>
@@ -745,7 +740,6 @@
 				</os>
 			</activation>
 			<properties>
-				<miniupnp.groupId>fr.free.miniupnp.miniupnp-java-linux</miniupnp.groupId>
 				<natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
 				<java.library.path>lib/linux/x86_64</java.library.path>
 			</properties>
@@ -758,7 +752,6 @@
 				</os>
 			</activation>
 			<properties>
-				<miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
 				<natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
 				<java.library.path />
 			</properties>
@@ -772,7 +765,6 @@
 			</activation>
 			<properties>
 				<unix.artifactId>unix-java-x86</unix.artifactId>
-				<miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
 				<natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
 				<java.library.path />
 				<arch.artifactId>x86</arch.artifactId>

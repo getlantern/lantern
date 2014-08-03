@@ -73,7 +73,7 @@
       </dirEntry>
       <dirEntry mountPoint="150" file="./osx" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="osx" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="copyPolicy.exe" fileType="regular" />
+          <entry location="log.txt" fileType="regular" />
           <entry location="pt" fileType="regular" />
         </exclude>
       </dirEntry>
