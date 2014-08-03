@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -10,7 +9,6 @@ import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
-import org.apache.commons.lang3.SystemUtils;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
@@ -35,15 +33,7 @@ public class UpnpCli implements UpnpService, Shutdownable {
     }
 
     private File locateExecutable() {
-        final String name;
-        if (SystemUtils.IS_OS_WINDOWS) {
-            name = "upnpc.exe";
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            name = "upnpc";
-        } else {
-            name = "upnpc-linux";
-        }
-        final File file = new File(name);
+        final File file = LanternUtils.osSpecificExecutable("upnpc");
         file.setExecutable(true);
         return file;
     }

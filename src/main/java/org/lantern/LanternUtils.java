@@ -1158,4 +1158,37 @@ public class LanternUtils {
         result[1] = parsed.length == 2 ? parsed[1] : null;
         return result;
     }
+
+    /**
+     * Method for finding an OS-specific file with the given name that will
+     * reside in a different location in installed versions that it will in
+     * dev versions.
+     * 
+     * @param fileName The name of the file.
+     * @return The correct file instance, normalizing across installed and
+     * uninstalled versions and operating systems.
+     */
+    public static File osSpecificExecutable(final String fileName) {
+        final File installed;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            installed = new File(fileName+".exe");
+        } else {
+            installed = new File(fileName);
+        }
+        if (installed.isFile()) {
+            return installed;
+        }
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            return new File("./install/osx", fileName);
+        }
+
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return new File("./install/win", fileName);
+        }
+
+        if (SystemUtils.OS_ARCH.contains("64")) {
+            return new File("./install/linux_x86_64", fileName);
+        }
+        return new File("./install/linux_x86_32", fileName);
+    }
 }
