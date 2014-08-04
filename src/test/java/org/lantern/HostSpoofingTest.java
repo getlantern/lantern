@@ -16,7 +16,7 @@ public class HostSpoofingTest {
 
     public static void main(final String... args) throws Exception {
         final SSLSocket sock = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
-        sock.connect(new InetSocketAddress("github.global.ssl.fastly.net", 443), 10000);
+        sock.connect(new InetSocketAddress("cdnjs.com", 443), 10000);
         
         OutputStream os = null;
         try {
@@ -49,7 +49,7 @@ public class HostSpoofingTest {
 
     private static void writeHttpRequest(final OutputStream os) throws IOException {
         os.write("GET / HTTP/1.1\r\n".getBytes(Charsets.UTF_8));
-        os.write("Host: fastly.getlantern.org\r\n".getBytes(Charsets.UTF_8));
+        os.write("Host: fisk-flashlight.getiantem.org\r\n".getBytes(Charsets.UTF_8));
         os.write("\r\n".getBytes(Charsets.UTF_8));
     }
 

@@ -18,7 +18,7 @@ public class S3Config extends BaseS3Config {
         List<FallbackProxy> allFallbacks = new ArrayList<FallbackProxy>(
                 super.getFallbacks());
         FallbackProxy defaultFlashlight = flashlightProxy(
-                "fisk-flashlight.getiantem.org", 1);
+                "roundrobin.getiantem.org", 1);
         boolean hasFlashlight = false;
         for (FallbackProxy proxy : allFallbacks) {
             hasFlashlight = PtType.FLASHLIGHT == proxy.getPtType() &&
