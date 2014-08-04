@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,9 @@ public class FlashlightServerManager implements Shutdownable {
      * Use internal port 443 plus myleshorton's lucky number 77.
      */
     private static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
+    
+    private final AtomicBoolean portMappingMessageShown = 
+            new AtomicBoolean(false);
 
     private class State {
 
@@ -191,17 +195,31 @@ public class FlashlightServerManager implements Shutdownable {
         }
         
         private void handlePortMapError() {
+            // Since we're just trying with both UPnP and NAP-PMP, one of them
+            // will always fail (unless there's some router out there that
+            // supports both), so we only want to consider this an error
+            // from the user's perspective if both have failed.
             errorCount.incrementAndGet();
+            if (portMappingMessageShown.get()) {
+                log.debug("Don't show port mapping message twice");
+                return;
+            }
             if (errorCount.get() > 1 &&
-                    !LanternUtils.isGet() && 
-                    messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
-                            Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT))) {
-                try {
-                    GatewayUtil.openGateway();
-                } catch (final Exception e) {
-                    log.error("Could not not open gateway", e);
-                    messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
-                            Tr.tr(MessageKey.BROWSER_ERROR));
+                    !LanternUtils.isGet()) { 
+                
+                final boolean openGateway = 
+                        messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
+                        Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT));
+                portMappingMessageShown.set(true);
+                
+                if (openGateway) {
+                    try {
+                        GatewayUtil.openGateway();
+                    } catch (final Exception e) {
+                        log.error("Could not not open gateway", e);
+                        messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
+                                Tr.tr(MessageKey.BROWSER_ERROR));
+                    }
                 }
             }
         }
