@@ -43,6 +43,11 @@ public class FlashlightServerManager implements Shutdownable {
     private UpnpService upnpService;
     
     private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
+    
+    /**
+     * Use internal port 443 plus myleshorton's lucky number 77.
+     */
+    private static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
 
     private class State {
 
@@ -139,7 +144,7 @@ public class FlashlightServerManager implements Shutdownable {
         public void onEnter() {
             super.onEnter();
             current = true;
-            localPort = LanternUtils.findFreePort();
+            localPort = LanternUtils.findFreePort(PREFERRED_FLASHLIGHT_INTERNAL_PORT);
             upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
