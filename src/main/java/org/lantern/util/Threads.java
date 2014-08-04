@@ -9,6 +9,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Threads {
 
     public static ExecutorService newCachedThreadPool(final String name) {
+        return newCachedThreadPool(name, true);
+    }
+    
+    public static ExecutorService newCachedThreadPool(final String name, 
+            final boolean daemon) {
         return Executors.newCachedThreadPool(
             new ThreadFactory() {
 
@@ -16,7 +21,7 @@ public class Threads {
             @Override
             public Thread newThread(final Runnable runner) {
                 final Thread t = new Thread(runner, name+count);
-                t.setDaemon(true);
+                t.setDaemon(daemon);
                 count.incrementAndGet();
                 return t;
             }

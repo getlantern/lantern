@@ -44,7 +44,7 @@ public class UpnpCli implements UpnpService, Shutdownable {
      */
     private void deleteAllPortMappings() {
         final ExecutorService threadPool = 
-                Threads.newCachedThreadPool("UPnP-Shutdown-Thread");
+                Threads.newCachedThreadPool("UPnP-Shutdown-Thread", false);
         final Collection<Callable<Integer>> tasks = 
                 new ArrayList<Callable<Integer>>(mappedPorts.size());
         for (final Integer port : mappedPorts) {
