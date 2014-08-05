@@ -94,6 +94,10 @@ public class UpnpCli implements UpnpService, Shutdownable {
         
                     final ArrayList<String> output = runCommand(exe, "-a", 
                             NetworkUtils.getLocalHost().getHostAddress(), local, external, prot);
+                    if (output.isEmpty()) {
+                        log.debug("No UPnP output?");
+                        portMapListener.onPortMapError();
+                    }
                     final String last = output.get(output.size()-1);
                     if (last.toLowerCase().contains("failed")) {
                         portMapListener.onPortMapError();
@@ -148,12 +152,10 @@ public class UpnpCli implements UpnpService, Shutdownable {
         
         try {
             int exitValue = executor.execute(cli);
-            System.out.println("EXIT: "+exitValue);
+            log.debug("Got exit value: {}", exitValue);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-        System.err.println(sb.toString());
+        log.debug("Received output: {}", sb.toString());
         return lines;
     }
 
