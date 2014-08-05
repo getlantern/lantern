@@ -200,17 +200,14 @@ public class FlashlightServerManager implements Shutdownable {
             // supports both), so we only want to consider this an error
             // from the user's perspective if both have failed.
             errorCount.incrementAndGet();
-            if (portMappingMessageShown.get()) {
-                log.debug("Don't show port mapping message twice");
-                return;
-            }
-            if (errorCount.get() > 1 &&
-                    !LanternUtils.isGet()) { 
-                
+            if (errorCount.get() > 1 && !LanternUtils.isGet()) { 
+                if (portMappingMessageShown.getAndSet(true)) {
+                    log.debug("Don't show port mapping message twice");
+                    return;
+                }
                 final boolean openGateway = 
                         messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
                         Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT));
-                portMappingMessageShown.set(true);
                 
                 if (openGateway) {
                     try {
