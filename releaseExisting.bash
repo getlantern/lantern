@@ -58,6 +58,8 @@ do
   shasum $name | cut -d " " -f 1 > $newestName.sha1
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   aws -putp $bucket $newestName.sha1
+
+  ./commitbinaries.bash || die "Could not commit binaries?"
 done
 
 

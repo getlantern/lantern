@@ -50,30 +50,7 @@ if $release ; then
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   aws -putp $bucket $newestName.sha1 || die "Could not upload sha1"
 
-  bindir=../lantern-binaries
-  echo "Copying binaries to $bindir" 
-  test -d $bindir || die "No $bindir repo to deploy binaries to?"
-  cp $newestName.sha1 $bindir/$name.sha1 || die "Could not copy $newestName.sha1 to $bindir/$name.sha1?"
-  cp $newestName.sha1 $bindir || die "Could not copy $newestName.sha1 to $bindir?"
-  cp $name $bindir || die "Could not copy $name to $bindir?"
-  cp $name $bindir/$newestName || die "Could not copy $name to $bindir/$newestName?"
-
-  pushd $bindir || die "Could not move to binary repo?"
-  git add *
-  git commit -m "Latest binaries for $name" || die "Could not commit $name?"
-  git push origin master || die "Could not push?" 
-  popd
-  
-  
-#  md5 -q $name > $newestName.md5
-#  echo "Uploading MD5 `cat $newestName.md5`"
-#  aws -putp $bucket $newestName.md5
-
-  #cp install/common/lantern.jar $newestName.jar || die "Could not copy newest jar?"
-  #pack200 $newestName.pack.gz $newestName.jar || die "Could not pack jar?"
-
-  #echo "Uploading newest jar: $newestName.pack.gz"
-  #aws -putp $bucket $newestName.pack.gz
+  ./commitbinaries.bash || die "Could not commit binaries?"
 else
   echo "NOT RELEASING!!!"
 fi
