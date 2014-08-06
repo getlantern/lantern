@@ -21,4 +21,4 @@ install4jc -v --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
 name=lantern-$VERSION-$git.exe
 mv install/Lantern.exe $name || die "Could not move new installer -- failed to create somehow?"
-./deployBinaries.bash $name newest.exe $RELEASE || die "ERROR: Could not deploy binaries"
+./deployBinaries.bash $name lantern-installer.exe $RELEASE || die "ERROR: Could not deploy binaries"
