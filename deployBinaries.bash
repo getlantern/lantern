@@ -43,7 +43,7 @@ if $release ; then
 #  popd
 
   echo "Copying on S3 to newest file"
-  ./copys3file.py $name || die "Could not copy s3 file to newest!"
+  ./copys3file.py $name $newestName || die "Could not copy s3 file to newest!"
 
   shasum $name | cut -d " " -f 1 > $newestName.sha1
 

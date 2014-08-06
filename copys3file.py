@@ -4,22 +4,33 @@ import sys
 import boto
 from boto.s3.key import Key
 
-# DRY: installMetaRefresh.bash
+if len(sys.argv) < 2:
+    print "Need file name and base name of generic latest installer, as in 'copys3file.py lantern-1.4.4-6dfa980.dmg lantern-installer'"
+    sys.exit(1)
+ 
+# DRY: deployBinaries.bash
 BUCKET = 'lantern'
 
 key = str(sys.argv[1])
+newestname = str(sys.argv[2])
 
 if key.endswith('dmg'):
-    newest = 'newest.dmg'
+    ext = '.dmg'
 elif key.endswith('exe'):
-    newest = 'newest.exe'
+    ext = '.exe'
 elif key.endswith('32-bit.deb'):
-    newest = 'newest-32.deb'
+    ext = '-32.deb'
 elif key.endswith('64-bit.deb'):
-    newest = 'newest-64.deb'
+    ext = '-64.deb'
 else:
     print 'File name with full version required. .deb files should end in 32-bit.deb or 64-bit.deb'
     sys.exit(1)
+
+#newest = newestname + ext
+
+# This is all actually handled externally. TODO -- do it all here! Fix deployBinaries and releaseExisting and do everything through boto/python
+newest = newestname
+print 'Newest name %s' % newest
 
 conn = boto.connect_s3()
 

@@ -21,5 +21,5 @@ install4jc -v --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION .
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
 name=lantern-$VERSION-$git.dmg
 mv install/Lantern.dmg $name || die "Could not move new installer -- failed to create somehow?"
-./deployBinaries.bash $name newest.dmg $RELEASE || die "ERROR: Could not deploy binaries"
+./deployBinaries.bash $name lantern-installer.dmg $RELEASE || die "ERROR: Could not deploy binaries"
 
