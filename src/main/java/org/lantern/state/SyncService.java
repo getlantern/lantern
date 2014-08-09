@@ -13,6 +13,7 @@ import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternService;
+import org.lantern.Messages;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
@@ -44,6 +45,8 @@ public class SyncService implements LanternService {
 
     private final Timer timer;
 
+    private Messages msgs;
+
     /**
      * Creates a new sync service.
      *
@@ -52,10 +55,11 @@ public class SyncService implements LanternService {
      */
     @Inject
     public SyncService(final SyncStrategy strategy,
-        final Model model, final Timer timer) {
+        final Model model, final Timer timer, final Messages msgs) {
         this.strategy = strategy;
         this.model = model;
         this.timer = timer;
+        this.msgs = msgs;
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
     }

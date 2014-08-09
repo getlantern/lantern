@@ -54,8 +54,8 @@ public class StaticHttpClientFactory {
                 request.addHeader("Lan-Rand", randomLengthVal());
             }
         });
-        client.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(3,true));
-        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 50000);
+        client.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(6,true));
+        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
         client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
         if (proxy != null) {
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);

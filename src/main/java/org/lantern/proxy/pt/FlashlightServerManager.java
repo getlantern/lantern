@@ -12,16 +12,13 @@ import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
-import org.lantern.MessageKey;
 import org.lantern.MessageService;
 import org.lantern.Shutdownable;
-import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.PublicIpEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.util.GatewayUtil;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -205,19 +202,7 @@ public class FlashlightServerManager implements Shutdownable {
                     log.debug("Don't show port mapping message twice");
                     return;
                 }
-                final boolean openGateway = 
-                        messageService.okCancel(Tr.tr(MessageKey.NETWORK_CONFIG), 
-                                Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT));
-                
-                if (openGateway) {
-                    try {
-                        GatewayUtil.openGateway();
-                    } catch (final Exception e) {
-                        log.error("Could not not open gateway", e);
-                        messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
-                                Tr.tr(MessageKey.BROWSER_ERROR));
-                    }
-                }
+                model.setPortMappingError(true);
             }
         }
     }

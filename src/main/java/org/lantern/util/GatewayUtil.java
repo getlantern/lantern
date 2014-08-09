@@ -3,9 +3,12 @@ package org.lantern.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.NativeUtils;
 import org.slf4j.Logger;
@@ -42,12 +45,23 @@ public class GatewayUtil {
      * @throws IOException If there's an IO error running native commands.
      * @throws InterruptedException If a native command is interrupted.
      */
-    public static String defaultGateway() throws IOException, InterruptedException {
+    public static String defaultGateway() throws IOException,
+        InterruptedException {
+        final String gateway;
         if (SystemUtils.IS_OS_WINDOWS) {
-            return findDefaultGatewayWindows();
+            gateway = findDefaultGatewayWindows();
         } else {
-            return findDefaultGatewayNetstat();
+            gateway = findDefaultGatewayNetstat();
         }
+        
+        // Make sure we can actually connect to the config screen.
+        final Socket sock = new Socket();
+        try {
+            sock.connect(new InetSocketAddress(gateway, 80), 6000);
+        } finally {
+            IOUtils.closeQuietly(sock);
+        }
+        return gateway;
     }
 
     /**

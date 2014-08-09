@@ -22,9 +22,11 @@ import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.pt.Flashlight;
+import org.lantern.state.Model.Persistent;
 import org.lantern.util.HostSpoofedHTTPGet.ResponseHandler;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
@@ -58,6 +60,12 @@ public class S3Config extends BaseS3Config {
                 LOG.error("Could not load cert?", e);
             }
         }
+    }
+    
+    @JsonView({Persistent.class})
+    @Override
+    public Map<String, String> getMasqueradeHostsToCerts() {
+        return super.getMasqueradeHostsToCerts();
     }
     
     private FallbackProxy getFlashlightFallback() {

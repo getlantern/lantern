@@ -1,15 +1,21 @@
 package org.lantern.state;
 
 import static org.lantern.Tr.tr;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
+import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
+import org.lantern.state.Notification.MessageType;
+import org.lantern.util.GatewayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +99,26 @@ public class InternalState {
                     log.warn("unsupported OS");
                     iconLoc = MessageKey.ICONLOC_UNKNOWN;
                 }
-                this.msgs.info(MessageKey.SETUP, tr(iconLoc));
+                
+                if (this.model.isPortMappingError()) {
+                    try {
+                        // Make sure there actually is an accessible gateway
+                        // screen before prompting the user to connect to it.
+                        final String gateway = GatewayUtil.defaultGateway();
+                        if (StringUtils.isNotBlank(gateway)) {
+                            msgs.msg(Tr.tr("BACKEND_MANUAL_NETWORK_PROMPT"), 
+                                    MessageType.error, 200);
+                        }
+                    } catch (IOException e) {
+                        log.debug("Gateway may not exist", e);
+                    } catch (InterruptedException e) {
+                        log.debug("Gateway may not exist", e);
+                    }
+                } else {
+                    // Only show the setup message if there's no port mapping
+                    // issue.
+                    this.msgs.info(MessageKey.SETUP, tr(iconLoc));
+                }
             }
         }
         Events.syncModal(this.model, next);
