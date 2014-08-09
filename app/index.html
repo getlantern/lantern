@@ -85,7 +85,7 @@
     <div id="alerts">
       <alert ng-repeat="(id, notification) in model.notifications" ui-animate
              type="notification.type" close="interaction(INTERACTION.close, {notification: id})">
-        <span ng-bind-html="notification.message"></span>
+        <span dynamic="notification.message"></span>
       </alert>
     </div>
 
