@@ -105,6 +105,11 @@ public class Launcher {
         public boolean askQuestion(String title, String message) {
             return false;
         }
+
+        @Override
+        public boolean okCancel(String title, String message) {
+            return false;
+        }
     };
 
     private Injector injector;

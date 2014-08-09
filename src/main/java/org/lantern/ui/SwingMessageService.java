@@ -79,25 +79,46 @@ public class SwingMessageService implements MessageService {
      */
     @Override
     public boolean askQuestion(final String title, final String message) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            return doAskQuestion(title, message);
-        } else {
-            final AtomicBoolean result = new AtomicBoolean();
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        result.set(doAskQuestion(title, message));
-                    }
-                });
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return result.get();
+        final AtomicBoolean result = new AtomicBoolean();
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    result.set(doAskQuestion(title, message));
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        return result.get();
+    }
+    
+    @Override
+    public boolean okCancel(final String title, final String message) {
+        final AtomicBoolean result = new AtomicBoolean();
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    result.set(doOkCancel(title, message));
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get();
     }
 
     private boolean doAskQuestion(final String title, final String message) {
+        return twoChoiceMessage(title, message, JOptionPane.YES_NO_OPTION, YES_OPTION);
+    }
+    
+    private boolean doOkCancel(final String title, final String message) {
+        return twoChoiceMessage(title, message, JOptionPane.OK_CANCEL_OPTION, OK_OPTION);
+    }
+    
+    private boolean twoChoiceMessage(final String title, final String message, 
+            final int options, final int affirmative) {
         final String key = title + message;
         if (!this.model.shouldShowDialog(key)) {
             return false;
@@ -106,16 +127,15 @@ public class SwingMessageService implements MessageService {
         final JCheckBox cb = new JCheckBox(Tr.tr(MessageKey.DO_NOT_SHOW));
         cb.setSelected(false);
         final String html = 
-                "<html><body><div style='width: 200px;'>"+message+"</div></body></html>";
+                "<html><body><div style='width: 280px;'>"+message+"</div></body></html>";
         final Object[] params = {html, cb};
         final int response = 
-                JOptionPane.showConfirmDialog(null, params, title, 
-                        JOptionPane.YES_NO_OPTION);
+                JOptionPane.showConfirmDialog(null, params, title, options);
         final boolean dontShow = cb.isSelected();
         if (dontShow) {
             this.model.doNotShowDialog(key);
         }
-        final boolean yes = response == YES_OPTION;
+        final boolean yes = response == affirmative;
         log.debug("User answered yes: {}", yes);
         return yes;
     }
