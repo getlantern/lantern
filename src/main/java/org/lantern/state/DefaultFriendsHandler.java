@@ -107,7 +107,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
         // If we're currently loading friends or have already successfully 
         // loaded friends, ignore this call.
         if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {
-            log.debug("Friends currently loading...");
+            log.debug("Friends currently loading or loaded...");
             return;
         }
         final ExecutorService friendsLoader = 
