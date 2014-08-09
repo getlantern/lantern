@@ -206,8 +206,8 @@ public class FlashlightServerManager implements Shutdownable {
                     return;
                 }
                 final boolean openGateway = 
-                        messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
-                        Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT));
+                        messageService.okCancel(Tr.tr(MessageKey.NETWORK_CONFIG), 
+                                Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT));
                 
                 if (openGateway) {
                     try {
@@ -293,8 +293,10 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void stopHeartbeatTimer() {
             log.debug("Stopping heartbeat timer");
-            timer.cancel();
-            timer = null;
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
+            }
         }
 
         @Override
