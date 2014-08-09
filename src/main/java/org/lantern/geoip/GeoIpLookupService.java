@@ -8,8 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.lantern.JsonUtils;
-import org.lantern.S3Config;
-import org.lantern.event.Events;
+import org.lantern.LanternUtils;
 import org.lantern.http.HttpUtils;
 import org.lantern.util.HostSpoofedHTTPGet;
 import org.lantern.util.HostSpoofedHTTPGet.ResponseHandler;
@@ -17,7 +16,6 @@ import org.lantern.util.StaticHttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 
 /**
@@ -33,19 +31,6 @@ public class GeoIpLookupService {
             new ConcurrentHashMap<String, GeoData>();
 
     private static final String REAL_GEO_HOST = "geo.getiantem.org";
-    private static volatile String[] s_masqueradeHosts = S3Config.DEFAULT_MASQUERADE_HOSTS;
-
-    static {
-        // Subscribe to updates for s_masqueradeHost
-        Events.register(new Object() {
-            @Subscribe
-            public void onNewS3Config(final S3Config config) {
-                synchronized (s_masqueradeHosts) {
-                    s_masqueradeHosts = config.getMasqueradeHosts();
-                }
-            }
-        });
-    }
 
     public GeoData getGeoData(final InetAddress ipAddress) {
         return getGeoData(ipAddress.getHostAddress());
@@ -59,8 +44,21 @@ public class GeoIpLookupService {
         }
         return result;
     }
+    
+    /*
+    public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler,
+            final String masqueradeHost) {
+        return httpLookup(ipAddress, handler, masqueradeHost);
+    }
+    */
 
     public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler) {
+        return httpLookup(ipAddress, handler, 
+                LanternUtils.getModel().getS3Config().getMasqueradeHost());
+    }
+    
+    public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler,
+            final String masqueradeHost) {
         String url = "/lookup";
         if (ipAddress != null) {
             url += "/" + ipAddress;
@@ -68,7 +66,7 @@ public class GeoIpLookupService {
         return new HostSpoofedHTTPGet(
                 StaticHttpClientFactory.newDirectClient(),
                 REAL_GEO_HOST,
-                s_masqueradeHosts).get(url, handler);
+                masqueradeHost).get(url, handler);
     }
 
     private GeoData queryGeoServe(final String ipAddress) {

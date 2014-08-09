@@ -129,7 +129,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     @Subscribe
     public void onNewS3Config(final S3Config config) {
-        Set<ProxyInfo> newFallbacks = new HashSet<ProxyInfo>(config.getFallbacks());
+        Set<ProxyInfo> newFallbacks = new HashSet<ProxyInfo>(config.getAllFallbacks());
         Set<ProxyInfo> removed = new HashSet<ProxyInfo>();
         
         LOG.info("Processing new S3Config with {} fallbacks", newFallbacks.size());
@@ -484,7 +484,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             return;
         }
         LOG.debug("Attempting to add fallback proxies");
-        for (final FallbackProxy fp : config.getFallbacks()) {
+        for (final FallbackProxy fp : config.getAllFallbacks()) {
             addSingleFallbackProxy(fp);
         }
     }
@@ -497,7 +497,8 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         if (StringUtils.isNotBlank(cert)) {
             lanternTrustStore.addCert(cert);
         } else {
-            LOG.warn("Fallback with no cert? {}", fallbackProxy);
+            // Likely flashlight -- the cert is handled internally there.
+            LOG.debug("Fallback with no cert? {}", fallbackProxy);
         }
         final Peer cloud = this.peerFactory.addPeer(fallbackProxy.getJid(), PeerType.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
