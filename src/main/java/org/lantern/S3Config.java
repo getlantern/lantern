@@ -91,7 +91,7 @@ public class S3Config extends BaseS3Config {
             new LinkedList<String>();
 
     @JsonIgnore
-    public String getMasqueradeHost() {
+    public static String getMasqueradeHost() {
         if (TESTED_AND_VERIFIED_HOSTS.isEmpty()) {
             LOG.warn("Not using tested and verified host...");
             final Set<String> hosts = DEFAULT_HOSTS_TO_CERTS.keySet();

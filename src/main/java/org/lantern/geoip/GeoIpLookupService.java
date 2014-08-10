@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.lantern.JsonUtils;
-import org.lantern.LanternUtils;
+import org.lantern.S3Config;
 import org.lantern.http.HttpUtils;
 import org.lantern.util.HostSpoofedHTTPGet;
 import org.lantern.util.HostSpoofedHTTPGet.ResponseHandler;
@@ -44,17 +44,9 @@ public class GeoIpLookupService {
         }
         return result;
     }
-    
-    /*
-    public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler,
-            final String masqueradeHost) {
-        return httpLookup(ipAddress, handler, masqueradeHost);
-    }
-    */
 
     public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler) {
-        return httpLookup(ipAddress, handler, 
-                LanternUtils.getModel().getS3Config().getMasqueradeHost());
+        return httpLookup(ipAddress, handler, S3Config.getMasqueradeHost());
     }
     
     public static <T> T httpLookup(String ipAddress, ResponseHandler<T> handler,
