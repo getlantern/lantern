@@ -8,11 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
-import org.lantern.MessageService;
 import org.lantern.Shutdownable;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
@@ -238,6 +238,8 @@ public class FlashlightServerManager implements Shutdownable {
             props.setProperty(
                     Flashlight.SERVER_KEY,
                     instanceId + ".getiantem.org");
+            
+            log.debug("Props: {}", props);
             flashlight = new Flashlight(props);
             flashlight.startServer(localPort, null);
             startHeartbeatTimer();
@@ -245,20 +247,22 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void registerPeer() {
             try {
-                Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
+                final Content response = 
+                    Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
                        .bodyForm(Form.form().add("name", instanceId)
                                             .add("ip", ip)
                                             .add("port", "" + externalPort).build())
                        .execute().returnContent();
+                log.debug("Got response to register attempt: {}", response);
             } catch (IOException e) {
-                log.error("Exception trying to register peer: " + e);
+                log.error("Exception trying to register peer: ", e);
             }
         }
 
         private void unregisterPeer() {
             try {
                 Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/unregister")
-                       .bodyForm(Form.form().add("name", instanceId).build())
+                       .bodyForm(Form.form().add("name", instanceId).add("ip", ip).build())
                        .execute().returnContent();
             } catch (IOException e) {
                 log.error("Exception trying to unregister peer: " + e);
@@ -299,20 +303,17 @@ public class FlashlightServerManager implements Shutdownable {
 
     private State state;
 
-    private MessageService messageService;
 
     @Inject
     public FlashlightServerManager(
             Model model,
             NatPmpService natPmpService,
-            UpnpService upnpService,
-            MessageService messageService) {
+            UpnpService upnpService) {
         log.info("Flashlight port mapper starting up...");
         this.model = model;
         state = getDisconnectedState();
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
-        this.messageService = messageService;
         Events.register(this);
         state.onEnter();
     }

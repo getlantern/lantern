@@ -31,7 +31,16 @@ public class FlashlightMain extends ChainedMain {
                 FLASHLIGHT_CLIENT_PORT);
 
         // Client
-        Flashlight client = new Flashlight(new S3Config().flashlightProps("default.peer.getiantem.org"));
+        MasqueradeListener listener = new MasqueradeListener() {
+            @Override
+            public void onTestedAndVerifiedHost(String host) {
+            }
+        };
+        final FlashlightProxy proxy = new FlashlightProxy("default.peer.getiantem.org", 1,
+                new FlashlightMasquerade(S3Config.DEFAULT_HOSTS_TO_CERTS, listener));
+        
+        
+        Flashlight client = new Flashlight(proxy.getPt());
         this.clientAddress = client.startClient(getModeAddress, null);
     }
 
