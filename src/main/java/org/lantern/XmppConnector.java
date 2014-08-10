@@ -80,8 +80,18 @@ public class XmppConnector {
             internalState.setNotInvited(false);
             internalState.advanceModal(null);
         }
+
+        // Wait for a second to connect with XMPP, as other things
+        // like the S3ConfigFetcher in practice are simultaneously
+        // hitting the server and potentially creating a new user
+        // if this is a first run. Note this relies on the caller calling
+        // from an asynchronous event class.
         try {
-            this.xmppHandler.connect();
+            Thread.sleep(3000);
+        } catch (final InterruptedException e1) {
+        }
+        try {
+            xmppHandler.connect();
         } catch (final CredentialException e) {
             log.error("Could not log in with OAUTH?", e);
             Events.syncModal(model, Modal.authorize);
@@ -90,6 +100,4 @@ public class XmppConnector {
                 "The XMPP layer should automatically retry.", e);
         }
     }
-    
-
 }

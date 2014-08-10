@@ -10,7 +10,10 @@ public interface MessageService {
 
     boolean askQuestion(String title, String message);
 
+    boolean okCancel(String title, String message);
+    
     @Subscribe
     void onMessageEvent(MessageEvent me);
+
 
 }

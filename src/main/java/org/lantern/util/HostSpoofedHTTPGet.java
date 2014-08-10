@@ -19,40 +19,34 @@ public class HostSpoofedHTTPGet {
 
     private final HttpClient client;
     private final String realHost;
-    private final HttpHost[] masqueradeHosts;
+    private final HttpHost masqueradeHost;
 
     public HostSpoofedHTTPGet(HttpClient client,
             String realHost,
-            String[] masqueradeHosts) {
+            String masqueradeHost) {
         this.client = client;
         this.realHost = realHost;
-        this.masqueradeHosts = new HttpHost[masqueradeHosts.length];
-        for (int i = 0; i < masqueradeHosts.length; i++) {
-            this.masqueradeHosts[i] =
-                    new HttpHost(masqueradeHosts[i], 443, "https");
-        }
+        this.masqueradeHost = new HttpHost(masqueradeHost,443, "https");
     }
 
     public <T> T get(String path, ResponseHandler<T> handler) {
         Exception finalException = null;
         // Try the request with all available masquerade hosts until one
         // succeeds.
-        for (HttpHost masqueradeHost : masqueradeHosts) {
-            try {
-                return doGet(masqueradeHost, path, handler);
-            } catch (Exception e) {
-                LOGGER.warn(
-                        "Caught exception using masqueradeHost {}, could mean that it's blocked: {}",
-                        masqueradeHost, e.getMessage(), e);
-                finalException = e;
-            }
+        try {
+            return doGet(masqueradeHost, path, handler);
+        } catch (Exception e) {
+            LOGGER.warn(
+                    "Caught exception using masqueradeHost {}, could mean that it's blocked: {}",
+                    masqueradeHost, e.getMessage(), e);
+            finalException = e;
         }
 
         // None of the requests worked, handle the exception
         return handler.onException(finalException);
     }
 
-    private <T> T doGet(HttpHost masqueradeHost, String path,
+    private <T> T doGet(HttpHost host, String path,
             ResponseHandler<T> handler)
             throws Exception {
         HttpGet request = new HttpGet(path);
@@ -71,7 +65,7 @@ public class HostSpoofedHTTPGet {
             // request.getParams().setParameter(
             // CoreConnectionPNames.SO_TIMEOUT, 60000);
             return handler.onResponse(client
-                    .execute(masqueradeHost, request));
+                    .execute(host, request));
         } finally {
             request.releaseConnection();
         }

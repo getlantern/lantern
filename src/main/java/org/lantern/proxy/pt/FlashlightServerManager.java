@@ -8,20 +8,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
-import org.lantern.MessageKey;
-import org.lantern.MessageService;
 import org.lantern.Shutdownable;
-import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.PublicIpEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
-import org.lantern.util.GatewayUtil;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -205,19 +202,7 @@ public class FlashlightServerManager implements Shutdownable {
                     log.debug("Don't show port mapping message twice");
                     return;
                 }
-                final boolean openGateway = 
-                        messageService.askQuestion(Tr.tr(MessageKey.NETWORK_CONFIG), 
-                        Tr.tr(MessageKey.MANUAL_NETWORK_PROMPT));
-                
-                if (openGateway) {
-                    try {
-                        GatewayUtil.openGateway();
-                    } catch (final Exception e) {
-                        log.error("Could not not open gateway", e);
-                        messageService.showMessage(Tr.tr(MessageKey.NETWORK_CONFIG),
-                                Tr.tr(MessageKey.BROWSER_ERROR));
-                    }
-                }
+                model.setPortMappingError(true);
             }
         }
     }
@@ -253,6 +238,8 @@ public class FlashlightServerManager implements Shutdownable {
             props.setProperty(
                     Flashlight.SERVER_KEY,
                     instanceId + ".getiantem.org");
+            
+            log.debug("Props: {}", props);
             flashlight = new Flashlight(props);
             flashlight.startServer(localPort, null);
             startHeartbeatTimer();
@@ -260,20 +247,22 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void registerPeer() {
             try {
-                Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
+                final Content response = 
+                    Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
                        .bodyForm(Form.form().add("name", instanceId)
                                             .add("ip", ip)
                                             .add("port", "" + externalPort).build())
                        .execute().returnContent();
+                log.debug("Got response to register attempt: {}", response);
             } catch (IOException e) {
-                log.error("Exception trying to register peer: " + e);
+                log.error("Exception trying to register peer: ", e);
             }
         }
 
         private void unregisterPeer() {
             try {
                 Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/unregister")
-                       .bodyForm(Form.form().add("name", instanceId).build())
+                       .bodyForm(Form.form().add("name", instanceId).add("ip", ip).build())
                        .execute().returnContent();
             } catch (IOException e) {
                 log.error("Exception trying to unregister peer: " + e);
@@ -293,8 +282,10 @@ public class FlashlightServerManager implements Shutdownable {
 
         private void stopHeartbeatTimer() {
             log.debug("Stopping heartbeat timer");
-            timer.cancel();
-            timer = null;
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
+            }
         }
 
         @Override
@@ -312,20 +303,17 @@ public class FlashlightServerManager implements Shutdownable {
 
     private State state;
 
-    private MessageService messageService;
 
     @Inject
     public FlashlightServerManager(
             Model model,
             NatPmpService natPmpService,
-            UpnpService upnpService,
-            MessageService messageService) {
+            UpnpService upnpService) {
         log.info("Flashlight port mapper starting up...");
         this.model = model;
         state = getDisconnectedState();
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
-        this.messageService = messageService;
         Events.register(this);
         state.onEnter();
     }

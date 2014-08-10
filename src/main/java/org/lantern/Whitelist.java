@@ -50,7 +50,8 @@ public class Whitelist {
             "1.0.1.txt",
             "1.2.0.txt",
             "1.3.1.txt",
-            "1.4.4.txt"
+            "1.4.4.txt",
+            "1.4.5.txt"
     };
     
     private static final String ORIGINAL_WHITELIST = "original.txt";
@@ -66,7 +67,7 @@ public class Whitelist {
      */
     private Collection<WhitelistEntry> whitelist =
             new TreeSet<WhitelistEntry>();
-
+    
     /**
      * Applies the default entries from any whitelists that haven't been
      * recorded in appliedWhitelists yet.

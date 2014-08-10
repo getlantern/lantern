@@ -49,10 +49,7 @@ public class PublicIpAndTokenTracker {
         synchronized (this) {
             this.hasRefresh = true;
             if (this.hasPublicIp) {
-                // We use a synchronous event bus here so the creator of the
-                // refresh event can decide whether this is ultimately called
-                // asynchronously or not.
-                Events.eventBus().post(new PublicIpAndTokenEvent(this.refresh));
+                Events.asyncEventBus().post(new PublicIpAndTokenEvent(this.refresh));
             }
         }
     }
@@ -63,10 +60,7 @@ public class PublicIpAndTokenTracker {
             this.hasPublicIp = true;
             if (this.hasRefresh) {
                 log.debug("Posting event!!");
-                // We use a synchronous event bus here so the creator of the
-                // proxy event can decide whether this is ultimately called
-                // asynchronously or not.
-                Events.eventBus().post(new PublicIpAndTokenEvent(this.refresh));
+                Events.asyncEventBus().post(new PublicIpAndTokenEvent(this.refresh));
             }
         }
     }

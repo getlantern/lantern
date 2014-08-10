@@ -1052,6 +1052,13 @@ public class LanternUtils {
     public static void setModel(final Model model) {
         LanternUtils.model = model;
     }
+    
+    public static Model getModel() {
+        if (model == null) {
+            LOG.error("No model yet? Testing?");
+        }
+        return model;
+    }
 
     public static boolean isGet() {
         if (model == null) {

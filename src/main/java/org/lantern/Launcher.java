@@ -105,6 +105,11 @@ public class Launcher {
         public boolean askQuestion(String title, String message) {
             return false;
         }
+
+        @Override
+        public boolean okCancel(String title, String message) {
+            return false;
+        }
     };
 
     private Injector injector;
@@ -460,12 +465,15 @@ public class Launcher {
         
         LOG.debug("Loading {}", name);
         final T inst = injector.getInstance(clazz);
-        if (Shutdownable.class.isAssignableFrom(clazz)) {
-            addShutdownHook((Shutdownable) inst);
-        }
+        
         if (inst == null) {
             LOG.error("Could not load instance of "+clazz);
             throw new NullPointerException("Could not load instance of "+clazz);
+        }
+        
+        LOG.debug("Loaded class {}", inst.getClass());
+        if (Shutdownable.class.isAssignableFrom(inst.getClass())) {
+            addShutdownHook((Shutdownable) inst);
         }
         watch.stop();
         return inst;

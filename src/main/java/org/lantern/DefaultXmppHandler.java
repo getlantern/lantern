@@ -44,7 +44,6 @@ import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
-import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
@@ -664,7 +663,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (LanternUtils.isFallbackProxy()) {
             sendHostAndPort(forHub);
         } else {
-            sendFallbackHostAndPort(forHub);
+            //sendFallbackHostAndPort(forHub);
         }
         forHub.setProperty(LanternConstants.IS_FALLBACK_PROXY,
                            LanternUtils.isFallbackProxy());
@@ -985,7 +984,7 @@ public class DefaultXmppHandler implements XmppHandler {
         presence.setProperty(LanternConstants.HOST_AND_PORT, hostAndPort);
     }
     
-
+    /*
     private void sendFallbackHostAndPort(Presence presence) {
         LOG.info("Sending fallback address to controller.");
         InetSocketAddress address = addressForConfiguredFallbackProxy();
@@ -1016,6 +1015,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     address.getPort());
         }
     }
+    */
 
     @Override
     public ProxyTracker getProxyTracker() {

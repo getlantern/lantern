@@ -30,6 +30,6 @@ git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7`
 name=lantern-$VERSION-$git-$ARCH-bit.deb
 mv install/lantern*$ARCH*.deb $name || die "Could not find built installer to copy?"
 
-./deployBinaries.bash $name newest-$ARCH.deb $RELEASE || die "Could not deploy deb!!"
+./deployBinaries.bash $name lantern-installer-$ARCH.deb $RELEASE || die "Could not deploy deb!!"
 
 #cp $name ~/Desktop/virtual-machine-files/

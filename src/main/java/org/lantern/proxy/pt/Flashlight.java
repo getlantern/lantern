@@ -3,12 +3,14 @@ package org.lantern.proxy.pt;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.Launcher;
+import org.lantern.S3Config;
 import org.lantern.geoip.GeoData;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.ProcessUtil;
@@ -40,8 +42,13 @@ public class Flashlight extends BasePluggableTransport {
     /**
      * Construct a new Flashlight pluggable transport.
      * 
-     * @param props
-     *            ignored
+     * @param props ignored
+     * @param masquerade The class for determining the flashlight masquerade
+     * host to use. This is passed because determining the masquerade requires
+     * the network to be up and is fairly intensive, so we only want to do it
+     * at the last minute when we're running flashlight, in which case the
+     * network should also be up, and we know we really need to determine
+     * the masquerade host to use.
      */
     public Flashlight(Properties props) {
         super(false,
@@ -61,11 +68,15 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-server");
         cmd.addArgument(props.getProperty(SERVER_KEY));
 
+        final Entry<String, String> entry = 
+                S3Config.MASQUERADE.determineMasqueradeHost();
+        final String host = entry.getKey();
+        final String rootCa = entry.getValue();
         cmd.addArgument("-masquerade");
-        cmd.addArgument(props.getProperty(MASQUERADE_KEY));
+        cmd.addArgument(host);
 
         cmd.addArgument("-rootca");
-        cmd.addArgument(props.getProperty(ROOT_CA_KEY), false);
+        cmd.addArgument(rootCa, false);
 
         cmd.addArgument("-configdir");
         cmd.addArgument(String.format("%s%spt%sflashlight",

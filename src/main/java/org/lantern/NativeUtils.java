@@ -34,6 +34,8 @@ public class NativeUtils
             return openSiteMac(uri);
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return openSiteWindows(uri);
+        } else if (SystemUtils.IS_OS_LINUX) {
+            return openSiteLinux(uri);
         } else {
             final Desktop d = Desktop.getDesktop();
             try {
@@ -46,6 +48,10 @@ public class NativeUtils
         }
 
         return null;
+    }
+
+    private static Process openSiteLinux(final String siteUrl) {
+        return exec("gnome-open", siteUrl);
     }
 
     private static Process openSiteMac(final String siteUrl) {

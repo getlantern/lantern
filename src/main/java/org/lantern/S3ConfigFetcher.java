@@ -62,7 +62,7 @@ public class S3ConfigFetcher {
             log.debug("Stored S3 config: {}", config);
             // The config in the model could just be the default, so check
             // for actual fallbacks.
-            final Collection<FallbackProxy> fallbacks = config.getFallbacks();
+            final Collection<FallbackProxy> fallbacks = config.getAllFallbacks();
             if (fallbacks == null || fallbacks.isEmpty()) {
                 downloadAndCompareConfig();
             } else {
@@ -133,7 +133,7 @@ public class S3ConfigFetcher {
             return !newConfig.get().equals(config);
         } else {
             log.info("Couldn't get a remote S3 config, sticking with what we have");
-            return true;
+            return false;
         }
     }
 
@@ -145,8 +145,12 @@ public class S3ConfigFetcher {
     private Optional<S3Config> fetchRemoteConfig() {
         String url = LanternClientConstants.CONTROLLER_URL + "/_ah/api/s3config/v1/s3config/get";
         try {
+            // Note this call will block until a refresh token is available.
+            // This behavior is non-obvious, but this will only return once
+            // the user has logged in and accordingly provided a refresh
+            // token.
             String cfgStr = oauth.getRequest(url);
-            log.debug("Fetched config:\n{}", cfgStr);
+            log.debug("Fetched config string:\n{}", cfgStr);
             S3Config cfg = 
                 JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
             return Optional.of(cfg);

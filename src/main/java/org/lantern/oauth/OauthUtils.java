@@ -92,7 +92,7 @@ public class OauthUtils {
      * and will then use a proxy if necessary.
      * 
      * @return The tokens.
-     * @throws IOException If we cannot access the tokens either directory or
+     * @throws IOException If we cannot access the tokens either directly or
      * through a fallback proxy.
      * @throws CredentialException If the user's credentials are invalid.
      */
