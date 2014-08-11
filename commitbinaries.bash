@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
+function die() {
+  echo $*
+  exit 1
+}
+
 if [ $# -ne "2" ]
 then
     die "$0: Received $# args... required: name and name of newest file (lantern-installer.dmg)"
 fi
+
 name=$1
 newestName=$2
 
