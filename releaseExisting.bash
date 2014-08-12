@@ -17,8 +17,9 @@ fi
 baseName=$1
 bucket="lantern"
 names=($baseName.exe $baseName.dmg $baseName-32-bit.deb $baseName-64-bit.deb)
-tag=${baseName:0:${#baseName}-8}
+#names=($baseName.exe $baseName.dmg)
 #names=($baseName-32-bit.deb $baseName-64-bit.deb)
+tag=${baseName:0:${#baseName}-8}
 newest=$2
 
 for name in "${names[@]}"
@@ -59,7 +60,7 @@ do
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   aws -putp $bucket $newestName.sha1
 
-  ./commitbinaries.bash || die "Could not commit binaries?"
+  ./commitbinaries.bash $name $newestName || die "Could not commit binaries?"
 done
 
 
