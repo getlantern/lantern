@@ -50,7 +50,7 @@ if $release ; then
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   aws -putp $bucket $newestName.sha1 || die "Could not upload sha1"
 
-  ./commitbinaries.bash || die "Could not commit binaries?"
+  ./commitbinaries.bash i$name $newestName || die "Could not commit binaries?"
 else
   echo "NOT RELEASING!!!"
 fi
