@@ -7,7 +7,7 @@ function die() {
 
 if [ $# -ne "2" ]
 then
-    die "$0: Received $# args... required: name and name of newest file (lantern-installer.dmg)"
+    die "$0: Received $# args... Usage: ./commitbinary.bash lantern-1.4.6-f64cc30.dmg lantern-installer.dmg" 
 fi
 
 name=$1

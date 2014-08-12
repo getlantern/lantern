@@ -60,7 +60,7 @@ do
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   aws -putp $bucket $newestName.sha1
 
-  ./commitbinaries.bash $name $newestName || die "Could not commit binaries?"
+  ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
 done
 
 
