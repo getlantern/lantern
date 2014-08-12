@@ -33,7 +33,7 @@ public class FlashlightMasquerade {
         this.masqueradeListener = masqueradeListener;
     }
 
-    public Entry<String, String> determineMasqueradeHost() {
+    public synchronized Entry<String, String> determineMasqueradeHost() {
         LOG.info("Determining masquerade host to use...");
 
         // Cache this across all masquerades to avoid doing lookups multiple

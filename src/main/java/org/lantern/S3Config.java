@@ -59,10 +59,14 @@ public class S3Config extends BaseS3Config {
      * This is a flashlight proxy that internally handles things like 
      * dynamically determining the masquerade host to use.
      */
-    private final FallbackProxy flashlightProxy = 
+    private static final FallbackProxy FLASHLIGHT_PROXY = 
             new FlashlightProxy("roundrobin.getiantem.org", 1, MASQUERADE);
 
 
+    /**
+     * We override this simply to avoid writing the JSON for tons of certs to
+     * the UI.
+     */
     @JsonView({Persistent.class})
     @Override
     public Map<String, String> getMasqueradeHostsToCerts() {
@@ -83,7 +87,7 @@ public class S3Config extends BaseS3Config {
     public Collection<FallbackProxy> getAllFallbacks() {
         final Collection<FallbackProxy> all = new HashSet<FallbackProxy>();
         all.addAll(getFallbacks());
-        all.add(flashlightProxy);
+        all.add(FLASHLIGHT_PROXY);
         return all;
     }
 
@@ -92,14 +96,6 @@ public class S3Config extends BaseS3Config {
 
     @JsonIgnore
     public static String getMasqueradeHost() {
-        if (TESTED_AND_VERIFIED_HOSTS.isEmpty()) {
-            LOG.warn("Not using tested and verified host...");
-            final Set<String> hosts = DEFAULT_HOSTS_TO_CERTS.keySet();
-            return hosts.iterator().next();
-        }
-        synchronized (TESTED_AND_VERIFIED_HOSTS) {
-            Collections.shuffle(TESTED_AND_VERIFIED_HOSTS);
-            return TESTED_AND_VERIFIED_HOSTS.iterator().next();
-        }
+        return FLASHLIGHT_PROXY.getWanHost();
     }
 }
