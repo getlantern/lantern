@@ -84,7 +84,7 @@ public class PublicIpInfoHandler {
     
     /**
      * We perform the public IP lookup on a proxy connection event because
-     * we need to the proxy in order to perform the lookup. We need this both
+     * we need the proxy in order to perform the lookup. We need this both
      * at startup as well as every time we re-connect to a proxy after
      * potentially losing proxy connectivity.
      * 
