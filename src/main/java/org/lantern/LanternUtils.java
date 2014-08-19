@@ -1068,6 +1068,14 @@ public class LanternUtils {
         return model.getSettings().getMode() == Mode.get;
     }
     
+    public static boolean isGive() {
+        if (model == null) {
+            LOG.error("Calling isGive before model populated! Testing?");
+            return true;
+        }
+        return model.getSettings().getMode() == Mode.give;
+    }
+    
     public static Certificate certFromBase64(String base64Cert)
             throws CertificateException {
         return certFromBytes(Base64.decodeBase64(base64Cert));

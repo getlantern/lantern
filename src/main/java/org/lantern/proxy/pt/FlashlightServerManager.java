@@ -5,7 +5,6 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.fluent.Form;
@@ -122,11 +121,9 @@ public class FlashlightServerManager implements Shutdownable {
         }
     }
 
-    private class PortMappingState extends State implements PortMapListener {
+    private class PortMappingState extends State {
         private int localPort;
         private boolean current;
-
-        private AtomicInteger errorCount = new AtomicInteger(0);
 
         @Override
         public void onEnter() {
@@ -134,17 +131,30 @@ public class FlashlightServerManager implements Shutdownable {
             current = true;
             localPort = LanternUtils
                     .findFreePort(PREFERRED_FLASHLIGHT_INTERNAL_PORT);
-            int upnpResult = upnpService.addUpnpMapping(
+            mapWithUPnP();
+        }
+
+        private void mapWithUPnP() {
+            log.debug("Attempting to map to local port {} with UPnP", localPort);
+            int result = upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
                     FLASHLIGHT_EXTERNAL_PORT,
-                    PortMappingState.this);
-            int natPmpResult = natPmpService.addNatPmpMapping(
+                    upnpListener);
+            if (result == -1) {
+                mapWithNATPMP();
+            }
+        }
+
+        private void mapWithNATPMP() {
+            log.debug("Attempting to map to local port {} with NAT-PMP",
+                    localPort);
+            int result = natPmpService.addNatPmpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
                     FLASHLIGHT_EXTERNAL_PORT,
-                    PortMappingState.this);
-            if (upnpResult == -1 && natPmpResult == -1) {
+                    natpmpListener);
+            if (result == -1) {
                 log.warn("Neither UPnP nor NAT-PMP seem to be enabled");
                 synchronized (FlashlightServerManager.this) {
                     handlePortMapError();
@@ -158,28 +168,55 @@ public class FlashlightServerManager implements Shutdownable {
             super.onExit();
         }
 
-        @Override
-        public void onPortMap(final int externalPort) {
-            synchronized (FlashlightServerManager.this) {
-                log.debug("Got port mapped: {}", externalPort);
-                if (externalPort != FLASHLIGHT_EXTERNAL_PORT) {
-                    log.warn(
-                            "Got port map, but it was for an invalid port: {}",
-                            externalPort);
-                    handlePortMapError();
-                } else {
-                    portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+        private PortMapListener upnpListener = new PortMapListener() {
+            @Override
+            public void onPortMap(int externalPort) {
+                synchronized (FlashlightServerManager.this) {
+                    log.debug("Got port mapped with UPnP: {}", externalPort);
+                    if (externalPort != FLASHLIGHT_EXTERNAL_PORT) {
+                        log.debug(
+                                "Received invalid port mapping from UPnP, trying NAT-PMP: {}",
+                                externalPort);
+                        mapWithNATPMP();
+                    } else {
+                        portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+                    }
                 }
             }
-        }
 
-        @Override
-        public void onPortMapError() {
-            synchronized (FlashlightServerManager.this) {
-                log.debug("Got port map error");
-                handlePortMapError();
+            @Override
+            public void onPortMapError() {
+                synchronized (FlashlightServerManager.this) {
+                    log.debug("UPnP port map error, trying NAT-PMP");
+                    mapWithNATPMP();
+                }
             }
-        }
+        };
+
+        private PortMapListener natpmpListener = new PortMapListener() {
+            @Override
+            public void onPortMap(int externalPort) {
+                synchronized (FlashlightServerManager.this) {
+                    log.debug("Got port mapped with NAT-PMP: {}", externalPort);
+                    if (externalPort != FLASHLIGHT_EXTERNAL_PORT) {
+                        log.warn(
+                                "Received invalid port mapping from NAT-PMP: {}",
+                                externalPort);
+                        handlePortMapError();
+                    } else {
+                        portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+                    }
+                }
+            }
+
+            @Override
+            public void onPortMapError() {
+                synchronized (FlashlightServerManager.this) {
+                    log.debug("NAT-PMP port map error");
+                    handlePortMapError();
+                }
+            }
+        };
 
         @Override
         public void onExitGiveMode() {
@@ -187,17 +224,11 @@ public class FlashlightServerManager implements Shutdownable {
         }
 
         private void handlePortMapError() {
-            // Since we're just trying with both UPnP and NAP-PMP, one of them
-            // will always fail (unless there's some router out there that
-            // supports both), so we only want to consider this an error
-            // from the user's perspective if both have failed.
-            errorCount.incrementAndGet();
-            if (errorCount.get() > 1 && !LanternUtils.isGet()) {
-                if (portMappingMessageShown.getAndSet(true)) {
-                    log.debug("Don't show port mapping message twice");
-                    return;
+            if (LanternUtils.isGive()) {
+                if (!portMappingMessageShown.getAndSet(true)) {
+                    log.debug("Show port mapping message only once");
+                    model.setPortMappingError(true);
                 }
-                model.setPortMappingError(true);
                 portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
             }
         }
