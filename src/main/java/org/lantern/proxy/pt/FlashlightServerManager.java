@@ -134,16 +134,22 @@ public class FlashlightServerManager implements Shutdownable {
             current = true;
             localPort = LanternUtils
                     .findFreePort(PREFERRED_FLASHLIGHT_INTERNAL_PORT);
-            upnpService.addUpnpMapping(
+            int upnpResult = upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
                     FLASHLIGHT_EXTERNAL_PORT,
                     PortMappingState.this);
-            natPmpService.addNatPmpMapping(
+            int natPmpResult = natPmpService.addNatPmpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
                     FLASHLIGHT_EXTERNAL_PORT,
                     PortMappingState.this);
+            if (upnpResult == -1 && natPmpResult == -1) {
+                log.warn("Neither UPnP nor NAT-PMP seem to be enabled");
+                synchronized (FlashlightServerManager.this) {
+                    handlePortMapError();
+                }
+            }
         }
 
         @Override
@@ -154,20 +160,25 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onPortMap(final int externalPort) {
-            log.debug("Got port mapped: {}", externalPort);
-            if (externalPort != FLASHLIGHT_EXTERNAL_PORT) {
-                log.warn("Got port map, but it was for an invalid port: {}",
-                        externalPort);
-                handlePortMapError();
-            } else {
-                portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+            synchronized (FlashlightServerManager.this) {
+                log.debug("Got port mapped: {}", externalPort);
+                if (externalPort != FLASHLIGHT_EXTERNAL_PORT) {
+                    log.warn(
+                            "Got port map, but it was for an invalid port: {}",
+                            externalPort);
+                    handlePortMapError();
+                } else {
+                    portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+                }
             }
         }
 
         @Override
         public void onPortMapError() {
-            log.debug("Got port map error");
-            handlePortMapError();
+            synchronized (FlashlightServerManager.this) {
+                log.debug("Got port map error");
+                handlePortMapError();
+            }
         }
 
         @Override
@@ -346,7 +357,8 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     @Subscribe
-    synchronized public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+    synchronized public void onConnectivityChanged(
+            final ConnectivityChangedEvent event) {
         if (event.isConnected()) {
             log.debug("got connectivity");
             state.onConnected();
