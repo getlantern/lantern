@@ -170,13 +170,8 @@ public class FlashlightServerManager implements Shutdownable {
             if (externalPort <= 0 || externalPort > 65535) {
                 log.warn("Got port map, but it was for an invalid port: {}", externalPort);
                 handlePortMapError();
-                return;
-            }
-            if (current) {
-                exitTo(new PortMappedState(ip, localPort, externalPort));
             } else {
-                log.debug("Got port map, but I don't care anymore.");
-                return;
+                portMappingResolved(externalPort);
             }
         }
 
@@ -203,6 +198,24 @@ public class FlashlightServerManager implements Shutdownable {
                     return;
                 }
                 model.setPortMappingError(true);
+                portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+            }
+        }
+
+        /**
+         * We want to start Flashlight whether or not the port mapping
+         * succeeded, as the user may manually configure their router to 
+         * map the correct port.
+         * 
+         * @param externalPort The externally mapped port (will just be 443 if
+         * the port has not been successfully mapped).
+         */
+        private void portMappingResolved(final int externalPort) {
+            if (current) {
+                exitTo(new PortMappedState(ip, localPort, externalPort));
+            } else {
+                log.debug("Got port map, but I don't care anymore.");
+                return;
             }
         }
     }
