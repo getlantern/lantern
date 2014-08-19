@@ -7,16 +7,15 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.fluent.Content;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.client.fluent.Response;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
-import org.lantern.event.PublicIpEvent;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lastbamboo.common.portmapping.NatPmpService;
@@ -30,7 +29,6 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-
 @Singleton
 public class FlashlightServerManager implements Shutdownable {
 
@@ -39,15 +37,15 @@ public class FlashlightServerManager implements Shutdownable {
     private Model model;
     private NatPmpService natPmpService;
     private UpnpService upnpService;
-    
+
     private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
-    
+
     /**
      * Use internal port 443 plus myleshorton's lucky number 77.
      */
     private static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
-    
-    private final AtomicBoolean portMappingMessageShown = 
+
+    private final AtomicBoolean portMappingMessageShown =
             new AtomicBoolean(false);
 
     private class State {
@@ -75,10 +73,10 @@ public class FlashlightServerManager implements Shutdownable {
             exitTo(getDisconnectedState());
         }
 
-        public void onPublicIp(String ip) {
+        public void onConnected() {
             State disconnected = getDisconnectedState();
             exitTo(disconnected);
-            disconnected.onPublicIp(ip);
+            disconnected.onConnected();
         }
 
         public void onEnterGiveMode() {
@@ -98,8 +96,8 @@ public class FlashlightServerManager implements Shutdownable {
         }
 
         @Override
-        public void onPublicIp(String ip) {
-            exitTo(new PortMappingState(ip));
+        public void onConnected() {
+            exitTo(new PortMappingState());
         }
     }
 
@@ -111,41 +109,31 @@ public class FlashlightServerManager implements Shutdownable {
         }
 
         @Override
-        public void onPublicIp(String ip) {
-            exitTo(new ConnectedInNonGiveModeState(ip));
+        public void onConnected() {
+            exitTo(new ConnectedInNonGiveModeState());
         }
     }
 
     private class ConnectedInNonGiveModeState extends State {
 
-        private String ip;
-
-        public ConnectedInNonGiveModeState(String ip) {
-            this.ip = ip;
-        }
-
         @Override
         public void onEnterGiveMode() {
-            exitTo(new PortMappingState(ip));
+            exitTo(new PortMappingState());
         }
     }
 
     private class PortMappingState extends State implements PortMapListener {
-        private String ip;
         private int localPort;
         private boolean current;
-        
-        private AtomicInteger errorCount = new AtomicInteger(0);
 
-        public PortMappingState(String ip) {
-            this.ip = ip;
-        }
+        private AtomicInteger errorCount = new AtomicInteger(0);
 
         @Override
         public void onEnter() {
             super.onEnter();
             current = true;
-            localPort = LanternUtils.findFreePort(PREFERRED_FLASHLIGHT_INTERNAL_PORT);
+            localPort = LanternUtils
+                    .findFreePort(PREFERRED_FLASHLIGHT_INTERNAL_PORT);
             upnpService.addUpnpMapping(
                     PortMappingProtocol.TCP,
                     localPort,
@@ -167,16 +155,12 @@ public class FlashlightServerManager implements Shutdownable {
         @Override
         public void onPortMap(final int externalPort) {
             log.debug("Got port mapped: {}", externalPort);
-            if (externalPort <= 0 || externalPort > 65535) {
-                log.warn("Got port map, but it was for an invalid port: {}", externalPort);
+            if (externalPort != FLASHLIGHT_EXTERNAL_PORT) {
+                log.warn("Got port map, but it was for an invalid port: {}",
+                        externalPort);
                 handlePortMapError();
-                return;
-            }
-            if (current) {
-                exitTo(new PortMappedState(ip, localPort, externalPort));
             } else {
-                log.debug("Got port map, but I don't care anymore.");
-                return;
+                portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
             }
         }
 
@@ -188,29 +172,46 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onExitGiveMode() {
-            exitTo(new ConnectedInNonGiveModeState(ip));
+            exitTo(new ConnectedInNonGiveModeState());
         }
-        
+
         private void handlePortMapError() {
             // Since we're just trying with both UPnP and NAP-PMP, one of them
             // will always fail (unless there's some router out there that
             // supports both), so we only want to consider this an error
             // from the user's perspective if both have failed.
             errorCount.incrementAndGet();
-            if (errorCount.get() > 1 && !LanternUtils.isGet()) { 
+            if (errorCount.get() > 1 && !LanternUtils.isGet()) {
                 if (portMappingMessageShown.getAndSet(true)) {
                     log.debug("Don't show port mapping message twice");
                     return;
                 }
                 model.setPortMappingError(true);
+                portMappingResolved(FLASHLIGHT_EXTERNAL_PORT);
+            }
+        }
+
+        /**
+         * We want to start Flashlight whether or not the port mapping
+         * succeeded, as the user may manually configure their router to map the
+         * correct port.
+         * 
+         * @param externalPort
+         *            The externally mapped port (will just be 443 if the port
+         *            has not been successfully mapped).
+         */
+        private void portMappingResolved(final int externalPort) {
+            if (current) {
+                exitTo(new PortMappedState(localPort, externalPort));
+            } else {
+                log.debug("Got port map, but I don't care anymore.");
+                return;
             }
         }
     }
 
-
     private class PortMappedState extends State {
 
-        private String ip;
         private int localPort;
         private int externalPort;
         private Flashlight flashlight;
@@ -222,8 +223,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         private static final long HEARTBEAT_PERIOD_MINUTES = 2;
 
-        public PortMappedState(String ip, int localPort, int externalPort) {
-            this.ip = ip;
+        public PortMappedState(int localPort, int externalPort) {
             this.localPort = localPort;
             this.externalPort = externalPort;
         }
@@ -231,14 +231,13 @@ public class FlashlightServerManager implements Shutdownable {
         @Override
         public void onEnter() {
             super.onEnter();
-            log.debug("I'm port mapped at "
-                      + ip + ":" + localPort + "<->" + externalPort);
+            log.debug("I'm port mapped at " + localPort + "<->" + externalPort);
             Properties props = new Properties();
             instanceId = model.getInstanceId();
             props.setProperty(
                     Flashlight.SERVER_KEY,
                     instanceId + ".getiantem.org");
-            
+
             log.debug("Props: {}", props);
             flashlight = new Flashlight(props);
             flashlight.startServer(localPort, null);
@@ -246,26 +245,47 @@ public class FlashlightServerManager implements Shutdownable {
         }
 
         private void registerPeer() {
+            Response response = null;
             try {
-                final Content response = 
-                    Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/register")
-                       .bodyForm(Form.form().add("name", instanceId)
-                                            .add("ip", ip)
-                                            .add("port", "" + externalPort).build())
-                       .execute().returnContent();
-                log.debug("Got response to register attempt: {}", response);
+                response = Request.Post(
+                        "https://" + model.getS3Config().getDnsRegUrl()
+                                + "/register")
+                        .bodyForm(Form.form().add("name", instanceId)
+                                .add("port", "" + externalPort).build())
+                        .execute();
+                if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                    log.error("Unable to register peer: {}", response
+                            .returnContent().asString());
+                }
+                log.debug("Registered peer");
             } catch (IOException e) {
                 log.error("Exception trying to register peer: ", e);
+            } finally {
+                if (response != null) {
+                    response.discardContent();
+                }
             }
         }
 
         private void unregisterPeer() {
+            Response response = null;
             try {
-                Request.Post("https://"+model.getS3Config().getDnsRegUrl()+"/unregister")
-                       .bodyForm(Form.form().add("name", instanceId).add("ip", ip).build())
-                       .execute().returnContent();
+                response = Request
+                        .Post("https://" + model.getS3Config().getDnsRegUrl()
+                                + "/unregister")
+                        .bodyForm(Form.form().add("name", instanceId).build())
+                        .execute();
+                if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                    log.error("Unable to unregister peer: {}", response
+                            .returnContent().asString());
+                }
+                log.debug("Unregistered peer");
             } catch (IOException e) {
                 log.error("Exception trying to unregister peer: " + e);
+            } finally {
+                if (response != null) {
+                    response.discardContent();
+                }
             }
         }
 
@@ -297,12 +317,11 @@ public class FlashlightServerManager implements Shutdownable {
 
         @Override
         public void onExitGiveMode() {
-            exitTo(new ConnectedInNonGiveModeState(ip));
+            exitTo(new ConnectedInNonGiveModeState());
         }
     }
 
     private State state;
-
 
     @Inject
     public FlashlightServerManager(
@@ -320,41 +339,23 @@ public class FlashlightServerManager implements Shutdownable {
 
     private State getDisconnectedState() {
         return model.getSettings().getMode() == Mode.give ?
-                    new DisconnectedInGiveModeState()
-                    : new DisconnectedInNonGiveModeState();
+                new DisconnectedInGiveModeState()
+                : new DisconnectedInNonGiveModeState();
     }
 
     @Subscribe
-    public void onPublicIp(final PublicIpEvent publicIpEvent) {
-        log.debug("IP event");
-        refreshConnectionState();
-    }
-
-    @Subscribe
-    public void onConnectivityChanged(final ConnectivityChangedEvent event) {
+    synchronized public void onConnectivityChanged(final ConnectivityChangedEvent event) {
         if (event.isConnected()) {
             log.debug("got connectivity");
-            refreshConnectionState();
+            state.onConnected();
         } else {
             log.debug("lost connectivity");
             state.onDisconnect();
         }
     }
 
-    private void refreshConnectionState() {
-        String ip = model.getConnectivity().getIp();
-        if (StringUtils.isBlank(ip)) {
-            // For our purposes this is equivalent to a disconnection.
-            log.debug("got no IP");
-            state.onDisconnect();
-        } else {
-            log.debug("got IP");
-            state.onPublicIp(ip);
-        }
-    }
-
     @Subscribe
-    public void onModeChanged(ModeChangedEvent event) {
+    synchronized public void onModeChanged(ModeChangedEvent event) {
         if (event.getNewMode() == Mode.give) {
             log.debug("enter give mode");
             state.onEnterGiveMode();
@@ -365,7 +366,7 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     @Override
-    public void stop() {
+    synchronized public void stop() {
         log.debug("Flashlight manager closing.");
         state.onDisconnect();
     }
