@@ -256,8 +256,9 @@ public class FlashlightServerManager implements Shutdownable {
                 if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     log.error("Unable to register peer: {}", response
                             .returnContent().asString());
+                } else {
+                    log.debug("Registered peer");
                 }
-                log.debug("Registered peer");
             } catch (IOException e) {
                 log.error("Exception trying to register peer: ", e);
             } finally {
@@ -278,8 +279,9 @@ public class FlashlightServerManager implements Shutdownable {
                 if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     log.error("Unable to unregister peer: {}", response
                             .returnContent().asString());
+                } else {
+                    log.debug("Unregistered peer");
                 }
-                log.debug("Unregistered peer");
             } catch (IOException e) {
                 log.error("Exception trying to unregister peer: " + e);
             } finally {
