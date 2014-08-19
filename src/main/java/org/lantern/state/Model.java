@@ -270,6 +270,16 @@ public class Model {
     }
 
     public void addNotification(Notification notification) {
+        for (Notification existing : notifications.values()) {
+            if (!existing.isClosed()) {
+                if (existing.getType().equals(notification.getType()) &&
+                        existing.getMessage().equals(notification.getMessage())) {
+                    // Duplicate open notification, ignore
+                    return;
+                }
+            }
+        }
+        
         int oldMax = maxNotificationId.get();
         if (oldMax == 0) {
             //this happens at startup?
