@@ -83,7 +83,7 @@
     </div>
 
     <div id="alerts">
-      <div ng-repeat="(id, notification) in model.notifications" ng-hide="notification.background && model.modal">
+      <div ng-repeat="(id, notification) in model.notifications" ng-hide="notification.background && (model.modal && model.modal != 'none')">
         <alert ui-animate
                type="notification.type"
                close="interaction(INTERACTION.close, {notification: id})">
