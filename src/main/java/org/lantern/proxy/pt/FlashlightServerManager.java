@@ -43,12 +43,13 @@ public class FlashlightServerManager implements Shutdownable {
     private static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
     private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
     private static final long HEARTBEAT_PERIOD_MINUTES = 2;
+    private static final long FLASHLIGHT_CHECK_PERIOD_SECONDS = 15;
 
     private final Model model;
     private final Messages msgs;
     private volatile Flashlight flashlight;
     private volatile ScheduledExecutorService heartbeat;
-
+    
     @Inject
     public FlashlightServerManager(
             Model model,
@@ -98,8 +99,7 @@ public class FlashlightServerManager implements Shutdownable {
             runFlashlight(true);
         } catch (RuntimeException re) {
             if (re.getMessage().contains("Exit value: 50")) {
-                LOGGER.warn("Unable to start flashlight with mapping external port, try without mapping");
-                showPortMappingError();
+                LOGGER.warn("Unable to start flashlight with automatically mapped external port, try without mapping");
                 runFlashlight(false);
             } else {
                 throw re;
@@ -108,7 +108,7 @@ public class FlashlightServerManager implements Shutdownable {
 
         heartbeat = Threads
                 .newSingleThreadScheduledExecutor("FlashlightServerManager-Heartbeat");
-        heartbeat.scheduleAtFixedRate(registerPeer,
+        heartbeat.scheduleAtFixedRate(peerRegistrar,
                 0,
                 HEARTBEAT_PERIOD_MINUTES,
                 TimeUnit.MINUTES);
@@ -148,37 +148,50 @@ public class FlashlightServerManager implements Shutdownable {
         flashlight.startServer(localPort, null);
     }
 
-    private Runnable registerPeer = new Runnable() {
+    private Runnable peerRegistrar = new Runnable() {
         @Override
         public void run() {
-            Response response = null;
-            try {
-                response = Request
-                        .Post(
-                                "https://" + model.getS3Config().getDnsRegUrl()
-                                        + "/register")
-                        .bodyForm(
-                                Form.form()
-                                        .add("name", model.getInstanceId())
-                                        .add("port",
-                                                "" + FLASHLIGHT_EXTERNAL_PORT)
-                                        .build())
-                        .execute();
-                if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    LOGGER.error("Unable to register peer: {}", response
-                            .returnContent().asString());
-                } else {
-                    LOGGER.debug("Registered peer");
-                }
-            } catch (IOException e) {
-                LOGGER.error("Exception trying to register peer: ", e);
-            } finally {
-                if (response != null) {
-                    response.discardContent();
-                }
+            boolean externallyAccessible = isFlashlightExternallyAccessible();
+            model.setPortMappingError(!externallyAccessible);
+            if (externallyAccessible) {
+                LOGGER.debug("Confirmed able to proxy for external clients!");
+                registerPeer();
+            } else {
+                LOGGER.warn("Unable to proxy for external clients!");
+                showPortMappingError();
+                unregisterPeer();
             }
         }
     };
+
+    private void registerPeer() {
+        Response response = null;
+        try {
+            response = Request
+                    .Post(
+                            "https://" + model.getS3Config().getDnsRegUrl()
+                                    + "/register")
+                    .bodyForm(
+                            Form.form()
+                                    .add("name", model.getInstanceId())
+                                    .add("port",
+                                            "" + FLASHLIGHT_EXTERNAL_PORT)
+                                    .build())
+                    .execute();
+            if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                LOGGER.error("Unable to register peer: {}", response
+                        .returnContent().asString());
+            } else {
+                LOGGER.debug("Registered peer");
+            }
+        } catch (IOException e) {
+            LOGGER.error("Exception trying to register peer", e);
+        } finally {
+            if (response != null) {
+                response.discardContent();
+            }
+        }
+    }
 
     private void unregisterPeer() {
         Response response = null;
@@ -198,6 +211,23 @@ public class FlashlightServerManager implements Shutdownable {
             }
         } catch (IOException e) {
             LOGGER.error("Exception trying to unregister peer: " + e);
+        } finally {
+            if (response != null) {
+                response.discardContent();
+            }
+        }
+    }
+
+    private boolean isFlashlightExternallyAccessible() {
+        Response response = null;
+        try {
+            response = Request
+                    .Get(model.getS3Config().getFlashlightCheckerUrl())
+                    .execute();
+            return response.returnResponse().getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+        } catch (IOException e) {
+            LOGGER.error("Exception checking for externally accessible", e);
+            return false;
         } finally {
             if (response != null) {
                 response.discardContent();
