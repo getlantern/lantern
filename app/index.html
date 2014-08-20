@@ -83,10 +83,13 @@
     </div>
 
     <div id="alerts">
-      <alert ng-repeat="(id, notification) in model.notifications" ui-animate
-             type="notification.type" close="interaction(INTERACTION.close, {notification: id})">
-        <span dynamic="notification.message"></span>
-      </alert>
+      <div ng-repeat="(id, notification) in model.notifications" ng-hide="notification.background && model.modal">
+        <alert ui-animate
+               type="notification.type"
+               close="interaction(INTERACTION.close, {notification: id})">
+          <span dynamic="notification.message"></span>
+        </alert>
+      </div>
     </div>
 
     <div ng-include src="'partials/topbar.html'"></div>
