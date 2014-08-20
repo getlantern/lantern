@@ -136,6 +136,11 @@ public class Messages {
         model.addNotification(msg, type, timeout);
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
+    
+    public void closeMsg(String msg, MessageType type) {
+        model.closeNotifications(msg, type);
+        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+    }
 
     /**
      * Warn-level message.

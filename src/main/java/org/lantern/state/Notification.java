@@ -54,11 +54,6 @@ public class Notification {
         this.autoClose = autoClose;
     }
 
-    @JsonIgnore
-    public boolean isClosed() {
-        return autoClose == 0 ||
-                (System.currentTimeMillis() - ts) > 1000 * autoClose; 
-    }
     @Override
     public String toString() {
         return "Notification [type=" + type + ", message=" + message

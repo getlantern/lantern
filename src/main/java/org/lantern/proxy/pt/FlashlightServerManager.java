@@ -43,8 +43,7 @@ public class FlashlightServerManager implements Shutdownable {
     private static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
     private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
     private static final long HEARTBEAT_PERIOD_MINUTES = 2;
-    private static final long FLASHLIGHT_CHECK_PERIOD_SECONDS = 15;
-
+    
     private final Model model;
     private final Messages msgs;
     private volatile Flashlight flashlight;
@@ -155,6 +154,7 @@ public class FlashlightServerManager implements Shutdownable {
             model.setPortMappingError(!externallyAccessible);
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
+                hidePortMappingError();
                 registerPeer();
             } else {
                 LOGGER.warn("Unable to proxy for external clients!");
@@ -249,6 +249,11 @@ public class FlashlightServerManager implements Shutdownable {
         } catch (InterruptedException e) {
             LOGGER.debug("Gateway may not exist", e);
         }
+    }
+    
+    private void hidePortMappingError() {
+        msgs.closeMsg(Tr.tr("BACKEND_MANUAL_NETWORK_PROMPT"),
+                MessageType.error);
     }
 
 }

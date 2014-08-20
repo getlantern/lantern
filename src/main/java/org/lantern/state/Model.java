@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -257,7 +258,28 @@ public class Model {
     }
 
     public void closeNotification(int notification) {
-        notifications.remove(notification);
+        synchronized(notifications) {
+            notifications.remove(notification);
+        }
+    }
+    
+    /**
+     * Closes all notifications with the same type and message as what's given.
+     * 
+     * @param message
+     * @param type
+     */
+    public void closeNotifications(String message, MessageType type) {
+        synchronized (notifications) {
+            Iterator<Notification> it = notifications.values().iterator();
+            while (it.hasNext()) {
+                Notification existing = it.next();
+                if (existing.getType().equals(type) &&
+                        existing.getMessage().equals(message)) {
+                    it.remove();
+                }
+            }
+        }
     }
 
     public Map<Integer, Notification> getNotifications() {
@@ -269,28 +291,28 @@ public class Model {
         addNotification(notification);
     }
 
-    public void addNotification(Notification notification) {
-        for (Notification existing : notifications.values()) {
-            if (!existing.isClosed()) {
+    synchronized public void addNotification(Notification notification) {
+        synchronized (notifications) {
+            for (Notification existing : notifications.values()) {
                 if (existing.getType().equals(notification.getType()) &&
                         existing.getMessage().equals(notification.getMessage())) {
                     // Duplicate open notification, ignore
                     return;
                 }
             }
-        }
-        
-        int oldMax = maxNotificationId.get();
-        if (oldMax == 0) {
-            //this happens at startup?
-            for (Integer k : notifications.keySet()) {
-                if (k > oldMax)
-                    oldMax = k+1;
+
+            int oldMax = maxNotificationId.get();
+            if (oldMax == 0) {
+                // this happens at startup?
+                for (Integer k : notifications.keySet()) {
+                    if (k > oldMax)
+                        oldMax = k + 1;
+                }
+                maxNotificationId.compareAndSet(0, oldMax);
             }
-            maxNotificationId.compareAndSet(0, oldMax);
+            int id = maxNotificationId.getAndIncrement();
+            notifications.put(id, notification);
         }
-        int id = maxNotificationId.getAndIncrement();
-        notifications.put(id, notification);
     }
 
     public void clearNotifications() {
