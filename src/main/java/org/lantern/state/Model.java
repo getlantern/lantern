@@ -86,8 +86,6 @@ public class Model {
     
     private Set<String> dialogsToIgnore = new HashSet<String>();
     
-    private boolean portMappingError = false;
-
     public Model() {
         //used for JSON loading
     }
@@ -474,13 +472,4 @@ public class Model {
         this.dialogsToIgnore = dialogsToIgnore;
     }
     
-    @JsonIgnore
-    public boolean isPortMappingError() {
-        return portMappingError;
-    }
-
-    public void setPortMappingError(boolean portMappingError) {
-        this.portMappingError = portMappingError;
-    }
-
 }

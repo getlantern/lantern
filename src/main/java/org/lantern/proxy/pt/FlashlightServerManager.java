@@ -151,7 +151,6 @@ public class FlashlightServerManager implements Shutdownable {
         @Override
         public void run() {
             boolean externallyAccessible = isFlashlightExternallyAccessible();
-            model.setPortMappingError(!externallyAccessible);
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
                 hidePortMappingError();

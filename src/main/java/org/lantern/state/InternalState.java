@@ -100,11 +100,7 @@ public class InternalState {
                     iconLoc = MessageKey.ICONLOC_UNKNOWN;
                 }
                 
-                if (!this.model.isPortMappingError()) {
-                    // Only show the setup message if there's no port mapping
-                    // issue.
-                    this.msgs.info(MessageKey.SETUP, tr(iconLoc));
-                }
+                this.msgs.info(MessageKey.SETUP, tr(iconLoc));
             }
         }
         Events.syncModal(this.model, next);
