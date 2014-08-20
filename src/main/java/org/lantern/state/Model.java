@@ -262,7 +262,7 @@ public class Model {
     }
     
     /**
-     * Closes all notifications with the same type and message as what's given.
+     * Closes all notifications with the same message as what's given.
      * 
      * @param message
      * @param type
@@ -272,8 +272,7 @@ public class Model {
             Iterator<Notification> it = notifications.values().iterator();
             while (it.hasNext()) {
                 Notification existing = it.next();
-                if (existing.getType().equals(type) &&
-                        existing.getMessage().equals(message)) {
+                if (existing.getMessage().equals(message)) {
                     it.remove();
                 }
             }
@@ -284,16 +283,10 @@ public class Model {
         return notifications;
     }
 
-    public void addNotification(String message, MessageType type, int timeout) {
-        Notification notification = new Notification(message, type, timeout);
-        addNotification(notification);
-    }
-
     synchronized public void addNotification(Notification notification) {
         synchronized (notifications) {
             for (Notification existing : notifications.values()) {
-                if (existing.getType().equals(notification.getType()) &&
-                        existing.getMessage().equals(notification.getMessage())) {
+                if (existing.getMessage().equals(notification.getMessage())) {
                     // Duplicate open notification, ignore
                     return;
                 }

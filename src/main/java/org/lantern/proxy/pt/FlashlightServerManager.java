@@ -241,7 +241,7 @@ public class FlashlightServerManager implements Shutdownable {
             final String gateway = GatewayUtil.defaultGateway();
             if (StringUtils.isNotBlank(gateway)) {
                 msgs.msg(Tr.tr("BACKEND_MANUAL_NETWORK_PROMPT"),
-                        MessageType.error, 200);
+                        MessageType.error, 0, true);
             }
         } catch (IOException e) {
             LOGGER.debug("Gateway may not exist", e);

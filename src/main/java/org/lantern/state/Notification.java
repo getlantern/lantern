@@ -1,13 +1,12 @@
 package org.lantern.state;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.lantern.annotation.Keep;
 
 @Keep
 public class Notification {
     private MessageType type;
     private String message;
-    private long ts = System.currentTimeMillis();
+    private boolean background;
 
     @Keep
     public enum MessageType {
@@ -15,8 +14,8 @@ public class Notification {
     }
 
     /**
-     * Timeout in seconds for when the front-end should autoclose the message.
-     * 0 means no autoclose.
+     * Timeout in seconds for when the front-end should autoclose the message. 0
+     * means no autoclose.
      */
     private int autoClose = 0;
 
@@ -28,20 +27,30 @@ public class Notification {
     }
 
     public Notification(String message, MessageType type, int timeout) {
-        this.message = message;
+        this(type, message, timeout, false);
+    }
+    
+    public Notification(MessageType type, String message,
+            int autoClose, boolean background) {
+        super();
         this.type = type;
-        autoClose = timeout;
+        this.message = message;
+        this.autoClose = autoClose;
+        this.background = background;
     }
 
     public String getMessage() {
         return message;
     }
+
     public void setMessage(String message) {
         this.message = message;
     }
+
     public MessageType getType() {
         return type;
     }
+
     public void setType(MessageType type) {
         this.type = type;
     }
@@ -52,6 +61,14 @@ public class Notification {
 
     public void setAutoClose(int autoClose) {
         this.autoClose = autoClose;
+    }
+    
+    public boolean isBackground() {
+        return background;
+    }
+    
+    public void setBackground(boolean background) {
+        this.background = background;
     }
 
     @Override

@@ -1,12 +1,13 @@
 package org.lantern;
 
-import static org.lantern.Tr.tr;
+import static org.lantern.Tr.*;
 
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.state.Model;
-import org.lantern.state.SyncPath;
+import org.lantern.state.Notification;
 import org.lantern.state.Notification.MessageType;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +40,7 @@ public class Messages {
             return;
         }
         LOG.info("Adding message...");
-        model.addNotification(me.getMsg(), me.getType(), 30);
-        Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
+        msg(me.getMsg(), me.getType(), 30);
     }
 
     /**
@@ -133,7 +133,12 @@ public class Messages {
 
     public void msg(final String msg, final MessageType type, 
             final int timeout) {
-        model.addNotification(msg, type, timeout);
+        msg(msg, type, timeout, false);
+    }
+    
+    public void msg(final String msg, final MessageType type, 
+            final int timeout, boolean background) {
+        model.addNotification(new Notification(type, msg, timeout, background));
         Events.sync(SyncPath.NOTIFICATIONS, model.getNotifications());
     }
     
