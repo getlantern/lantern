@@ -1062,18 +1062,14 @@ public class LanternUtils {
 
     public static boolean isGet() {
         if (model == null) {
-            LOG.error("Calling isGet before model populated! Testing?");
+            LOG.error("Requesting mode before model populated! Testing?");
             return true;
         }
         return model.getSettings().getMode() == Mode.get;
     }
     
     public static boolean isGive() {
-        if (model == null) {
-            LOG.error("Calling isGive before model populated! Testing?");
-            return true;
-        }
-        return model.getSettings().getMode() == Mode.give;
+        return !isGet();
     }
     
     public static Certificate certFromBase64(String base64Cert)

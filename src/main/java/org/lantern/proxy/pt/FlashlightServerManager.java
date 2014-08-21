@@ -22,8 +22,6 @@ import org.lantern.state.Model;
 import org.lantern.state.Notification.MessageType;
 import org.lantern.util.GatewayUtil;
 import org.lantern.util.Threads;
-import org.lastbamboo.common.portmapping.NatPmpService;
-import org.lastbamboo.common.portmapping.UpnpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +50,6 @@ public class FlashlightServerManager implements Shutdownable {
     @Inject
     public FlashlightServerManager(
             Model model,
-            NatPmpService natPmpService,
-            UpnpService upnpService,
             Messages messages) {
         LOGGER.info("Starting up...");
         this.model = model;
