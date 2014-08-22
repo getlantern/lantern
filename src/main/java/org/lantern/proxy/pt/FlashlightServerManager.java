@@ -93,10 +93,12 @@ public class FlashlightServerManager implements Shutdownable {
         try {
             runFlashlight(true);
         } catch (RuntimeException re) {
-            if (re.getMessage().contains("Exit value: 50")) {
+            final String msg = re.getMessage();
+            if (msg != null && msg.contains("Exit value: 50")) {
                 LOGGER.warn("Unable to start flashlight with automatically mapped external port, try without mapping");
                 runFlashlight(false);
             } else {
+                LOGGER.error("Unexpected runtime exception", re);
                 throw re;
             }
         }
@@ -164,13 +166,13 @@ public class FlashlightServerManager implements Shutdownable {
         try {
             response = Request
                     .Post(
-                            "https://" + model.getS3Config().getDnsRegUrl()
-                                    + "/register")
+                            "https://" + model.getS3Config().getDnsRegUrl()+"/register")
                     .bodyForm(
                             Form.form()
                                     .add("name", model.getInstanceId())
                                     .add("port",
                                             "" + FLASHLIGHT_EXTERNAL_PORT)
+                                    .add("ip", model.getConnectivity().getIp())
                                     .build())
                     .execute();
             if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -192,8 +194,7 @@ public class FlashlightServerManager implements Shutdownable {
         Response response = null;
         try {
             response = Request
-                    .Post("https://" + model.getS3Config().getDnsRegUrl()
-                            + "/unregister")
+                    .Post("https://" + model.getS3Config().getDnsRegUrl() + "/unregister")
                     .bodyForm(
                             Form.form().add("name", model.getInstanceId())
                                     .build())
