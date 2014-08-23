@@ -82,6 +82,9 @@ public class LanternUtils {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(LanternUtils.class);
+    
+    private static final String REQUESTED_MODE_TOO_SOON =
+            "Requesting mode before model populated! Testing?";
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -1062,14 +1065,18 @@ public class LanternUtils {
 
     public static boolean isGet() {
         if (model == null) {
-            LOG.error("Requesting mode before model populated! Testing?");
+            LOG.error(REQUESTED_MODE_TOO_SOON);
             return true;
         }
         return model.getSettings().getMode() == Mode.get;
     }
     
     public static boolean isGive() {
-        return !isGet();
+        if (model == null) {
+            LOG.error(REQUESTED_MODE_TOO_SOON);
+            return false;
+        }
+        return model.getSettings().getMode() == Mode.give;
     }
     
     public static Certificate certFromBase64(String base64Cert)
