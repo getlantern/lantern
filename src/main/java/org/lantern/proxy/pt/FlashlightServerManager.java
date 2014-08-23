@@ -172,6 +172,13 @@ public class FlashlightServerManager implements Shutdownable {
                                     .add("name", model.getInstanceId())
                                     .add("port",
                                             "" + FLASHLIGHT_EXTERNAL_PORT)
+                                            // Note - the below is only used for testing locally
+                                            // The production dns registration service determines
+                                            // the IP based on the network client/X-Forwarded-For
+                                            // header.
+                                            // model.getConnectivity().getIp() may actually return
+                                            // null here since we may or may not have obtained a
+                                            // public IP at this point.
                                     .add("ip", model.getConnectivity().getIp())
                                     .build())
                     .execute();
