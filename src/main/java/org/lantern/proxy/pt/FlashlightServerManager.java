@@ -12,6 +12,7 @@ import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.lantern.ConnectivityChangedEvent;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Messages;
 import org.lantern.Shutdownable;
@@ -157,7 +158,7 @@ public class FlashlightServerManager implements Shutdownable {
     private Runnable peerRegistrar = new Runnable() {
         @Override
         public void run() {
-            boolean externallyAccessible = isFlashlightExternallyAccessible();
+            boolean externallyAccessible = registerPeer();
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
                 hidePortMappingWarning();
@@ -165,7 +166,7 @@ public class FlashlightServerManager implements Shutdownable {
                 if (connectivityCheckFailing.getAndSet(false)) {
                     showPortMappingSuccess();
                 }
-                registerPeer();
+                //registerPeer();
             } else {
                 LOGGER.warn("Unable to proxy for external clients!");
                 connectivityCheckFailing.set(true);
@@ -178,7 +179,7 @@ public class FlashlightServerManager implements Shutdownable {
         }
     };
 
-    private void registerPeer() {
+    private boolean registerPeer() {
         Response response = null;
         try {
             response = Request
@@ -197,13 +198,16 @@ public class FlashlightServerManager implements Shutdownable {
                                             // null here since we may or may not have obtained a
                                             // public IP at this point.
                                     .add("ip", model.getConnectivity().getIp())
+                                    .add("v", LanternClientConstants.VERSION)
                                     .build())
                     .execute();
             if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 LOGGER.error("Unable to register peer: {}", response
                         .returnContent().asString());
+                return true;
             } else {
                 LOGGER.debug("Registered peer");
+                return false;
             }
         } catch (IOException e) {
             LOGGER.error("Exception trying to register peer", e);
@@ -212,6 +216,7 @@ public class FlashlightServerManager implements Shutdownable {
                 response.discardContent();
             }
         }
+        return false;
     }
 
     private void unregisterPeer() {
@@ -231,23 +236,6 @@ public class FlashlightServerManager implements Shutdownable {
             }
         } catch (IOException e) {
             LOGGER.error("Exception trying to unregister peer: " + e);
-        } finally {
-            if (response != null) {
-                response.discardContent();
-            }
-        }
-    }
-
-    private boolean isFlashlightExternallyAccessible() {
-        Response response = null;
-        try {
-            response = Request
-                    .Get(model.getS3Config().getFlashlightCheckerUrl())
-                    .execute();
-            return response.returnResponse().getStatusLine().getStatusCode() == HttpStatus.SC_OK;
-        } catch (IOException e) {
-            LOGGER.error("Exception checking for externally accessible", e);
-            return false;
         } finally {
             if (response != null) {
                 response.discardContent();
