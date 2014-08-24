@@ -97,6 +97,7 @@ public class UpnpCli implements UpnpService, Shutdownable {
                     if (output.isEmpty()) {
                         log.debug("No UPnP output?");
                         portMapListener.onPortMapError();
+                        return;
                     }
                     final String last = output.get(output.size()-1);
                     if (last.toLowerCase().contains("failed")) {

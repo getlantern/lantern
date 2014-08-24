@@ -34,6 +34,7 @@ public class Flashlight extends BasePluggableTransport {
     public static final String SERVER_KEY = "server";
     public static final String MASQUERADE_KEY = "masquerade";
     public static final String ROOT_CA_KEY = "rootca";
+    public static final String PORTMAP_KEY = "portmap";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
 
@@ -122,6 +123,12 @@ public class Flashlight extends BasePluggableTransport {
 
         cmd.addArgument("-statsaddr");
         cmd.addArgument(STATS_ADDR);
+        
+        String portmap = props.getProperty(PORTMAP_KEY);
+        if (portmap != null) {
+            cmd.addArgument("-portmap");
+            cmd.addArgument(portmap);
+        }
 
         addParentPIDIfAvailable(cmd);
     }

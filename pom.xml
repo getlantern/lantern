@@ -270,12 +270,6 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>${natpmp.groupId}</groupId>
-			<artifactId>${arch.artifactId}</artifactId>
-			<version>1.7</version>
-		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jdpapi</groupId>
 			<artifactId>jdpapi-java</artifactId>
@@ -740,7 +734,6 @@
 				</os>
 			</activation>
 			<properties>
-				<natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
 				<java.library.path>lib/linux/x86_64</java.library.path>
 			</properties>
 		</profile>
@@ -752,7 +745,6 @@
 				</os>
 			</activation>
 			<properties>
-				<natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
 				<java.library.path />
 			</properties>
 		</profile>
@@ -765,7 +757,6 @@
 			</activation>
 			<properties>
 				<unix.artifactId>unix-java-x86</unix.artifactId>
-				<natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
 				<java.library.path />
 				<arch.artifactId>x86</arch.artifactId>
 			</properties>

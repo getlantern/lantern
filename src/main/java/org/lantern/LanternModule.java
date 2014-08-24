@@ -172,12 +172,12 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public NatPmpService provideNatPmpService(final Model model) {
+    public NatPmpService provideNatPmpService() {
         // Testing.
         if (this.natPmpService != null) {
             return this.natPmpService;
         }
-        natPmpService = new NatPmpImpl(model);
+        natPmpService = new NatPmpImpl();
         return natPmpService;
     }
 
