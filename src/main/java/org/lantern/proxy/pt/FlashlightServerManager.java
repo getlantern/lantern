@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +12,7 @@ import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.lantern.ConnectivityChangedEvent;
+import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Messages;
 import org.lantern.Shutdownable;
@@ -46,6 +48,8 @@ public class FlashlightServerManager implements Shutdownable {
     private final Messages msgs;
     private volatile Flashlight flashlight;
     private volatile ScheduledExecutorService heartbeat;
+    private final AtomicBoolean needPortMappingWarning = new AtomicBoolean();
+    private final AtomicBoolean connectivityCheckFailing = new AtomicBoolean();
     
     @Inject
     public FlashlightServerManager(
@@ -62,6 +66,10 @@ public class FlashlightServerManager implements Shutdownable {
         boolean inGiveMode = event.getNewMode() == Mode.give;
         boolean isConnected = model.getConnectivity().isInternet();
         update(inGiveMode, isConnected);
+        if (!inGiveMode) {
+            hidePortMappingSuccess();
+            hidePortMappingWarning();
+        }
     }
 
     @Subscribe
@@ -81,7 +89,9 @@ public class FlashlightServerManager implements Shutdownable {
     synchronized private void update(boolean inGiveMode, boolean isConnected) {
         boolean eligibleToRun = inGiveMode && isConnected;
         boolean running = flashlight != null;
+        needPortMappingWarning.set(true);
         if (eligibleToRun && !running) {
+            connectivityCheckFailing.set(false);
             startFlashlight();
         } else if (!eligibleToRun && running) {
             stopFlashlight(isConnected);
@@ -148,20 +158,28 @@ public class FlashlightServerManager implements Shutdownable {
     private Runnable peerRegistrar = new Runnable() {
         @Override
         public void run() {
-            boolean externallyAccessible = isFlashlightExternallyAccessible();
+            boolean externallyAccessible = registerPeer();
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
-                hidePortMappingError();
-                registerPeer();
+                hidePortMappingWarning();
+                needPortMappingWarning.set(true);
+                if (connectivityCheckFailing.getAndSet(false)) {
+                    showPortMappingSuccess();
+                }
+                //registerPeer();
             } else {
                 LOGGER.warn("Unable to proxy for external clients!");
-                showPortMappingError();
+                connectivityCheckFailing.set(true);
+                hidePortMappingSuccess();
+                if (needPortMappingWarning.getAndSet(false)) {
+                    showPortMappingWarning();
+                }
                 unregisterPeer();
             }
         }
     };
 
-    private void registerPeer() {
+    private boolean registerPeer() {
         Response response = null;
         try {
             response = Request
@@ -180,13 +198,16 @@ public class FlashlightServerManager implements Shutdownable {
                                             // null here since we may or may not have obtained a
                                             // public IP at this point.
                                     .add("ip", model.getConnectivity().getIp())
+                                    .add("v", LanternClientConstants.VERSION)
                                     .build())
                     .execute();
             if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 LOGGER.error("Unable to register peer: {}", response
                         .returnContent().asString());
+                return true;
             } else {
                 LOGGER.debug("Registered peer");
+                return false;
             }
         } catch (IOException e) {
             LOGGER.error("Exception trying to register peer", e);
@@ -195,6 +216,7 @@ public class FlashlightServerManager implements Shutdownable {
                 response.discardContent();
             }
         }
+        return false;
     }
 
     private void unregisterPeer() {
@@ -221,24 +243,7 @@ public class FlashlightServerManager implements Shutdownable {
         }
     }
 
-    private boolean isFlashlightExternallyAccessible() {
-        Response response = null;
-        try {
-            response = Request
-                    .Get(model.getS3Config().getFlashlightCheckerUrl())
-                    .execute();
-            return response.returnResponse().getStatusLine().getStatusCode() == HttpStatus.SC_OK;
-        } catch (IOException e) {
-            LOGGER.error("Exception checking for externally accessible", e);
-            return false;
-        } finally {
-            if (response != null) {
-                response.discardContent();
-            }
-        }
-    }
-
-    private void showPortMappingError() {
+    private void showPortMappingWarning() {
         try {
             // Make sure there actually is an accessible gateway
             // screen before prompting the user to connect to it.
@@ -254,8 +259,18 @@ public class FlashlightServerManager implements Shutdownable {
         }
     }
     
-    private void hidePortMappingError() {
+    private void showPortMappingSuccess() {
+        msgs.msg(Tr.tr("BACKEND_MANUAL_NETWORK_SUCCESS"),
+                MessageType.success, 0, false);
+    }
+    
+    private void hidePortMappingWarning() {
         msgs.closeMsg(Tr.tr("BACKEND_MANUAL_NETWORK_PROMPT"),
+                MessageType.error);
+    }
+    
+    private void hidePortMappingSuccess() {
+        msgs.closeMsg(Tr.tr("BACKEND_MANUAL_NETWORK_SUCCESS"),
                 MessageType.error);
     }
 
