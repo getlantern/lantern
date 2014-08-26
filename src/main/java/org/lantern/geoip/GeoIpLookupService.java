@@ -1,5 +1,6 @@
 package org.lantern.geoip;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class GeoIpLookupService {
     private GeoData queryGeoServe(final String ipAddress) {
         return httpLookup(ipAddress, new ResponseHandler<GeoData>() {
             @Override
-            public GeoData onResponse(HttpResponse response) throws Exception {
+            public GeoData onResponse(HttpResponse response) {
                 final int status = response.getStatusLine().getStatusCode();
                 if (status != 200) {
                     LOG.error(
@@ -73,18 +74,25 @@ public class GeoIpLookupService {
                             HttpUtils.httpHeaders(response));
                     return new GeoData();
                 }
-                InputStream is = response.getEntity().getContent();
+                InputStream is = null;
+                final String geoStr;
                 try {
-                    final String geoStr = IOUtils.toString(is);
+                    is = response.getEntity().getContent();
+                    geoStr = IOUtils.toString(is);
+                } catch (IOException e) {
+                    LOG.warn("Error reading response ", e);
+                    return new GeoData();
+                } finally {
+                    IOUtils.closeQuietly(is);
+                }
+                
+                try {
                     LOG.debug("Geo lookup response " + geoStr);
                     return JsonUtils.OBJECT_MAPPER.readValue(geoStr,
                             GeoData.class);
                 } catch (Exception e) {
-                    LOG.warn("Error parsing JSON from geo lookup " +
-                            e.getMessage(), e);
+                    LOG.warn("Error parsing JSON from geo lookup. JSON:\n"+geoStr, e);
                     return new GeoData();
-                } finally {
-                    IOUtils.closeQuietly(is);
                 }
             }
 
