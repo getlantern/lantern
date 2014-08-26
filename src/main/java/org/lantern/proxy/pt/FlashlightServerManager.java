@@ -201,14 +201,12 @@ public class FlashlightServerManager implements Shutdownable {
                                     .add("v", LanternClientConstants.VERSION)
                                     .build())
                     .execute();
-            if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                LOGGER.error("Unable to register peer: {}", response
-                        .returnContent().asString());
-                return true;
-            } else {
+            if (response.returnResponse().getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 LOGGER.debug("Registered peer");
-                return false;
+                return true;
             }
+            LOGGER.error("Unable to register peer: {}",
+                    response.returnContent().asString());
         } catch (IOException e) {
             LOGGER.error("Exception trying to register peer", e);
         } finally {
