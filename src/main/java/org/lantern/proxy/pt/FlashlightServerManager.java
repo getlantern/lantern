@@ -8,9 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
+import org.apache.http.util.EntityUtils;
 import org.lantern.ConnectivityChangedEvent;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
@@ -201,14 +203,13 @@ public class FlashlightServerManager implements Shutdownable {
                                     .add("v", LanternClientConstants.VERSION)
                                     .build())
                     .execute();
-            if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                LOGGER.error("Unable to register peer: {}", response
-                        .returnContent().asString());
+            HttpResponse httpResponse = response.returnResponse();
+            if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                LOGGER.info("Registered peer");
                 return true;
-            } else {
-                LOGGER.debug("Registered peer");
-                return false;
             }
+            LOGGER.error("Unable to register peer: {}", 
+                    EntityUtils.toString(httpResponse.getEntity()));
         } catch (IOException e) {
             LOGGER.error("Exception trying to register peer", e);
         } finally {
