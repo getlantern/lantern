@@ -98,7 +98,7 @@ public class FlashlightMasquerade {
         }
         try {
             final Entry<String, String> response = 
-                    pool.invokeAny(tasks, 60, TimeUnit.SECONDS);
+                    pool.invokeAny(tasks, 120, TimeUnit.SECONDS);
             LOG.info("Using masquerade host: {}", response.getKey());
             return response;
         } catch (InterruptedException e) {
