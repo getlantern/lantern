@@ -37,6 +37,8 @@ public class Flashlight extends BasePluggableTransport {
     public static final String PORTMAP_KEY = "portmap";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
+    public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
+    public static final String HIGH_QOS = "10";
 
     private final Properties props;
 

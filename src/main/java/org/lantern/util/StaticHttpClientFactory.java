@@ -15,6 +15,7 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.HttpContext;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
+import org.lantern.util.http.QOSHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class StaticHttpClientFactory {
     }
 
     public static HttpClient newClient(final HttpHost proxy) {
-        final DefaultHttpClient client = new DefaultHttpClient();
+        final DefaultHttpClient client = new QOSHttpClient();
         
         // Add a random length header to avoid repeated messages of the same
         // size on the network.
