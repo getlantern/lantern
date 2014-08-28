@@ -16,6 +16,18 @@ var app = angular.module('app', [
   'ui.validate',
   'ui.bootstrap'
   ])
+  .directive('dynamic', function ($compile) {
+    return {
+      restrict: 'A',
+      replace: true,
+      link: function (scope, ele, attrs) {
+        scope.$watch(attrs.dynamic, function(html) {
+          ele.html(html);
+          $compile(ele.contents())(scope);
+        });
+      }
+    };
+  })
   // angular ui bootstrap config
   .config(function($dialogProvider) {
     $dialogProvider.options({
@@ -176,6 +188,10 @@ var app = angular.module('app', [
 
     $rootScope.changeLang = function(lang) {
       return $rootScope.interaction(INTERACTION.changeLang, {lang: lang});
+    };
+
+    $rootScope.openRouterConfig = function() {
+      return $rootScope.interaction(INTERACTION.routerConfig);
     };
 
     $rootScope.openExternal = function(url) {
