@@ -3,12 +3,10 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.codec.Charsets;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -61,7 +59,7 @@ public class S3Config extends BaseS3Config {
      */
     private static final FallbackProxy FLASHLIGHT_PROXY = 
             new FlashlightProxy("roundrobin.getiantem.org", 1, MASQUERADE,
-                    S3Config.DEFAULT_FLASHLIGHT_CLOUDCONFIG);
+                    S3Config.DEFAULT_FLASHLIGHT_CLOUD_CONFIG);
 
 
     /**
