@@ -17,6 +17,7 @@ import javax.net.SocketFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.jivesoftware.smack.proxy.ProxyInfo;
+import org.lantern.proxy.pt.Flashlight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,9 @@ public class ProxySocketFactory extends SocketFactory {
                 try {
                     final String url = "CONNECT " + host + ":" + port;
                     socket.getOutputStream().write(
-                            (url + " HTTP/1.1\r\nHost: " + url + "\r\n\r\n")
+                            (url + " HTTP/1.1\r\nHost: " + url + "\r\n" +
+                                    Flashlight.X_FLASHLIGHT_QOS + ": " +
+                                    Flashlight.HIGH_QOS + "\r\n\r\n")
                                     .getBytes("UTF-8"));
 
                     final InputStream in = socket.getInputStream();
