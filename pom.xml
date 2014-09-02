@@ -3,7 +3,7 @@
 	<groupId>org.lantern</groupId>
 	<artifactId>lantern</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.8-SNAPSHOT</version>
+	<version>1.4.8</version>
 	<name>Lantern</name>
 	<description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
 	<url>https://github.com/getlantern/lantern</url>
@@ -36,7 +36,7 @@
 		<connection>scm:git:git://github.com/getlantern/lantern.git</connection>
 		<developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
 		<url>scm:git:git@github.com:getlantern/lantern.git</url>
-		<tag>HEAD</tag>
+		<tag>lantern-1.4.8</tag>
 	</scm>
 
 	<dependencies>
