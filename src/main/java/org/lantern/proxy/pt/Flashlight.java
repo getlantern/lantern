@@ -33,10 +33,12 @@ public class Flashlight extends BasePluggableTransport {
     public static final String ADDRESS_KEY = "addr";
     public static final String SERVER_KEY = "server";
     public static final String MASQUERADE_KEY = "masquerade";
-    public static final String ROOT_CA_KEY = "rootca";
     public static final String PORTMAP_KEY = "portmap";
+    public static final String CLOUDCONFIG_KEY = "cloudconfig";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
+    public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
+    public static final String HIGH_QOS = "10";
 
     private final Properties props;
 
@@ -66,19 +68,6 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-role");
         cmd.addArgument("client");
 
-        cmd.addArgument("-server");
-        cmd.addArgument(props.getProperty(SERVER_KEY));
-
-        final Entry<String, String> entry = 
-                S3Config.MASQUERADE.determineMasqueradeHost();
-        final String host = entry.getKey();
-        final String rootCa = entry.getValue();
-        cmd.addArgument("-masquerade");
-        cmd.addArgument(host);
-
-        cmd.addArgument("-rootca");
-        cmd.addArgument(rootCa, false);
-
         cmd.addArgument("-configdir");
         cmd.addArgument(String.format("%s%spt%sflashlight",
                 LanternClientConstants.CONFIG_DIR,
@@ -88,6 +77,9 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-addr");
         cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
                 listenAddress.getPort()));
+        
+        cmd.addArgument("-cloudconfig");
+        cmd.addArgument(props.getProperty(CLOUDCONFIG_KEY));
         
         addParentPIDIfAvailable(cmd);
     }

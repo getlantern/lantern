@@ -51,17 +51,6 @@ public class XmppConnector {
     }
 
     private void connect() {
-        final XmppP2PClient<FiveTuple> client = this.xmppHandler.getP2PClient();
-        if (client != null) {
-            final XMPPConnection conn = client.getXmppConnection();
-            if (conn != null && conn.isConnected()) {
-                log.debug("Not reconnecting");
-                return;
-            }
-        }
-        // This can happen either on startup when we've got cached oauth 
-        // tokens or after we've just logged in to Google and received a 
-        // token that way.
         log.debug("Setting gtalk authorized");
 
         if (!model.isSetupComplete()) {
@@ -79,6 +68,15 @@ public class XmppConnector {
         else if (model.getModal() == Modal.connecting) {
             internalState.setNotInvited(false);
             internalState.advanceModal(null);
+        }
+        
+        final XmppP2PClient<FiveTuple> client = this.xmppHandler.getP2PClient();
+        if (client != null) {
+            final XMPPConnection conn = client.getXmppConnection();
+            if (conn != null && conn.isConnected()) {
+                log.debug("Not reconnecting");
+                return;
+            }
         }
 
         // Wait for a second to connect with XMPP, as other things
