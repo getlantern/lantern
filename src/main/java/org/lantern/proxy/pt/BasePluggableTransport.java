@@ -5,9 +5,11 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
@@ -16,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.lantern.util.Threads;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,17 +123,63 @@ public abstract class BasePluggableTransport implements PluggableTransport {
     }
 
     @Override
-    public void startServer(int listenPort, InetSocketAddress giveModeAddress) {
+    public void startServer(final int listenPort,
+            InetSocketAddress giveModeAddress) {
         LOGGER.info("Starting {} server", getLogName());
 
         try {
-            String listenIp = NetworkUtils.getLocalHost().getHostAddress();
+            final String listenIp = NetworkUtils.getLocalHost()
+                    .getHostAddress();
             cmd = new CommandLine(ptPath);
             addServerArgs(cmd, listenIp, listenPort, giveModeAddress);
-            exec();
-            if (!LanternUtils.waitForServer(listenIp, listenPort, 60000)) {
-                throw new RuntimeException(String.format(
-                        "Unable to start %1$s server", getLogName()));
+            final Future<Integer> exitFuture = exec();
+
+            // Record exception related to startup of server
+            final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
+
+            // Check for termination of process
+            new Thread() {
+                public void run() {
+                    try {
+                        exitFuture.get();
+                    } catch (Exception e) {
+                        exception.set(new RuntimeException(
+                                String.format(
+                                        "Unable to execute process: %1$s",
+                                        e.getMessage()), e));
+                    }
+                    synchronized (exception) {
+                        exception.notifyAll();
+                    }
+                }
+            }.start();
+
+            // Check for server listening
+            new Thread() {
+                public void run() {
+                    if (!LanternUtils
+                            .waitForServer(listenIp, listenPort, 60000)) {
+                        exception.set(new RuntimeException(String.format(
+                                "Unable to start %1$s server", getLogName())));
+                    }
+                    synchronized (exception) {
+                        exception.notifyAll();
+                    }
+                }
+            }.start();
+
+            // Take the first exception
+            try {
+                synchronized (exception) {
+                    exception.wait();
+                }
+            } catch (InterruptedException ie) {
+                throw new RuntimeException(
+                        "Unable to determine status of server");
+            }
+            RuntimeException e = exception.get();
+            if (e != null) {
+                throw e;
             }
         } catch (UnknownHostException uhe) {
             throw new RuntimeException("Unable to determine interface ip: "
@@ -215,16 +264,22 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         }
     }
 
-    private void exec() {
+    private Future<Integer> exec() {
         cmdExec = new DefaultExecutor();
         cmdExec.setStreamHandler(new LoggingStreamHandler(LOGGER, System.in));
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
-        DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
         LOGGER.info("About to run cmd: {}", cmd);
         try {
-            cmdExec.execute(cmd, resultHandler);
+            return Threads.newSingleThreadExecutor("PluggableTransportRunner")
+                    .submit(
+                            new Callable<Integer>() {
+                                @Override
+                                public Integer call() throws Exception {
+                                    return cmdExec.execute(cmd);
+                                }
+                            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

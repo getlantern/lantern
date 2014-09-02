@@ -3,7 +3,7 @@
 	<groupId>org.lantern</groupId>
 	<artifactId>lantern</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.7-SNAPSHOT</version>
+	<version>1.4.8-SNAPSHOT</version>
 	<name>Lantern</name>
 	<description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
 	<url>https://github.com/getlantern/lantern</url>
@@ -40,12 +40,6 @@
 	</scm>
 
 	<dependencies>
-		<dependency>
-			<groupId>net.sourceforge.javacsv</groupId>
-			<artifactId>javacsv</artifactId>
-			<version>2.0</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
@@ -269,12 +263,6 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>${natpmp.groupId}</groupId>
-			<artifactId>${arch.artifactId}</artifactId>
-			<version>1.7</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jdpapi</groupId>
@@ -740,7 +728,6 @@
 				</os>
 			</activation>
 			<properties>
-				<natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
 				<java.library.path>lib/linux/x86_64</java.library.path>
 			</properties>
 		</profile>
@@ -752,7 +739,6 @@
 				</os>
 			</activation>
 			<properties>
-				<natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
 				<java.library.path />
 			</properties>
 		</profile>
@@ -765,7 +751,6 @@
 			</activation>
 			<properties>
 				<unix.artifactId>unix-java-x86</unix.artifactId>
-				<natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
 				<java.library.path />
 				<arch.artifactId>x86</arch.artifactId>
 			</properties>

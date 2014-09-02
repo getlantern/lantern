@@ -51,7 +51,8 @@ public class Whitelist {
             "1.2.0.txt",
             "1.3.1.txt",
             "1.4.4.txt",
-            "1.4.5.txt"
+            "1.4.5.txt",
+            "1.4.7.txt"
     };
     
     private static final String ORIGINAL_WHITELIST = "original.txt";

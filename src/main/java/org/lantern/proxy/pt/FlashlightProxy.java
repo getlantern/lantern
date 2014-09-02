@@ -17,12 +17,14 @@ public class FlashlightProxy extends FallbackProxy {
     private final FlashlightMasquerade masquerade;
 
     public FlashlightProxy(final String host, final int priority, 
-            final FlashlightMasquerade masquerade) {
+            final FlashlightMasquerade masquerade,
+            String cloudConfig) {
         this.masquerade = masquerade;
         final Properties props = new Properties();
         
         props.setProperty("type", "flashlight");
         props.setProperty(Flashlight.SERVER_KEY, host);
+        props.setProperty(Flashlight.CLOUDCONFIG_KEY, cloudConfig);
         
         setPt(props);
         setJid(LanternUtils.newURI("flashlight@"+ host));

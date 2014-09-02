@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,8 +86,6 @@ public class Model {
     
     private Set<String> dialogsToIgnore = new HashSet<String>();
     
-    private boolean portMappingError = false;
-
     public Model() {
         //used for JSON loading
     }
@@ -257,30 +256,54 @@ public class Model {
     }
 
     public void closeNotification(int notification) {
-        notifications.remove(notification);
+        synchronized(notifications) {
+            notifications.remove(notification);
+        }
+    }
+    
+    /**
+     * Closes all notifications with the same message as what's given.
+     * 
+     * @param message
+     * @param type
+     */
+    public void closeNotifications(String message, MessageType type) {
+        synchronized (notifications) {
+            Iterator<Notification> it = notifications.values().iterator();
+            while (it.hasNext()) {
+                Notification existing = it.next();
+                if (existing.getMessage().equals(message)) {
+                    it.remove();
+                }
+            }
+        }
     }
 
     public Map<Integer, Notification> getNotifications() {
         return notifications;
     }
 
-    public void addNotification(String message, MessageType type, int timeout) {
-        Notification notification = new Notification(message, type, timeout);
-        addNotification(notification);
-    }
-
-    public void addNotification(Notification notification) {
-        int oldMax = maxNotificationId.get();
-        if (oldMax == 0) {
-            //this happens at startup?
-            for (Integer k : notifications.keySet()) {
-                if (k > oldMax)
-                    oldMax = k+1;
+    synchronized public void addNotification(Notification notification) {
+        synchronized (notifications) {
+            for (Notification existing : notifications.values()) {
+                if (existing.getMessage().equals(notification.getMessage())) {
+                    // Duplicate open notification, ignore
+                    return;
+                }
             }
-            maxNotificationId.compareAndSet(0, oldMax);
+
+            int oldMax = maxNotificationId.get();
+            if (oldMax == 0) {
+                // this happens at startup?
+                for (Integer k : notifications.keySet()) {
+                    if (k > oldMax)
+                        oldMax = k + 1;
+                }
+                maxNotificationId.compareAndSet(0, oldMax);
+            }
+            int id = maxNotificationId.getAndIncrement();
+            notifications.put(id, notification);
         }
-        int id = maxNotificationId.getAndIncrement();
-        notifications.put(id, notification);
     }
 
     public void clearNotifications() {
@@ -442,13 +465,4 @@ public class Model {
         this.dialogsToIgnore = dialogsToIgnore;
     }
     
-    @JsonIgnore
-    public boolean isPortMappingError() {
-        return portMappingError;
-    }
-
-    public void setPortMappingError(boolean portMappingError) {
-        this.portMappingError = portMappingError;
-    }
-
 }

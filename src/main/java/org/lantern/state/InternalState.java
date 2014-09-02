@@ -100,25 +100,7 @@ public class InternalState {
                     iconLoc = MessageKey.ICONLOC_UNKNOWN;
                 }
                 
-                if (this.model.isPortMappingError()) {
-                    try {
-                        // Make sure there actually is an accessible gateway
-                        // screen before prompting the user to connect to it.
-                        final String gateway = GatewayUtil.defaultGateway();
-                        if (StringUtils.isNotBlank(gateway)) {
-                            msgs.msg(Tr.tr("BACKEND_MANUAL_NETWORK_PROMPT"), 
-                                    MessageType.error, 200);
-                        }
-                    } catch (IOException e) {
-                        log.debug("Gateway may not exist", e);
-                    } catch (InterruptedException e) {
-                        log.debug("Gateway may not exist", e);
-                    }
-                } else {
-                    // Only show the setup message if there's no port mapping
-                    // issue.
-                    this.msgs.info(MessageKey.SETUP, tr(iconLoc));
-                }
+                this.msgs.info(MessageKey.SETUP, tr(iconLoc));
             }
         }
         Events.syncModal(this.model, next);
