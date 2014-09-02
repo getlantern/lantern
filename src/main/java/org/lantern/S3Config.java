@@ -52,14 +52,14 @@ public class S3Config extends BaseS3Config {
                     }
                 }
             });
-
+    
     /**
      * This is a flashlight proxy that internally handles things like 
      * dynamically determining the masquerade host to use.
      */
     private static final FallbackProxy FLASHLIGHT_PROXY = 
             new FlashlightProxy("roundrobin.getiantem.org", 1, MASQUERADE,
-                    S3Config.DEFAULT_FLASHLIGHT_CLOUD_CONFIG);
+                    DEFAULT_FLASHLIGHT_CLOUD_CONFIG);
 
 
     /**
