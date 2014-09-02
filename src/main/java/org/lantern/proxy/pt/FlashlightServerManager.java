@@ -202,6 +202,8 @@ public class FlashlightServerManager implements Shutdownable {
                                     .add("ip", model.getConnectivity().getIp())
                                     .add("v", LanternClientConstants.VERSION)
                                     .build())
+                    .connectTimeout(100 * 1000)
+                    .socketTimeout(100 * 1000)
                     .execute();
             HttpResponse httpResponse = response.returnResponse();
             if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -228,6 +230,8 @@ public class FlashlightServerManager implements Shutdownable {
                     .bodyForm(
                             Form.form().add("name", model.getInstanceId())
                                     .build())
+                    .connectTimeout(100 * 1000)
+                    .socketTimeout(100 * 1000)
                     .execute();
             if (response.returnResponse().getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 LOGGER.error("Unable to unregister peer: {}", response
