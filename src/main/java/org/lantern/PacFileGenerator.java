@@ -37,7 +37,10 @@ public class PacFileGenerator {
             sb.append(site);
             sb.append("\";\n");
         }
-        return template.replace("allDomainsTok", sb.toString().trim());
+
+        final String defaultProxy = loadFile(Proxifier.PROXY_OFF).replace("FindProxyForURL","findDefaultProxyForURL");
+
+        return template.replace("allDomainsTok", sb.toString().trim()).replace("defaultProxy",defaultProxy.trim());
     }
 
     private static String loadTemplate() {
@@ -61,6 +64,22 @@ public class PacFileGenerator {
         }
         LOG.error("Could not load template!!");
         throw new Error("Could not load template!!");
+    }
+
+    private static String loadFile(final File file) {
+        if (file.isFile()) {
+            FileInputStream fr = null;
+            try {
+                fr = new FileInputStream(file);
+                return IOUtils.toString(fr);
+            } catch (final IOException e) {
+
+            } finally {
+                IOUtils.closeQuietly(fr);
+            }
+        }
+        LOG.error("Could not loadFile", e);
+        throw new Error("Could not loadFile!", e);
     }
 
     public static void generatePacFile(final Collection<String> entries, 
