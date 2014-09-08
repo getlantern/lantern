@@ -5,6 +5,7 @@ import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,7 @@ public class FlashlightServerManager implements Shutdownable {
     private final Messages msgs;
     private volatile Flashlight flashlight;
     private volatile ScheduledExecutorService heartbeat;
-    private final AtomicBoolean needPortMappingWarning = new AtomicBoolean();
+    private final AtomicBoolean needPortMappingWarning = new AtomicBoolean(true);
     private final AtomicBoolean connectivityCheckFailing = new AtomicBoolean();
     
     @Inject
@@ -164,11 +165,18 @@ public class FlashlightServerManager implements Shutdownable {
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
                 hidePortMappingWarning();
-                needPortMappingWarning.set(true);
+                
+                // We set this to false here because this indicates the port
+                // mapping has succeeded at least once. If our check fails in 
+                // the future, it is unlikely to be because of the port
+                // mapping itself. The user certainly could have moved networks
+                // with a laptop or something, but in that case they're also
+                // unlikely to have moved to a second location where they
+                // have permissions to configure the router.
+                needPortMappingWarning.set(false);
                 if (connectivityCheckFailing.getAndSet(false)) {
                     showPortMappingSuccess();
                 }
-                //registerPeer();
             } else {
                 LOGGER.warn("Unable to proxy for external clients!");
                 connectivityCheckFailing.set(true);
