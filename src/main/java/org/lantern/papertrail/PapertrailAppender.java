@@ -25,10 +25,10 @@ import org.lantern.state.Model;
  * An {@link Appender} that logs to {@link Papertrail}.
  */
 public class PapertrailAppender extends AppenderSkeleton {
-    
-    private final Collection<LogData> recentLogs = 
+
+    private final Collection<LogData> recentLogs =
             Collections.synchronizedSet(new LinkedHashSet<LogData>());
-    
+
     private static final String PAPERTRAIL_HOST = "logs2.papertrailapp.com";
     private static final int PAPERTRAIL_PORT = 22762;
 
@@ -76,19 +76,26 @@ public class PapertrailAppender extends AppenderSkeleton {
             }
             recentLogs.add(logData);
         }
-        
+
         StringWriter message = new StringWriter();
-        // Start the message off with a prefix that gives some metadata
-        message.append(String.format(
-                "Lantern Client (%1$s / %2$s / %3$s / %4$s) - %5$s",
+        // Start each line of the message off with a prefix that gives some
+        // metadata
+        final String prefix = String.format(
+                "Lantern Client (%1$s / %2$s / %3$s / %4$s) - ",
                 model.getInstanceId(),
                 model.getLocation().getCountry(),
                 SystemUtils.OS_NAME,
-                LanternClientConstants.VERSION,
-                message));
+                LanternClientConstants.VERSION);
+        message.append(prefix);
         message.append(this.getLayout().format(event));
         if (event.getThrowableInformation() != null) {
-            PrintWriter writer = new PrintWriter(message);
+            PrintWriter writer = new PrintWriter(message) {
+                @Override
+                public void write(String s) {
+                    super.write(prefix);
+                    super.write(s);
+                }
+            };
             event.getThrowableInformation().getThrowable()
                     .printStackTrace(writer);
             writer.close();
@@ -105,7 +112,7 @@ public class PapertrailAppender extends AppenderSkeleton {
     public void close() {
         // do nothing
     }
-    
+
     private static final class LogData {
 
         private final String className;
