@@ -97,7 +97,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument(props.getProperty(SERVER_KEY));
 
         cmd.addArgument("-configdir");
-        cmd.addArgument(String.format("%s%spt%sflashlight",
+        cmd.addArgument(String.format("%s%spt%sflashlight-server",
                 LanternClientConstants.CONFIG_DIR,
                 File.separatorChar,
                 File.separatorChar));
