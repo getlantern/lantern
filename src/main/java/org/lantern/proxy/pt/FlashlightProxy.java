@@ -14,6 +14,9 @@ import org.littleshoot.util.FiveTuple.Protocol;
  */
 public class FlashlightProxy extends FallbackProxy {
 
+    private static volatile String PINNED_WAN_HOST;
+    private static Object PINNED_WAN_HOST_MUTEX = new Object();
+    
     private final FlashlightMasquerade masquerade;
 
     public FlashlightProxy(final String host, final int priority, 
@@ -40,7 +43,15 @@ public class FlashlightProxy extends FallbackProxy {
         // calling this needs to be initialized as the result of network
         // access.
         if (StringUtils.isBlank(wanHost)) {
-            wanHost = masquerade.determineMasqueradeHost().getKey();
+            // We pin the WAN host globally to avoid spawning multiple
+            // flashlight instances with different WAN hosts
+            synchronized (PINNED_WAN_HOST_MUTEX) {
+                if (PINNED_WAN_HOST == null) {
+                    PINNED_WAN_HOST = masquerade.determineMasqueradeHost()
+                            .getKey();
+                }
+                wanHost = PINNED_WAN_HOST;
+            }
             getPt().setProperty(Flashlight.MASQUERADE_KEY, wanHost);
         }
         return wanHost;
