@@ -144,11 +144,11 @@ public class FlashlightServerManager implements Shutdownable {
         props.setProperty(
                 Flashlight.SERVER_KEY,
                 instanceId + ".getiantem.org");
+        String externalPort = "0";
         if (mapExternalPort) {
-            props.setProperty(
-                    Flashlight.PORTMAP_KEY,
-                    Integer.toString(FLASHLIGHT_EXTERNAL_PORT));
+            externalPort = Integer.toString(FLASHLIGHT_EXTERNAL_PORT);
         }
+        props.setProperty(Flashlight.PORTMAP_KEY, externalPort);
 
         LOGGER.debug("Props: {}", props);
         flashlight = new Flashlight(props);
