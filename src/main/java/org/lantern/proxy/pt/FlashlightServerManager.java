@@ -169,6 +169,14 @@ public class FlashlightServerManager implements Shutdownable {
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
                 hidePortMappingWarning();
+                
+                // We set this to false here because this indicates the port
+                // mapping has succeeded at least once. If our check fails in 
+                // the future, it is unlikely to be because of the port
+                // mapping itself. The user certainly could have moved networks
+                // with a laptop or something, but in that case they're also
+                // unlikely to have moved to a second location where they
+                // have permissions to configure the router.
                 needPortMappingWarning.set(false);
                 try {
                     localAddressOnSuccess = InetAddress.getLocalHost().getHostAddress();
