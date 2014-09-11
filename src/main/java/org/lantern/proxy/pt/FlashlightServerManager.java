@@ -1,6 +1,8 @@
 package org.lantern.proxy.pt;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +55,8 @@ public class FlashlightServerManager implements Shutdownable {
     private volatile ScheduledExecutorService heartbeat;
     private final AtomicBoolean needPortMappingWarning = new AtomicBoolean(true);
     private final AtomicBoolean connectivityCheckFailing = new AtomicBoolean();
+    
+    private String localAddressOnSuccess = "";
     
     @Inject
     public FlashlightServerManager(
@@ -145,11 +149,11 @@ public class FlashlightServerManager implements Shutdownable {
         props.setProperty(
                 Flashlight.SERVER_KEY,
                 instanceId + ".getiantem.org");
+        String externalPort = "0";
         if (mapExternalPort) {
-            props.setProperty(
-                    Flashlight.PORTMAP_KEY,
-                    Integer.toString(FLASHLIGHT_EXTERNAL_PORT));
+            externalPort = Integer.toString(FLASHLIGHT_EXTERNAL_PORT);
         }
+        props.setProperty(Flashlight.PORTMAP_KEY, externalPort);
 
         LOGGER.debug("Props: {}", props);
         flashlight = new Flashlight(props);
@@ -165,29 +169,47 @@ public class FlashlightServerManager implements Shutdownable {
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
                 hidePortMappingWarning();
-                
-                // We set this to false here because this indicates the port
-                // mapping has succeeded at least once. If our check fails in 
-                // the future, it is unlikely to be because of the port
-                // mapping itself. The user certainly could have moved networks
-                // with a laptop or something, but in that case they're also
-                // unlikely to have moved to a second location where they
-                // have permissions to configure the router.
                 needPortMappingWarning.set(false);
+                try {
+                    localAddressOnSuccess = InetAddress.getLocalHost().getHostAddress();
+                } catch (UnknownHostException e) {
+                }
                 if (connectivityCheckFailing.getAndSet(false)) {
                     showPortMappingSuccess();
                 }
             } else {
-                LOGGER.warn("Unable to proxy for external clients!");
+                LOGGER.info("Unable to proxy for external clients!");
                 connectivityCheckFailing.set(true);
                 hidePortMappingSuccess();
-                if (needPortMappingWarning.getAndSet(false)) {
+                if (needPortMappingWarning.getAndSet(false) && shouldShowPortMapping()) {
+                    localAddressOnSuccess = "";
                     showPortMappingWarning();
                 }
                 unregisterPeer();
             }
         }
     };
+    
+    private boolean shouldShowPortMapping() {
+        // Show the port mapping if we've never had a successful mapping.
+        if (StringUtils.isEmpty(localAddressOnSuccess)) {
+            return true;
+        }
+        
+        try {
+            // If our local address has changed, we should show the port mapping
+            // error message. Otherwise, we know it succeeded once and our
+            // local network has not changed, so it's unlikely to be the 
+            // mapping that's failing.
+            final String cur = InetAddress.getLocalHost().getHostAddress();
+            return !localAddressOnSuccess.equals(cur);
+        } catch (UnknownHostException e) {
+            LOGGER.warn("Could not get local address?", e);
+        }
+        
+        // We should never get here in practice.
+        return false;
+    }
 
     private boolean registerPeer() {
         Response response = null;
