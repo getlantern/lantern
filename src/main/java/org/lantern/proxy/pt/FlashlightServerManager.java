@@ -1,16 +1,14 @@
 package org.lantern.proxy.pt;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
@@ -56,7 +54,10 @@ public class FlashlightServerManager implements Shutdownable {
     private final AtomicBoolean needPortMappingWarning = new AtomicBoolean(true);
     private final AtomicBoolean connectivityCheckFailing = new AtomicBoolean();
     
-    private String localAddressOnSuccess = "";
+    /**
+     * The last time a mapping succeeded.
+     */
+    private long lastSuccessfulMapping = 0L;
     
     @Inject
     public FlashlightServerManager(
@@ -171,10 +172,7 @@ public class FlashlightServerManager implements Shutdownable {
                 hidePortMappingWarning();
                 
                 needPortMappingWarning.set(true);
-                try {
-                    localAddressOnSuccess = InetAddress.getLocalHost().getHostAddress();
-                } catch (UnknownHostException e) {
-                }
+                lastSuccessfulMapping = System.currentTimeMillis();
                 if (connectivityCheckFailing.getAndSet(false)) {
                     showPortMappingSuccess();
                 }
@@ -182,8 +180,8 @@ public class FlashlightServerManager implements Shutdownable {
                 LOGGER.info("Unable to proxy for external clients!");
                 connectivityCheckFailing.set(true);
                 hidePortMappingSuccess();
-                if (needPortMappingWarning.getAndSet(false) && shouldShowPortMapping()) {
-                    localAddressOnSuccess = "";
+                if (needPortMappingWarning.getAndSet(false) && 
+                        shouldShowPortMappingFailure()) {
                     showPortMappingWarning();
                 }
                 unregisterPeer();
@@ -191,25 +189,16 @@ public class FlashlightServerManager implements Shutdownable {
         }
     };
     
-    private boolean shouldShowPortMapping() {
-        // Show the port mapping if we've never had a successful mapping.
-        if (StringUtils.isEmpty(localAddressOnSuccess)) {
-            return true;
-        }
-        
-        try {
-            // If our local address has changed, we should show the port mapping
-            // error message. Otherwise, we know it succeeded once and our
-            // local network has not changed, so it's unlikely to be the 
-            // mapping that's failing.
-            final String cur = InetAddress.getLocalHost().getHostAddress();
-            return !localAddressOnSuccess.equals(cur);
-        } catch (UnknownHostException e) {
-            LOGGER.warn("Could not get local address?", e);
-        }
-        
-        // We should never get here in practice.
-        return false;
+    /**
+     * Only should the failure message if the last successful mapping was 
+     * sufficiently old.
+     * 
+     * @return <code>true</code> if we should show the mapping failure,
+     * otherwise <code>false</code>
+     */
+    private boolean shouldShowPortMappingFailure() {
+        return System.currentTimeMillis() - lastSuccessfulMapping >
+            5 * DateUtils.MILLIS_PER_MINUTE;
     }
 
     private boolean registerPeer() {
