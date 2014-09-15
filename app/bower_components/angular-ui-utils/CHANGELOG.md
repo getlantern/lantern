@@ -1,60 +1,31 @@
-# [Cha Cha Cha Changes](http://www.youtube.com/watch?v=pl3vxEudif8&t=0m53s)
+<a name="v0.1.0"></a>
+## v0.1.0 (2013-12-29)
 
-## Master
 
-## v0.4.0
-* **Validate directive** has been upgraded
-  * **API BREAKING CHANGE!** now takes expressions instead of function references
-  * You must explicitly specify the $value variable, but you no longer need to create a function
-  * **NEW FEATURE** uiValidateWatch allows you to re-fire a validation rule (or all rules) when a related model changes (confirm_password)
-* **CodeMirror directive** has been updated
-  * Now works with v3.02
-  * **NEW FEATURE** uiRefresh lets you specify an expression to watch for changes to refresh codemirror (useful for modals)
-* **Mask directive** has many new fixes
-* Fixes for **uiDate**
-  * **DateFormat directive** can now be declared in **uiConfig**
-* **uiJq Passthru directive** has upgrades to support a wider variety of directives
-  * Now fires asyncronously post-angular-rendering of the view (**uiDefer** option is now always true)
-  * New **uiRefresh** lets you specify an expression to watch to re-fire the plugin (call $(elm).focus() when a modal opens)
-* **Select2 directive** now adds support for setting the selected item by specifying a simple ID
-  * FINALLY have unit-tests for Select2!
-* **IEShiv** has been simplified and stripped of browser-sniffing code (just use conditional comments)
-* **Calendar directive** now performs better watching of events data
-  * Added optional equalsTracker attr (increment to force update from scope)
-* **Sortable directive** now properly supports connectWith option
-* New **route directive** that sets a boolean based on a pattern match of the current route (useful for tabs/navigation)
-* Refactored **If directive** to be tidier
-* **API BREAKING CHANGE!** **Modal directive** has been completely removed (if you still need it, grab the files from v0.3.x)
+#### Bug Fixes
 
-## v0.3.0
-* New **format** filter
-* Lots of cleanup! Consistent indentation, linting
-* Custom builds via grunt (soon to be leveraged via builder)
-* uiDate now watches options
-* Rewrote ui-keypress (API is not backwards-compatible)
-  * **ui-**keypress has been expanded into **ui-keyup**, **ui-keydown** and **ui-keypress**
-  * The **ui-keypress** can now be used to `$event.preventDefault()` as expected
-  * Multiple combinations are separated by spaces, while multi-key combos are separated by dashes: `'enter alt-space 13-shift':'whatever()'`
-  * The string-notation (__a and be or c and d__) has been dropped completely
-* Can now pass (or globally define) the value uiReset resets to
+* **mark:** TypeError: input is undefined ([5440d6fa](http://github.com/angular-ui/ui-utils/commit/5440d6fa8514ee86efc480b0abbf66cf244889ad))
+* **publisher:**
+  * don't throw error when 'dist/sub' don't exist ([bd319236](http://github.com/angular-ui/ui-utils/commit/bd31923668c0ea80311b9dbe7d72bfbe55956325))
+  * rename sub componenet stuff ([5dcdc379](http://github.com/angular-ui/ui-utils/commit/5dcdc3794efe66112522415aafe9ebe965a274f6))
+* **ui-scroll:**
+  * 'newitems' is not defined. ([796e310a](http://github.com/angular-ui/ui-utils/commit/796e310a26ac43a248c0c732877242890fdda2be))
+  * 'isArray' is not defined. ([3fd7fc47](http://github.com/angular-ui/ui-utils/commit/3fd7fc47de7d05460a55ca42e4afec60d8e8cc4d))
+  * 'setOffset' is not defined. ([32140e04](http://github.com/angular-ui/ui-utils/commit/32140e04be176c4b2a5954d2cf8e9ec3c48a6f5c))
 
-## v0.2.0
-* Unit tests. Unit tests. Unit tests.
-* New **inflector** filter (previously named **prettifier**)
-  * Added 2 alternative modes, now contains: humanize, underscore and variable
-* **Passthrough directive** (uiJq) now fixes common ngModel problems due to trigger(change). Can optionally be disabled
-* Removed **Length Filter** (you can instead do {{ ( myArray | filter: { gender:'m' } ).length }})
-* Added **validate directive**, allows you to pass validation functions
-* **Sortable directive**
-* Fixed **unique filter**
-* **Highlight filter** has had bug fixes
-* **Event directive** has been refactored / improved
-* **Keypress directive** has been refactored / improved
-* New **if-directive** instead of **remove directive** (removed)
-* New **google maps directive**
-* New **animate directive** that transitions the injection of new DOM elements (transitioning the removal of DOM is still not supported yet)
-* Improvements to **scrollfix directive**
 
-## v0.1.0
-* New folder structure
-* Too many to list
+#### Features
+
+* **alias:** Created a new ui-alias module for renaming/combining directives ([1582d54e](http://github.com/angular-ui/ui-utils/commit/1582d54ecaf81cb516a28368c0d409b5d5fe7da9))
+* **grunt:**
+  * add 'changelog' task ([b7fed5a6](http://github.com/angular-ui/ui-utils/commit/b7fed5a6026121d0098f892aa0a221c0d9c14d56), closes [#145](http://github.com/angular-ui/ui-utils/issues/145))
+  * use Angular UI Publisher ([3c209713](http://github.com/angular-ui/ui-utils/commit/3c20971307e50741f88da21cb638077237e56da2), closes [#153](http://github.com/angular-ui/ui-utils/issues/153))
+  * new 'serve' task ([a18ed32c](http://github.com/angular-ui/ui-utils/commit/a18ed32ce134acabe7adc79b41e82ed6c52109ed))
+  * quality code more strict ([332ebff1](http://github.com/angular-ui/ui-utils/commit/332ebff1fdc7edf4d44d64f4796ec2f70e90947f))
+  * use ngmin in the 'dist' task ([93ba905f](http://github.com/angular-ui/ui-utils/commit/93ba905fadfd4d0970d384f7978e19a3561cea65))
+  * add ngmin build all subcomponents in dist/sub ([783140ab](http://github.com/angular-ui/ui-utils/commit/783140abe1b8d6c0f842eceb7fc24a0f16d73ca5))
+* **publisher:**
+  * change travis scripts to work with the component-publisher system ([12d97d3b](http://github.com/angular-ui/ui-utils/commit/12d97d3bf88da86875141093fc164f1537d0dfe2))
+  * add and config component-publisher system ([4cea7ea5](http://github.com/angular-ui/ui-utils/commit/4cea7ea5bb4c47ad74c4f5123121a2896bf6f717))
+* **travis:** add sub component auto publishing :) ([0d64db00](http://github.com/angular-ui/ui-utils/commit/0d64db00a5c50816cbf0b022aa5607fee29d5e2a))
+

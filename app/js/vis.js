@@ -110,12 +110,13 @@ angular.module('app.vis', [])
           .each(function (d) {
             var el = d3.select(this);
             el.attr('d', scope.path).attr('stroke-opacity', 0);
+            el.attr('class', 'COUNTRY_KNOWN');
             if (d.alpha2) {
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'mouse')
                 //.attr('tooltip-trigger', 'click') // uncomment out to make it easier to inspect tooltips when debugging
                 .attr('tooltip-html-unsafe', ttTmpl(d.alpha2));
-              $compile(this)(scope);
+                $compile(this)(scope);
             } else {
               el.attr('class', 'COUNTRY_UNKNOWN');
             }
@@ -311,7 +312,10 @@ angular.module('app.vis', [])
         peerItems.append("path").classed("peer-hover-area", true);
         
         // Configure points and hover areas on each update
-        allPeers.select("g.peer path.peer").attr("d", function(peer) {
+        allPeers.select("g.peer path.peer")
+        .style("opacity", 1.0)
+        .style("fill-opacity", 1.0)
+        .attr("d", function(peer) {
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
         }).attr("class", function(peer) {
           var result = "peer " + peer.mode + " " + peer.type;
@@ -320,9 +324,10 @@ angular.module('app.vis', [])
           }
           return result;
         });
-        
+
         // Configure hover areas for all peers
-        allPeers.select("g.peer path.peer-hover-area").attr("d", function(peer) {
+        allPeers.select("g.peer path.peer-hover-area")
+        .attr("d", function(peer) {
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 8)
         });
         
@@ -453,6 +458,13 @@ function VisCtrl($scope, $compile, $window, $timeout, $filter, logFactory, model
   .call($scope.zoom)
   .append("g").attr("id", "countries").attr("countries", "")
   .append("g").attr("id", "peers").attr("peers", "");
+  d3.select("#map").append("path")
+    .attr("id", "self")
+    .attr("self", "")
+    .attr("class", "{{ model.settings.mode }}")
+    .attr("ng-d", "{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 5) }}")
+    .attr("tooltip-placement", "mouse");
+
   $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
 
   var countries = angular.element( document.querySelector( '#countries' ) );

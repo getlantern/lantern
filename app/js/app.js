@@ -9,12 +9,12 @@ var app = angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
-  'ui.event',
-  'ui.if',
+  'ui.utils',
   'ui.showhide',
   'ui.select2',
   'ui.validate',
-  'ui.bootstrap'
+  'ui.bootstrap',
+  'ui.bootstrap.tpls'
   ])
   .directive('dynamic', function ($compile) {
     return {
@@ -27,15 +27,6 @@ var app = angular.module('app', [
         });
       }
     };
-  })
-  // angular ui bootstrap config
-  .config(function($dialogProvider) {
-    $dialogProvider.options({
-      backdrop: false,
-      dialogFade: true,
-      keyboard: false,
-      backdropClick: false
-    });
   })
   .config(function($tooltipProvider) {
     $tooltipProvider.options({

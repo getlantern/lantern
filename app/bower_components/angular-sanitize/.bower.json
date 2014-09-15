@@ -1,18 +1,18 @@
 {
   "name": "angular-sanitize",
-  "version": "1.0.8",
+  "version": "1.2.24",
   "main": "./angular-sanitize.js",
   "dependencies": {
-    "angular": "1.0.8"
+    "angular": "1.2.24"
   },
   "homepage": "https://github.com/angular/bower-angular-sanitize",
-  "_release": "1.0.8",
+  "_release": "1.2.24",
   "_resolution": {
     "type": "version",
-    "tag": "v1.0.8",
-    "commit": "99e5d0b21030ab92a1a9bda044a883d23d764b1b"
+    "tag": "v1.2.24",
+    "commit": "0cf487e8e13ff5d61388ed7359bed7386724385e"
   },
   "_source": "git://github.com/angular/bower-angular-sanitize.git",
-  "_target": "1.0.8",
+  "_target": "*",
   "_originalSource": "angular-sanitize"
 }

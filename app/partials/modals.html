@@ -11,7 +11,7 @@
 -->
 
 <!-- XXX DRY - contact modal, settings load failure modal -->
-<div ng-controller="UnexpectedStateCtrl" modal="show">
+<div ng-controller="UnexpectedStateCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
   </div>
@@ -54,7 +54,7 @@
 </div>
 
 <!-- XXX DRY - contact modal, unexpected state modal -->
-<div ng-controller="SettingsLoadFailureCtrl" modal="show">
+<div ng-controller="SettingsLoadFailureCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
@@ -94,7 +94,7 @@
   </div>
 </div>
 
-<div ng-controller="WelcomeCtrl" modal="show">
+<div ng-controller="WelcomeCtrl" ng-show="modal">
   <div class="modal-body" id="welcome">
     <div class="logo">
       <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
@@ -133,7 +133,7 @@
   </div>
 </div>
 
-<div ng-controller="SponsorToContinueCtrl" modal="show">
+<div ng-controller="SponsorToContinueCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | i18n }}</h3>
   </div>
@@ -151,7 +151,7 @@
   </div>
 </div>
 
-<div ng-controller="AuthorizeCtrl" modal="show">
+<div ng-controller="AuthorizeCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
   </div>
@@ -178,7 +178,7 @@
   </div>
 </div>
 
-<div modal="model.modal == MODAL.connecting">
+<div ng-show="model.modal == MODAL.connecting">
   <div class="modal-header">
     <h3>{{ 'CONNECTING_TITLE' | i18n }}</h3>
   </div>
@@ -190,7 +190,7 @@
   </div>
 </div>
 
-<div ng-controller="ConfirmResetCtrl" modal="show">
+<div ng-controller="ConfirmResetCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
   </div>
@@ -203,7 +203,7 @@
   </div>
 </div>
 
-<div ng-controller="GiveModeForbiddenCtrl" modal="show">
+<div ng-controller="GiveModeForbiddenCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
   </div>
@@ -216,7 +216,7 @@
   </div>
 </div>
 
-<div ng-controller="NotInvitedCtrl" modal="show">
+<div ng-controller="NotInvitedCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
   </div>
@@ -228,7 +228,7 @@
   </div>
 </div>
 
-<div ng-controller="ProxiedSitesCtrl" modal="show">
+<div ng-controller="ProxiedSitesCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
@@ -290,7 +290,7 @@
   </div>
 </div>
 
-<div ng-controller="LanternFriendsCtrl" modal="show">
+<div ng-controller="LanternFriendsCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-friends"></i>
@@ -412,7 +412,7 @@
   </div>
 </div>
 
-<div ng-controller="FinishedCtrl" modal="show">
+<div ng-controller="FinishedCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
@@ -440,7 +440,7 @@
 </div>
 
 <!-- XXX DRY - settings load failure modal, unexpected state modal -->
-<div ng-controller="ContactCtrl" modal="show">
+<div ng-controller="ContactCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
@@ -472,7 +472,7 @@
   </div>
 </div>
 
-<div ng-controller="AboutCtrl" modal="show">
+<div ng-controller="AboutCtrl" ng-show="modal">
   <div class="modal-header about">
     <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
@@ -507,7 +507,7 @@
   </div>
 </div>
 
-<div ng-controller="UpdateAvailableCtrl" modal="show">
+<div ng-controller="UpdateAvailableCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
   </div>
@@ -544,7 +544,7 @@
   </div>
 </div>
 
-<div ng-controller="SponsorCtrl" modal="show">
+<div ng-controller="SponsorCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
   </div>
@@ -572,7 +572,7 @@
   </div>
 </div>
 
-<div ng-controller="SettingsCtrl" modal="show">
+<div ng-controller="SettingsCtrl" ng-show="modal">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-gear"></i>
@@ -672,7 +672,7 @@
   </div>
 </div>
 
-<div ng-controller="ScenariosCtrl" modal="model.modal == MODAL.scenarios">
+<div ng-controller="ScenariosCtrl" ng-show="model.modal == MODAL.scenarios">
   <div class="modal-header centered">
     <h3>Developer</h3>
   </div>

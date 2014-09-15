@@ -7678,17 +7678,11 @@ body[dir=rtl] #latestDetails dd {
   fill: rgba(6, 21, 50, 0.1);
 }
 
-#countries path {
-  -webkit-transition: all 0.5s ease;
-  transition: all 0.5s ease;
-  stroke: #364d58;
-  stroke-width: 0px;
-}
 #countries path.COUNTRY_KNOWN {
-    stroke: #364d58;
-    stroke-width: 0.2px;
-    fill: black;
-    fill-opacity: 0.2;
+  stroke: #364d58;
+  fill-opacity: 0.2;
+  stroke-width: 0.2px;
+  fill: black;
 }
 #countries path.censors {
   fill-opacity: 0.3;
@@ -7727,10 +7721,14 @@ path.peer.connected {
 
 path.peer.get, #self.get {
   fill: #ffcc66;
+  fill-opacity: 1;
+  opacity: 1;
 }
 
 path.peer.give, #self.give {
   fill: #aad092;
+  fill-opacity: 1;
+  opacity: 1;
 }
 
 path.peer.unknown {
@@ -7739,6 +7737,8 @@ path.peer.unknown {
 
 path.peer.cloud, path.peer.laeproxy {
   fill: green !important;
+  fill-opacity: 1;
+  opacity: 1;
 }
 
 path.connection {
