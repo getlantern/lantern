@@ -68,11 +68,6 @@ angular.module('app.vis', [])
           strokeOpacityScale = d3.scale.linear()
             .clamp(true).domain([0, 0]).range([0, 1]);
 
-      // Handle resize
-      scope.$on('mapResized', function () {
-        d3.selectAll('#countries path').attr('d', scope.path);
-      });
-
       // detect reset
       scope.$watch('model.setupComplete', function (newVal, oldVal) {
         if (oldVal && !newVal) {
@@ -106,8 +101,12 @@ angular.module('app.vis', [])
         if (error) throw error;
         //XXX need to do something like this to use latest topojson:
         //var f = topojson.feature(world, world.objects.countries).features;
-        var f = topojson.object(world, world.objects.countries).geometries;
-        d3.select(element[0]).selectAll('path').data(f).enter().append("g").append('path')
+        var countries = topojson.object(world, world.objects.countries).geometries;
+        var country = scope.svg.selectAll(".country").data(countries);
+        country.enter()
+          .append("g").append("path")
+          .attr("class", "country")
+          .attr("title", function(d,i) { return d.name; })
           .each(function (d) {
             var el = d3.select(this);
             el.attr('d', scope.path).attr('stroke-opacity', 0);
@@ -121,6 +120,8 @@ angular.module('app.vis', [])
               el.attr('class', 'COUNTRY_UNKNOWN');
             }
           });
+          var peers = angular.element( document.querySelector( '#peers' ) );
+          $compile(peers)(scope);
       });
       
       /*
@@ -424,19 +425,49 @@ angular.module('app.vis', [])
     };
   });
 
-function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
+function VisCtrl($scope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
+      vis = d3.select("#vis"),
+      width = document.getElementById('vis').offsetWidth,
+      height = width / 2,
       model = modelSrvc.model,
-      projection = d3.geo.mercator(),
+      //projection = d3.geo.mercator(),
+      projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 
   $scope.projection = projection;
 
+  $scope.redraw = function() {
+      $scope.svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+  }
+
+  $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
+                $scope.redraw);
+
+  $scope.svg = d3.select("#vis").append("svg")
+  .attr("width", "100%")
+  .attr("id", "map")
+  .attr("resizable", "")
+  .attr("height", "100%")
+  .call($scope.zoom)
+  .append("g").attr("id", "countries").attr("countries", "")
+  .append("g").attr("id", "peers").attr("peers", "");
+  $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
+
+  var countries = angular.element( document.querySelector( '#countries' ) );
+  $compile(countries)($scope);
+
+
   $scope.path = function (d, pointRadius) {
-    path.pointRadius(pointRadius || DEFAULT_POINT_RADIUS);
-    // https://code.google.com/p/chromium/issues/detail?id=231626
-    return path(d) || 'M0 0';
+      var scale;
+      if ($scope.zoom.scale() < 3) {
+          scale = 2;       
+      } else {
+          scale = Math.max(2.0/$scope.zoom.scale(), 0.5);
+      }
+      path.pointRadius(pointRadius || scale);
+      return path(d) || 'M0 0';
   };
 
   $scope.pathConnection = function (peer) {

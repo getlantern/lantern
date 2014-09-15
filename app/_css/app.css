@@ -7682,9 +7682,13 @@ body[dir=rtl] #latestDetails dd {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   stroke: #364d58;
-  stroke-width: 1px;
-  fill: black;
-  fill-opacity: 0.2;
+  stroke-width: 0px;
+}
+#countries path.COUNTRY_KNOWN {
+    stroke: #364d58;
+    stroke-width: 0.2px;
+    fill: black;
+    fill-opacity: 0.2;
 }
 #countries path.censors {
   fill-opacity: 0.3;
@@ -7738,9 +7742,9 @@ path.peer.cloud, path.peer.laeproxy {
 }
 
 path.connection {
-  fill: none;
-  stroke-width: 1px;
-  stroke: white;
+  fill: none !important;
+  stroke-width: 0.5px !important;
+  stroke: white !important;
   -webkit-transition: stroke-opacity 0.5s ease;
   transition: stroke-opacity 0.5s ease;
 }
