@@ -458,13 +458,6 @@ function VisCtrl($scope, $compile, $window, $timeout, $filter, logFactory, model
   .call($scope.zoom)
   .append("g").attr("id", "countries").attr("countries", "")
   .append("g").attr("id", "peers").attr("peers", "");
-  d3.select("#map").append("path")
-    .attr("id", "self")
-    .attr("self", "")
-    .attr("class", "{{ model.settings.mode }}")
-    .attr("ng-d", "{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 5) }}")
-    .attr("tooltip-placement", "mouse");
-
   $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
 
   var countries = angular.element( document.querySelector( '#countries' ) );
