@@ -13,6 +13,8 @@ name=$1
 newestName=$2
 release=$3
 
+which s3cmd || die "You'll need the s3cmd tool to run this. See https://github.com/s3tools/s3cmd and https://github.com/s3tools/s3cmd/blob/master/INSTALL"
+
 echo "Release version: $release"
 
 # DRY: copys3file.py
@@ -23,7 +25,8 @@ echo "Uploading to http://cdn.getlantern.org/$name..."
 if [ $LOCAL_BUILD ] ; then
   echo "Not uploading local build"
 else
-  aws -putp $bucket $name || die "Could not upload"
+  s3cmd put -P $name s3://$bucket
+  #aws -putp $bucket $name || die "Could not upload"
   echo "Uploaded lantern to http://cdn.getlantern.org/$name"
   echo "Also available at $url"
 fi
@@ -48,7 +51,8 @@ if $release ; then
   shasum $name | cut -d " " -f 1 > $newestName.sha1
 
   echo "Uploading SHA-1 `cat $newestName.sha1`"
-  aws -putp $bucket $newestName.sha1 || die "Could not upload sha1"
+  s3cmd put -P $newestName.sha1 s3://$bucket
+  #aws -putp $bucket $newestName.sha1 || die "Could not upload sha1"
 
   ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
 else
