@@ -17,6 +17,7 @@ import org.lantern.util.StaticHttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.inject.Singleton;
 
 /**
@@ -78,7 +79,7 @@ public class GeoIpLookupService {
                 final String geoStr;
                 try {
                     is = response.getEntity().getContent();
-                    geoStr = IOUtils.toString(is);
+                    geoStr = IOUtils.toString(is, Charsets.UTF_8);
                 } catch (IOException e) {
                     LOG.warn("Error reading response ", e);
                     return new GeoData();
@@ -87,7 +88,7 @@ public class GeoIpLookupService {
                 }
                 
                 try {
-                    LOG.debug("Geo lookup response " + geoStr);
+                    LOG.info("Geo lookup response " + geoStr);
                     return JsonUtils.OBJECT_MAPPER.readValue(geoStr,
                             GeoData.class);
                 } catch (Exception e) {

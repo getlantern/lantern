@@ -660,7 +660,7 @@ public class Launcher {
                 model,
                 instance(ProxySocketFactory.class),
                 instance(Censored.class),
-                new PatternLayout("%-5p [%t] %c{2}.%M (%F:%L) - %m%n"));
+                new PatternLayout("[%t] %c{2}.%M (%F:%L) - %m%n"));
         final AsyncAppender asyncAppender = new AsyncAppender();
         asyncAppender.addAppender(papertrailAppender);
         asyncAppender.setThreshold(Level.DEBUG);
