@@ -166,7 +166,7 @@ public class ChromeRunner {
         final String uri = StaticSettings.getLocalEndpoint(port, prefix)
                 + "/index.html";
         final String executable = determineExecutable();
-        if (executable == null) {
+        if (executable == null && SystemUtils.IS_OS_WINDOWS) {
             // At this point we've effectively only searched for Chrome and
             // have not found it. If the user has firefox, though, we should
             // use it. This checks that. Note this is windows only!
