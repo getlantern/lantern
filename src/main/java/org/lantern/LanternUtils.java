@@ -64,6 +64,7 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
+import org.lantern.win.Registry;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -1208,5 +1209,29 @@ public class LanternUtils {
             return new File("./install/linux_x86_64", fileName);
         }
         return new File("./install/linux_x86_32", fileName);
+    }
+    
+    /**
+     * Checks if FireFox is the user's default browser on Windows. As of this
+     * writing, this is only tested on Windows 8.1 but should theoretically
+     * work on other Windows versions as well.
+     * 
+     * @return <code>true</code> if Firefox is the user's default browser,
+     * otherwise <code>false</code>.
+     */
+    public static boolean firefoxIsDefaultBrowser() {
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            return false;
+        }
+        final String key = "Software\\Microsoft\\Windows\\Shell\\Associations"
+                + "\\UrlAssociations\\http\\UserChoice";
+        final String name = "ProgId";
+        final String result = Registry.read(key, name);
+        if (StringUtils.isBlank(result)) {
+            LOG.error("Could not find browser registry entry on: {}, {}", 
+                SystemUtils.OS_NAME, SystemUtils.OS_VERSION);
+            return false;
+        }
+        return result.toLowerCase().contains("firefox");
     }
 }
