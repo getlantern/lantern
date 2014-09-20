@@ -136,6 +136,7 @@ public class ChromeRunner {
                 return path;
             }
         }
+        
         final String msg = 
                 "Could not find Chrome on Windows!! Searched paths:\n"+paths;
         log.warn(msg);
@@ -161,10 +162,20 @@ public class ChromeRunner {
         final String endpoint = StaticSettings.getLocalEndpoint(port, prefix);
         log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
+        
+        final String uri = StaticSettings.getLocalEndpoint(port, prefix)
+                + "/index.html";
         final String executable = determineExecutable();
-        if ((LanternUtils.isDevMode() && model.getSettings().isChrome()) || executable == null) {
-            String uri = StaticSettings.getLocalEndpoint(port, prefix)
-                    + "/index.html";
+        if (executable == null) {
+            // At this point we've effectively only searched for Chrome and
+            // have not found it. If the user has firefox, though, we should
+            // use it. This checks that. Note this is windows only!
+            if (LanternUtils.firefoxIsDefaultBrowser()) {
+                openSystemDefaultBrowser(uri);
+            } else {
+                throw new UnsupportedOperationException("Could not find Chrome!");
+            }
+        } else if ((LanternUtils.isDevMode() && model.getSettings().isChrome()) || executable == null) {
             openSystemDefaultBrowser(uri);
         } else {
             commands.add(executable);
