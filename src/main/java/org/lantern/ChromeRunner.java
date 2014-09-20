@@ -166,17 +166,23 @@ public class ChromeRunner {
         final String uri = StaticSettings.getLocalEndpoint(port, prefix)
                 + "/index.html";
         final String executable = determineExecutable();
-        if (executable == null && SystemUtils.IS_OS_WINDOWS) {
-            // At this point we've effectively only searched for Chrome and
-            // have not found it. If the user has firefox, though, we should
-            // use it. This checks that. Note this is windows only!
-            if (LanternUtils.firefoxIsDefaultBrowser()) {
+        if (LanternUtils.isDevMode() && model.getSettings().isChrome()) {
+            openSystemDefaultBrowser(uri);
+        } else if (executable == null) {
+            if (!SystemUtils.IS_OS_WINDOWS) {
                 openSystemDefaultBrowser(uri);
             } else {
-                throw new UnsupportedOperationException("Could not find Chrome!");
+                // At this point we've effectively only searched for Chrome and
+                // have not found it. If the user has firefox, though, we should
+                // use it. This checks that. Note this is windows only!
+                if (LanternUtils.firefoxIsDefaultBrowser()) {
+                    openSystemDefaultBrowser(uri);
+                } else {
+                    // This will trigger a message telling the user they need
+                    // to install Chrome.
+                    throw new UnsupportedOperationException("Could not find Chrome!");
+                }
             }
-        } else if ((LanternUtils.isDevMode() && model.getSettings().isChrome()) || executable == null) {
-            openSystemDefaultBrowser(uri);
         } else {
             commands.add(executable);
             if (SystemUtils.IS_OS_MAC_OSX) {
