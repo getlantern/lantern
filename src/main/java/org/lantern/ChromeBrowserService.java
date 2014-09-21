@@ -74,7 +74,7 @@ public class ChromeBrowserService implements BrowserService {
             this.messageService.showMessage("Chrome Required", 
                 "We're sorry, but Lantern requires you to have Google Chrome " +
                 "to run successfully. You can download Google Chrome from " +
-                "https://www.google.com/chrome/. Once Chrome is installed, " +
+                "<a href='https://www.google.com/chrome/'>https://www.google.com/chrome/</a>. Once Chrome is installed, " +
                 "please restart Lantern.");
             log.info("Lantern requires Google Chrome, exiting");
             System.exit(0);
