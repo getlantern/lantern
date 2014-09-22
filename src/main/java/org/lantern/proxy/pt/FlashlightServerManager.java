@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
@@ -50,8 +51,13 @@ public class FlashlightServerManager implements Shutdownable {
     private final Messages msgs;
     private volatile Flashlight flashlight;
     private volatile ScheduledExecutorService heartbeat;
-    private final AtomicBoolean needPortMappingWarning = new AtomicBoolean();
+    private final AtomicBoolean needPortMappingWarning = new AtomicBoolean(true);
     private final AtomicBoolean connectivityCheckFailing = new AtomicBoolean();
+    
+    /**
+     * The last time a mapping succeeded.
+     */
+    private long lastSuccessfulMapping = 0L;
     
     @Inject
     public FlashlightServerManager(
@@ -164,22 +170,36 @@ public class FlashlightServerManager implements Shutdownable {
             if (externallyAccessible) {
                 LOGGER.debug("Confirmed able to proxy for external clients!");
                 hidePortMappingWarning();
+                
                 needPortMappingWarning.set(true);
+                lastSuccessfulMapping = System.currentTimeMillis();
                 if (connectivityCheckFailing.getAndSet(false)) {
                     showPortMappingSuccess();
                 }
-                //registerPeer();
             } else {
-                LOGGER.warn("Unable to proxy for external clients!");
+                LOGGER.info("Unable to proxy for external clients!");
                 connectivityCheckFailing.set(true);
                 hidePortMappingSuccess();
-                if (needPortMappingWarning.getAndSet(false)) {
+                if (needPortMappingWarning.getAndSet(false) && 
+                        shouldShowPortMappingFailure()) {
                     showPortMappingWarning();
                 }
                 unregisterPeer();
             }
         }
     };
+    
+    /**
+     * Only should the failure message if the last successful mapping was 
+     * sufficiently old.
+     * 
+     * @return <code>true</code> if we should show the mapping failure,
+     * otherwise <code>false</code>
+     */
+    private boolean shouldShowPortMappingFailure() {
+        return System.currentTimeMillis() - lastSuccessfulMapping >
+            5 * DateUtils.MILLIS_PER_MINUTE;
+    }
 
     private boolean registerPeer() {
         Response response = null;

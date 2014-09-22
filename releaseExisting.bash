@@ -14,6 +14,7 @@ then
     die "$0: Received $# args, expected base name and gneeric installer base name, as in 'lantern-1.0.0-beta7-789a299 lantern-installer'"
 fi
 
+which s3cmd || die "You'll need the s3cmd tool to run this. See https://github.com/s3tools/s3cmd and https://github.com/s3tools/s3cmd/blob/master/INSTALL"
 baseName=$1
 bucket="lantern"
 names=($baseName.exe $baseName.dmg $baseName-32-bit.deb $baseName-64-bit.deb)
@@ -59,6 +60,7 @@ do
   shasum $name | cut -d " " -f 1 > $newestName.sha1
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   aws -putp $bucket $newestName.sha1
+  s3cmd put -P $newestName.sha1 s3://$bucket
 
   ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
 done
