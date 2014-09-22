@@ -118,7 +118,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             // This will happen when the user cancels oauth.
             log.debug("Did not get authorization code in params: {}", params);
             final String error = params.get("error");
-            log.debug("Got error: {}", error);
+            log.error("Got error: {}", error);
             log.debug("Setting modal on model: {}", model);
             this.model.setModal(Modal.authorize);
             redirectToDashboard(resp);
