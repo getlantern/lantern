@@ -51,7 +51,7 @@ public class XmppConnector {
     }
 
     private void connect() {
-        log.debug("Setting gtalk authorized");
+        log.debug("Connecting to XMPP");
 
         if (!model.isSetupComplete()) {
             log.debug("Still setting up...");
@@ -92,7 +92,6 @@ public class XmppConnector {
             xmppHandler.connect();
         } catch (final CredentialException e) {
             log.error("Could not log in with OAUTH?", e);
-            Events.syncModal(model, Modal.authorize);
         } catch (final IOException e) {
             log.info("We can't connect (internet connection died?). " +
                 "The XMPP layer should automatically retry.", e);
