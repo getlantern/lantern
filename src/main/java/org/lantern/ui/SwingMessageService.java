@@ -64,7 +64,9 @@ public class SwingMessageService implements MessageService {
     }
 
     private void doShowMessage(String title, String message) {
-        showMessageDialog(null, message, title, INFORMATION_MESSAGE | OK_OPTION);
+        final String html = 
+                "<html><body><div style='width: 280px;'>"+message+"</div></body></html>";
+        showMessageDialog(null, html, title, INFORMATION_MESSAGE | OK_OPTION);
     }
 
     /**
