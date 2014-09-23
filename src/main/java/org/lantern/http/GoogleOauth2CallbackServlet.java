@@ -3,6 +3,7 @@ package org.lantern.http;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
 import org.lantern.MessageKey;
@@ -43,6 +46,8 @@ import org.lantern.state.SyncPath;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Charsets;
 
 /**
  * Servlet for handling OAuth callbacks from Google. The associated code is
@@ -240,11 +245,20 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
             log.debug("Got response status: {}", response.getStatusLine());
             final HttpEntity responseEntity = response.getEntity();
-            final String body = IOUtils.toString(responseEntity.getContent());
+            final String body = IOUtils.toString(responseEntity.getContent(), 
+                    Charsets.UTF_8);
             EntityUtils.consume(responseEntity);
 
-            final Map<String, String> oauthToks =
-                    JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
+            final Map<String, String> oauthToks;
+            try {
+                oauthToks = JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
+            } catch (final JsonParseException e) {
+                log.error("Could not parse JSON: "+body, e);
+                throw e;
+            } catch (final JsonMappingException e) {
+                log.error("Could not map JSON: "+body, e);
+                throw e;
+            }
             log.debug("Got oath data: {}", oauthToks);
             return oauthToks;
         } finally {
