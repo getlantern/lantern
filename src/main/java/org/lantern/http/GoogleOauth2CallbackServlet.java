@@ -3,7 +3,6 @@ package org.lantern.http;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -228,14 +227,15 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final HttpClient httpClient) throws IOException {
         final HttpPost post =
             new HttpPost("https://accounts.google.com/o/oauth2/token");
+        final List<? extends NameValuePair> nvps = Arrays.asList(
+            new BasicNameValuePair("code", code),
+            new BasicNameValuePair("client_id", model.getSettings().getClientID()),
+            new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
+            new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
+            new BasicNameValuePair("grant_type", "authorization_code")
+            );
         try {
-            final List<? extends NameValuePair> nvps = Arrays.asList(
-                new BasicNameValuePair("code", code),
-                new BasicNameValuePair("client_id", model.getSettings().getClientID()),
-                new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
-                new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
-                new BasicNameValuePair("grant_type", "authorization_code")
-                );
+
             final HttpEntity entity =
                 new UrlEncodedFormEntity(nvps, LanternConstants.UTF8);
             post.setEntity(entity);
@@ -243,11 +243,20 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             log.debug("About to execute post!");
             final HttpResponse response = httpClient.execute(post);
 
-            log.debug("Got response status: {}", response.getStatusLine());
+            final StatusLine line = response.getStatusLine();
+            log.debug("Got response status: {}", line);
             final HttpEntity responseEntity = response.getEntity();
             final String body = IOUtils.toString(responseEntity.getContent(), 
                     Charsets.UTF_8);
             EntityUtils.consume(responseEntity);
+            
+            final int statusCode = line.getStatusCode();
+            if (statusCode < 200 || statusCode > 299) {
+                final String msg = 
+                        "Unexpected status code: "+statusCode+ " with body "+body;
+                log.error(msg);
+                throw new IOException(msg);
+            }
 
             final Map<String, String> oauthToks;
             try {
