@@ -58,7 +58,6 @@ public class PapertrailAppender extends AppenderSkeleton {
 
     @Override
     protected void append(LoggingEvent event) {
-        System.err.println("Appending...");
         if (!model.getSettings().isAutoReport()) {
             // Don't report anything if the user doesn't have it turned on.
             return;
@@ -103,8 +102,6 @@ public class PapertrailAppender extends AppenderSkeleton {
                     .printStackTrace(writer);
             writer.close();
         }
-        
-        System.err.println(message.toString());
         papertrail.log(message.toString());
     }
 
