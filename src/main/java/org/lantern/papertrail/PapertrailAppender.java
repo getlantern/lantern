@@ -81,7 +81,7 @@ public class PapertrailAppender extends AppenderSkeleton {
         // Start each line of the message off with a prefix that gives some
         // metadata
         final String prefix = String.format(
-                "Lantern Client (%1$s / %2$s / %3$s / %4$s / %5$s) - %6$-6s ",
+                "Lantern Client (%1$s / %2$s / %3$s / %4$s / %5$s) - %6$-5s ",
                 model.getInstanceId(),
                 model.getLocation().getCountry(),
                 SystemUtils.OS_NAME,
