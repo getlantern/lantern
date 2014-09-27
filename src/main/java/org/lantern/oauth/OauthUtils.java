@@ -17,6 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import org.lantern.LanternUtils;
 import org.lantern.TokenResponseEvent;
 import org.lantern.event.Events;
 import org.lantern.event.RefreshTokenEvent;
@@ -56,8 +57,6 @@ public class OauthUtils {
 
     private final Model model;
     
-    private static volatile TokenResponse lastResponse;
-
     private final HttpClientFactory httpClientFactory;
 
     private static GoogleClientSecrets secrets = null;
@@ -151,15 +150,16 @@ public class OauthUtils {
             final String refresh) 
             throws IOException, CredentialException {
         LOG.debug("Obtaining access token...");
-        if (lastResponse != null) {
-            LOG.debug("We have a cached response...");
-            final long now = System.currentTimeMillis();
-            if (now < model.getSettings().getExpiryTime()) {
-                LOG.debug("Access token hasn't expired yet");
-                return lastResponse;
-            } else {
-                LOG.debug("Access token expired!");
-            }
+        LOG.debug("We have a cached response...");
+        final long now = System.currentTimeMillis();
+        final long expiryTime = model.getSettings().getExpiryTime();
+        if (now < expiryTime) {
+            LOG.debug("Access token hasn't expired yet");
+            final TokenResponse response = new TokenResponse();
+            response.setAccessToken(model.getSettings().getAccessToken());
+            response.setRefreshToken(model.getSettings().getRefreshToken());
+        } else {
+            LOG.debug("Access token expired!");
         }
         final ApacheHttpTransport httpTransport = 
                 new ApacheHttpTransport(httpClient);
@@ -177,33 +177,11 @@ public class OauthUtils {
                 .setClientAuthentication(clientAuth).execute();
             
             final long expiry = response.getExpiresInSeconds();
-            LOG.info("Got expiry time: {}", expiry);
-            
             //LOG.info("Got response: {}", response);
             final Settings set = this.model.getSettings();
-            final String accessTok = response.getAccessToken();
-            if (StringUtils.isNotBlank(accessTok)) {
-                set.setAccessToken(accessTok);
-            } else {
-                LOG.warn("Blank access token?");
-            }
-            
-            set.setExpiryTime(System.currentTimeMillis() + 
-                    ((expiry-10) * 1000));
-            set.setUseGoogleOAuth2(true);
-            // If the server sent us a new refresh token, store it.
-            final String tok = response.getRefreshToken();
-            if (StringUtils.isNotBlank(tok)) {
-                set.setRefreshToken(tok);
-                Events.asyncEventBus().post(new RefreshTokenEvent(tok));
-            } 
-            
-            // Could be null for testing.
-            if (this.modelIo != null) {
-                this.modelIo.write();
-            }
-            lastResponse = response;
-            return lastResponse;
+            LanternUtils.setOauth(set, response.getRefreshToken(), 
+                    response.getAccessToken(), expiry, modelIo);
+            return response;
         } catch (final TokenResponseException e) {
             final String msg = e.getMessage();
             final CredentialException ce;

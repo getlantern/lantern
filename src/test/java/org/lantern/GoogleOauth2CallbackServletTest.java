@@ -24,7 +24,7 @@ public class GoogleOauth2CallbackServletTest {
                    new GoogleOauth2CallbackServlet(null, null, null, 
                        null, factory, null);
                
-               final Map<String, String> allToks = new HashMap<String, String>();
+               final Map<String, Object> allToks = new HashMap<String, Object>();
                allToks.put("access_token", "invalidcode");
                return servlet.fetchEmail(allToks, factory.newClient());
             } 
