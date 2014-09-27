@@ -77,7 +77,11 @@ public class LanternModule extends AbstractModule {
     private UpnpService upnpService;
     private GeoIpLookupService geoIpLookupService;
     private final org.apache.commons.cli.CommandLine commandLine;
-    
+
+    private static final String FIREFOX_APP_ID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+    private static final String FLASHLIGHT_FIREFOX_EXT_ID = "flashlight-firefox-addon@getlantern.org.xpi";
+    private static final String FLASHLIGHT_FIREFOX_EXT_SRC_PATH = "browser-extensions/flashlight-firefox-addon/flashlight-cert-installer.xpi";
+
     public LanternModule(final String[] args) {
         final Cli cli = new Cli(args);
         this.commandLine = cli.getParsedCommandLine();
@@ -259,7 +263,7 @@ public class LanternModule extends AbstractModule {
      * @throws IOException If there's an error copying the extension.
      */
     public void copyFireFoxExtension() throws IOException {
-        log.info("Copying FireFox extension");
+        log.info("Copying Flashlight FireFox extension");
         final File dir = getExtensionDir();
         if (!dir.isDirectory()) {
             log.info("Making FireFox extension directory...");
@@ -271,31 +275,30 @@ public class LanternModule extends AbstractModule {
                 throw new IOException("Could not create ext dir: "+dir);
             }
         }
-        final String extName = "lantern@getlantern.org";
-        final File dest = new File(dir, extName);
-        final File ffDir = new File("firefox/"+extName);
-        if (dest.exists() && !FileUtils.isFileNewer(ffDir, dest)) {
+        final File dest = new File(dir, FLASHLIGHT_FIREFOX_EXT_ID);
+        final File src = new File(FLASHLIGHT_FIREFOX_EXT_SRC_PATH);
+        if (dest.exists() && !FileUtils.isFileNewer(src, dest)) {
             log.info("Extension already exists and ours is not newer");
             return;
         }
-        if (!ffDir.isDirectory()) {
-            log.error("No extension directory found at {}", ffDir);
+        if (!src.isFile()) {
+            log.error("No extension directory found at {}", src);
             throw new IOException("Could not find extension?");
         }
-        FileUtils.copyDirectoryToDirectory(ffDir, dir);
-        log.info("Copied FireFox extension from {} to {}", ffDir, dir);
+        FileUtils.copyFile(src, dest);
+        log.info("Copied FireFox extension from {} to {}", src, dest);
     }
 
     public File getExtensionDir() {
         final File userHome = SystemUtils.getUserHome();
         if (SystemUtils.IS_OS_WINDOWS) {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
-            return new File(ffDir, "Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+            return new File(ffDir, "Extensions/" + FIREFOX_APP_ID);
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             return new File(userHome,
-                "Library/Application Support/Mozilla/Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+                "Library/Application Support/Mozilla/Extensions/" + FIREFOX_APP_ID);
         } else {
-            return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+            return new File(userHome, "Mozilla/extensions/" + FIREFOX_APP_ID);
         }
     }
 
