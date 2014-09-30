@@ -24,6 +24,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
 import org.lantern.MessageKey;
@@ -43,6 +45,8 @@ import org.lantern.state.SyncPath;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Charsets;
 
 /**
  * Servlet for handling OAuth callbacks from Google. The associated code is
@@ -223,14 +227,15 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final HttpClient httpClient) throws IOException {
         final HttpPost post =
             new HttpPost("https://accounts.google.com/o/oauth2/token");
+        final List<? extends NameValuePair> nvps = Arrays.asList(
+            new BasicNameValuePair("code", code),
+            new BasicNameValuePair("client_id", model.getSettings().getClientID()),
+            new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
+            new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
+            new BasicNameValuePair("grant_type", "authorization_code")
+            );
         try {
-            final List<? extends NameValuePair> nvps = Arrays.asList(
-                new BasicNameValuePair("code", code),
-                new BasicNameValuePair("client_id", model.getSettings().getClientID()),
-                new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
-                new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
-                new BasicNameValuePair("grant_type", "authorization_code")
-                );
+
             final HttpEntity entity =
                 new UrlEncodedFormEntity(nvps, LanternConstants.UTF8);
             post.setEntity(entity);
@@ -238,13 +243,31 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             log.debug("About to execute post!");
             final HttpResponse response = httpClient.execute(post);
 
-            log.debug("Got response status: {}", response.getStatusLine());
+            final StatusLine line = response.getStatusLine();
+            log.debug("Got response status: {}", line);
             final HttpEntity responseEntity = response.getEntity();
-            final String body = IOUtils.toString(responseEntity.getContent());
+            final String body = IOUtils.toString(responseEntity.getContent(), 
+                    Charsets.UTF_8);
             EntityUtils.consume(responseEntity);
+            
+            final int statusCode = line.getStatusCode();
+            if (statusCode < 200 || statusCode > 299) {
+                final String msg = 
+                        "Unexpected status code: "+statusCode+ " with body "+body;
+                log.error(msg);
+                throw new IOException(msg);
+            }
 
-            final Map<String, String> oauthToks =
-                    JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
+            final Map<String, String> oauthToks;
+            try {
+                oauthToks = JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
+            } catch (final JsonParseException e) {
+                log.error("Could not parse JSON: "+body, e);
+                throw e;
+            } catch (final JsonMappingException e) {
+                log.error("Could not map JSON: "+body, e);
+                throw e;
+            }
             log.debug("Got oath data: {}", oauthToks);
             return oauthToks;
         } finally {
