@@ -1257,8 +1257,13 @@ public class LanternUtils {
             return;
         }
         set.setAccessToken(accessToken);
+        
+        // Set our expiry time 30 seconds before the actual expiry time to
+        // make sure we never cut this too close (for example checking the 
+        // expiry time and then making a request that itself takes 30 seconds
+        // to connect).
         set.setExpiryTime(System.currentTimeMillis() + 
-                ((expiresInSeconds-10) * 1000));
+                ((expiresInSeconds-30) * 1000));
         set.setUseGoogleOAuth2(true);
         set.setRefreshToken(refreshToken);
         // Could be null for testing.
