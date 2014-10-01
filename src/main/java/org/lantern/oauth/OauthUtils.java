@@ -158,6 +158,7 @@ public class OauthUtils {
             final TokenResponse response = new TokenResponse();
             response.setAccessToken(model.getSettings().getAccessToken());
             response.setRefreshToken(model.getSettings().getRefreshToken());
+            return response;
         } else {
             LOG.debug("Access token expired!");
         }
