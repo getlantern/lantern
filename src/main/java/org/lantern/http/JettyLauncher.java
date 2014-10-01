@@ -17,7 +17,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.http.HttpContent;
-import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;

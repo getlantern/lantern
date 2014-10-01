@@ -92,6 +92,10 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.debug("Params: {}", params);
         log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
         log.debug("Query string: {}", req.getQueryString());
+        
+        // When users are censored or in get mode, we temporarily proxy all
+        // requests to allow the Google authentication screen to appear in
+        // the dashboard/browser.
         if (this.censored.isCensored() || LanternUtils.isGet()) {
             try {
                 proxifier.startProxying(true, Proxifier.PROXY_ALL);

@@ -59,9 +59,13 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.lantern.event.Events;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
+import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
 import org.lantern.win.Registry;
@@ -1233,5 +1237,41 @@ public class LanternUtils {
             return false;
         }
         return result.toLowerCase().contains("firefox");
+    }
+
+    /**
+     * Sets oauth tokens. WARNING: This is not thread safe. Callers should
+     * ensure they will not call this method from different threads
+     * simultaneously.
+     * 
+     * @param set The settings
+     * @param refreshToken The refresh token
+     * @param accessToken The access token
+     * @param expiresInSeconds The number of seconds the access token expires in
+     * @param modelIo The class for storing the tokens.
+     */
+    public static void setOauth(final Settings set, final String refreshToken,
+            final String accessToken, final long expiresInSeconds,
+            final ModelIo modelIo) {
+        if (StringUtils.isBlank(accessToken) ||
+            StringUtils.isBlank(refreshToken)) {
+            LOG.warn("Null access, refresh, or expires -- not logging in!!");
+            return;
+        }
+        set.setAccessToken(accessToken);
+        
+        // Set our expiry time 30 seconds before the actual expiry time to
+        // make sure we never cut this too close (for example checking the 
+        // expiry time and then making a request that itself takes 30 seconds
+        // to connect).
+        set.setExpiryTime(System.currentTimeMillis() + 
+                ((expiresInSeconds-30) * 1000));
+        set.setUseGoogleOAuth2(true);
+        set.setRefreshToken(refreshToken);
+        // Could be null for testing.
+        if (modelIo != null) {
+            modelIo.write();
+        }
+        Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
     }
 }
