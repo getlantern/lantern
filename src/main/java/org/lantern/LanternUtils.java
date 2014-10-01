@@ -1240,7 +1240,9 @@ public class LanternUtils {
     }
 
     /**
-     * Sets oauth tokens.
+     * Sets oauth tokens. WARNING: This is not thread safe. Callers should
+     * ensure they will not call this method from different threads
+     * simultaneously.
      * 
      * @param set The settings
      * @param refreshToken The refresh token
