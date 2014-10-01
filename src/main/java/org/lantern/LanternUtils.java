@@ -136,12 +136,6 @@ public class LanternUtils {
             } finally {
                 IOUtils.closeQuietly(is);
             }
-            
-            if (StringUtils.isBlank(getRefreshToken()) ||
-                StringUtils.isBlank(getAccessToken())) {
-                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
-                //throw new Error("Tokens not in "+privatePropsFile);
-            }
         } else {
             LOG.debug("NO PRIVATE PROPS FILE AT: "+privatePropsFile);
         }
@@ -1015,22 +1009,6 @@ public class LanternUtils {
         final String prop = System.getProperty("testing");
         return "true".equalsIgnoreCase(prop);
     }
-    
-    public static String getRefreshToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("refresh_token");
-        }
-        return oauth;
-     }
-
-    public static String getAccessToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("access_token");
-        }
-        return oauth;
-    }
 
     public static byte[] compress(final String str) {
         if (StringUtils.isBlank(str)) {
@@ -1059,6 +1037,16 @@ public class LanternUtils {
      */
     public static void setModel(final Model model) {
         LanternUtils.model = model;
+        
+        // If we're testing on CI, use the pro-configured refresh token.
+        if (SystemUtils.IS_OS_LINUX && privatePropsFile != null && privatePropsFile.isFile()) {
+            final Settings set = model.getSettings();
+            final String existing = set.getRefreshToken();
+            if (StringUtils.isNotBlank(existing)) {
+                final String rt = privateProps.getProperty("refresh_token");
+                set.setRefreshToken(rt);
+            }
+        }
     }
     
     public static Model getModel() {
