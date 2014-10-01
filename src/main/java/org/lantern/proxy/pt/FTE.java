@@ -65,9 +65,7 @@ public class FTE extends BasePluggableTransport {
      * @param props
      */
     public FTE(Properties props) {
-        super(true,
-                "pt/fteproxy",
-                "fteproxy", "fteproxy.exe");
+        super(true, "pt/fteproxy", "fteproxy");
         this.props = props;
         String propsFile = props.getProperty("file");
         if (propsFile != null) {

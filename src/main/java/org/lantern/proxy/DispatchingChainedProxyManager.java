@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.lantern.LanternUtils;
 import org.lantern.loggly.Loggly;
+import org.lantern.papertrail.PapertrailAppender;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
@@ -31,6 +32,7 @@ public class DispatchingChainedProxyManager implements ChainedProxyManager {
     
     static {
         HOSTS_ALLOWING_DIRECT_CONNECTION.add(Loggly.LOGGLY_HOST);
+        HOSTS_ALLOWING_DIRECT_CONNECTION.add(PapertrailAppender.PAPERTRAIL_HOST);
     }
 
     private final ProxyTracker proxyTracker;

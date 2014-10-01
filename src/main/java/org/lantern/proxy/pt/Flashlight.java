@@ -54,9 +54,7 @@ public class Flashlight extends BasePluggableTransport {
      * the masquerade host to use.
      */
     public Flashlight(Properties props) {
-        super(false,
-                "pt/flashlight",
-                "flashlight", "flashlight.exe");
+        super(false, "pt/flashlight", "flashlight");
         this.props = props;
     }
 
