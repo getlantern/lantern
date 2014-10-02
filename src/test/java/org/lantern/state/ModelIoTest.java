@@ -12,18 +12,14 @@ import org.lantern.CountryService;
 import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ModelIoTest {
-
-    private static Logger LOG = LoggerFactory.getLogger(ModelIoTest.class);
 
     private static File testFile;
 
     @BeforeClass
     public static void setup() throws Exception {
-        testFile = new File("modelTest");
+        testFile = new File(new File(System.getProperty("user.dir")), "modelTest");
         testFile.delete();
         testFile.deleteOnExit();
     }
