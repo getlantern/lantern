@@ -137,7 +137,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ModelUtils modelUtils;
 
-    private final org.lantern.Roster roster;
+    private final RosterHandler roster;
 
     private final ProxyTracker proxyTracker;
 
@@ -164,7 +164,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final org.lantern.Roster roster, 
+        final RosterHandler roster, 
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,

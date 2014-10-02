@@ -12,18 +12,16 @@ import org.lantern.CountryService;
 import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Files;
 
 public class ModelIoTest {
-
-    private static Logger LOG = LoggerFactory.getLogger(ModelIoTest.class);
 
     private static File testFile;
 
     @BeforeClass
     public static void setup() throws Exception {
-        testFile = new File("modelTest");
+        testFile = new File(Files.createTempDir(), "modelTest");
         testFile.delete();
         testFile.deleteOnExit();
     }
@@ -57,7 +55,6 @@ public class ModelIoTest {
         connectivity = model2.getConnectivity();
         final String tok = model2.getSettings().getRefreshToken();
         assertEquals("refreshToken", tok);
-        //assertEquals(1, model.getFriends().getFriends().size());
 
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());

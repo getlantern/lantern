@@ -98,9 +98,8 @@ public class TestingUtils {
                 IOUtils.closeQuietly(is);
             }
             
-            if (StringUtils.isBlank(getRefreshToken()) ||
-                StringUtils.isBlank(getAccessToken())) {
-                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
+            if (StringUtils.isBlank(getRefreshToken())) {
+                System.err.println("NO REFRESH TOKEN!!");
                 throw new Error("Tokens not in "+privatePropsFile);
             }
         } else {
@@ -213,14 +212,6 @@ public class TestingUtils {
         }
         return oauth;
      }
-
-    public static String getAccessToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("access_token");
-        }
-        return oauth;
-    }
 
     public static HttpRequest createGetRequest(final String uri) {
         return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);

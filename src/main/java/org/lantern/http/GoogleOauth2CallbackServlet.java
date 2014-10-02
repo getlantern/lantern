@@ -28,18 +28,20 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
+import org.lantern.LanternUtils;
 import org.lantern.MessageKey;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.Tr;
 import org.lantern.event.Events;
-import org.lantern.event.RefreshTokenEvent;
 import org.lantern.oauth.OauthUtils;
+import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Profile;
+import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.HttpClientFactory;
@@ -71,17 +73,21 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
+    private final InternalState internalState;
+
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final Model model, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils,
+        final InternalState internalState) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.model = model;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
+        this.internalState = internalState;
     }
 
     @Override
@@ -135,7 +141,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // dashboard is about to get fully reloaded.
         modelUtils.syncConnectingStatus(Tr.tr(MessageKey.TALK_SERVERS));
         log.debug("Setting modal to connecting...");
-        this.model.setModal(Modal.connecting);
+        advanceModal();
         redirectToDashboard(resp);
 
         int port = this.googleOauth2CallbackServer.getPort();
@@ -144,7 +150,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
         final HttpClient client = this.httpClientFactory.newClient();
 
-        final Map<String, String> allToks;
+        final Map<String, Object> allToks;
         try {
             allToks = loadAllToks(code, port, client);
         } catch (final IOException e) {
@@ -153,8 +159,17 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             return;
         }
 
-        connectToGoogleTalk(allToks);
+        configureOauthTokens(allToks);
         fetchEmail(allToks, client);
+    }
+
+    private void advanceModal() {
+        log.debug("Still setting up...");
+        // Handle states associated with the Google login screen
+        // during the setup sequence.
+        model.getConnectivity().setGtalkAuthorized(true);
+        internalState.setModalCompleted(Modal.authorize);
+        internalState.advanceModal(null);
     }
 
     /**
@@ -163,11 +178,11 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
      * @param allToks OAuth tokens.
      * @param httpClient The HTTP client.
      */
-    public int fetchEmail(final Map<String, String> allToks,
+    public int fetchEmail(final Map<String, Object> allToks,
             final HttpClient httpClient) {
         final String endpoint =
             "https://www.googleapis.com/oauth2/v1/userinfo";
-        final String accessToken = allToks.get("access_token");
+        final Object accessToken = allToks.get("access_token");
         final HttpGet get = new HttpGet(endpoint);
         get.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
 
@@ -201,30 +216,17 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         return -1;
     }
 
-    private void connectToGoogleTalk(final Map<String, String> allToks) {
-        final String accessToken = allToks.get("access_token");
-        final String refreshToken = allToks.get("refresh_token");
-
-        if (StringUtils.isBlank(accessToken) ||
-            StringUtils.isBlank(refreshToken)) {
-            log.warn("Not access or refresh token -- not logging in!!");
-            return;
-        } else {
-            // Treat this the same as a credential exception? I.e. what
-            // happens if the user cancels?
-        }
-
-        this.model.getSettings().setAccessToken(accessToken);
-        this.model.getSettings().setRefreshToken(refreshToken);
-        this.model.getSettings().setUseGoogleOAuth2(true);
-        this.modelIo.write();
-        
-        // This will trigger the connection to Google Talk
-        Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
+    private void configureOauthTokens(final Map<String, Object> allToks) {
+        final String accessToken = (String) allToks.get("access_token");
+        final String refreshToken = (String) allToks.get("refresh_token");
+        final Integer expiry = (Integer) allToks.get("expires_in");
+        final Settings set = this.model.getSettings();
+        LanternUtils.setOauth(set, refreshToken, accessToken, expiry, modelIo);
     }
 
-    private Map<String, String> loadAllToks(final String code, int port,
+    private Map<String, Object> loadAllToks(final String code, int port,
         final HttpClient httpClient) throws IOException {
+        log.debug("Loading oauth tokens from https://accounts.google.com/o/oauth2/token");
         final HttpPost post =
             new HttpPost("https://accounts.google.com/o/oauth2/token");
         final List<? extends NameValuePair> nvps = Arrays.asList(
@@ -258,7 +260,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 throw new IOException(msg);
             }
 
-            final Map<String, String> oauthToks;
+            final Map<String, Object> oauthToks;
             try {
                 oauthToks = JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
             } catch (final JsonParseException e) {

@@ -59,9 +59,13 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.lantern.event.Events;
+import org.lantern.event.RefreshTokenEvent;
 import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
+import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
 import org.lantern.win.Registry;
@@ -131,12 +135,6 @@ public class LanternUtils {
                         privatePropsFile);
             } finally {
                 IOUtils.closeQuietly(is);
-            }
-            
-            if (StringUtils.isBlank(getRefreshToken()) ||
-                StringUtils.isBlank(getAccessToken())) {
-                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
-                //throw new Error("Tokens not in "+privatePropsFile);
             }
         } else {
             LOG.debug("NO PRIVATE PROPS FILE AT: "+privatePropsFile);
@@ -1011,22 +1009,6 @@ public class LanternUtils {
         final String prop = System.getProperty("testing");
         return "true".equalsIgnoreCase(prop);
     }
-    
-    public static String getRefreshToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("refresh_token");
-        }
-        return oauth;
-     }
-
-    public static String getAccessToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("access_token");
-        }
-        return oauth;
-    }
 
     public static byte[] compress(final String str) {
         if (StringUtils.isBlank(str)) {
@@ -1055,6 +1037,16 @@ public class LanternUtils {
      */
     public static void setModel(final Model model) {
         LanternUtils.model = model;
+        
+        // If we're testing on CI, use the pro-configured refresh token.
+        if (SystemUtils.IS_OS_LINUX && privatePropsFile != null && privatePropsFile.isFile()) {
+            final Settings set = model.getSettings();
+            final String existing = set.getRefreshToken();
+            if (StringUtils.isNotBlank(existing)) {
+                final String rt = privateProps.getProperty("refresh_token");
+                set.setRefreshToken(rt);
+            }
+        }
     }
     
     public static Model getModel() {
@@ -1233,5 +1225,46 @@ public class LanternUtils {
             return false;
         }
         return result.toLowerCase().contains("firefox");
+    }
+
+    /**
+     * Sets oauth tokens. WARNING: This is not thread safe. Callers should
+     * ensure they will not call this method from different threads
+     * simultaneously.
+     * 
+     * @param set The settings
+     * @param refreshToken The refresh token
+     * @param accessToken The access token
+     * @param expiresInSeconds The number of seconds the access token expires in
+     * @param modelIo The class for storing the tokens.
+     */
+    public static void setOauth(final Settings set, final String refreshToken,
+            final String accessToken, final long expiresInSeconds,
+            final ModelIo modelIo) {
+        if (StringUtils.isBlank(accessToken)) {
+            LOG.warn("Null access {} token -- not logging in!", accessToken);
+            return;
+        }
+        set.setAccessToken(accessToken);
+        
+        // Set our expiry time 30 seconds before the actual expiry time to
+        // make sure we never cut this too close (for example checking the 
+        // expiry time and then making a request that itself takes 30 seconds
+        // to connect).
+        set.setExpiryTime(System.currentTimeMillis() + 
+                ((expiresInSeconds-30) * 1000));
+        set.setUseGoogleOAuth2(true);
+        
+        // Only set the refresh token if it's not null. OAuth endpoints will
+        // often return blank refresh tokens if they expect you to just keep
+        // using the same one.
+        if (StringUtils.isNotBlank(refreshToken)) {
+            set.setRefreshToken(refreshToken);
+            Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
+        }
+        // Could be null for testing.
+        if (modelIo != null) {
+            modelIo.write();
+        }
     }
 }

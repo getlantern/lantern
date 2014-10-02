@@ -34,7 +34,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
     private static final Set<Class> ALREADY_COPIED_TRANSPORTS = new HashSet<Class>();
 
     private final String ptRelativePath;
-    private final String[] executableNames;
+    private final String executableName;
     protected String ptBasePath;
     protected String ptPath;
     private CommandLine cmd;
@@ -50,15 +50,18 @@ public abstract class BasePluggableTransport implements PluggableTransport {
      * @param relativePath
      *            - relative path of pluggable transports from its respective
      *            install folder
-     * @param executableNames
-     *            - all possible names under which the executable is found (e.g.
-     *            with and without .exe extension)
+     * @param executableName
+     *            - the name of the executable (not including .exe)
      */
     protected BasePluggableTransport(boolean copyToConfigFolder,
             String relativePath,
-            String... executableNames) {
+            String executableName) {
         this.ptRelativePath = relativePath;
-        this.executableNames = executableNames;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            this.executableName = executableName + ".exe";
+        } else {
+            this.executableName = executableName;
+        }
         this.ptBasePath = findBasePath().getAbsolutePath();
         if (copyToConfigFolder) {
             copyToConfigFolder();
@@ -243,22 +246,11 @@ public abstract class BasePluggableTransport implements PluggableTransport {
     }
 
     private void initPtPath() {
-        File executable = null;
-        for (String name : executableNames) {
-            executable = new File(ptBasePath + "/" + name);
-            ptPath = executable.getAbsolutePath();
-            if (executable.exists()) {
-                break;
-            } else {
-                LOGGER.info("executable not found at {}",
-                        ptPath);
-                executable = null;
-                ptPath = null;
-            }
-        }
-        if (executable == null) {
+        File executable = new File(ptBasePath + "/" + executableName);
+        ptPath = executable.getAbsolutePath();
+        if (!executable.exists()) {
             String message = String.format(
-                    "%1$s executable not found in search path", getLogName());
+                    "%1$s executable missing at %2$s", getLogName(), ptPath);
             LOGGER.error(message, ptPath);
             throw new Error(message);
         }
