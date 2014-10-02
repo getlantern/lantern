@@ -126,9 +126,7 @@ public class DefaultModelUtils implements ModelUtils {
             }
         }
         return new LanternGoogleOAuth2Credentials("anon@getlantern.org",
-            set.getClientID(), set.getClientSecret(), 
-            set.getAccessToken(), set.getRefreshToken(), 
-            resource);
+                set.getRefreshToken(), resource);
     }
 
     @Override
