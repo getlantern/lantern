@@ -35,6 +35,7 @@ public class Flashlight extends BasePluggableTransport {
     public static final String MASQUERADE_KEY = "masquerade";
     public static final String PORTMAP_KEY = "portmap";
     public static final String CLOUDCONFIG_KEY = "cloudconfig";
+    public static final String CLOUDCONFIG_CA_KEY = "cloudconfigca";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
@@ -78,6 +79,9 @@ public class Flashlight extends BasePluggableTransport {
         
         cmd.addArgument("-cloudconfig");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_KEY));
+        
+        cmd.addArgument("-cloudconfigca");
+        cmd.addArgument(props.getProperty(CLOUDCONFIG_CA_KEY), false);
         
         addParentPIDIfAvailable(cmd);
     }
