@@ -13,13 +13,15 @@ import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
 
+import com.google.common.io.Files;
+
 public class ModelIoTest {
 
     private static File testFile;
 
     @BeforeClass
     public static void setup() throws Exception {
-        testFile = new File(new File(System.getProperty("user.dir")), "modelTest");
+        testFile = new File(Files.createTempDir(), "modelTest");
         testFile.delete();
         testFile.deleteOnExit();
     }
