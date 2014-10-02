@@ -6,7 +6,6 @@ import java.io.InputStream;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -20,7 +19,6 @@ import org.apache.http.util.EntityUtils;
 import org.lantern.LanternUtils;
 import org.lantern.TokenResponseEvent;
 import org.lantern.event.Events;
-import org.lantern.event.RefreshTokenEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.Settings;
