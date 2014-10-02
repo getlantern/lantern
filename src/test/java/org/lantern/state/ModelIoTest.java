@@ -55,7 +55,6 @@ public class ModelIoTest {
         connectivity = model2.getConnectivity();
         final String tok = model2.getSettings().getRefreshToken();
         assertEquals("refreshToken", tok);
-        //assertEquals(1, model.getFriends().getFriends().size());
 
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());
