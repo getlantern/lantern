@@ -50,7 +50,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 @Keep
-public class Roster implements RosterListener {
+public class Roster implements RosterListener, RosterHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -91,6 +91,7 @@ public class Roster implements RosterListener {
         Events.register(this);
     }
 
+    @Override
     public void onRoster(final XmppHandler xmpp) {
         this.xmppHandler = xmpp;
         log.info("Got logged in event");
@@ -147,6 +148,7 @@ public class Roster implements RosterListener {
         rosterExecutor.submit(r);
     }
 
+    @Override
     public LanternRosterEntry getRosterEntry(final String key) {
         try {
             return this.rosterEntries.get().get(LanternXmppUtils.jidToEmail(key));
@@ -155,6 +157,7 @@ public class Roster implements RosterListener {
         }
     }
 
+    @Override
     public Collection<LanternRosterEntry> getEntries() {
         synchronized (this.rosterEntries) {
             // Note these are sorted loosely according to how frequently we

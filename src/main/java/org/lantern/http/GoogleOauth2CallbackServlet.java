@@ -34,8 +34,8 @@ import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.Tr;
 import org.lantern.event.Events;
-import org.lantern.event.RefreshTokenEvent;
 import org.lantern.oauth.OauthUtils;
+import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -73,17 +73,21 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
+    private final InternalState internalState;
+
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final Model model, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils,
+        final InternalState internalState) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.model = model;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
+        this.internalState = internalState;
     }
 
     @Override
@@ -137,7 +141,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // dashboard is about to get fully reloaded.
         modelUtils.syncConnectingStatus(Tr.tr(MessageKey.TALK_SERVERS));
         log.debug("Setting modal to connecting...");
-        this.model.setModal(Modal.connecting);
+        advanceModal();
         redirectToDashboard(resp);
 
         int port = this.googleOauth2CallbackServer.getPort();
@@ -157,6 +161,16 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
         configureOauthTokens(allToks);
         fetchEmail(allToks, client);
+    }
+
+    private void advanceModal() {
+        log.debug("Still setting up...");
+        // Handle states associated with the Google login screen
+        // during the setup sequence.
+        model.getConnectivity().setGtalkAuthorized(true);
+        internalState.setNotInvited(false);
+        internalState.setModalCompleted(Modal.authorize);
+        internalState.advanceModal(null);
     }
 
     /**
