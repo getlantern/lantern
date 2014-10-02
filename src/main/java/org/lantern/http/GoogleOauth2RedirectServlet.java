@@ -1,7 +1,6 @@
 package org.lantern.http;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -138,12 +137,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
             final String langUrl = baseUrl +
                 "&hl=" + this.model.getSystem().getLang();
 
-            final String finalUrl = this.internalState.isNotInvited() ?
-                // call google's logout service with a continue param
-                // set to langUrl to clear out the previous login
-                ("https://www.google.com/accounts/Logout?continue="+
-                    URLEncoder.encode(langUrl, "UTF-8")) :
-                langUrl;
+            final String finalUrl = langUrl;
 
             log.debug("Sending redirect to URL: {}", finalUrl);
             return finalUrl;

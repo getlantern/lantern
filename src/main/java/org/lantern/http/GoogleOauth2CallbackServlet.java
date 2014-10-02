@@ -168,7 +168,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Handle states associated with the Google login screen
         // during the setup sequence.
         model.getConnectivity().setGtalkAuthorized(true);
-        internalState.setNotInvited(false);
         internalState.setModalCompleted(Modal.authorize);
         internalState.advanceModal(null);
     }
