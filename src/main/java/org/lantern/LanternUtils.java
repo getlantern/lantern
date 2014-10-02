@@ -1241,9 +1241,8 @@ public class LanternUtils {
     public static void setOauth(final Settings set, final String refreshToken,
             final String accessToken, final long expiresInSeconds,
             final ModelIo modelIo) {
-        if (StringUtils.isBlank(accessToken) ||
-            StringUtils.isBlank(refreshToken)) {
-            LOG.warn("Null access, refresh, or expires -- not logging in!!");
+        if (StringUtils.isBlank(accessToken)) {
+            LOG.warn("Null access {} token -- not logging in!", accessToken);
             return;
         }
         set.setAccessToken(accessToken);
@@ -1255,11 +1254,17 @@ public class LanternUtils {
         set.setExpiryTime(System.currentTimeMillis() + 
                 ((expiresInSeconds-30) * 1000));
         set.setUseGoogleOAuth2(true);
-        set.setRefreshToken(refreshToken);
+        
+        // Only set the refresh token if it's not null. OAuth endpoints will
+        // often return blank refresh tokens if they expect you to just keep
+        // using the same one.
+        if (StringUtils.isNotBlank(refreshToken)) {
+            set.setRefreshToken(refreshToken);
+            Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
+        }
         // Could be null for testing.
         if (modelIo != null) {
             modelIo.write();
         }
-        Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
     }
 }
