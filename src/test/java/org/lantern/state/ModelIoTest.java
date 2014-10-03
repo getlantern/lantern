@@ -1,6 +1,6 @@
 package org.lantern.state;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -28,6 +28,11 @@ public class ModelIoTest {
     
     @Test
     public void testModelIo() throws Exception {
+        final File dir = testFile.getParentFile();
+        if (!dir.exists()) {
+            assertTrue("Could not make temp directory!", dir.mkdirs());
+        }
+        assertTrue("Can't write to test directory!", dir.canWrite());
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
                 countryService, TestingUtils.newCommandLine(), 
@@ -44,7 +49,11 @@ public class ModelIoTest {
             assertEquals("en", system.getLang());
         }
         
-        model.getSettings().setRefreshToken("refreshToken");
+        final String testId = "test-client-id";
+        final Settings set = model.getSettings();
+        final String existingId = set.getClientID();
+        assertNotEquals("IDs should not be equal", testId, existingId);
+        set.setClientID(testId);
         io.write();
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
@@ -53,8 +62,8 @@ public class ModelIoTest {
         final Model model2 = io.get();
         system = model2.getSystem();
         connectivity = model2.getConnectivity();
-        final String tok = model2.getSettings().getRefreshToken();
-        assertEquals("refreshToken", tok);
+        final String tok = model2.getSettings().getClientID();
+        assertEquals(testId, tok);
 
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());
