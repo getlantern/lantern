@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -66,6 +66,7 @@ import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.*;
 
 public class TestingUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestingUtils.class);
@@ -99,11 +100,13 @@ public class TestingUtils {
             }
             
             if (StringUtils.isBlank(getRefreshToken())) {
-                System.err.println("NO REFRESH TOKEN!!");
-                throw new Error("Tokens not in "+privatePropsFile);
+                fail(String.format("NO REFRESH TOKEN IN %1$s, MAKE SURE TO LOG IN TO LANTERN BEFORE RUNNING TEST !!!", privatePropsFile));
             }
         } else {
-            throw new Error("Could not load!!");
+            fail(String.format(
+                    "NO test.properties FOUND AT %1$s OR %2$s, MAKE SURE TO LOG IN TO LANTERN BEFORE RUNNING TEST !!!",
+                    LanternClientConstants.TEST_PROPS,
+                    LanternClientConstants.TEST_PROPS2));
         }
     }
 
