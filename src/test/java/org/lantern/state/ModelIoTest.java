@@ -1,6 +1,6 @@
 package org.lantern.state;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -28,6 +28,11 @@ public class ModelIoTest {
     
     @Test
     public void testModelIo() throws Exception {
+        final File dir = testFile.getParentFile();
+        if (!dir.exists()) {
+            assertTrue("Could not make temp directory!", dir.mkdirs());
+        }
+        assertTrue("Can't write to test directory!", dir.canWrite());
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
                 countryService, TestingUtils.newCommandLine(), 
