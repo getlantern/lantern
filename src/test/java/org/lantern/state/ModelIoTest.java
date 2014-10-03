@@ -49,7 +49,11 @@ public class ModelIoTest {
             assertEquals("en", system.getLang());
         }
         
-        model.getSettings().setRefreshToken("refreshToken");
+        final String testId = "test-client-id";
+        final Settings set = model.getSettings();
+        final String existingId = set.getClientID();
+        assertNotEquals("IDs should not be equal", testId, existingId);
+        set.setClientID(testId);
         io.write();
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
@@ -58,8 +62,8 @@ public class ModelIoTest {
         final Model model2 = io.get();
         system = model2.getSystem();
         connectivity = model2.getConnectivity();
-        final String tok = model2.getSettings().getRefreshToken();
-        assertEquals("refreshToken", tok);
+        final String tok = model2.getSettings().getClientID();
+        assertEquals(testId, tok);
 
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());
