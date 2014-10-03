@@ -30,7 +30,7 @@ public class PapertrailAppender extends AppenderSkeleton {
             Collections.synchronizedSet(new LinkedHashSet<LogData>());
 
     public static final String PAPERTRAIL_HOST = "logs2.papertrailapp.com";
-    private static final int PAPERTRAIL_PORT = 35884;
+    public static final int PAPERTRAIL_PORT = 35884;
 
     private final Model model;
     private final Papertrail papertrail;
