@@ -254,11 +254,7 @@ public class DefaultXmppHandler implements XmppHandler {
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
         
         LOG.debug("Connecting to XMPP servers...");
-        if (this.modelUtils.isOauthConfigured()) {
-            connectViaOAuth2();
-        } else {
-            throw new Error("Oauth not configured properly?");
-        }
+        connectViaOAuth2();
     }
 
     private void connectViaOAuth2() throws IOException,

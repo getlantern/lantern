@@ -13,8 +13,6 @@ public interface ModelUtils {
 
     boolean isConfigured();
 
-    boolean isOauthConfigured();
-
     LanternGoogleOAuth2Credentials newGoogleOauthCreds(String resource);
 
     boolean isInClosedBeta(String email);

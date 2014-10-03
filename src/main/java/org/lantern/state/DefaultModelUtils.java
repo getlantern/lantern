@@ -130,13 +130,6 @@ public class DefaultModelUtils implements ModelUtils {
     }
 
     @Override
-    public boolean isOauthConfigured() {
-        final Settings set = this.model.getSettings();
-        return StringUtils.isNotBlank(set.getRefreshToken()) &&
-                StringUtils.isNotBlank(set.getAccessToken());
-    }
-
-    @Override
     public void syncConnectingStatus(final String msg) {
         this.model.getConnectivity().setConnectingStatus(msg);
         Events.syncConnectingStatus(msg);
