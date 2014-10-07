@@ -105,8 +105,6 @@ public class Settings {
 
     private boolean showFriendPrompts = true;
 
-    private String configUrl;
-
     private boolean chrome = false;
     
     public Settings() {
@@ -442,15 +440,6 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public void setShowFriendPrompts(boolean showFriendPrompts) {
         this.showFriendPrompts = showFriendPrompts;
-    }
-
-    @JsonView({Run.class, Persistent.class})
-    public String getConfigUrl() {
-        return configUrl;
-    }
-
-    public void setConfigUrl(String configUrl) {
-        this.configUrl = configUrl;
     }
 
     public void setChrome(final boolean chrome) {
