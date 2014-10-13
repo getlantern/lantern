@@ -1131,32 +1131,7 @@ public class LanternUtils {
             IOUtils.closeQuietly(socket);
         }
     }
-    
-    /**
-     * Based on this article:
-     * http://stackoverflow.com/questions/664432/how-do-i-
-     * programmatically-change-file-permissions
-     * 
-     * @param filename
-     * @param mode
-     * @return
-     */
-    public static boolean chmod(String filename, int mode) {
-        try {
-            Class<?> fspClass = Class
-                    .forName("java.util.prefs.FileSystemPreferences");
-            Method chmodMethod = fspClass.getDeclaredMethod("chmod",
-                    String.class, Integer.TYPE);
-            chmodMethod.setAccessible(true);
-            boolean succeeded =
-                    mode == ((Integer) chmodMethod.invoke(null, filename, mode));
-            return succeeded;
-        } catch (Throwable ex) {
-            LOG.error("Could not set permissions?", ex);
-            return false;
-        }
-    }
-    
+
     public static String[] hostAndPortFrom(HttpRequest httpRequest) {
         String hostAndPort = ProxyUtils.parseHostAndPort(httpRequest);
         if (StringUtils.isBlank(hostAndPort)) {
@@ -1281,7 +1256,11 @@ public class LanternUtils {
      */
     public static File extractExecutableFromJar(final String path) throws IOException {
         final File file = extractFileFromJar(path);
-        LanternUtils.chmod(file.getAbsolutePath(), 0755);
+        if (!file.canExecute() && !file.setExecutable(true)) {
+            final String msg = "Could not make file executable at "+path;
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
         return file;
     }
     
