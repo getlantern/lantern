@@ -14,6 +14,8 @@ VERSION=$1
 RELEASE=$2
 
 echo "RELEASE flag is $RELEASE"
+rm -rf src/main/resource/pt
+cp -R install/win/pt src/main/resources/ || die "Could not copy pluggable transports!"
 source ./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Pwindows,-mac,-linux" $RELEASE || die "Could not build?"
 
 install4jc -v --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
