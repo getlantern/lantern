@@ -12,9 +12,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1150,6 +1152,7 @@ public class LanternUtils {
                     mode == ((Integer) chmodMethod.invoke(null, filename, mode));
             return succeeded;
         } catch (Throwable ex) {
+            LOG.error("Could not set permissions?", ex);
             return false;
         }
     }
@@ -1266,5 +1269,55 @@ public class LanternUtils {
         if (modelIo != null) {
             modelIo.write();
         }
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar executable to a
+     * temporary directory.
+     * 
+     * @param path The path of the file in the jar
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractExecutableFromJar(final String path) throws IOException {
+        final File file = extractFileFromJar(path);
+        LanternUtils.chmod(file.getAbsolutePath(), 0755);
+        return file;
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar file to a temporary
+     * directory.
+     * 
+     * @param path The path of the file in the jar
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractFileFromJar(final String path) throws IOException {
+        final File dir = Files.createTempDir();
+        
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Could not make temp dir at: "+path);
+        }
+        final String name = StringUtils.substringAfterLast(path, "/");
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("Bad path: "+path);
+        }
+        final File temp = new File(dir, name);
+        
+        InputStream is = null;
+        OutputStream os  = null;
+        try {
+            is = ClassLoader.getSystemResourceAsStream(path);
+            if (is == null) {
+                throw new NullPointerException("No input at "+path);
+            }
+            os = new FileOutputStream(temp);
+            IOUtils.copy(is, os);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
+        }
+        return temp;
     }
 }
