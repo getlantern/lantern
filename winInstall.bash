@@ -14,7 +14,7 @@ VERSION=$1
 RELEASE=$2
 
 echo "RELEASE flag is $RELEASE"
-rm -rf src/main/resource/pt
+rm -rf src/main/resources/pt
 cp -R install/win/pt src/main/resources/ || die "Could not copy pluggable transports!"
 source ./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Pwindows,-mac,-linux" $RELEASE || die "Could not build?"
 
