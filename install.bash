@@ -23,7 +23,8 @@ then
   ptdir=win	
 fi
 
-test -d src/main/resources/pt || cp -R install/$ptdir/pt src/main/resources/
+test -d src/main/pt/pt || cp -R install/$ptdir/pt src/main/pt/ ||
+		die "Could not copy pluggable transports?"
 
-rm -f target/lantern*-small.jar
+rm -f target/lantern*-small.jar || die "Could not remove old jar?"
 mvn -U package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true || die "Could not package"

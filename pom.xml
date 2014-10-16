@@ -560,7 +560,7 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>2.1.9</version>
+				<version>2.1.10</version>
 				<executions>
 					<execution>
 						<goals>
@@ -582,8 +582,13 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+		    </resource>
+            <resource>
+				<directory>src/main/pt</directory>
+				<filtering>false</filtering>
 			</resource>
-		</resources>
+	    </resources>
 
 		<pluginManagement>
 			<plugins>
