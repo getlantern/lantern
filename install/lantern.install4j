@@ -772,9 +772,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.desktop.CreateDesktopLinkAction">
-                      <void property="arguments">
-                        <string> --launchd</string>
-                      </void>
                       <void property="description">
                         <string>Lantern</string>
                       </void>
