@@ -3,14 +3,12 @@ package org.lantern.proxy.pt;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.Launcher;
-import org.lantern.S3Config;
 import org.lantern.geoip.GeoData;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.ProcessUtil;

@@ -12,12 +12,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -1129,31 +1130,7 @@ public class LanternUtils {
             IOUtils.closeQuietly(socket);
         }
     }
-    
-    /**
-     * Based on this article:
-     * http://stackoverflow.com/questions/664432/how-do-i-
-     * programmatically-change-file-permissions
-     * 
-     * @param filename
-     * @param mode
-     * @return
-     */
-    public static boolean chmod(String filename, int mode) {
-        try {
-            Class<?> fspClass = Class
-                    .forName("java.util.prefs.FileSystemPreferences");
-            Method chmodMethod = fspClass.getDeclaredMethod("chmod",
-                    String.class, Integer.TYPE);
-            chmodMethod.setAccessible(true);
-            boolean succeeded =
-                    mode == ((Integer) chmodMethod.invoke(null, filename, mode));
-            return succeeded;
-        } catch (Throwable ex) {
-            return false;
-        }
-    }
-    
+
     public static String[] hostAndPortFrom(HttpRequest httpRequest) {
         String hostAndPort = ProxyUtils.parseHostAndPort(httpRequest);
         if (StringUtils.isBlank(hostAndPort)) {
@@ -1266,5 +1243,59 @@ public class LanternUtils {
         if (modelIo != null) {
             modelIo.write();
         }
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar executable to a
+     * temporary directory.
+     * 
+     * @param path The path of the file in the jar
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractExecutableFromJar(final String path) throws IOException {
+        final File file = extractFileFromJar(path);
+        if (!file.canExecute() && !file.setExecutable(true)) {
+            final String msg = "Could not make file executable at "+path;
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        return file;
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar file to a temporary
+     * directory.
+     * 
+     * @param path The path of the file in the jar
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractFileFromJar(final String path) throws IOException {
+        final File dir = Files.createTempDir();
+        
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Could not make temp dir at: "+path);
+        }
+        final String name = StringUtils.substringAfterLast(path, "/");
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("Bad path: "+path);
+        }
+        final File temp = new File(dir, name);
+        
+        InputStream is = null;
+        OutputStream os  = null;
+        try {
+            is = ClassLoader.getSystemResourceAsStream(path);
+            if (is == null) {
+                throw new NullPointerException("No input at "+path);
+            }
+            os = new FileOutputStream(temp);
+            IOUtils.copy(is, os);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
+        }
+        return temp;
     }
 }

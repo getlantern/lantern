@@ -6,10 +6,24 @@ function die() {
 
 mvn --version || die "Please install maven from http://maven.apache.org" 
 
+
 if [ $(uname) == "Darwin" ]
 then
   ls -la configureNetworkServices | grep rwsr | grep wheel || ./setNetUidOsx.bash
+  ptdir=osx
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
+then
+  if [ $(uname -m) == 'x86_64' ]; then
+    ptdir=linux_x86_64
+  else
+    ptdir=linux_x86_32
+  fi
+elif [ -n "$COMSPEC" -a -x "$COMSPEC" ]
+then
+  ptdir=win	
 fi
+
+test -d src/main/resources/pt || cp -R install/$ptdir/pt src/main/resources/
 
 rm -f target/lantern*-small.jar
 mvn -U package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true || die "Could not package"
