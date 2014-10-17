@@ -2,19 +2,22 @@ package org.lantern.proxy.pt;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.Launcher;
-import org.lantern.S3Config;
+import org.lantern.event.Events;
 import org.lantern.geoip.GeoData;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.ProcessUtil;
 import org.lantern.util.PublicIpAddress;
+import org.slf4j.Logger;
 
 /**
  * <p>
@@ -36,10 +39,13 @@ public class Flashlight extends BasePluggableTransport {
     public static final String PORTMAP_KEY = "portmap";
     public static final String CLOUDCONFIG_KEY = "cloudconfig";
     public static final String CLOUDCONFIG_CA_KEY = "cloudconfigca";
+    public static final String WADDELL_ADDR_KEY = "waddelladdr";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
     public static final String HIGH_QOS = "10";
+    
+    public static final Pattern WADDELL_ID_PATTERN = Pattern.compile("^.*Connected to Waddell!! Id is: (.*)$");
 
     private final Properties props;
 
@@ -123,6 +129,12 @@ public class Flashlight extends BasePluggableTransport {
             cmd.addArgument("-portmap");
             cmd.addArgument(portmap);
         }
+        
+        String waddellAddr = props.getProperty(WADDELL_ADDR_KEY);
+        if (waddellAddr != null) {
+            cmd.addArgument("-waddelladdr");
+            cmd.addArgument(waddellAddr);
+        }
 
         addParentPIDIfAvailable(cmd);
     }
@@ -154,6 +166,27 @@ public class Flashlight extends BasePluggableTransport {
             throw new RuntimeException("Unable to read cacert.pem: "
                     + ioe.getMessage(), ioe);
         }
+    }
+    
+    @Override
+    protected LoggingStreamHandler buildLoggingStreamHandler(final Logger logger,
+            InputStream is) {
+        return new LoggingStreamHandler(logger, is) {
+            @Override
+            protected void handleLine(String line, boolean logToError) {
+                Matcher matcher = WADDELL_ID_PATTERN.matcher(line);
+                if (matcher.matches()) {
+                    String id = matcher.group(1);
+                    String waddellAddr = props.getProperty(WADDELL_ADDR_KEY);
+                    logger.info(
+                            "Connected to waddell {} with id {}, posting ConnectedToWaddellEvent",
+                            waddellAddr, id);
+                    Events.asyncEventBus().post(
+                            new ConnectedToWaddellEvent(id, waddellAddr));
+                }
+                super.handleLine(line, logToError);
+            }
+        };
     }
 
 }

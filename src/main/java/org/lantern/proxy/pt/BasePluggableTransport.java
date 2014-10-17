@@ -1,6 +1,7 @@
 package org.lantern.proxy.pt;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
@@ -258,7 +259,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
     private Future<Integer> exec() {
         cmdExec = new DefaultExecutor();
-        cmdExec.setStreamHandler(new LoggingStreamHandler(LOGGER, System.in));
+        cmdExec.setStreamHandler(buildLoggingStreamHandler(LOGGER, System.in));
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
@@ -275,6 +276,12 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    protected LoggingStreamHandler buildLoggingStreamHandler(
+            Logger logger,
+            InputStream is) {
+        return new LoggingStreamHandler(logger, is);
     }
 
     private String getLogName() {

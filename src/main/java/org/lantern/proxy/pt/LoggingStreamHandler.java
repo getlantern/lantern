@@ -97,19 +97,23 @@ public class LoggingStreamHandler implements ExecuteStreamHandler {
                 String line = null;
                 try {
                     while ((line = reader.readLine()) != null) {
-                        if (logToError) {
-                            log.error(line);
-                        } else {
-                            log.debug(line);
-                        }
+                        handleLine(line, logToError);
                     }
                 } catch (IOException ioe) {
-                    log.error("Unable to read line from stdout: {}",
+                    log.error("Unable to read line from pipe: {}",
                             ioe.getMessage(), ioe);
                 }
                 super.run();
             }
         };
+    }
+    
+    protected void handleLine(String line, boolean logToError) {
+        if (logToError) {
+            log.error(line);
+        } else {
+            log.debug(line);
+        }
     }
 
     /**

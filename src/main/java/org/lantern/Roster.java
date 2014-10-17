@@ -30,6 +30,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.proxy.pt.ConnectedToWaddellEvent;
 import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
@@ -314,7 +315,7 @@ public class Roster implements RosterListener, RosterHandler {
             if (friendsHandler.isFriend(from)) {
                 Events.eventBus().post(new UpdatePresenceEvent(presence));
                 if (presence.isAvailable()) {
-                    sendKscope(from);
+                    sendKscope(from, traditionalAd);
                 }
                 onPresence(presence, sync, updateIndex);
             } else {
@@ -344,22 +345,37 @@ public class Roster implements RosterListener, RosterHandler {
     }
 
     private void sendKscopeAdToAllPeers() {
-        log.debug("Sending KScope ads to all peers");
+        log.info("Sending KScope ads to all peers");
+        doSendToAllPeers(traditionalAd);
+    }
+    
+    @Subscribe
+    public void onConnectedToWaddell(final ConnectedToWaddellEvent event) {
+        log.info("Sending KScope waddell ads to all peers");
+        AdBuilder waddellAd = new AdBuilder() {
+            public LanternKscopeAdvertisement build(String from) {
+                return LanternKscopeAdvertisement.forWaddell(from, event.getId(), event.getWaddellAddr());
+            }
+        };        
+        doSendToAllPeers(waddellAd);
+    }
+    
+    private void doSendToAllPeers(AdBuilder adBuilder) {
         final Collection<LanternRosterEntry> entries = getEntries();
         for (final LanternRosterEntry lre : entries) {
             if (!lre.isAvailable()) {
                 log.debug("Entry not listed as available {}", lre.getUser());
             }
             if (friendsHandler.isFriend(lre.getEmail())) {
-                sendKscope(lre.getUser());
+                sendKscope(lre.getUser(), adBuilder);
             } else {
                 log.debug("Not sending kscope ad to non-friend: {}", 
                         lre.getEmail());
             }
         }
     }
-
-    private void sendKscope(final String to) {
+    
+    private void sendKscope(final String to, AdBuilder adBuilder) {
         if (!LanternXmppUtils.isLanternJid(to)) {
             log.debug("Not sending kscope add to non Lantern entry");
             return;
@@ -373,50 +389,59 @@ public class Roster implements RosterListener, RosterHandler {
             log.debug("Not sending kscope advertisement in get mode");
             return;
         }
-        
         if (xmppHandler == null) {
             log.warn("Null xmppHandler?");
             return;
         }
+        
         // immediately add to kscope routing table and
         // send kscope ad to new roster entry
         final TrustGraphNodeId id = new BasicTrustGraphNodeId(to);
         log.debug("Adding {} to routing table.", to);
         this.kscopeRoutingTable.addNeighbor(id);
-        final InetAddress address = 
-            new PublicIpAddress().getPublicIpAddress();
-
-        final String user = xmppHandler.getJid();
-        final LanternKscopeAdvertisement ad;
-        final MappedServerSocket ms = xmppHandler.getMappedServer();
-        if (ms.isPortMapped()) {
-            ad = new LanternKscopeAdvertisement(user, address, 
-                ms.getMappedPort(), ms.getHostAddress()
-            );
-        } else {
-            ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
-        }
-
+        
+        final String from = xmppHandler.getJid();
         final TrustGraphNode tgn = new LanternTrustGraphNode();
         // set ttl to max for now
-        ad.setTtl(tgn.getMaxRouteLength());
+        int ttl = tgn.getMaxRouteLength();
+        LanternKscopeAdvertisement ad = adBuilder.build(from);
+        ad.setTtl(ttl);
         final String adPayload = JsonUtils.jsonify(ad);
         final BasicTrustGraphAdvertisement message =
             new BasicTrustGraphAdvertisement(id, adPayload,
                 LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
         );
 
-        final int ttl;
-        if (!LanternUtils.isFallbackProxy()) {
-            log.debug("Sending ad to newly online roster entry {}.", id);
-            ttl = ad.getTtl();
-        } else {
+        if (LanternUtils.isFallbackProxy()) {
             log.debug("Reducing TTL for fallback proxies");
             ttl = 0;
+        } else {
+            log.debug("Sending ad to newly online roster entry {}.", id);
         }
         tgn.sendAdvertisement(message, id, ttl);
     }
-
+    
+    private interface AdBuilder {
+        LanternKscopeAdvertisement build(String from);
+    }
+    
+    private AdBuilder traditionalAd = new AdBuilder() {
+        public LanternKscopeAdvertisement build(String from) {
+            InetAddress address = 
+                    new PublicIpAddress().getPublicIpAddress();
+            LanternKscopeAdvertisement ad;
+            MappedServerSocket ms = xmppHandler.getMappedServer();
+            if (ms.isPortMapped()) {
+                ad = new LanternKscopeAdvertisement(from, address, 
+                    ms.getMappedPort(), ms.getHostAddress()
+                );
+            } else {
+                ad = new LanternKscopeAdvertisement(from, address, ms.getHostAddress());
+            }
+            return ad;
+        }
+    };
+    
     private void onPresence(final Presence pres, final boolean sync,
         final boolean updateIndex) {
         final LanternRosterEntry entry = getRosterEntry(pres.getFrom());
