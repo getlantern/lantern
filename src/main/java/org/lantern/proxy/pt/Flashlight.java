@@ -64,7 +64,21 @@ public class Flashlight extends BasePluggableTransport {
         super(false, "pt/flashlight", "flashlight");
         this.props = props;
     }
+    
+    public static String getClientConfigDir() {
+        return String.format("%s%spt%sflashlight",
+                LanternClientConstants.CONFIG_DIR,
+                File.separatorChar,
+                File.separatorChar);
+    }
 
+    public static String getServerConfigDir() {
+        return String.format("%s%spt%sflashlight-server",
+                LanternClientConstants.CONFIG_DIR,
+                File.separatorChar,
+                File.separatorChar);
+    }
+    
     @Override
     protected void addClientArgs(CommandLine cmd,
             InetSocketAddress listenAddress,
@@ -74,10 +88,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("client");
 
         cmd.addArgument("-configdir");
-        cmd.addArgument(String.format("%s%spt%sflashlight",
-                LanternClientConstants.CONFIG_DIR,
-                File.separatorChar,
-                File.separatorChar));
+        cmd.addArgument(getClientConfigDir());
 
         cmd.addArgument("-addr");
         cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
@@ -105,10 +116,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument(props.getProperty(SERVER_KEY));
 
         cmd.addArgument("-configdir");
-        cmd.addArgument(String.format("%s%spt%sflashlight-server",
-                LanternClientConstants.CONFIG_DIR,
-                File.separatorChar,
-                File.separatorChar));
+        cmd.addArgument(getServerConfigDir());
 
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);

@@ -352,11 +352,14 @@ public class Roster implements RosterListener, RosterHandler {
     @Subscribe
     public void onConnectedToWaddell(final ConnectedToWaddellEvent event) {
         log.info("Sending KScope waddell ads to all peers");
+        final InetAddress address =
+                new PublicIpAddress().getPublicIpAddress();
         AdBuilder waddellAd = new AdBuilder() {
             public LanternKscopeAdvertisement build(String from) {
-                return LanternKscopeAdvertisement.forWaddell(from, event.getId(), event.getWaddellAddr());
+                return LanternKscopeAdvertisement.forWaddell(from, address,
+                        event.getId(), event.getWaddellAddr());
             }
-        };        
+        };
         doSendToAllPeers(waddellAd);
     }
     

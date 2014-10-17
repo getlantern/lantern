@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.lantern.LanternClientConstants;
 import org.lantern.proxy.ProxyInfo;
+import org.lantern.proxy.pt.FlashlightServerManager;
 
 /**
  * Advertisement for a Lantern node to be distributed using the Kaleidoscope
@@ -79,10 +80,17 @@ public class LanternKscopeAdvertisement {
     
     public static LanternKscopeAdvertisement forWaddell(
             String jid,
+            InetAddress publicAddress,
             String waddellId,
             String waddellAddr) {
-        LanternKscopeAdvertisement ad = new LanternKscopeAdvertisement();
-        ad.setJid(jid);
+        // Build a normal looking ad based on the port-mapped flashlight ports
+        InetSocketAddress localAddress = new InetSocketAddress("127.0.0.1", FlashlightServerManager.PREFERRED_FLASHLIGHT_INTERNAL_PORT);
+        LanternKscopeAdvertisement ad = new LanternKscopeAdvertisement(
+                jid,
+                publicAddress,
+                FlashlightServerManager.FLASHLIGHT_EXTERNAL_PORT,
+                localAddress);
+        // Ad waddell info
         ad.setWaddellId(waddellId);
         ad.setWaddellAddr(waddellAddr);
         return ad;

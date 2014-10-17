@@ -1,26 +1,32 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.PeerType.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.lantern.state.PeerType.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityStatus;
@@ -35,6 +41,7 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
@@ -43,6 +50,7 @@ import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -167,6 +175,11 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     public void instanceOnlineAndTrusted(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
         LOG.debug("Adding proxy... {}", instance);
+        ReceivedKScopeAd ad = instance.getData();
+        if (ad.getAd().getWaddellId() != null) {
+            addWaddellPeer(ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr());
+        }
         if (instance.hasMappedEndpoint()) {
             final ProxyInfo info = instance.getData().getAd().getProxyInfo();
             
@@ -562,6 +575,51 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             } else {
                 return 0;
             }
+        }
+    }
+    
+    /**
+     * Adds a waddell peer to flashlight's configuration.
+     * 
+     * @param id
+     * @param waddellAddr
+     */
+    private void addWaddellPeer(String id, String waddellAddr) {
+        LOG.info("Adding waddell peer with id {} at {}", id, waddellAddr);
+        File configFile = new File(Flashlight.getClientConfigDir()
+                + "/flashlight.yaml");
+        if (!configFile.exists()) {
+            LOG.error("flashlight client config not found at: {}",
+                    configFile.getAbsolutePath());
+            return;
+        }
+        try {
+            String configString = FileUtils.readFileToString(configFile);
+            Yaml yaml = new Yaml();
+            Map<String, Object> config = (Map<String, Object>) yaml
+                    .load(configString);
+            Map<String, Object> clientConfig = (Map<String, Object>) config
+                    .get("client");
+            if (clientConfig == null) {
+                clientConfig = new HashMap<String, Object>();
+                config.put("client", clientConfig);
+            }
+            Map<String, Object>[] peers = (Map<String, Object>[]) config
+                    .get("peers");
+            List<Map<String, Object>> peersList;
+            if (peers == null) {
+                peersList = new ArrayList<Map<String, Object>>();
+            } else {
+                peersList = Arrays.asList(peers);
+            }
+            Map<String, Object> peer = new HashMap<String, Object>();
+            peer.put("id", id);
+            peer.put("waddelladdr", waddellAddr);
+            peersList.add(peer);
+            clientConfig.put("peers",
+                    peersList.toArray(new Map[peersList.size()]));
+        } catch (Exception e) {
+            LOG.error("Unable to add waddell peer: {}", e.getMessage(), e);
         }
     }
 }
