@@ -35,6 +35,7 @@ import org.lantern.ProxyService;
 import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.oauth.OauthUtils;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
@@ -75,12 +76,15 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final InternalState internalState;
 
+    private final GetModeProxyFilter proxyFilter;
+
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final Model model, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
         final ModelUtils modelUtils,
-        final InternalState internalState) {
+        final InternalState internalState,
+        final GetModeProxyFilter proxyFilter) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.model = model;
         this.modelIo = modelIo;
@@ -88,6 +92,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
         this.internalState = internalState;
+        this.proxyFilter = proxyFilter;
     }
 
     @Override
@@ -116,6 +121,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // temporary, though, and we now cancel it.
         try {
             this.proxifier.stopProxying();
+            this.proxyFilter.setHighQos(false);
         } catch (final ProxyConfigurationError e) {
             log.warn("Could not stop proxy?", e);
         }

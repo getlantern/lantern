@@ -35,6 +35,7 @@ import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.DispatchingChainedProxyManager;
 import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
@@ -57,6 +58,7 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxyManager;
+import org.littleshoot.proxy.HttpFiltersSource;
 import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +131,7 @@ public class LanternModule extends AbstractModule {
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
+        
         bind(GetModeProxy.class);
         bind(StatsManager.class);
         bind(ConnectivityChecker.class);

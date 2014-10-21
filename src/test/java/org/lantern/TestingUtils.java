@@ -1,6 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -64,9 +65,9 @@ import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
+import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.*;
 
 public class TestingUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestingUtils.class);
@@ -319,7 +320,8 @@ public class TestingUtils {
                 });
             }
         };
-        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager);
+        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager, 
+                new HttpFiltersSourceAdapter());
         getModeProxy.start();
         try {
             return work.call();
