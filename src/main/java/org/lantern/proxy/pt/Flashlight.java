@@ -40,6 +40,7 @@ public class Flashlight extends BasePluggableTransport {
     public static final String CLOUDCONFIG_KEY = "cloudconfig";
     public static final String CLOUDCONFIG_CA_KEY = "cloudconfigca";
     public static final String WADDELL_ADDR_KEY = "waddelladdr";
+    public static final String CONFIG_ADDR_KEY = "configaddr";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
@@ -65,14 +66,14 @@ public class Flashlight extends BasePluggableTransport {
         this.props = props;
     }
     
-    public static String getClientConfigDir() {
+    private static String getClientConfigDir() {
         return String.format("%s%spt%sflashlight",
                 LanternClientConstants.CONFIG_DIR,
                 File.separatorChar,
                 File.separatorChar);
     }
 
-    public static String getServerConfigDir() {
+    private static String getServerConfigDir() {
         return String.format("%s%spt%sflashlight-server",
                 LanternClientConstants.CONFIG_DIR,
                 File.separatorChar,
@@ -117,6 +118,9 @@ public class Flashlight extends BasePluggableTransport {
 
         cmd.addArgument("-configdir");
         cmd.addArgument(getServerConfigDir());
+        
+        cmd.addArgument("-configaddr");
+        cmd.addArgument(props.getProperty(CONFIG_ADDR_KEY));
 
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);

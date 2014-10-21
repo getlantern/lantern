@@ -3,15 +3,12 @@ package org.lantern.proxy;
 import static org.lantern.state.PeerType.*;
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,9 +23,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
@@ -41,11 +44,11 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
-import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
 import org.lantern.state.SyncPath;
+import org.lantern.util.StaticHttpClientFactory;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
@@ -177,7 +180,8 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         LOG.debug("Adding proxy... {}", instance);
         ReceivedKScopeAd ad = instance.getData();
         if (ad.getAd().getWaddellId() != null) {
-            addWaddellPeer(ad.getAd().getWaddellId(),
+            addWaddellPeer(ad.getFrom(),
+                    ad.getAd().getWaddellId(),
                     ad.getAd().getWaddellAddr());
         }
         if (instance.hasMappedEndpoint()) {
@@ -198,6 +202,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         URI jid = instance.getId();
         LOG.debug("Removing proxy for {}", jid);
         removeNattedProxy(jid);
+        removeWaddellPeer(jid.toString());
     }
 
     @Override
@@ -581,45 +586,69 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     /**
      * Adds a waddell peer to flashlight's configuration.
      * 
+     * @param jid
      * @param id
      * @param waddellAddr
      */
-    private void addWaddellPeer(String id, String waddellAddr) {
-        LOG.info("Adding waddell peer with id {} at {}", id, waddellAddr);
-        File configFile = new File(Flashlight.getClientConfigDir()
-                + "/flashlight.yaml");
-        if (!configFile.exists()) {
-            LOG.error("flashlight client config not found at: {}",
-                    configFile.getAbsolutePath());
-            return;
-        }
+    private void addWaddellPeer(String jid, String id, String waddellAddr) {
+        LOG.info("Adding waddell peer {} with id {} at {}", jid, id,
+                waddellAddr);
         try {
-            String configString = FileUtils.readFileToString(configFile);
-            Yaml yaml = new Yaml();
-            Map<String, Object> config = (Map<String, Object>) yaml
-                    .load(configString);
-            Map<String, Object> clientConfig = (Map<String, Object>) config
-                    .get("client");
-            if (clientConfig == null) {
-                clientConfig = new HashMap<String, Object>();
-                config.put("client", clientConfig);
-            }
-            Map<String, Object>[] peers = (Map<String, Object>[]) config
-                    .get("peers");
-            List<Map<String, Object>> peersList;
-            if (peers == null) {
-                peersList = new ArrayList<Map<String, Object>>();
-            } else {
-                peersList = Arrays.asList(peers);
-            }
             Map<String, Object> peer = new HashMap<String, Object>();
             peer.put("id", id);
             peer.put("waddelladdr", waddellAddr);
-            peersList.add(peer);
-            clientConfig.put("peers",
-                    peersList.toArray(new Map[peersList.size()]));
+            Map<String, Object> extras = new HashMap<String, Object>();
+            extras.put("country", model.getLocation().getCountry());
+            Yaml yaml = new Yaml();
+            String peerYaml = yaml.dump(peer);
+            HttpPost post = new HttpPost(waddellPeerConfigURL(jid));
+            post.setHeader("Content-Type", "application/yaml");
+            HttpEntity requestEntity = new StringEntity(peerYaml, "UTF-8");
+            post.setEntity(requestEntity);
+            HttpClient client = StaticHttpClientFactory.newDirectClient();
+            HttpResponse response = client.execute(post);
+            checkFlashlightConfigResponse(response,
+                    String.format(
+                            "Added waddell peer %1$s with id %2$s at %3$s",
+                            jid, id, waddellAddr),
+                    "HTTP error on adding waddell peer.");
         } catch (Exception e) {
             LOG.error("Unable to add waddell peer: {}", e.getMessage(), e);
+        }
+    }
+
+    // Removes a waddel peer from flashlight's configuration
+    private void removeWaddellPeer(String jid) {
+        LOG.info("Removing waddell peer {}", jid);
+        try {
+            HttpDelete delete = new HttpDelete(waddellPeerConfigURL(jid));
+            HttpClient client = StaticHttpClientFactory.newDirectClient();
+            HttpResponse response = client.execute(delete);
+            checkFlashlightConfigResponse(response,
+                    String.format("Deleted waddell peer with id %1$s", jid),
+                    "HTTP error on deleting waddell peer.");
+        } catch (Exception e) {
+            LOG.error("Unable to delete waddell peer: {}", e.getMessage(), e);
+        }
+    }
+    
+    private String waddellPeerConfigURL(String jid) {
+        return "http://" + model.getS3Config().getFlashlightConfigAddr() + "/client/peers/" + jid;
+    }
+    
+    private void checkFlashlightConfigResponse(HttpResponse response,
+            String success, String error)
+            throws Exception {
+        final HttpEntity entity = response.getEntity();
+        String body = IOUtils.toString(entity.getContent(), "UTF-8");
+        EntityUtils.consume(entity);
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode != 200) {
+            LOG.error(
+                    "{} Status code: {}, body: {}",
+                    error, statusCode, body);
+        } else {
+            LOG.info(success);
         }
     }
 }

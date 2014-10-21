@@ -156,6 +156,7 @@ public class FlashlightServerManager implements Shutdownable {
         }
         props.setProperty(Flashlight.PORTMAP_KEY, externalPort);
         props.setProperty(Flashlight.WADDELL_ADDR_KEY, model.getS3Config().getWaddellAddr());
+        props.setProperty(Flashlight.CONFIG_ADDR_KEY, model.getS3Config().getFlashlightConfigAddr());
 
         LOGGER.debug("Props: {}", props);
         flashlight = new Flashlight(props);
