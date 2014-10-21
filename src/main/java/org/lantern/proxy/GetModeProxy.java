@@ -20,10 +20,12 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class GetModeProxy extends AbstractHttpProxyServerAdapter {
+    
     @Inject
     public GetModeProxy(
             Model model,
-            ChainedProxyManager chainedProxyManager) {
+            ChainedProxyManager chainedProxyManager,
+            GetModeProxyFilter filter) {
         final InstanceStats stats = model.getInstanceStats(); 
         setBootstrap(DefaultHttpProxyServer
                 .bootstrap()
@@ -31,6 +33,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
                 .withPort(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT)
                 .withAllowLocalOnly(true)
                 .withListenOnAllAddresses(false)
+                .withFiltersSource(filter)
                 .withChainProxyManager(chainedProxyManager)
 
                 // Keep stats up to date

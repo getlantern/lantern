@@ -10,6 +10,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.lantern.ProxyService;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -44,17 +45,21 @@ public class GoogleOauth2CallbackServer {
 
     private final ModelUtils modelUtils;
 
+    private final GetModeProxyFilter proxyFilter;
+
     public GoogleOauth2CallbackServer(
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils,
+        final GetModeProxyFilter proxyFilter) {
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
+        this.proxyFilter = proxyFilter;
     }
     
     public void start() {
@@ -87,7 +92,8 @@ public class GoogleOauth2CallbackServer {
         final ServletHolder oauth2callback = new ServletHolder(
             new GoogleOauth2CallbackServlet(this,
                 this.model, this.modelIo, this.proxifier,
-                this.httpClientFactory, modelUtils, this.internalState));
+                this.httpClientFactory, modelUtils, this.internalState,
+                this.proxyFilter));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         
