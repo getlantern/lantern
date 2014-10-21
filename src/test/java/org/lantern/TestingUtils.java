@@ -48,6 +48,7 @@ import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
@@ -321,7 +322,7 @@ public class TestingUtils {
             }
         };
         GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager, 
-                new HttpFiltersSourceAdapter());
+                new GetModeProxyFilter());
         getModeProxy.start();
         try {
             return work.call();

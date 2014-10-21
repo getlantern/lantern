@@ -1,6 +1,5 @@
 package org.lantern.proxy;
 
-import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
@@ -14,28 +13,28 @@ import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * This class filters incoming requests and adds the high QoS HTTP header if 
+ * it's configured to do so. This is useful, for example, for adding the high
+ * QoS header to the Google OAuth requests from the Lantern UI that go through
+ * Lantern by way of the system proxy configuration.
+ */
 @Singleton
 public class GetModeProxyFilter extends HttpFiltersSourceAdapter {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final AtomicBoolean highQos = new AtomicBoolean(false);
     
-    @Inject
-    public GetModeProxyFilter() {
-    }
-    
     @Override
     public HttpFilters filterRequest(HttpRequest originalRequest) {
         return new HttpFiltersAdapter(originalRequest, null) {
             @Override
             public HttpResponse requestPre(HttpObject httpObject) {
-                log.info("Intercepted request: {}", httpObject);
-                if (highQos.get() && httpObject instanceof DefaultHttpRequest) {
+                if (highQos.get() && httpObject instanceof HttpRequest) {
                     log.info("Adding QOS header");
-                    ((DefaultHttpRequest)httpObject).headers().add(
+                    ((HttpRequest)httpObject).headers().add(
                             Flashlight.X_FLASHLIGHT_QOS, Flashlight.HIGH_QOS);
                 }
                 return null;

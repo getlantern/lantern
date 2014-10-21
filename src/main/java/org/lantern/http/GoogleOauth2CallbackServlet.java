@@ -119,9 +119,9 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Before redirecting to Google, we set up the proxy to proxy
         // access to accounts.google.com for the oauth exchange. That's just
         // temporary, though, and we now cancel it.
+        this.proxyFilter.setHighQos(false);
         try {
             this.proxifier.stopProxying();
-            this.proxyFilter.setHighQos(false);
         } catch (final ProxyConfigurationError e) {
             log.warn("Could not stop proxy?", e);
         }
