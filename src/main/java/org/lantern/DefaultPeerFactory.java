@@ -40,7 +40,7 @@ public class DefaultPeerFactory implements PeerFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Roster roster;
+    private final RosterHandler roster;
 
     private final Model model;
 
@@ -50,7 +50,7 @@ public class DefaultPeerFactory implements PeerFactory {
     @Inject
     public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService,
             final Model model,
-            final Roster roster) {
+            final RosterHandler roster) {
         this.model = model;
         this.geoIpLookupService = geoIpLookupService;
         this.roster = roster;

@@ -13,5 +13,7 @@ fi
 
 test -d install/linux/lib || mkdir -p install/linux/lib || die "Could not create install/linux/lib"
 cp lib/linux/x86_64/libunix-java.so install/linux/lib/ || die "Could not copy libunix?"
+rm -rf src/main/pt/pt
+cp -R install/linux_x86_64/pt src/main/pt/ || die "Could not copy pluggable transports!"
 ./debInstall.bash $* 64 579
 rm install/linux/lib/* 

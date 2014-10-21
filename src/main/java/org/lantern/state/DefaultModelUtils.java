@@ -126,16 +126,7 @@ public class DefaultModelUtils implements ModelUtils {
             }
         }
         return new LanternGoogleOAuth2Credentials("anon@getlantern.org",
-            set.getClientID(), set.getClientSecret(), 
-            set.getAccessToken(), set.getRefreshToken(), 
-            resource);
-    }
-
-    @Override
-    public boolean isOauthConfigured() {
-        final Settings set = this.model.getSettings();
-        return StringUtils.isNotBlank(set.getRefreshToken()) &&
-                StringUtils.isNotBlank(set.getAccessToken());
+                set.getRefreshToken(), resource);
     }
 
     @Override

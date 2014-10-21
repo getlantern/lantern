@@ -45,6 +45,7 @@ then
 	echo "Building from local code, not performing git ops"
 else
 	git pull || die "Could not git pull?"
+	git pull --tags || die "Could not git pull --tags?"
 	if [[ $VERSION == "HEAD" ]]; 
 	then 
 	    CHECKOUT=HEAD; 

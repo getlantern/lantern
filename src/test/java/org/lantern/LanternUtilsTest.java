@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Test for Lantern utilities.
  */
-//@Ignore
 public class LanternUtilsTest {
 
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
@@ -158,16 +157,7 @@ public class LanternUtilsTest {
             @Override
             public Void call() throws Exception {
                 LOG.debug(System.getProperty("javax.net.ssl.trustStore")+" Testing OTR mode...");
-                //System.setProperty("javax.net.debug", "ssl");
-                /*
-                final File certsFile = new File("src/test/resources/cacerts");
-                if (!certsFile.isFile()) {
-                    throw new IllegalStateException("COULD NOT FIND CACERTS!!");
-                }
-                System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
-                */
                 final XMPPConnection conn = TestUtils.xmppConnection();
-                //System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
                 final String activateResponse = LanternUtils.activateOtr(conn).toXML();
                 LOG.debug("Got response: {}", activateResponse);
 

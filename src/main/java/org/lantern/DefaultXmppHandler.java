@@ -137,7 +137,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ModelUtils modelUtils;
 
-    private final org.lantern.Roster roster;
+    private final RosterHandler roster;
 
     private final ProxyTracker proxyTracker;
 
@@ -164,7 +164,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final org.lantern.Roster roster, 
+        final RosterHandler roster, 
         final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
@@ -254,11 +254,7 @@ public class DefaultXmppHandler implements XmppHandler {
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppConfig(true));
         
         LOG.debug("Connecting to XMPP servers...");
-        if (this.modelUtils.isOauthConfigured()) {
-            connectViaOAuth2();
-        } else {
-            throw new Error("Oauth not configured properly?");
-        }
+        connectViaOAuth2();
     }
 
     private void connectViaOAuth2() throws IOException,

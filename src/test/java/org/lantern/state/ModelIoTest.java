@@ -1,6 +1,6 @@
 package org.lantern.state;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -12,24 +12,27 @@ import org.lantern.CountryService;
 import org.lantern.TestUtils;
 import org.lantern.TestingUtils;
 import org.lantern.privacy.LocalCipherProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Files;
 
 public class ModelIoTest {
-
-    private static Logger LOG = LoggerFactory.getLogger(ModelIoTest.class);
 
     private static File testFile;
 
     @BeforeClass
     public static void setup() throws Exception {
-        testFile = new File("modelTest");
+        testFile = new File(Files.createTempDir(), "modelTest");
         testFile.delete();
         testFile.deleteOnExit();
     }
     
     @Test
     public void testModelIo() throws Exception {
+        final File dir = testFile.getParentFile();
+        if (!dir.exists()) {
+            assertTrue("Could not make temp directory!", dir.mkdirs());
+        }
+        assertTrue("Can't write to test directory!", dir.canWrite());
         CountryService countryService = TestUtils.getCountryService();
         ModelIo io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
                 countryService, TestingUtils.newCommandLine(), 
@@ -46,7 +49,11 @@ public class ModelIoTest {
             assertEquals("en", system.getLang());
         }
         
-        model.getSettings().setRefreshToken("refreshToken");
+        final String testId = "test-client-id";
+        final Settings set = model.getSettings();
+        final String existingId = set.getClientID();
+        assertNotEquals("IDs should not be equal", testId, existingId);
+        set.setClientID(testId);
         io.write();
 
         io = new ModelIo(testFile, TestUtils.getEncryptedFileService(),
@@ -55,9 +62,8 @@ public class ModelIoTest {
         final Model model2 = io.get();
         system = model2.getSystem();
         connectivity = model2.getConnectivity();
-        final String tok = model2.getSettings().getRefreshToken();
-        assertEquals("refreshToken", tok);
-        //assertEquals(1, model.getFriends().getFriends().size());
+        final String tok = model2.getSettings().getClientID();
+        assertEquals(testId, tok);
 
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());

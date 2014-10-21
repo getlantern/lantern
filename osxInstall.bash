@@ -14,6 +14,9 @@ VERSION=$1
 RELEASE=$2;
 
 echo "RELEASE flag is $RELEASE"
+
+rm -rf src/main/pt/pt
+cp -R install/osx/pt src/main/pt/ || die "Could not copy pluggable transports!"
 source ./installerBuild.bash $1 "-Dsun.arch.data.model=64 -Pmac,-linux,-windows" $RELEASE || die "Could not build!!"
 
 install4jc -v --mac-keystore-password=$INSTALL4J_MAC_PASS -m macos -r $VERSION ./install/lantern.install4j || die "Could not build installer?"

@@ -1,7 +1,6 @@
 package org.lantern.http;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -16,7 +15,6 @@ import org.lantern.LanternUtils;
 import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
-import org.lantern.XmppHandler;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
@@ -38,8 +36,6 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     
     private static final long serialVersionUID = -957838028594747197L;
 
-    private final XmppHandler handler;
-
     private final Model model;
 
     private final InternalState internalState;
@@ -55,12 +51,11 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     private final ModelUtils modelUtils;
 
     @Inject
-    public GoogleOauth2RedirectServlet(final XmppHandler handler, 
+    public GoogleOauth2RedirectServlet(
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
         final Censored censored, final ModelUtils modelUtils) {
-        this.handler = handler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
@@ -92,6 +87,10 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.debug("Params: {}", params);
         log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
         log.debug("Query string: {}", req.getQueryString());
+        
+        // When users are censored or in get mode, we temporarily proxy all
+        // requests to allow the Google authentication screen to appear in
+        // the dashboard/browser.
         if (this.censored.isCensored() || LanternUtils.isGet()) {
             try {
                 proxifier.startProxying(true, Proxifier.PROXY_ALL);
@@ -103,7 +102,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // stop it and start it only when we need oauth callbacks. If we
         // attempt to restart a stopped server, things get funky.
         GoogleOauth2CallbackServer server =
-            new GoogleOauth2CallbackServer(handler, model, this.internalState, 
+            new GoogleOauth2CallbackServer(model, this.internalState, 
                 this.modelIo, this.proxifier, this.httpClientFactory, modelUtils);
         
         // Note that this call absolutely ensures the server is started.
@@ -138,12 +137,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
             final String langUrl = baseUrl +
                 "&hl=" + this.model.getSystem().getLang();
 
-            final String finalUrl = this.internalState.isNotInvited() ?
-                // call google's logout service with a continue param
-                // set to langUrl to clear out the previous login
-                ("https://www.google.com/accounts/Logout?continue="+
-                    URLEncoder.encode(langUrl, "UTF-8")) :
-                langUrl;
+            final String finalUrl = langUrl;
 
             log.debug("Sending redirect to URL: {}", finalUrl);
             return finalUrl;

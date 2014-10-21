@@ -12,7 +12,6 @@ public enum Modal {
     settingsLoadFailure,
     welcome,
     authorize,
-    connecting,
     authorizeLater,
     notInvited,
     requestInvite,

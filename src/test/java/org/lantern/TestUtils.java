@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.JettyLauncher;
-import org.lantern.oauth.OauthUtils;
+import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.DefaultProxyTracker;
@@ -32,12 +32,10 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
-import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -113,12 +111,13 @@ public class TestUtils {
             } finally {
                 IOUtils.closeQuietly(is);
             }
-            
+            /*
             if (StringUtils.isBlank(getRefreshToken()) ||
                 StringUtils.isBlank(getAccessToken())) {
                 System.err.println("NO REFRESH OR ACCESS TOKENS!!");
                 //throw new Error("Tokens not in "+privatePropsFile);
             }
+            */
         }
     }
     public static void load() {
@@ -168,7 +167,7 @@ public class TestUtils {
         final Settings set = model.getSettings();
         LOG.debug("setting oauth token values...");
         LOG.debug("secure env vars available? {}", System.getenv("TRAVIS_SECURE_ENV_VARS"));
-        set.setAccessToken(getAccessToken());
+        //set.setAccessToken(getAccessToken());
         set.setRefreshToken(getRefreshToken());
         set.setUseGoogleOAuth2(true);
         start(start);
@@ -268,7 +267,7 @@ public class TestUtils {
 
     public static XMPPConnection xmppConnection() throws CredentialException, 
         IOException {
-        final GoogleOAuth2Credentials creds = TestUtils.getGoogleOauthCreds();
+        final LanternGoogleOAuth2Credentials creds = getGoogleOauthCreds();
         final int attempts = 2;
         
         final XMPPConnection conn = 
@@ -277,30 +276,23 @@ public class TestUtils {
         return conn;
     }
     
-    public static GoogleOAuth2Credentials getGoogleOauthCreds() {
-        final Details secrets;
-        try {
-            secrets = OauthUtils.loadClientSecrets().getInstalled();
-        } catch (final IOException e) {
-            throw new Error("Could not load client secrets?", e);
-        }
-        final String clientId = secrets.getClientId();
-        final String clientSecret = secrets.getClientSecret();
-        
-        return new GoogleOAuth2Credentials("anon@getlantern.org",
-            clientId, clientSecret, 
-            getAccessToken(), getRefreshToken(), 
-            "gmail.");
+    public static LanternGoogleOAuth2Credentials getGoogleOauthCreds() {
+        return new LanternGoogleOAuth2Credentials("anon@getlantern.org",
+            getRefreshToken(), "gmail.");
     }
 
     public static String getRefreshToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
+        return privateProps.getProperty("refresh_token");
+        /*
+        //final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
         if (StringUtils.isBlank(oauth)) {
             return privateProps.getProperty("refresh_token");
         }
         return oauth;
+        */
      }
 
+    /*
     public static String getAccessToken() {
         final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
         if (StringUtils.isBlank(oauth)) {
@@ -308,6 +300,7 @@ public class TestUtils {
         }
         return oauth;
     }
+    */
     
     public static String getUserName() {
         final String oauth = System.getenv("LANTERN_OAUTH_USERNAME");

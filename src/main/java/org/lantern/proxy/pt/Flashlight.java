@@ -3,14 +3,12 @@ package org.lantern.proxy.pt;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.Launcher;
-import org.lantern.S3Config;
 import org.lantern.geoip.GeoData;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.ProcessUtil;
@@ -35,6 +33,7 @@ public class Flashlight extends BasePluggableTransport {
     public static final String MASQUERADE_KEY = "masquerade";
     public static final String PORTMAP_KEY = "portmap";
     public static final String CLOUDCONFIG_KEY = "cloudconfig";
+    public static final String CLOUDCONFIG_CA_KEY = "cloudconfigca";
     
     public static final String STATS_ADDR = "127.0.0.1:15670";
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
@@ -54,9 +53,7 @@ public class Flashlight extends BasePluggableTransport {
      * the masquerade host to use.
      */
     public Flashlight(Properties props) {
-        super(false,
-                "pt/flashlight",
-                "flashlight", "flashlight.exe");
+        super(false, "pt/flashlight", "flashlight");
         this.props = props;
     }
 
@@ -80,6 +77,9 @@ public class Flashlight extends BasePluggableTransport {
         
         cmd.addArgument("-cloudconfig");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_KEY));
+        
+        cmd.addArgument("-cloudconfigca");
+        cmd.addArgument(props.getProperty(CLOUDCONFIG_CA_KEY), false);
         
         addParentPIDIfAvailable(cmd);
     }

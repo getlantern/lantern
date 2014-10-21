@@ -59,7 +59,7 @@ do
   # TODO: DO ALL THIS IN THE PYTHON SCRIPT
   shasum $name | cut -d " " -f 1 > $newestName.sha1
   echo "Uploading SHA-1 `cat $newestName.sha1`"
-  aws -putp $bucket $newestName.sha1
+  #aws -putp $bucket $newestName.sha1
   s3cmd put -P $newestName.sha1 s3://$bucket
 
   ./commitbinary.bash $name $newestName || die "Could not commit binaries?"

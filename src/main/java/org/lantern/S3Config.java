@@ -59,7 +59,8 @@ public class S3Config extends BaseS3Config {
      */
     private static final FallbackProxy FLASHLIGHT_PROXY = 
             new FlashlightProxy("roundrobin.getiantem.org", 1, MASQUERADE,
-                    DEFAULT_FLASHLIGHT_CLOUDCONFIG);
+                    DEFAULT_FLASHLIGHT_CLOUDCONFIG,
+                    DEFAULT_FLASHLIGHT_CLOUDCONFIG_CA);
 
 
     /**

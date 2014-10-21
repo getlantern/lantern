@@ -11,7 +11,6 @@ import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
 import org.lantern.JsonUtils;
-import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +64,7 @@ public class FTE extends BasePluggableTransport {
      * @param props
      */
     public FTE(Properties props) {
-        super(true,
-                "pt/fteproxy",
-                "fteproxy", "fteproxy.exe");
+        super(true, "pt/fteproxy", "fteproxy");
         this.props = props;
         String propsFile = props.getProperty("file");
         if (propsFile != null) {
@@ -89,7 +86,6 @@ public class FTE extends BasePluggableTransport {
                                 propsFile, ioe.getMessage()), ioe);
             }
         }
-        LanternUtils.chmod(ptPath, 0755);
         updateCustomFormatsIfNecessary();
     }
 
