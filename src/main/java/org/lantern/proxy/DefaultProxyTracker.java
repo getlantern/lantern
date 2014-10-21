@@ -601,6 +601,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             peer.put("waddelladdr", waddellAddr);
             Map<String, Object> extras = new HashMap<String, Object>();
             extras.put("country", model.getLocation().getCountry());
+            peer.put("extras", extras);
             Yaml yaml = new Yaml();
             String peerYaml = yaml.dump(peer);
             HttpPost post = new HttpPost(waddellPeerConfigURL(jid));
@@ -619,7 +620,11 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         }
     }
 
-    // Removes a waddel peer from flashlight's configuration
+    /**
+     * Removes a waddel peer from flashlight's configuration
+     * 
+     * @param jid
+     */
     private void removeWaddellPeer(String jid) {
         LOG.info("Removing waddell peer {}", jid);
         try {

@@ -107,6 +107,7 @@ public class NetworkTracker<U, I, D> {
             Map<I, InstanceInfo<I, D>> userInstances = onlineInstancesByAdvertisingUser
                     .get(advertisingUser);
             if (userInstances != null) {
+                LOG.debug("removing online instance: {}", instanceId);
                 userInstances.remove(instanceId);
             }
         }
