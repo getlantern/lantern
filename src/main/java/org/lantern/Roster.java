@@ -409,8 +409,10 @@ public class Roster implements RosterListener, RosterHandler {
         } else {
             ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
         }
-        ad.setWaddellId(waddellId);
-        ad.setWaddellAddr(waddellAddr);
+        synchronized (waddellLock) {
+            ad.setWaddellId(waddellId);
+            ad.setWaddellAddr(waddellAddr);
+        }
         
         final TrustGraphNode tgn = new LanternTrustGraphNode();
         // set ttl to max for now
