@@ -21,6 +21,7 @@ public class FlashlightProxy extends FallbackProxy {
 
     public FlashlightProxy(final String host, final int priority, 
             final FlashlightMasquerade masquerade,
+            String configAddr,
             String cloudConfig,
             String cloudConfigCA) {
         this.masquerade = masquerade;
@@ -28,6 +29,7 @@ public class FlashlightProxy extends FallbackProxy {
         
         props.setProperty("type", "flashlight");
         props.setProperty(Flashlight.SERVER_KEY, host);
+        props.setProperty(Flashlight.CONFIG_ADDR_KEY, configAddr);
         props.setProperty(Flashlight.CLOUDCONFIG_KEY, cloudConfig);
         props.setProperty(Flashlight.CLOUDCONFIG_CA_KEY, cloudConfigCA);
         

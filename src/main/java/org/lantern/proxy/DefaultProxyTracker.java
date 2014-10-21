@@ -4,10 +4,12 @@ import static org.lantern.state.PeerType.*;
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -633,7 +635,14 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     }
     
     private String waddellPeerConfigURL(String jid) {
-        return "http://" + model.getS3Config().getFlashlightConfigAddr() + "/client/peers/" + jid;
+        String escapedJID = jid.replace("/", "|");
+        try {
+            return "http://" + model.getS3Config().getFlashlightConfigAddr()
+                    + "/Client/Peers/" + URLEncoder.encode(escapedJID, "UTF8");
+        } catch (UnsupportedEncodingException uee) {
+            throw new RuntimeException(String.format(
+                    "Unable to URL encode JID: %1$s", uee), uee);
+        }
     }
     
     private void checkFlashlightConfigResponse(HttpResponse response,

@@ -85,21 +85,26 @@ public class Flashlight extends BasePluggableTransport {
             InetSocketAddress listenAddress,
             InetSocketAddress getModeAddress,
             InetSocketAddress proxyAddress) {
+        addCommonArgs(cmd);
+        
         cmd.addArgument("-role");
         cmd.addArgument("client");
 
         cmd.addArgument("-configdir");
         cmd.addArgument(getClientConfigDir());
 
-        cmd.addArgument("-addr");
-        cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
-                listenAddress.getPort()));
+        cmd.addArgument("-configaddr");
+        cmd.addArgument(props.getProperty(CONFIG_ADDR_KEY));
         
         cmd.addArgument("-cloudconfig");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_KEY));
         
         cmd.addArgument("-cloudconfigca");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_CA_KEY), false);
+        
+        cmd.addArgument("-addr");
+        cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
+                listenAddress.getPort()));
         
         addParentPIDIfAvailable(cmd);
     }
@@ -110,6 +115,8 @@ public class Flashlight extends BasePluggableTransport {
             String ip__ignore,
             int listenPort,
             InetSocketAddress address__ignore) {
+        addCommonArgs(cmd);
+        
         cmd.addArgument("-role");
         cmd.addArgument("server");
 
@@ -119,20 +126,9 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-configdir");
         cmd.addArgument(getServerConfigDir());
         
-        cmd.addArgument("-configaddr");
-        cmd.addArgument(props.getProperty(CONFIG_ADDR_KEY));
-
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);
         
-        cmd.addArgument("-instanceid");
-        cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
-        
-        String ipAddress = new PublicIpAddress().getPublicIpAddress().getHostAddress();
-        GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
-        cmd.addArgument("-country");
-        cmd.addArgument(geoData.getCountry().getIsoCode());
-
         cmd.addArgument("-statsaddr");
         cmd.addArgument(STATS_ADDR);
         
@@ -149,6 +145,20 @@ public class Flashlight extends BasePluggableTransport {
         }
 
         addParentPIDIfAvailable(cmd);
+    }
+    
+    private void addCommonArgs(CommandLine cmd) {
+        if (Launcher.getInstance() != null) {
+            cmd.addArgument("-instanceid");
+            cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
+
+            String ipAddress = new PublicIpAddress().getPublicIpAddress()
+                    .getHostAddress();
+            GeoData geoData = Launcher.getInstance()
+                    .lookup(GeoIpLookupService.class).getGeoData(ipAddress);
+            cmd.addArgument("-country");
+            cmd.addArgument(geoData.getCountry().getIsoCode());
+        }
     }
 
     /**
@@ -190,11 +200,14 @@ public class Flashlight extends BasePluggableTransport {
                 if (matcher.matches()) {
                     String id = matcher.group(1);
                     String waddellAddr = props.getProperty(WADDELL_ADDR_KEY);
-                    logger.info(
-                            "Connected to waddell {} with id {}, posting ConnectedToWaddellEvent",
-                            waddellAddr, id);
-                    Events.asyncEventBus().post(
-                            new ConnectedToWaddellEvent(id, waddellAddr));
+                    if (waddellAddr != null) {
+                        // We're a server, raise the ConnectedToWaddellEvent
+                        logger.info(
+                                "Connected to waddell {} with id {}, posting ConnectedToWaddellEvent",
+                                waddellAddr, id);
+                        Events.asyncEventBus().post(
+                                new ConnectedToWaddellEvent(id, waddellAddr));
+                    }
                 }
                 super.handleLine(line, logToError);
             }
