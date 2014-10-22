@@ -23,6 +23,9 @@ names=($baseName.exe $baseName.dmg $baseName-32-bit.deb $baseName-64-bit.deb)
 tag=${baseName:0:${#baseName}-8}
 newest=$2
 
+echo "Pulling latest to make sure we can push"
+git pull || die "Could not pull latest?"
+
 for name in "${names[@]}"
 do
   echo "$name"
