@@ -75,6 +75,7 @@ import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -729,7 +730,7 @@ public class LanternUtils {
             }
         }
         LOG.error("Never able to connect with local server! " +
-            "Maybe couldn't bind?");
+            "Maybe couldn't bind? "+ThreadUtils.dumpStack());
         return false;
     }
 
