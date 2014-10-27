@@ -23,8 +23,19 @@ names=($baseName.exe $baseName.dmg $baseName-32-bit.deb $baseName-64-bit.deb)
 tag=${baseName:0:${#baseName}-8}
 newest=$2
 
-echo "Pulling latest to make sure we can push"
-git pull || die "Could not pull latest?"
+bindir=../lantern-binaries
+pushd $bindir || die "Could not go to binaries directory?"
+
+// Totally overwrite git to avoid keeping history for large binaries
+test -d .git && rm -rf .git || die "Could not delete .git repo?"
+rm -rf lantern*
+rm -rf latest*
+
+git init || die "Could not create git repo?"
+
+popd
+#echo "Pulling latest to make sure we can push"
+#git pull || die "Could not pull latest?"
 
 for name in "${names[@]}"
 do
@@ -53,19 +64,22 @@ do
   echo "Copying on S3 to newest file"
   ./copys3file.py $name $newestName || die "Could not copy s3 file to newest!"
 
-  #echo "Uploading binary $name to tag 'latest'"
-  #./uploadghasset.rb latest $name
-
-  #echo "Uploading binary $name to tag '$tag'"
-  #./uploadghasset.rb $tag $name
 
   # TODO: DO ALL THIS IN THE PYTHON SCRIPT
   shasum $name | cut -d " " -f 1 > $newestName.sha1
   echo "Uploading SHA-1 `cat $newestName.sha1`"
-  #aws -putp $bucket $newestName.sha1
   s3cmd put -P $newestName.sha1 s3://$bucket
 
   ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
 done
+
+cd $bindir || die "Could not change to binaries directory?"
+
+git remote add origin "git@github.com:getlantern/lantern-binaries.git" || die
+"Could not add origin git@github.com:getlantern/lantern-binaries.git?"
+git push -u --force origin master || die "Could not force push new binaries?"
+
+echo "Completed publishing latest binaries!!"
+
 
 
