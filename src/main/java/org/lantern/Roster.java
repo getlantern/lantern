@@ -350,11 +350,13 @@ public class Roster implements RosterListener, RosterHandler {
 
     private void sendKscopeAdToAllPeers() {
         synchronized (waddellLock) {
-            log.debug("Waiting for waddell info before sending KScope ads to all peers");
-            try {
-                waddellLock.wait();
-            } catch (InterruptedException ie) {
-                // Interrupted while waiting for waddell data
+            if (waddellId == null) {
+                log.debug("Waiting for waddell info before sending KScope ads to all peers");
+                try {
+                    waddellLock.wait();
+                } catch (InterruptedException ie) {
+                    // Interrupted while waiting for waddell data
+                }
             }
             log.debug("Sending KScope ads to all peers");
             final Collection<LanternRosterEntry> entries = getEntries();
