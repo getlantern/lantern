@@ -317,6 +317,17 @@
 
 	<build>
 		<defaultGoal>install</defaultGoal>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+		    </resource>
+            <resource>
+				<directory>src/main/pt</directory>
+				<filtering>false</filtering>
+			</resource>
+	    </resources>
+
 
 		<!-- Make sure the lantern common parent doesn't override this -->
 		<testResources>
@@ -578,17 +589,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-		    </resource>
-            <resource>
-				<directory>src/main/pt</directory>
-				<filtering>false</filtering>
-			</resource>
-	    </resources>
 
 		<pluginManagement>
 			<plugins>
