@@ -1289,7 +1289,7 @@ public class LanternUtils {
         try {
             is = ClassLoader.getSystemResourceAsStream(path);
             if (is == null) {
-                throw new NullPointerException("No input at "+path);
+                throw new IOException("No input at "+path);
             }
             os = new FileOutputStream(temp);
             IOUtils.copy(is, os);
