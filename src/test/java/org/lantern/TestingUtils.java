@@ -297,6 +297,8 @@ public class TestingUtils {
                 JsonUtils.OBJECT_MAPPER.readValue(s3ConfigString, S3Config.class);
         
         final org.lantern.proxy.FallbackProxy fallback = s3Config.getFallbacks().iterator().next();
+        LOGGER.info("Using fallback {} at: {}:{}", fallback.getJid(),
+                fallback.getWanHost(), fallback.getWanPort());
         trustStore.addCert(fallback.getCert());
         ChainedProxyManager proxyManager =
                 new ChainedProxyManager() {
