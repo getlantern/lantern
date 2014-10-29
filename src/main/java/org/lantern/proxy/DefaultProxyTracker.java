@@ -4,12 +4,10 @@ import static org.lantern.state.PeerType.*;
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +23,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.Cipher;
+
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -46,6 +47,7 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
@@ -96,18 +98,22 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      */
     private final ExecutorService proxyConnect = 
             Threads.newCachedThreadPool("Proxy-Connect-Thread-");
+    
+    private final LocalCipherProvider cipherProvider;
 
     @Inject
     public DefaultProxyTracker(
             final Model model,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
-            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
+            final LocalCipherProvider cipherProvider) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
+        this.cipherProvider = cipherProvider;
         networkTracker.addListener(this);
-
+        
         Events.register(this);
     }
     
@@ -640,13 +646,18 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     }
     
     private String waddellPeerConfigURL(String jid) {
-        String escapedJID = jid.replace("/", "|");
         try {
+            // We encrypt the peer ID so as to avoid exposing it in the
+            // flashlight.yaml.
+            String encryptedJID = Hex.encodeHexString(
+                    cipherProvider.newLocalCipher(Cipher.ENCRYPT_MODE).doFinal(
+                            jid.getBytes()));
             return "http://" + model.getS3Config().getFlashlightConfigAddr()
-                    + "/Client/Peers/" + URLEncoder.encode(escapedJID, "UTF8");
-        } catch (UnsupportedEncodingException uee) {
+                    + "/Client/Peers/" + encryptedJID;
+        } catch (Exception e) {
             throw new RuntimeException(String.format(
-                    "Unable to URL encode JID: %1$s", uee), uee);
+                    "Unable to build waddellPeerConfigUrl: ", e.getMessage()),
+                    e);
         }
     }
     
