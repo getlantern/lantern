@@ -349,27 +349,17 @@ public class Roster implements RosterListener, RosterHandler {
     }
 
     private void sendKscopeAdToAllPeers() {
-        synchronized (waddellLock) {
-            if (waddellId == null) {
-                log.debug("Waiting for waddell info before sending KScope ads to all peers");
-                try {
-                    waddellLock.wait();
-                } catch (InterruptedException ie) {
-                    // Interrupted while waiting for waddell data
-                }
+        log.debug("Sending KScope ads to all peers");
+        final Collection<LanternRosterEntry> entries = getEntries();
+        for (final LanternRosterEntry lre : entries) {
+            if (!lre.isAvailable()) {
+                log.debug("Entry not listed as available {}", lre.getUser());
             }
-            log.debug("Sending KScope ads to all peers");
-            final Collection<LanternRosterEntry> entries = getEntries();
-            for (final LanternRosterEntry lre : entries) {
-                if (!lre.isAvailable()) {
-                    log.debug("Entry not listed as available {}", lre.getUser());
-                }
-                if (friendsHandler.isFriend(lre.getEmail())) {
-                    sendKscope(lre.getUser());
-                } else {
-                    log.debug("Not sending kscope ad to non-friend: {}",
-                            lre.getEmail());
-                }
+            if (friendsHandler.isFriend(lre.getEmail())) {
+                sendKscope(lre.getUser());
+            } else {
+                log.debug("Not sending kscope ad to non-friend: {}",
+                        lre.getEmail());
             }
         }
     }
@@ -412,6 +402,7 @@ public class Roster implements RosterListener, RosterHandler {
             ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
         }
         synchronized (waddellLock) {
+            waitForWaddell();
             ad.setWaddellId(waddellId);
             ad.setWaddellAddr(waddellAddr);
         }
@@ -520,6 +511,19 @@ public class Roster implements RosterListener, RosterHandler {
     private void fullRosterSync() {
         updateIndex();
         Events.syncRoster(this);
+    }
+    
+    public void waitForWaddell() {
+        if (waddellId != null) {
+            return;
+        }
+        try {
+            log.debug("Waiting for waddell");
+            waddellLock.wait();
+            log.debug("waddell available!");
+        } catch (InterruptedException ie) {
+            log.warn("Interrupted while waiting for waddell info", ie);
+        }
     }
     
     @Subscribe

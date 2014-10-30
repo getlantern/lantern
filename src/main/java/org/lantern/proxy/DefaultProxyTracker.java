@@ -599,7 +599,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      * @param waddellAddr
      */
     private void addWaddellPeer(String jid, String id, String waddellAddr) {
-        LOG.info("Adding waddell peer {} with id {} at {}", jid, id,
+        LOG.debug("Adding waddell peer {} with id {} at {}", jid, id,
                 waddellAddr);
         try {
             Map<String, Object> peer = new HashMap<String, Object>();
@@ -632,7 +632,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      * @param jid
      */
     private void removeWaddellPeer(String jid) {
-        LOG.info("Removing waddell peer {}", jid);
+        LOG.debug("Removing waddell peer {}", jid);
         try {
             HttpDelete delete = new HttpDelete(waddellPeerConfigURL(jid));
             HttpClient client = StaticHttpClientFactory.newDirectClient();
