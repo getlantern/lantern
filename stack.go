@@ -30,15 +30,7 @@ type Call uintptr
 //    %+v   equivalent to %+s:%d
 //    %#v   equivalent to %#s:%d
 func (pc Call) Format(s fmt.State, c rune) {
-	// BUG(ChrisHines): Subtracting one from pc is a work around for
-	// https://code.google.com/p/go/issues/detail?id=7690. The idea for this
-	// work around comes from rsc's initial patch at
-	// https://codereview.appspot.com/84100043/#ps20001, but as noted in the
-	// issue discussion, it is not a complete fix since it doesn't handle some
-	// cases involving signals. Just the same, it handles all of the other
-	// cases I have tested.
-	pcFix := uintptr(pc) - 1
-	fn := runtime.FuncForPC(pcFix)
+	fn := runtime.FuncForPC(uintptr(pc))
 	if fn == nil {
 		fmt.Fprintf(s, "%%!%c(NOFUNC)", c)
 		return
@@ -46,7 +38,7 @@ func (pc Call) Format(s fmt.State, c rune) {
 
 	switch c {
 	case 's', 'v':
-		file, line := fn.FileLine(pcFix)
+		file, line := fn.FileLine(uintptr(pc))
 		switch {
 		case s.Flag('#'):
 			// done
@@ -94,7 +86,7 @@ func (pc Call) Format(s fmt.State, c rune) {
 		}
 
 	case 'd':
-		_, line := fn.FileLine(pcFix)
+		_, line := fn.FileLine(uintptr(pc))
 		fmt.Fprint(s, line)
 
 	case 'n':
@@ -116,8 +108,7 @@ func (pc Call) Format(s fmt.State, c rune) {
 // name returns the import path qualified name of the function containing the
 // call.
 func (pc Call) name() string {
-	pcFix := uintptr(pc) - 1 // work around for go issue #7690
-	fn := runtime.FuncForPC(pcFix)
+	fn := runtime.FuncForPC(uintptr(pc))
 	if fn == nil {
 		return "???"
 	}
@@ -125,22 +116,21 @@ func (pc Call) name() string {
 }
 
 func (pc Call) file() string {
-	pcFix := uintptr(pc) - 1 // work around for go issue #7690
-	fn := runtime.FuncForPC(pcFix)
+	fn := runtime.FuncForPC(uintptr(pc))
 	if fn == nil {
 		return "???"
 	}
-	file, _ := fn.FileLine(pcFix)
+	file, _ := fn.FileLine(uintptr(pc))
 	return file
 }
 
-// Trace records a sequence of function invocations from a goroutine stack.
-type Trace []Call
+// CallStack records a sequence of function invocations from a goroutine stack.
+type CallStack []Call
 
-// Format implements fmt.Formatter by printing the Trace as square brackes ([,
+// Format implements fmt.Formatter by printing the CallStack as square brackes ([,
 // ]) surrounding a space separated list of Calls each formatted with the
 // supplied verb and options.
-func (pcs Trace) Format(s fmt.State, c rune) {
+func (pcs CallStack) Format(s fmt.State, c rune) {
 	s.Write([]byte("["))
 	for i, pc := range pcs {
 		if i > 0 {
@@ -151,52 +141,98 @@ func (pcs Trace) Format(s fmt.State, c rune) {
 	s.Write([]byte("]"))
 }
 
+// findSigpanic intentially executes faulting code to generate a stack
+// trace containing an entry for runtime.sigpanic.
+func findSigpanic() *runtime.Func {
+	var fn *runtime.Func
+	func() int {
+		defer func() {
+			if p := recover(); p != nil {
+				pcs := pcStackPool.Get().([]uintptr)
+				pcs = pcs[:cap(pcs)]
+				n := runtime.Callers(2, pcs)
+				for _, pc := range pcs[:n] {
+					f := runtime.FuncForPC(pc)
+					if f.Name() == "runtime.sigpanic" {
+						fn = f
+						break
+					}
+				}
+				pcStackPool.Put(pcs)
+			}
+		}()
+		// intentional division by zero fault
+		a, b := 1, 0
+		return a / b
+	}()
+	return fn
+}
+
+var (
+	sigpanic *runtime.Func
+	spOnce   sync.Once
+)
+
 var pcStackPool = sync.Pool{
 	New: func() interface{} { return make([]uintptr, 1000) },
 }
 
-// Callers returns a Trace for the current goroutine with element 0
+// Trace returns a CallStack for the current goroutine with element 0
 // identifying the calling function.
-func Callers() Trace {
+func Trace() CallStack {
+	spOnce.Do(func() {
+		sigpanic = findSigpanic()
+	})
+
 	pcs := pcStackPool.Get().([]uintptr)
 	pcs = pcs[:cap(pcs)]
+
 	n := runtime.Callers(2, pcs)
 	cs := make([]Call, n)
+
+	var prevFn *runtime.Func
 	for i, pc := range pcs[:n] {
-		cs[i] = Call(pc)
+		pcFix := pc
+		if prevFn != sigpanic {
+			pcFix--
+		}
+		cs[i] = Call(pcFix)
+		prevFn = runtime.FuncForPC(pc)
 	}
+
 	pcStackPool.Put(pcs)
+
 	return cs
 }
 
-// TrimBelow returns a slice of the Trace with all entries below pc removed.
-func (pcs Trace) TrimBelow(pc Call) Trace {
+// TrimBelow returns a slice of the CallStack with all entries below pc removed.
+func (pcs CallStack) TrimBelow(pc Call) CallStack {
 	for len(pcs) > 0 && pcs[0] != pc {
 		pcs = pcs[1:]
 	}
 	return pcs
 }
 
-// TrimAbove returns a slice of the Trace with all entries above pc removed.
-func (pcs Trace) TrimAbove(pc Call) Trace {
+// TrimAbove returns a slice of the CallStack with all entries above pc removed.
+func (pcs CallStack) TrimAbove(pc Call) CallStack {
 	for len(pcs) > 0 && pcs[len(pcs)-1] != pc {
 		pcs = pcs[:len(pcs)-1]
 	}
 	return pcs
 }
 
-// TrimBelowName returns a slice of the Trace with all entries below the
+// TrimBelowName returns a slice of the CallStack with all entries below the
 // lowest with function name name removed.
-func (pcs Trace) TrimBelowName(name string) Trace {
+func (pcs CallStack) TrimBelowName(name string) CallStack {
 	for len(pcs) > 0 && pcs[0].name() != name {
 		pcs = pcs[1:]
 	}
 	return pcs
 }
 
-// TrimAboveName returns a slice of the Trace with all entries above the
+// TrimAboveName returns a slice of the CallStack with all entries above the
 // highest with function name name removed.
-func (pcs Trace) TrimAboveName(name string) Trace {
+func (pcs CallStack) TrimAboveName(name string) CallStack {
 	for len(pcs) > 0 && pcs[len(pcs)-1].name() != name {
 		pcs = pcs[:len(pcs)-1]
 	}
@@ -219,10 +255,10 @@ func inGoroot(path string) bool {
 	return strings.HasPrefix(path, goroot)
 }
 
-// TrimRuntime returns a slice of the Trace with the topmost entries from the
+// TrimRuntime returns a slice of the CallStack with the topmost entries from the
 // go runtime removed. It considers any calls originating from files under
 // GOROOT as part of the runtime.
-func (pcs Trace) TrimRuntime() Trace {
+func (pcs CallStack) TrimRuntime() CallStack {
 	for len(pcs) > 0 && inGoroot(pcs[len(pcs)-1].file()) {
 		pcs = pcs[:len(pcs)-1]
 	}

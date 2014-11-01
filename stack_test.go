@@ -190,23 +190,23 @@ func BenchmarkCallPlusNFmt(b *testing.B) {
 	}
 }
 
-func BenchmarkCallers(b *testing.B) {
+func BenchmarkTrace(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		stack.Callers()
+		stack.Trace()
 	}
 }
 
-func deepStack(depth int, b *testing.B) stack.Trace {
+func deepStack(depth int, b *testing.B) stack.CallStack {
 	if depth > 0 {
 		return deepStack(depth-1, b)
 	}
 	b.StartTimer()
-	s := stack.Callers()
+	s := stack.Trace()
 	b.StopTimer()
 	return s
 }
 
-func BenchmarkCallers10(b *testing.B) {
+func BenchmarkTrace10(b *testing.B) {
 	b.StopTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -214,7 +214,7 @@ func BenchmarkCallers10(b *testing.B) {
 	}
 }
 
-func BenchmarkCallers50(b *testing.B) {
+func BenchmarkTrace50(b *testing.B) {
 	b.StopTimer()
 
 	for i := 0; i < b.N; i++ {
@@ -222,7 +222,7 @@ func BenchmarkCallers50(b *testing.B) {
 	}
 }
 
-func BenchmarkCallers100(b *testing.B) {
+func BenchmarkTrace100(b *testing.B) {
 	b.StopTimer()
 
 	for i := 0; i < b.N; i++ {
