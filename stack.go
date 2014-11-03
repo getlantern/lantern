@@ -1,5 +1,12 @@
 // Package stack implements utilities to capture, manipulate, and format call
-// stacks.
+// stacks. It provides a simpler API than package runtime.
+//
+// The implementation takes care of the minutia and special cases of
+// interpreting the program counter (pc) values returned by runtime.Callers.
+//
+// Package stack's types implement fmt.Formatter, which provides a simple and
+// flexible way to declaratively configure formatting when used with logging
+// or error tracking packages.
 package stack
 
 import (
@@ -234,7 +241,7 @@ func Trace() CallStack {
 	return cs
 }
 
-// TrimBelow returns a slice of the CallStack with all entries below pc
+// TrimBelow returns a slice of the CallStack with all entries below c
 // removed.
 func (cs CallStack) TrimBelow(c Call) CallStack {
 	for len(cs) > 0 && cs[0].pc != c.pc {
@@ -243,7 +250,7 @@ func (cs CallStack) TrimBelow(c Call) CallStack {
 	return cs
 }
 
-// TrimAbove returns a slice of the CallStack with all entries above pc
+// TrimAbove returns a slice of the CallStack with all entries above c
 // removed.
 func (cs CallStack) TrimAbove(c Call) CallStack {
 	for len(cs) > 0 && cs[len(cs)-1].pc != c.pc {
