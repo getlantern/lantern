@@ -87,11 +87,53 @@ func TestCallFormat(t *testing.T) {
 	}
 }
 
+func TestTrimAbove(t *testing.T) {
+	trace := trimAbove()
+	if got, want := len(trace), 2; got != want {
+		t.Errorf("got len(trace) == %v, want %v, trace: %n", got, want, trace)
+	}
+	if got, want := fmt.Sprintf("%n", trace[1]), "TestTrimAbove"; got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func trimAbove() stack.CallStack {
+	call := stack.Caller(1)
+	trace := stack.Trace()
+	return trace.TrimAbove(call)
+}
+
+func TestTrimBelow(t *testing.T) {
+	trace := trimBelow()
+	if got, want := fmt.Sprintf("%n", trace[0]), "TestTrimBelow"; got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func trimBelow() stack.CallStack {
+	call := stack.Caller(1)
+	trace := stack.Trace()
+	return trace.TrimBelow(call)
+}
+
+func TestTrimRuntime(t *testing.T) {
+	trace := stack.Trace().TrimRuntime()
+	if got, want := len(trace), 1; got != want {
+		t.Errorf("got len(trace) == %v, want %v, trace: %#v", got, want, trace)
+	}
+}
+
 func BenchmarkCallVFmt(b *testing.B) {
 	c := stack.Caller(0)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		fmt.Fprint(ioutil.Discard, c)
+	}
+}
+
+func BenchmarkCallerAndVFmt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		fmt.Fprint(ioutil.Discard, stack.Caller(0))
 	}
 }
 
@@ -159,10 +201,28 @@ func BenchmarkCallPlusNFmt(b *testing.B) {
 	}
 }
 
+func BenchmarkCaller(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		stack.Caller(0)
+	}
+}
+
 func BenchmarkTrace(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		stack.Trace()
 	}
+}
+
+func BenchmarkFuncForPC(b *testing.B) {
+	pc, _, _, _ := runtime.Caller(0)
+	pc--
+	var fn *runtime.Func
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		fn = runtime.FuncForPC(pc)
+	}
+	b.StopTimer()
+	b.Log(fn.FileLine(pc))
 }
 
 func deepStack(depth int, b *testing.B) stack.CallStack {

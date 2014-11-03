@@ -143,6 +143,14 @@ func (c Call) file() string {
 	return file
 }
 
+func (c Call) line() int {
+	if c.fn == nil {
+		return 0
+	}
+	_, line := c.fn.FileLine(c.pc)
+	return line
+}
+
 // CallStack records a sequence of function invocations from a goroutine
 // stack.
 type CallStack []Call
