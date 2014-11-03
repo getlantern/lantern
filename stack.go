@@ -7,7 +7,7 @@
 // Package stack's types implement fmt.Formatter, which provides a simple and
 // flexible way to declaratively configure formatting when used with logging
 // or error tracking packages.
-package stack
+package stack // import "gopkg.in/stack.v0"
 
 import (
 	"fmt"

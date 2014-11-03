@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/go-stack/stack"
+	"gopkg.in/stack.v0"
 )
 
 type testType struct{}

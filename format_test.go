@@ -3,14 +3,14 @@ package stack_test
 import (
 	"fmt"
 
-	"github.com/go-stack/stack"
+	"gopkg.in/stack.v0"
 )
 
 func Example_callFormat() {
 	log("%+s")
 	log("%v   %[1]n()")
 	// Output:
-	// github.com/go-stack/stack/format_test.go
+	// gopkg.in/stack.v0/format_test.go
 	// format_test.go:11   Example_callFormat()
 }
 
