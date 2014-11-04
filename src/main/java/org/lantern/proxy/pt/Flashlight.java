@@ -118,16 +118,17 @@ public class Flashlight extends BasePluggableTransport {
     }
     
     private void addCommonArgs(CommandLine cmd) {
-        cmd.addArgument("-statsperiod");
-        cmd.addArgument("300");
-        
-        cmd.addArgument("-instanceid");
-        cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
-        
-        String ipAddress = new PublicIpAddress().getPublicIpAddress().getHostAddress();
-        GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
-        cmd.addArgument("-country");
-        cmd.addArgument(geoData.getCountry().getIsoCode());
+        // OX: temporarily disabling stats reporting for https://github.com/getlantern/lantern/issues/1943
+//        cmd.addArgument("-statsperiod");
+//        cmd.addArgument("300");
+//        
+//        cmd.addArgument("-instanceid");
+//        cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
+//        
+//        String ipAddress = new PublicIpAddress().getPublicIpAddress().getHostAddress();
+//        GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
+//        cmd.addArgument("-country");
+//        cmd.addArgument(geoData.getCountry().getIsoCode());
         
         addParentPIDIfAvailable(cmd);
     }
