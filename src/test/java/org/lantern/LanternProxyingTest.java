@@ -127,6 +127,10 @@ public class LanternProxyingTest {
                 return false;
             }
             EntityUtils.consumeQuietly(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(String.format("Exception on testing %1$s: %2$s", url,
+                    e.getMessage()));
         } finally {
             get.reset();
         }

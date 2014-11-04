@@ -81,7 +81,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-cloudconfigca");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_CA_KEY), false);
         
-        addParentPIDIfAvailable(cmd);
+        addCommonArgs(cmd);
     }
 
     @Override
@@ -105,14 +105,6 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-addr");
         cmd.addArgument(":" + listenPort);
         
-        cmd.addArgument("-instanceid");
-        cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
-        
-        String ipAddress = new PublicIpAddress().getPublicIpAddress().getHostAddress();
-        GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
-        cmd.addArgument("-country");
-        cmd.addArgument(geoData.getCountry().getIsoCode());
-
         cmd.addArgument("-statsaddr");
         cmd.addArgument(STATS_ADDR);
         
@@ -122,6 +114,22 @@ public class Flashlight extends BasePluggableTransport {
             cmd.addArgument(portmap);
         }
 
+        addCommonArgs(cmd);
+    }
+    
+    private void addCommonArgs(CommandLine cmd) {
+        // OX: temporarily disabling stats reporting for https://github.com/getlantern/lantern/issues/1943
+//        cmd.addArgument("-statsperiod");
+//        cmd.addArgument("300");
+//        
+//        cmd.addArgument("-instanceid");
+//        cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());
+//        
+//        String ipAddress = new PublicIpAddress().getPublicIpAddress().getHostAddress();
+//        GeoData geoData = Launcher.getInstance().lookup(GeoIpLookupService.class).getGeoData(ipAddress);
+//        cmd.addArgument("-country");
+//        cmd.addArgument(geoData.getCountry().getIsoCode());
+        
         addParentPIDIfAvailable(cmd);
     }
 
