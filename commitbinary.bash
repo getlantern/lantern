@@ -25,6 +25,6 @@ pushd $bindir || die "Could not move to binary repo?"
 git add *
 git commit -m "Latest binaries for $name" || die "Could not commit $name?"
   
-echo "Uploading binary $newestName in lantern-binaries repo"
-git push origin master || die "Could not push?" 
+#echo "Uploading binary $newestName in lantern-binaries repo"
+#git push origin master || die "Could not push?" 
 popd

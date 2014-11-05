@@ -3,7 +3,7 @@
 	<groupId>org.lantern</groupId>
 	<artifactId>lantern</artifactId>
 	<packaging>jar</packaging>
-	<version>1.5.4-SNAPSHOT</version>
+	<version>1.5.7-SNAPSHOT</version>
 	<name>Lantern</name>
 	<description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
 	<url>https://github.com/getlantern/lantern</url>
@@ -125,7 +125,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>14.0.1</version>
+			<version>18.0</version>
 		</dependency>
 
 		<dependency>
@@ -322,6 +322,17 @@
 
 	<build>
 		<defaultGoal>install</defaultGoal>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+		    </resource>
+            <resource>
+				<directory>src/main/pt</directory>
+				<filtering>false</filtering>
+			</resource>
+	    </resources>
+
 
 		<!-- Make sure the lantern common parent doesn't override this -->
 		<testResources>
@@ -523,7 +534,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.1</version>
+				<version>2.3</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -565,7 +576,7 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>2.1.9</version>
+				<version>2.1.10</version>
 				<executions>
 					<execution>
 						<goals>
@@ -583,23 +594,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-				<excludes>
-					<exclude>**/*.db</exclude>
-				</excludes>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>false</filtering>
-				<includes>
-					<include>**/*.db</include>
-				</includes>
-			</resource>
-		</resources>
 
 		<pluginManagement>
 			<plugins>

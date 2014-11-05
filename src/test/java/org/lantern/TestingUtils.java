@@ -1,6 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -47,6 +48,7 @@ import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
@@ -64,9 +66,9 @@ import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
+import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.*;
 
 public class TestingUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestingUtils.class);
@@ -295,6 +297,8 @@ public class TestingUtils {
                 JsonUtils.OBJECT_MAPPER.readValue(s3ConfigString, S3Config.class);
         
         final org.lantern.proxy.FallbackProxy fallback = s3Config.getFallbacks().iterator().next();
+        LOGGER.info("Using fallback {} at: {}:{}", fallback.getJid(),
+                fallback.getWanHost(), fallback.getWanPort());
         trustStore.addCert(fallback.getCert());
         ChainedProxyManager proxyManager =
                 new ChainedProxyManager() {
@@ -319,7 +323,8 @@ public class TestingUtils {
                 });
             }
         };
-        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager);
+        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager, 
+                new GetModeProxyFilter());
         getModeProxy.start();
         try {
             return work.call();

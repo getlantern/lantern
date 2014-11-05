@@ -95,15 +95,27 @@ public class LoggingStreamHandler implements ExecuteStreamHandler {
             @Override
             public void run() {
                 String line = null;
+                StringBuilder panicTrace = null;
                 try {
                     while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("panic: ")) {
+                            // Go program panicked, combine final output into one message
+                            panicTrace = new StringBuilder();
+                        }
+                        if (panicTrace != null) {
+                            panicTrace.append(line);
+                            panicTrace.append("\n");
+                            continue;
+                        }
                         handleLine(line, logToError);
                     }
                 } catch (IOException ioe) {
                     log.error("Unable to read line from pipe: {}",
                             ioe.getMessage(), ioe);
                 }
-                super.run();
+                if (panicTrace != null) {
+                    log.error(panicTrace.toString());
+                }
             }
         };
     }

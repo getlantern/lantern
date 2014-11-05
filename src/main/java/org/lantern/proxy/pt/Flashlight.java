@@ -92,6 +92,10 @@ public class Flashlight extends BasePluggableTransport {
 
         cmd.addArgument("-configdir");
         cmd.addArgument(getClientConfigDir());
+        
+        cmd.addArgument("-addr");
+        cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
+                listenAddress.getPort()));
 
         cmd.addArgument("-configaddr");
         cmd.addArgument(props.getProperty(CONFIG_ADDR_KEY));
@@ -102,11 +106,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-cloudconfigca");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_CA_KEY), false);
         
-        cmd.addArgument("-addr");
-        cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
-                listenAddress.getPort()));
-        
-        addParentPIDIfAvailable(cmd);
+        addCommonArgs(cmd);
     }
 
     @Override
@@ -144,10 +144,14 @@ public class Flashlight extends BasePluggableTransport {
             cmd.addArgument(waddellAddr);
         }
 
-        addParentPIDIfAvailable(cmd);
+        addCommonArgs(cmd);
     }
     
     private void addCommonArgs(CommandLine cmd) {
+        cmd.addArgument("-statsperiod");
+        cmd.addArgument("300");
+        addParentPIDIfAvailable(cmd);
+
         if (Launcher.getInstance() != null) {
             cmd.addArgument("-instanceid");
             cmd.addArgument(Launcher.getInstance().getModel().getInstanceId());

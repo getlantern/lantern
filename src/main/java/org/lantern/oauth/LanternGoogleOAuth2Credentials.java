@@ -31,13 +31,11 @@ public class LanternGoogleOAuth2Credentials implements XmppCredentials {
     
     @Override
     public String getUsername() {
-        log.warn("OAUTH2 username");
         return username;
     }
 
     @Override
     public String getKey() {
-        log.warn("OAUTH2 KEY");
         return username + refreshToken;
     }
 

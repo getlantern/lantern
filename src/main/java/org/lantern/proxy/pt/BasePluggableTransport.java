@@ -1,6 +1,7 @@
 package org.lantern.proxy.pt;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -34,12 +35,11 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
     private static final Set<Class> ALREADY_COPIED_TRANSPORTS = new HashSet<Class>();
 
-    private final String ptRelativePath;
-    private final String executableName;
-    protected String ptBasePath;
-    protected String ptPath;
+    protected File exe;
     private CommandLine cmd;
     private Executor cmdExec;
+
+    protected String ptBasePath;
 
     /**
      * Construct a new Flashlight pluggable transport.
@@ -49,25 +49,40 @@ public abstract class BasePluggableTransport implements PluggableTransport {
      *            from the .lantern folder (necessary if the pluggable transport
      *            modifies files in its path)
      * @param relativePath
-     *            - relative path of pluggable transports from its respective
-     *            install folder
+     *            - relative path of pluggable transport from the root of the 
+     *            jar
      * @param executableName
      *            - the name of the executable (not including .exe)
      */
     protected BasePluggableTransport(boolean copyToConfigFolder,
             String relativePath,
             String executableName) {
-        this.ptRelativePath = relativePath;
+        String path = relativePath + "/" + executableName;
         if (SystemUtils.IS_OS_WINDOWS) {
-            this.executableName = executableName + ".exe";
-        } else {
-            this.executableName = executableName;
+            path += ".exe";
         }
-        this.ptBasePath = findBasePath().getAbsolutePath();
+        try {
+            this.exe = LanternUtils.extractExecutableFromJar(path);
+        } catch (final IOException e) {
+            throw new Error("Could not extract jar file from:"+ path, e);
+        }
+        if (!exe.exists()) {
+            String message = String.format(
+                "%1$s executable missing at %2$s", getLogName(), exe);
+            LOGGER.error(message, exe);
+            throw new Error(message);
+        }
+        
+        if (!exe.canExecute()) {
+            String message = String.format(
+                "%1$s executable not executable at %2$s", getLogName(), exe);
+            LOGGER.error(message, exe);
+            throw new Error(message);
+        }
+        this.ptBasePath = exe.getParentFile().getAbsolutePath();
         if (copyToConfigFolder) {
-            copyToConfigFolder();
+            copyToConfigFolder(exe, relativePath);
         }
-        initPtPath();
     }
 
     /**
@@ -108,7 +123,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                 getModeAddress.getAddress(),
                 LanternUtils.findFreePort());
 
-        cmd = new CommandLine(ptPath);
+        cmd = new CommandLine(this.exe);
         addClientArgs(cmd, listenAddress, getModeAddress, proxyAddress);
         exec();
 
@@ -134,7 +149,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         try {
             final String listenIp = NetworkUtils.getLocalHost()
                     .getHostAddress();
-            cmd = new CommandLine(ptPath);
+            cmd = new CommandLine(this.exe);
             addServerArgs(cmd, listenIp, listenPort, giveModeAddress);
             final Future<Integer> exitFuture = exec();
 
@@ -197,30 +212,9 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         cmdExec.getWatchdog().destroyProcess();
     }
 
-    private File findBasePath() {
-        final File rel = new File(ptRelativePath);
-        if (rel.isDirectory())
-            return rel;
-
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            return new File("./install/osx", ptRelativePath);
-        }
-
-        if (SystemUtils.IS_OS_WINDOWS) {
-            return new File("./install/win", ptRelativePath);
-        }
-
-        if (SystemUtils.OS_ARCH.contains("64")) {
-            return new File("./install/linux_x86_64", ptRelativePath);
-        }
-        return new File("./install/linux_x86_32", ptRelativePath);
-    }
-
-    private void copyToConfigFolder() {
-        File from = new File(ptBasePath);
-        File to = new File(LanternClientConstants.CONFIG_DIR
-                + File.separator
-                + ptRelativePath);
+    private void copyToConfigFolder(final File exe, final String relativePath) {
+        final File from = exe.getParentFile();
+        final File to = new File(LanternClientConstants.CONFIG_DIR, relativePath);
 
         synchronized (ALREADY_COPIED_TRANSPORTS) {
             if (!ALREADY_COPIED_TRANSPORTS.contains(getClass())) {
@@ -244,17 +238,6 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
         // Always update base path to point to copied location
         ptBasePath = to.getAbsolutePath();
-    }
-
-    private void initPtPath() {
-        File executable = new File(ptBasePath + "/" + executableName);
-        ptPath = executable.getAbsolutePath();
-        if (!executable.exists()) {
-            String message = String.format(
-                    "%1$s executable missing at %2$s", getLogName(), ptPath);
-            LOGGER.error(message, ptPath);
-            throw new Error(message);
-        }
     }
 
     private Future<Integer> exec() {
