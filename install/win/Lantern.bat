@@ -23,12 +23,24 @@ goto install
 
 :install
 if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\Lantern.exe" enable=yes profile=any
+if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\pt\flashlight\flashlight.exe" enable=yes profile=any
+if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\pt\flashlight\upnpc.exe" enable=yes profile=any
+if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\pt\flashlight\natty.exe" enable=yes profile=any
 if defined OLD_NETSH netsh firewall add allowedprogram "%~1\Lantern.exe" "Lantern" ENABLE
+if defined OLD_NETSH netsh firewall add allowedprogram "%~1\pt\flashlight\flashlight.exe" "Lantern" ENABLE
+if defined OLD_NETSH netsh firewall add allowedprogram "%~1\pt\flashlight\upnpc.exe" "Lantern" ENABLE
+if defined OLD_NETSH netsh firewall add allowedprogram "%~1\pt\flashlight\natty.exe" "Lantern" ENABLE
 goto :end
 
 :removeNetSh
 if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\Lantern.exe"
+if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\pt\flashlight\flashlight.exe"
+if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\pt\flashlight\upnpc.exe"
+if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\pt\flashlight\natty.exe"
 if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\Lantern.exe"
+if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\pt\flashlight\flashlight.exe"
+if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\pt\flashlight\upnpc.exe"
+if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\pt\flashlight\natty.exe"
 goto :end
 
 :setNetShVersion 
