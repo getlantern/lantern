@@ -15,7 +15,7 @@ public interface ProxyService {
             throws ProxyConfigurationError;
 
     void proxyAllSites(boolean proxyAll) throws ProxyConfigurationError;
-
+    
     void stopProxying() throws ProxyConfigurationError;
 
     void refresh();

@@ -16,6 +16,7 @@ import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.oauth.OauthUtils;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -50,12 +51,15 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
+    private final GetModeProxyFilter proxyFilter;
+
     @Inject
     public GoogleOauth2RedirectServlet(
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
-        final Censored censored, final ModelUtils modelUtils) {
+        final Censored censored, final ModelUtils modelUtils,
+        final GetModeProxyFilter proxyFilter) {
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
@@ -63,6 +67,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         this.httpClientFactory = httpClientFactory;
         this.censored = censored;
         this.modelUtils = modelUtils;
+        this.proxyFilter = proxyFilter;
     }
     
     @Override
@@ -92,6 +97,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // requests to allow the Google authentication screen to appear in
         // the dashboard/browser.
         if (this.censored.isCensored() || LanternUtils.isGet()) {
+            proxyFilter.setHighQos(true);
             try {
                 proxifier.startProxying(true, Proxifier.PROXY_ALL);
             } catch (final ProxyConfigurationError e) {
@@ -103,7 +109,8 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // attempt to restart a stopped server, things get funky.
         GoogleOauth2CallbackServer server =
             new GoogleOauth2CallbackServer(model, this.internalState, 
-                this.modelIo, this.proxifier, this.httpClientFactory, modelUtils);
+                this.modelIo, this.proxifier, this.httpClientFactory, 
+                modelUtils, this.proxyFilter);
         
         // Note that this call absolutely ensures the server is started.
         server.start();

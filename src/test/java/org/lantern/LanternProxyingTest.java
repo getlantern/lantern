@@ -3,6 +3,8 @@ package org.lantern;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,6 +12,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -34,7 +37,7 @@ public class LanternProxyingTest {
     @Test
     public void testWithHttpClient() throws Exception {
         final Collection<String> censored = Arrays.asList(// "exceptional.io");
-                // "www.getlantern.org",
+                "www.getlantern.org",
                 "github.com",
                 "facebook.com",
                 "appledaily.com.tw",
@@ -83,7 +86,7 @@ public class LanternProxyingTest {
             get.setHeader("Accept",
                     "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
             get.setHeader("Accept-Language", "en-us,en;q=0.5");
-            get.setHeader("Accept-Encoding", "gzip, deflate");
+            //get.setHeader("Accept-Encoding", "gzip, deflate");
 
             client.getParams().setParameter(
                     CoreConnectionPNames.CONNECTION_TIMEOUT,
@@ -107,10 +110,14 @@ public class LanternProxyingTest {
             if (200 != response.getStatusLine().getStatusCode()) {
                 return false;
             }
-
-            log.debug("Consuming entity");
+            log.debug("STATUS: {}", response.getStatusLine());
+            log.debug("RESPONSE HEADERS: {}", Arrays.asList(response.getAllHeaders()));
+            log.debug("Consuming entity of length: {}", response.getFirstHeader(HttpHeaders.CONTENT_LENGTH));
+            log.debug("Encoding: {}", response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING));
             final HttpEntity entity = response.getEntity();
-            final String raw = IOUtils.toString(entity.getContent());
+            final InputStream content = entity.getContent();
+            
+            final String raw = IOUtils.toString(content);
             // log.debug("Raw response: "+raw);
 
             // The response body can actually be pretty small -- consider
@@ -120,6 +127,10 @@ public class LanternProxyingTest {
                 return false;
             }
             EntityUtils.consumeQuietly(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(String.format("Exception on testing %1$s: %2$s", url,
+                    e.getMessage()));
         } finally {
             get.reset();
         }

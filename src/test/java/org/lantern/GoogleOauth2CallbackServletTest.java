@@ -22,7 +22,7 @@ public class GoogleOauth2CallbackServletTest {
                final HttpClientFactory factory = new DefaultHttpClientFactory(censored);
                final GoogleOauth2CallbackServlet servlet = 
                    new GoogleOauth2CallbackServlet(null, null, null, 
-                       null, factory, null, null);
+                       null, factory, null, null, null);
                
                final Map<String, Object> allToks = new HashMap<String, Object>();
                allToks.put("access_token", "invalidcode");
