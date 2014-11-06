@@ -3,7 +3,6 @@ package stack_test
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -11,6 +10,8 @@ import (
 
 	"gopkg.in/stack.v0"
 )
+
+const importPath = "github.com/go-stack/stack"
 
 type testType struct{}
 
@@ -30,23 +31,13 @@ func TestCallFormat(t *testing.T) {
 	if !ok {
 		t.Fatal("runtime.Caller(0) failed")
 	}
-
-	gopathSrc := filepath.Join(os.Getenv("GOPATH"), "src")
-	relFile, err := filepath.Rel(gopathSrc, file)
-	if err != nil {
-		t.Fatalf("failed to determine path relative to GOPATH: %v", err)
-	}
-	relFile = filepath.ToSlash(relFile)
+	relFile := path.Join(importPath, filepath.Base(file))
 
 	c2, pc2, file2, line2, ok2 := testType{}.testMethod()
 	if !ok2 {
 		t.Fatal("runtime.Caller(0) failed")
 	}
-	relFile2, err := filepath.Rel(gopathSrc, file)
-	if err != nil {
-		t.Fatalf("failed to determine path relative to GOPATH: %v", err)
-	}
-	relFile2 = filepath.ToSlash(relFile2)
+	relFile2 := path.Join(importPath, filepath.Base(file2))
 
 	data := []struct {
 		c    stack.Call
