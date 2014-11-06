@@ -22,4 +22,4 @@ func putUintptrs(s []uintptr) {
 	}
 }
 
-var pcStackPool = make(chan []uintptr, runtime.GOMAXPROCS(n))
+var pcStackPool = make(chan []uintptr, runtime.GOMAXPROCS(0))
