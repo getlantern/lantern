@@ -7,12 +7,14 @@ import (
 )
 
 func getUintptrs() []uintptr {
+	var s []uintptr
 	select {
-	case s := <-pcStackPool:
-		return s[:cap(s)]
+	case s = <-pcStackPool:
+		s = s[:cap(s)]
 	default:
-		return make([]uintptr, 1000)
+		s = make([]uintptr, 1000)
 	}
+	return s
 }
 
 func putUintptrs(s []uintptr) {

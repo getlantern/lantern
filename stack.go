@@ -262,18 +262,22 @@ func init() {
 	}
 }
 
-func inGoroot(path string) bool {
-	if runtime.GOOS == "windows" {
-		path = strings.ToLower(path)
+func inGoroot(c Call) bool {
+	file := c.file()
+	if len(file) == 0 || file[0] == '?' {
+		return true
 	}
-	return strings.HasPrefix(path, goroot)
+	if runtime.GOOS == "windows" {
+		file = strings.ToLower(file)
+	}
+	return strings.HasPrefix(file, goroot)
 }
 
 // TrimRuntime returns a slice of the CallStack with the topmost entries from
-// the go runtime removed. It considers any calls originating from files under
-// GOROOT as part of the runtime.
+// the go runtime removed. It considers any calls originating from unknown
+// files or files under GOROOT as part of the runtime.
 func (cs CallStack) TrimRuntime() CallStack {
-	for len(cs) > 0 && inGoroot(cs[len(cs)-1].file()) {
+	for len(cs) > 0 && inGoroot(cs[len(cs)-1]) {
 		cs = cs[:len(cs)-1]
 	}
 	return cs

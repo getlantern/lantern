@@ -56,7 +56,6 @@ func TestCallFormat(t *testing.T) {
 		{c, "func", "%v", fmt.Sprint(path.Base(file), ":", line)},
 		{c, "func", "%+v", fmt.Sprint(relFile, ":", line)},
 		{c, "func", "%#v", fmt.Sprint(file, ":", line)},
-		{c, "func", "%v|%[1]n()", fmt.Sprint(path.Base(file), ":", line, "|", "TestCallFormat()")},
 
 		{c2, "meth", "%s", path.Base(file2)},
 		{c2, "meth", "%+s", relFile2},
@@ -67,7 +66,6 @@ func TestCallFormat(t *testing.T) {
 		{c2, "meth", "%v", fmt.Sprint(path.Base(file2), ":", line2)},
 		{c2, "meth", "%+v", fmt.Sprint(relFile2, ":", line2)},
 		{c2, "meth", "%#v", fmt.Sprint(file2, ":", line2)},
-		{c2, "meth", "%v|%[1]n()", fmt.Sprint(path.Base(file2), ":", line2, "|", "testType.testMethod()")},
 	}
 
 	for _, d := range data {
@@ -213,7 +211,7 @@ func BenchmarkFuncForPC(b *testing.B) {
 		fn = runtime.FuncForPC(pc)
 	}
 	b.StopTimer()
-	b.Log(fn.FileLine(pc))
+	fmt.Fprint(ioutil.Discard, fn.Entry())
 }
 
 func deepStack(depth int, b *testing.B) stack.CallStack {
