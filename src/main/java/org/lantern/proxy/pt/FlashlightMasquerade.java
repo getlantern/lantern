@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.HostSpoofedHTTPGet.ResponseHandler;
@@ -77,9 +78,13 @@ public class FlashlightMasquerade {
                                 throws Exception {
                             // This will be the JSON response from the geo-ip
                             // server
-                            //final String body = IOUtils.toString(response.getEntity().getContent());
                             final String host = entry.getKey();
-                            masqueradeListener.onTestedAndVerifiedHost(host);
+                            final int code = response.getStatusLine().getStatusCode();
+                            if (code < 200 || code > 299) {
+                                LOG.warn("Got error for masquerade: {}", host);
+                            } else {
+                                masqueradeListener.onTestedAndVerifiedHost(host);
+                            }
                             return entry;
                         }
 
