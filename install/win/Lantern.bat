@@ -10,7 +10,7 @@ echo Checked first
 if "%2" == "" goto error
 echo Checked second
 
-set BE_HOME=%UserProfile%\.byteexec
+set BE_HOME=%APPDATA%\byteexec
 set NATTY=%BE_HOME%\natty.exe
 
 goto setNetShVersion
