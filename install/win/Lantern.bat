@@ -10,6 +10,9 @@ echo Checked first
 if "%2" == "" goto error
 echo Checked second
 
+set BE_HOME=%UserProfile%\.byteexec
+set NATTY=%BE_HOME%\natty.exe
+
 goto setNetShVersion
 :oldNetSh
 set OLD_NETSH=true
@@ -22,25 +25,21 @@ echo New netsh
 goto install
 
 :install
+Rem Create the .byteexec folder just in case
+mkdir "%BE_HOME%"
+Rem Create a stub of the natty executable if not present
+type nul >>"%NATTY%"
 if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\Lantern.exe" enable=yes profile=any
-if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\pt\flashlight\flashlight.exe" enable=yes profile=any
-if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\pt\flashlight\upnpc.exe" enable=yes profile=any
-if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\pt\flashlight\natty.exe" enable=yes profile=any
+if defined NEW_NETSH netsh advfirewall firewall add rule name="natty" dir=in action=allow program="%NATTY%" enable=yes profile=any
 if defined OLD_NETSH netsh firewall add allowedprogram "%~1\Lantern.exe" "Lantern" ENABLE
-if defined OLD_NETSH netsh firewall add allowedprogram "%~1\pt\flashlight\flashlight.exe" "Lantern" ENABLE
-if defined OLD_NETSH netsh firewall add allowedprogram "%~1\pt\flashlight\upnpc.exe" "Lantern" ENABLE
-if defined OLD_NETSH netsh firewall add allowedprogram "%~1\pt\flashlight\natty.exe" "Lantern" ENABLE
+if defined OLD_NETSH netsh firewall add allowedprogram "%NATTY%" "natty" ENABLE
 goto :end
 
 :removeNetSh
 if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\Lantern.exe"
-if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\pt\flashlight\flashlight.exe"
-if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\pt\flashlight\upnpc.exe"
-if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\pt\flashlight\natty.exe"
+if defined NEW_NETSH netsh advfirewall firewall delete rule name="natty" program="%NATTY%"
 if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\Lantern.exe"
-if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\pt\flashlight\flashlight.exe"
-if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\pt\flashlight\upnpc.exe"
-if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\pt\flashlight\natty.exe"
+if defined OLD_NETSH netsh firewall delete allowedprogram "%NATTY%"
 goto :end
 
 :setNetShVersion 
