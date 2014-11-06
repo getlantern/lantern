@@ -183,8 +183,7 @@ func findSigpanic() *runtime.Func {
 	func() int {
 		defer func() {
 			if p := recover(); p != nil {
-				pcs := pcStackPool.Get().([]uintptr)
-				pcs = pcs[:cap(pcs)]
+				pcs := getUintptrs()
 				n := runtime.Callers(2, pcs)
 				for _, pc := range pcs[:n] {
 					f := runtime.FuncForPC(pc)
@@ -193,7 +192,7 @@ func findSigpanic() *runtime.Func {
 						break
 					}
 				}
-				pcStackPool.Put(pcs)
+				putUintptrs(pcs)
 			}
 		}()
 		// intentional division by zero fault
@@ -208,10 +207,6 @@ var (
 	spOnce   sync.Once
 )
 
-var pcStackPool = sync.Pool{
-	New: func() interface{} { return make([]uintptr, 1000) },
-}
-
 // Trace returns a CallStack for the current goroutine with element 0
 // identifying the calling function.
 func Trace() CallStack {
@@ -219,8 +214,7 @@ func Trace() CallStack {
 		sigpanic = findSigpanic()
 	})
 
-	pcs := pcStackPool.Get().([]uintptr)
-	pcs = pcs[:cap(pcs)]
+	pcs := getUintptrs()
 
 	n := runtime.Callers(2, pcs)
 	cs := make([]Call, n)
@@ -236,7 +230,7 @@ func Trace() CallStack {
 		}
 	}
 
-	pcStackPool.Put(pcs)
+	putUintptrs(pcs)
 
 	return cs
 }
