@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"gopkg.in/stack.v0"
+	"github.com/go-stack/stack"
 )
 
 const importPath = "github.com/go-stack/stack"

@@ -1,4 +1,6 @@
-[![GoDoc](https://godoc.org/gopkg.in/stack.v0?status.svg)](https://godoc.org/gopkg.in/stack.v0) [![Build Status](https://travis-ci.org/go-stack/stack.svg?branch=master)](https://travis-ci.org/go-stack/stack)
+[![GoDoc](https://godoc.org/github.com/go-stack/stack
+?status.svg)](https://godoc.org/github.com/go-stack/stack
+) [![Build Status](https://travis-ci.org/go-stack/stack.svg?branch=master)](https://travis-ci.org/go-stack/stack)
 
 Package stack implements utilities to capture, manipulate, and format call stacks. It provides a simpler API than package runtime.
 
