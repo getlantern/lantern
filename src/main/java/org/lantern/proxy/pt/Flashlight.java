@@ -68,8 +68,9 @@ public class Flashlight extends BasePluggableTransport {
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
     public static final String HIGH_QOS = "10";
 
-    public static final Pattern WADDELL_ID_PATTERN = Pattern
+    private static final Pattern WADDELL_ID_PATTERN = Pattern
             .compile("^.*Connected to Waddell!! Id is: (.*)$");
+    private static final String PEERS_PATH = "/Client/Peers";
 
     private final Properties props;
     private final String configAddr;
@@ -315,7 +316,9 @@ public class Flashlight extends BasePluggableTransport {
             Map<String, Object> extras = new HashMap<String, Object>();
             extras.put("country", country);
             peer.put("extras", extras);
-            postConfig(peerConfigPath(encryptedJid), peer);
+            Map<String, Object> peers = new HashMap<String, Object>();
+            peers.put(encryptedJid, peer);
+            postConfig(PEERS_PATH, peers);
             LOGGER.debug("Added waddell peer {} with id {} at {}",
                     encryptedJid, id, waddellAddr);
         } catch (Exception e) {
@@ -330,15 +333,11 @@ public class Flashlight extends BasePluggableTransport {
      */
     private void removeWaddellPeer(String encryptedJid) {
         try {
-            deleteConfig(peerConfigPath(encryptedJid));
+            deleteConfig(PEERS_PATH + "/" + encryptedJid);
             LOGGER.debug("Deleted waddell peer with id {}", encryptedJid);
         } catch (Exception e) {
             LOGGER.error("Unable to delete waddell peer: {}", e.getMessage(), e);
         }
-    }
-
-    private String peerConfigPath(String encryptedJid) {
-        return "/Client/Peers/" + encryptedJid;
     }
 
     private void postConfig(String path, Map data) throws Exception {
