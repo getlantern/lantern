@@ -22,6 +22,8 @@ public class LanternKscopeAdvertisement {
     private ProxyInfo proxyInfo = new ProxyInfo();
     private int ttl;
     private int version;
+    private String waddellId;
+    private String waddellAddr;
     private String lanternVersion = LanternClientConstants.VERSION;
 
     public static LanternKscopeAdvertisement makeRelayAd(
@@ -130,6 +132,22 @@ public class LanternKscopeAdvertisement {
 
     public void setTtl(int ttl) {
         this.ttl = ttl;
+    }
+    
+    public String getWaddellId() {
+        return waddellId;
+    }
+    
+    public void setWaddellId(String waddellId) {
+        this.waddellId = waddellId;
+    }
+    
+    public String getWaddellAddr() {
+        return waddellAddr;
+    }
+    
+    public void setWaddellAddr(String waddellAddr) {
+        this.waddellAddr = waddellAddr;
     }
 
     public boolean hasMappedEndpoint() {

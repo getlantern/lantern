@@ -1,7 +1,7 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.PeerType.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.lantern.state.PeerType.*;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,6 +21,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.Cipher;
+
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityStatus;
@@ -31,10 +34,12 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.WaddellPeerAvailabilityEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
+import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
@@ -83,18 +88,22 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      */
     private final ExecutorService proxyConnect = 
             Threads.newCachedThreadPool("Proxy-Connect-Thread-");
+    
+    private final LocalCipherProvider cipherProvider;
 
     @Inject
     public DefaultProxyTracker(
             final Model model,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
-            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
+            final LocalCipherProvider cipherProvider) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
+        this.cipherProvider = cipherProvider;
         networkTracker.addListener(this);
-
+        
         Events.register(this);
     }
     
@@ -167,6 +176,18 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     public void instanceOnlineAndTrusted(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
         LOG.debug("Adding proxy... {}", instance);
+        ReceivedKScopeAd ad = instance.getData();
+        if (ad.getAd().getWaddellId() != null) {
+            LOG.debug("Adding waddell peer {} with id {} at {}",
+                    ad.getFrom(),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr());
+            Events.asyncEventBus().post(WaddellPeerAvailabilityEvent.available(
+                    encryptJID(ad.getFrom()),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr(),
+                    model.getLocation().getCountry()));
+        }
         if (instance.hasMappedEndpoint()) {
             final ProxyInfo info = instance.getData().getAd().getProxyInfo();
             
@@ -185,6 +206,10 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         URI jid = instance.getId();
         LOG.debug("Removing proxy for {}", jid);
         removeNattedProxy(jid);
+        LOG.debug("Removing waddell peer {}", jid);
+        Events.asyncEventBus().post(
+                WaddellPeerAvailabilityEvent.unavailable(
+                        encryptJID(jid.toString())));
     }
 
     @Override
@@ -564,4 +589,19 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             }
         }
     }
+
+    private String encryptJID(String jid) {
+        try {
+            // We encrypt the peer ID so as to avoid exposing it in the
+            // flashlight.yaml.
+            return Hex.encodeHexString(
+                    cipherProvider.newLocalCipher(Cipher.ENCRYPT_MODE).doFinal(
+                            jid.getBytes()));
+        } catch (Exception e) {
+            throw new RuntimeException(String.format(
+                    "Unable to encrypt JID: ", e.getMessage()),
+                    e);
+        }
+}
+
 }
