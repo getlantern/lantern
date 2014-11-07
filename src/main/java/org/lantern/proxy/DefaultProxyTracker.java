@@ -13,11 +13,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,13 +26,6 @@ import javax.crypto.Cipher;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
 import org.lantern.PeerFactory;
@@ -43,6 +34,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.WaddellPeerAvailabilityEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
@@ -52,12 +44,10 @@ import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
 import org.lantern.state.SyncPath;
-import org.lantern.util.StaticHttpClientFactory;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -188,9 +178,15 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         LOG.debug("Adding proxy... {}", instance);
         ReceivedKScopeAd ad = instance.getData();
         if (ad.getAd().getWaddellId() != null) {
-            addWaddellPeer(ad.getFrom(),
+            LOG.debug("Adding waddell peer {} with id {} at {}",
+                    ad.getFrom(),
                     ad.getAd().getWaddellId(),
                     ad.getAd().getWaddellAddr());
+            Events.asyncEventBus().post(WaddellPeerAvailabilityEvent.available(
+                    encryptJID(ad.getFrom()),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr(),
+                    model.getLocation().getCountry()));
         }
         if (instance.hasMappedEndpoint()) {
             final ProxyInfo info = instance.getData().getAd().getProxyInfo();
@@ -210,7 +206,10 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         URI jid = instance.getId();
         LOG.debug("Removing proxy for {}", jid);
         removeNattedProxy(jid);
-        removeWaddellPeer(jid.toString());
+        LOG.debug("Removing waddell peer {}", jid);
+        Events.asyncEventBus().post(
+                WaddellPeerAvailabilityEvent.unavailable(
+                        encryptJID(jid.toString())));
     }
 
     @Override
@@ -590,90 +589,19 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
             }
         }
     }
-    
-    /**
-     * Adds a waddell peer to flashlight's configuration.
-     * 
-     * @param jid
-     * @param id
-     * @param waddellAddr
-     */
-    private void addWaddellPeer(String jid, String id, String waddellAddr) {
-        LOG.debug("Adding waddell peer {} with id {} at {}", jid, id,
-                waddellAddr);
-        try {
-            Map<String, Object> peer = new HashMap<String, Object>();
-            peer.put("id", id);
-            peer.put("waddelladdr", waddellAddr);
-            Map<String, Object> extras = new HashMap<String, Object>();
-            extras.put("country", model.getLocation().getCountry());
-            peer.put("extras", extras);
-            Yaml yaml = new Yaml();
-            String peerYaml = yaml.dump(peer);
-            HttpPost post = new HttpPost(waddellPeerConfigURL(jid));
-            post.setHeader("Content-Type", "application/yaml");
-            HttpEntity requestEntity = new StringEntity(peerYaml, "UTF-8");
-            post.setEntity(requestEntity);
-            HttpClient client = StaticHttpClientFactory.newDirectClient();
-            HttpResponse response = client.execute(post);
-            checkFlashlightConfigResponse(response,
-                    String.format(
-                            "Added waddell peer %1$s with id %2$s at %3$s",
-                            jid, id, waddellAddr),
-                    "HTTP error on adding waddell peer.");
-        } catch (Exception e) {
-            LOG.error("Unable to add waddell peer: {}", e.getMessage(), e);
-        }
-    }
 
-    /**
-     * Removes a waddel peer from flashlight's configuration
-     * 
-     * @param jid
-     */
-    private void removeWaddellPeer(String jid) {
-        LOG.debug("Removing waddell peer {}", jid);
-        try {
-            HttpDelete delete = new HttpDelete(waddellPeerConfigURL(jid));
-            HttpClient client = StaticHttpClientFactory.newDirectClient();
-            HttpResponse response = client.execute(delete);
-            checkFlashlightConfigResponse(response,
-                    String.format("Deleted waddell peer with id %1$s", jid),
-                    "HTTP error on deleting waddell peer.");
-        } catch (Exception e) {
-            LOG.error("Unable to delete waddell peer: {}", e.getMessage(), e);
-        }
-    }
-    
-    private String waddellPeerConfigURL(String jid) {
+    private String encryptJID(String jid) {
         try {
             // We encrypt the peer ID so as to avoid exposing it in the
             // flashlight.yaml.
-            String encryptedJID = Hex.encodeHexString(
+            return Hex.encodeHexString(
                     cipherProvider.newLocalCipher(Cipher.ENCRYPT_MODE).doFinal(
                             jid.getBytes()));
-            return "http://" + model.getS3Config().getFlashlightConfigAddr()
-                    + "/Client/Peers/" + encryptedJID;
         } catch (Exception e) {
             throw new RuntimeException(String.format(
-                    "Unable to build waddellPeerConfigUrl: ", e.getMessage()),
+                    "Unable to encrypt JID: ", e.getMessage()),
                     e);
         }
-    }
-    
-    private void checkFlashlightConfigResponse(HttpResponse response,
-            String success, String error)
-            throws Exception {
-        final HttpEntity entity = response.getEntity();
-        String body = IOUtils.toString(entity.getContent(), "UTF-8");
-        EntityUtils.consume(entity);
-        int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode != 200) {
-            LOG.error(
-                    "{} Status code: {}, body: {}",
-                    error, statusCode, body);
-        } else {
-            LOG.info(success);
-        }
-    }
+}
+
 }
