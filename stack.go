@@ -11,8 +11,10 @@ package stack
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -66,7 +68,7 @@ func (c Call) Format(s fmt.State, verb rune) {
 
 	switch verb {
 	case 's', 'v':
-		file, line := c.fn.FileLine(uintptr(c.pc))
+		file, line := c.fn.FileLine(c.pc)
 		switch {
 		case s.Flag('#'):
 			// done
@@ -90,32 +92,40 @@ func (c Call) Format(s fmt.State, verb rune) {
 			//    pkg/sub/file.go
 			//
 			// From this we can easily see that fn.Name() has one less path
-			// separator than our desired output.
+			// separator than our desired output. We count separators from the
+			// end of the file path until it finds two more than in the
+			// function name and then move one character forward to preserve
+			// the initial path segment without a leading separator.
 			const sep = "/"
-			impCnt := strings.Count(c.fn.Name(), sep) + 1
-			pathCnt := strings.Count(file, sep)
-			for pathCnt > impCnt {
-				i := strings.Index(file, sep)
+			goal := strings.Count(c.fn.Name(), sep) + 2
+			pathCnt := 0
+			i := len(file)
+			for pathCnt < goal {
+				i = strings.LastIndex(file[:i], sep)
 				if i == -1 {
+					i = -len(sep)
 					break
 				}
-				file = file[i+len(sep):]
-				pathCnt--
+				pathCnt++
 			}
+			// get back to 0 or trim the leading seperator
+			file = file[i+len(sep):]
 		default:
 			const sep = "/"
 			if i := strings.LastIndex(file, sep); i != -1 {
 				file = file[i+len(sep):]
 			}
 		}
-		fmt.Fprint(s, file)
+		io.WriteString(s, file)
 		if verb == 'v' {
-			fmt.Fprint(s, ":", line)
+			buf := [7]byte{':'}
+			s.Write(strconv.AppendInt(buf[:1], int64(line), 10))
 		}
 
 	case 'd':
-		_, line := c.fn.FileLine(uintptr(c.pc))
-		fmt.Fprint(s, line)
+		_, line := c.fn.FileLine(c.pc)
+		buf := [6]byte{}
+		s.Write(strconv.AppendInt(buf[:0], int64(line), 10))
 
 	case 'n':
 		name := c.fn.Name()
@@ -129,7 +139,7 @@ func (c Call) Format(s fmt.State, verb rune) {
 				name = name[i+len(pkgSep):]
 			}
 		}
-		fmt.Fprint(s, name)
+		io.WriteString(s, name)
 	}
 }
 
@@ -146,7 +156,7 @@ func (c Call) file() string {
 	if c.fn == nil {
 		return "???"
 	}
-	file, _ := c.fn.FileLine(uintptr(c.pc))
+	file, _ := c.fn.FileLine(c.pc)
 	return file
 }
 
