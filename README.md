@@ -23,7 +23,7 @@ func DoTheThing() {
     log.Printf("%+v", c)  // might log "pkg/path/source.go:10"
     log.Printf("%n", c)   // might log "DoTheThing"
 
-    s := stack.Trace()
+    s := stack.Trace().TrimRuntime()
     log.Print(s)          // might log "[source.go:15 caller.go:42 main.go:14]"
 }
 ```
