@@ -19,12 +19,12 @@ Package stack's types implement fmt.Formatter, which provides a simple and flexi
 ```go
 func DoTheThing() {
     c := stack.Caller(0)
-    log.Print(c)          // might log "source.go:10"
-    log.Printf("%+v", c)  // might log "pkg/path/source.go:10"
-    log.Printf("%n", c)   // might log "DoTheThing"
+    log.Print(c)          // "source.go:10"
+    log.Printf("%+v", c)  // "pkg/path/source.go:10"
+    log.Printf("%n", c)   // "DoTheThing"
 
     s := stack.Trace().TrimRuntime()
-    log.Print(s)          // might log "[source.go:15 caller.go:42 main.go:14]"
+    log.Print(s)          // "[source.go:15 caller.go:42 main.go:14]"
 }
 ```
 
