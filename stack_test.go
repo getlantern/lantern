@@ -120,12 +120,6 @@ func BenchmarkCallVFmt(b *testing.B) {
 	}
 }
 
-func BenchmarkCallerAndVFmt(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		fmt.Fprint(ioutil.Discard, stack.Caller(0))
-	}
-}
-
 func BenchmarkCallPlusVFmt(b *testing.B) {
 	c := stack.Caller(0)
 	b.ResetTimer()
@@ -202,31 +196,18 @@ func BenchmarkTrace(b *testing.B) {
 	}
 }
 
-func BenchmarkFuncForPC(b *testing.B) {
-	pc, _, _, _ := runtime.Caller(0)
-	pc--
-	var fn *runtime.Func
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		fn = runtime.FuncForPC(pc)
-	}
-	b.StopTimer()
-	fmt.Fprint(ioutil.Discard, fn.Entry())
-}
-
 func deepStack(depth int, b *testing.B) stack.CallStack {
 	if depth > 0 {
 		return deepStack(depth-1, b)
 	}
 	b.StartTimer()
 	s := stack.Trace()
-	b.StopTimer()
 	return s
 }
 
 func BenchmarkTrace10(b *testing.B) {
-	b.StopTimer()
 	for i := 0; i < b.N; i++ {
+		b.StopTimer()
 		deepStack(10, b)
 	}
 }
@@ -242,5 +223,57 @@ func BenchmarkTrace100(b *testing.B) {
 	b.StopTimer()
 	for i := 0; i < b.N; i++ {
 		deepStack(100, b)
+	}
+}
+
+////////////////
+// Benchmark functions followed by formatting
+////////////////
+
+func BenchmarkCallerAndVFmt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		fmt.Fprint(ioutil.Discard, stack.Caller(0))
+	}
+}
+
+func BenchmarkTraceAndVFmt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		fmt.Fprint(ioutil.Discard, stack.Trace())
+	}
+}
+
+func BenchmarkTrace10AndVFmt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		fmt.Fprint(ioutil.Discard, deepStack(10, b))
+	}
+}
+
+////////////////
+// Baseline against package runtime.
+////////////////
+
+func BenchmarkRuntimeCaller(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		runtime.Caller(0)
+	}
+}
+
+func BenchmarkFuncForPC(b *testing.B) {
+	pc, _, _, _ := runtime.Caller(0)
+	pc--
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		runtime.FuncForPC(pc)
+	}
+}
+
+func BenchmarkFuncFileLine(b *testing.B) {
+	pc, _, _, _ := runtime.Caller(0)
+	pc--
+	fn := runtime.FuncForPC(pc)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		fn.FileLine(pc)
 	}
 }

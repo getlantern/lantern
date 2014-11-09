@@ -16,7 +16,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // Call records a single function invocation from a goroutine stack.
@@ -193,8 +192,8 @@ func findSigpanic() *runtime.Func {
 	func() int {
 		defer func() {
 			if p := recover(); p != nil {
-				pcs := getUintptrs()
-				n := runtime.Callers(2, pcs)
+				var pcs [512]uintptr
+				n := runtime.Callers(2, pcs[:])
 				for _, pc := range pcs[:n] {
 					f := runtime.FuncForPC(pc)
 					if f.Name() == "runtime.sigpanic" {
@@ -202,7 +201,6 @@ func findSigpanic() *runtime.Func {
 						break
 					}
 				}
-				putUintptrs(pcs)
 			}
 		}()
 		// intentional division by zero fault
@@ -212,20 +210,12 @@ func findSigpanic() *runtime.Func {
 	return fn
 }
 
-var (
-	sigpanic *runtime.Func
-	spOnce   sync.Once
-)
+var sigpanic = findSigpanic()
 
 // Trace returns a CallStack for the current goroutine with element 0
 // identifying the calling function.
 func Trace() CallStack {
-	spOnce.Do(func() {
-		sigpanic = findSigpanic()
-	})
-
 	var pcs [512]uintptr
-
 	n := runtime.Callers(2, pcs[:])
 	cs := make([]Call, n)
 
