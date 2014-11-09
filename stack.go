@@ -224,9 +224,9 @@ func Trace() CallStack {
 		sigpanic = findSigpanic()
 	})
 
-	pcs := getUintptrs()
+	var pcs [512]uintptr
 
-	n := runtime.Callers(2, pcs)
+	n := runtime.Callers(2, pcs[:])
 	cs := make([]Call, n)
 
 	for i, pc := range pcs[:n] {
@@ -239,8 +239,6 @@ func Trace() CallStack {
 			pc: pcFix,
 		}
 	}
-
-	putUintptrs(pcs)
 
 	return cs
 }
