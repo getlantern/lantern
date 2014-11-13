@@ -8,11 +8,9 @@ import java.util.Properties;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternClientConstants;
-import org.lantern.Launcher;
-import org.lantern.geoip.GeoData;
-import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.ProcessUtil;
-import org.lantern.util.PublicIpAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -22,6 +20,9 @@ import org.lantern.util.PublicIpAddress;
  * </p>
  */
 public class Flashlight extends BasePluggableTransport {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private static final File CA_CERT_FILE =
             new File(LanternClientConstants.CONFIG_DIR + File.separator +
                     "pt" + File.separator +
@@ -140,11 +141,14 @@ public class Flashlight extends BasePluggableTransport {
      * @param cmd
      */
     private void addParentPIDIfAvailable(CommandLine cmd) {
-        Integer myPID = ProcessUtil.getMyPID();
-        if (myPID != null) {
+        try {
+            final int myPID = ProcessUtil.getMyPID();
             cmd.addArgument("-parentpid");
-            cmd.addArgument(myPID.toString());
+            cmd.addArgument(String.valueOf(myPID));
+        } catch (IOException e) {
+            log.error("Could not determine PID!", e);
         }
+
     }
 
     @Override
