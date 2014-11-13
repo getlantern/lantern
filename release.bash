@@ -11,7 +11,7 @@ then
 fi
 
 
-/copypt.bash || die "Could not copy pluggable transports?"
+./copypt.bash || die "Could not copy pluggable transports?"
 
 VERSION=$(./parseversionfrompom.py | sed s/-SNAPSHOT//)
 
