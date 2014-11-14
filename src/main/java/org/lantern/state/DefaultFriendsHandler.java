@@ -61,9 +61,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final XmppHandler xmppHandler;
 
-    private final AtomicBoolean friendsLoading = new AtomicBoolean(false);
-    
-    private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
+    private final AtomicBoolean loadRequested = new AtomicBoolean(false);
     
     private final NotificationManager notificationManager;
     
@@ -100,14 +98,14 @@ public class DefaultFriendsHandler implements FriendsHandler {
      */
     @Subscribe
     public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
-        loadFriends();
+        loadFriendsIfNecessary();
     }
     
-    private void loadFriends() {
+    private void loadFriendsIfNecessary() {
         // If we're currently loading friends or have already successfully 
         // loaded friends, ignore this call.
-        if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {
-            log.debug("Friends currently loading or loaded...");
+        if (this.loadRequested.getAndSet(true)) {
+            log.debug("Friends load already requested...");
             return;
         }
         final ExecutorService friendsLoader = 
@@ -121,41 +119,44 @@ public class DefaultFriendsHandler implements FriendsHandler {
             @Override
             public Map<String, ClientFriend> call() throws IOException {
                 log.debug("Loading friends");
-                final Map<String, ClientFriend> tempFriends =
-                        new ConcurrentHashMap<String, ClientFriend>();
-                
-                Collection<ClientFriend> friends = Collections.emptyList();
-                try {
-                    final Collection<ClientFriend> serverFriends = 
-                            Arrays.asList(api.listFriends());
-                    log.debug("All friends from server: {}", serverFriends);
-                    for (final ClientFriend friend : serverFriends) {
-                        tempFriends.put(friend.getEmail().toLowerCase(), friend);
+                int delay = 250;
+                int maxDelay = 15000;
+                while(true) {
+                    try {
+                        return doLoadFriends();
+                    } catch (Exception e) {
+                        log.info("Unable to load friends, will try again in {}ms: {}", delay, e.getMessage(), e);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ie) {
+                            // ignore
+                        }
+                        delay = (int) Math.min(Math.pow(delay, 2), maxDelay);
                     }
-                    log.debug("Finished loading friends");
-                    friends = vals(tempFriends);
-                    for (ClientFriend friend : friends) {
-                        trackFriend(friend);
-                    }
-                    friendsLoaded.set(true);
-                    return tempFriends;
-                } catch (final IOException e) {
-                    log.error("Could not list friends?", e);
-                    friends = Collections.emptyList();
-                    friendsLoaded.set(false);
-                    return new HashMap<String, ClientFriend>();
-                } catch (final CredentialException e) {
-                    log.error("Could not list friends?", e);
-                    friends = Collections.emptyList();
-                    friendsLoaded.set(false);
-                    return new HashMap<String, ClientFriend>();
-                } finally {
-                    friendsLoading.set(false);
-                    model.setFriends(friends);
-                    Events.sync(SyncPath.FRIENDS, friends);
                 }
             }
         });
+    }
+    
+    private Map<String, ClientFriend> doLoadFriends() throws Exception {
+        final Map<String, ClientFriend> tempFriends =
+                new ConcurrentHashMap<String, ClientFriend>();
+        
+        Collection<ClientFriend> friends = Collections.emptyList();
+        final Collection<ClientFriend> serverFriends = 
+                Arrays.asList(api.listFriends());
+        log.debug("All friends from server: {}", serverFriends);
+        for (final ClientFriend friend : serverFriends) {
+            tempFriends.put(friend.getEmail().toLowerCase(), friend);
+        }
+        log.debug("Finished loading friends");
+        friends = vals(tempFriends);
+        for (ClientFriend friend : friends) {
+            trackFriend(friend);
+        }
+        model.setFriends(friends);
+        Events.sync(SyncPath.FRIENDS, friends);
+        return tempFriends;
     }
 
     @Override
@@ -513,9 +514,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     private Map<String, ClientFriend> friends() {
-        if (!friendsLoaded.get()) {
-            loadFriends();
-        }
+        loadFriendsIfNecessary();
         try {
             final Map<String, ClientFriend> friends = loadedFriends.get();
             return friends;
@@ -667,8 +666,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Subscribe
     public void onReset(final ResetEvent event) {
-        this.friendsLoaded.set(false);
-        this.friendsLoading.set(false);
+        this.loadRequested.set(false);
         this.loadedFriends = null;
         this.friends().clear();
     }
