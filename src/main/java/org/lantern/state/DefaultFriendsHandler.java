@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.login.CredentialException;
 
@@ -71,6 +72,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final Messages msgs;
     
+    private final AtomicReference<AtomicBoolean> stopRequested = new AtomicReference<AtomicBoolean>(new AtomicBoolean());
+    
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
             final XmppHandler xmppHandler, 
@@ -112,6 +115,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
                 Executors.newSingleThreadExecutor(
                         Threads.newDaemonThreadFactory("Friends-Loader"));
         
+        final AtomicBoolean wasStopRequested = stopRequested.get();
+        
         // We make this a future because we only want to manage friends based
         // on the server's copy. So any local changes wait for that copy to
         // be resolved before manipulating friends.
@@ -119,19 +124,24 @@ public class DefaultFriendsHandler implements FriendsHandler {
             @Override
             public Map<String, ClientFriend> call() throws IOException {
                 log.debug("Loading friends");
-                int delay = 250;
-                int maxDelay = 15000;
+                int i = 4;
+                int maxDelay = (int) Math.pow(4, 8);
                 while(true) {
+                    if (wasStopRequested.get()) {
+                        log.info("Stop requested, no longer retrying load");
+                        return Collections.emptyMap();
+                    }
                     try {
                         return doLoadFriends();
                     } catch (Exception e) {
+                        int delay = (int) Math.min(maxDelay,  Math.pow(4, i)); 
                         log.info("Unable to load friends, will try again in {}ms: {}", delay, e.getMessage(), e);
                         try {
                             Thread.sleep(delay);
                         } catch (InterruptedException ie) {
                             // ignore
                         }
-                        delay = (int) Math.min(Math.pow(delay, 2), maxDelay);
+                        i += 1;
                     }
                 }
             }
@@ -668,7 +678,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
     public void onReset(final ResetEvent event) {
         this.loadRequested.set(false);
         this.loadedFriends = null;
-        this.friends().clear();
+        // Stop the processing of any outstanding load request
+        AtomicBoolean wasStopRequested = stopRequested.getAndSet(new AtomicBoolean());
+        wasStopRequested.set(true);
     }
     
 }
