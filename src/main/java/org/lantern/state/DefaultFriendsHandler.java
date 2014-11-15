@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.login.CredentialException;
 
@@ -61,9 +62,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final XmppHandler xmppHandler;
 
-    private final AtomicBoolean friendsLoading = new AtomicBoolean(false);
-    
-    private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
+    private final AtomicBoolean loadRequested = new AtomicBoolean(false);
     
     private final NotificationManager notificationManager;
     
@@ -72,6 +71,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
     private Future<Map<String, ClientFriend>> loadedFriends;
 
     private final Messages msgs;
+    
+    private final AtomicReference<AtomicBoolean> stopRequested = new AtomicReference<AtomicBoolean>(new AtomicBoolean());
     
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
@@ -100,19 +101,21 @@ public class DefaultFriendsHandler implements FriendsHandler {
      */
     @Subscribe
     public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
-        loadFriends();
+        loadFriendsIfNecessary();
     }
     
-    private void loadFriends() {
+    private void loadFriendsIfNecessary() {
         // If we're currently loading friends or have already successfully 
         // loaded friends, ignore this call.
-        if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {
-            log.debug("Friends currently loading or loaded...");
+        if (this.loadRequested.getAndSet(true)) {
+            log.debug("Friends load already requested...");
             return;
         }
         final ExecutorService friendsLoader = 
                 Executors.newSingleThreadExecutor(
                         Threads.newDaemonThreadFactory("Friends-Loader"));
+        
+        final AtomicBoolean wasStopRequested = stopRequested.get();
         
         // We make this a future because we only want to manage friends based
         // on the server's copy. So any local changes wait for that copy to
@@ -121,41 +124,49 @@ public class DefaultFriendsHandler implements FriendsHandler {
             @Override
             public Map<String, ClientFriend> call() throws IOException {
                 log.debug("Loading friends");
-                final Map<String, ClientFriend> tempFriends =
-                        new ConcurrentHashMap<String, ClientFriend>();
-                
-                Collection<ClientFriend> friends = Collections.emptyList();
-                try {
-                    final Collection<ClientFriend> serverFriends = 
-                            Arrays.asList(api.listFriends());
-                    log.debug("All friends from server: {}", serverFriends);
-                    for (final ClientFriend friend : serverFriends) {
-                        tempFriends.put(friend.getEmail().toLowerCase(), friend);
+                int i = 4;
+                int maxDelay = (int) Math.pow(4, 8);
+                while(true) {
+                    if (wasStopRequested.get()) {
+                        log.info("Stop requested, no longer retrying load");
+                        return Collections.emptyMap();
                     }
-                    log.debug("Finished loading friends");
-                    friends = vals(tempFriends);
-                    for (ClientFriend friend : friends) {
-                        trackFriend(friend);
+                    try {
+                        return doLoadFriends();
+                    } catch (Exception e) {
+                        int delay = (int) Math.min(maxDelay,  Math.pow(4, i)); 
+                        log.info("Unable to load friends, will try again in {}ms: {}", delay, e.getMessage(), e);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ie) {
+                            // ignore
+                        }
+                        i += 1;
                     }
-                    friendsLoaded.set(true);
-                    return tempFriends;
-                } catch (final IOException e) {
-                    log.error("Could not list friends?", e);
-                    friends = Collections.emptyList();
-                    friendsLoaded.set(false);
-                    return new HashMap<String, ClientFriend>();
-                } catch (final CredentialException e) {
-                    log.error("Could not list friends?", e);
-                    friends = Collections.emptyList();
-                    friendsLoaded.set(false);
-                    return new HashMap<String, ClientFriend>();
-                } finally {
-                    friendsLoading.set(false);
-                    model.setFriends(friends);
-                    Events.sync(SyncPath.FRIENDS, friends);
                 }
             }
         });
+    }
+    
+    private Map<String, ClientFriend> doLoadFriends() throws Exception {
+        final Map<String, ClientFriend> tempFriends =
+                new ConcurrentHashMap<String, ClientFriend>();
+        
+        Collection<ClientFriend> friends = Collections.emptyList();
+        final Collection<ClientFriend> serverFriends = 
+                Arrays.asList(api.listFriends());
+        log.debug("All friends from server: {}", serverFriends);
+        for (final ClientFriend friend : serverFriends) {
+            tempFriends.put(friend.getEmail().toLowerCase(), friend);
+        }
+        log.debug("Finished loading friends");
+        friends = vals(tempFriends);
+        for (ClientFriend friend : friends) {
+            trackFriend(friend);
+        }
+        model.setFriends(friends);
+        Events.sync(SyncPath.FRIENDS, friends);
+        return tempFriends;
     }
 
     @Override
@@ -513,9 +524,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     }
 
     private Map<String, ClientFriend> friends() {
-        if (!friendsLoaded.get()) {
-            loadFriends();
-        }
+        loadFriendsIfNecessary();
         try {
             final Map<String, ClientFriend> friends = loadedFriends.get();
             return friends;
@@ -667,10 +676,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Subscribe
     public void onReset(final ResetEvent event) {
-        this.friendsLoaded.set(false);
-        this.friendsLoading.set(false);
+        this.loadRequested.set(false);
         this.loadedFriends = null;
-        this.friends().clear();
+        // Stop the processing of any outstanding load request
+        AtomicBoolean wasStopRequested = stopRequested.getAndSet(new AtomicBoolean());
+        wasStopRequested.set(true);
     }
     
 }
