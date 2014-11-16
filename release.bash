@@ -11,6 +11,8 @@ then
 fi
 
 
+./copypt.bash || die "Could not copy pluggable transports?"
+
 VERSION=$(./parseversionfrompom.py | sed s/-SNAPSHOT//)
 
 mvn release:clean || die "Could not clean release?"

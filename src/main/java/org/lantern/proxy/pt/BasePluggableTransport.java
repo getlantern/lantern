@@ -61,7 +61,8 @@ public abstract class BasePluggableTransport implements PluggableTransport {
             path += ".exe";
         }
         try {
-            this.exe = LanternUtils.extractExecutableFromJar(path);
+            this.exe = LanternUtils.extractExecutableFromJar(path, 
+                    LanternClientConstants.DATA_DIR);
         } catch (final IOException e) {
             throw new Error("Could not extract jar file from:"+ path, e);
         }
