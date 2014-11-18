@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.exec.CommandLine;
@@ -155,6 +156,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
             // Record exception related to startup of server
             final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
+            final AtomicBoolean exceptionSet = new AtomicBoolean();
 
             // Check for termination of process
             new Thread() {
@@ -166,9 +168,11 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                                 String.format(
                                         "Unable to execute process: %1$s",
                                         e.getMessage()), e));
-                    }
-                    synchronized (exception) {
-                        exception.notifyAll();
+                    } finally {
+                        synchronized (exception) {
+                            exceptionSet.set(true);
+                            exception.notifyAll();
+                        }
                     }
                 }
             }.start();
@@ -178,11 +182,14 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                 public void run() {
                     if (!LanternUtils
                             .waitForServer(listenIp, listenPort, 60000)) {
-                        exception.set(new RuntimeException(String.format(
-                                "Unable to start %1$s server", getLogName())));
-                    }
-                    synchronized (exception) {
-                        exception.notifyAll();
+                        synchronized (exception) {
+                            exception.set(new RuntimeException(String
+                                    .format(
+                                            "Unable to start %1$s server",
+                                            getLogName())));
+                            exceptionSet.set(true);
+                            exception.notifyAll();
+                        }
                     }
                 }
             }.start();
@@ -190,7 +197,9 @@ public abstract class BasePluggableTransport implements PluggableTransport {
             // Take the first exception
             try {
                 synchronized (exception) {
-                    exception.wait();
+                    if (!exceptionSet.get()) {
+                        exception.wait();
+                    }
                 }
             } catch (InterruptedException ie) {
                 throw new RuntimeException(
