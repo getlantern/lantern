@@ -159,7 +159,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
             final AtomicBoolean exceptionSet = new AtomicBoolean();
 
             // Check for termination of process
-            new Thread() {
+            Thread terminationThread = new Thread() {
                 public void run() {
                     try {
                         exitFuture.get();
@@ -175,10 +175,12 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                         }
                     }
                 }
-            }.start();
+            };
+            terminationThread.setDaemon(true);
+            terminationThread.start();
 
             // Check for server listening
-            new Thread() {
+            Thread listenCheckThread = new Thread() {
                 public void run() {
                     if (!LanternUtils
                             .waitForServer(listenIp, listenPort, 60000)) {
@@ -192,7 +194,9 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                         }
                     }
                 }
-            }.start();
+            };
+            listenCheckThread.setDaemon(true);
+            listenCheckThread.start();
 
             // Take the first exception
             try {
