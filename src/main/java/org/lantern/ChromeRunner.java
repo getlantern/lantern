@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -104,7 +105,7 @@ public class ChromeRunner {
     }
     
     private String findWindowsExe() {//final String... opts) {
-        final Map<String, Integer> opts = new HashMap<String, Integer>();
+        final Map<String, Integer> opts = new LinkedHashMap<String, Integer>();
         opts.put("APPDATA", ShlObj.CSIDL_APPDATA);
         opts.put("LOCALAPPDATA", ShlObj.CSIDL_LOCAL_APPDATA);
         opts.put("PROGRAMFILES", ShlObj.CSIDL_PROGRAM_FILES);
@@ -112,8 +113,9 @@ public class ChromeRunner {
         final String chromePath = "/Google/Chrome/Application/chrome.exe";
         final Collection<String> paths = new HashSet<String>();
         for (final Entry<String, Integer> entry : opts.entrySet()) {
+            final String envvar = entry.getKey();
             String base;
-            final String envBase = System.getenv(entry.getKey());
+            final String envBase = System.getenv(envvar);
             if (StringUtils.isBlank(envBase)) {
                 try {
                     base = Shell32Util.getFolderPath(entry.getValue().intValue());
@@ -125,7 +127,7 @@ public class ChromeRunner {
                 base = envBase;
             }
             if (StringUtils.isBlank(base)) {
-                log.error("Could not resolve env variable: {}", base);
+                log.error("Could not resolve env variable: {}", envvar);
                 continue;
             }
             final String path = base + chromePath;
