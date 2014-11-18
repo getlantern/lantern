@@ -1259,7 +1259,7 @@ public class LanternUtils {
     public static File extractExecutableFromJar(final String path, 
             final File dir) throws IOException {
         final File newFile = extractFileFromJar(path);
-        File oldFile = new File(dir.getPath() + "/" + newFile.getName());
+        File oldFile = new File(dir, newFile.getName());
         if (oldFile.exists()) {
             HashCode newHash = Files.hash(newFile, Hashing.sha256());
             HashCode oldHash = Files.hash(newFile, Hashing.sha256());
