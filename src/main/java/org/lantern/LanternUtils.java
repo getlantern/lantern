@@ -729,8 +729,8 @@ public class LanternUtils {
                 LOG.info("Interrupted?");
             }
         }
-        LOG.error("Never able to connect with local server! " +
-            "Maybe couldn't bind? "+ThreadUtils.dumpStack());
+        LOG.error("Never able to connect with local server on port {}! " +
+            "Maybe couldn't bind? "+ThreadUtils.dumpStack(), address.getPort());
         return false;
     }
 
