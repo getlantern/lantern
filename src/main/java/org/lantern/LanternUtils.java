@@ -79,6 +79,8 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
 /**
@@ -1248,7 +1250,7 @@ public class LanternUtils {
     
     /**
      * Extracts a file from the current classloader/jar executable to a
-     * temporary directory.
+     * specified directory.
      * 
      * @param path The path of the file in the jar
      * @return The path to the extracted file copied to the file system.
@@ -1256,13 +1258,28 @@ public class LanternUtils {
      */
     public static File extractExecutableFromJar(final String path, 
             final File dir) throws IOException {
-        final File file = extractFileFromJar(path, dir);
-        if (!file.canExecute() && !file.setExecutable(true)) {
+        final File newFile = extractFileFromJar(path);
+        File oldFile = new File(dir, newFile.getName());
+        if (oldFile.exists()) {
+            HashCode newHash = Files.hash(newFile, Hashing.sha256());
+            HashCode oldHash = Files.hash(newFile, Hashing.sha256());
+            if (newHash.equals(oldHash)) {
+                LOG.info("File {} is unchanged, leaving alone", oldFile.getAbsolutePath());
+                newFile.delete();
+                return oldFile;
+            }
+        }
+        if (!newFile.canExecute() && !newFile.setExecutable(true)) {
             final String msg = "Could not make file executable at "+path;
             LOG.error(msg);
             throw new IOException(msg);
         }
-        return file;
+        if (!newFile.renameTo(oldFile)) {
+            String msg = "Unable to move file to destination: " + oldFile.getAbsolutePath();
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        return newFile;
     }
     
     /**
