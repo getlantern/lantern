@@ -1275,6 +1275,13 @@ public class LanternUtils {
             LOG.error(msg);
             throw new IOException(msg);
         }
+        
+        // The renameTo call below is platform-dependent and won't replace 
+        // existing files in all cases. We therefore just delete the old file
+        // first. See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
+        if (!oldFile.delete()) {
+            LOG.warn("Could not delete old file at {}", oldFile);
+        }
         if (!newFile.renameTo(oldFile)) {
             String msg = "Unable to move file to destination: " + oldFile.getAbsolutePath();
             LOG.error(msg);
