@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -65,6 +66,22 @@ public class LanternUtilsTest {
         
         assertEquals(extracted, extracted2);
         assertEquals(oldHash, newHash);
+        
+        final FileOutputStream fos = new FileOutputStream(extracted, true);
+        fos.write(1);
+        fos.close();
+        
+        HashCode updatedHash = Files.hash(extracted, Hashing.sha256());
+        
+        assertNotEquals(updatedHash, newHash);
+        
+        final File extracted3 = 
+                LanternUtils.extractExecutableFromJar(path, dir);
+        
+        assertEquals(extracted, extracted3);
+        HashCode finalHash = Files.hash(extracted3, Hashing.sha256());
+        
+        assertEquals(oldHash, finalHash);
     }
 
     @Test
