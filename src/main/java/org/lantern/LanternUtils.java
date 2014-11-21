@@ -1253,6 +1253,7 @@ public class LanternUtils {
      * specified directory.
      * 
      * @param path The path of the file in the jar
+     * @param dir The desired directory to extract to.
      * @return The path to the extracted file copied to the file system.
      * @throws IOException If there's an error finding or copying the file.
      */
@@ -1262,7 +1263,7 @@ public class LanternUtils {
         File oldFile = new File(dir, newFile.getName());
         if (oldFile.exists()) {
             HashCode newHash = Files.hash(newFile, Hashing.sha256());
-            HashCode oldHash = Files.hash(newFile, Hashing.sha256());
+            HashCode oldHash = Files.hash(oldFile, Hashing.sha256());
             if (newHash.equals(oldHash)) {
                 LOG.info("File {} is unchanged, leaving alone", oldFile.getAbsolutePath());
                 newFile.delete();
@@ -1279,7 +1280,7 @@ public class LanternUtils {
             LOG.error(msg);
             throw new IOException(msg);
         }
-        return newFile;
+        return oldFile;
     }
     
     /**
