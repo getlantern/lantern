@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SASLAuthentication;
@@ -26,6 +27,10 @@ import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 
 /**
  * Test for Lantern utilities.
@@ -41,6 +46,25 @@ public class LanternUtilsTest {
                 LanternSaslGoogleOAuth2Mechanism.class);
         TestUtils.load(true);
         System.setProperty("javax.net.debug", "ssl");
+    }
+    
+    @Test
+    public void testExtractExecutableFromJarFile() throws Exception {
+        final String path = "pt/flashlight";
+        final File dir = Files.createTempDir();
+        final File extracted = 
+                LanternUtils.extractExecutableFromJar(path, dir);
+        assertTrue(extracted.isFile());
+        
+        HashCode oldHash = Files.hash(extracted, Hashing.sha256());
+        
+        final File extracted2 = 
+                LanternUtils.extractExecutableFromJar(path, dir);
+        
+        HashCode newHash = Files.hash(extracted2, Hashing.sha256());
+        
+        assertEquals(extracted, extracted2);
+        assertEquals(oldHash, newHash);
     }
 
     @Test
