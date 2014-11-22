@@ -79,6 +79,8 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
 /**
@@ -729,8 +731,8 @@ public class LanternUtils {
                 LOG.info("Interrupted?");
             }
         }
-        LOG.error("Never able to connect with local server! " +
-            "Maybe couldn't bind? "+ThreadUtils.dumpStack());
+        LOG.error("Never able to connect with local server on port {}! " +
+            "Maybe couldn't bind? "+ThreadUtils.dumpStack(), address.getPort());
         return false;
     }
 
@@ -1248,21 +1250,37 @@ public class LanternUtils {
     
     /**
      * Extracts a file from the current classloader/jar executable to a
-     * temporary directory.
+     * specified directory.
      * 
      * @param path The path of the file in the jar
+     * @param dir The desired directory to extract to.
      * @return The path to the extracted file copied to the file system.
      * @throws IOException If there's an error finding or copying the file.
      */
     public static File extractExecutableFromJar(final String path, 
             final File dir) throws IOException {
-        final File file = extractFileFromJar(path, dir);
-        if (!file.canExecute() && !file.setExecutable(true)) {
+        final File newFile = extractFileFromJar(path);
+        File oldFile = new File(dir, newFile.getName());
+        if (oldFile.exists()) {
+            HashCode newHash = Files.hash(newFile, Hashing.sha256());
+            HashCode oldHash = Files.hash(oldFile, Hashing.sha256());
+            if (newHash.equals(oldHash)) {
+                LOG.info("File {} is unchanged, leaving alone", oldFile.getAbsolutePath());
+                newFile.delete();
+                return oldFile;
+            }
+        }
+        if (!newFile.canExecute() && !newFile.setExecutable(true)) {
             final String msg = "Could not make file executable at "+path;
             LOG.error(msg);
             throw new IOException(msg);
         }
-        return file;
+        if (!newFile.renameTo(oldFile)) {
+            String msg = "Unable to move file to destination: " + oldFile.getAbsolutePath();
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        return oldFile;
     }
     
     /**
