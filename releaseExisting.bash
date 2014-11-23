@@ -73,12 +73,13 @@ do
   ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
 done
 
-cd $bindir || die "Could not change to binaries directory?"
+pushd $bindir || die "Could not change to binaries directory?"
 
 git remote add origin "git@github.com:getlantern/lantern-binaries.git" || die
 "Could not add origin git@github.com:getlantern/lantern-binaries.git?"
 git push -u --force origin master || die "Could not force push new binaries?"
 
+popd
 
 echo "Updating version file"
 version=`echo $baseName | cut -d - -f 2`
