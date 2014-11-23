@@ -1,6 +1,6 @@
 versionCallback(
 {
   "stable": "STABLE",
-  "beta": "STABLE"
+  "beta": "BETA"
 }
 );
