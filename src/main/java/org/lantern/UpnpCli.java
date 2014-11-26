@@ -155,7 +155,8 @@ public class UpnpCli implements UpnpService, Shutdownable {
             int exitValue = executor.execute(cli);
             log.debug("Got exit value: {}", exitValue);
         } catch (IOException e) {
-            log.warn("Got invalid exit value: {}", e.getMessage(), e);
+            log.warn("Got invalid exit value: {}\nOutput:{}", e.getMessage(), 
+                    lines.toString(), e);
         }
         log.debug("Received output: {}", sb.toString());
         return lines;
