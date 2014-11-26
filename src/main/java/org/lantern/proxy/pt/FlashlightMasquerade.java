@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.util.HostSpoofedHTTPGet.ResponseHandler;
@@ -26,12 +25,8 @@ public class FlashlightMasquerade {
 
     private final Map<String, String> defaultHostsToCerts;
 
-    private final MasqueradeListener masqueradeListener;
-
-    public FlashlightMasquerade(final Map<String, String> defaultHostsToCerts,
-            final MasqueradeListener masqueradeListener) {
+    public FlashlightMasquerade(final Map<String, String> defaultHostsToCerts) {
         this.defaultHostsToCerts = defaultHostsToCerts;
-        this.masqueradeListener = masqueradeListener;
     }
 
     public synchronized Entry<String, String> determineMasqueradeHost() {
@@ -81,9 +76,11 @@ public class FlashlightMasquerade {
                             final String host = entry.getKey();
                             final int code = response.getStatusLine().getStatusCode();
                             if (code < 200 || code > 299) {
-                                LOG.warn("Got error for masquerade: {}", host);
-                            } else {
-                                masqueradeListener.onTestedAndVerifiedHost(host);
+                                final String msg = 
+                                        String.format("Got error for masquerade %s: %s", 
+                                                response.getStatusLine(), host);
+                                LOG.warn(msg);
+                                throw new RuntimeException(msg);
                             }
                             return entry;
                         }
