@@ -1,46 +1,47 @@
 'use strict';
 
-function RootCtrl($scope, flashlightStats) {
-  flashlightStats.connect();
-}
+app.controller('RootCtrl', ['$scope', 'flashlightStats', function($scope, flashlightStats) {
+    flashlightStats.connect();
+}]);
 
-function SettingsLoadFailureCtrl($scope, MODAL) {
+app.controller('SettingsLoadFailureCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settingsLoadFailure;
     $scope.resetContactForm($scope);
   });
-}
+}]);
 
-function WelcomeCtrl($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.welcome;
-  });
-}
+app.controller('WelcomeCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
+    $scope.show = false;
+    $scope.$watch('model.modal', function (modal) {
+        $scope.show = modal === MODAL.welcome;
+    });
+}]);
 
-function SponsorCtrl($scope, MODAL) {
+app.controller('SponsorCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.sponsor;
   });
-}
+}]);
 
-function SponsorToContinueCtrl($scope, MODAL) {
+app.controller('SponsorToContinueCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.sponsorToContinue;
   });
-}
+}]);
 
-function UpdateAvailableCtrl($scope, MODAL) {
+app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.updateAvailable;
   });
-}
+}]);
 
-function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {
+app.controller('UnexpectedStateCtrl', ['$scope', 'cometdSrvc', 'apiSrvc', 'modelSrvc', 'MODAL', 'REQUIRED_API_VER', 'INTERACTION', 'logFactory',
+    function ($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {
   var log = logFactory('UnexpectedStateCtrl');
 
   $scope.modelSrvc = modelSrvc;
@@ -70,39 +71,39 @@ function UnexpectedStateCtrl($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQU
     }
   }, true);
   */
-}
+}]);
 
-function ContactCtrl($scope, MODAL) {
+app.controller('ContactCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.notify = true; // so the view's interactionWithNotify calls include $scope.message and $scope.diagnosticInfo
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.contact;
     $scope.resetContactForm($scope);
   });
-}
+}]);
 
-function ConfirmResetCtrl($scope, MODAL) {
+app.controller('ConfirmResetCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.confirmReset;
   });
-}
+}]);
 
-function GiveModeForbiddenCtrl($scope, MODAL) {
+app.controller('GiveModeForbiddenCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.giveModeForbidden;
   });
-}
+}]);
 
-function NotInvitedCtrl($scope, MODAL) {
+app.controller('NotInvitedCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.notInvited;
   });
-}
+}]);
 
-function FinishedCtrl($scope, MODAL, gaMgr) {
+app.controller('FinishedCtrl', ['$scope', 'MODAL', 'gaMgr', function ($scope, MODAL, gaMgr) {
   $scope.autoReport = true;
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
@@ -114,10 +115,24 @@ function FinishedCtrl($scope, MODAL, gaMgr) {
     }
     $scope.interaction(INTERACTION.continue);
   };
-}
+}]);
 
-function SettingsCtrl($scope, MODAL) {
+app.controller('SettingsCtrl', ['$scope', 'MODAL', '$log', function($scope, MODAL, $log) {
   $scope.show = false;
+
+  $scope.open = function(size) {
+      var modalInstance = $modal.open({
+          templateUrl: 'SettingsCtrl.html',
+          controller: 'SettingsCtrl',
+          size: size,
+          resolve: {
+              items: function () {
+                  return $scope.items;
+              }
+          }
+      });
+  }
+
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settings;
   });
@@ -137,9 +152,10 @@ function SettingsCtrl($scope, MODAL) {
   $scope.$watch('model.settings.proxyAllSites', function (proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
   });
-}
+}]);
 
-function AuthorizeCtrl($scope, $timeout, MODAL, CONNECTIVITY) {
+
+app.controller('AuthorizeCtrl', ['$scope', '$timeout', 'MODAL', 'CONNECTIVITY', function ($scope, $timeout, MODAL, CONNECTIVITY) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.authorize;
@@ -161,16 +177,16 @@ function AuthorizeCtrl($scope, $timeout, MODAL, CONNECTIVITY) {
       $scope.showSpinner = false;
     }
   });
-}
+}]);
 
-function AboutCtrl($scope, MODAL) {
+app.controller('AboutCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.about;
   });
-}
+}]);
 
-function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INPUT_PAT, MODAL) {
+app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'logFactory', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', function($scope, $filter, logFactory, SETTING, INTERACTION, INPUT_PAT, MODAL) {
   var log = logFactory('ProxiedSitesCtrl'),
       fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
@@ -284,9 +300,9 @@ function ProxiedSitesCtrl($scope, $filter, logFactory, SETTING, INTERACTION, INP
       $scope.errorCause = '';
     });
   };
-}
+}]);
 
-function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL, SUGGESTION_REASON) {
+app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filter', 'INPUT_PAT', 'FRIEND_STATUS', 'INTERACTION', 'MODAL', 'SUGGESTION_REASON', function($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL, SUGGESTION_REASON) {
   var log = logFactory('LanternFriendsCtrl'),
       max = Math.max,
       model = $scope.model,
@@ -474,9 +490,9 @@ function LanternFriendsCtrl($scope, $timeout, logFactory, $filter, INPUT_PAT, FR
     },
     width: '100%'
   };
-}
+}]);
 
-function ScenariosCtrl($scope, $timeout, logFactory, MODAL, INTERACTION) {
+app.controller('ScenariosCtrl', ['$scope', '$timeout', 'logFactory', 'MODAL', 'INTERACTION', function ($scope, $timeout, logFactory, MODAL, INTERACTION) {
   var log = logFactory('ScenariosCtrl');
 
   $scope.$watch('model.mock.scenarios.applied', function(applied) {
@@ -499,4 +515,4 @@ function ScenariosCtrl($scope, $timeout, logFactory, MODAL, INTERACTION) {
     }
     $scope.interaction(INTERACTION.continue, {path: 'mock.scenarios.applied', value: appliedScenarios});
   };
-}
+}]);

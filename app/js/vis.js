@@ -430,7 +430,8 @@ angular.module('app.vis', [])
     };
   });
 
-function VisCtrl($scope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
+
+app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
       vis = d3.select("#vis"),
       width = document.getElementById('vis').offsetWidth,
@@ -513,4 +514,4 @@ function VisCtrl($scope, $compile, $window, $timeout, $filter, logFactory, model
           'M'+xS+','+yS+' Q '+xC+','+yC+' '+xP+','+yP;
     }
   };
-}
+}]);
