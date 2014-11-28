@@ -599,7 +599,7 @@ public class Launcher {
     void configureDefaultLogger() {
         if (LanternUtils.isDevMode()) {
             System.out.println("Running from source");
-            PropertyConfigurator.configure(LanternClientConstants.LOG4J_PROPS_PATH);
+            PropertyConfigurator.configureAndWatch(LanternClientConstants.LOG4J_PROPS_PATH);
         } else {
             System.out.println("Not on main line...");
             configureProductionLogger();
@@ -625,7 +625,7 @@ public class Launcher {
                     "log4j.appender.RollingTextFile.layout.ConversionPattern",
                     "%-6r %d{ISO8601} %-5p [%t] %c{2}.%M (%F:%L) - %m%n");
 
-            PropertyConfigurator.configure(props);
+            PropertyConfigurator.configureAndWatch(props);
             System.out.println("Set logger file to: " + logPath);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
