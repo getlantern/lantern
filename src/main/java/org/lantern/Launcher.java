@@ -2,6 +2,8 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -625,7 +627,9 @@ public class Launcher {
                     "log4j.appender.RollingTextFile.layout.ConversionPattern",
                     "%-6r %d{ISO8601} %-5p [%t] %c{2}.%M (%F:%L) - %m%n");
 
-            PropertyConfigurator.configureAndWatch(props);
+            OutputStream output = new FileOutputStream(logDir + "log4j.preoperties");
+            props.store(output, null);
+            PropertyConfigurator.configureAndWatch(logDir + "log4j.preoperties");
             System.out.println("Set logger file to: " + logPath);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
