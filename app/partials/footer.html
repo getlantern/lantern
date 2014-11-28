@@ -67,7 +67,7 @@
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-disabled="!model.setupComplete"
-            ng-click="interaction(INTERACTION.settings)"
+            ng-click="open('settings')"
             ng-class="{active: model.modal == MODAL.settings}"
             tooltip="{{ 'SETTINGS' | i18n }}">
       <i class="lsf-icon lsf-gear"></i>

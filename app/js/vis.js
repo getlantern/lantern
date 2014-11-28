@@ -437,8 +437,8 @@ app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter
       width = document.getElementById('vis').offsetWidth,
       height = width / 2,
       model = modelSrvc.model,
-      //projection = d3.geo.mercator(),
-      projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
+      projection = d3.geo.mercator(),
+      //projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 
@@ -450,6 +450,7 @@ app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
+
 
   $scope.svg = d3.select("#vis").append("svg")
   .attr("width", "100%")
