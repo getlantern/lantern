@@ -1,5 +1,8 @@
 language: java
 
+git:
+  depth: 1
+
 jdk:
   - oraclejdk7
 
@@ -12,7 +15,3 @@ before_install:
 
 install:
   - ./prepareToTest.bash
-
-script:
-  - $HOME/gopath/bin/goveralls -v -service travis-ci github.com/getlantern/flashlight
-  - $HOME/gopath/bin/goveralls -v -service travis-ci github.com/getlantern/flashlight/client
