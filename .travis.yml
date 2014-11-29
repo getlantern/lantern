@@ -14,5 +14,8 @@ before_install:
   -in test.properties.enc -out test.properties -d
 - ./prepareToTest.bash
 
+script:
+- mvn test jacoco:report
+
 after_success:
-- mvn clean test jacoco:report coveralls:report
+- mvn coveralls:report
