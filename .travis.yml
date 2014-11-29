@@ -15,7 +15,7 @@ before_install:
 - ./prepareToTest.bash
 
 script:
-- mvn test jacoco:report
+- mvn cobertura:cobertura
 
 after_success:
 - mvn coveralls:report
