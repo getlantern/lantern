@@ -40,7 +40,7 @@ public class LanternProxyingTest {
                 "www.getlantern.org",
                 "github.com",
                 "facebook.com",
-                "appledaily.com.tw",
+                //"appledaily.com.tw",
                 "orkut.com",
                 "voanews.com",
                 "balatarin.com",
