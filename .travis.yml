@@ -13,5 +13,8 @@ secure: "O8wbGTzSfWzWmuTMDSMAi5Z6/rpe7+mmfNt2utGnV2CXzIwmTVdMFK6QPT6XNtvRRSXWKoF
 before_install:
   - git submodule update --init --recursive
 
-install:
+before_script:
   - ./prepareToTest.bash
+
+script:
+  - mvn clean test jacoco:report coveralls:report
