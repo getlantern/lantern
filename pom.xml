@@ -593,6 +593,11 @@
 			    <groupId>org.eluder.coveralls</groupId>
 			    <artifactId>coveralls-maven-plugin</artifactId>
 			    <version>3.0.1</version>
+			    <sourceDirectories>
+			        <param>src/main/java</param>
+			        <param>lantern-common/src/main/java</param>
+			        <param>src/main/resources</param>
+			    </sourceDirectories>
 			</plugin>
 			
 			<plugin>
@@ -603,7 +608,7 @@
 			        <format>xml</format>
 			        <maxmem>256m</maxmem>
 			        <!-- aggregated reports for multi-module projects -->
-			        <aggregate>false</aggregate>
+			        <aggregate>true</aggregate>
 			    </configuration>
 			</plugin>
 		</plugins>

@@ -14,5 +14,5 @@ before_install:
   -in test.properties.enc -out test.properties -d
 - ./prepareToTest.bash
 
-after_success:
+script:
   - mvn clean cobertura:cobertura coveralls:report
