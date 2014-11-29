@@ -1269,19 +1269,29 @@ public class LanternUtils {
                 newFile.delete();
                 return oldFile;
             }
+            // We need to delete the old file before trying to move the new file
+            // in place over it.  See
+            // See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
+            LOG.info("File {} is out of date, deleting", oldFile.getAbsolutePath());
+            if (!oldFile.delete()) {
+                LOG.warn("Could not delete old file at {}", oldFile);
+            }
+        } else {
+            File targetDir = oldFile.getParentFile();
+            LOG.info("Making target directory {}", targetDir.getAbsolutePath());
+            if (!targetDir.exists() && !targetDir.mkdirs()) {
+                String msg = "Could not make target directory " + targetDir.getAbsolutePath();
+                LOG.error(msg);
+                throw new IOException(msg);
+            }
         }
+        
         if (!newFile.canExecute() && !newFile.setExecutable(true)) {
             final String msg = "Could not make file executable at "+path;
             LOG.error(msg);
             throw new IOException(msg);
         }
         
-        // The renameTo call below is platform-dependent and won't replace 
-        // existing files in all cases. We therefore just delete the old file
-        // first. See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
-        if (!oldFile.delete()) {
-            LOG.warn("Could not delete old file at {}", oldFile);
-        }
         if (!newFile.renameTo(oldFile)) {
             String msg = "Unable to move file to destination: " + oldFile.getAbsolutePath();
             LOG.error(msg);

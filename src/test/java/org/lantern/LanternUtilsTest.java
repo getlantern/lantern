@@ -52,7 +52,7 @@ public class LanternUtilsTest {
     @Test
     public void testExtractExecutableFromJarFile() throws Exception {
         final String path = "pt/flashlight";
-        final File dir = Files.createTempDir();
+        final File dir = new File(Files.createTempDir(), "/test/subdir");
         final File extracted = 
                 LanternUtils.extractExecutableFromJar(path, dir);
         assertTrue(extracted.isFile());
