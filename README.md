@@ -1,4 +1,4 @@
-Lantern [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/getlantern/lantern/trend.png)](https://bitdeli.com/free "Bitdeli Badge")&nbsp;[![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=master)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![GoDoc](https://godoc.org/github.com/getlantern/lantern?status.png)](http://godoc.org/github.com/getlantern/lantern)
+Lantern [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/getlantern/lantern/trend.png)](https://bitdeli.com/free "Bitdeli Badge")&nbsp;[![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=master)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png)](https://coveralls.io/r/getlantern/lantern)
 =======
 
 Lantern allows you to give or get access to the internet through other users
