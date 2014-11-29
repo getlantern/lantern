@@ -115,9 +115,20 @@ If you're building installers on Ubuntu, don't use the system's JRE as
 installed via apt; it has a bunch of symlinks which get broken.  Use
 a stand-alone JRE package
 
-## Building the compressed GeoIp database
+## Continuous Integration with Travis CI
+Continuous builds are run on Travis CI. These builds use the `.travis.yml`
+configuration.  The lantern unit tests require a test.properties in `~/.lantern`
+to be populated with a valid refresh token and access token for a Google
+account. These are provided by encrypted secrets in travis.yml which get pulled
+in by the `prepareToTest.bash` script.
 
-java -cp [path-to-lantern-jar] org.lantern.geoip.GeoIpCompressorRunner compress [path-to-GeoLiteCity-csv] src/main/resources/org/lantern/geoip/geoip.db
+When you run lantern normally and log in to Google, Lantern generates a
+test.properties. You can use this to find a refresh and access token to use for
+testing.
+
+See [here](http://docs.travis-ci.com/user/encryption-keys/) for information
+about encrypted environment variables in Travis.
+
 
 Further Reading
 ---------------

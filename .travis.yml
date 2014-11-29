@@ -4,8 +4,8 @@ jdk:
   - oraclejdk7
 
 # These secure variables set REFRESH_TOKEN and ACCESS_TOKEN for use in before_install
-secure: "EQGt6nmp7Qv3/LLDfexTU+e/jO/YEQ97ITcPZYhsLAFsGHhRwokEwlvP/viNp0Sf8blHW2+3GKxrpIdZ3AfQJ2/ceXHeC8WM3OHE3ZmZILn7Q1PbT2Df31xs/+YwnHlIMLk0906vmAJtZbuoJWhz/9MbORb/c90C0+hwNNGfit4="
-secure: "kk8daYDZ8ooqYNYnsSsShGr0laKJuJQn8W5egdZox3g7XthGxMQVxCpaoGeB4FWSWINmgPl7Ko90STEbR1A/mhoTacYxEs5OO6dBQrPMdAdB3e42NUtK7WhWeuEkFPRtKvD6DI9ILN9z90ChtSIYd5tkPO2I2+Dlm1k8IZgSH74="
+secure: "AHrMpGJUBpgXZhs+B6AzXQsR3OOR4pK4n0WPAxRNEenClm4C2CKBAICN8V4OyAgdqCzk3kL/ayQv/kJMA71k7Lpn6FpEm7fwxzK23WgpYtNmTjg86CYlX+opmATfKjGbGF6EXmN+MMdQ9mJPj8FHre9YBo2sdyW1bK1bwXWwLXM="
+secure: "O8wbGTzSfWzWmuTMDSMAi5Z6/rpe7+mmfNt2utGnV2CXzIwmTVdMFK6QPT6XNtvRRSXWKoFPLmXAo0MsNyDE05DIVBClFdTCQrNhVoNtbdMrWAiinP1fUqhibfnpbfTFJxKON8XhUpTge7Ng1sTK272qj8Svs9YlY4FHMWIS38k="
 
 before_install:
   - git submodule update --init --recursive
