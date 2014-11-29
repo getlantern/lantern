@@ -603,7 +603,7 @@
 			        <format>xml</format>
 			        <maxmem>256m</maxmem>
 			        <!-- aggregated reports for multi-module projects -->
-			        <aggregate>true</aggregate>
+			        <aggregate>false</aggregate>
 			    </configuration>
 			</plugin>
 		</plugins>
