@@ -15,4 +15,4 @@ before_install:
 - ./prepareToTest.bash
 
 script:
-  - mvn clean cobertura:cobertura coveralls:report
+  - mvn cobertura:cobertura coveralls:report
