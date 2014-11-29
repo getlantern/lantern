@@ -116,15 +116,12 @@ a stand-alone JRE package
 Continuous builds are run on Travis CI. These builds use the `.travis.yml`
 configuration.  The lantern unit tests require a test.properties in `~/.lantern`
 to be populated with a valid refresh token and access token for a Google
-account. These are provided by encrypted secrets in travis.yml which get pulled
-in by the `prepareToTest.bash` script.
+account. An encrypted version of `test.properties` is checked into
+`test.properties.enc` and copied to the right place by `prepareToTest.bash`.
 
 When you run lantern normally and log in to Google, Lantern generates a
-test.properties. You can use this to find a refresh and access token to use for
-testing.
-
-See [here](http://docs.travis-ci.com/user/encryption-keys/) for information
-about encrypted environment variables in Travis.
+test.properties. You can use this to generate a new encrypted test.properties,
+see [here](http://docs.travis-ci.com/user/encrypting-files/) for information.
 
 
 Further Reading

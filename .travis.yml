@@ -8,8 +8,6 @@ jdk:
 
 before_install:
 - git submodule update --init --recursive
-
-before_script:
 # This unencrypts test.properties.enc into test.properties so that we can
 # ./prepareToTest.bash
 - openssl aes-256-cbc -K $encrypted_efbf15799575_key -iv $encrypted_efbf15799575_iv
