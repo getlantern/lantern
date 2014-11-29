@@ -1,14 +1,12 @@
-# This script prepares the .lantern folder for running the unit tests.
-# It depends on some environment variables:
+# This script prepares the .lantern folder for running the unit tests. It
+# copies the file test.properties into the ~/.lantern folder.
 #
-#   REFRESH_TOKEN - The Google OAuth refresh token for the account with which
-#                   we're testing
-#   ACCESS_TOKEN  - The Google OAuth access token for the account with which
-#                   we're testing
+# WARNING - never commit the unencrypted contents of test.properties to the
+# lantern repo, as it contains secret information.  The file is versioned in
+# too-many-secrets.
 #
-# Note - we specify these as environment variables to take advantage of Travis
-# CI's encryption mechanism.
-# See http://docs.travis-ci.com/user/encryption-keys/.
+# For use by Travis, test.properties is encrypted into test.properties.enc. See
+# http://docs.travis-ci.com/user/encrypting-files/ for more information.
 
 function die() {
   echo $*
@@ -17,7 +15,7 @@ function die() {
 
 rm -Rf ~/.lantern || die "Unable to clear .lantern folder"
 mkdir -p ~/.lantern || die "Unable to create .lantern folder"
-echo "refresh_token=${REFRESH_TOKEN}" > ~/.lantern/test.properties || die "Unable to set refresh token"
-echo "access_token=${ACCESS_TOKEN}" >> ~/.lantern/test.properties || die "Unable to set access token"
+echo "Copying test.properties to ~/.lantern"
+cp test.properties ~/.lantern || die "Unable to copy test.properties to ~/.lantern"
 
 ./copypt.bash || die "Unable to copy pluggable transports"
