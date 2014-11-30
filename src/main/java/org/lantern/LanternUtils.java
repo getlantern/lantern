@@ -1286,12 +1286,6 @@ public class LanternUtils {
             }
         }
         
-        if (!newFile.canExecute() && !newFile.setExecutable(true)) {
-            final String msg = "Could not make file executable at "+path;
-            LOG.error(msg);
-            throw new IOException(msg);
-        }
-        
         try {
             FileUtils.moveFile(newFile, oldFile);
         } catch (Exception e) {
@@ -1301,6 +1295,14 @@ public class LanternUtils {
             LOG.error(msg);
             throw new IOException(msg);
         }
+        
+        if (!oldFile.canExecute() && !oldFile.setExecutable(true)) {
+            final String msg = "Could not make file executable at "
+                    + oldFile.getAbsolutePath();
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        
         return oldFile;
     }
     
