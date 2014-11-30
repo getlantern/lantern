@@ -472,7 +472,7 @@
   </div>
 </div>
 
-<div ng-controller="AboutCtrl" modal="show">
+<div ng-controller="AboutCtrl" ng-show="show">
   <div class="modal-header about">
     <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
