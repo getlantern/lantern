@@ -1259,25 +1259,25 @@ public class LanternUtils {
      */
     public static File extractExecutableFromJar(final String path, 
             final File dir) throws IOException {
-        final File newFile = extractFileFromJar(path);
-        File oldFile = new File(dir, newFile.getName());
-        if (oldFile.exists()) {
-            HashCode newHash = Files.hash(newFile, Hashing.sha256());
-            HashCode oldHash = Files.hash(oldFile, Hashing.sha256());
+        final File tmpFile = extractFileFromJar(path);
+        File destFile = new File(dir, tmpFile.getName());
+        if (destFile.exists()) {
+            HashCode newHash = Files.hash(tmpFile, Hashing.sha256());
+            HashCode oldHash = Files.hash(destFile, Hashing.sha256());
             if (newHash.equals(oldHash)) {
-                LOG.info("File {} is unchanged, leaving alone", oldFile.getAbsolutePath());
-                newFile.delete();
-                return oldFile;
+                LOG.info("File {} is unchanged, leaving alone", destFile.getAbsolutePath());
+                tmpFile.delete();
+                return destFile;
             }
             // We need to delete the old file before trying to move the new file
             // in place over it.  See
             // See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
-            LOG.info("File {} is out of date, deleting", oldFile.getAbsolutePath());
-            if (!oldFile.delete()) {
-                LOG.warn("Could not delete old file at {}", oldFile);
+            LOG.info("File {} is out of date, deleting", destFile.getAbsolutePath());
+            if (!destFile.delete()) {
+                LOG.warn("Could not delete old file at {}", destFile);
             }
         } else {
-            File targetDir = oldFile.getParentFile();
+            File targetDir = destFile.getParentFile();
             LOG.info("Making target directory {}", targetDir.getAbsolutePath());
             if (!targetDir.exists() && !targetDir.mkdirs()) {
                 String msg = "Could not make target directory " + targetDir.getAbsolutePath();
@@ -1287,23 +1287,23 @@ public class LanternUtils {
         }
         
         try {
-            FileUtils.moveFile(newFile, oldFile);
+            FileUtils.moveFile(tmpFile, destFile);
         } catch (Exception e) {
             String msg = String.format(
                     "Unable to move file to destination %1$s: %2$s",
-                    oldFile.getAbsolutePath(), e.getMessage());
+                    destFile.getAbsolutePath(), e.getMessage());
             LOG.error(msg);
             throw new IOException(msg);
         }
         
-        if (!oldFile.canExecute() && !oldFile.setExecutable(true)) {
+        if (!destFile.setExecutable(true)) {
             final String msg = "Could not make file executable at "
-                    + oldFile.getAbsolutePath();
+                    + destFile.getAbsolutePath();
             LOG.error(msg);
             throw new IOException(msg);
         }
         
-        return oldFile;
+        return destFile;
     }
     
     /**
