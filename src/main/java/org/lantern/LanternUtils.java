@@ -1292,8 +1292,12 @@ public class LanternUtils {
             throw new IOException(msg);
         }
         
-        if (!newFile.renameTo(oldFile)) {
-            String msg = "Unable to move file to destination: " + oldFile.getAbsolutePath();
+        try {
+            FileUtils.moveFile(newFile, oldFile);
+        } catch (Exception e) {
+            String msg = String.format(
+                    "Unable to move file to destination %1$s: %2$s",
+                    oldFile.getAbsolutePath(), e.getMessage());
             LOG.error(msg);
             throw new IOException(msg);
         }
