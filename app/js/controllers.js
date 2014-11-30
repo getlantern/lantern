@@ -1,7 +1,7 @@
 'use strict';
 
 app.controller('RootCtrl', ['$scope', 'flashlightStats', function($scope, flashlightStats) {
-    //flashlightStats.connect();
+    flashlightStats.connect();
 }]);
 
 app.controller('SettingsLoadFailureCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -119,19 +119,6 @@ app.controller('FinishedCtrl', ['$scope', 'MODAL', 'gaMgr', function ($scope, MO
 
 app.controller('SettingsCtrl', ['$scope', 'MODAL', '$log', function($scope, MODAL, $log) {
   $scope.show = false;
-
-  $scope.open = function(size) {
-      var modalInstance = $modal.open({
-          templateUrl: 'SettingsCtrl.html',
-          controller: 'SettingsCtrl',
-          size: size,
-          resolve: {
-              items: function () {
-                  return $scope.items;
-              }
-          }
-      });
-  }
 
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settings;
