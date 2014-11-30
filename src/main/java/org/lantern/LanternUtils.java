@@ -1257,43 +1257,48 @@ public class LanternUtils {
      * @return The path to the extracted file copied to the file system.
      * @throws IOException If there's an error finding or copying the file.
      */
-    public static File extractExecutableFromJar(final String path, 
+    public static File extractExecutableFromJar(final String path,
             final File dir) throws IOException {
         final File tmpFile = extractFileFromJar(path);
         File destFile = new File(dir, tmpFile.getName());
-        if (destFile.exists()) {
-            HashCode newHash = Files.hash(tmpFile, Hashing.sha256());
-            HashCode oldHash = Files.hash(destFile, Hashing.sha256());
-            if (newHash.equals(oldHash)) {
-                LOG.info("File {} is unchanged, leaving alone", destFile.getAbsolutePath());
-                tmpFile.delete();
-                return destFile;
-            }
-            // We need to delete the old file before trying to move the new file
-            // in place over it.  See
-            // See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
-            LOG.info("File {} is out of date, deleting", destFile.getAbsolutePath());
-            if (!destFile.delete()) {
-                LOG.warn("Could not delete old file at {}", destFile);
-            }
+
+        if (destFile.exists() && isSame(destFile, tmpFile)) {
+            LOG.info("File {} is unchanged, leaving alone",
+                    destFile.getAbsolutePath());
+            tmpFile.delete();
+            return destFile;
         } else {
-            File targetDir = destFile.getParentFile();
-            LOG.info("Making target directory {}", targetDir.getAbsolutePath());
-            if (!targetDir.exists() && !targetDir.mkdirs()) {
-                String msg = "Could not make target directory " + targetDir.getAbsolutePath();
+            if (!destFile.exists()) {
+                File targetDir = destFile.getParentFile();
+                LOG.info("Making target directory {}",
+                        targetDir.getAbsolutePath());
+                if (!targetDir.exists() && !targetDir.mkdirs()) {
+                    String msg = "Could not make target directory "
+                            + targetDir.getAbsolutePath();
+                    LOG.error(msg);
+                    throw new IOException(msg);
+                }
+            } else {
+                // We need to delete the old file before trying to move the new
+                // file in place over it.
+                // See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
+                LOG.info("File {} is out of date, deleting",
+                        destFile.getAbsolutePath());
+                if (!destFile.delete()) {
+                    LOG.warn("Could not delete old file at {}", destFile);
+                }
+            }
+            
+            LOG.info("Moving {} to {}", tmpFile.getAbsolutePath(), destFile.getAbsolutePath());
+            try {
+                FileUtils.moveFile(tmpFile, destFile);
+            } catch (Exception e) {
+                String msg = String.format(
+                        "Unable to move file to destination %1$s: %2$s",
+                        destFile.getAbsolutePath(), e.getMessage());
                 LOG.error(msg);
                 throw new IOException(msg);
-            }
-        }
-        
-        try {
-            FileUtils.moveFile(tmpFile, destFile);
-        } catch (Exception e) {
-            String msg = String.format(
-                    "Unable to move file to destination %1$s: %2$s",
-                    destFile.getAbsolutePath(), e.getMessage());
-            LOG.error(msg);
-            throw new IOException(msg);
+            }            
         }
         
         if (!destFile.setExecutable(true)) {
@@ -1304,6 +1309,12 @@ public class LanternUtils {
         }
         
         return destFile;
+    }
+    
+    public static boolean isSame(File a, File b) throws IOException {
+        HashCode hashA = Files.hash(b, Hashing.sha256());
+        HashCode hashB = Files.hash(a, Hashing.sha256());
+        return hashA.equals(hashB);
     }
     
     /**
