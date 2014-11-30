@@ -7,7 +7,7 @@ var PI = Math.PI,
     max = Math.max,
     round = Math.round;
 
-angular.module('app.vis', [])
+angular.module('app.vis', ['ngSanitize'])
   .directive('resizable', function ($window) {
     return function (scope, element) {
       function size() {
@@ -42,7 +42,6 @@ angular.module('app.vis', [])
     };
   })
   .directive('countries', function ($compile, $timeout) {
-
     function ttTmpl(alpha2) {
       return '<div class="vis">'+
         '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
@@ -112,10 +111,11 @@ angular.module('app.vis', [])
             el.attr('d', scope.path).attr('stroke-opacity', 0);
             el.attr('class', 'COUNTRY_KNOWN');
             if (d.alpha2) {
+              var $content = ttTmpl(d.alpha2);
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'mouse')
-                //.attr('tooltip-trigger', 'click') // uncomment out to make it easier to inspect tooltips when debugging
-                .attr('tooltip-html-unsafe', ttTmpl(d.alpha2));
+                //.attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
+                .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
             } else {
               el.attr('class', 'COUNTRY_UNKNOWN');
@@ -430,15 +430,13 @@ angular.module('app.vis', [])
     };
   });
 
-
 app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
       vis = d3.select("#vis"),
       width = document.getElementById('vis').offsetWidth,
       height = width / 2,
       model = modelSrvc.model,
-      projection = d3.geo.mercator(),
-      //projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
+      projection = d3.geo.mercator().scale(.5).translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 
@@ -450,7 +448,6 @@ app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
-
 
   $scope.svg = d3.select("#vis").append("svg")
   .attr("width", "100%")
@@ -471,7 +468,8 @@ app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter
       if ($scope.zoom.scale() < 3) {
           scale = 2;       
       } else {
-          scale = Math.max(2.0/$scope.zoom.scale(), 0.5);
+          scale = 1;
+          //scale = Math.max($scope.zoom.scale()/2.0, 1.5);
       }
       path.pointRadius(pointRadius || scale);
       return path(d) || 'M0 0';

@@ -4,4 +4,9 @@
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
 <div id="vis" ng-controller="VisCtrl">
+    <style>
+        #self, .peer {
+            filter: url(#defaultBlur)
+        }
+    </style>
 </div>
