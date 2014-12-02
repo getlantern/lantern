@@ -23,19 +23,21 @@ public class FlashlightProxy extends FallbackProxy {
             final FlashlightMasquerade masquerade,
             String cloudConfig,
             String cloudConfigCA) {
+        super(LanternUtils.newURI("flashlight@"+ host),
+                443,
+                Protocol.TCP,
+                ptProps(host, cloudConfig, cloudConfigCA),
+                priority);
         this.masquerade = masquerade;
-        final Properties props = new Properties();
-        
+    }
+    
+    synchronized private static Properties ptProps(String host, String cloudConfig, String cloudConfigCA) {
+        Properties props = new Properties();
         props.setProperty("type", "flashlight");
         props.setProperty(Flashlight.SERVER_KEY, host);
         props.setProperty(Flashlight.CLOUDCONFIG_KEY, cloudConfig);
         props.setProperty(Flashlight.CLOUDCONFIG_CA_KEY, cloudConfigCA);
-        
-        setPt(props);
-        setJid(LanternUtils.newURI("flashlight@"+ host));
-        setPort(443);
-        setProtocol(Protocol.TCP);
-        setPriority(priority);
+        return props;
     }
     
     @Override
