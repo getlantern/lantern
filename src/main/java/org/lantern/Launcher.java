@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
@@ -606,7 +605,9 @@ public class Launcher {
             System.out.println("Running from source");
             File f = new File(LanternClientConstants.LOG4J_PROPS_PATH);
             try {
-                Files.copy(f.toPath(), log4jProps.toPath());
+                if (!log4jProps.exists()){
+                    FileUtils.copyFile(f, log4jProps);
+                }
             } catch (final IOException e) {
                 System.out.println("Exception copying log4j props file: "
                     + f.getPath());
@@ -614,7 +615,9 @@ public class Launcher {
            }
         } else {
             System.out.println("Not on main line...");
-            configureProductionLogger(logDir, log4jProps);
+            if (!log4jProps.exists()) {
+                configureProductionLogger(logDir, log4jProps);
+            }
         }
         PropertyConfigurator.configureAndWatch(log4jProps.getPath());
         System.out.println("Set log4j properties file: " + log4jProps);
