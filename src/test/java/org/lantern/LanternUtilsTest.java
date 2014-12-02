@@ -52,10 +52,11 @@ public class LanternUtilsTest {
     @Test
     public void testExtractExecutableFromJarFile() throws Exception {
         final String path = "pt/flashlight";
-        final File dir = Files.createTempDir();
+        final File dir = new File(Files.createTempDir(), "/test/subdir");
         final File extracted = 
                 LanternUtils.extractExecutableFromJar(path, dir);
         assertTrue(extracted.isFile());
+        assertTrue(extracted.canExecute());
         
         HashCode oldHash = Files.hash(extracted, Hashing.sha256());
         
@@ -66,6 +67,7 @@ public class LanternUtilsTest {
         
         assertEquals(extracted, extracted2);
         assertEquals(oldHash, newHash);
+        assertTrue(extracted.canExecute());
         
         final FileOutputStream fos = new FileOutputStream(extracted, true);
         fos.write(1);
@@ -82,6 +84,7 @@ public class LanternUtilsTest {
         HashCode finalHash = Files.hash(extracted3, Hashing.sha256());
         
         assertEquals(oldHash, finalHash);
+        assertTrue(extracted.canExecute());
     }
 
     @Test
