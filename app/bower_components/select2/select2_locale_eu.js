@@ -6,7 +6,7 @@
 (function ($) {
     "use strict";
 
-    $.extend($.fn.select2.defaults, {
+    $.fn.select2.locales['eu'] = {
         formatNoMatches: function () {
           return "Ez da bat datorrenik aurkitu";
         },
@@ -34,10 +34,12 @@
           }
         },
         formatLoadMore: function (pageNumber) {
-          return "Emaitza gehiago kargatzen...";
+          return "Emaitza gehiago kargatzen…";
         },
         formatSearching: function () {
-          return "Bilatzen...";
+          return "Bilatzen…";
         }
-    });
+    };
+
+    $.extend($.fn.select2.defaults, $.fn.select2.locales['eu']);
 })(jQuery);

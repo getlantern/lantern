@@ -1,15 +1,16 @@
 {
   "name": "angular-translate",
-  "version": "2.2.0",
+  "version": "2.4.2",
   "main": "./angular-translate.js",
+  "ignore": [],
   "homepage": "https://github.com/PascalPrecht/bower-angular-translate",
-  "_release": "2.2.0",
+  "_release": "2.4.2",
   "_resolution": {
     "type": "version",
-    "tag": "2.2.0",
-    "commit": "21e6f3f41d53a53b627f3947b8e17dfb2ba26a74"
+    "tag": "2.4.2",
+    "commit": "7533b4a01684282d034c887f4234c99b0f2ebb39"
   },
   "_source": "git://github.com/PascalPrecht/bower-angular-translate.git",
-  "_target": "2.2.0",
+  "_target": "2.4.2",
   "_originalSource": "angular-translate"
 }

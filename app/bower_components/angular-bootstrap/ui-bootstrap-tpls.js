@@ -2,7 +2,7 @@
  * angular-ui-bootstrap
  * http://angular-ui.github.io/bootstrap/
 
- * Version: 0.11.0 - 2014-05-01
+ * Version: 0.12.0 - 2014-11-16
  * License: MIT
  */
 angular.module("ui.bootstrap", ["ui.bootstrap.tpls", "ui.bootstrap.transition","ui.bootstrap.collapse","ui.bootstrap.accordion","ui.bootstrap.alert","ui.bootstrap.bindHtml","ui.bootstrap.buttons","ui.bootstrap.carousel","ui.bootstrap.dateparser","ui.bootstrap.position","ui.bootstrap.datepicker","ui.bootstrap.dropdown","ui.bootstrap.modal","ui.bootstrap.pagination","ui.bootstrap.tooltip","ui.bootstrap.popover","ui.bootstrap.progressbar","ui.bootstrap.rating","ui.bootstrap.tabs","ui.bootstrap.timepicker","ui.bootstrap.typeahead"]);
@@ -301,6 +301,7 @@ angular.module('ui.bootstrap.alert', [])
 
 .controller('AlertController', ['$scope', '$attrs', function ($scope, $attrs) {
   $scope.closeable = 'close' in $attrs;
+  this.close = $scope.close;
 }])
 
 .directive('alert', function () {
@@ -315,7 +316,18 @@ angular.module('ui.bootstrap.alert', [])
       close: '&'
     }
   };
-});
+})
+
+.directive('dismissOnTimeout', ['$timeout', function($timeout) {
+  return {
+    require: 'alert',
+    link: function(scope, element, attrs, alertCtrl) {
+      $timeout(function(){
+        alertCtrl.close();
+      }, parseInt(attrs.dismissOnTimeout, 10));
+    }
+  };
+}]);
 
 angular.module('ui.bootstrap.bindHtml', [])
 
@@ -411,11 +423,11 @@ angular.module('ui.bootstrap.buttons', [])
 *
 */
 angular.module('ui.bootstrap.carousel', ['ui.bootstrap.transition'])
-.controller('CarouselController', ['$scope', '$timeout', '$transition', function ($scope, $timeout, $transition) {
+.controller('CarouselController', ['$scope', '$timeout', '$interval', '$transition', function ($scope, $timeout, $interval, $transition) {
   var self = this,
     slides = self.slides = $scope.slides = [],
     currentIndex = -1,
-    currentTimeout, isPlaying;
+    currentInterval, isPlaying;
   self.currentSlide = null;
 
   var destroyed = false;
@@ -510,22 +522,22 @@ angular.module('ui.bootstrap.carousel', ['ui.bootstrap.transition'])
   function restartTimer() {
     resetTimer();
     var interval = +$scope.interval;
-    if (!isNaN(interval) && interval>=0) {
-      currentTimeout = $timeout(timerFn, interval);
+    if (!isNaN(interval) && interval > 0) {
+      currentInterval = $interval(timerFn, interval);
     }
   }
 
   function resetTimer() {
-    if (currentTimeout) {
-      $timeout.cancel(currentTimeout);
-      currentTimeout = null;
+    if (currentInterval) {
+      $interval.cancel(currentInterval);
+      currentInterval = null;
     }
   }
 
   function timerFn() {
-    if (isPlaying) {
+    var interval = +$scope.interval;
+    if (isPlaying && !isNaN(interval) && interval > 0) {
       $scope.next();
-      restartTimer();
     } else {
       $scope.pause();
     }
@@ -747,7 +759,7 @@ angular.module('ui.bootstrap.dateparser', [])
     }
   };
 
-  this.createParser = function(format) {
+  function createParser(format) {
     var map = [], regex = format.split('');
 
     angular.forEach(formatCodeToRegex, function(data, code) {
@@ -772,17 +784,17 @@ angular.module('ui.bootstrap.dateparser', [])
       regex: new RegExp('^' + regex.join('') + '$'),
       map: orderByFilter(map, 'index')
     };
-  };
+  }
 
   this.parse = function(input, format) {
-    if ( !angular.isString(input) ) {
+    if ( !angular.isString(input) || !format ) {
       return input;
     }
 
     format = $locale.DATETIME_FORMATS[format] || format;
 
     if ( !this.parsers[format] ) {
-      this.parsers[format] = this.createParser(format);
+      this.parsers[format] = createParser(format);
     }
 
     var parser = this.parsers[format],
@@ -1008,7 +1020,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
     self[key] = angular.isDefined($attrs[key]) ? (index < 8 ? $interpolate($attrs[key])($scope.$parent) : $scope.$parent.$eval($attrs[key])) : datepickerConfig[key];
   });
 
-  // Watchable attributes
+  // Watchable date attributes
   angular.forEach(['minDate', 'maxDate'], function( key ) {
     if ( $attrs[key] ) {
       $scope.$parent.$watch($parse($attrs[key]), function(value) {
@@ -1455,12 +1467,24 @@ function ($compile, $parse, $document, $position, dateFilter, dateParser, datepi
         });
       }
 
-      angular.forEach(['minDate', 'maxDate'], function( key ) {
+      scope.watchData = {};
+      angular.forEach(['minDate', 'maxDate', 'datepickerMode'], function( key ) {
         if ( attrs[key] ) {
-          scope.$parent.$watch($parse(attrs[key]), function(value){
-            scope[key] = value;
+          var getAttribute = $parse(attrs[key]);
+          scope.$parent.$watch(getAttribute, function(value){
+            scope.watchData[key] = value;
           });
-          datepickerEl.attr(cameltoDash(key), key);
+          datepickerEl.attr(cameltoDash(key), 'watchData.' + key);
+
+          // Propagate changes from datepicker to outside
+          if ( key === 'datepickerMode' ) {
+            var setAttribute = getAttribute.assign;
+            scope.$watch('watchData.' + key, function(value, oldvalue) {
+              if ( value !== oldvalue ) {
+                setAttribute(scope.$parent, value);
+              }
+            });
+          }
         }
       });
       if (attrs.dateDisabled) {
@@ -1571,6 +1595,9 @@ function ($compile, $parse, $document, $position, dateFilter, dateParser, datepi
       };
 
       var $popup = $compile(popupEl)(scope);
+      // Prevent jQuery cache memory leak (template is now redundant after linking)
+      popupEl.remove();
+
       if ( appendToBody ) {
         $document.find('body').append($popup);
       } else {
@@ -1632,7 +1659,12 @@ angular.module('ui.bootstrap.dropdown', [])
   };
 
   var closeDropdown = function( evt ) {
-    if (evt && evt.isDefaultPrevented()) {
+    // This method may still be called during the same mouse event that
+    // unbound this event handler. So check openScope before proceeding.
+    if (!openScope) { return; }
+
+    var toggleElement = openScope.getToggleElement();
+    if ( evt && toggleElement && toggleElement[0].contains(evt.target) ) {
         return;
     }
 
@@ -1679,6 +1711,10 @@ angular.module('ui.bootstrap.dropdown', [])
     return scope.isOpen;
   };
 
+  scope.getToggleElement = function() {
+    return self.toggleElement;
+  };
+
   scope.focusToggleElement = function() {
     if ( self.toggleElement ) {
       self.toggleElement[0].focus();
@@ -1712,7 +1748,6 @@ angular.module('ui.bootstrap.dropdown', [])
 
 .directive('dropdown', function() {
   return {
-    restrict: 'CA',
     controller: 'DropdownController',
     link: function(scope, element, attrs, dropdownCtrl) {
       dropdownCtrl.init( element );
@@ -1722,7 +1757,6 @@ angular.module('ui.bootstrap.dropdown', [])
 
 .directive('dropdownToggle', function() {
   return {
-    restrict: 'CA',
     require: '?^dropdown',
     link: function(scope, element, attrs, dropdownCtrl) {
       if ( !dropdownCtrl ) {
@@ -1820,7 +1854,8 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
       restrict: 'EA',
       replace: true,
       templateUrl: 'template/modal/backdrop.html',
-      link: function (scope) {
+      link: function (scope, element, attrs) {
+        scope.backdropClass = attrs.backdropClass || '';
 
         scope.animate = false;
 
@@ -1851,8 +1886,18 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
         $timeout(function () {
           // trigger CSS transitions
           scope.animate = true;
-          // focus a freshly-opened modal
-          element[0].focus();
+
+          /**
+           * Auto-focusing of a freshly-opened modal element causes any child elements
+           * with the autofocus attribute to lose focus. This is an issue on touch
+           * based devices which will show and then hide the onscreen keyboard.
+           * Attempts to refocus the autofocus element via JavaScript will not reopen
+           * the onscreen keyboard. Fixed by updated the focusing logic to only autofocus
+           * the modal element if the modal does not contain an autofocus element.
+           */
+          if (!element[0].querySelectorAll('[autofocus]').length) {
+            element[0].focus();
+          }
         });
 
         scope.close = function (evt) {
@@ -1866,6 +1911,17 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
       }
     };
   }])
+
+  .directive('modalTransclude', function () {
+    return {
+      link: function($scope, $element, $attrs, controller, $transclude) {
+        $transclude($scope.$parent, function(clone) {
+          $element.empty();
+          $element.append(clone);
+        });
+      }
+    };
+  })
 
   .factory('$modalStack', ['$transition', '$timeout', '$document', '$compile', '$rootScope', '$$stackedMap',
     function ($transition, $timeout, $document, $compile, $rootScope, $$stackedMap) {
@@ -1938,7 +1994,7 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
           });
         } else {
           // Ensure this call is async
-          $timeout(afterAnimating, 0);
+          $timeout(afterAnimating);
         }
 
         function afterAnimating() {
@@ -1983,7 +2039,9 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
         if (currBackdropIndex >= 0 && !backdropDomEl) {
           backdropScope = $rootScope.$new(true);
           backdropScope.index = currBackdropIndex;
-          backdropDomEl = $compile('<div modal-backdrop></div>')(backdropScope);
+          var angularBackgroundDomEl = angular.element('<div modal-backdrop></div>');
+          angularBackgroundDomEl.attr('backdrop-class', modal.backdropClass);
+          backdropDomEl = $compile(angularBackgroundDomEl)(backdropScope);
           body.append(backdropDomEl);
         }
 
@@ -2003,17 +2061,17 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
       };
 
       $modalStack.close = function (modalInstance, result) {
-        var modalWindow = openedWindows.get(modalInstance).value;
+        var modalWindow = openedWindows.get(modalInstance);
         if (modalWindow) {
-          modalWindow.deferred.resolve(result);
+          modalWindow.value.deferred.resolve(result);
           removeModalWindow(modalInstance);
         }
       };
 
       $modalStack.dismiss = function (modalInstance, reason) {
-        var modalWindow = openedWindows.get(modalInstance).value;
+        var modalWindow = openedWindows.get(modalInstance);
         if (modalWindow) {
-          modalWindow.deferred.reject(reason);
+          modalWindow.value.deferred.reject(reason);
           removeModalWindow(modalInstance);
         }
       };
@@ -2047,14 +2105,15 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
 
           function getTemplatePromise(options) {
             return options.template ? $q.when(options.template) :
-              $http.get(options.templateUrl, {cache: $templateCache}).then(function (result) {
-                return result.data;
+              $http.get(angular.isFunction(options.templateUrl) ? (options.templateUrl)() : options.templateUrl,
+                {cache: $templateCache}).then(function (result) {
+                  return result.data;
               });
           }
 
           function getResolvePromises(resolves) {
             var promisesArr = [];
-            angular.forEach(resolves, function (value, key) {
+            angular.forEach(resolves, function (value) {
               if (angular.isFunction(value) || angular.isArray(value)) {
                 promisesArr.push($q.when($injector.invoke(value)));
               }
@@ -2110,6 +2169,9 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
                 });
 
                 ctrlInstance = $controller(modalOptions.controller, ctrlLocals);
+                if (modalOptions.controllerAs) {
+                  modalScope[modalOptions.controllerAs] = ctrlInstance;
+                }
               }
 
               $modalStack.open(modalInstance, {
@@ -2118,6 +2180,7 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
                 content: tplAndVars[0],
                 backdrop: modalOptions.backdrop,
                 keyboard: modalOptions.keyboard,
+                backdropClass: modalOptions.backdropClass,
                 windowClass: modalOptions.windowClass,
                 windowTemplateUrl: modalOptions.windowTemplateUrl,
                 size: modalOptions.size
@@ -2424,7 +2487,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
    * Returns the actual instance of the $tooltip service.
    * TODO support multiple triggers
    */
-  this.$get = [ '$window', '$compile', '$timeout', '$parse', '$document', '$position', '$interpolate', function ( $window, $compile, $timeout, $parse, $document, $position, $interpolate ) {
+  this.$get = [ '$window', '$compile', '$timeout', '$document', '$position', '$interpolate', function ( $window, $compile, $timeout, $document, $position, $interpolate ) {
     return function $tooltip ( type, prefix, defaultTriggerShow ) {
       var options = angular.extend( {}, defaultOptions, globalOptions );
 
@@ -2457,31 +2520,32 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
       var endSym = $interpolate.endSymbol();
       var template =
         '<div '+ directiveName +'-popup '+
-          'title="'+startSym+'tt_title'+endSym+'" '+
-          'content="'+startSym+'tt_content'+endSym+'" '+
-          'placement="'+startSym+'tt_placement'+endSym+'" '+
-          'animation="tt_animation" '+
-          'is-open="tt_isOpen"'+
+          'title="'+startSym+'title'+endSym+'" '+
+          'content="'+startSym+'content'+endSym+'" '+
+          'placement="'+startSym+'placement'+endSym+'" '+
+          'animation="animation" '+
+          'is-open="isOpen"'+
           '>'+
         '</div>';
 
       return {
         restrict: 'EA',
-        scope: true,
         compile: function (tElem, tAttrs) {
           var tooltipLinker = $compile( template );
 
           return function link ( scope, element, attrs ) {
             var tooltip;
+            var tooltipLinkedScope;
             var transitionTimeout;
             var popupTimeout;
             var appendToBody = angular.isDefined( options.appendToBody ) ? options.appendToBody : false;
             var triggers = getTriggers( undefined );
             var hasEnableExp = angular.isDefined(attrs[prefix+'Enable']);
+            var ttScope = scope.$new(true);
 
             var positionTooltip = function () {
 
-              var ttPosition = $position.positionElements(element, tooltip, scope.tt_placement, appendToBody);
+              var ttPosition = $position.positionElements(element, tooltip, ttScope.placement, appendToBody);
               ttPosition.top += 'px';
               ttPosition.left += 'px';
 
@@ -2491,10 +2555,10 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
 
             // By default, the tooltip is not open.
             // TODO add ability to start tooltip opened
-            scope.tt_isOpen = false;
+            ttScope.isOpen = false;
 
             function toggleTooltipBind () {
-              if ( ! scope.tt_isOpen ) {
+              if ( ! ttScope.isOpen ) {
                 showTooltipBind();
               } else {
                 hideTooltipBind();
@@ -2506,11 +2570,14 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               if(hasEnableExp && !scope.$eval(attrs[prefix+'Enable'])) {
                 return;
               }
-              if ( scope.tt_popupDelay ) {
+
+              prepareTooltip();
+
+              if ( ttScope.popupDelay ) {
                 // Do nothing if the tooltip was already scheduled to pop-up.
                 // This happens if show is triggered multiple times before any hide is triggered.
                 if (!popupTimeout) {
-                  popupTimeout = $timeout( show, scope.tt_popupDelay, false );
+                  popupTimeout = $timeout( show, ttScope.popupDelay, false );
                   popupTimeout.then(function(reposition){reposition();});
                 }
               } else {
@@ -2537,7 +2604,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               }
 
               // Don't show empty tooltips.
-              if ( ! scope.tt_content ) {
+              if ( ! ttScope.content ) {
                 return angular.noop;
               }
 
@@ -2546,7 +2613,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               // Set the initial positioning.
               tooltip.css({ top: 0, left: 0, display: 'block' });
 
-              // Now we add it to the DOM because need some info about it. But it's not 
+              // Now we add it to the DOM because need some info about it. But it's not
               // visible yet anyway.
               if ( appendToBody ) {
                   $document.find( 'body' ).append( tooltip );
@@ -2557,8 +2624,8 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               positionTooltip();
 
               // And show the tooltip.
-              scope.tt_isOpen = true;
-              scope.$digest(); // digest required as $apply is not called
+              ttScope.isOpen = true;
+              ttScope.$digest(); // digest required as $apply is not called
 
               // Return positioning function as promise callback for correct
               // positioning after draw.
@@ -2568,16 +2635,16 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
             // Hide the tooltip popup element.
             function hide() {
               // First things first: we don't show it anymore.
-              scope.tt_isOpen = false;
+              ttScope.isOpen = false;
 
               //if tooltip is going to be shown after delay, we must cancel this
               $timeout.cancel( popupTimeout );
               popupTimeout = null;
 
-              // And now we remove it from the DOM. However, if we have animation, we 
+              // And now we remove it from the DOM. However, if we have animation, we
               // need to wait for it to expire beforehand.
               // FIXME: this is a placeholder for a port of the transitions library.
-              if ( scope.tt_animation ) {
+              if ( ttScope.animation ) {
                 if (!transitionTimeout) {
                   transitionTimeout = $timeout(removeTooltip, 500);
                 }
@@ -2591,10 +2658,8 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               if (tooltip) {
                 removeTooltip();
               }
-              tooltip = tooltipLinker(scope, function () {});
-
-              // Get contents rendered into the tooltip
-              scope.$digest();
+              tooltipLinkedScope = ttScope.$new();
+              tooltip = tooltipLinker(tooltipLinkedScope, angular.noop);
             }
 
             function removeTooltip() {
@@ -2603,38 +2668,50 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
                 tooltip.remove();
                 tooltip = null;
               }
+              if (tooltipLinkedScope) {
+                tooltipLinkedScope.$destroy();
+                tooltipLinkedScope = null;
+              }
+            }
+
+            function prepareTooltip() {
+              prepPlacement();
+              prepPopupDelay();
             }
 
             /**
              * Observe the relevant attributes.
              */
             attrs.$observe( type, function ( val ) {
-              scope.tt_content = val;
+              ttScope.content = val;
 
-              if (!val && scope.tt_isOpen ) {
+              if (!val && ttScope.isOpen ) {
                 hide();
               }
             });
 
             attrs.$observe( prefix+'Title', function ( val ) {
-              scope.tt_title = val;
+              ttScope.title = val;
             });
 
-            attrs.$observe( prefix+'Placement', function ( val ) {
-              scope.tt_placement = angular.isDefined( val ) ? val : options.placement;
-            });
+            function prepPlacement() {
+              var val = attrs[ prefix + 'Placement' ];
+              ttScope.placement = angular.isDefined( val ) ? val : options.placement;
+            }
 
-            attrs.$observe( prefix+'PopupDelay', function ( val ) {
+            function prepPopupDelay() {
+              var val = attrs[ prefix + 'PopupDelay' ];
               var delay = parseInt( val, 10 );
-              scope.tt_popupDelay = ! isNaN(delay) ? delay : options.popupDelay;
-            });
+              ttScope.popupDelay = ! isNaN(delay) ? delay : options.popupDelay;
+            }
 
             var unregisterTriggers = function () {
               element.unbind(triggers.show, showTooltipBind);
               element.unbind(triggers.hide, hideTooltipBind);
             };
 
-            attrs.$observe( prefix+'Trigger', function ( val ) {
+            function prepTriggers() {
+              var val = attrs[ prefix + 'Trigger' ];
               unregisterTriggers();
 
               triggers = getTriggers( val );
@@ -2645,21 +2722,21 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
                 element.bind( triggers.show, showTooltipBind );
                 element.bind( triggers.hide, hideTooltipBind );
               }
-            });
+            }
+            prepTriggers();
 
             var animation = scope.$eval(attrs[prefix + 'Animation']);
-            scope.tt_animation = angular.isDefined(animation) ? !!animation : options.animation;
+            ttScope.animation = angular.isDefined(animation) ? !!animation : options.animation;
 
-            attrs.$observe( prefix+'AppendToBody', function ( val ) {
-              appendToBody = angular.isDefined( val ) ? $parse( val )( scope ) : appendToBody;
-            });
+            var appendToBodyVal = scope.$eval(attrs[prefix + 'AppendToBody']);
+            appendToBody = angular.isDefined(appendToBodyVal) ? appendToBodyVal : appendToBody;
 
             // if a tooltip is attached to <body> we need to remove it on
             // location change as its parent scope will probably not be destroyed
             // by the change.
             if ( appendToBody ) {
               scope.$on('$locationChangeSuccess', function closeTooltipOnLocationChangeSuccess () {
-              if ( scope.tt_isOpen ) {
+              if ( ttScope.isOpen ) {
                 hide();
               }
             });
@@ -2671,6 +2748,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               $timeout.cancel( popupTimeout );
               unregisterTriggers();
               removeTooltip();
+              ttScope = null;
             });
           };
         }
@@ -2928,14 +3006,19 @@ angular.module('ui.bootstrap.tabs', [])
 
   ctrl.removeTab = function removeTab(tab) {
     var index = tabs.indexOf(tab);
-    //Select a new tab if the tab to be removed is selected
-    if (tab.active && tabs.length > 1) {
+    //Select a new tab if the tab to be removed is selected and not destroyed
+    if (tab.active && tabs.length > 1 && !destroyed) {
       //If this is the last tab, select the previous tab. else, the next tab.
       var newActiveIndex = index == tabs.length - 1 ? index - 1 : index + 1;
       ctrl.select(tabs[newActiveIndex]);
     }
     tabs.splice(index, 1);
   };
+
+  var destroyed;
+  $scope.$on('$destroy', function() {
+    destroyed = true;
+  });
 }])
 
 /**
@@ -3428,7 +3511,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
   .factory('typeaheadParser', ['$parse', function ($parse) {
 
   //                      00000111000000000000022200000000000000003333333333333330000000000044000
-  var TYPEAHEAD_REGEXP = /^\s*(.*?)(?:\s+as\s+(.*?))?\s+for\s+(?:([\$\w][\$\w\d]*))\s+in\s+(.*)$/;
+  var TYPEAHEAD_REGEXP = /^\s*([\s\S]+?)(?:\s+as\s+([\s\S]+?))?\s+for\s+(?:([\$\w][\$\w\d]*))\s+in\s+([\s\S]+?)$/;
 
   return {
     parse:function (input) {
@@ -3479,6 +3562,8 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
       var inputFormatter = attrs.typeaheadInputFormatter ? $parse(attrs.typeaheadInputFormatter) : undefined;
 
       var appendToBody =  attrs.typeaheadAppendToBody ? originalScope.$eval(attrs.typeaheadAppendToBody) : false;
+
+      var focusFirst = originalScope.$eval(attrs.typeaheadFocusFirst) !== false;
 
       //INTERNAL VARIABLES
 
@@ -3552,7 +3637,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
           if (onCurrentRequest && hasFocus) {
             if (matches.length > 0) {
 
-              scope.activeIdx = 0;
+              scope.activeIdx = focusFirst ? 0 : -1;
               scope.matches.length = 0;
 
               //transform labels
@@ -3594,6 +3679,18 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
       //Declare the timeout promise var outside the function scope so that stacked calls can be cancelled later 
       var timeoutPromise;
 
+      var scheduleSearchWithTimeout = function(inputValue) {
+        timeoutPromise = $timeout(function () {
+          getMatchesAsync(inputValue);
+        }, waitTime);
+      };
+
+      var cancelPreviousTimeout = function() {
+        if (timeoutPromise) {
+          $timeout.cancel(timeoutPromise);
+        }
+      };
+
       //plug into $parsers pipeline to open a typeahead on view changes initiated from DOM
       //$parsers kick-in on all the changes coming from the view as well as manually triggered by $setViewValue
       modelCtrl.$parsers.unshift(function (inputValue) {
@@ -3602,17 +3699,14 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
 
         if (inputValue && inputValue.length >= minSearch) {
           if (waitTime > 0) {
-            if (timeoutPromise) {
-              $timeout.cancel(timeoutPromise);//cancel previous timeout
-            }
-            timeoutPromise = $timeout(function () {
-              getMatchesAsync(inputValue);
-            }, waitTime);
+            cancelPreviousTimeout();
+            scheduleSearchWithTimeout(inputValue);
           } else {
             getMatchesAsync(inputValue);
           }
         } else {
           isLoadingSetter(originalScope, false);
+          cancelPreviousTimeout();
           resetMatches();
         }
 
@@ -3637,7 +3731,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
 
         if (inputFormatter) {
 
-          locals['$model'] = modelValue;
+          locals.$model = modelValue;
           return inputFormatter(originalScope, locals);
 
         } else {
@@ -3684,6 +3778,11 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
           return;
         }
 
+        // if there's nothing selected (i.e. focusFirst) and enter is hit, don't do anything
+        if (scope.activeIdx == -1 && (evt.which === 13 || evt.which === 9)) {
+          return;
+        }
+
         evt.preventDefault();
 
         if (evt.which === 40) {
@@ -3691,7 +3790,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
           scope.$digest();
 
         } else if (evt.which === 38) {
-          scope.activeIdx = (scope.activeIdx ? scope.activeIdx : scope.matches.length) - 1;
+          scope.activeIdx = (scope.activeIdx > 0 ? scope.activeIdx : scope.matches.length) - 1;
           scope.$digest();
 
         } else if (evt.which === 13 || evt.which === 9) {
@@ -3723,10 +3822,13 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
 
       originalScope.$on('$destroy', function(){
         $document.unbind('click', dismissClickHandler);
+        if (appendToBody) {
+          $popup.remove();
+        }
       });
 
       var $popup = $compile(popUpEl)(scope);
-      if ( appendToBody ) {
+      if (appendToBody) {
         $document.find('body').append($popup);
       } else {
         element.after($popup);
@@ -3804,13 +3906,14 @@ angular.module("template/accordion/accordion-group.html", []).run(["$templateCac
     "<div class=\"panel panel-default\">\n" +
     "  <div class=\"panel-heading\">\n" +
     "    <h4 class=\"panel-title\">\n" +
-    "      <a class=\"accordion-toggle\" ng-click=\"toggleOpen()\" accordion-transclude=\"heading\"><span ng-class=\"{'text-muted': isDisabled}\">{{heading}}</span></a>\n" +
+    "      <a href class=\"accordion-toggle\" ng-click=\"toggleOpen()\" accordion-transclude=\"heading\"><span ng-class=\"{'text-muted': isDisabled}\">{{heading}}</span></a>\n" +
     "    </h4>\n" +
     "  </div>\n" +
     "  <div class=\"panel-collapse\" collapse=\"!isOpen\">\n" +
     "	  <div class=\"panel-body\" ng-transclude></div>\n" +
     "  </div>\n" +
-    "</div>");
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("template/accordion/accordion.html", []).run(["$templateCache", function($templateCache) {
@@ -3820,7 +3923,7 @@ angular.module("template/accordion/accordion.html", []).run(["$templateCache", f
 
 angular.module("template/alert/alert.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/alert/alert.html",
-    "<div class=\"alert\" ng-class=\"{'alert-{{type || 'warning'}}': true, 'alert-dismissable': closeable}\" role=\"alert\">\n" +
+    "<div class=\"alert\" ng-class=\"['alert-' + (type || 'warning'), closeable ? 'alert-dismissable' : null]\" role=\"alert\">\n" +
     "    <button ng-show=\"closeable\" type=\"button\" class=\"close\" ng-click=\"close()\">\n" +
     "        <span aria-hidden=\"true\">&times;</span>\n" +
     "        <span class=\"sr-only\">Close</span>\n" +
@@ -3916,7 +4019,7 @@ angular.module("template/datepicker/popup.html", []).run(["$templateCache", func
     "<ul class=\"dropdown-menu\" ng-style=\"{display: (isOpen && 'block') || 'none', top: position.top+'px', left: position.left+'px'}\" ng-keydown=\"keydown($event)\">\n" +
     "	<li ng-transclude></li>\n" +
     "	<li ng-if=\"showButtonBar\" style=\"padding:10px 9px 2px\">\n" +
-    "		<span class=\"btn-group\">\n" +
+    "		<span class=\"btn-group pull-left\">\n" +
     "			<button type=\"button\" class=\"btn btn-sm btn-info\" ng-click=\"select('today')\">{{ getText('current') }}</button>\n" +
     "			<button type=\"button\" class=\"btn btn-sm btn-danger\" ng-click=\"select(null)\">{{ getText('clear') }}</button>\n" +
     "		</span>\n" +
@@ -3949,7 +4052,7 @@ angular.module("template/datepicker/year.html", []).run(["$templateCache", funct
 
 angular.module("template/modal/backdrop.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/modal/backdrop.html",
-    "<div class=\"modal-backdrop fade\"\n" +
+    "<div class=\"modal-backdrop fade {{ backdropClass }}\"\n" +
     "     ng-class=\"{in: animate}\"\n" +
     "     ng-style=\"{'z-index': 1040 + (index && 1 || 0) + index*10}\"\n" +
     "></div>\n" +
@@ -3959,7 +4062,7 @@ angular.module("template/modal/backdrop.html", []).run(["$templateCache", functi
 angular.module("template/modal/window.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/modal/window.html",
     "<div tabindex=\"-1\" role=\"dialog\" class=\"modal fade\" ng-class=\"{in: animate}\" ng-style=\"{'z-index': 1050 + index*10, display: 'block'}\" ng-click=\"close($event)\">\n" +
-    "    <div class=\"modal-dialog\" ng-class=\"{'modal-sm': size == 'sm', 'modal-lg': size == 'lg'}\"><div class=\"modal-content\" ng-transclude></div></div>\n" +
+    "    <div class=\"modal-dialog\" ng-class=\"{'modal-sm': size == 'sm', 'modal-lg': size == 'lg'}\"><div class=\"modal-content\" modal-transclude></div></div>\n" +
     "</div>");
 }]);
 
@@ -4042,21 +4145,13 @@ angular.module("template/rating/rating.html", []).run(["$templateCache", functio
 angular.module("template/tabs/tab.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/tabs/tab.html",
     "<li ng-class=\"{active: active, disabled: disabled}\">\n" +
-    "  <a ng-click=\"select()\" tab-heading-transclude>{{heading}}</a>\n" +
+    "  <a href ng-click=\"select()\" tab-heading-transclude>{{heading}}</a>\n" +
     "</li>\n" +
-    "");
-}]);
-
-angular.module("template/tabs/tabset-titles.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("template/tabs/tabset-titles.html",
-    "<ul class=\"nav {{type && 'nav-' + type}}\" ng-class=\"{'nav-stacked': vertical}\">\n" +
-    "</ul>\n" +
     "");
 }]);
 
 angular.module("template/tabs/tabset.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/tabs/tabset.html",
-    "\n" +
     "<div>\n" +
     "  <ul class=\"nav nav-{{type || 'tabs'}}\" ng-class=\"{'nav-stacked': vertical, 'nav-justified': justified}\" ng-transclude></ul>\n" +
     "  <div class=\"tab-content\">\n" +
@@ -4108,9 +4203,10 @@ angular.module("template/typeahead/typeahead-match.html", []).run(["$templateCac
 
 angular.module("template/typeahead/typeahead-popup.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("template/typeahead/typeahead-popup.html",
-    "<ul class=\"dropdown-menu\" ng-if=\"isOpen()\" ng-style=\"{top: position.top+'px', left: position.left+'px'}\" style=\"display: block;\" role=\"listbox\" aria-hidden=\"{{!isOpen()}}\">\n" +
+    "<ul class=\"dropdown-menu\" ng-show=\"isOpen()\" ng-style=\"{top: position.top+'px', left: position.left+'px'}\" style=\"display: block;\" role=\"listbox\" aria-hidden=\"{{!isOpen()}}\">\n" +
     "    <li ng-repeat=\"match in matches track by $index\" ng-class=\"{active: isActive($index) }\" ng-mouseenter=\"selectActive($index)\" ng-click=\"selectMatch($index)\" role=\"option\" id=\"{{match.id}}\">\n" +
     "        <div typeahead-match index=\"$index\" match=\"match\" query=\"query\" template-url=\"templateUrl\"></div>\n" +
     "    </li>\n" +
-    "</ul>");
+    "</ul>\n" +
+    "");
 }]);

@@ -1,37 +1,54 @@
 /**
  * Select2 Polish translation.
- * 
- * Author: Jan Kondratowicz <jan@kondratowicz.pl>
+ *
+ * @author  Jan Kondratowicz <jan@kondratowicz.pl>
+ * @author  Uriy Efremochkin <efremochkin@uriy.me>
+ * @author  Michał Połtyn <mike@poltyn.com>
+ * @author  Damian Zajkowski <damian.zajkowski@gmail.com>
  */
-(function ($) {
+(function($) {
     "use strict";
-    
-    var pl_suffix = function(n) {
-        if(n == 1) return "";
-        if((n%100 > 1 && n%100 < 5) || (n%100 > 20 && n%10 > 1 && n%10 < 5)) return "i";
-        return "ów";
+
+    $.fn.select2.locales['pl'] = {
+        formatNoMatches: function() {
+            return "Brak wyników";
+        },
+        formatInputTooShort: function(input, min) {
+            return "Wpisz co najmniej" + character(min - input.length, "znak", "i");
+        },
+        formatInputTooLong: function(input, max) {
+            return "Wpisana fraza jest za długa o" + character(input.length - max, "znak", "i");
+        },
+        formatSelectionTooBig: function(limit) {
+            return "Możesz zaznaczyć najwyżej" + character(limit, "element", "y");
+        },
+        formatLoadMore: function(pageNumber) {
+            return "Ładowanie wyników…";
+        },
+        formatSearching: function() {
+            return "Szukanie…";
+        }
     };
 
-    $.extend($.fn.select2.defaults, {
-        formatNoMatches: function () {
-            return "Brak wyników.";
-        },
-        formatInputTooShort: function (input, min) {
-            var n = min - input.length;
-            return "Wpisz jeszcze " + n + " znak" + pl_suffix(n) + ".";
-        },
-        formatInputTooLong: function (input, max) {
-            var n = input.length - max;
-            return "Wpisana fraza jest za długa o " + n + " znak" + pl_suffix(n) + ".";
-        },
-        formatSelectionTooBig: function (limit) {
-            return "Możesz zaznaczyć najwyżej " + limit + " element" + pl_suffix(limit) + ".";
-        },
-        formatLoadMore: function (pageNumber) {
-            return "Ładowanie wyników...";
-        },
-        formatSearching: function () {
-            return "Szukanie...";
+    $.extend($.fn.select2.defaults, $.fn.select2.locales['pl']);
+
+    function character(n, word, pluralSuffix) {
+        //Liczba pojedyncza - brak suffiksu
+        //jeden znak
+        //jeden element
+        var suffix = '';
+        if (n > 1 && n < 5) {
+            //Liczaba mnoga ilość od 2 do 4 - własny suffiks
+            //Dwa znaki, trzy znaki, cztery znaki.
+            //Dwa elementy, trzy elementy, cztery elementy
+            suffix = pluralSuffix;
+        } else if (n == 0 || n >= 5) {
+            //Ilość 0 suffiks ów
+            //Liczaba mnoga w ilości 5 i więcej - suffiks ów (nie poprawny dla wszystkich wyrazów, np. 100 wiadomości)
+            //Zero znaków, Pięć znaków, sześć znaków, siedem znaków, osiem znaków.
+            //Zero elementów Pięć elementów, sześć elementów, siedem elementów, osiem elementów.
+            suffix = 'ów';
         }
-    });
+        return " " + n + " " + word + suffix;
+    }
 })(jQuery);

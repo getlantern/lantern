@@ -1,5 +1,6 @@
 {
   "name": "angular-translate",
-  "version": "2.2.0",
-  "main": "./angular-translate.js"
+  "version": "2.4.2",
+  "main": "./angular-translate.js",
+  "ignore": []
 }

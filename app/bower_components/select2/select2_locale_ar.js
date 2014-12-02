@@ -1,17 +1,19 @@
 /**
  * Select2 Arabic translation.
- * 
- * Author: Your Name <amedhat3@gmail.com>
+ *
+ * Author: Adel KEDJOUR <adel@kedjour.com>
  */
 (function ($) {
     "use strict";
 
-    $.extend($.fn.select2.defaults, {
-        formatNoMatches: function () { return "لا توجد نتائج"; },
-        formatInputTooShort: function (input, min) { var n = min - input.length; return "من فضلك أدخل " + n + " حروف أكثر"; },
-        formatInputTooLong: function (input, max) { var n = input.length - max; return "من فضلك أحذف  " + n + " حروف"; },
-        formatSelectionTooBig: function (limit) { return "يمكنك ان تختار " + limit + " أختيارات فقط"; },
-        formatLoadMore: function (pageNumber) { return "تحمل المذيد من النتائج ..."; },
-        formatSearching: function () { return "جاري البحث ..."; }
-    });
+    $.fn.select2.locales['ar'] = {
+        formatNoMatches: function () { return "لم يتم العثور على مطابقات"; },
+        formatInputTooShort: function (input, min) { var n = min - input.length; if (n == 1){ return "الرجاء إدخال حرف واحد على الأكثر"; } return n == 2 ? "الرجاء إدخال حرفين على الأكثر" : "الرجاء إدخال " + n + " على الأكثر"; },
+        formatInputTooLong: function (input, max) { var n = input.length - max; if (n == 1){ return "الرجاء إدخال حرف واحد على الأقل"; } return n == 2 ? "الرجاء إدخال حرفين على الأقل" : "الرجاء إدخال " + n + " على الأقل "; },
+        formatSelectionTooBig: function (limit) { if (limit == 1){ return "يمكنك أن تختار إختيار واحد فقط"; } return limit == 2 ? "يمكنك أن تختار إختيارين فقط" : "يمكنك أن تختار " + limit + " إختيارات فقط"; },
+        formatLoadMore: function (pageNumber) { return "تحميل المزيد من النتائج…"; },
+        formatSearching: function () { return "البحث…"; }
+    };
+
+    $.extend($.fn.select2.defaults, $.fn.select2.locales['ar']);
 })(jQuery);
