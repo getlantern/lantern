@@ -28,7 +28,11 @@ var app = angular.module('app', [
       }
     };
   })
-  .config(function($tooltipProvider) {
+  .config(function($tooltipProvider, $httpProvider) {
+    // Add the X-Requested-With header back in when we configure http provider; otherwise, making POST requests doesn't work
+    // version 1.1.* and above of AngularJS dropped this default behavior
+    // see here for related info http://django-angular.readthedocs.org/en/latest/integration.html
+    $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     $tooltipProvider.options({
       appendToBody: true
     });

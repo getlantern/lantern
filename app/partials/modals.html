@@ -11,7 +11,7 @@
 -->
 
 <!-- XXX DRY - contact modal, settings load failure modal -->
-<div ng-controller="UnexpectedStateCtrl" ng-show="modal">
+<div ng-controller="UnexpectedStateCtrl" ng-show="show">
   <div class="modal-header">
     <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
   </div>
@@ -94,7 +94,7 @@
   </div>
 </div>
 
-<div ng-controller="WelcomeCtrl" ng-show="modal">
+<div ng-controller="WelcomeCtrl" ng-show="show">
   <div class="modal-body" id="welcome">
     <div class="logo">
       <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
@@ -133,7 +133,7 @@
   </div>
 </div>
 
-<div ng-controller="SponsorToContinueCtrl" ng-show="modal">
+<div ng-controller="SponsorToContinueCtrl" ng-show="show">
   <div class="modal-header">
     <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | i18n }}</h3>
   </div>
@@ -151,7 +151,7 @@
   </div>
 </div>
 
-<div ng-controller="AuthorizeCtrl" ng-show="modal">
+<div ng-controller="AuthorizeCtrl" ng-show="show">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
   </div>
@@ -190,7 +190,7 @@
   </div>
 </div>
 
-<div ng-controller="ConfirmResetCtrl" ng-show="modal">
+<div ng-controller="ConfirmResetCtrl" ng-show="show">
   <div class="modal-header">
     <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
   </div>
@@ -203,7 +203,7 @@
   </div>
 </div>
 
-<div ng-controller="GiveModeForbiddenCtrl" ng-show="modal">
+<div ng-controller="GiveModeForbiddenCtrl" ng-show="show">
   <div class="modal-header">
     <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
   </div>
@@ -216,7 +216,7 @@
   </div>
 </div>
 
-<div ng-controller="NotInvitedCtrl" ng-show="modal">
+<div ng-controller="NotInvitedCtrl" ng-show="show">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
   </div>
@@ -228,7 +228,7 @@
   </div>
 </div>
 
-<div ng-controller="ProxiedSitesCtrl" ng-show="modal">
+<div ng-controller="ProxiedSitesCtrl" ng-show="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
