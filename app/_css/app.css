@@ -4397,6 +4397,10 @@ input[type="submit"].btn.btn-mini {
   border-radius: 4px;
 }
 
+div.alert span.sr-only {
+    display: hidden;
+}
+
 .alert,
 .alert h4 {
   color: #c09853;
@@ -7679,21 +7683,22 @@ body[dir=rtl] #latestDetails dd {
   fill: rgba(6, 21, 50, 0.1);
 }
 
-#countries path.COUNTRY_KNOWN,
-#countries path.COUNTRY_UNKNOWN {
+path.COUNTRY_KNOWN,
+path.COUNTRY_UNKNOWN {
   stroke: #364d58;
   fill-opacity: 0.2;
-  stroke-width: 0.2px;
-  fill: black;
+  transition: all 0.5s ease;
+  -webkit-transition: all 0.5s ease;
+  stroke-width: 0.3px;
 }
-#countries path.censors {
+path.censors {
   fill-opacity: 0.3;
 }
-#countries path.updating {
+path.updating {
   fill-opacity: 0.1 !important;
   stroke-opacity: 1 !important;
 }
-#countries path:hover {
+path:hover {
   stroke-opacity: 1 !important;
 }
 
@@ -7745,7 +7750,7 @@ path.peer.cloud, path.peer.laeproxy {
 
 path.connection {
   fill: none !important;
-  stroke-width: 0.3px !important;
+  stroke-width: 1px !important;
   stroke: white !important;
   -webkit-transition: stroke-opacity 0.3s ease;
   transition: stroke-opacity 0.3s ease;
@@ -7765,9 +7770,6 @@ body[dir=rtl] .tooltip .vis {
   height: 64px;
   width: 64px;
   margin: 5px 10px 0 0;
-}
-.tooltip .vis .picture, .tooltip .vis .headers {
-  float: left;
 }
 .tooltip .vis .header {
   font-weight: bold;

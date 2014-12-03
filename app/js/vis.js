@@ -113,7 +113,7 @@ angular.module('app.vis', ['ngSanitize'])
             if (d.alpha2) {
               var $content = ttTmpl(d.alpha2);
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
-                .attr('tooltip-placement', 'bottom')
+                .attr('tooltip-placement', 'left')
                 //.attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
@@ -294,7 +294,7 @@ angular.module('app.vis', ['ngSanitize'])
         var peerItems = newPeers.append("g")
           .attr("id", peerIdentifier)
           .classed("peer", true)
-          .attr("tooltip-placement", "mouse")
+          .attr("tooltip-placement", "left")
           .attr("tooltip-html-unsafe", peerTooltipTemplate)
           .each(function(peer) {
             // Compile the tooltip target dom element to enable the tooltip-html-unsafe directive
@@ -460,18 +460,22 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   };
  
 
-  $scope.svg = d3.select("#vis").append("svg")
-  .attr("width", "100%")
+  d3.select("#map").call($scope.zoom);
+  $scope.svg = d3.select("#peers");
+  /*.attr("width", "100%")
   .attr("id", "map")
   .attr("resizable", "")
   .attr("height", "100%")
   .call($scope.zoom)
   .append("g").attr("id", "countries").attr("countries", "")
   .append("g").attr("id", "peers").attr("peers", "");
-  $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
+  $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");*/
 
   var countries = angular.element( document.querySelector( '#countries' ) );
   $compile(countries)($scope);                               
+
+  var peers = angular.element(document.querySelector('#peers'));
+  $compile(peers)($scope);
 
 
   $scope.path = function (d, pointRadius) {
