@@ -124,6 +124,10 @@
   content: "\E13F";
 }
 
+.tooltip.tooltip-arrow {
+    left: 87%;
+}
+
 /*
  * Bootstrap v2.2.2
  *
@@ -7686,7 +7690,7 @@ body[dir=rtl] #latestDetails dd {
 path.COUNTRY_KNOWN,
 path.COUNTRY_UNKNOWN {
   stroke: #364d58;
-  fill-opacity: 0.2;
+  fill-opacity: 0.2 !important;
   transition: all 0.5s ease;
   -webkit-transition: all 0.5s ease;
   stroke-width: 0.3px;
@@ -7750,8 +7754,8 @@ path.peer.cloud, path.peer.laeproxy {
 
 path.connection {
   fill: none !important;
-  stroke-width: 1px !important;
-  stroke: white !important;
+  stroke-width: 0.5;
+  stroke: white;
   -webkit-transition: stroke-opacity 0.3s ease;
   transition: stroke-opacity 0.3s ease;
 }

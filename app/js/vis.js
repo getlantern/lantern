@@ -34,7 +34,7 @@ angular.module('app.vis', ['ngSanitize'])
         try {
           scope.$digest();
         } catch (e) {
-          if (e.message !== '$digest already in progress') {
+          if (e.message.indexOf('in progress') <= -1) {
             throw e;
           }
         }
@@ -114,6 +114,7 @@ angular.module('app.vis', ['ngSanitize'])
               var $content = ttTmpl(d.alpha2);
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'left')
+                .attr('tooltip-append-to-body', true)
                 //.attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
@@ -435,7 +436,7 @@ angular.module('app.vis', ['ngSanitize'])
 app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $rootScope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
       vis = d3.select("#vis"),
-      width = document.getElementById('vis').offsetWidth,
+      width = document.getElementById('map').offsetWidth,
       height = width / 2,
       model = modelSrvc.model,
       projection = d3.geo.mercator().scale(.5).translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
@@ -463,11 +464,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   d3.select("#map").call($scope.zoom);
   $scope.svg = d3.select("#peers");
 
-  var countries = angular.element( document.querySelector( '#countries' ) );
-  $compile(countries)($scope);                               
-
-  var peers = angular.element(document.querySelector('#peers'));
-  $compile(peers)($scope);
+  //var countries = angular.element( document.querySelector( '#countries' ) );
+  //$compile(countries)($scope);                               
 
   $scope.path = function (d, pointRadius) {
       var scaled = $scope.zoom.scale() < 5 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);
