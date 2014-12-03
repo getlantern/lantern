@@ -113,7 +113,7 @@ angular.module('app.vis', ['ngSanitize'])
             if (d.alpha2) {
               var $content = ttTmpl(d.alpha2);
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
-                .attr('tooltip-placement', 'mouse')
+                .attr('tooltip-placement', 'bottom')
                 //.attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
@@ -313,8 +313,8 @@ angular.module('app.vis', ['ngSanitize'])
         
         // Configure points and hover areas on each update
         allPeers.select("g.peer path.peer")
-        .style("opacity", 1.0)
-        .style("fill-opacity", 1.0)
+        .style("opacity", 1)
+        .style("fill-opacity", 1)
         .attr("d", function(peer) {
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
         }).attr("class", function(peer) {
@@ -340,7 +340,8 @@ angular.module('app.vis', ['ngSanitize'])
         allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
           .attr("stroke-opacity", function(peer) {
-            return connectionOpacityScale(peer.bpsUpDn || 0);
+              // scale connective arcs between peers as we zoom in
+            return Math.min(scope.scaled, connectionOpacityScale(peer.bpsUpDn || 0));
           });
         
         // Animate connected/disconnected peers
@@ -430,7 +431,7 @@ angular.module('app.vis', ['ngSanitize'])
     };
   });
 
-app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
+app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $rootScope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
   var log = logFactory('VisCtrl'),
       vis = d3.select("#vis"),
       width = document.getElementById('vis').offsetWidth,
@@ -440,14 +441,24 @@ app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 
+  $scope.scaled = 1;
+
   $scope.projection = projection;
 
   $scope.redraw = function() {
+      $scope.scaled = 1/d3.event.scale;
       $scope.svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
   }
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
+  
+  $rootScope.centerMap = function() {
+      // return map to origin
+      $scope.svg.attr("transform", "translate(0,0)scale(1)");
+      //$scope.zoom.size([960, 500]);
+  };
+ 
 
   $scope.svg = d3.select("#vis").append("svg")
   .attr("width", "100%")
@@ -460,18 +471,11 @@ app.controller('VisCtrl', ['$scope', '$compile', '$window', '$timeout', '$filter
   $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
 
   var countries = angular.element( document.querySelector( '#countries' ) );
-  $compile(countries)($scope);
+  $compile(countries)($scope);                               
 
 
   $scope.path = function (d, pointRadius) {
-      var scale;
-      if ($scope.zoom.scale() < 3) {
-          scale = 2;       
-      } else {
-          scale = 1;
-          //scale = Math.max($scope.zoom.scale()/2.0, 1.5);
-      }
-      path.pointRadius(pointRadius || scale);
+      path.pointRadius(pointRadius || DEFAULT_POINT_RADIUS);
       return path(d) || 'M0 0';
   };
 
