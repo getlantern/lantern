@@ -160,7 +160,7 @@
       {{ 'AUTHORIZE_PROMPT' | i18n }}
       <a ng-click="helpExpanded=!helpExpanded" class="more-info">{{ 'MORE_INFO' | i18n }}</a>
     </div>
-    <div class="prompt-extra" collapse="!helpExpanded">
+    <div class="prompt-extra" ng-show="!helpExpanded">
       <p ng-bind-html="'AUTHORIZE_EXTRA' | i18n"></p>
       <p ng-bind-html="'EMAIL_USE' | i18n"></p>
       <p ng-bind-html="'DIRECT_FROM_GOOGLE' | i18n"></p>
@@ -427,7 +427,7 @@
           {{ 'AUTOREPORT_PROMPT' | i18n }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
         </a>
       </label>
-      <div class="smallest indented warning-colored" style="margin-top: 5px" collapse="autoReport">
+      <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" collapse="autoReport">
         <i class="icon-exclamation-sign"></i>
         {{ 'NO_AUTOREPORT_WARNING' | i18n }}
       </div>
