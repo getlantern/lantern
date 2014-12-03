@@ -339,6 +339,7 @@ angular.module('app.vis', ['ngSanitize'])
         // Set paths for arcs for all peers
         allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
+          .attr("stroke-width", scope.scaled)
           .attr("stroke-opacity", function(peer) {
               // scale connective arcs between peers as we zoom in
             return Math.min(scope.scaled, connectionOpacityScale(peer.bpsUpDn || 0));
@@ -456,20 +457,11 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   $rootScope.centerMap = function() {
       // return map to origin
       $scope.svg.attr("transform", "translate(0,0)scale(1)");
-      //$scope.zoom.size([960, 500]);
   };
  
 
   d3.select("#map").call($scope.zoom);
   $scope.svg = d3.select("#peers");
-  /*.attr("width", "100%")
-  .attr("id", "map")
-  .attr("resizable", "")
-  .attr("height", "100%")
-  .call($scope.zoom)
-  .append("g").attr("id", "countries").attr("countries", "")
-  .append("g").attr("id", "peers").attr("peers", "");
-  $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");*/
 
   var countries = angular.element( document.querySelector( '#countries' ) );
   $compile(countries)($scope);                               
@@ -477,9 +469,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   var peers = angular.element(document.querySelector('#peers'));
   $compile(peers)($scope);
 
-
   $scope.path = function (d, pointRadius) {
-      path.pointRadius(pointRadius || DEFAULT_POINT_RADIUS);
+      var scaled = $scope.zoom.scale() < 5 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);
+      path.pointRadius(pointRadius || scaled);
       return path(d) || 'M0 0';
   };
 
