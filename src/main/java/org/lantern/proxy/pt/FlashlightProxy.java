@@ -27,7 +27,6 @@ public class FlashlightProxy extends FallbackProxy {
         final Properties props = new Properties();
         
         props.setProperty("type", "flashlight");
-        props.setProperty(Flashlight.SERVER_KEY, host);
         props.setProperty(Flashlight.CLOUDCONFIG_KEY, cloudConfig);
         props.setProperty(Flashlight.CLOUDCONFIG_CA_KEY, cloudConfigCA);
         

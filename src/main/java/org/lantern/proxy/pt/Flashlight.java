@@ -22,6 +22,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.lantern.LanternClientConstants;
+import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Launcher;
 import org.lantern.event.AutoReportChangedEvent;
@@ -111,6 +112,18 @@ public class Flashlight extends BasePluggableTransport {
                 LanternClientConstants.CONFIG_DIR,
                 File.separatorChar,
                 File.separatorChar);
+    }
+    
+    public void startStandaloneClient() {
+        cmd = new CommandLine(this.exe);
+        
+        addClientArgs(cmd, LanternConstants.LANTERN_LOCALHOST_ADDR, null, null);
+        exec();
+
+        if (!LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_ADDR, 60000)) {
+            throw new RuntimeException(String.format("Unable to start %1$s",
+                    getLogName()));
+        }
     }
 
     @Override

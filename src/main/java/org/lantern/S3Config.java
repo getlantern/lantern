@@ -87,7 +87,6 @@ public class S3Config extends BaseS3Config {
     public Collection<FallbackProxy> getAllFallbacks() {
         final Collection<FallbackProxy> all = new HashSet<FallbackProxy>();
         all.addAll(getFallbacks());
-        all.add(FLASHLIGHT_PROXY);
         return all;
     }
 

@@ -122,7 +122,7 @@ public class Launcher {
     private HttpClientFactory httpClientFactory;
     private final LanternModule lanternModule;
 
-    private ProxyTracker proxyTracker;
+    //private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
 
@@ -279,26 +279,11 @@ public class Launcher {
             }
         }
         
-        proxyTracker = instance(ProxyTracker.class);
+        //proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
         s3ConfigFetcher = instance(S3ConfigFetcher.class);
         
-        if (checkFallbacks) {
-            LOG.debug("Running in check-fallbacks mode");
-            String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
-            try {
-                final FallbackChecker fbc = new FallbackChecker(proxyTracker, 
-                        configFolderPath, httpClientFactory);
-                Thread t = new Thread(fbc);
-                t.start();
-            } catch (Exception e) {
-                LOG.error("Error instantiating FallbackChecker:");
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
-
         xmpp = instance(DefaultXmppHandler.class);
 
         instance(LocalCipherProvider.class);
@@ -409,14 +394,12 @@ public class Launcher {
         try {
             publicIpAndTokenTracker.reset();
             s3ConfigFetcher.init();
-            proxyTracker.init();
             // Needs a fallback.
             //publicIpInfoHandler.init();
             
             // Once network services are successfully initialized, start
             // background tasks.
             s3ConfigFetcher.start();
-            proxyTracker.start();
         } catch (final InitException e) {
             LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
         } catch (final Throwable t) {
@@ -429,7 +412,6 @@ public class Launcher {
         xmpp.stop();
         statsManager.stop();
         friendsHandler.stop();
-        proxyTracker.stop();
         s3ConfigFetcher.stop();
     }
 
