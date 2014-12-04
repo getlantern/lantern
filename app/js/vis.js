@@ -294,7 +294,7 @@ angular.module('app.vis', ['ngSanitize'])
         var peerItems = newPeers.append("g")
           .attr("id", peerIdentifier)
           .classed("peer", true)
-          .attr("tooltip-placement", "left")
+          .attr("tooltip-placement", "bottom")
           .attr("tooltip-html-unsafe", peerTooltipTemplate)
           .each(function(peer) {
             // Compile the tooltip target dom element to enable the tooltip-html-unsafe directive
@@ -413,6 +413,7 @@ angular.module('app.vis', ['ngSanitize'])
       
       // Handle resize
       scope.$on("mapResized", function() {
+
         // Whenever the map resizes, we need to re-render the peers and arcs
         renderPeers(scope.model.peers, scope.model.peers);
         
@@ -438,7 +439,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       width = document.getElementById('map').offsetWidth,
       height = width / 2,
       model = modelSrvc.model,
-      projection = d3.geo.mercator().scale(.5).translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
+      //projection = d3.geo.mercator(),
+      projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 

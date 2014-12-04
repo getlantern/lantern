@@ -4,7 +4,10 @@
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
 <div id="vis" ng-controller="VisCtrl">
-    <svg id="map" resizable>
+    <svg id="map" width="960"
+        height="500"
+            viewBox="0 0 960 500"
+                preserveAspectRatio="xMinYMin meet">
     <g id="countries" countries />
     <g id="peers" peers>
     <path id="self" ng-show="model.location.resolved" self class="peer {{ model.settings.mode }}"
