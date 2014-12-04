@@ -106,6 +106,9 @@ public class UpnpCli implements UpnpService, Shutdownable {
                         mappedPorts.add(externalPortRequested);
                         portMapListener.onPortMap(externalPortRequested);
                     }
+                } catch (final IOException e) {
+                    log.debug("No IGD perhaps?", e);
+                    portMapListener.onPortMapError();
                 } catch (final Throwable e) {
                     log.error("Unexpected error?", e);
                     portMapListener.onPortMapError();
