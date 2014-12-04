@@ -3,7 +3,7 @@
 	<groupId>org.lantern</groupId>
 	<artifactId>lantern</artifactId>
 	<packaging>jar</packaging>
-	<version>1.5.13-SNAPSHOT</version>
+	<version>1.5.14-SNAPSHOT</version>
 	<name>Lantern</name>
 	<description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
 	<url>https://github.com/getlantern/lantern</url>
