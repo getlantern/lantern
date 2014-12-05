@@ -8,6 +8,7 @@
         height="600"
             viewBox="0 0 960 600"
                 preserveAspectRatio="xMinYMin meet">
+    <g id="zoomGroup">
     <g id="countries" countries />
     <g id="peers" peers></g>
     <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
@@ -36,6 +37,7 @@
               </div>
             </div>
           </div>" tooltip-placement="right" />
+    </g>
     <filter id="defaultBlur">
       <feGaussianBlur stdDeviation="1" />
     </filter>

@@ -101,10 +101,9 @@ angular.module('app.vis', ['ngSanitize'])
         //XXX need to do something like this to use latest topojson:
         //var f = topojson.feature(world, world.objects.countries).features;
         var countries = topojson.object(world, world.objects.countries).geometries;
-        var country = scope.svg.selectAll(".country").data(countries);
+        var country = d3.select(element[0]).selectAll('path').data(countries);
         country.enter()
           .append("g").append("path")
-          .attr("class", "country")
           .attr("title", function(d,i) { return d.name; })
           .each(function (d) {
             var el = d3.select(this);
@@ -455,15 +454,14 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
+
+   $scope.svg = d3.select("#zoomGroup").call($scope.zoom);
   
   $rootScope.centerMap = function() {
       // return map to origin
       $scope.svg.attr("transform", "translate(0,0)scale(1)");
   };
  
-
-  d3.select("#map").call($scope.zoom);
-  $scope.svg = d3.selectAll("#peers, #self");
 
   $scope.path = function (d, pointRadius) {
       var scaled = $scope.zoom.scale() < 5 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);
