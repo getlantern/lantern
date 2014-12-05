@@ -87,6 +87,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     static {
         SmackConfiguration.setPacketReplyTimeout(60 * 1000);
+        SmackConfiguration.setKeepAliveInterval(5 * 1000);
     }
 
     private volatile long lastInfoMessageScheduled = 0L;
