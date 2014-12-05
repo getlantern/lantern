@@ -7682,7 +7682,7 @@ body[dir=rtl] #latestDetails dd {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   stroke: #364d58;
-  stroke-width: 1px;
+  stroke-width: 0.5px;
   fill: black;
   fill-opacity: 0.2;
 }
