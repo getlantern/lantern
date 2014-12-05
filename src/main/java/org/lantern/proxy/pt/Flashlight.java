@@ -335,7 +335,6 @@ public class Flashlight extends BasePluggableTransport {
             config.put("fallback-" + fallback.getWanHost(), proxy);
         }
         try {
-            System.out.println("********************** " + config);
             postConfig(CHAINED_PATH, config);
             LOGGER.info("Set {} fallback proxies in flashlight", fallbacks.size());
         } catch (Exception e) {
@@ -394,7 +393,6 @@ public class Flashlight extends BasePluggableTransport {
     private void postConfig(String path, String data) throws Exception {
         HttpPost post = new HttpPost(configUrl(path));
         post.setHeader("Content-Type", "application/yaml");
-        System.out.println(data);
         HttpEntity requestEntity = new StringEntity(data, "UTF-8");
         post.setEntity(requestEntity);
         HttpClient client = StaticHttpClientFactory.newDirectClient();
