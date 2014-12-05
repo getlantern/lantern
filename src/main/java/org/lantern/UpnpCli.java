@@ -165,16 +165,19 @@ public class UpnpCli implements UpnpService, Shutdownable {
             // The DefaultExecutor throws an IOException on error exit codes.
             // In this case, upnpc returns an error code if it can't find any
             // IGD on the network. For us that should just be considered 
-            // a port mapping error.
+            // a port mapping error. If we happen to see some other error, we
+            // log it.
             if (lines.size() > 0) {
-                final String first = lines.get(0).toLowerCase();
-                if (!first.contains("no igd")) {
-                    log.warn("Got invalid exit value: {} with unexpected output:{}", 
-                            e.getMessage(), lines.toString(), e);
-                } else {
+                final String all = lines.toString();
+                if (all.contains("No IGD") || 
+                    all.contains("No valid UPNP Internet Gateway Device found")) {
                     log.debug("Got invalid exit value for no IGD", e.getMessage(), 
                             lines.toString(), e);
                 }
+                else {
+                    log.warn("Got invalid exit value: {} with unexpected output:{}", 
+                            e.getMessage(), lines.toString(), e);
+                } 
                 throw e;
             } else {
                 log.error("UPNP exception with no output", e);
