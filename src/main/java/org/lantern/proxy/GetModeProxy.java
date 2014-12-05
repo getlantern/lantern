@@ -1,22 +1,13 @@
 package org.lantern.proxy;
 
-import io.netty.handler.codec.http.HttpRequest;
-
 import java.util.Properties;
 
 import org.lantern.ConnectivityStatus;
-import org.lantern.LanternConstants;
 import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.proxy.pt.Flashlight;
-import org.lantern.state.InstanceStats;
 import org.lantern.state.Model;
-import org.littleshoot.proxy.ActivityTrackerAdapter;
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.FullFlowContext;
-import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -29,12 +20,12 @@ import com.google.inject.Singleton;
 @Singleton
 public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     private final Flashlight fl;
+    private final Model model;
     
     @Inject
     public GetModeProxy(
-            Model model,
-            ChainedProxyManager chainedProxyManager,
-            GetModeProxyFilter filter) {
+            Model model) {
+        this.model = model;
         Properties props = new Properties();
         props.setProperty(Flashlight.CLOUDCONFIG_KEY, S3Config.DEFAULT_FLASHLIGHT_CLOUDCONFIG);
         props.setProperty(Flashlight.CLOUDCONFIG_CA_KEY, S3Config.DEFAULT_FLASHLIGHT_CLOUDCONFIG_CA);
@@ -45,6 +36,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     @Override
     synchronized public void start() {
         fl.startStandaloneClient();
+        fl.addFallbackProxies(model.getS3Config().getFallbacks());
         Events.asyncEventBus().post(new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
     }
     
@@ -55,10 +47,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     
     @Subscribe
     public void onNewS3Config(final S3Config config) {
-        
-    }
-    
-    private void addFallbackProxies() {
-        
+        System.out.println("************************ Fallbacks!!! " + config.getFallbacks().size());
+        fl.addFallbackProxies(config.getFallbacks());
     }
 }

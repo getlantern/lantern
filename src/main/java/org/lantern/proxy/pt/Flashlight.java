@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -30,12 +31,14 @@ import org.lantern.event.Events;
 import org.lantern.event.WaddellPeerAvailabilityEvent;
 import org.lantern.geoip.GeoData;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.proxy.FallbackProxy;
 import org.lantern.state.Model;
 import org.lantern.util.ProcessUtil;
 import org.lantern.util.PublicIpAddress;
 import org.lantern.util.StaticHttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import com.google.common.eventbus.Subscribe;
@@ -72,6 +75,7 @@ public class Flashlight extends BasePluggableTransport {
     private static final Pattern WADDELL_ID_PATTERN = Pattern
             .compile("^.*Connected to Waddell!! Id is: (.*)$");
     private static final String PEERS_PATH = "/Client/Peers";
+    private static final String CHAINED_PATH = "/Client/ChainedServers";
 
     private final Properties props;
     private final String configAddr;
@@ -311,6 +315,33 @@ public class Flashlight extends BasePluggableTransport {
             }
         }
     }
+    
+    public void addFallbackProxies(Collection<FallbackProxy> fallbacks) {
+        if (fallbacks.size() == 0) {
+            return;
+        }
+        Map<String, Map<String, Object>> config = new HashMap<String, Map<String,Object>>();
+        for (FallbackProxy fallback : fallbacks) {
+            Map<String, Object> proxy = new HashMap<String, Object>();
+            proxy.put("addr", fallback.getWanHost() + ":" + fallback.getWanPort());
+            proxy.put("cert", fallback.getCert());
+            proxy.put("authtoken", fallback.getAuthToken());
+            proxy.put("pipelined", true);
+            // Set really high priority
+            int domainFrontedPriority = 1000000;
+            proxy.put("weight", domainFrontedPriority * 100);
+            // Set high QOS
+            proxy.put("qos", Flashlight.HIGH_QOS);
+            config.put("fallback-" + fallback.getWanHost(), proxy);
+        }
+        try {
+            System.out.println("********************** " + config);
+            postConfig(CHAINED_PATH, config);
+            LOGGER.info("Set {} fallback proxies in flashlight", fallbacks.size());
+        } catch (Exception e) {
+            LOGGER.error("Unable to set fallback proxies in flashlight: {}", e.getMessage(), e);
+        }
+    }
 
     /**
      * Adds a waddell peer to flashlight's configuration.
@@ -354,12 +385,16 @@ public class Flashlight extends BasePluggableTransport {
     }
 
     private void postConfig(String path, Map data) throws Exception {
-        postConfig(path, new Yaml().dump(data));
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.DOUBLE_QUOTED);
+        postConfig(path, new Yaml(options).dump(data));
     }
 
     private void postConfig(String path, String data) throws Exception {
         HttpPost post = new HttpPost(configUrl(path));
         post.setHeader("Content-Type", "application/yaml");
+        System.out.println(data);
         HttpEntity requestEntity = new StringEntity(data, "UTF-8");
         post.setEntity(requestEntity);
         HttpClient client = StaticHttpClientFactory.newDirectClient();
