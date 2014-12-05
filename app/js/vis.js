@@ -463,10 +463,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
  
 
   d3.select("#map").call($scope.zoom);
-  $scope.svg = d3.select("#peers");
-
-  //var countries = angular.element( document.querySelector( '#countries' ) );
-  //$compile(countries)($scope);                               
+  $scope.svg = d3.selectAll("#peers, #self");
 
   $scope.path = function (d, pointRadius) {
       var scaled = $scope.zoom.scale() < 5 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);

@@ -9,8 +9,8 @@
             viewBox="0 0 960 600"
                 preserveAspectRatio="xMinYMin meet">
     <g id="countries" countries />
-    <g id="peers" peers>
-    <path id="self" ng-show="model.location.resolved" self class="peer {{ model.settings.mode }}"
+    <g id="peers" peers></g>
+    <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
           ng-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}) }}"
           tooltip-html-unsafe="<div class=vis>
             <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
@@ -35,8 +35,7 @@
                 </div>
               </div>
             </div>
-          </div>" tooltip-placement="bottom" />
-    </g>
+          </div>" tooltip-placement="right" />
     <filter id="defaultBlur">
       <feGaussianBlur stdDeviation="1" />
     </filter>
