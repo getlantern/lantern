@@ -8,6 +8,8 @@ import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -19,6 +21,8 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class GetModeProxy extends AbstractHttpProxyServerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GetModeProxy.class);
+    
     private final Flashlight fl;
     private final Model model;
     
@@ -47,7 +51,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     
     @Subscribe
     public void onNewS3Config(final S3Config config) {
-        System.out.println("************************ Fallbacks!!! " + config.getFallbacks().size());
+        LOGGER.info("Got new S3Config, sending {} fallbacks in flashlight", config.getFallbacks().size());
         fl.addFallbackProxies(config.getFallbacks());
     }
 }

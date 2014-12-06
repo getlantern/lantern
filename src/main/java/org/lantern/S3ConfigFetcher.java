@@ -129,8 +129,12 @@ public class S3ConfigFetcher {
 
         final S3Config config = this.model.getS3Config();
         if (newConfig.isPresent()) {
-            this.model.setS3Config(newConfig.get());
-            return !newConfig.get().equals(config);
+            S3Config nextConfig = newConfig.get();
+            boolean changed = !newConfig.equals(config);
+            String changedString = changed ? "changed" : "unchanged";
+            log.info("Setting {} remote S3Config in model", changedString);
+            this.model.setS3Config(nextConfig);
+            return changed;
         } else {
             log.info("Couldn't get a remote S3 config, sticking with what we have");
             return false;
