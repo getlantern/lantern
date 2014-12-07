@@ -158,14 +158,14 @@
   <div class="modal-body" id="authorize">
     <div>
       {{ 'AUTHORIZE_PROMPT' | i18n }}
-      <a ng-click="helpExpanded=!helpExpanded" class="more-info">{{ 'MORE_INFO' | i18n }}</a>
+      <a ng-click="helpExpanded = !helpExpanded" class="more-info">{{ 'MORE_INFO' | i18n }}</a>
     </div>
-    <div class="prompt-extra" ng-show="!helpExpanded">
+    <div class="prompt-extra" ng-show="helpExpanded">
       <p ng-bind-html="'AUTHORIZE_EXTRA' | i18n"></p>
       <p ng-bind-html="'EMAIL_USE' | i18n"></p>
       <p ng-bind-html="'DIRECT_FROM_GOOGLE' | i18n"></p>
     </div>
-    <p class="small gray indented">{{ 'INVITE_EMAIL' | i18n }}</p><!-- XXX remove this when we go to open beta -->
+    <p class="small gray indented" style="padding-top:10px;">{{ 'INVITE_EMAIL' | i18n }}</p><!-- XXX remove this when we go to open beta -->
   </div>
   <div class="modal-footer">
     <div class="modal-status" ng-show="showSpinner">
@@ -427,7 +427,7 @@
           {{ 'AUTOREPORT_PROMPT' | i18n }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
         </a>
       </label>
-      <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" collapse="autoReport">
+      <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" ng-show="autoReport">
         <i class="icon-exclamation-sign"></i>
         {{ 'NO_AUTOREPORT_WARNING' | i18n }}
       </div>
