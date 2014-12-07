@@ -464,7 +464,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
  
 
   $scope.path = function (d, pointRadius) {
-      var scaled = $scope.zoom.scale() < 5 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);
+      var scaled = $scope.zoom.scale() < 8 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);
       path.pointRadius(pointRadius || scaled);
       return path(d) || 'M0 0';
   };
