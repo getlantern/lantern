@@ -449,13 +449,13 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.redraw = function() {
       $scope.scaled = 1/d3.event.scale;
-      $scope.svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+      d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
   }
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
 
-   $scope.svg = d3.select("#zoomGroup").call($scope.zoom);
+   $scope.svg = d3.select('svg').call($scope.zoom);
   
   $rootScope.centerMap = function() {
       // return map to origin
