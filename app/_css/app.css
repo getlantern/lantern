@@ -4435,12 +4435,14 @@ input[type="submit"].btn.btn-mini {
   color: #b94a48;
 }
 
+.alert,
 .alert-info {
   background-color: #d9edf7;
   border-color: #bce8f1;
   color: #3a87ad;
 }
 
+.alert,
 .alert-info h4 {
   color: #3a87ad;
 }
