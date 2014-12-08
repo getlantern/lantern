@@ -313,10 +313,14 @@ angular.module('app.vis', ['ngSanitize'])
         // Configure points and hover areas on each update
         allPeers.select("g.peer path.peer")
         .style("opacity", 1)
-        .style("fill-opacity", 1)
-        .attr("d", function(peer) {
-          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
-        }).attr("class", function(peer) {
+        .style("fill-opacity", 1);
+        if (!scope.once) {
+            allPeers.select("g.peer path.peer").attr("d", function(peer) {
+                return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
+            });
+            scope.once = true;
+        }
+        allPeers.select("g.peer path.peer").attr("class", function(peer) {
           var result = "peer " + peer.mode + " " + peer.type;
           if (peer.connected) {
             result += " connected";
@@ -325,10 +329,10 @@ angular.module('app.vis', ['ngSanitize'])
         });
 
         // Configure hover areas for all peers
-        allPeers.select("g.peer path.peer-hover-area")
+        /*allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 8)
-        });
+        });*/
         
         // Add arcs for new peers
         newPeers.append("path")
@@ -338,7 +342,7 @@ angular.module('app.vis', ['ngSanitize'])
         // Set paths for arcs for all peers
         allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
-          .attr("stroke-width", scope.scaled)
+          //.attr("stroke-width", ")
           .attr("stroke-opacity", function(peer) {
               // scale connective arcs between peers as we zoom in
             return Math.min(scope.scaled, connectionOpacityScale(peer.bpsUpDn || 0));
@@ -447,15 +451,40 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.projection = projection;
 
+  $scope.once = false;
+
   $scope.redraw = function() {
       $scope.scaled = 1/d3.event.scale;
       d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+      if (d3.event.scale > 2) {
+          var scaleFactor = 1/d3.event.scale;
+          console.log(scaleFactor);
+
+        $scope.filterBlur.attr("stdDeviation", Math.min(1.0, scaleFactor));
+      //if (!$scope.once) {
+        d3.selectAll("g.peer path.peer").attr("d", function(peer) {
+            var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
+            path.pointRadius(5*scaleFactor);
+            return path(d);
+        });
+      //}
+    } else {
+        $scope.filterBlur.attr("stdDeviation", "1");
+        d3.selectAll("g.peer path.peer").attr("d", function(peer) {
+            var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
+            path.pointRadius(DEFAULT_POINT_RADIUS);
+            return path(d);
+        });
+
+
+    }
   }
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
 
    $scope.svg = d3.select('svg').call($scope.zoom);
+   $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
   
   $rootScope.centerMap = function() {
       // return map to origin
@@ -464,7 +493,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
  
 
   $scope.path = function (d, pointRadius) {
-      var scaled = $scope.zoom.scale() < 8 ? DEFAULT_POINT_RADIUS : Math.max($scope.scaled/2, 1.5);
+      var scaled = DEFAULT_POINT_RADIUS;
       path.pointRadius(pointRadius || scaled);
       return path(d) || 'M0 0';
   };

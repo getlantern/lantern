@@ -7672,6 +7672,7 @@ body[dir=rtl] #latestDetails dd {
 
 #map {
   width: 100%;
+  cursor: pointer;
   height: 100%;
   display: block;
 }
@@ -7684,7 +7685,7 @@ body[dir=rtl] #latestDetails dd {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   stroke: #364d58;
-  stroke-width: 0.5px;
+  stroke-width: 0.5;
   fill: black;
   fill-opacity: 0.2;
 }
@@ -7741,7 +7742,7 @@ path.peer.cloud, path.peer.laeproxy {
 
 path.connection {
   fill: none;
-  stroke-width: 0.5px;
+  stroke-width: 0.25;
   stroke: white;
   -webkit-transition: stroke-opacity 0.5s ease;
   transition: stroke-opacity 0.5s ease;
