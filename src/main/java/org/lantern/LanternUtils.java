@@ -79,6 +79,8 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
 /**
@@ -729,8 +731,8 @@ public class LanternUtils {
                 LOG.info("Interrupted?");
             }
         }
-        LOG.error("Never able to connect with local server! " +
-            "Maybe couldn't bind? "+ThreadUtils.dumpStack());
+        LOG.error("Never able to connect with local server on port {}! " +
+            "Maybe couldn't bind? "+ThreadUtils.dumpStack(), address.getPort());
         return false;
     }
 
@@ -1248,20 +1250,44 @@ public class LanternUtils {
     
     /**
      * Extracts a file from the current classloader/jar executable to a
-     * temporary directory.
+     * specified directory.
      * 
      * @param path The path of the file in the jar
+     * @param dir The desired directory to extract to.
      * @return The path to the extracted file copied to the file system.
      * @throws IOException If there's an error finding or copying the file.
      */
-    public static File extractExecutableFromJar(final String path) throws IOException {
-        final File file = extractFileFromJar(path);
-        if (!file.canExecute() && !file.setExecutable(true)) {
+    public static File extractExecutableFromJar(final String path, 
+            final File dir) throws IOException {
+        final File newFile = extractFileFromJar(path);
+        File oldFile = new File(dir, newFile.getName());
+        if (oldFile.exists()) {
+            HashCode newHash = Files.hash(newFile, Hashing.sha256());
+            HashCode oldHash = Files.hash(oldFile, Hashing.sha256());
+            if (newHash.equals(oldHash)) {
+                LOG.info("File {} is unchanged, leaving alone", oldFile.getAbsolutePath());
+                newFile.delete();
+                return oldFile;
+            }
+        }
+        if (!newFile.canExecute() && !newFile.setExecutable(true)) {
             final String msg = "Could not make file executable at "+path;
             LOG.error(msg);
             throw new IOException(msg);
         }
-        return file;
+        
+        // The renameTo call below is platform-dependent and won't replace 
+        // existing files in all cases. We therefore just delete the old file
+        // first. See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
+        if (!oldFile.delete()) {
+            LOG.warn("Could not delete old file at {}", oldFile);
+        }
+        if (!newFile.renameTo(oldFile)) {
+            String msg = "Unable to move file to destination: " + oldFile.getAbsolutePath();
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        return oldFile;
     }
     
     /**
@@ -1274,7 +1300,20 @@ public class LanternUtils {
      */
     public static File extractFileFromJar(final String path) throws IOException {
         final File dir = Files.createTempDir();
-        
+        return extractFileFromJar(path, dir);
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar file to the specified
+     * directory.
+     * 
+     * @param path The path of the file in the jar.
+     * @param dir The directory to extract to.
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractFileFromJar(final String path, final File dir) 
+            throws IOException {
         if (!dir.isDirectory() && !dir.mkdirs()) {
             throw new IOException("Could not make temp dir at: "+path);
         }
@@ -1283,6 +1322,11 @@ public class LanternUtils {
             throw new IllegalArgumentException("Bad path: "+path);
         }
         final File temp = new File(dir, name);
+        if (temp.isFile()) {
+            if (!temp.delete()) {
+                LOG.error("Could not delete existing file at path {}", temp);
+            }
+        }
         
         InputStream is = null;
         OutputStream os  = null;

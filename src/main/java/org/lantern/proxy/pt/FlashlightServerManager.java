@@ -113,7 +113,7 @@ public class FlashlightServerManager implements Shutdownable {
         } catch (RuntimeException re) {
             final String msg = re.getMessage();
             if (msg != null && msg.contains("Exit value: 50")) {
-                LOGGER.warn("Unable to start flashlight with automatically mapped external port, try without mapping");
+                LOGGER.info("Unable to start flashlight with automatically mapped external port, try without mapping");
                 runFlashlight(false);
             } else {
                 LOGGER.error("Unexpected runtime exception", re);

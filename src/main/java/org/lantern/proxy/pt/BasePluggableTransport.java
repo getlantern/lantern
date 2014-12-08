@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.exec.CommandLine;
@@ -62,9 +63,10 @@ public abstract class BasePluggableTransport implements PluggableTransport {
             path += ".exe";
         }
         try {
-            this.exe = LanternUtils.extractExecutableFromJar(path);
+            this.exe = LanternUtils.extractExecutableFromJar(path, 
+                    LanternClientConstants.DATA_DIR);
         } catch (final IOException e) {
-            throw new Error("Could not extract jar file from:"+ path, e);
+            throw new Error(String.format("Could not extract jar file from '%s': %s", path, e.getMessage()), e);
         }
         if (!exe.exists()) {
             String message = String.format(
@@ -155,9 +157,10 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
             // Record exception related to startup of server
             final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
+            final AtomicBoolean exceptionSet = new AtomicBoolean();
 
             // Check for termination of process
-            new Thread() {
+            Thread terminationThread = new Thread() {
                 public void run() {
                     try {
                         exitFuture.get();
@@ -166,31 +169,42 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                                 String.format(
                                         "Unable to execute process: %1$s",
                                         e.getMessage()), e));
-                    }
-                    synchronized (exception) {
-                        exception.notifyAll();
+                    } finally {
+                        synchronized (exception) {
+                            exceptionSet.set(true);
+                            exception.notifyAll();
+                        }
                     }
                 }
-            }.start();
+            };
+            terminationThread.setDaemon(true);
+            terminationThread.start();
 
             // Check for server listening
-            new Thread() {
+            Thread listenCheckThread = new Thread() {
                 public void run() {
                     if (!LanternUtils
                             .waitForServer(listenIp, listenPort, 60000)) {
-                        exception.set(new RuntimeException(String.format(
-                                "Unable to start %1$s server", getLogName())));
-                    }
-                    synchronized (exception) {
-                        exception.notifyAll();
+                        synchronized (exception) {
+                            exception.set(new RuntimeException(String
+                                    .format(
+                                            "Unable to start %1$s server",
+                                            getLogName())));
+                            exceptionSet.set(true);
+                            exception.notifyAll();
+                        }
                     }
                 }
-            }.start();
+            };
+            listenCheckThread.setDaemon(true);
+            listenCheckThread.start();
 
             // Take the first exception
             try {
                 synchronized (exception) {
-                    exception.wait();
+                    if (!exceptionSet.get()) {
+                        exception.wait();
+                    }
                 }
             } catch (InterruptedException ie) {
                 throw new RuntimeException(

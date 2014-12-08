@@ -91,7 +91,7 @@ public class LoggingStreamHandler implements ExecuteStreamHandler {
     private Thread createLoggingThread(InputStream is, final boolean logToError) {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(
                 is));
-        return new Thread() {
+        return new Thread(new Runnable() {
             @Override
             public void run() {
                 String line = null;
@@ -117,7 +117,7 @@ public class LoggingStreamHandler implements ExecuteStreamHandler {
                     log.error(panicTrace.toString());
                 }
             }
-        };
+        }, "LoggingStreamHandler-error-"+logToError);
     }
     
     protected void handleLine(String line, boolean logToError) {
