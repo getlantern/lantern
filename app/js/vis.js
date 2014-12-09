@@ -455,19 +455,20 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.redraw = function() {
       $scope.scaled = 1/d3.event.scale;
-      d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+      d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
       if (d3.event.scale > 2) {
           var scaleFactor = 1/d3.event.scale;
-          console.log(scaleFactor);
-
-        $scope.filterBlur.attr("stdDeviation", Math.min(1.0, scaleFactor));
-      //if (!$scope.once) {
-        d3.selectAll("g.peer path.peer").attr("d", function(peer) {
-            var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-            path.pointRadius(5*scaleFactor);
-            return path(d);
-        });
-      //}
+          $scope.filterBlur.attr("stdDeviation", Math.min(1.0, scaleFactor));
+          d3.selectAll("g.peer path.peer").attr("d", function(peer) {
+              var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
+              path.pointRadius(5*scaleFactor);
+              return path(d);
+          });
+          /*d3.select("#self").attr("ng-d", function(peer) {
+              var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
+              path.pointRadius(5*scaleFactor);
+              return path(d);
+          });*/
     } else {
         $scope.filterBlur.attr("stdDeviation", "1");
         d3.selectAll("g.peer path.peer").attr("d", function(peer) {
@@ -475,22 +476,26 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
             path.pointRadius(DEFAULT_POINT_RADIUS);
             return path(d);
         });
-
-
     }
-  }
+  };
 
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
 
-   $scope.svg = d3.select('svg').call($scope.zoom);
+   d3.select('#vis').call($scope.zoom);
+   $scope.svg = d3.select('svg');
    $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
   
   $rootScope.centerMap = function() {
       // return map to origin
-      $scope.svg.attr("transform", "translate(0,0)scale(1)");
+      d3.select('#vis').attr("transform", "translate(0,0)scale(1)");
   };
- 
+
+  $scope.transMatrix = [1,0,0,1,0,0];
+
+  $scope.adjustZoom = function(scale) {
+    //$scope.redraw();
+  };
 
   $scope.path = function (d, pointRadius) {
       var scaled = DEFAULT_POINT_RADIUS;
