@@ -16,5 +16,4 @@ BETA=$2
 perl -pi -e "s/STABLE/$STABLE/g" version.js
 perl -pi -e "s/BETA/$BETA/g" version.js
 s3cmd put -P version.js s3://lantern
-perl -pi -e "s/$STABLE/STABLE/g" version.js
-perl -pi -e "s/$BETA/BETA/g" version.js
+git checkout -- version.js
