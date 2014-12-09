@@ -110,10 +110,13 @@ angular.module('app.vis', ['ngSanitize'])
             el.attr('d', scope.path).attr('stroke-opacity', 0);
             el.attr('class', 'COUNTRY_KNOWN');
             if (d.alpha2) {
+              //var bbox = el.node().getBBox();
+              //var center = [bbox.x + bbox.width/2, bbox.y + bbox.height/2];
               var $content = ttTmpl(d.alpha2);
+
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'bottom')
-                //.attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
+               // .attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
             } else {
@@ -339,15 +342,15 @@ angular.module('app.vis', ['ngSanitize'])
           .classed("connection", true)
           .attr("id", function(peer) { return "connection_to_" + peerIdentifier(peer); });
         
-        // Set paths for arcs for all peers
-        allPeers.select("path.connection")
+          // Set paths for arcs for all peers
+          allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
-          //.attr("stroke-width", ")
+          .attr("stroke-width", 1)
           .attr("stroke-opacity", function(peer) {
               // scale connective arcs between peers as we zoom in
-            return Math.min(scope.scaled, connectionOpacityScale(peer.bpsUpDn || 0));
+              return connectionOpacityScale(peer.bpsUpDn || 0);
           });
-        
+
         // Animate connected/disconnected peers
         var newlyConnectedPeersSelector = "";
         var firstNewlyConnectedPeer = true;
@@ -447,39 +450,51 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 
-  $scope.scaled = 1;
-
   $scope.projection = projection;
 
   $scope.once = false;
 
-  $scope.redraw = function() {
-      $scope.scaled = 1/d3.event.scale;
-      d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
-      if (d3.event.scale > 2) {
-          var scaleFactor = 1/d3.event.scale;
-          $scope.filterBlur.attr("stdDeviation", Math.min(1.0, scaleFactor));
-          d3.selectAll("g.peer path.peer").attr("d", function(peer) {
-              var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-              path.pointRadius(5*scaleFactor);
-              return path(d);
-          });
-          /*d3.select("#self").attr("ng-d", function(peer) {
-              var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-              path.pointRadius(5*scaleFactor);
-              return path(d);
-          });*/
-    } else {
-        $scope.filterBlur.attr("stdDeviation", "1");
-        d3.selectAll("g.peer path.peer").attr("d", function(peer) {
-            var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-            path.pointRadius(DEFAULT_POINT_RADIUS);
-            return path(d);
-        });
-    }
+  $scope.scaleSelf = function(factor) {
+      var self = document.getElementById("self");
+      var lat = self.getAttribute("lat");
+      var lon = self.getAttribute("lon");
+      if (self.getAttribute('d') !== 'undefined' &&
+          lat != '' && lon != '') {
+        var d = {type: 'Point', coordinates: [lon, 
+                lat]};
+        self.setAttribute('d', path(d));
+      }
   };
 
-  $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
+  $scope.redraw = function() {
+      d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
+
+      var scaleFactor = (d3.event.scale > 2) ? (5/d3.event.scale) : DEFAULT_POINT_RADIUS;
+      var strokeWidth = Math.min(0.5, 1/d3.event.scale);
+      path.pointRadius(scaleFactor);
+      $scope.scaleSelf(scaleFactor);
+
+      d3.selectAll("#countries path").attr("stroke-width", 
+        strokeWidth);
+      d3.selectAll("path.connection").attr("stroke-width",
+        strokeWidth);
+
+
+      /* scale peer radius as we zoom in */
+      d3.selectAll("g.peer path.peer").attr("d", function(peer) {
+          var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
+          return path(d);
+      });
+
+      /* adjust gaussian blur by zoom level */
+      if (d3.event.scale > 2) {
+          $scope.filterBlur.attr("stdDeviation", Math.min(1.0, 1/d3.event.scale));
+      } else {
+          $scope.filterBlur.attr("stdDeviation", "1");
+      }
+  };
+
+  $scope.zoom = d3.behavior.zoom().scaleExtent([1,8]).on("zoom", 
                 $scope.redraw);
 
    d3.select('#vis').call($scope.zoom);

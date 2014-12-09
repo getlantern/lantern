@@ -11,7 +11,9 @@
     <g id="countries" style="cursor: pointer;" countries />
     <g id="peers" peers></g>
     <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
-          ng-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}) }}"
+          ng-attr-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}) }}"
+          lat="{{model.location.lat}}"
+          lon="{{model.location.lon}}"
           tooltip-html-unsafe="<div class=vis>
             <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
               <img class=picture src='{{model.profile.picture || DEFAULT_AVATAR_URL}}'>
