@@ -329,10 +329,10 @@ angular.module('app.vis', ['ngSanitize'])
         });
 
         // Configure hover areas for all peers
-        /*allPeers.select("g.peer path.peer-hover-area")
+        allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 8)
-        });*/
+        });
         
         // Add arcs for new peers
         newPeers.append("path")
