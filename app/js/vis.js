@@ -345,7 +345,7 @@ angular.module('app.vis', ['ngSanitize'])
           // Set paths for arcs for all peers
           allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
-          .attr("stroke-width", 1)
+          //.attr("stroke-width", 0.5)
           .attr("stroke-opacity", function(peer) {
               // scale connective arcs between peers as we zoom in
               return connectionOpacityScale(peer.bpsUpDn || 0);
