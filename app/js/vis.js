@@ -115,7 +115,7 @@ angular.module('app.vis', ['ngSanitize'])
               var $content = ttTmpl(d.alpha2);
 
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
-                .attr('tooltip-placement', 'bottom')
+                .attr('tooltip-placement', 'mouse')
                // .attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
