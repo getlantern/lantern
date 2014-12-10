@@ -634,8 +634,8 @@
         </button>
         <br>
         <div class="details" ng-init="isExpanded = model.settings.proxyAllSites || model.settings.systemProxy == false">
-          <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded = ! isExpanded">{{ 'ADVANCED' | i18n }}</div>
-          <div class="collapsible advanced" collapse="!isExpanded">
+          <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded=!isExpanded">{{ 'ADVANCED' | i18n }}</div>
+          <div class="collapsible advanced" ng-show="isExpanded">
             <div>
               <label class="checkbox inline proxyAllSitesLabel">
                 <input type="checkbox" ng-model="proxyAllSites"
