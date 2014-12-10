@@ -7709,7 +7709,13 @@ div.control-zoom a:hover {
     text-align: center;
     text-decoration: none;
     color: gray;
+    font-weight: bold;
 }
+
+div.control-zoom a:hover {
+    color: white;
+}
+
 
 #globe {
   fill: rgba(6, 21, 50, 0.1);
