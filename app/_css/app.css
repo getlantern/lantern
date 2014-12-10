@@ -7701,14 +7701,14 @@ div.control-zoom a:hover {
     background-position: 50% 50%;
     background-repeat: no-repeat;
     display: block;
-    background-color: #fff;
+    background-color:rgba(0,0,0, 0.2);
     width: 26px;
     height: 26px;
     line-height: 26px;
     display: block;
     text-align: center;
     text-decoration: none;
-    color: black;
+    color: gray;
 }
 
 #globe {

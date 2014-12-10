@@ -440,6 +440,7 @@ angular.module('app.vis', ['ngSanitize'])
   });
 
 app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $rootScope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
+
   var log = logFactory('VisCtrl'),
       vis = d3.select("#vis"),
       width = document.getElementById('map').offsetWidth,
@@ -467,7 +468,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   };
 
   $scope.redraw = function() {
-      d3.select("#zoomGroup").attr("transform", "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
+      d3.select("#zoomGroup").attr("transform", 
+        "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
 
       var scaleFactor = (d3.event.scale > 2) ? (5/d3.event.scale) : DEFAULT_POINT_RADIUS;
       var strokeWidth = Math.min(0.5, 1/d3.event.scale);
