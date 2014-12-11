@@ -18,6 +18,11 @@ public class FlashlightProxy extends FallbackProxy {
     private static Object PINNED_WAN_HOST_MUTEX = new Object();
     
     private final FlashlightMasquerade masquerade;
+    
+    /**
+     * The default relative weighting of flashlight.
+     */
+    private static final int WEIGHT = 400;
 
     public FlashlightProxy(final String host, final int priority, 
             final FlashlightMasquerade masquerade,
@@ -27,7 +32,7 @@ public class FlashlightProxy extends FallbackProxy {
                 443,
                 Protocol.TCP,
                 ptProps(host, cloudConfig, cloudConfigCA),
-                priority);
+                priority, WEIGHT);
         this.masquerade = masquerade;
     }
     
