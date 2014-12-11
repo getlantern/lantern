@@ -7,7 +7,10 @@ import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -126,7 +129,29 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
         cmd = new CommandLine(this.exe);
         addClientArgs(cmd, listenAddress, getModeAddress, proxyAddress);
-        exec();
+        
+        // Just wait for a moment for the PT process to either run as a long-
+        // lived process (as it should) or to return with some unexpected error.
+        final Future<Integer> fut = exec();
+        try {
+            final int val = fut.get(4, TimeUnit.SECONDS);
+            if (val != 0) {
+                LOGGER.error("Unexpected return value from PT: "+val);
+                throw new RuntimeException("Unexpected return value from PT: "+val);
+            }
+        } catch (final InterruptedException e) {
+            LOGGER.error("Unexpected interrupt?", e);
+            throw new RuntimeException("Unexpected interrupt", e);
+        } catch (final ExecutionException e) {
+            // This indicates an actual error, likely with the return value of
+            // the process.
+            LOGGER.error("Error executing PT", e);
+            throw new RuntimeException("Error executing PT", e);
+        } catch (final TimeoutException e) {
+            // Pluggable transport clients are generally expected to be 
+            // long-lived, so this is expected.
+            LOGGER.debug("Timed out waiting for PT return value AS EXPECTED");
+        }
 
         if (!LanternUtils.waitForServer(listenAddress, 60000)) {
             throw new RuntimeException(String.format("Unable to start %1$s",
@@ -260,18 +285,14 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
         LOGGER.info("About to run cmd: {}", cmd);
-        try {
-            return Threads.newSingleThreadExecutor("PluggableTransportRunner")
-                    .submit(
-                            new Callable<Integer>() {
-                                @Override
-                                public Integer call() throws Exception {
-                                    return cmdExec.execute(cmd);
-                                }
-                            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return Threads.newSingleThreadExecutor("PluggableTransportRunner")
+            .submit(
+                    new Callable<Integer>() {
+                        @Override
+                        public Integer call() throws Exception {
+                            return cmdExec.execute(cmd);
+                        }
+                    });
     }
 
     private String getLogName() {
