@@ -1370,4 +1370,22 @@ public class LanternUtils {
         }
         return temp;
     }
+    
+    /**
+     * Hack to determine whether or not Lantern is in the process of shutting
+     * down.
+     * 
+     * @return <code>true</code> if Lantern is shutting down, otherwise
+     * <code>false</code>
+     */
+    public static boolean isShuttingDown() {
+        final Thread shutdown = new Thread();
+        try {
+            Runtime.getRuntime().addShutdownHook(shutdown);
+            Runtime.getRuntime().removeShutdownHook(shutdown);
+        } catch (final IllegalStateException e ) {
+            return true;
+        }
+        return false;
+    }
 }
