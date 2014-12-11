@@ -430,10 +430,10 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
+      chrome = /chrom(e|ium)/.test(navigator.userAgent.toLowerCase()),
       width = document.getElementById('vis').offsetWidth,
       height = document.getElementById('vis').offsetHeight,
-      //projection = d3.geo.mercator(),
-      projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
+      projection = d3.geo.mercator(),
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
 
@@ -484,7 +484,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
 
-   d3.select('#vis').call($scope.zoom);
+   /* apply zoom behavior to container if we're running in webview since
+    * it doesn't detect panning/zooming otherwise */
+   d3.select(chrome ? 'svg' : '#vis').call($scope.zoom);
    $scope.svg = d3.select('svg');
    $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
   
