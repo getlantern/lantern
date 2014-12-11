@@ -28,19 +28,6 @@ angular.module('app.vis', ['ngSanitize'])
       element.attr('d', d);
     };
   })
-  .directive('self', function () {
-    return function (scope, element) {
-      scope.$on('mapResized', function () {
-        try {
-          scope.$digest();
-        } catch (e) {
-          if (e.message.indexOf('in progress') <= -1) {
-            throw e;
-          }
-        }
-      });
-    };
-  })
   .directive('countries', function ($compile, $timeout) {
     function ttTmpl(alpha2) {
       return '<div class="vis">'+
@@ -442,10 +429,9 @@ angular.module('app.vis', ['ngSanitize'])
 app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $rootScope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
 
   var log = logFactory('VisCtrl'),
-      vis = d3.select("#vis"),
-      width = document.getElementById('map').offsetWidth,
-      height = width / 2,
       model = modelSrvc.model,
+      width = document.getElementById('vis').offsetWidth,
+      height = document.getElementById('vis').offsetHeight,
       //projection = d3.geo.mercator(),
       projection = d3.geo.mercator().translate([(width/2), (height/2)]).scale( width / 2 / Math.PI),
       path = d3.geo.path().projection(projection),
@@ -481,7 +467,6 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       d3.selectAll("path.connection").attr("stroke-width",
         strokeWidth);
 
-
       /* scale peer radius as we zoom in */
       d3.selectAll("g.peer path.peer").attr("d", function(peer) {
           var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
@@ -496,27 +481,31 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       }
   };
 
-  $scope.zoom = d3.behavior.zoom().scaleExtent([1,8]).on("zoom", 
+  $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
                 $scope.redraw);
 
    d3.select('#vis').call($scope.zoom);
    $scope.svg = d3.select('svg');
    $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
   
-  $rootScope.centerMap = function() {
-      // return map to origin
-      d3.select('#vis').attr("transform", "translate(0,0)scale(1)");
-  };
-
   $scope.transMatrix = [1,0,0,1,0,0];
 
   $scope.adjustZoom = function(scale) {
-    //$scope.redraw();
+
+      for (var i=0; i < $scope.transMatrix.length; i++)
+      {
+          $scope.transMatrix[i] *= scale;
+      }
+
+      $scope.transMatrix[4] += (1-scale)*width/2;
+      $scope.transMatrix[5] += (1-scale)*height/2;
+
+      var newMatrix = "matrix(" +  $scope.transMatrix.join(' ') + ")";
+      //d3.select("#zoomGroup").attr("transform", newMatrix);
   };
 
   $scope.path = function (d, pointRadius) {
-      var scaled = DEFAULT_POINT_RADIUS;
-      path.pointRadius(pointRadius || scaled);
+      path.pointRadius(pointRadius || DEFAULT_POINT_RADIUS);
       return path(d) || 'M0 0';
   };
 

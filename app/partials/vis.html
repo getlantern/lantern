@@ -3,12 +3,12 @@
 <!--
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
-<div id="vis" ng-controller="VisCtrl" style="cursor: pointer;">
-    <svg id="map"
-            viewBox="0 0 1000 560"
-                preserveAspectRatio="xMinYMin meet" style="cursor: pointer;">
-    <g id="zoomGroup">
-    <g id="countries" style="cursor: pointer;" countries />
+<div id="vis" ng-controller="VisCtrl">
+    <svg id="map" width="960" height="500"
+      viewBox="0 0 960 500"
+        preserveAspectRatio="xMidYMid">
+    <g id="zoomGroup" transform="matrix(1 0 0 1 0 0)">
+    <g id="countries" countries />
     <g id="peers" peers></g>
     <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
           ng-attr-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}) }}"
@@ -40,8 +40,8 @@
           </div>" tooltip-placement="right" />
     </g>
     <div class="control-zoom">
-        <a id="zoomIn" ng-click="adjustZoom(1)" class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
-        <a id="zoomOut" ng-click="adjustZoom(-1)" class="leaflet-control-zoom-out" href="#" title="Zoom out">-</a>
+        <a id="zoomIn" ng-click="adjustZoom(1.25)" class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
+        <a id="zoomOut" ng-click="adjustZoom(0.8)" class="leaflet-control-zoom-out" href="#" title="Zoom out">-</a>
     </div>
     </svg>
     <style>

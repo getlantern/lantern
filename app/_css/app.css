@@ -7667,6 +7667,7 @@ body[dir=rtl] #latestDetails dd {
 }
 
 #vis-container, #vis {
+  cursor: pointer;
   height: 100%;
 }
 
