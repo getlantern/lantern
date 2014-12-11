@@ -679,7 +679,7 @@ public class LanternUtils {
 
     public static String toEmail(final XMPPConnection conn) {
         final String jid = conn.getUser().trim();
-        return XmppUtils.jidToUser(jid);
+        return LanternXmppUtils.jidToEmail(jid);
     }
 
     public static boolean isAnonymizedGoogleTalkAddress(final String email) {

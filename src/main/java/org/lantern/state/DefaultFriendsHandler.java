@@ -23,6 +23,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.EmailAddressUtils;
 import org.lantern.LanternUtils;
+import org.lantern.LanternXmppUtils;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.Roster;
@@ -544,7 +545,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Override
     public boolean isFriend(final String from) {
-        final String email = XmppUtils.jidToUser(from);
+        final String email = LanternXmppUtils.jidToEmail(from);
         final ClientFriend friend = getFriend(email);
         return isFriend(friend);
     }
@@ -555,7 +556,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Override
     public boolean isRejected(final String from) {
-        final String email = XmppUtils.jidToUser(from);
+        final String email = LanternXmppUtils.jidToEmail(from);
         final ClientFriend friend = getFriend(email);
         return isRejected(friend);
     }
