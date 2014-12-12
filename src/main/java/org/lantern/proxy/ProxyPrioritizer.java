@@ -14,9 +14,14 @@ import org.littleshoot.util.FiveTuple.Protocol;
  * Prioritizes proxies based on the following rules (highest to lowest):
  * </p>
  * 
+ * Note: this comparator imposes orderings that are inconsistent with equals,
+ * in particular the weighted ordering of proxies with weights.
+ * 
  * <ol>
  * <li>Prioritize other Lanterns over fallback proxies</li>
  * <li>Prioritize TCP over UDP</li>
+ * <li>Probabilistically prioritize higher weighted proxies over lower weighted</li>
+ * <li>Prioritize higher priority proxies over lower priority</li>
  * <li>Prioritize proxies to whom we have fewer open sockets</li>
  * </ol>
  */

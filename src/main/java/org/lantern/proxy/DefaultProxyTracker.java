@@ -42,6 +42,7 @@ import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -308,7 +309,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         }
         Collections.sort(result, 
                 new ProxyPrioritizer(this.model.getSettings().getUdpProxyPriority()));
-        return result;
+        return ImmutableList.copyOf(result);
     }
 
     @Override
