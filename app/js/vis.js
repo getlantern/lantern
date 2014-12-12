@@ -493,6 +493,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   $scope.transMatrix = [1,0,0,1,0,0];
 
   $scope.adjustZoom = function(scale) {
+      var map = document.getElementById("zoomGroup").getBBox();
+      width = map.x + map.width/2;
+      height = map.y + map.height/2;
 
       for (var i=0; i < $scope.transMatrix.length; i++)
       {
@@ -503,7 +506,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       $scope.transMatrix[5] += (1-scale)*height/2;
 
       var newMatrix = "matrix(" +  $scope.transMatrix.join(' ') + ")";
-      //d3.select("#zoomGroup").attr("transform", newMatrix);
+      d3.select("#zoomGroup").attr("transform", newMatrix);
   };
 
   $scope.path = function (d, pointRadius) {
