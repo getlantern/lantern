@@ -68,6 +68,7 @@ public class LogglyAppender extends AppenderSkeleton {
         extra.put("timeZone", SystemUtils.USER_TIMEZONE);
         extra.put("fallback", LanternUtils.isFallbackProxy());
         extra.put("version", LanternClientConstants.VERSION);
+        extra.put("shuttingDown", LanternUtils.isShuttingDown());
         message.setExtra(extra);
         loggly.log(message);
     }

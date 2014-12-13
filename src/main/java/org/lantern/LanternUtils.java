@@ -679,7 +679,7 @@ public class LanternUtils {
 
     public static String toEmail(final XMPPConnection conn) {
         final String jid = conn.getUser().trim();
-        return XmppUtils.jidToUser(jid);
+        return LanternXmppUtils.jidToEmail(jid);
     }
 
     public static boolean isAnonymizedGoogleTalkAddress(final String email) {
@@ -1369,5 +1369,23 @@ public class LanternUtils {
             IOUtils.closeQuietly(os);
         }
         return temp;
+    }
+    
+    /**
+     * Hack to determine whether or not Lantern is in the process of shutting
+     * down.
+     * 
+     * @return <code>true</code> if Lantern is shutting down, otherwise
+     * <code>false</code>
+     */
+    public static boolean isShuttingDown() {
+        final Thread shutdown = new Thread();
+        try {
+            Runtime.getRuntime().addShutdownHook(shutdown);
+            Runtime.getRuntime().removeShutdownHook(shutdown);
+        } catch (final IllegalStateException e ) {
+            return true;
+        }
+        return false;
     }
 }

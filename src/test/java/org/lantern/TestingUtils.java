@@ -66,7 +66,6 @@ import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxy;
 import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,8 +170,7 @@ public class TestingUtils {
         final ProxyTracker proxyTracker = 
             new DefaultProxyTracker(model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         final KscopeAdHandler kscopeAdHandler = 
-            new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                networkTracker);
+            new DefaultKscopeAdHandler(trustStore, routingTable, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}

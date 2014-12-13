@@ -7,7 +7,6 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
 import org.lantern.state.Model.Run;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         if (StringUtils.isBlank(this.getUser())) {
             this.email = "";
         } else {
-            this.email = XmppUtils.jidToUser(this.getUser());
+            this.email = LanternXmppUtils.jidToEmail(this.getUser());
         }
         this.name = name == null ? "" : name;
         this.subscriptionStatus = subscriptionStatus == null ? ""
