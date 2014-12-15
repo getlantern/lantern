@@ -625,8 +625,8 @@
         </div>
       </dd>
 
-      <dt collapse="inGiveMode">{{ 'PROXY' | i18n }}</dt>
-      <dd collapse="inGiveMode" id="proxy-settings">
+      <dt ng-show="!inGiveMode">{{ 'PROXY' | i18n }}</dt>
+      <dd ng-show="!inGiveMode" id="proxy-settings">
         <button type="button" class="btn btn-mini"
                 ng-click="interaction(INTERACTION.proxiedSites)">
           <i ui-if="model.settings.proxyAllSites" class="icon-warning-sign warning-colored"></i>
