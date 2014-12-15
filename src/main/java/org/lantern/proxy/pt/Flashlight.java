@@ -68,7 +68,8 @@ public class Flashlight extends BasePluggableTransport {
     public static final String CLOUDCONFIG_CA_KEY = "cloudconfigca";
     public static final String WADDELL_ADDR_KEY = "waddelladdr";
 
-    public static final String STATS_ADDR = "127.0.0.1:15670";
+    public static final String CLIENT_STATS_ADDR = "127.0.0.1:15670";
+    public static final String SERVER_STATS_ADDR = "127.0.0.1:15671";
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
     public static final String HIGH_QOS = "10";
 
@@ -148,6 +149,9 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument("-addr");
         cmd.addArgument(String.format("%s:%s", listenAddress.getHostName(),
                 listenAddress.getPort()));
+        
+        cmd.addArgument("-statsaddr");
+        cmd.addArgument(CLIENT_STATS_ADDR);
 
         cmd.addArgument("-cloudconfig");
         cmd.addArgument(props.getProperty(CLOUDCONFIG_KEY));
@@ -179,7 +183,7 @@ public class Flashlight extends BasePluggableTransport {
         cmd.addArgument(":" + listenPort);
 
         cmd.addArgument("-statsaddr");
-        cmd.addArgument(STATS_ADDR);
+        cmd.addArgument(SERVER_STATS_ADDR);
 
         String portmap = props.getProperty(PORTMAP_KEY);
         if (portmap != null) {
