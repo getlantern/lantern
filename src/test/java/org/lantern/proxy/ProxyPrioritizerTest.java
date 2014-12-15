@@ -16,8 +16,6 @@ public class ProxyPrioritizerTest {
 
     @Test
     public void test() throws Exception {
-        final ProxyPrioritizer pp = new ProxyPrioritizer(UDPProxyPriority.LOWER);
-        
         final List<ProxyHolder> proxies = new ArrayList<ProxyHolder>();
         
         final ProxyHolder flashlight = newFlashlight();
@@ -25,20 +23,28 @@ public class ProxyPrioritizerTest {
         final ProxyHolder fallback = newFallback();
         proxies.add(fallback);
         
+        final ProxyHolder fallback1 = newFallback();
+        proxies.add(fallback1);
+        
         final List<ProxyHolder> fallbacks = new ArrayList<ProxyHolder>();
+        final List<ProxyHolder> fallbacks1 = new ArrayList<ProxyHolder>();
         final List<ProxyHolder> flashlights = new ArrayList<ProxyHolder>();
         for (int i = 0; i < 100; i++) {
+            final ProxyPrioritizer pp = 
+                    new ProxyPrioritizer(UDPProxyPriority.LOWER);
             Collections.sort(proxies, pp);
             final ProxyHolder first = proxies.iterator().next();
-            if(first == fallback) {
+            if (first == fallback) {
                 fallbacks.add(first);
+            } else if (first == fallback1) {
+                fallbacks1.add(first);
             } else {
                 flashlights.add(first);
             }
         }
-        
-        assertTrue(fallbacks.size() > 0);
-        assertTrue(flashlights.size() > 0);
+        assertTrue("No fallbacks selected", fallbacks.size() > 0);
+        assertTrue("No fallbacks1 selected", fallbacks1.size() > 0);
+        assertTrue("No flashlights selected", flashlights.size() > 0);
     }
 
     private ProxyHolder newFlashlight() {
