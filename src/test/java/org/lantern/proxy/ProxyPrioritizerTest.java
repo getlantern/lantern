@@ -26,10 +26,15 @@ public class ProxyPrioritizerTest {
         final ProxyHolder fallback1 = newFallback();
         proxies.add(fallback1);
         
+        final int totalWeights = flashlight.getWeight() + 
+                fallback.getWeight() + fallback1.getWeight();
+        
         final List<ProxyHolder> fallbacks = new ArrayList<ProxyHolder>();
         final List<ProxyHolder> fallbacks1 = new ArrayList<ProxyHolder>();
         final List<ProxyHolder> flashlights = new ArrayList<ProxyHolder>();
-        for (int i = 0; i < 100; i++) {
+        
+        final int iterations = 1000;
+        for (int i = 0; i < iterations; i++) {
             final ProxyPrioritizer pp = 
                     new ProxyPrioritizer(UDPProxyPriority.LOWER);
             Collections.sort(proxies, pp);
@@ -42,9 +47,18 @@ public class ProxyPrioritizerTest {
                 flashlights.add(first);
             }
         }
+        
+        final double flashlightExpected = ((double)flashlight.getWeight()/totalWeights) * iterations;
+        final double fallbackExpected = ((double)fallback.getWeight()/totalWeights) * iterations;
+        final double fallback1Expected = ((double)fallback1.getWeight()/totalWeights) * iterations;
+        
         assertTrue("No fallbacks selected", fallbacks.size() > 0);
         assertTrue("No fallbacks1 selected", fallbacks1.size() > 0);
         assertTrue("No flashlights selected", flashlights.size() > 0);
+        
+        assertTrue("Did not receive expected number of fallbacks", fallbacks.size() > fallbackExpected * 0.6);
+        assertTrue("Did not receive expected number of fallbacks1", fallbacks1.size() > fallback1Expected * 0.6);
+        assertTrue("Did not receive expected number of flashlights", flashlights.size() > flashlightExpected * 0.6);
     }
 
     private ProxyHolder newFlashlight() {
