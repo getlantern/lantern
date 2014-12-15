@@ -427,7 +427,7 @@
           {{ 'AUTOREPORT_PROMPT' | i18n }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
         </a>
       </label>
-      <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" ng-show="!autoReport">
+      <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" ng-show="autoReport">
         <i class="icon-exclamation-sign"></i>
         {{ 'NO_AUTOREPORT_WARNING' | i18n }}
       </div>

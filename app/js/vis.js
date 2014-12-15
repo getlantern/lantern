@@ -30,7 +30,7 @@ angular.module('app.vis', ['ngSanitize'])
   })
   .directive('countries', function ($compile, $timeout) {
     function ttTmpl(alpha2) {
-      return '<div class="vis">'+
+      return '<div class="vis" style="cursor:pointer;">'+
         '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
         '<div class="give-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0:true }} {{ "GIVING_ACCESS" | i18n }}</div>'+
         '<div class="get-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0:true }} {{ "GETTING_ACCESS" | i18n }}</div>'+
