@@ -1180,6 +1180,11 @@ public class LanternUtils {
         if (SystemUtils.OS_ARCH.contains("64")) {
             return new File("./install/linux_x86_64", fileName);
         }
+
+        if (SystemUtils.OS_ARCH.contains("arm")) {
+            return new File("./install/linux_arm", fileName);
+        }
+
         return new File("./install/linux_x86_32", fileName);
     }
     
