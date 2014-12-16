@@ -73,7 +73,7 @@ public class DefaultProxyTrackerTest {
         
 
         InetAddress localhost = org.littleshoot.proxy.impl.NetworkUtils.getLocalHost();
-        final ProxyInfo info = new ProxyInfo(new URI("proxy1@example.com"), localhost.getHostAddress(), port1);
+        final ProxyInfo info = new ProxyInfo(new URI("proxy1@example.com"), localhost.getHostAddress(), port1, 1000);
         assertNotNull(info.fiveTuple());
         
         tracker.addProxy(info);
@@ -123,7 +123,7 @@ public class DefaultProxyTrackerTest {
 
         // with multiple proxies, we get a different proxy for each getProxy()
         // call
-        tracker.addProxy(new ProxyInfo(new URI("proxy2@example.com"), localhost.getHostAddress(), port2));
+        tracker.addProxy(new ProxyInfo(new URI("proxy2@example.com"), localhost.getHostAddress(), port2, 1000));
         /*
         Thread.sleep(50);
         ProxyHolder proxy1 = waitForProxy(tracker);
