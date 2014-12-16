@@ -34,8 +34,6 @@ public class WindowsBrowser implements LanternBrowser {
     }
 
     public Process open(final String uri) throws IOException {
-        final List<String> commands = new ArrayList<String>();
-        
         final String executable = determineExecutable();
         if (StringUtils.isBlank(executable)) {
             // At this point we've effectively only searched for Chrome and
@@ -49,6 +47,7 @@ public class WindowsBrowser implements LanternBrowser {
                 throw new UnsupportedOperationException("Could not find Chrome!");
             }
         }
+        final List<String> commands = new ArrayList<String>();
         commands.add(executable);
         BrowserUtils.addDefaultChromeArgs(commands, this.windowWidth, 
                 this.windowHeight);

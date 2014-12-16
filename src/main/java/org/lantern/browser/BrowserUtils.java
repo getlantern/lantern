@@ -25,6 +25,13 @@ public class BrowserUtils {
     
     private BrowserUtils(){}
 
+    /**
+     * Adds the various default arguments to chrome.
+     * 
+     * @param commands The list of commands to add arguments to.
+     * @param windowWidth The desired window width.
+     * @param windowHeight The desired window height.
+     */
     public static void addDefaultChromeArgs(final List<String> commands, 
             final int windowWidth, final int windowHeight) {
         
@@ -49,7 +56,14 @@ public class BrowserUtils {
         commands.add("--disable-extensions");
     }
     
-    public static void openSystemDefaultBrowser(String uri) {
+    /**
+     * Opens the specified URL in the operating system's default browser. 
+     * This does not return the process ID of the new window and therefore
+     * cannot be used if the caller needs to ever close the window.
+     * 
+     * @param uri The URI to open.
+     */
+    public static void openSystemDefaultBrowser(final String uri) {
         LOG.debug("Opening system default browser to: {}", uri);
         try {
             Desktop.getDesktop().browse(new URI(uri));
@@ -58,6 +72,13 @@ public class BrowserUtils {
         }
     }
 
+    /**
+     * Runs the process specified in the given list of commands.
+     * 
+     * @param commands The list of commands to run.
+     * @return The process.
+     * @throws IOException If there's an error running the commands.
+     */
     public static Process runProcess(final List<String> commands) throws IOException {
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
 

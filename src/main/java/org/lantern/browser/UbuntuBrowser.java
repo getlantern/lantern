@@ -33,8 +33,6 @@ public class UbuntuBrowser implements LanternBrowser {
     @Override
     public Process open(final String uri) throws IOException {
         log.info("Opening browser to: {}", uri);
-        final List<String> commands = new ArrayList<String>();
-        
         final Collection<String> pathCandidates = new ArrayList<String>();
         pathCandidates.add("/usr/bin/google-chrome");
         pathCandidates.add("/usr/bin/google-chrome-stable");
@@ -46,6 +44,7 @@ public class UbuntuBrowser implements LanternBrowser {
             final File opt = new File(path);
             if (opt.isFile() && opt.canExecute()) {
                 // http://peter.sh/experiments/chromium-command-line-switches/
+                final List<String> commands = new ArrayList<String>();
                 commands.add(path);
                 BrowserUtils.addDefaultChromeArgs(commands, this.windowWidth, this.windowHeight);
                 commands.add("--app=" + uri);
