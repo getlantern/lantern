@@ -51,6 +51,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.LogOutputStream;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOExceptionWithCause;
@@ -1360,7 +1363,10 @@ public class LanternUtils {
         try {
             is = ClassLoader.getSystemResourceAsStream(path);
             if (is == null) {
-                throw new IOException("No input at "+path);
+                is = LanternUtils.class.getResourceAsStream(path);
+                if (is == null) {
+                    throw new IOException("No input at "+path);
+                }
             }
             os = new FileOutputStream(temp);
             IOUtils.copy(is, os);

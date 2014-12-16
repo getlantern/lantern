@@ -1,4 +1,6 @@
-package org.lantern;
+package org.lantern.browser;
+
+import org.lantern.LanternService;
 
 
 public interface BrowserService extends LanternService {

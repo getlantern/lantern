@@ -1,7 +1,11 @@
-package org.lantern;
+package org.lantern.browser;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.lantern.LanternUtils;
+import org.lantern.Launcher;
+import org.lantern.MessageService;
 import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
@@ -10,25 +14,37 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * This class handles opening a browser on the user's operating system to the
+ * Lantern user interface.
+ */
 @Singleton
-public class ChromeBrowserService implements BrowserService {
+public class LanternBrowserService implements BrowserService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
     
     private static final int SCREEN_WIDTH = 970;
     private static final int SCREEN_HEIGHT = 630;
     
-    private final ChromeRunner chrome;
-
-
+    private final LanternBrowser browser;
     private final MessageService messageService;
+    private Process process;
 
     @Inject
-    public ChromeBrowserService(final MessageService messageService,
+    public LanternBrowserService(final MessageService messageService,
             final Model model) {
         this.messageService = messageService;
-        this.chrome = new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT, model);
+        if (SystemUtils.IS_OS_WINDOWS) {
+            this.browser = new WindowsBrowser(SCREEN_WIDTH, SCREEN_HEIGHT);
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            this.browser = new OsxBrowser(SCREEN_WIDTH, SCREEN_WIDTH);
+        } else if (SystemUtils.IS_OS_LINUX) {
+            this.browser = new UbuntuBrowser(SCREEN_WIDTH, SCREEN_WIDTH);
+        } else {
+            log.error("Platform not supported");
+            throw new UnsupportedOperationException("Platform not supported");
+        }
+        //this.chrome = new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT, model);
     }
     
     /**
@@ -40,7 +56,7 @@ public class ChromeBrowserService implements BrowserService {
             @Override
             public void run() {
                 //buildBrowser();
-                launchChrome(StaticSettings.getApiPort(), StaticSettings.getPrefix());
+                launchBrowser(StaticSettings.getApiPort(), StaticSettings.getPrefix());
             }
         }, "Chrome-Browser-Launch-Thread");
         t.setDaemon(true);
@@ -57,17 +73,31 @@ public class ChromeBrowserService implements BrowserService {
             @Override
             public void run() {
                 //buildBrowser();
-                launchChrome(port, prefix);
+                launchBrowser(port, prefix);
             }
         }, "Chrome-Browser-Launch-Thread");
         t.setDaemon(true);
         t.start();
     }
 
-    private void launchChrome(final int port, final String prefix) {
-        log.info("Launching chrome...");
+    private void launchBrowser(final int port, final String prefix) {
+        log.info("Launching browser...");
+        if (this.process != null) {
+            try {
+                final int exitValue = this.process.exitValue();
+                log.info("Got exit value from former process: ", exitValue);
+            } catch (final IllegalThreadStateException e) {
+                // This indicates the existing process is still running.
+                log.info("Ignoring open call since process is still running");
+                return;
+            }
+        }
+        final String endpoint = StaticSettings.getLocalEndpoint(port, prefix);
+        log.info("Opening browser to: {}", endpoint);
+        
+        final String uri = endpoint + "/index.html";
         try {
-            this.chrome.open(port, prefix);
+            this.process = this.browser.open(uri);
         } catch (final IOException e) {
             log.error("Could not open chrome?", e);
         } catch (final UnsupportedOperationException e) {
@@ -107,9 +137,12 @@ public class ChromeBrowserService implements BrowserService {
 
     @Override
     public void stop() {
-        if (this.chrome != null) {
-            this.chrome.close();
+        log.info("Closing OSX browser...process is: {}", process);
+        if (process != null) {
+            log.info("Really closing Chrome browser...");
+            process.destroy();
         }
+        this.process = null;
     }
 
     @Override

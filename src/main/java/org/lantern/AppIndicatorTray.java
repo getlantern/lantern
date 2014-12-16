@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.browser.BrowserService;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
