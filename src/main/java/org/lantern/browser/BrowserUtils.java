@@ -35,6 +35,11 @@ public class BrowserUtils {
     public static void addDefaultChromeArgs(final List<String> commands, 
             final int windowWidth, final int windowHeight) {
         
+        // We need to use a custom data directory because if we
+        // don't the process ID we get back will correspond with
+        // something other than the process we need to kill, causing
+        // the window not to close. Not sure why, but that's what
+        // happens.
         // See http://peter.sh/experiments/chromium-command-line-switches/
         commands.add("--user-data-dir="
                 + LanternClientConstants.CONFIG_DIR.getAbsolutePath());

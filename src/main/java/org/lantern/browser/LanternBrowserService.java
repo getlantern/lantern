@@ -44,7 +44,6 @@ public class LanternBrowserService implements BrowserService {
             log.error("Platform not supported");
             throw new UnsupportedOperationException("Platform not supported");
         }
-        //this.chrome = new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT, model);
     }
     
     /**
@@ -82,6 +81,8 @@ public class LanternBrowserService implements BrowserService {
 
     private void launchBrowser(final int port, final String prefix) {
         log.info("Launching browser...");
+        // If there's an existing process for any reason, make sure it's exited
+        // before opening a new one.
         if (this.process != null) {
             try {
                 final int exitValue = this.process.exitValue();
