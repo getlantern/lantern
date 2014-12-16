@@ -73,6 +73,8 @@ public class Launcher {
     }
 
     public static final long START_TIME = System.currentTimeMillis();
+
+    private static final long LOG_PROP_CHECK_DELAY_MILLIS = 5000;
     
     private static Logger LOG;
     private static Launcher s_instance;
@@ -619,7 +621,8 @@ public class Launcher {
                 configureProductionLogger(logDir, log4jProps);
             }
         }
-        PropertyConfigurator.configureAndWatch(log4jProps.getPath());
+        PropertyConfigurator.configureAndWatch(log4jProps.getPath(),
+               LOG_PROP_CHECK_DELAY_MILLIS);
         System.out.println("Set log4j properties file: " + log4jProps);
         System.out.println("CONFIGURED LOGGER");
     }
