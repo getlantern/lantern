@@ -10,9 +10,12 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
+import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +73,31 @@ public class BrowserUtils {
         } catch (final Exception e) {
             LOG.error("Unable to browse to uri: {}", uri, e);
         }
+    }
+    
+    /**
+     * Checks if FireFox is the user's default browser on Windows. As of this
+     * writing, this is only tested on Windows 8.1 but should theoretically
+     * work on other Windows versions as well.
+     * 
+     * @return <code>true</code> if Firefox is the user's default browser,
+     * otherwise <code>false</code>.
+     */
+    public static boolean firefoxOrChromeIsDefaultBrowser() {
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            return false;
+        }
+        final String key = "Software\\Microsoft\\Windows\\Shell\\Associations"
+                + "\\UrlAssociations\\http\\UserChoice";
+        final String name = "ProgId";
+        final String result = Registry.read(key, name);
+        if (StringUtils.isBlank(result)) {
+            LOG.error("Could not find browser registry entry on: {}, {}", 
+                SystemUtils.OS_NAME, SystemUtils.OS_VERSION);
+            return false;
+        }
+        final String norm = result.toLowerCase();
+        return norm.contains("firefox") || norm.contains("chrome");
     }
 
     /**
