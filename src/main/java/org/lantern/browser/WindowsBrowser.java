@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,50 +32,53 @@ public class WindowsBrowser implements LanternBrowser {
         this.windowHeight = windowHeight;
     }
 
-    public Process open(final String uri) throws IOException {
-        final String executable = determineExecutable();
-        if (StringUtils.isBlank(executable)) {
-            // At this point we've effectively only searched for Chrome and
-            // have not found it. If the user has firefox, though, we should
-            // use it. This checks that. Note this is windows only!
-            if (LanternUtils.firefoxIsDefaultBrowser()) {
-                BrowserUtils.openSystemDefaultBrowser(uri);
-            } else {
-                // This will trigger a message telling the user they need
-                // to install Chrome.
-                throw new UnsupportedOperationException("Could not find Chrome!");
-            }
-        }
+    public Process open(final String uri) throws IOException {    
         final List<String> commands = new ArrayList<String>();
-        commands.add(executable);
-        BrowserUtils.addDefaultChromeArgs(commands, this.windowWidth, 
-                this.windowHeight);
-        commands.add("--app=" + uri);
-        
-        return BrowserUtils.runProcess(commands);
-    }
-
-    private String determineExecutable() throws IOException {
-        final String path = determineExecutablePath();
-        if (path == null) {
+        final String path;
+    	final String chromePath = determineExecutablePath("/Google/Chrome/Application/chrome.exe");
+    	if (StringUtils.isBlank(chromePath)) {
+    		log.info("Looking for firefox...");
+    		path = determineExecutablePath("/Mozilla Firefox/firefox.exe");
+    		commands.add(path);
+    		commands.add("-width");
+    		commands.add(String.valueOf(windowWidth));
+            commands.add("-height");
+            commands.add(String.valueOf(windowHeight));
+    		commands.add(uri);
+    	} else {
+    		path = chromePath;
+    		commands.add(path);
+            BrowserUtils.addDefaultChromeArgs(commands, this.windowWidth, 
+                    this.windowHeight);
+            commands.add("--app=" + uri);
+    	}
+    	
+    	if (!StringUtils.isBlank(path)) {
+    		log.info("Running with commands: {}", commands);
+    		return BrowserUtils.runProcess(commands);
+    	};
+    	
+        // At this point we've searched for Chrome and Firefox but have not found 
+    	// either. It's always possible either exists but in another location,
+    	// so check if they're the default and launch if they are. This has the 
+    	// downside of the browser window not getting killed when Lantern
+    	// shuts down because we don't know the process ID.
+        if (BrowserUtils.firefoxOrChromeIsDefaultBrowser()) {
+            BrowserUtils.openSystemDefaultBrowser(uri);
             return null;
+        } else {
+            // This will trigger a message telling the user they need
+            // to install Chrome.
+            throw new UnsupportedOperationException("Could not find Chrome or Firefox!");
         }
-        final File file = new File(path);
-        if (!file.isFile()) {
-            throw new IOException("Could not find chrome at:" + path);
-        } else if (!file.canExecute()) {
-            throw new IOException("Chrome not executable at:" + path);
-        }
-        return path;
     }
 
-    private String determineExecutablePath() {
+    private String determineExecutablePath(final String subpath) {
         final Map<String, Integer> opts = new LinkedHashMap<String, Integer>();
         opts.put("APPDATA", ShlObj.CSIDL_APPDATA);
         opts.put("LOCALAPPDATA", ShlObj.CSIDL_LOCAL_APPDATA);
         opts.put("PROGRAMFILES", ShlObj.CSIDL_PROGRAM_FILES);
         opts.put("ProgramW6432", ShlObj.CSIDL_PROGRAM_FILESX86);
-        final String chromePath = "/Google/Chrome/Application/chrome.exe";
         final Collection<String> paths = new HashSet<String>();
         for (final Entry<String, Integer> entry : opts.entrySet()) {
             final String envvar = entry.getKey();
@@ -96,7 +98,7 @@ public class WindowsBrowser implements LanternBrowser {
                 log.error("Could not resolve env variable: {}", envvar);
                 continue;
             }
-            final String path = base + chromePath;
+            final String path = base + subpath;
             paths.add(path);
             final File candidate = new File(path);
             if (candidate.isFile() && candidate.canExecute()) {
@@ -106,7 +108,7 @@ public class WindowsBrowser implements LanternBrowser {
         }
         
         final String msg = 
-                "Could not find Chrome on Windows!! Searched paths:\n"+paths;
+                "Could not find browser on Windows!! Searched paths:\n"+paths;
         log.warn(msg);
         return null;
     }
