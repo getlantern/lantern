@@ -110,8 +110,6 @@ angular.module('app.vis', ['ngSanitize'])
               el.attr('class', 'COUNTRY_UNKNOWN');
             }
           });
-          var peers = angular.element( document.querySelector( '#peers' ) );
-          $compile(peers)(scope);
       });
       
       /*
@@ -321,7 +319,7 @@ angular.module('app.vis', ['ngSanitize'])
         // Configure hover areas for all peers
         allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
-          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 8)
+          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 5);
         });
         
         // Add arcs for new peers
@@ -452,12 +450,15 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       }
   };
 
-  $scope.redraw = function() {
-      d3.select("#zoomGroup").attr("transform", 
-        "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
+  $scope.redraw = function(translate, scale) {
+      translate = !translate ? d3.event.translate : translate;
+      scale = !scale ? d3.event.scale : scale;
 
-      var scaleFactor = (d3.event.scale > 2) ? (5/d3.event.scale) : DEFAULT_POINT_RADIUS;
-      var strokeWidth = Math.min(0.5, 1/d3.event.scale);
+      d3.select("#zoomGroup").attr("transform", 
+        "translate(" + translate.join(",") + ")scale(" + scale + ")");
+
+      var scaleFactor = (scale > 2) ? (5/scale) : DEFAULT_POINT_RADIUS;
+      var strokeWidth = Math.min(0.5, 1/scale);
       path.pointRadius(scaleFactor);
       $scope.scaleSelf(scaleFactor);
 
@@ -473,8 +474,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       });
 
       /* adjust gaussian blur by zoom level */
-      if (d3.event.scale > 2) {
-          $scope.filterBlur.attr("stdDeviation", Math.min(1.0, 1/d3.event.scale));
+      if (scale > 2) {
+          $scope.filterBlur.attr("stdDeviation", Math.min(1.0, 1/scale));
       } else {
           $scope.filterBlur.attr("stdDeviation", "1");
       }
@@ -491,6 +492,14 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
   
   $scope.transMatrix = [1,0,0,1,0,0];
 
+  $scope.centerZoom = function() {
+    d3.select("#zoomGroup").attr("transform", "translate(0,0),scale(1)");
+    $scope.zoom.translate([0,0]);
+    $scope.zoom.scale([1]);
+    $scope.redraw([0,0], 1);
+
+  };
+
   $scope.adjustZoom = function(scale) {
       var map = document.getElementById("zoomGroup").getBBox();
       width = map.x + map.width/2;
@@ -506,6 +515,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
       var newMatrix = "matrix(" +  $scope.transMatrix.join(' ') + ")";
       d3.select("#zoomGroup").attr("transform", newMatrix);
+
+      $scope.zoom.translate([$scope.transMatrix[0], $scope.transMatrix[1]]);
   };
 
   $scope.path = function (d, pointRadius) {
