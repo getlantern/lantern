@@ -51,9 +51,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.LogOutputStream;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOExceptionWithCause;
@@ -72,7 +69,6 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
-import org.lantern.win.Registry;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
