@@ -87,6 +87,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     static {
         SmackConfiguration.setPacketReplyTimeout(60 * 1000);
+        SmackConfiguration.setKeepAliveInterval(5 * 1000);
     }
 
     private volatile long lastInfoMessageScheduled = 0L;
@@ -920,7 +921,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (!LanternXmppUtils.isLanternJid(from)) {
             return;
         }
-        final String email = XmppUtils.jidToUser(from);
+        final String email = LanternXmppUtils.jidToEmail(from);
         final ClientFriend friend = this.friendsHandler.getFriend(email);
         if (friend == null) {
             // Some error occurred!
@@ -939,7 +940,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         LOG.debug("Got peer available...");
-        final String email = XmppUtils.jidToUser(from);
+        final String email = LanternXmppUtils.jidToEmail(from);
         this.friendsHandler.peerRunningLantern(email, pres);
 
     }

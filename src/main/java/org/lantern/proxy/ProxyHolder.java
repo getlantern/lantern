@@ -245,6 +245,10 @@ public final class ProxyHolder extends BaseChainedProxy
         return info.getPriority();
     }
 
+    public int getWeight() {
+        return info.getWeight();
+    }
+
     public boolean isConnected() {
         return timeOfOldestConsecFailure.get() <= 0;
     }

@@ -1,0 +1,18 @@
+language: java
+
+git:
+  depth: 1
+
+jdk:
+- oraclejdk7
+
+before_install:
+- git submodule update --init --recursive
+# This unencrypts test.properties.enc into test.properties so that we can
+# ./prepareToTest.bash
+- openssl aes-256-cbc -K $encrypted_efbf15799575_key -iv $encrypted_efbf15799575_iv
+  -in test.properties.enc -out test.properties -d
+- ./prepareToTest.bash
+
+script:
+  - mvn cobertura:cobertura coveralls:report

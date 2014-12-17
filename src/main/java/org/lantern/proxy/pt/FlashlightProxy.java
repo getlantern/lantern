@@ -18,24 +18,31 @@ public class FlashlightProxy extends FallbackProxy {
     private static Object PINNED_WAN_HOST_MUTEX = new Object();
     
     private final FlashlightMasquerade masquerade;
+    
+    /**
+     * The default relative weighting of flashlight.
+     */
+    private static final int WEIGHT = 400;
 
     public FlashlightProxy(final String host, final int priority, 
             final FlashlightMasquerade masquerade,
             String cloudConfig,
             String cloudConfigCA) {
+        super(LanternUtils.newURI("flashlight@"+ host),
+                443,
+                Protocol.TCP,
+                ptProps(host, cloudConfig, cloudConfigCA),
+                priority, WEIGHT);
         this.masquerade = masquerade;
-        final Properties props = new Properties();
-        
+    }
+    
+    synchronized private static Properties ptProps(String host, String cloudConfig, String cloudConfigCA) {
+        Properties props = new Properties();
         props.setProperty("type", "flashlight");
         props.setProperty(Flashlight.SERVER_KEY, host);
         props.setProperty(Flashlight.CLOUDCONFIG_KEY, cloudConfig);
         props.setProperty(Flashlight.CLOUDCONFIG_CA_KEY, cloudConfigCA);
-        
-        setPt(props);
-        setJid(LanternUtils.newURI("flashlight@"+ host));
-        setPort(443);
-        setProtocol(Protocol.TCP);
-        setPriority(priority);
+        return props;
     }
     
     @Override

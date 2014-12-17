@@ -1,6 +1,5 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.PeerType.*;
 import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
@@ -11,7 +10,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,6 +47,7 @@ import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -61,8 +60,6 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
-
-    private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     // Tracks proxies in the current configuration, used to identify when the
     // configuration has changed.
@@ -335,8 +332,9 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                 }
             }
         }
-        Collections.sort(result, PROXY_PRIORITIZER);
-        return result;
+        Collections.sort(result, 
+                new ProxyPrioritizer(this.model.getSettings().getUdpProxyPriority()));
+        return ImmutableList.copyOf(result);
     }
 
     @Override
@@ -417,7 +415,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                     onCouldNotConnect(proxy);
 
                     if (proxy.attemptNatTraversalIfConnectionFailed()) {
-                        addProxy(new ProxyInfo(proxy.getJid()));
+                        addProxy(new ProxyInfo(proxy.getJid(), 1000));
                     }
                 } finally {
                     IOUtils.closeQuietly(sock);
@@ -532,64 +530,6 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         addProxy(fallbackProxy);
     }
 
-    /**
-     * <p>
-     * Prioritizes proxies based on the following rules (highest to lowest):
-     * </p>
-     * 
-     * <ol>
-     * <li>Prioritize other Lanterns over fallback proxies</li>
-     * <li>Prioritize TCP over UDP</li>
-     * <li>Prioritize proxies to whom we have fewer open sockets</li>
-     * </ol>
-     */
-    private class ProxyPrioritizer implements Comparator<ProxyHolder> {
-        @Override
-        public int compare(ProxyHolder a, ProxyHolder b) {
-         // Prioritize other Lanterns over fallback proxies
-            PeerType typeA = a.getType();
-            PeerType typeB = b.getType();
-            if (typeA == pc && typeB != pc) {
-                return -1;
-            } else if (typeB == pc && typeA != pc) {
-                return 1;
-            }
-
-            // Prioritize TCP over UDP
-            int protocolPriority = 0;
-            Protocol protocolA = a.getFiveTuple().getProtocol();
-            Protocol protocolB = b.getFiveTuple().getProtocol();
-            if (protocolA == TCP && protocolB != TCP) {
-                protocolPriority = -1;
-            } else if (protocolB == TCP && protocolA != TCP) {
-                protocolPriority = 1;
-            }
-            // Adjust protocolPriority based on configured UDP proxy priority
-            protocolPriority = model.getSettings().getUdpProxyPriority()
-                    .adjustComparisonResult(protocolPriority);
-            if (protocolPriority != 0) {
-                return protocolPriority;
-            }
-            
-            // Next prioritize based on relative priority, if different
-            int priority = a.getPriority() - b.getPriority();
-            if (priority != 0) {
-                return priority;
-            }
-
-            // Lastly prioritize based on least number of open sockets
-            long numberOfSocketsA = a.getPeer().getNSockets();
-            long numberOfSocketsB = b.getPeer().getNSockets();
-            if (numberOfSocketsA < numberOfSocketsB) {
-                return -1;
-            } else if (numberOfSocketsB > numberOfSocketsA) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-    }
-
     private String encryptJID(String jid) {
         try {
             // We encrypt the peer ID so as to avoid exposing it in the
@@ -602,6 +542,5 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                     "Unable to encrypt JID: ", e.getMessage()),
                     e);
         }
-}
-
+    }
 }

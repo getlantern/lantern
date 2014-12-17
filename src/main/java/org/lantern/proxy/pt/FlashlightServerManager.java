@@ -91,7 +91,17 @@ public class FlashlightServerManager implements Shutdownable {
     @Override
     synchronized public void stop() {
         LOGGER.debug("Flashlight manager closing.");
-        stopFlashlight(model.getConnectivity().isInternet());
+        final Boolean internet = model.getConnectivity().isInternet();
+        final boolean normalized;
+        
+        // The value for internet is initially null, so we need to account for
+        // it.
+        if (internet == null) {
+            normalized = false;
+        } else {
+            normalized = internet.booleanValue();
+        }
+        stopFlashlight(normalized);
     }
 
     synchronized private void update(boolean inGiveMode, boolean isConnected) {

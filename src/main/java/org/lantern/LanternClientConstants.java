@@ -79,6 +79,8 @@ public class LanternClientConstants {
     public static final long START_TIME = System.currentTimeMillis();
 
     public static final int SYNC_INTERVAL_SECONDS = 6;
+    
+    public static volatile boolean FORCE_FLASHLIGHT = false;
 
     /**
      * Plist file for launchd on OSX.

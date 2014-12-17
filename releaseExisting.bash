@@ -70,21 +70,33 @@ do
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   s3cmd put -P $newestName.sha1 s3://$bucket
 
-  ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
+  # Only commit binaries to GitHub if they're not betas
+  if [[ $newestName != *"beta"* ]]
+  then
+    echo "Commiting binary to GitHub"
+    ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
+  else 
+	echo "Not commiting beta binary to GitHub"
+  fi
 done
 
-cd $bindir || die "Could not change to binaries directory?"
 
-git remote add origin "git@github.com:getlantern/lantern-binaries.git" || die
+if [[ $newestName != *"beta"* ]]
+then
+  pushd $bindir || die "Could not change to binaries directory?"
+
+  git remote add origin "git@github.com:getlantern/lantern-binaries.git" || die
 "Could not add origin git@github.com:getlantern/lantern-binaries.git?"
-git push -u --force origin master || die "Could not force push new binaries?"
+  git push -u --force origin master || die "Could not force push new binaries?"
 
+  popd
+fi
 
 echo "Updating version file"
 version=`echo $baseName | cut -d - -f 2`
 
 # Note this needs to change when we add the beta channel
-./uploadversion.bash $version $version
+#./uploadversion.bash $version $version
 echo "Completed publishing latest binaries!!"
 
 
