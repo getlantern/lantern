@@ -1177,9 +1177,14 @@ public class LanternUtils {
             return new File("./install/win", fileName);
         }
 
+        if (SystemUtils.OS_ARCH.contains("arm")) {
+            return new File("./install/linux_arm", fileName);
+        }
+
         if (SystemUtils.OS_ARCH.contains("64")) {
             return new File("./install/linux_x86_64", fileName);
         }
+
         return new File("./install/linux_x86_32", fileName);
     }
     
