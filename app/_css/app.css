@@ -7713,6 +7713,10 @@ div.control-zoom a:hover {
     font-weight: bold;
 }
 
+div.control-zoom a.center {
+    line-height: 20px;
+}
+
 div.control-zoom a:hover {
     color: white;
 }
