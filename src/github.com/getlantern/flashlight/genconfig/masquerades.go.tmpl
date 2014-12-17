@@ -1,0 +1,11 @@
+package config
+
+import "github.com/getlantern/flashlight/client"
+
+var cloudflareMasquerades = []*client.Masquerade{ {{range .masquerades}}
+	&client.Masquerade{
+		Domain: "{{.Domain}}",
+		IpAddress: "{{.IpAddress}}",
+		RootCA: "{{.RootCA}}",
+	}, {{end}}
+}
