@@ -9,14 +9,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/getlantern/fronted"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/nattywad"
+	"github.com/getlantern/yaml"
+	"github.com/getlantern/yamlconf"
+
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/golog"
-	"github.com/getlantern/yaml"
-	"github.com/getlantern/yamlconf"
 )
 
 const (
@@ -198,18 +201,18 @@ func (cfg *Config) ApplyDefaults() {
 func (cfg *Config) applyClientDefaults() {
 	// Make sure we always have at least one masquerade set
 	if cfg.Client.MasqueradeSets == nil {
-		cfg.Client.MasqueradeSets = make(map[string][]*client.Masquerade)
+		cfg.Client.MasqueradeSets = make(map[string][]*fronted.Masquerade)
 	}
 	if len(cfg.Client.MasqueradeSets) == 0 {
 		cfg.Client.MasqueradeSets[cloudflare] = cloudflareMasquerades
 	}
 
 	// Make sure we always have at least one server
-	if cfg.Client.Servers == nil {
-		cfg.Client.Servers = make([]*client.ServerInfo, 0)
+	if cfg.Client.FrontedServers == nil {
+		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
 	}
-	if len(cfg.Client.Servers) == 0 {
-		cfg.Client.Servers = append(cfg.Client.Servers, &client.ServerInfo{
+	if len(cfg.Client.FrontedServers) == 0 {
+		cfg.Client.FrontedServers = append(cfg.Client.FrontedServers, &client.FrontedServerInfo{
 			Host:          "roundrobin.getiantem.org",
 			Port:          443,
 			MasqueradeSet: cloudflare,
@@ -219,7 +222,7 @@ func (cfg *Config) applyClientDefaults() {
 	}
 
 	// Make sure all servers have a QOS and Weight configured
-	for _, server := range cfg.Client.Servers {
+	for _, server := range cfg.Client.FrontedServers {
 		if server.QOS == 0 {
 			server.QOS = 5
 		}
@@ -229,6 +232,16 @@ func (cfg *Config) applyClientDefaults() {
 		if server.RedialAttempts == 0 {
 			server.RedialAttempts = 2
 		}
+	}
+
+	// Always make sure we have a map of ChainedServers
+	if cfg.Client.ChainedServers == nil {
+		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
+	}
+
+	// Always make sure that we have a map of Peers
+	if cfg.Client.Peers == nil {
+		cfg.Client.Peers = make(map[string]*nattywad.ServerPeer)
 	}
 
 	// Sort servers so that they're always in a predictable order
@@ -302,13 +315,13 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
 	// Need to de-duplicate servers, since yaml appends them
-	servers := make(map[string]*client.ServerInfo)
-	for _, server := range updated.Client.Servers {
+	servers := make(map[string]*client.FrontedServerInfo)
+	for _, server := range updated.Client.FrontedServers {
 		servers[server.Host] = server
 	}
-	updated.Client.Servers = make([]*client.ServerInfo, 0, len(servers))
+	updated.Client.FrontedServers = make([]*client.FrontedServerInfo, 0, len(servers))
 	for _, server := range servers {
-		updated.Client.Servers = append(updated.Client.Servers, server)
+		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
 	}
 	return nil
 }
