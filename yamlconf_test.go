@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/getlantern/testify/assert"
-	"gopkg.in/getlantern/yaml.v1"
+	"github.com/getlantern/yaml"
 )
 
 const (

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/deepcopy"
 	"github.com/getlantern/golog"
-	"gopkg.in/getlantern/deepcopy.v1"
 )
 
 var (

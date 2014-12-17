@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 
-	"gopkg.in/getlantern/yaml.v1"
+	"github.com/getlantern/yaml"
 )
 
 func (m *Manager) loadFromDisk() error {
