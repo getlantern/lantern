@@ -6,12 +6,15 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/getlantern/nattywad"
 )
 
 // ClientConfig captures configuration information for a Client
 type ClientConfig struct {
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
 	Servers        []*ServerInfo
+	Peers          map[string]*nattywad.ServerPeer // keyed to peer id (e.g. XMPP JID)
 	MasqueradeSets map[string][]*Masquerade
 }
 
@@ -54,11 +57,6 @@ type ServerInfo struct {
 	tlsConfigsMutex sync.Mutex
 }
 
-type cachedConn struct {
-	conn   net.Conn
-	dialed time.Time
-}
-
 // Masquerade contains the data for a single masquerade host, including
 // the domain and the root CA.
 type Masquerade struct {
@@ -66,11 +64,13 @@ type Masquerade struct {
 	Domain string
 
 	// IpAddress: pre-resolved ip address to use instead of Domain (if
-	// available) - NOT YET IMPLEMENTED, JUST FUTURE-PROOFING
+	// available)
 	IpAddress string
+}
 
-	// RootCA: the root CA for the domain.
-	RootCA string
+type cachedConn struct {
+	conn   net.Conn
+	dialed time.Time
 }
 
 // SortHosts sorts the Servers array in place, ordered by host

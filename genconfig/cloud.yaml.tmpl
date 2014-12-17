@@ -32,5 +32,7 @@ client:
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}
-      ipaddress: {{.IpAddress}}
-      rootca: "{{.RootCA}}"{{end}}
+      ipaddress: {{.IpAddress}}{{end}}
+trustedcas: {{range .cas}}
+- commonname: "{{.CommonName}}"
+  cert: "{{.Cert}}"{{end}}  
