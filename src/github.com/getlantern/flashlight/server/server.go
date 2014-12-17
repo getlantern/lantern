@@ -1,10 +1,8 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
-	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -12,17 +10,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/enproxy"
+	"github.com/getlantern/fronted"
+	"github.com/getlantern/go-igdman/igdman"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/nattywad"
+	"github.com/getlantern/waddell"
+
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/nattest"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
-	"github.com/getlantern/go-igdman/igdman"
-	"github.com/getlantern/golog"
-	"github.com/getlantern/idletiming"
-	"github.com/getlantern/keyman"
-	"github.com/getlantern/nattywad"
-	"github.com/getlantern/waddell"
 )
 
 const (
@@ -31,36 +28,14 @@ const (
 
 var (
 	log = golog.LoggerFor("flashlight.server")
-
-	dialTimeout     = 10 * time.Second
-	httpIdleTimeout = 70 * time.Second
-
-	// Points in time, mostly used for generating certificates
-	tenYearsFromToday = time.Now().AddDate(10, 0, 0)
-
-	// Default TLS configuration for servers
-	defaultTlsServerConfig = &tls.Config{
-		// The ECDHE cipher suites are preferred for performance and forward
-		// secrecy.  See https://community.qualys.com/blogs/securitylabs/2013/06/25/ssl-labs-deploying-forward-secrecy.
-		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
-			tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
-			tls.TLS_RSA_WITH_RC4_128_SHA,
-			tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-		},
-	}
 )
 
 type Server struct {
 	// Addr: listen address in form of host:port
 	Addr string
+
+	// Host: FQDN that is guaranteed to hit this server
+	Host string
 
 	// ReadTimeout: (optional) timeout for read ops
 	ReadTimeout time.Duration
@@ -68,11 +43,9 @@ type Server struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	CertContext                *CertContext       // context for certificate management
-	AllowNonGlobalDestinations bool               // if true, requests to LAN, Loopback, etc. will be allowed
-	StatServer                 *statserver.Server // optional server of stats
+	CertContext                *fronted.CertContext // context for certificate management
+	AllowNonGlobalDestinations bool                 // if true, requests to LAN, Loopback, etc. will be allowed
 
-	host           string
 	waddellClient  *waddell.Client
 	nattywadServer *nattywad.Server
 	cfg            *ServerConfig
@@ -90,8 +63,6 @@ func (server *Server) Configure(newCfg *ServerConfig) {
 		log.Debugf("Server configuration unchanged")
 		return
 	}
-
-	server.host = newCfg.AdvertisedHost
 
 	if oldCfg == nil || newCfg.Portmap != oldCfg.Portmap {
 		// Portmap changed
@@ -131,73 +102,35 @@ func (server *Server) Configure(newCfg *ServerConfig) {
 	server.cfg = newCfg
 }
 
-// CertContext encapsulates the certificates used by a Server
-type CertContext struct {
-	PKFile         string
-	ServerCertFile string
-	PK             *keyman.PrivateKey
-	ServerCert     *keyman.Certificate
-}
-
 func (server *Server) ListenAndServe() error {
-	err := server.CertContext.InitServerCert(strings.Split(server.Addr, ":")[0])
-	if err != nil {
-		return fmt.Errorf("Unable to init server cert: %s", err)
+	if server.Host != "" {
+		log.Debugf("Running as host %s", server.Host)
 	}
 
-	// Set up an enproxy Proxy
-	proxy := &enproxy.Proxy{
-		Dial: server.dialDestination,
-		Host: server.host,
+	fs := &fronted.Server{
+		Addr:                       server.Addr,
+		Host:                       server.Host,
+		ReadTimeout:                server.ReadTimeout,
+		WriteTimeout:               server.WriteTimeout,
+		CertContext:                server.CertContext,
+		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
 	}
-
-	if server.host != "" {
-		log.Debugf("Running as host %s", server.host)
-	}
-
-	// Hook into stats reporting if necessary
-	servingStats := server.startServingStatsIfNecessary()
 
 	// Add callbacks to track bytes given
-	proxy.OnBytesReceived = func(ip string, bytes int64) {
+	fs.OnBytesReceived = func(ip string, bytes int64) {
 		onBytesGiven(bytes)
-		if servingStats {
-			server.StatServer.OnBytesReceived(ip, bytes)
-		}
+		statserver.OnBytesReceived(ip, bytes)
 	}
-	proxy.OnBytesSent = func(ip string, bytes int64) {
+	fs.OnBytesSent = func(ip string, bytes int64) {
 		onBytesGiven(bytes)
-		if servingStats {
-			server.StatServer.OnBytesSent(ip, bytes)
-		}
+		statserver.OnBytesSent(ip, bytes)
 	}
 
-	proxy.Start()
-
-	httpServer := &http.Server{
-		Handler:      proxy,
-		ReadTimeout:  server.ReadTimeout,
-		WriteTimeout: server.WriteTimeout,
-	}
-
-	log.Debugf("About to start server (https) proxy at %s", server.Addr)
-
-	tlsConfig := defaultTlsServerConfig
-	cert, err := tls.LoadX509KeyPair(server.CertContext.ServerCertFile, server.CertContext.PKFile)
+	l, err := fs.Listen()
 	if err != nil {
-		return fmt.Errorf("Unable to load certificate and key from %s and %s: %s", server.CertContext.ServerCertFile, server.CertContext.PKFile, err)
+		return fmt.Errorf("Unable to listen at %s: %s", server.Addr, err)
 	}
-	tlsConfig.Certificates = []tls.Certificate{cert}
-
-	listener, err := tls.Listen("tcp", server.Addr, tlsConfig)
-	if err != nil {
-		return fmt.Errorf("Unable to listen for tls connections at %s: %s", server.Addr, err)
-	}
-
-	// We use an idle timing listener to time out idle HTTP connections, since
-	// the CDNs seem to like keeping lots of connections open indefinitely.
-	idleTimingListener := idletiming.Listener(listener, httpIdleTimeout, nil)
-	return httpServer.Serve(idleTimingListener)
+	return fs.Serve(l)
 }
 
 func (server *Server) startNattywad(waddellAddr string) {
@@ -239,55 +172,6 @@ func (server *Server) stopNattywad() {
 	log.Debug("Stopping waddell client")
 	server.waddellClient.Close()
 	server.waddellClient = nil
-}
-
-// dialDestination dials the destination server and wraps the resulting net.Conn
-// in a countingConn if an InstanceId was configured.
-func (server *Server) dialDestination(addr string) (net.Conn, error) {
-	if !server.AllowNonGlobalDestinations {
-		host := strings.Split(addr, ":")[0]
-		ipAddr, err := net.ResolveIPAddr("ip", host)
-		if err != nil {
-			err = fmt.Errorf("Unable to resolve destination IP addr: %s", err)
-			log.Error(err.Error())
-			return nil, err
-		}
-		if !ipAddr.IP.IsGlobalUnicast() {
-			err = fmt.Errorf("Not accepting connections to non-global address: %s", host)
-			log.Error(err.Error())
-			return nil, err
-		}
-	}
-	return net.DialTimeout("tcp", addr, dialTimeout)
-}
-
-// InitServerCert initializes a PK + cert for use by a server proxy, signed by
-// the CA certificate.  We always generate a new certificate just in case.
-func (ctx *CertContext) InitServerCert(host string) (err error) {
-	if ctx.PK, err = keyman.LoadPKFromFile(ctx.PKFile); err != nil {
-		if os.IsNotExist(err) {
-			log.Debugf("Creating new PK at: %s", ctx.PKFile)
-			if ctx.PK, err = keyman.GeneratePK(2048); err != nil {
-				return
-			}
-			if err = ctx.PK.WriteToFile(ctx.PKFile); err != nil {
-				return fmt.Errorf("Unable to save private key: %s", err)
-			}
-		} else {
-			return fmt.Errorf("Unable to read private key, even though it exists: %s", err)
-		}
-	}
-
-	log.Debugf("Creating new server cert at: %s", ctx.ServerCertFile)
-	ctx.ServerCert, err = ctx.PK.TLSCertificateFor("Lantern", host, tenYearsFromToday, true, nil)
-	if err != nil {
-		return
-	}
-	err = ctx.ServerCert.WriteToFile(ctx.ServerCertFile)
-	if err != nil {
-		return
-	}
-	return nil
 }
 
 func mapPort(addr string, port int) error {
@@ -341,17 +225,6 @@ func determineInternalIP() (string, error) {
 	}
 	defer conn.Close()
 	return strings.Split(conn.LocalAddr().String(), ":")[0], nil
-}
-
-func (server *Server) startServingStatsIfNecessary() bool {
-	if server.StatServer != nil {
-		log.Debugf("Serving stats at address: %s", server.StatServer.Addr)
-		go server.StatServer.ListenAndServe()
-		return true
-	} else {
-		log.Debug("Not serving stats (no statsaddr specified)")
-		return false
-	}
 }
 
 func onBytesGiven(bytes int64) {
