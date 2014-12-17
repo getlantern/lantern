@@ -19,6 +19,8 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
 then
   if [ $(uname -m) == 'x86_64' ]; then
     ptdir=linux_x86_64
+  elif [ $(uname -m) == 'armv6l' ]; then
+    ptdir=linux_arm
   else
     ptdir=linux_x86_32
   fi
