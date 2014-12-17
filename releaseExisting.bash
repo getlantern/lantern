@@ -96,7 +96,7 @@ echo "Updating version file"
 version=`echo $baseName | cut -d - -f 2`
 
 # Note this needs to change when we add the beta channel
-./uploadversion.bash $version $version
+#./uploadversion.bash $version $version
 echo "Completed publishing latest binaries!!"
 
 
