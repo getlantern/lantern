@@ -1,0 +1,36 @@
+# cloud.yaml contains the default configuration that's made available on the
+# internet.
+client:
+  servers:
+  - host: roundrobin.getiantem.org
+    port: 443
+    masqueradeset: "cloudflare"
+    insecureskipverify: false
+    dialtimeoutmillis: 0
+    redialattempts: 2
+    keepalivemillis: 0
+    weight: 1
+    qos: 5
+  - host: fallbacks.getiantem.org
+    port: 443
+    masqueradeset: "cloudflare"
+    insecureskipverify: false
+    dialtimeoutmillis: 0
+    redialattempts: 2
+    keepalivemillis: 0
+    weight: 4000
+    qos: 10
+  - host: peers.getiantem.org
+    port: 443
+    masqueradeset: "cloudflare"
+    insecureskipverify: false
+    dialtimeoutmillis: 0
+    redialattempts: 2
+    keepalivemillis: 0
+    weight: 1000
+    qos: 2
+  masqueradesets:
+    cloudflare:{{range .masquerades}}
+    - domain: {{.Domain}}
+      ipaddress: {{.IpAddress}}
+      rootca: "{{.RootCA}}"{{end}}
