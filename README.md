@@ -1,8 +1,5 @@
-Lantern 
+Lantern [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/getlantern/lantern/trend.png)](https://bitdeli.com/free "Bitdeli Badge")&nbsp;[![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=master)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png)](https://coveralls.io/r/getlantern/lantern)
 =======
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/getlantern/lantern/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-[Build Status](https://getlantern.atlassian.net/builds/browse/LAN-TEST1)
 
 Lantern allows you to give or get access to the internet through other users
 around the world connected by a trust-based peer-to-peer network.
@@ -115,9 +112,17 @@ If you're building installers on Ubuntu, don't use the system's JRE as
 installed via apt; it has a bunch of symlinks which get broken.  Use
 a stand-alone JRE package
 
-## Building the compressed GeoIp database
+## Continuous Integration with Travis CI
+Continuous builds are run on Travis CI. These builds use the `.travis.yml`
+configuration.  The lantern unit tests require a test.properties in `~/.lantern`
+to be populated with a valid refresh token and access token for a Google
+account. An encrypted version of `test.properties` is checked into
+`test.properties.enc` and copied to the right place by `prepareToTest.bash`.
 
-java -cp [path-to-lantern-jar] org.lantern.geoip.GeoIpCompressorRunner compress [path-to-GeoLiteCity-csv] src/main/resources/org/lantern/geoip/geoip.db
+When you run lantern normally and log in to Google, Lantern generates a
+test.properties. You can use this to generate a new encrypted test.properties,
+see [here](http://docs.travis-ci.com/user/encrypting-files/) for information.
+
 
 Further Reading
 ---------------

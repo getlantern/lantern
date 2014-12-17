@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,7 +39,7 @@ public class LanternProxyingTest {
                 "www.getlantern.org",
                 "github.com",
                 "facebook.com",
-                "appledaily.com.tw",
+                //"appledaily.com.tw",
                 "orkut.com",
                 "voanews.com",
                 "balatarin.com",

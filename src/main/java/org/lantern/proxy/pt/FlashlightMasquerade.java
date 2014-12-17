@@ -25,12 +25,8 @@ public class FlashlightMasquerade {
 
     private final Map<String, String> defaultHostsToCerts;
 
-    private final MasqueradeListener masqueradeListener;
-
-    public FlashlightMasquerade(final Map<String, String> defaultHostsToCerts,
-            final MasqueradeListener masqueradeListener) {
+    public FlashlightMasquerade(final Map<String, String> defaultHostsToCerts) {
         this.defaultHostsToCerts = defaultHostsToCerts;
-        this.masqueradeListener = masqueradeListener;
     }
 
     public synchronized Entry<String, String> determineMasqueradeHost() {
@@ -77,9 +73,15 @@ public class FlashlightMasquerade {
                                 throws Exception {
                             // This will be the JSON response from the geo-ip
                             // server
-                            //final String body = IOUtils.toString(response.getEntity().getContent());
                             final String host = entry.getKey();
-                            masqueradeListener.onTestedAndVerifiedHost(host);
+                            final int code = response.getStatusLine().getStatusCode();
+                            if (code < 200 || code > 299) {
+                                final String msg = 
+                                        String.format("Got error for masquerade %s: %s", 
+                                                response.getStatusLine(), host);
+                                LOG.warn(msg);
+                                throw new RuntimeException(msg);
+                            }
                             return entry;
                         }
 

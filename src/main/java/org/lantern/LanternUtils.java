@@ -79,6 +79,8 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
 /**
@@ -677,7 +679,7 @@ public class LanternUtils {
 
     public static String toEmail(final XMPPConnection conn) {
         final String jid = conn.getUser().trim();
-        return XmppUtils.jidToUser(jid);
+        return LanternXmppUtils.jidToEmail(jid);
     }
 
     public static boolean isAnonymizedGoogleTalkAddress(final String email) {
@@ -729,8 +731,8 @@ public class LanternUtils {
                 LOG.info("Interrupted?");
             }
         }
-        LOG.error("Never able to connect with local server! " +
-            "Maybe couldn't bind? "+ThreadUtils.dumpStack());
+        LOG.error("Never able to connect with local server on port {}! " +
+            "Maybe couldn't bind? "+ThreadUtils.dumpStack(), address.getPort());
         return false;
     }
 
@@ -1176,9 +1178,14 @@ public class LanternUtils {
             return new File("./install/win", fileName);
         }
 
+        if (SystemUtils.OS_ARCH.contains("arm")) {
+            return new File("./install/linux_arm", fileName);
+        }
+
         if (SystemUtils.OS_ARCH.contains("64")) {
             return new File("./install/linux_x86_64", fileName);
         }
+
         return new File("./install/linux_x86_32", fileName);
     }
     
@@ -1249,20 +1256,71 @@ public class LanternUtils {
     
     /**
      * Extracts a file from the current classloader/jar executable to a
-     * temporary directory.
+     * specified directory.
      * 
      * @param path The path of the file in the jar
+     * @param dir The desired directory to extract to.
      * @return The path to the extracted file copied to the file system.
      * @throws IOException If there's an error finding or copying the file.
      */
-    public static File extractExecutableFromJar(final String path) throws IOException {
-        final File file = extractFileFromJar(path);
-        if (!file.canExecute() && !file.setExecutable(true)) {
-            final String msg = "Could not make file executable at "+path;
+    public static File extractExecutableFromJar(final String path,
+            final File dir) throws IOException {
+        final File tmpFile = extractFileFromJar(path);
+        File destFile = new File(dir, tmpFile.getName());
+
+        if (destFile.exists() && isSame(destFile, tmpFile)) {
+            LOG.info("File {} is unchanged, leaving alone",
+                    destFile.getAbsolutePath());
+            tmpFile.delete();
+            return destFile;
+        } else {
+            if (!destFile.exists()) {
+                File targetDir = destFile.getParentFile();
+                LOG.info("Making target directory {}",
+                        targetDir.getAbsolutePath());
+                if (!targetDir.exists() && !targetDir.mkdirs()) {
+                    String msg = "Could not make target directory "
+                            + targetDir.getAbsolutePath();
+                    LOG.error(msg);
+                    throw new IOException(msg);
+                }
+            } else {
+                // We need to delete the old file before trying to move the new
+                // file in place over it.
+                // See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
+                LOG.info("File {} is out of date, deleting",
+                        destFile.getAbsolutePath());
+                if (!destFile.delete()) {
+                    LOG.warn("Could not delete old file at {}", destFile);
+                }
+            }
+            
+            LOG.info("Moving {} to {}", tmpFile.getAbsolutePath(), destFile.getAbsolutePath());
+            try {
+                FileUtils.moveFile(tmpFile, destFile);
+            } catch (Exception e) {
+                String msg = String.format(
+                        "Unable to move file to destination %1$s: %2$s",
+                        destFile.getAbsolutePath(), e.getMessage());
+                LOG.error(msg);
+                throw new IOException(msg);
+            }            
+        }
+        
+        if (!destFile.setExecutable(true)) {
+            final String msg = "Could not make file executable at "
+                    + destFile.getAbsolutePath();
             LOG.error(msg);
             throw new IOException(msg);
         }
-        return file;
+        
+        return destFile;
+    }
+    
+    public static boolean isSame(File a, File b) throws IOException {
+        HashCode hashA = Files.hash(b, Hashing.sha256());
+        HashCode hashB = Files.hash(a, Hashing.sha256());
+        return hashA.equals(hashB);
     }
     
     /**
@@ -1275,7 +1333,20 @@ public class LanternUtils {
      */
     public static File extractFileFromJar(final String path) throws IOException {
         final File dir = Files.createTempDir();
-        
+        return extractFileFromJar(path, dir);
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar file to the specified
+     * directory.
+     * 
+     * @param path The path of the file in the jar.
+     * @param dir The directory to extract to.
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractFileFromJar(final String path, final File dir) 
+            throws IOException {
         if (!dir.isDirectory() && !dir.mkdirs()) {
             throw new IOException("Could not make temp dir at: "+path);
         }
@@ -1284,6 +1355,11 @@ public class LanternUtils {
             throw new IllegalArgumentException("Bad path: "+path);
         }
         final File temp = new File(dir, name);
+        if (temp.isFile()) {
+            if (!temp.delete()) {
+                LOG.error("Could not delete existing file at path {}", temp);
+            }
+        }
         
         InputStream is = null;
         OutputStream os  = null;
@@ -1299,5 +1375,23 @@ public class LanternUtils {
             IOUtils.closeQuietly(os);
         }
         return temp;
+    }
+    
+    /**
+     * Hack to determine whether or not Lantern is in the process of shutting
+     * down.
+     * 
+     * @return <code>true</code> if Lantern is shutting down, otherwise
+     * <code>false</code>
+     */
+    public static boolean isShuttingDown() {
+        final Thread shutdown = new Thread();
+        try {
+            Runtime.getRuntime().addShutdownHook(shutdown);
+            Runtime.getRuntime().removeShutdownHook(shutdown);
+        } catch (final IllegalStateException e ) {
+            return true;
+        }
+        return false;
     }
 }

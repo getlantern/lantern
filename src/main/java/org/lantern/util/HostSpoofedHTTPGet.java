@@ -50,6 +50,7 @@ public class HostSpoofedHTTPGet {
             ResponseHandler<T> handler)
             throws Exception {
         HttpGet request = new HttpGet(path);
+        LOGGER.info("Seeing host header to {}", realHost);
         request.setHeader("Host", realHost);
         try {
             request.getParams().setParameter(

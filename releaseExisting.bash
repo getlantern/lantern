@@ -11,7 +11,7 @@ function die() {
 
 if [ $# -ne "2" ]
 then
-    die "$0: Received $# args, expected base name and gneeric installer base name, as in 'lantern-1.0.0-beta7-789a299 lantern-installer'"
+    die "$0: Received $# args, expected base name and generic installer base name, as in 'lantern-1.0.0-beta7-789a299 lantern-installer'"
 fi
 
 which s3cmd || die "You'll need the s3cmd tool to run this. See https://github.com/s3tools/s3cmd and https://github.com/s3tools/s3cmd/blob/master/INSTALL"
@@ -70,15 +70,33 @@ do
   echo "Uploading SHA-1 `cat $newestName.sha1`"
   s3cmd put -P $newestName.sha1 s3://$bucket
 
-  ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
+  # Only commit binaries to GitHub if they're not betas
+  if [[ $newestName != *"beta"* ]]
+  then
+    echo "Commiting binary to GitHub"
+    ./commitbinary.bash $name $newestName || die "Could not commit binaries?"
+  else 
+	echo "Not commiting beta binary to GitHub"
+  fi
 done
 
-cd $bindir || die "Could not change to binaries directory?"
 
-git remote add origin "git@github.com:getlantern/lantern-binaries.git" || die
+if [[ $newestName != *"beta"* ]]
+then
+  pushd $bindir || die "Could not change to binaries directory?"
+
+  git remote add origin "git@github.com:getlantern/lantern-binaries.git" || die
 "Could not add origin git@github.com:getlantern/lantern-binaries.git?"
-git push -u --force origin master || die "Could not force push new binaries?"
+  git push -u --force origin master || die "Could not force push new binaries?"
 
+  popd
+fi
+
+echo "Updating version file"
+version=`echo $baseName | cut -d - -f 2`
+
+# Note this needs to change when we add the beta channel
+#./uploadversion.bash $version $version
 echo "Completed publishing latest binaries!!"
 
 

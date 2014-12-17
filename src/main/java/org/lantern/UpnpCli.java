@@ -106,6 +106,9 @@ public class UpnpCli implements UpnpService, Shutdownable {
                         mappedPorts.add(externalPortRequested);
                         portMapListener.onPortMap(externalPortRequested);
                     }
+                } catch (final IOException e) {
+                    log.debug("No IGD perhaps?", e);
+                    portMapListener.onPortMapError();
                 } catch (final Throwable e) {
                     log.error("Unexpected error?", e);
                     portMapListener.onPortMapError();
@@ -123,7 +126,11 @@ public class UpnpCli implements UpnpService, Shutdownable {
         final Runnable upnpRunner = new Runnable() {
             @Override
             public void run() {
-                runCommand(exe, "-d", String.valueOf(port), "TCP");
+                try {
+                    runCommand(exe, "-d", String.valueOf(port), "TCP");
+                } catch (final IOException e) {
+                    log.debug("Exception deleting port mapping", e);
+                }
             }
         };
         final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
@@ -131,7 +138,7 @@ public class UpnpCli implements UpnpService, Shutdownable {
         mapper.start();
     }
 
-    private ArrayList<String> runCommand(final File executable, final String... commands) {
+    private ArrayList<String> runCommand(final File executable, final String... commands) throws IOException {
         final StringBuilder sb = new StringBuilder();
         final ArrayList<String> lines = new ArrayList<String>();
         final LogOutputStream los = new LogOutputStream() {
@@ -154,7 +161,28 @@ public class UpnpCli implements UpnpService, Shutdownable {
         try {
             int exitValue = executor.execute(cli);
             log.debug("Got exit value: {}", exitValue);
-        } catch (IOException e) {
+        } catch (final IOException e) {
+            // The DefaultExecutor throws an IOException on error exit codes.
+            // In this case, upnpc returns an error code if it can't find any
+            // IGD on the network. For us that should just be considered 
+            // a port mapping error. If we happen to see some other error, we
+            // log it.
+            if (lines.size() > 0) {
+                final String all = lines.toString();
+                if (all.contains("No IGD") || 
+                    all.contains("No valid UPNP Internet Gateway Device found")) {
+                    log.debug("Got invalid exit value for no IGD", e.getMessage(), 
+                            lines.toString(), e);
+                }
+                else {
+                    log.warn("Got invalid exit value: {} with unexpected output:{}", 
+                            e.getMessage(), lines.toString(), e);
+                } 
+                throw e;
+            } else {
+                log.error("UPNP exception with no output", e);
+                throw e;
+            }
         }
         log.debug("Received output: {}", sb.toString());
         return lines;

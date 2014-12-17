@@ -8,7 +8,11 @@ import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.exec.CommandLine;
@@ -62,9 +66,10 @@ public abstract class BasePluggableTransport implements PluggableTransport {
             path += ".exe";
         }
         try {
-            this.exe = LanternUtils.extractExecutableFromJar(path);
+            this.exe = LanternUtils.extractExecutableFromJar(path, 
+                    LanternClientConstants.DATA_DIR);
         } catch (final IOException e) {
-            throw new Error("Could not extract jar file from:"+ path, e);
+            throw new Error(String.format("Could not extract jar file from '%s': %s", path, e.getMessage()), e);
         }
         if (!exe.exists()) {
             String message = String.format(
@@ -125,7 +130,29 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
         cmd = new CommandLine(this.exe);
         addClientArgs(cmd, listenAddress, getModeAddress, proxyAddress);
-        exec();
+        
+        // Just wait for a moment for the PT process to either run as a long-
+        // lived process (as it should) or to return with some unexpected error.
+        final Future<Integer> fut = exec();
+        try {
+            final int val = fut.get(4, TimeUnit.SECONDS);
+            if (val != 0) {
+                LOGGER.error("Unexpected return value from PT: "+val);
+                throw new RuntimeException("Unexpected return value from PT: "+val);
+            }
+        } catch (final InterruptedException e) {
+            LOGGER.error("Unexpected interrupt?", e);
+            throw new RuntimeException("Unexpected interrupt", e);
+        } catch (final ExecutionException e) {
+            // This indicates an actual error, likely with the return value of
+            // the process.
+            LOGGER.error("Error executing PT", e);
+            throw new RuntimeException("Error executing PT", e);
+        } catch (final TimeoutException e) {
+            // Pluggable transport clients are generally expected to be 
+            // long-lived, so this is expected.
+            LOGGER.debug("Timed out waiting for PT return value AS EXPECTED");
+        }
 
         if (!LanternUtils.waitForServer(listenAddress, 60000)) {
             throw new RuntimeException(String.format("Unable to start %1$s",
@@ -155,9 +182,10 @@ public abstract class BasePluggableTransport implements PluggableTransport {
 
             // Record exception related to startup of server
             final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
+            final AtomicBoolean exceptionSet = new AtomicBoolean();
 
             // Check for termination of process
-            new Thread() {
+            Thread terminationThread = new Thread() {
                 public void run() {
                     try {
                         exitFuture.get();
@@ -166,31 +194,42 @@ public abstract class BasePluggableTransport implements PluggableTransport {
                                 String.format(
                                         "Unable to execute process: %1$s",
                                         e.getMessage()), e));
-                    }
-                    synchronized (exception) {
-                        exception.notifyAll();
+                    } finally {
+                        synchronized (exception) {
+                            exceptionSet.set(true);
+                            exception.notifyAll();
+                        }
                     }
                 }
-            }.start();
+            };
+            terminationThread.setDaemon(true);
+            terminationThread.start();
 
             // Check for server listening
-            new Thread() {
+            Thread listenCheckThread = new Thread() {
                 public void run() {
                     if (!LanternUtils
                             .waitForServer(listenIp, listenPort, 60000)) {
-                        exception.set(new RuntimeException(String.format(
-                                "Unable to start %1$s server", getLogName())));
-                    }
-                    synchronized (exception) {
-                        exception.notifyAll();
+                        synchronized (exception) {
+                            exception.set(new RuntimeException(String
+                                    .format(
+                                            "Unable to start %1$s server",
+                                            getLogName())));
+                            exceptionSet.set(true);
+                            exception.notifyAll();
+                        }
                     }
                 }
-            }.start();
+            };
+            listenCheckThread.setDaemon(true);
+            listenCheckThread.start();
 
             // Take the first exception
             try {
                 synchronized (exception) {
-                    exception.wait();
+                    if (!exceptionSet.get()) {
+                        exception.wait();
+                    }
                 }
             } catch (InterruptedException ie) {
                 throw new RuntimeException(
@@ -247,18 +286,14 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         cmdExec.setWatchdog(new ExecuteWatchdog(
                 ExecuteWatchdog.INFINITE_TIMEOUT));
         LOGGER.info("About to run cmd: {}", cmd);
-        try {
-            return Threads.newSingleThreadExecutor("PluggableTransportRunner")
-                    .submit(
-                            new Callable<Integer>() {
-                                @Override
-                                public Integer call() throws Exception {
-                                    return cmdExec.execute(cmd);
-                                }
-                            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return Threads.newSingleThreadExecutor("PluggableTransportRunner")
+            .submit(
+                    new Callable<Integer>() {
+                        @Override
+                        public Integer call() throws Exception {
+                            return cmdExec.execute(cmd);
+                        }
+                    });
     }
     
     protected LoggingStreamHandler buildLoggingStreamHandler(

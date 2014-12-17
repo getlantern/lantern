@@ -235,11 +235,14 @@ public class Flashlight extends BasePluggableTransport {
      * @param cmd
      */
     private void addParentPIDIfAvailable(CommandLine cmd) {
-        Integer myPID = ProcessUtil.getMyPID();
-        if (myPID != null) {
+        try {
+            final int myPID = ProcessUtil.getMyPID();
             cmd.addArgument("-parentpid");
-            cmd.addArgument(myPID.toString());
+            cmd.addArgument(String.valueOf(myPID));
+        } catch (IOException e) {
+            LOGGER.error("Could not determine PID!", e);
         }
+
     }
 
     @Override

@@ -7,12 +7,14 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SASLAuthentication;
@@ -26,6 +28,10 @@ import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 
 /**
  * Test for Lantern utilities.
@@ -41,6 +47,44 @@ public class LanternUtilsTest {
                 LanternSaslGoogleOAuth2Mechanism.class);
         TestUtils.load(true);
         System.setProperty("javax.net.debug", "ssl");
+    }
+    
+    @Test
+    public void testExtractExecutableFromJarFile() throws Exception {
+        final String path = "pt/flashlight";
+        final File dir = new File(Files.createTempDir(), "/test/subdir");
+        final File extracted = 
+                LanternUtils.extractExecutableFromJar(path, dir);
+        assertTrue(extracted.isFile());
+        assertTrue(extracted.canExecute());
+        
+        HashCode oldHash = Files.hash(extracted, Hashing.sha256());
+        
+        final File extracted2 = 
+                LanternUtils.extractExecutableFromJar(path, dir);
+        
+        HashCode newHash = Files.hash(extracted2, Hashing.sha256());
+        
+        assertEquals(extracted, extracted2);
+        assertEquals(oldHash, newHash);
+        assertTrue(extracted.canExecute());
+        
+        final FileOutputStream fos = new FileOutputStream(extracted, true);
+        fos.write(1);
+        fos.close();
+        
+        HashCode updatedHash = Files.hash(extracted, Hashing.sha256());
+        
+        assertNotEquals(updatedHash, newHash);
+        
+        final File extracted3 = 
+                LanternUtils.extractExecutableFromJar(path, dir);
+        
+        assertEquals(extracted, extracted3);
+        HashCode finalHash = Files.hash(extracted3, Hashing.sha256());
+        
+        assertEquals(oldHash, finalHash);
+        assertTrue(extracted.canExecute());
     }
 
     @Test

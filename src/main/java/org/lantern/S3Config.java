@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.Charsets;
@@ -15,7 +13,6 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.proxy.FallbackProxy;
 import org.lantern.proxy.pt.FlashlightMasquerade;
 import org.lantern.proxy.pt.FlashlightProxy;
-import org.lantern.proxy.pt.MasqueradeListener;
 import org.lantern.state.Model.Persistent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,16 +39,7 @@ public class S3Config extends BaseS3Config {
     }
 
     public static final FlashlightMasquerade MASQUERADE = 
-            new FlashlightMasquerade(DEFAULT_HOSTS_TO_CERTS, new MasqueradeListener() {
-                
-                @Override
-                public void onTestedAndVerifiedHost(String host) {
-                    synchronized (TESTED_AND_VERIFIED_HOSTS) {
-                        LOG.info("Adding tested and verified host: {}", host);
-                        TESTED_AND_VERIFIED_HOSTS.add(host);
-                    }
-                }
-            });
+            new FlashlightMasquerade(DEFAULT_HOSTS_TO_CERTS);
     
     /**
      * This is a flashlight proxy that internally handles things like 
@@ -89,9 +77,6 @@ public class S3Config extends BaseS3Config {
         all.addAll(getFallbacks());
         return all;
     }
-
-    private static final List<String> TESTED_AND_VERIFIED_HOSTS = 
-            new LinkedList<String>();
 
     @JsonIgnore
     public static String getMasqueradeHost() {

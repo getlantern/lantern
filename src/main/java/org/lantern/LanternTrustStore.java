@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -20,7 +19,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.PeerCertEvent;
@@ -48,9 +46,6 @@ public class LanternTrustStore {
     private static final String CIPHER_SUITE_LOW_BIT =
             "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
 
-    private static final String CIPHER_SUITE_HIGH_BIT =
-            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
-    
     private final AtomicReference<SSLContext> sslContextRef = 
             new AtomicReference<SSLContext>();
     private final LanternKeyStoreManager ksm;
@@ -69,49 +64,9 @@ public class LanternTrustStore {
         
     private static void configureCipherSuites() {
         Security.addProvider(new BouncyCastleProvider());
-        if (!LanternUtils.isUnlimitedKeyStrength()) {
-            /*
-            if (LanternUtils.isDevMode()) {
-                System.err.println("PLEASE INSTALL UNLIMITED STRENGTH POLICY FILES WITH ONE OF THE FOLLOWING:\n" +
-                    "sudo cp install/java7/* $JAVA_HOME/jre/lib/security/\n" +
-                    "sudo cp install/java6/* $JAVA_HOME/jre/lib/security/\n" +
-                    "depending on the JVM you're running with. You may want to backup $JAVA_HOME/jre/lib/security as well.\n" +
-                    "JAVA_HOME is currently: "+System.getenv("JAVA_HOME"));
-                
-                // Don't exit if we're running on CI...
-                final String env = System.getenv("BAMBOO");
-                System.err.println("Env: "+System.getenv());
-                if (!"true".equalsIgnoreCase(env)) {
-                    System.exit(1);
-                }
-            }
-            */
-            if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
-                LOGGER.warn("No policy files on non-Vista machine!!");
-            }
-            LOGGER.warn("Reverting to weaker ciphers");
-            LOGGER.warn("Look in "+ new File(SystemUtils.JAVA_HOME, "lib/security").getAbsolutePath());
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        } else {
-            // Note the following just sets what cipher suite the server
-            // side selects. DHE is for perfect forward secrecy.
-
-            // We include 128 because we never have enough permissions to
-            // copy the unlimited strength policy files on Vista, so we have
-            // to revert back to 128.
-            IceConfig.setCipherSuites(new String[] {
-                    CIPHER_SUITE_LOW_BIT,
-                    CIPHER_SUITE_HIGH_BIT
-                //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
-                //"TLS_RSA_WITH_RC4_128_SHA"
-                //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
-            });
-        }
+        IceConfig.setCipherSuites(new String[] {
+                CIPHER_SUITE_LOW_BIT
+        });
     }
     
     @Inject
@@ -240,7 +195,14 @@ public class LanternTrustStore {
      * For performance, these are created eagerly ahead of time.
      */
     public SSLEngine newSSLEngine() {
-        return getSslContext().createSSLEngine();
+        LOGGER.debug("Creating a new SSL engine...");
+        final SSLEngine engine = getSslContext().createSSLEngine();
+        
+        // Make sure only TLS is enabled to get around SSLv3 attacks such as 
+        // poodle. See:
+        // http://www.oracle.com/technetwork/java/javase/documentation/cve-2014-3566-2342133.html
+        engine.setEnabledProtocols(new String[] {"TLSv1"});
+        return engine;
     }
 
     private SSLContext provideSslContext() {
