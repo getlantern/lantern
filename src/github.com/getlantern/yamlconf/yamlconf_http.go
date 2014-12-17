@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/getlantern/pathreflect"
-	. "gopkg.in/getlantern/waitforserver.v1"
-	"gopkg.in/getlantern/yaml.v1"
+	. "github.com/getlantern/waitforserver"
+	"github.com/getlantern/yaml"
 )
 
 const (
