@@ -5,180 +5,223 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
-	"sync/atomic"
+	"reflect"
+	"sync"
 	"time"
 
-	"github.com/getlantern/flashlight/log"
+	"github.com/getlantern/golog"
 )
 
 const (
-	StatshubUrlTemplate = "https://%s/stats/%s"
+	statshubUrlTemplate = "https://%s/stats/%s"
+
+	countryDim = "country"
 )
-
-const (
-	increments = "increments"
-	gauges     = "gauges"
-)
-
-const (
-	set = iota
-	add = iota
-)
-
-type update struct {
-	category string
-	action   int
-	key      string
-	val      int64
-}
-
-type UpdateBuilder struct {
-	category string
-	key      string
-}
 
 var (
-	period       time.Duration
-	addr         string
-	id           string
-	country      string
-	updatesCh    chan *update
-	accumulators map[string]map[string]int64
-	started      int32
+	log = golog.LoggerFor("statreporter")
+
+	cfgMutex        sync.RWMutex
+	currentReporter *reporter
 )
 
+type Config struct {
+	// ReportingPeriod: how frequently to report
+	ReportingPeriod time.Duration
+
+	// StatshubAddr: the address of the statshub server to which to report
+	StatshubAddr string
+
+	// InstanceId: the instanceid under which to report
+	InstanceId string
+}
+
+type reporter struct {
+	cfg          *Config
+	poster       reportPoster
+	updatesCh    chan *update
+	accumulators map[string]*dimGroupAccumulator
+}
+
+type dimGroupAccumulator struct {
+	dg         *DimGroup
+	categories map[string]stats
+}
+
+type stats map[string]int64
+
+type report map[string]interface{}
+
+type reportPoster func(report report) error
+
 // Start runs a goroutine that periodically coalesces the collected statistics
-// and reports them to statshub via HTTP post
-func Start(reportingPeriod time.Duration, statshubAddr string, instanceId string, countryCode string) {
-	alreadyStarted := !atomic.CompareAndSwapInt32(&started, 0, 1)
-	if alreadyStarted {
-		log.Debugf("statreporter already started, not starting again")
-		return
+// and reports them to statshub via HTTPS post
+func Configure(cfg *Config) error {
+	if cfg.StatshubAddr == "" {
+		return fmt.Errorf("Must specify StatshubAddr if reporting stats")
 	}
-	period = reportingPeriod
-	addr = statshubAddr
-	id = instanceId
-	country = strings.ToLower(countryCode)
-	// We buffer the updates channel to be able to continue accepting updates while we're posting a report
-	updatesCh = make(chan *update, 10000)
-	accumulators = make(map[string]map[string]int64)
+	return doConfigure(cfg, posterForDimGroupStats(cfg))
+}
 
-	timer := time.NewTimer(timeToNextReport())
-	for {
-		select {
-		case update := <-updatesCh:
-			// Coalesce
-			accum := accumulators[update.category]
-			if accum == nil {
-				accum = make(map[string]int64)
-				accumulators[update.category] = accum
-			}
-			switch update.action {
-			case set:
-				accum[update.key] = update.val
-			case add:
-				accum[update.key] = accum[update.key] + update.val
-			}
-		case <-timer.C:
-			if len(accumulators) == 0 {
-				log.Debugf("No stats to report")
-			} else {
-				err := postStats(accumulators)
-				if err != nil {
-					log.Errorf("Error on posting stats: %s", err)
-				}
-				accumulators = make(map[string]map[string]int64)
-			}
-			timer.Reset(timeToNextReport())
+func doConfigure(cfg *Config, poster reportPoster) error {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	if currentReporter != nil {
+		// Note - the below comparison ignores poster, but in how we use this
+		// that's okay.
+		if currentReporter.matchesConfig(cfg) {
+			log.Debug("Config unchanged")
+			return nil
 		}
+
+		log.Debug("Stopping old reporter")
+		currentReporter.stop()
+		currentReporter = nil
 	}
-}
 
-// OnBytesGiven registers the fact that bytes were given (sent or received)
-func OnBytesGiven(clientIp string, bytes int64) {
-	Increment("bytesGiven").Add(bytes)
-	Increment("bytesGivenByFlashlight").Add(bytes)
-}
-
-func Increment(key string) *UpdateBuilder {
-	return &UpdateBuilder{
-		increments,
-		key,
+	if cfg.ReportingPeriod <= 0 {
+		log.Debug("Stat reporting turned off")
+		return nil
 	}
-}
 
-func Gauge(key string) *UpdateBuilder {
-	return &UpdateBuilder{
-		gauges,
-		key,
+	if cfg.InstanceId == "" {
+		return fmt.Errorf("Must specify InstanceId if reporting stats")
 	}
-}
 
-func (b *UpdateBuilder) Add(val int64) {
-	postUpdate(&update{
-		b.category,
-		add,
-		b.key,
-		val,
-	})
-}
+	log.Debugf("Reporting stats to %s every %s under instance id '%s'", cfg.StatshubAddr, cfg.ReportingPeriod, cfg.InstanceId)
+	currentReporter = &reporter{
+		cfg:    cfg,
+		poster: poster,
 
-func (b *UpdateBuilder) Set(val int64) {
-	postUpdate(&update{
-		b.category,
-		set,
-		b.key,
-		val,
-	})
+		// We buffer the updates channel to be able to continue accepting
+		// updates while we're posting a report
+		updatesCh:    make(chan *update, 1000),
+		accumulators: make(map[string]*dimGroupAccumulator),
+	}
+
+	go currentReporter.run()
+
+	return nil
 }
 
 func postUpdate(update *update) {
-	if isStarted() {
+	cfgMutex.RLock()
+	defer cfgMutex.RUnlock()
+
+	if currentReporter != nil {
 		select {
-			case updatesCh <- update:
-				// update posted
-			default:
-				// drop stat to avoid blocking
-			}
+		case currentReporter.updatesCh <- update:
+			log.Tracef("Posted update: %s", update)
+		default:
+			log.Tracef("Dropped update: %s", update)
+		}
+	} else {
+		log.Tracef("No reporter, dropping update")
 	}
 }
 
-func isStarted() bool {
-	return atomic.LoadInt32(&started) == 1
+func (r *reporter) run() {
+	timer := time.NewTimer(r.timeToNextReport())
+	go func() {
+	ForLoop:
+		for {
+			select {
+			case update, ok := <-r.updatesCh:
+				if !ok {
+					log.Tracef("updatesCh closed, stop reporting")
+					break ForLoop
+				}
+				log.Tracef("Coalescing update: %s", update)
+				// Coalesce
+				dgKey := update.dg.String()
+				dgAccum := r.accumulators[dgKey]
+				if dgAccum == nil {
+					dgAccum = &dimGroupAccumulator{
+						dg:         update.dg,
+						categories: make(map[string]stats),
+					}
+					r.accumulators[dgKey] = dgAccum
+				}
+				categoryStats := dgAccum.categories[update.category]
+				if categoryStats == nil {
+					categoryStats = make(stats)
+					dgAccum.categories[update.category] = categoryStats
+				}
+				switch update.action {
+				case set:
+					categoryStats[update.key] = update.val
+				case add:
+					categoryStats[update.key] = categoryStats[update.key] + update.val
+				}
+			case <-timer.C:
+				r.post()
+				timer.Reset(r.timeToNextReport())
+			}
+		}
+
+		log.Trace("posting one last time before terminating")
+		r.post()
+	}()
 }
 
-func timeToNextReport() time.Duration {
-	nextInterval := time.Now().Truncate(period).Add(period)
+func (r *reporter) stop() {
+	close(r.updatesCh)
+}
+
+func (r *reporter) post() {
+	if len(r.accumulators) == 0 {
+		log.Debugf("No stats to report")
+	} else {
+		for _, dgAccum := range r.accumulators {
+			err := r.poster(dgAccum.makeReport())
+			if err != nil {
+				log.Errorf("Unable to post stats for dim %s: %s", dgAccum.dg, err)
+			}
+		}
+		r.accumulators = make(map[string]*dimGroupAccumulator)
+	}
+}
+
+func (r *reporter) timeToNextReport() time.Duration {
+	nextInterval := time.Now().Truncate(r.cfg.ReportingPeriod).Add(r.cfg.ReportingPeriod)
 	return nextInterval.Sub(time.Now())
 }
 
-func postStats(accumulators map[string]map[string]int64) error {
-	report := map[string]interface{}{
-		"dims": map[string]string{
-			"country": country,
-		},
+func (r *reporter) matchesConfig(cfg *Config) bool {
+	return reflect.DeepEqual(cfg, r.cfg)
+}
+
+func (dgAccum *dimGroupAccumulator) makeReport() report {
+	report := report{
+		"dims": dgAccum.dg.dims,
 	}
 
-	for category, accum := range accumulators {
+	for category, accum := range dgAccum.categories {
 		report[category] = accum
 	}
 
-	jsonBytes, err := json.Marshal(report)
-	if err != nil {
-		return fmt.Errorf("Unable to marshal json for stats: %s", err)
-	}
+	return report
+}
 
-	url := fmt.Sprintf(StatshubUrlTemplate, addr, id)
-	resp, err := http.Post(url, "application/json", bytes.NewReader(jsonBytes))
-	if err != nil {
-		return fmt.Errorf("Unable to post stats to statshub: %s", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Unexpected response status posting stats to statshub: %d", resp.StatusCode)
-	}
+func posterForDimGroupStats(cfg *Config) reportPoster {
+	return func(report report) error {
+		jsonBytes, err := json.Marshal(report)
+		if err != nil {
+			return fmt.Errorf("Unable to marshal json for stats: %s", err)
+		}
 
-	log.Debugf("Reported %s to statshub", string(jsonBytes))
-	return nil
+		url := fmt.Sprintf(statshubUrlTemplate, cfg.StatshubAddr, cfg.InstanceId)
+		resp, err := http.Post(url, "application/json", bytes.NewReader(jsonBytes))
+		if err != nil {
+			return fmt.Errorf("Unable to post stats to statshub: %s", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("Unexpected response status posting stats to statshub: %d", resp.StatusCode)
+		}
+
+		log.Debugf("Reported %s to statshub", string(jsonBytes))
+		return nil
+	}
 }

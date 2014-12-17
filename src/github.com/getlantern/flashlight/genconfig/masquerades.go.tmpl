@@ -2,10 +2,16 @@ package config
 
 import "github.com/getlantern/flashlight/client"
 
+var defaultTrustedCAs = []*CA{ {{range .cas}}
+    &CA{
+        CommonName: "{{.CommonName}}",
+        Cert:       "{{.Cert}}",
+    }, {{end}}
+}
+
 var cloudflareMasquerades = []*client.Masquerade{ {{range .masquerades}}
-	&client.Masquerade{
-		Domain: "{{.Domain}}",
-		IpAddress: "{{.IpAddress}}",
-		RootCA: "{{.RootCA}}",
-	}, {{end}}
+    &client.Masquerade{
+        Domain:    "{{.Domain}}",
+        IpAddress: "{{.IpAddress}}",
+    }, {{end}}
 }

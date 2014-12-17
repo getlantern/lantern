@@ -7,27 +7,15 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"time"
 
 	"github.com/getlantern/connpool"
 	"github.com/getlantern/enproxy"
-	"github.com/getlantern/flashlight/log"
+	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/keyman"
-	"net/http/httputil"
-
-	"gopkg.in/getlantern/tlsdialer.v2"
-)
-
-var (
-	// Cutoff for logging warnings about a dial having taken a long time.
-	longDialLimit = 10 * time.Second
-
-	// idleTimeout needs to be small enough that we stop using connections
-	// before the upstream server/CDN closes them itself.
-	// TODO: make this configurable.
-	idleTimeout = 10 * time.Second
+	"github.com/getlantern/tlsdialer"
 )
 
 type server struct {
@@ -260,12 +248,13 @@ func (serverInfo *ServerInfo) recordTiming(step string, duration time.Duration) 
 	} else {
 		step = fmt.Sprintf("%sTo%s", step, serverInfo.Host)
 	}
-	statreporter.Gauge(step).Add(1)
+	dims := statreporter.Dim("country", globals.Country)
+	dims.Gauge(step).Add(1)
 	for i := 4; i >= 0; i-- {
 		seconds := int(math.Pow(float64(2), float64(i)))
 		if duration > time.Duration(seconds)*time.Second {
 			key := fmt.Sprintf("%sOver%dSec", step, seconds)
-			statreporter.Gauge(key).Add(1)
+			dims.Gauge(key).Add(1)
 			return
 		}
 	}
@@ -299,27 +288,21 @@ func (serverInfo *ServerInfo) tlsConfig(masquerade *Masquerade) *tls.Config {
 		serverInfo.tlsConfigs = make(map[string]*tls.Config)
 	}
 
-	configKey := ""
 	serverName := serverInfo.Host
 	if masquerade != nil {
-		configKey = masquerade.Domain + "|" + masquerade.RootCA
 		serverName = masquerade.Domain
 	}
-	tlsConfig := serverInfo.tlsConfigs[configKey]
+	tlsConfig := serverInfo.tlsConfigs[masquerade.Domain]
 	if tlsConfig == nil {
 		tlsConfig = &tls.Config{
 			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 			InsecureSkipVerify: serverInfo.InsecureSkipVerify,
 			ServerName:         serverName,
 		}
-		if masquerade != nil && masquerade.RootCA != "" {
-			caCert, err := keyman.LoadCertificateFromPEMBytes([]byte(masquerade.RootCA))
-			if err != nil {
-				log.Fatalf("Unable to load root ca cert: %s", err)
-			}
-			tlsConfig.RootCAs = caCert.PoolContainingCert()
+		if masquerade != nil && globals.TrustedCAs != nil {
+			tlsConfig.RootCAs = globals.TrustedCAs
 		}
-		serverInfo.tlsConfigs[configKey] = tlsConfig
+		serverInfo.tlsConfigs[masquerade.Domain] = tlsConfig
 	}
 
 	return tlsConfig

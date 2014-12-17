@@ -6,12 +6,16 @@ import (
 	"sync"
 
 	"github.com/getlantern/eventsource"
-	"github.com/getlantern/flashlight/log"
+	"github.com/getlantern/golog"
+)
+
+var (
+	log = golog.LoggerFor("flashlight.statserver")
 )
 
 // Server provides an SSE server that publishes stat updates for peers.
 // See (http://www.html5rocks.com/en/tutorials/eventsource/basics/) for more
-// about Server-Sent Events
+// about Server-Sent Events.
 type Server struct {
 	Addr         string
 	clients      map[int]*Client
